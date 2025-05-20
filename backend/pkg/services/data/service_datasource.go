@@ -199,7 +199,7 @@ func (s *service) getDataGroup(ctx core.Context, groupID int64, category string)
 		ID: groupID,
 	}
 
-	dataGroups, _, err := s.dbRepo.GetDataGroup(filter)
+	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx, filter)
 	if err != nil {
 		return dataGroups, err
 	}

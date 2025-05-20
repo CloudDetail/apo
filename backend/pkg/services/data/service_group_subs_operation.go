@@ -4,8 +4,6 @@
 package data
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -23,7 +21,7 @@ func (s *service) GroupSubsOperation(ctx core.Context, req *request.GroupSubsOpe
 	filter := model.DataGroupFilter{
 		ID: req.DataGroupID,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	exists, err := s.dbRepo.DataGroupExist(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -32,7 +30,7 @@ func (s *service) GroupSubsOperation(ctx core.Context, req *request.GroupSubsOpe
 	}
 
 	getAuthDataGroups := func(subjectType string) error {
-		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(req.DataGroupID, subjectType)
+		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(ctx, req.DataGroupID, subjectType)
 		if err != nil {
 			return err
 		}
@@ -54,12 +52,12 @@ func (s *service) GroupSubsOperation(ctx core.Context, req *request.GroupSubsOpe
 		for _, sub := range subjects {
 			switch subjectType {
 			case model.DATA_GROUP_SUB_TYP_USER:
-				exists, err = s.dbRepo.UserExists(sub.SubjectID)
+				exists, err = s.dbRepo.UserExists(ctx, sub.SubjectID)
 			case model.DATA_GROUP_SUB_TYP_TEAM:
 				filter := model.TeamFilter{
 					ID: sub.SubjectID,
 				}
-				exists, err = s.dbRepo.TeamExist(filter)
+				exists, err = s.dbRepo.TeamExist(ctx, filter)
 			}
 			if err != nil {
 				return err
@@ -99,13 +97,13 @@ func (s *service) GroupSubsOperation(ctx core.Context, req *request.GroupSubsOpe
 		toDelete = append(toDelete, subID)
 	}
 
-	assignFunc := func(ctx context.Context) error {
+	assignFunc := func(ctx core.Context) error {
 		return s.dbRepo.AssignDataGroup(ctx, toAdd)
 	}
 
-	revokeFunc := func(ctx context.Context) error {
+	revokeFunc := func(ctx core.Context) error {
 		return s.dbRepo.RevokeDataGroupBySub(ctx, toDelete, req.DataGroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignFunc, revokeFunc)
+	return s.dbRepo.Transaction(ctx, assignFunc, revokeFunc)
 }

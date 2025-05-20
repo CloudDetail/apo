@@ -17,12 +17,12 @@ import (
 )
 
 func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.difyRepo.GetCacheMinutes())
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 
-	counts, err := s.chRepo.GetAlertEventCounts(req, s.difyRepo.GetCacheMinutes())
+	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}

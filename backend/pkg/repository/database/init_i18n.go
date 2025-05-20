@@ -6,12 +6,13 @@ package database
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) initI18nTranslation() error {
+func (repo *daoRepo) initI18nTranslation(ctx core.Context) error {
 	type transConfig struct {
 		Key  string            `mapstructure:"key"`
 		I18n []I18nTranslation `mapstructure:"i18n"`
@@ -26,7 +27,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 		return err
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingTranslations []I18nTranslation
 		var toInsert, toDelete, toUpdate []I18nTranslation
 		if err := tx.Find(&existingTranslations).Error; err != nil {

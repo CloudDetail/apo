@@ -36,6 +36,7 @@ func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEv
 
 	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
+		ctx,
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
@@ -80,6 +81,7 @@ func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRe
 
 	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
+		ctx,
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{

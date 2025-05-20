@@ -35,10 +35,10 @@ func (s *service) UpdateClusterIntegration(ctx core.Context, cluster *integratio
 	}
 
 	cluster.APOCollector.RemoveHttpPrefix()
-	err := s.dbRepo.UpdateCluster(&cluster.Cluster)
+	err := s.dbRepo.UpdateCluster(ctx, &cluster.Cluster)
 	if err != nil {
 		return err
 	}
 
-	return s.dbRepo.SaveIntegrationConfig(*cluster)
+	return s.dbRepo.SaveIntegrationConfig(ctx, *cluster)
 }

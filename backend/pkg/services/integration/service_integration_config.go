@@ -79,7 +79,7 @@ func defaultValue(v any, def any) string {
 }
 
 func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error) {
-	clusterConfig, err := s.dbRepo.GetIntegrationConfig(req.ClusterID)
+	clusterConfig, err := s.dbRepo.GetIntegrationConfig(ctx, req.ClusterID)
 	if err != nil {
 		return nil, err
 	}

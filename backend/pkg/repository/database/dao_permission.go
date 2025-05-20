@@ -4,10 +4,8 @@
 package database
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // AuthPermission records which features are authorised to which subjects.
@@ -23,24 +21,24 @@ func (AuthPermission) TableName() string {
 	return "auth_permission"
 }
 
-func (repo *daoRepo) GetSubjectPermission(subID int64, subType string, typ string) ([]int, error) {
+func (repo *daoRepo) GetSubjectPermission(ctx core.Context, subID int64, subType string, typ string) ([]int, error) {
 	var permissionIDs []int
-	err := repo.db.Model(&AuthPermission{}).
+	err := repo.GetContextDB(ctx).Model(&AuthPermission{}).
 		Select("permission_id").
 		Where("subject_id = ? AND subject_type = ? AND type = ?", subID, subType, typ).
 		Find(&permissionIDs).Error
 	return permissionIDs, err
 }
 
-func (repo *daoRepo) GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
+func (repo *daoRepo) GetSubjectsPermission(ctx core.Context, subIDs []int64, subType string, typ string) ([]AuthPermission, error) {
 	var permissions []AuthPermission
-	err := repo.db.Model(&AuthPermission{}).
+	err := repo.GetContextDB(ctx).Model(&AuthPermission{}).
 		Where("subject_id in ? AND subject_type = ? AND type = ?", subIDs, subType, typ).
 		Find(&permissions).Error
 	return permissions, err
 }
 
-func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+func (repo *daoRepo) GrantPermission(ctx core.Context, subID int64, subType string, typ string, permissionIDs []int) error {
 	if len(permissionIDs) == 0 {
 		return nil
 	}
@@ -60,7 +58,7 @@ func (repo *daoRepo) GrantPermission(ctx context.Context, subID int64, subType s
 }
 
 // RevokePermission It will delete all record related to sub if permissionIDs is empty.
-func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error {
+func (repo *daoRepo) RevokePermission(ctx core.Context, subID int64, subType string, typ string, permissionIDs []int) error {
 	if len(permissionIDs) == 0 {
 		return nil
 	}
@@ -76,13 +74,13 @@ func (repo *daoRepo) RevokePermission(ctx context.Context, subID int64, subType 
 	return query.Delete(nil).Error
 }
 
-func (repo *daoRepo) GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
-	subPermissions, err := repo.GetSubjectPermission(subID, subType, typ)
+func (repo *daoRepo) GetAddAndDeletePermissions(ctx core.Context, subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error) {
+	subPermissions, err := repo.GetSubjectPermission(ctx, subID, subType, typ)
 	if err != nil {
 		return
 	}
 
-	permissions, err := repo.GetFeature(nil)
+	permissions, err := repo.GetFeature(ctx, nil)
 
 	permissionMap := make(map[int]struct{})
 	for _, permission := range permissions {

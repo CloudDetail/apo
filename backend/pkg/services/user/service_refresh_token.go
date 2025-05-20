@@ -20,5 +20,5 @@ func (s *service) RefreshToken(ctx core.Context, token string) (response.Refresh
 }
 
 func (s *service) IsInBlacklist(ctx core.Context, token string) (bool, error) {
-	return s.cacheRepo.IsInBlacklist(token)
+	return s.cacheRepo.IsInBlacklist(ctx, token)
 }

@@ -4,7 +4,6 @@
 package alert
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -35,5 +34,5 @@ func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, 
 	}
 
 	s.difyRepo.SubmitAlertEvents(events)
-	return s.ckRepo.InsertAlertEvent(context.Background(), events, source)
+	return s.ckRepo.InsertAlertEvent(ctx, events, source)
 }

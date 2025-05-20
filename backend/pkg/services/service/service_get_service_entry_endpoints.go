@@ -10,5 +10,5 @@ import (
 )
 
 func (s *service) GetServiceEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error) {
-	return s.chRepo.ListEntryEndpoints(req)
+	return s.chRepo.ListEntryEndpoints(ctx, req)
 }

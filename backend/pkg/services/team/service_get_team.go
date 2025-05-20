@@ -11,7 +11,7 @@ import (
 )
 
 func (s *service) GetTeamList(ctx core.Context, req *request.GetTeamRequest) (resp response.GetTeamResponse, err error) {
-	teams, count, err := s.dbRepo.GetTeamList(req)
+	teams, count, err := s.dbRepo.GetTeamList(ctx, req)
 	if err != nil {
 		return
 	}

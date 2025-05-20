@@ -3,8 +3,12 @@
 
 package database
 
+import
+
 // Feature is a collection of APIs, frontend routes and menu items
 // that represents the embodiment of access control.
+core "github.com/CloudDetail/apo/backend/pkg/core"
+
 type Feature struct {
 	FeatureID   int    `gorm:"column:feature_id;primary_key;auto_increment" json:"featureId"`
 	FeatureName string `gorm:"column:feature_name;type:varchar(20)" json:"featureName"`
@@ -31,9 +35,9 @@ func (t *FeatureMapping) TableName() string {
 	return "feature_mapping"
 }
 
-func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
+func (repo *daoRepo) GetFeature(ctx core.Context, featureIDs []int) ([]Feature, error) {
 	var features []Feature
-	query := repo.db
+	query := repo.GetContextDB(ctx)
 	if featureIDs != nil {
 		query = query.Where("feature_id in ?", featureIDs)
 	}
@@ -42,20 +46,20 @@ func (repo *daoRepo) GetFeature(featureIDs []int) ([]Feature, error) {
 	return features, err
 }
 
-func (repo *daoRepo) GetFeatureMappingByFeature(featureIDs []int, mappedType string) ([]FeatureMapping, error) {
+func (repo *daoRepo) GetFeatureMappingByFeature(ctx core.Context, featureIDs []int, mappedType string) ([]FeatureMapping, error) {
 	var featureMenuItem []FeatureMapping
-	err := repo.db.Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
+	err := repo.GetContextDB(ctx).Where("feature_id in ? AND mapped_type = ?", featureIDs, mappedType).Order("mapped_id").Find(&featureMenuItem).Error
 	return featureMenuItem, err
 }
 
-func (repo *daoRepo) GetFeatureMappingByMapped(mappedID int, mappedType string) (FeatureMapping, error) {
+func (repo *daoRepo) GetFeatureMappingByMapped(ctx core.Context, mappedID int, mappedType string) (FeatureMapping, error) {
 	var fm FeatureMapping
-	err := repo.db.Where("mapped_id = ? AND mapped_type = ?", mappedID, mappedType).Find(&fm).Error
+	err := repo.GetContextDB(ctx).Where("mapped_id = ? AND mapped_type = ?", mappedID, mappedType).Find(&fm).Error
 	return fm, err
 }
 
-func (repo *daoRepo) GetFeatureByName(name string) (int, error) {
+func (repo *daoRepo) GetFeatureByName(ctx core.Context, name string) (int, error) {
 	var id int
-	err := repo.db.Model(&Feature{}).Select("feature_id").Where("feature_name = ?", name).Find(&id).Error
+	err := repo.GetContextDB(ctx).Model(&Feature{}).Select("feature_id").Where("feature_name = ?", name).Find(&id).Error
 	return id, err
 }

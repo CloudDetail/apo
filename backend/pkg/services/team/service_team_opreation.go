@@ -4,20 +4,18 @@
 package team
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (s *service) TeamOperation(ctx core.Context, req *request.TeamOperationRequest) error {
-	teamIDs, err := s.dbRepo.GetUserTeams(req.UserID)
+	teamIDs, err := s.dbRepo.GetUserTeams(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	teams, _, err := s.dbRepo.GetTeamList(&request.GetTeamRequest{})
+	teams, _, err := s.dbRepo.GetTeamList(ctx, &request.GetTeamRequest{})
 	if err != nil {
 		return err
 	}
@@ -49,13 +47,13 @@ func (s *service) TeamOperation(ctx core.Context, req *request.TeamOperationRequ
 		toDelete = append(toDelete, id)
 	}
 
-	var assignFunc = func(ctx context.Context) error {
+	var assignFunc = func(ctx core.Context) error {
 		return s.dbRepo.AssignUserToTeam(ctx, req.UserID, toAdd)
 	}
 
-	var removeFunc = func(ctx context.Context) error {
+	var removeFunc = func(ctx core.Context) error {
 		return s.dbRepo.RemoveFromTeamByUser(ctx, req.UserID, toDelete)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx, assignFunc, removeFunc)
 }

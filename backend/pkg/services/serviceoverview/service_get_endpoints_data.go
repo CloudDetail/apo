@@ -88,7 +88,7 @@ func (s *service) sortWithRule(ctx core.Context, sortRule request.SortType, endp
 	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
 		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.ReverseSortWithMetrics(sortRule))
 	case request.DODThreshold: //Sort by Day-to-Year Threshold
-		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+		threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 		if err != nil {
 			return err
 		}

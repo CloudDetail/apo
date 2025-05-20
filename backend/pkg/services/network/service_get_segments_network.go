@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) GetSpanSegmentsMetrics(ctx core.Context, req *request.SpanSegmentMetricsRequest) (response.SpanSegmentMetricsResponse, error) {
-	netSegments, err := s.chRepo.GetNetworkSpanSegments(req.TraceId, req.SpanId)
+	netSegments, err := s.chRepo.GetNetworkSpanSegments(ctx, req.TraceId, req.SpanId)
 	if err != nil {
 		return nil, err
 	}

@@ -59,7 +59,7 @@ func TestDataSourcePermission(t *testing.T) {
 
 	namespaceList := []string{}
 
-	anonymousUser, err := s.dbRepo.GetAnonymousUser()
+	anonymousUser, err := s.dbRepo.GetAnonymousUser(nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -99,7 +99,7 @@ func (s *service) UpdateLogParseRule(ctx core.Context, req *request.UpdateLogPar
 		ParseRule:    req.ParseRule,
 	}
 
-	err = s.dbRepo.UpdateLogParseRule(&log)
+	err = s.dbRepo.UpdateLogParseRule(ctx, &log)
 	if err != nil {
 		return nil, err
 	}

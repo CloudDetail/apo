@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) GetOnOffCPU(ctx core.Context, req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error) {
-	result, err := s.chRepo.GetOnOffCPU(req.PID, req.NodeName, req.StartTime, req.EndTime)
+	result, err := s.chRepo.GetOnOffCPU(ctx, req.PID, req.NodeName, req.StartTime, req.EndTime)
 	if err != nil {
 		return nil, err
 	}

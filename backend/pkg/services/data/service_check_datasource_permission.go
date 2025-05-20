@@ -31,7 +31,7 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 
 	// Get user's data group
 	if groupID != 0 {
-		has, err := s.dbRepo.CheckGroupPermission(userID, groupID, "view")
+		has, err := s.dbRepo.CheckGroupPermission(ctx, userID, groupID, "view")
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 		filter := model.DataGroupFilter{
 			ID: groupID,
 		}
-		groups, _, err = s.dbRepo.GetDataGroup(filter)
+		groups, _, err = s.dbRepo.GetDataGroup(ctx, filter)
 		if err != nil {
 			return err
 		}

@@ -26,7 +26,7 @@ func (r *InnerReceivers) updateReceiversInMemory(receivers []amconfig.Receiver) 
 }
 
 func (r *InnerReceivers) GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int) {
-	receivers, count, err := r.database.GetAMConfigReceiver(filter, pageParam)
+	receivers, count, err := r.database.GetAMConfigReceiver(ctx, filter, pageParam)
 	if err != nil {
 		r.logger.Error("failed to list amconfigReceiver", "err", err)
 		return []amconfig.Receiver{}, 0
@@ -35,12 +35,12 @@ func (r *InnerReceivers) GetAMConfigReceiver(ctx core.Context, filter *request.A
 }
 
 func (r *InnerReceivers) AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error {
-	err := r.database.AddAMConfigReceiver(receiver)
+	err := r.database.AddAMConfigReceiver(ctx, receiver)
 	if err != nil {
 		return err
 	}
 
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -48,11 +48,11 @@ func (r *InnerReceivers) AddAMConfigReceiver(ctx core.Context, receiver amconfig
 }
 
 func (r *InnerReceivers) UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error {
-	err := r.database.UpdateAMConfigReceiver(receiver, oldName)
+	err := r.database.UpdateAMConfigReceiver(ctx, receiver, oldName)
 	if err != nil {
 		return err
 	}
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -60,11 +60,11 @@ func (r *InnerReceivers) UpdateAMConfigReceiver(ctx core.Context, receiver amcon
 }
 
 func (r *InnerReceivers) DeleteAMConfigReceiver(ctx core.Context, name string) error {
-	err := r.database.DeleteAMConfigReceiver(name)
+	err := r.database.DeleteAMConfigReceiver(ctx, name)
 	if err != nil {
 		return err
 	}
-	receivers, _, err := r.database.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := r.database.GetAMConfigReceiver(ctx, nil, nil)
 	if err != nil {
 		return err
 	}

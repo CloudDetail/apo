@@ -4,8 +4,6 @@
 package team
 
 import (
-	"context"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -16,7 +14,7 @@ func (s *service) DeleteTeam(ctx core.Context, req *request.DeleteTeamRequest) e
 	filter := model.TeamFilter{
 		ID: req.TeamID,
 	}
-	exists, err := s.dbRepo.TeamExist(filter)
+	exists, err := s.dbRepo.TeamExist(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -25,25 +23,25 @@ func (s *service) DeleteTeam(ctx core.Context, req *request.DeleteTeamRequest) e
 		return core.Error(code.TeamNotExistError, "team does not exist")
 	}
 
-	permissionIDs, err := s.dbRepo.GetSubjectPermission(req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
+	permissionIDs, err := s.dbRepo.GetSubjectPermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE)
 	if err != nil {
 		return err
 	}
 
-	var deleteTeamFunc = func(ctx context.Context) error {
+	var deleteTeamFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteTeam(ctx, req.TeamID)
 	}
 
-	var revokePermissionFunc = func(ctx context.Context) error {
+	var revokePermissionFunc = func(ctx core.Context) error {
 		return s.dbRepo.RevokePermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, permissionIDs)
 	}
 
-	var deleteTeamUserFunc = func(ctx context.Context) error {
+	var deleteTeamUserFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteAllUserTeam(ctx, req.TeamID, "team")
 	}
 
-	var deleteAuthDataGroupFunc = func(ctx context.Context) error {
+	var deleteAuthDataGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteAuthDataGroup(ctx, req.TeamID, model.DATA_GROUP_SUB_TYP_TEAM)
 	}
-	return s.dbRepo.Transaction(context.Background(), deleteTeamFunc, revokePermissionFunc, deleteTeamUserFunc, deleteAuthDataGroupFunc)
+	return s.dbRepo.Transaction(ctx, deleteTeamFunc, revokePermissionFunc, deleteTeamUserFunc, deleteAuthDataGroupFunc)
 }

@@ -108,26 +108,26 @@ func (s *service) UpdateAlertEnrichRule(ctx core.Context, req *alert.AlertEnrich
 		}
 	}
 
-	err = s.dbRepo.DeleteAlertEnrichRule(deletedRules)
+	err = s.dbRepo.DeleteAlertEnrichRule(ctx, deletedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichConditions(deletedRules)
+	err = s.dbRepo.DeleteAlertEnrichConditions(ctx, deletedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(deletedRules)
-	storeError = multierr.Append(storeError, err)
-
-	err = s.dbRepo.DeleteAlertEnrichConditions(conditionsModifiedRules)
-	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newConditions)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(ctx, deletedRules)
 	storeError = multierr.Append(storeError, err)
 
-	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(schemaTargetModifiedRules)
+	err = s.dbRepo.DeleteAlertEnrichConditions(ctx, conditionsModifiedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newSchemaTargets)
+	err = s.dbRepo.AddAlertEnrichConditions(ctx, newConditions)
 	storeError = multierr.Append(storeError, err)
 
-	err = s.dbRepo.DeleteAlertEnrichRule(modifiedAlertEnrichRules)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTarget(ctx, schemaTargetModifiedRules)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichRule(newAlertEnrichRules)
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(ctx, newSchemaTargets)
+	storeError = multierr.Append(storeError, err)
+
+	err = s.dbRepo.DeleteAlertEnrichRule(ctx, modifiedAlertEnrichRules)
+	storeError = multierr.Append(storeError, err)
+	err = s.dbRepo.AddAlertEnrichRule(ctx, newAlertEnrichRules)
 	storeError = multierr.Append(storeError, err)
 
 	return storeError

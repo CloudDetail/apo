@@ -4,7 +4,6 @@
 package alerts
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"time"
@@ -76,7 +75,7 @@ func convertStatus(status string) model.Status {
 
 func (s *service) InputAlertManager(ctx core.Context, req *request.InputAlertManagerRequest) error {
 	events := transferAlertManager(req)
-	err := s.chRepo.InsertBatchAlertEvents(context.Background(), events)
+	err := s.chRepo.InsertBatchAlertEvents(ctx, events)
 	if err != nil {
 		log.Println("[AlertManager] Error inserting data: ", err)
 		return err

@@ -35,7 +35,7 @@ func (s *service) GetErrorInstance(ctx core.Context, req *request.GetErrorInstan
 	}
 
 	// Get error propagation link
-	propagations, err := s.chRepo.ListErrorPropagation(req)
+	propagations, err := s.chRepo.ListErrorPropagation(ctx, req)
 	if err != nil {
 		return nil, err
 	}

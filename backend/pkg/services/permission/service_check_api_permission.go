@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) CheckApiPermission(ctx core.Context, userID int64, method string, path string) (ok bool, err error) {
-	exists, err := s.dbRepo.UserExists(userID)
+	exists, err := s.dbRepo.UserExists(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -23,7 +23,7 @@ func (s *service) CheckApiPermission(ctx core.Context, userID int64, method stri
 	if err != nil {
 		return false, err
 	}
-	api, err := s.dbRepo.GetAPIByPath(path, method)
+	api, err := s.dbRepo.GetAPIByPath(ctx, path, method)
 	if err != nil {
 		return false, err
 	}
@@ -32,7 +32,7 @@ func (s *service) CheckApiPermission(ctx core.Context, userID int64, method stri
 		return false, core.Error(code.APINotExist, "api does not exist")
 	}
 
-	fm, err := s.dbRepo.GetFeatureMappingByMapped(api.ID, model.MAPPED_TYP_API)
+	fm, err := s.dbRepo.GetFeatureMappingByMapped(ctx, api.ID, model.MAPPED_TYP_API)
 	if err != nil {
 		return false, err
 	}

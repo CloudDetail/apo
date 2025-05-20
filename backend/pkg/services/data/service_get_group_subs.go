@@ -18,15 +18,15 @@ func (s *service) GetGroupSubs(ctx core.Context, req *request.GetGroupSubsReques
 
 	switch req.SubjectType {
 	case model.DATA_GROUP_SUB_TYP_USER:
-		resp, err = s.dbRepo.GetDataGroupUsers(req.DataGroupID)
+		resp, err = s.dbRepo.GetDataGroupUsers(ctx, req.DataGroupID)
 	case model.DATA_GROUP_SUB_TYP_TEAM:
-		resp, err = s.dbRepo.GetDataGroupTeams(req.DataGroupID)
+		resp, err = s.dbRepo.GetDataGroupTeams(ctx, req.DataGroupID)
 	case "":
-		resp, err = s.dbRepo.GetDataGroupUsers(req.DataGroupID)
+		resp, err = s.dbRepo.GetDataGroupUsers(ctx, req.DataGroupID)
 		if err != nil {
 			return nil, err
 		}
-		authTeam, err := s.dbRepo.GetDataGroupTeams(req.DataGroupID)
+		authTeam, err := s.dbRepo.GetDataGroupTeams(ctx, req.DataGroupID)
 		if err != nil {
 			return nil, err
 		}

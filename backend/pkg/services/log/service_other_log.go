@@ -11,7 +11,7 @@ import (
 
 func (s *service) OtherTable(ctx core.Context, req *request.OtherTableRequest) (*response.OtherTableResponse, error) {
 	res := &response.OtherTableResponse{}
-	rows, err := s.chRepo.OtherLogTable()
+	rows, err := s.chRepo.OtherLogTable(ctx)
 	if err != nil {
 		return nil, err
 	}
