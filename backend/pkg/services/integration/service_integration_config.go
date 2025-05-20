@@ -117,8 +117,14 @@ const (
 	selfCollectMode  = "self-collector"
 )
 
+func init() {
+	if value, find := os.LookupEnv("APO_CHART_VERSION"); find {
+		apoChartVersion = value
+	}
+}
+
 var (
-	apoChartVersion         = "1.7"
+	apoChartVersion         = "1.8"
 	apoComposeDeployVersion = "v1.3.000"
 )
 
