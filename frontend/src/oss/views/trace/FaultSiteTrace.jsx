@@ -413,28 +413,10 @@ function FaultSiteTrace() {
     }
   }, [tracePageList, column])
   return (
-    // <Card
-    //   className="h-full flex flex-col overflow-hidden text-xs px-2"
-    //   style={{ height: 'calc(100vh - 120px)' }}
-    //   styles={{ body: { padding: '8px', height: '100%' } }}
-    // >
-    //   <LoadingSpinner loading={loading} />
-    //   <div className="text-xs flex flex-col h-full overflow-hidden">
-    //     <div className="flex-shrink-0 flex-grow">
-    //       <LogsTraceFilter type="trace" />
-    //     </div>
-    //     {traceTableMock && <BasicTable {...tableProps} />}
-    //   </div>
-      // <EndpointTableModal
-      //   traceId={selectTraceId}
-      //   visible={modalVisible}
-      //   closeModal={() => setModalVisible(false)}
-      // />
-    // </Card>
     <BasicCard>
       <LoadingSpinner loading={loading} />
 
-      <BasicCard.Header className='justify-between'>
+      <BasicCard.Header>
         <div className="w-full flex-shrink-0 flex-grow mb-2">
           <LogsTraceFilter type="trace" />
         </div>
