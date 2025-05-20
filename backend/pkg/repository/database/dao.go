@@ -42,7 +42,7 @@ type Repo interface {
 	DeleteDingTalkReceiver(ctx core.Context, configFile, alertName string) error
 
 	ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error)
-	ListQuickMutationMetric(lang string) ([]QuickMutationMetric, error)
+	ListQuickMutationMetric(ctx core.Context, lang string) ([]QuickMutationMetric, error)
 
 	Login(ctx core.Context, username, password string) (*User, error)
 	CreateUser(ctx core.Context, user *User) error
@@ -136,10 +136,10 @@ type Repo interface {
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx core.Context, funcs ...func(txCtx core.Context) error) error
 
-	CreateCustomQuery(serviceType *QueryServiceType) error
-	UpdateCustomQuery(customName string, customType string) error
-	GetCustomQuery() ([]QueryServiceType, error)
-	DeleteCustomQuery(customName string) error
+	CreateCustomQuery(ctx core.Context, serviceType *QueryServiceType) error
+	UpdateCustomQuery(ctx core.Context, customName string, customType string) error
+	GetCustomQuery(ctx core.Context) ([]QueryServiceType, error)
+	DeleteCustomQuery(ctx core.Context, customName string) error
 	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error)
 	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
 	UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error

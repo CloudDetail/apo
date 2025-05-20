@@ -23,29 +23,29 @@ func (h *handler) GetAnomalySpan() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAnomalySpanRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		if !model.CheckPolarisType(req.Reason) {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)),
+				nil,
 			)
 			return
 		}
 
-		resp, err := h.alertanalyzeService.GetAnomalySpan(req)
+		resp, err := h.alertanalyzeService.GetAnomalySpan(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAnomalySpanError,
-				c.ErrMessage(code.GetAnomalySpanError)).WithError(err))
+				err)
 			return
 		}
 		c.Payload(resp)

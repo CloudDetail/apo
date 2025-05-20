@@ -3,6 +3,7 @@ package alertanalyze
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -15,7 +16,7 @@ var eventFilter = request.AlertFilter{
 	WithMutation: true,
 }
 
-func (s *service) GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error) {
+func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
@@ -27,6 +28,7 @@ func (s *service) GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*respons
 	}
 
 	events, count, err := s.chRepo.GetAlertEvents(
+		ctx,
 		startTime, endTime, eventFilter, nil,
 		req.PageParam, ck.OrderAlertByReceivedTime)
 	if err != nil {
@@ -46,7 +48,7 @@ func (s *service) GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*respons
 	}
 
 	endpoints := endpointsMap.EndpointsList()
-	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertService(
+	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertService(ctx,
 		endpoints, startTime.UnixMicro(), endTime.UnixMicro())
 
 	if err != nil {

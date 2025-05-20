@@ -23,19 +23,19 @@ func (h *handler) GetCustomQuery() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetCustomRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		resp, err := h.service.GetCustomQuery(req)
+		resp, err := h.service.GetCustomQuery(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetCustomTypeError,
-				err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

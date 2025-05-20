@@ -1,13 +1,11 @@
 package alertanalyze
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -30,32 +28,22 @@ func (h *handler) GetDescendantAnormalDelta() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAnormalDeltaEventRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertanalyzeService.SearchAnormalDeltaByEntry(req)
+		resp, err := h.alertanalyzeService.SearchAnormalDeltaByEntry(c, req)
 		if err != nil {
-			var vErr alert.ErrMutationCheckFailed
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.MutationPQLCheckFailed,
-					c.ErrMessage(code.MutationPQLCheckFailed),
-				).WithError(err))
-				return
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.AlertAnalyzeDescendantAnormalEventDeltaError,
-					c.ErrMessage(code.AlertAnalyzeDescendantAnormalEventDeltaError),
-				).WithError(err))
-				return
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.AlertAnalyzeDescendantAnormalEventDeltaError,
+				err,
+			)
+			return
 		}
 		c.Payload(resp)
 	}

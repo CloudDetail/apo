@@ -24,10 +24,10 @@ func (h *handler) GetDefectDetectExecList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDefectDetectExecListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -36,12 +36,13 @@ func (h *handler) GetDefectDetectExecList() core.HandlerFunc {
 			req.CurrentPage = 1
 		}
 
-		resp, err := h.alertanalyzeService.GetDefectDetectExecList(req)
+		resp, err := h.alertanalyzeService.GetDefectDetectExecList(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDetectMutationExecListError,
-				c.ErrMessage(code.GetDetectMutationExecListError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

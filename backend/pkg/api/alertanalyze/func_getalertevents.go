@@ -40,20 +40,20 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertEventsSvcReq)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertanalyzeService.GetAlertEventsSvc(req)
+		resp, err := h.alertanalyzeService.GetAlertEventsSvc(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertEventsError,
-				c.ErrMessage(code.GetAlertEventsError)).WithError(err),
+				err,
 			)
 			return
 		}

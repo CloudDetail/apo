@@ -5,21 +5,24 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
+func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
-	descendants, err := s.chRepo.ListDescendantNodes(&request.GetDescendantMetricsRequest{
-		StartTime: req.StartTime,
-		EndTime:   req.EndTime,
-		Service:   req.Service,
-		Endpoint:  req.Endpoint,
-	})
+	descendants, err := s.chRepo.ListDescendantNodes(
+		ctx,
+		&request.GetDescendantMetricsRequest{
+			StartTime: req.StartTime,
+			EndTime:   req.EndTime,
+			Service:   req.Service,
+			Endpoint:  req.Endpoint,
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +76,7 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 
 	// 获取匹配的error
 	if len(selectedEvents) == 0 || isSelect(selectedEvents, errorEvent) {
-		propagations, err := s.chRepo.ListErrorByEntryService(req.StartTime, req.EndTime, req.Service, req.Endpoint, endpoints)
+		propagations, err := s.chRepo.ListErrorByEntryService(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint, endpoints)
 		if err == nil {
 			errorEvents := s.parseErrorEvent(propagations, instanceMap, req.Step)
 			// 存放error事件
@@ -85,7 +88,7 @@ func (s *service) GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendR
 
 	if len(selectedEvents) == 0 || isSelect(selectedEvents, alertEvent) {
 		// 获取匹配的alertEvents
-		alertEvents, err := s.chRepo.GetAlertEventsWithKeyByInstanceAndEndpoints(
+		alertEvents, err := s.chRepo.GetAlertEventsWithKeyByInstanceAndEndpoints(ctx,
 			startTime, endTime,
 			// 同时获取Firing和Resolved故障
 			request.AlertFilter{WithMutation: true, EndpointKeys: endpoints},

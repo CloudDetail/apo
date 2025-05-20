@@ -54,7 +54,7 @@ const (
 	`
 )
 
-func (ch *chRepo) ListErrorByEntryService(startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error) {
+func (ch *chRepo) ListErrorByEntryService(ctx core.Context, startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error) {
 	startTime = startTime / 1000000
 	endTime = endTime / 1000000
 
@@ -92,7 +92,7 @@ func (ch *chRepo) ListErrorByEntryService(startTime, endTime int64, entryService
 
 	var results []ErrorPropation
 	sql := fmt.Sprintf(SQL_GET_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql)
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil

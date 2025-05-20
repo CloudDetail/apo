@@ -1,6 +1,10 @@
 package database
 
-import "strings"
+import (
+	"strings"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+)
 
 type QuickMutationMetric struct {
 	Id int `json:"-" gorm:"primaryKey;autoIncrement"`
@@ -30,9 +34,9 @@ func (QuickMutationMetric) TableName() string {
 }
 
 // ListQuickMutationMetric 列出所有的快速指标
-func (repo *daoRepo) ListQuickMutationMetric(lang string) ([]QuickMutationMetric, error) {
+func (repo *daoRepo) ListQuickMutationMetric(ctx core.Context, lang string) ([]QuickMutationMetric, error) {
 	var quickMutationMetrics []QuickMutationMetric
-	err := repo.db.Model(&QuickMutationMetric{}).
+	err := repo.GetContextDB(ctx).Model(&QuickMutationMetric{}).
 		Select(getQuickMutationName(lang), getQuickMutationDescribe(lang), getQuickMutationGroup(lang),
 			"custom_metric", "metric_template", "range_vector", "scale", "quantile", "day_on_day", "week_on_week", "compare_group",
 		).

@@ -20,10 +20,10 @@ func (h *handler) GetPredefinedDetectExpr() core.HandlerFunc {
 	return func(c core.Context) {
 		resp, err := h.alertanalyzeService.DetectDefectsOptions(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetQuickMutationMetricError,
-				c.ErrMessage(code.GetQuickMutationMetricError)).WithError(err),
+				err,
 			)
 			return
 		}

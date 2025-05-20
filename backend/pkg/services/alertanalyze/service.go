@@ -1,7 +1,7 @@
 package alertanalyze
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -19,34 +19,34 @@ type Service interface {
 
 	// Get AlertEvents with relatedService and serviceEntry
 	// multi events exist for the same alertID
-	GetAlertEventsSvc(req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error)
+	GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error)
 
-	GetAlertsImpact(req *request.AlertImpactRequest) ([]response.AlertRelatedEntry, error)
+	GetAlertsImpact(ctx core.Context, req *request.AlertImpactRequest) ([]response.AlertRelatedEntry, error)
 
 	// 获取下游的故障贡献度排序
-	GetDescendantContribution(req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error)
+	GetDescendantContribution(ctx core.Context, req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error)
 
 	// GetAnomalySpan 获取可分析的异常Span
-	GetAnomalySpan(req *request.GetAnomalySpanRequest) (response.GetAnomalySpanResponse, error)
+	GetAnomalySpan(ctx core.Context, req *request.GetAnomalySpanRequest) (response.GetAnomalySpanResponse, error)
 
 	// 获取节点的所有下游节点的异常
-	GetDescendantAnormal(req *request.GetDescendantAnormalEventRequest) (*response.GetDescendantAnormalEventResponse, error)
+	GetDescendantAnormal(ctx core.Context, req *request.GetDescendantAnormalEventRequest) (*response.GetDescendantAnormalEventResponse, error)
 
 	// 获取异常趋势
-	GetAnormalTrendByEntry(req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
+	GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
 
 	// SearchAnormalDeltaByEntry 获取节点的所有下游节点的异常变化
-	SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
+	SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error)
 
 	// 获取预定义的检测表达式
 	DetectDefectsOptions(ctx core.Context) (*response.GetPredefinedDetectExprResponse, error)
 
 	// 缺陷检测
-	DetectDefects(req *request.DetectMutationRequest) error
+	DetectDefects(ctx core.Context, req *request.DetectMutationRequest) error
 
-	GetDefectDetectExecList(req *request.GetDefectDetectExecListRequest) (*response.GetDefectDetectExecListResponse, error)
+	GetDefectDetectExecList(ctx core.Context, req *request.GetDefectDetectExecListRequest) (*response.GetDefectDetectExecListResponse, error)
 
-	GetDefectDetectRuleList(req *request.GetDefectDetectRuleListRequest) (*response.GetDefectDetectRuleListResponse, error)
+	GetDefectDetectRuleList(ctx core.Context, req *request.GetDefectDetectRuleListRequest) (*response.GetDefectDetectRuleListResponse, error)
 }
 
 type service struct {

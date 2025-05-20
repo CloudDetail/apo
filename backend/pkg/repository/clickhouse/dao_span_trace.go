@@ -11,6 +11,7 @@ import (
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -537,7 +538,7 @@ func (af *availableFilters) ValidCheckAndAdjust(f *request.ComplexSpanTraceFilte
 	return true
 }
 
-func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error) {
+func (ch *chRepo) GetAnomalyTrace(ctx core.Context, req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error) {
 	// 构造where
 	queryBuilder := NewQueryBuilder().
 		Between("start_time", req.StartTime*1000, req.EndTime*1000).
@@ -592,7 +593,7 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 	countSql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, "")
 
 	var count uint64
-	err := ch.conn.QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		log.Println("get total count error", err)
 		return nil, 0, err
@@ -602,7 +603,7 @@ func (ch *chRepo) GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTr
 	if count == 0 {
 		return result, 0, nil
 	}
-	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		log.Println("query error", err)
 		return result, 0, err

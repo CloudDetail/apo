@@ -4,6 +4,7 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -14,13 +15,13 @@ type GetAlertsImpactResp struct {
 	Data []*response.AlertRelatedEntry `json:"data"`
 }
 
-func (s *service) GetAlertsImpact(req *request.AlertImpactRequest) ([]response.AlertRelatedEntry, error) {
+func (s *service) GetAlertsImpact(ctx core.Context, req *request.AlertImpactRequest) ([]response.AlertRelatedEntry, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
 	// 获取Alert列表,并统计之间段内告警(Firing)的次数
 	alerts, total, err := s.chRepo.GetAlertsWithEventCount(
-		startTime, endTime, nil, 5000,
+		ctx, startTime, endTime, nil, 5000,
 	)
 	if err != nil {
 		return nil, err
@@ -45,7 +46,7 @@ func (s *service) GetAlertsImpact(req *request.AlertImpactRequest) ([]response.A
 
 	endpoints := endpointsMap.EndpointsList()
 	// 查询入口和下游服务节点的关联
-	entryRelation, err := s.chRepo.SearchEntryEndpointsByAlertService(endpoints, startTime.UnixMicro(), endTime.UnixMicro())
+	entryRelation, err := s.chRepo.SearchEntryEndpointsByAlertService(ctx, endpoints, startTime.UnixMicro(), endTime.UnixMicro())
 	if err != nil {
 		return nil, err
 	}

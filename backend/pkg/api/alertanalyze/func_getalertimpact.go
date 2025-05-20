@@ -27,20 +27,20 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AlertImpactRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		entryServices, err := h.alertanalyzeService.GetAlertsImpact(req)
+		entryServices, err := h.alertanalyzeService.GetAlertsImpact(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AlertEventImpactError,
-				c.ErrMessage(code.AlertEventImpactError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -51,6 +51,7 @@ func (h *handler) GetAlertImpact() core.HandlerFunc {
 		// fill RED metric and namespace list
 		// filter by namespace
 		entries, _ := h.serviceoverviewService.GetAlertRelatedEntryData(
+			c,
 			startTime, endTime, req.Namespaces,
 			entryServices)
 

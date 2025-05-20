@@ -172,22 +172,22 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 		whereInstance = extractFilter(filter, instances)
 	}
 
-	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
+	return ch.getAlertEventsByWhere(ctx, startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
 // GetAlertEvents 取出时间范围内的输入实例的所有告警事件
 // instances为空时,不返回任何告警
-func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
 	whereInstance := extractFilter(filter, instances)
-	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
+	return ch.getAlertEventsByWhere(ctx, startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
-func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error) {
+func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error) {
 	whereInstance := extractFilter(filter, instances)
-	return ch.getGroupAlertEvents(startTime, endTime, filter, whereInstance)
+	return ch.getGroupAlertEvents(ctx, startTime, endTime, filter, whereInstance)
 }
 
-func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL) ([]AlertEventWithKey, error) {
+func (ch *chRepo) getGroupAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL) ([]AlertEventWithKey, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -207,11 +207,11 @@ func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, fi
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_WITH_LABEL_KEY, builder.String(), orderBuilder.String())
 	var events []AlertEventWithKey
-	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &events, sql, builder.values...)
 	return events, err
 }
 
-func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) getAlertEventsByWhere(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	builder := NewQueryBuilder().
 		Between("update_time", startTime.Unix(), endTime.Unix()).
 		NotGreaterThan("end_time", endTime.Unix()).
@@ -303,7 +303,7 @@ func (ch *chRepo) ReadAlertEvent(ctx core.Context, id uuid.UUID) (*model.AlertEv
 	return &event, nil
 }
 
-func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
+func (ch *chRepo) GetAlertEventById(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		Equals("id", eventId)
@@ -312,7 +312,7 @@ func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT, builder.String(), byLimit.String())
 	var event []model.AlertEvent
-	err := ch.conn.Select(context.Background(), &event, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &event, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	} else if len(event) == 0 {

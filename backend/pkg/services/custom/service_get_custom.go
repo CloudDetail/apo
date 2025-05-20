@@ -3,12 +3,13 @@ package custom
 import (
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetCustomQuery(req *request.GetCustomRequest) (*response.GetCustomResponse, error) {
-	serviecType, err := s.dbRepo.GetCustomQuery()
+func (s *service) GetCustomQuery(ctx core.Context, req *request.GetCustomRequest) (*response.GetCustomResponse, error) {
+	serviecType, err := s.dbRepo.GetCustomQuery(ctx)
 	if err != nil {
 		return nil, err
 	}

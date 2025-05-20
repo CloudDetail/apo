@@ -31,19 +31,19 @@ type Repo interface {
 	// Query the list of all descendant service nodes
 	ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// 查询服务类戏的子孙节点的调用关系(不携带边信息)
-	ListDescendantRelationsWithoutEdge(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
+	ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the calling relationship of all descendant nodes
 	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 	// 根据Endpoint查询入口节点
-	SearchEntryEndpointsByAlertService(endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
+	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
 	ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
 
 	// 查询指定入口下发生的所有错误
-	ListErrorByEntryService(startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error)
+	ListErrorByEntryService(ctx core.Context, startTime, endTime int64, entryService, entryEndpoint string, endpoints []model.EndpointKey) ([]ErrorPropation, error)
 
 	// ========== span_trace ==========
 	GetAvailableFilterKey(ctx core.Context, startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error)
@@ -59,7 +59,7 @@ type Repo interface {
 
 	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
 
-	GetAnomalyTrace(req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error)
+	GetAnomalyTrace(ctx core.Context, req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error)
 	// ========== application_logs ==========
 	// Query the log content of the fault site. The sourceFrom can be blank. The log in the first source that can be found will be returned.
 	QueryApplicationLogs(ctx core.Context, req *request.GetFaultLogContentRequest) (logContents *Logs, availableSource []string, err error)
@@ -98,10 +98,10 @@ type Repo interface {
 	GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
 	GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
-	GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
-	GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
+	GetAlertEventsByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
+	GetAlertEventsWithKeyByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
-	GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
+	GetAlertEventById(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
 
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
@@ -119,11 +119,11 @@ type Repo interface {
 
 	// detect mutation exec list
 	// GetDetectExecList 获取异常检测执行记录
-	GetDetectExecList(req *request.GetDefectDetectExecListRequest) ([]model.DetectMutation, int64, error)
+	GetDetectExecList(ctx core.Context, req *request.GetDefectDetectExecListRequest) ([]model.DetectMutation, int64, error)
 	// AddDetectMutation 新增异常检测执行记录
-	AddDetectMutation(mutation model.DetectMutation) error
+	AddDetectMutation(ctx core.Context, mutation model.DetectMutation) error
 	// GetDistinctDetectExecList 获取异常检测规则
-	GetDistinctDetectExecList(req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
+	GetDistinctDetectExecList(ctx core.Context, req *request.GetDefectDetectRuleListRequest) ([]model.DetectMutation, int64, error)
 	AddWorkflowRecord(ctx core.Context, record *model.WorkflowRecord) error
 	AddWorkflowRecords(ctx core.Context, records []model.WorkflowRecord) error
 	GetAlertEventWithWorkflowRecord(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error)

@@ -24,10 +24,10 @@ func (h *handler) GetDefectDetectRuleList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDefectDetectRuleListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -35,12 +35,12 @@ func (h *handler) GetDefectDetectRuleList() core.HandlerFunc {
 			req.PageSize = 10
 			req.CurrentPage = 1
 		}
-		resp, err := h.alertanalyzeService.GetDefectDetectRuleList(req)
+		resp, err := h.alertanalyzeService.GetDefectDetectRuleList(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetDetectMutationRuleListError,
-				c.ErrMessage(code.GetDetectMutationRuleListError)).WithError(err))
+				err)
 			return
 		}
 		c.Payload(resp)
