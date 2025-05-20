@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -35,7 +36,7 @@ const (
 	%s %s`
 )
 
-func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, int64, error) {
+func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([]FaultLogResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", query.StartTime/1000000, query.EndTime/1000000).
 		EqualsNotEmpty("labels['service_name']", query.Service).
@@ -67,7 +68,7 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -95,16 +96,16 @@ func (ch *chRepo) GetFaultLogPageList(query *FaultLogQuery) ([]FaultLogResult, i
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}
 	return result, int64(count), nil
 }
 
-func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) GetAvailableFilterKey(ctx core.Context, startTime, endTime time.Time, needUpdate bool) ([]request.SpanTraceFilter, error) {
 	if needUpdate {
-		filers, err := ch.UpdateFilterKey(startTime, endTime)
+		filers, err := ch.UpdateFilterKey(ctx, startTime, endTime)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
@@ -113,7 +114,7 @@ func (ch *chRepo) GetAvailableFilterKey(startTime, endTime time.Time, needUpdate
 
 	now := time.Now()
 	if len(ch.Filters) == 0 || now.Sub(ch.FilterUpdateTime) > 48*time.Hour {
-		filters, err := ch.UpdateFilterKey(now.Add(-48*time.Hour), now)
+		filters, err := ch.UpdateFilterKey(ctx, now.Add(-48*time.Hour), now)
 		if err != nil {
 			return []request.SpanTraceFilter{}, err
 		}
@@ -133,7 +134,7 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 	return sql
 }
 
-func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
+func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
@@ -161,7 +162,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.conn.QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -192,7 +193,7 @@ func (ch *chRepo) GetTracePageList(req *request.GetTracePageListRequest) ([]Quer
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}
@@ -389,7 +390,7 @@ var const_span_filter = []request.SpanTraceFilter{
 	},
 }
 
-func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
+func (ch *chRepo) UpdateFilterKey(ctx core.Context, startTime, endTime time.Time) ([]request.SpanTraceFilter, error) {
 	builder := NewQueryBuilder().
 		Between("timestamp", startTime.Unix(), endTime.Unix())
 
@@ -399,14 +400,14 @@ func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanT
 
 	sql := fmt.Sprintf(SQL_GET_LABEL_FILTER_KEYS, builder.String(), byLimits.String())
 	var labelRes []request.SpanTraceFilter
-	err := ch.GetConn().Select(context.Background(), &labelRes, sql, builder.values...)
+	err := ch.GetConn(ctx).Select(context.Background(), &labelRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
 
 	sql = fmt.Sprintf(SQL_GET_FLAGS_FILTER_KEYS, builder.String(), byLimits.String())
 	var flagRes []request.SpanTraceFilter
-	err = ch.GetConn().Select(context.Background(), &flagRes, sql, builder.values...)
+	err = ch.GetConn(ctx).Select(context.Background(), &flagRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
@@ -416,7 +417,7 @@ func (ch *chRepo) UpdateFilterKey(startTime, endTime time.Time) ([]request.SpanT
 	return filters, nil
 }
 
-func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
+func (ch *chRepo) GetFieldValues(ctx core.Context, searchText string, filter *request.SpanTraceFilter, startTime, endTime time.Time) (*SpanTraceOptions, error) {
 	if filter.DataType == request.BoolColumn {
 		return &SpanTraceOptions{SpanTraceFilter: *filter, Options: []bool{true, false}}, nil
 	}
@@ -445,7 +446,7 @@ func (ch *chRepo) GetFieldValues(searchText string, filter *request.SpanTraceFil
 
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
-	rows, err := ch.GetConn().Query(context.Background(), sql, builder.values...)
+	rows, err := ch.GetConn(ctx).Query(context.Background(), sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}

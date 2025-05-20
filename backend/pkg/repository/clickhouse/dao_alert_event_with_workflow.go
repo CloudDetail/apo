@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -101,6 +102,7 @@ SELECT
   ae.update_time,
   ae.end_time,
   ae.received_time,
+  ae.severity,
   ae.detail,
   ae.status,
   ae.tags,
@@ -109,6 +111,7 @@ SELECT
   fw.workflow_id,
   fw.workflow_name,
   fw.importance,
+  fw.created_at as last_check_at,
   fw.output,
   CASE
     WHEN output = 'false' THEN 'true'
@@ -172,7 +175,7 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 	return fields, ascs
 }
 
-func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
@@ -201,7 +204,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 
 	values := append(alertFilter.values, recordFilter.values...)
 	values = append(values, resultFilter.values...)
-	err := ch.conn.QueryRow(context.Background(), countSql, values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -209,7 +212,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 	sql, values := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
 
 	result := make([]alert.AEventWithWRecord, 0)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, values...)
 	return result, int64(count), err
 }
 
@@ -275,7 +278,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 	return sql, values
 }
 
-func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
+func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
@@ -290,7 +293,7 @@ func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cach
 		recordFilter.String(),
 	)
 	values := append(alertFilter.values, recordFilter.values...)
-	err := ch.conn.Select(context.Background(), &counts, countSql, values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &counts, countSql, values...)
 	if err != nil {
 		return nil, err
 	}

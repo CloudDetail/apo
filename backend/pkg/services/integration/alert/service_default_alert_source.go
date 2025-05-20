@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
@@ -18,22 +19,22 @@ var (
 	commonSourceType  = "json"
 )
 
-func (s *service) ClearDefaultAlertEnrichRule(sourceType string) (bool, error) {
+func (s *service) ClearDefaultAlertEnrichRule(ctx core.Context, sourceType string) (bool, error) {
 	_, find := s.defaultEnrichRules.LoadAndDelete(sourceType)
 
 	sourceUUID := uuid.NewMD5(uuidZero, []byte(sourceType)).String()
 
 	var storeError error
-	err := s.dbRepo.DeleteAlertEnrichRuleBySourceId(sourceUUID)
+	err := s.dbRepo.DeleteAlertEnrichRuleBySourceId(ctx, sourceUUID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(sourceUUID)
+	err = s.dbRepo.DeleteAlertEnrichConditionsBySourceId(ctx, sourceUUID)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(sourceUUID)
+	err = s.dbRepo.DeleteAlertEnrichSchemaTargetBySourceId(ctx, sourceUUID)
 	storeError = multierr.Append(storeError, err)
 	return find, storeError
 }
 
-func (s *service) GetDefaultAlertEnrichRule(sourceType string) (string, []alert.AlertEnrichRuleVO) {
+func (s *service) GetDefaultAlertEnrichRule(ctx core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO) {
 	rules, find := s.defaultEnrichRules.Load(sourceType)
 	if find {
 		return sourceType, rules.([]alert.AlertEnrichRuleVO)
@@ -47,8 +48,8 @@ func (s *service) GetDefaultAlertEnrichRule(sourceType string) (string, []alert.
 	return "", []alert.AlertEnrichRuleVO{}
 }
 
-func (s *service) SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error {
-	existed, err := s.ClearDefaultAlertEnrichRule(sourceType)
+func (s *service) SetDefaultAlertEnrichRule(ctx core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error {
+	existed, err := s.ClearDefaultAlertEnrichRule(ctx, sourceType)
 	if err != nil {
 		return err
 	}
@@ -66,15 +67,15 @@ func (s *service) SetDefaultAlertEnrichRule(sourceType string, tagEnrichRules []
 
 	var storeError error
 	if !existed {
-		err := s.dbRepo.CreateAlertSource(&alert.AlertSource{SourceFrom: *sourceFrom})
+		err := s.dbRepo.CreateAlertSource(ctx, &alert.AlertSource{SourceFrom: *sourceFrom})
 		storeError = multierr.Append(storeError, err)
 	}
 
-	err = s.dbRepo.AddAlertEnrichRule(newR)
+	err = s.dbRepo.AddAlertEnrichRule(ctx, newR)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichConditions(newC)
+	err = s.dbRepo.AddAlertEnrichConditions(ctx, newC)
 	storeError = multierr.Append(storeError, err)
-	err = s.dbRepo.AddAlertEnrichSchemaTarget(newS)
+	err = s.dbRepo.AddAlertEnrichSchemaTarget(ctx, newS)
 	storeError = multierr.Append(storeError, err)
 	return storeError
 }

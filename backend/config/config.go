@@ -86,7 +86,6 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
-
 	Dify struct {
 		User    string `mapstructure:"user"`
 		URL     string `mapstructure:"url"`
@@ -102,6 +101,10 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
+	AlertReceiver struct {
+		Enabled     bool   `mapstructure:"enabled"`
+		ExternalURL string `mapstructure:"external_url"`
+	} `mapstructure:"alert_receiver"`
 }
 
 type AnonymousUser struct {

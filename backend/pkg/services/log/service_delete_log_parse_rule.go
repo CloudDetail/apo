@@ -4,6 +4,7 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -11,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) DeleteLogParseRule(ctx core.Context, req *request.DeleteLogParseRequest) (*response.LogParseResponse, error) {
 	logReq := &request.LogTableRequest{
 		TableName: req.TableName,
 		DataBase:  req.DataBase,
@@ -43,7 +44,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.chRepo.DropLogTable(logReq)
+	_, err = s.chRepo.DropLogTable(ctx, logReq)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func (s *service) DeleteLogParseRule(req *request.DeleteLogParseRequest) (*respo
 		DataBase:  logReq.DataBase,
 		Cluster:   logReq.Cluster,
 	}
-	err = s.dbRepo.OperateLogTableInfo(&log, database.DELETE)
+	err = s.dbRepo.OperateLogTableInfo(ctx, &log, database.DELETE)
 	if err != nil {
 		return nil, err
 	}

@@ -208,4 +208,10 @@ var zhCnText = map[string]string{
 
 	GetAlertEventListError:     "获取告警事件列表失败",
 	GetAlertEventClassifyError: "告警事件分类失败",
+
+	GetAlertSlienceError:    "获取告警抑制配置失败",
+	ListAlertSlienceError:   "列出所有抑制告警失败",
+	SetAlertSlienceError:    "设置告警抑制失败",
+	RemoveAlertSlienceError: "移除告警抑制失败",
+	MarkAlertResolvedError:  "手动标记告警已解决失败",
 }

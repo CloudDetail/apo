@@ -29,7 +29,7 @@ import (
 	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
 
-	"github.com/prometheus/alertmanager/matchers/compat"
+	"github.com/prometheus/alertmanager/matcher/compat"
 	"github.com/prometheus/alertmanager/pkg/labels"
 	"github.com/prometheus/alertmanager/timeinterval"
 )
@@ -745,25 +745,35 @@ func (r *InhibitRule) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// type AlertReceiver struct {
+// 	Receiver
+
+// 	Templates []string `gorm:""`
+// }
+
 // Receiver configuration provides configuration on how to contact a receiver.
 type Receiver struct {
 	// A unique identifier for this receiver.
-	Name string `yaml:"name" json:"name" binding:"required"`
+	Name string `gorm:"column:name;primaryKey" yaml:"name" json:"name" binding:"required"`
 
-	EmailConfigs     []*EmailConfig     `yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
-	WebhookConfigs   []*WebhookConfig   `yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
-	DingTalkConfigs  []*DingTalkConfig  `yaml:"-" json:"dingTalkConfigs,omitempty"`
-	DiscordConfigs   []*DiscordConfig   `yaml:"discord_configs,omitempty" json:"-"`
-	PagerdutyConfigs []*PagerdutyConfig `yaml:"pagerduty_configs,omitempty" json:"-"`
-	SlackConfigs     []*SlackConfig     `yaml:"slack_configs,omitempty" json:"-"`
-	OpsGenieConfigs  []*OpsGenieConfig  `yaml:"opsgenie_configs,omitempty" json:"-"`
-	WechatConfigs    []*WechatConfig    `yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
-	PushoverConfigs  []*PushoverConfig  `yaml:"pushover_configs,omitempty" json:"-"`
-	VictorOpsConfigs []*VictorOpsConfig `yaml:"victorops_configs,omitempty" json:"-"`
-	SNSConfigs       []*SNSConfig       `yaml:"sns_configs,omitempty" json:"-"`
-	TelegramConfigs  []*TelegramConfig  `yaml:"telegram_configs,omitempty" json:"-"`
-	WebexConfigs     []*WebexConfig     `yaml:"webex_configs,omitempty" json:"-"`
-	MSTeamsConfigs   []*MSTeamsConfig   `yaml:"msteams_configs,omitempty" json:"-"`
+	EmailConfigs     EmailConfigs       `gorm:"column:email_configs;type:text" yaml:"email_configs,omitempty" json:"emailConfigs,omitempty"`
+	WebhookConfigs   WebhookConfigs     `gorm:"column:webhook_configs;type:text" yaml:"webhook_configs,omitempty" json:"webhookConfigs,omitempty"`
+	DingTalkConfigs  DingTalkConfigs    `gorm:"column:dingtalk_configs;type:text" yaml:"-" json:"dingTalkConfigs,omitempty"`
+	DiscordConfigs   []*DiscordConfig   `gorm:"-" yaml:"discord_configs,omitempty" json:"-"`
+	PagerdutyConfigs []*PagerdutyConfig `gorm:"-" yaml:"pagerduty_configs,omitempty" json:"-"`
+	SlackConfigs     []*SlackConfig     `gorm:"-" yaml:"slack_configs,omitempty" json:"-"`
+	OpsGenieConfigs  []*OpsGenieConfig  `gorm:"-" yaml:"opsgenie_configs,omitempty" json:"-"`
+	WechatConfigs    WechatConfigs      `gorm:"-" yaml:"wechat_configs,omitempty" json:"wechatConfigs,omitempty"`
+	PushoverConfigs  []*PushoverConfig  `gorm:"-" yaml:"pushover_configs,omitempty" json:"-"`
+	VictorOpsConfigs []*VictorOpsConfig `gorm:"-" yaml:"victorops_configs,omitempty" json:"-"`
+	SNSConfigs       []*SNSConfig       `gorm:"-" yaml:"sns_configs,omitempty" json:"-"`
+	TelegramConfigs  []*TelegramConfig  `gorm:"-" yaml:"telegram_configs,omitempty" json:"-"`
+	WebexConfigs     []*WebexConfig     `gorm:"-" yaml:"webex_configs,omitempty" json:"-"`
+	MSTeamsConfigs   []*MSTeamsConfig   `gorm:"-" yaml:"msteams_configs,omitempty" json:"-"`
+}
+
+func (Receiver) TableName() string {
+	return "am_receivers"
 }
 
 // UnmarshalYAML implements the yaml.Unmarshaler interface for Receiver.

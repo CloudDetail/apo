@@ -3,9 +3,13 @@
 
 package database
 
+import
+
 // MenuItem is a menu item on the left or top menu bar.
 //
 // ! Handle the `Key` field carefully, it is a reserved word in MySQL, and must be delimited with the identifier '"'
+core "github.com/CloudDetail/apo/backend/pkg/core"
+
 type MenuItem struct {
 	ItemID       int    `gorm:"column:item_id;primary_key" json:"itemId"`
 	Key          string `gorm:"column:key;type:varchar(20);uniqueIndex" json:"key"`
@@ -24,9 +28,9 @@ func (t *MenuItem) TableName() string {
 	return "menu_item"
 }
 
-func (repo *daoRepo) GetMenuItems() ([]MenuItem, error) {
+func (repo *daoRepo) GetMenuItems(ctx core.Context) ([]MenuItem, error) {
 	var menuItems []MenuItem
 
-	err := repo.db.Find(&menuItems).Error
+	err := repo.GetContextDB(ctx).Find(&menuItems).Error
 	return menuItems, err
 }

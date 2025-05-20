@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Badge, Divider, Flex, Image, Radio } from 'antd'
+import { Badge, Divider, Radio } from 'antd'
 import DatasourceItem from 'src/core/views/IntegrationCenter/components/DatasourceItem'
 import { traceItems } from 'src/core/views/IntegrationCenter/constant'
 import apo from 'src/core/assets/images/logo.svg'
@@ -30,7 +30,7 @@ const ApmTypeRadio = ({ id, value, onChange }: ApmTypeRadioProps) => {
   return (
     <div id={id} className="flex overflow-hidden">
       <div className="flex-shrink-0 flex-grow-0">
-        <div className="text-gray-400">{t('datasourceApo')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceApo')}</div>
         <div className="relative w-[100px]" onClick={() => clickRadio('opentelemetry')}>
           <DatasourceItem
             size="small"
@@ -44,7 +44,7 @@ const ApmTypeRadio = ({ id, value, onChange }: ApmTypeRadioProps) => {
       </div>
       <Divider type="vertical" className="h-[60px] mt-4" />
       <div className="flex-1">
-        <div className="text-gray-400 ">{t('datasourceExisted')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceExisted')}</div>
         <div className="flex flex-wrap ">
           {traceItems.map((item) => (
             <div className="relative mx-1 mb-2" onClick={() => clickRadio(item.apmType)}>

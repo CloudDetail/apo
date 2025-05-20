@@ -4,10 +4,10 @@
  */
 
 .tagContainer {
-  background: #141414;
+  background: var(--ant-color-bg-container);
   border-width: 1px;
   border-style: solid;
-  border-color: #424242;
+  border-color: var(--ant-color-border);
   border-radius: 6px;
   padding: 4px 11px;
   min-height: 32px;

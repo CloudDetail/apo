@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react'
 import TimeSinceRefresh from './TimeSinceRefresh'
 import DateTimeRangePicker from './DateTimeRangePicker'
-import { Button, Input, Popover, Segmented, Tooltip } from 'antd'
+import { Button, Input, Popover, Segmented, theme } from 'antd'
 import { FiSend } from 'react-icons/fi'
 import CopyButton from '../CopyButton'
 import { useLocation, useSearchParams } from 'react-router-dom'
@@ -43,7 +43,8 @@ function ShareLink() {
     }
     setCopyUrl(url)
   }, [shareType, rangeTypeKey, location.search, startTime, endTime, t])
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <Popover
       content={
@@ -60,7 +61,10 @@ function ShareLink() {
             ]}
             onChange={setShareType}
           />
-          <div className="my-2 text-gray-300 mx-1">
+          <div
+            className="my-2 text-[var(--ant-color-text-secondary)] mx-1"
+            style={{ color: token.colorTextSecondary }}
+          >
             {shareType === t('dataTimeCombine.absoluteTimeText') ? (
               <>
                 {convertTime(startTime, 'yyyy-mm-dd hh:mm:ss')} to{' '}

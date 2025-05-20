@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
 )
@@ -18,33 +19,33 @@ func isValidRoleName(roleName string) bool {
 	return false
 }
 
-func (repo *daoRepo) initPermissions() error {
+func (repo *daoRepo) initPermissions(ctx core.Context) error {
 	roleFeatures := map[string][]string{
 		model.ROLE_ADMIN: {
 			"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "数据接入", "告警接入", "告警事件",
+			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "数据接入", "告警接入", "告警事件", "告警事件详情",
 			"系统管理", "用户管理", "菜单管理", "系统配置", "数据组管理", "团队管理", "角色管理",
 		},
 		// model.ROLE_MANAGER: {
 		// 	"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 		// 	"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-		// 	"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "数据接入", "告警接入", "告警事件",
+		// 	"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "数据接入", "告警接入", "告警事件","告警事件详情",
 		// 	"配置中心",
 		// },
 		model.ROLE_VIEWER: {
 			"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "告警事件",
+			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "告警事件", "告警事件详情",
 		},
 		model.ROLE_ANONYMOS: {
 			"服务概览", "工作流", "日志检索", "故障现场日志", "全量日志", "链路追踪",
 			"故障现场链路", "全量链路", "全局资源大盘", "应用基础设施大盘",
-			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "告警事件",
+			"应用指标大盘", "中间件大盘", "告警规则", "告警通知", "配置中心", "告警事件", "告警事件详情",
 		},
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var featureIDs []int
 		if err := tx.Model(&Feature{}).Select("feature_id").Find(&featureIDs).Error; err != nil {
 			return err

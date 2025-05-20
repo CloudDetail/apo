@@ -1,7 +1,7 @@
 // Copyright 2024 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
-package util
+package jwt
 
 import (
 	"errors"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -97,7 +97,7 @@ func ParseRefreshToken(tokenStr string) (*Claims, error) {
 		return nil, err
 	}
 	if !claims.IsRefresh {
-		return nil, model.NewErrWithMessage(TokenInvalid, code.InValidToken)
+		return nil, core.Error(code.InValidToken, TokenInvalid.Error())
 	}
 	if token.Valid {
 		return claims, nil
@@ -114,7 +114,7 @@ func ParseAccessToken(tokenStr string) (*Claims, error) {
 		return nil, err
 	}
 	if claims.IsRefresh {
-		return nil, model.NewErrWithMessage(TokenInvalid, code.InValidToken)
+		return nil, core.Error(code.InValidToken, TokenInvalid.Error())
 	}
 	if token.Valid {
 		return claims, nil

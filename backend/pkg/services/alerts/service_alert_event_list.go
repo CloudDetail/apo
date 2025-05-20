@@ -5,8 +5,10 @@ package alerts
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -14,13 +16,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 
-	counts, err := s.chRepo.GetAlertEventCounts(req, s.alertWorkflow.AlertCheck.CacheMinutes)
+	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -39,20 +41,26 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 	return &response.AlertEventSearchResponse{
 		EventList:                   events,
 		Pagination:                  req.Pagination,
-		AlertEventAnalyzeWorkflowID: s.alertWorkflow.AnalyzeFlowId,
-		AlertCheckID:                s.alertWorkflow.AlertCheck.FlowId,
+		AlertEventAnalyzeWorkflowID: s.difyRepo.GetAlertAnalyzeFlowID(),
+		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
 		Counts:                      counts,
 	}, nil
 }
 
 func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	var startTime, endTime time.Time
-	if record.AlertEvent.Status == alert.StatusResolved {
+	if record.Status == alert.StatusResolved {
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
+		record.Duration = formatDuration(record.EndTime.Sub(record.CreateTime))
 	} else {
-		startTime = record.UpdateTime.Add(-15 * time.Minute)
+		if record.Validity != "unknown" && record.Validity != "skipped" {
+			startTime = record.LastCheckAt.Add(-15 * time.Minute)
+		} else {
+			startTime = record.UpdateTime.Add(-15 * time.Minute)
+		}
 		endTime = record.UpdateTime
+		record.Duration = formatDuration(time.Since(record.CreateTime))
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{
@@ -79,6 +87,7 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 		Pod:       record.AlertEvent.GetK8sPodTag(),
 		Pid:       record.AlertEvent.GetPidTag(),
 		AlertName: record.AlertEvent.Name,
+		Detail:    record.Detail,
 	}
 
 	if len(services) == 1 {
@@ -243,4 +252,24 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, start
 	}
 
 	return endpoints, nil
+}
+
+func formatDuration(d time.Duration) string {
+	day := 0
+	hour := int(d.Hours())
+
+	if hour > 24 {
+		day = hour / 24
+		hour = hour % 24
+	}
+
+	minute := int(d.Minutes()) % 60
+
+	if day > 0 {
+		return fmt.Sprintf("%dd %02dh %02dm", day, hour, minute)
+	} else if hour > 0 {
+		return fmt.Sprintf("%dh %02dm", hour, minute)
+	} else {
+		return fmt.Sprintf("%dm", minute)
+	}
 }

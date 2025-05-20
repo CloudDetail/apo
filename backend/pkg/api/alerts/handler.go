@@ -4,6 +4,7 @@
 package alerts
 
 import (
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -16,7 +17,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/alerts"
 
 	alertinput "github.com/CloudDetail/apo/backend/pkg/services/integration/alert"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 )
 
 type Handler interface {
@@ -24,9 +24,13 @@ type Handler interface {
 
 	// AlertEventList
 	// @Tags API.alerts
-	// @Router /api/alerts/events/list [post]
+	// @Router /api/alerts/event/list [post]
 	AlertEventList() core.HandlerFunc
 
+	// AlertEventDetail
+	// @Tags API.alerts
+	// @Router /api/alerts/event/detail [post]
+	AlertEventDetail() core.HandlerFunc
 	// AlertEventClassify
 	// @Tags API.alerts
 	// @Router /api/alerts/events/classify [get]
@@ -107,6 +111,31 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/rule/available/file/group/alert [get]
 	CheckAlertRule() core.HandlerFunc
+
+	// GetAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [get]
+	GetAlertSlienceConfig() core.HandlerFunc
+
+	// ListAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient/list [get]
+	ListAlertSlienceConfig() core.HandlerFunc
+
+	// SetAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [post]
+	SetAlertSlienceConfig() core.HandlerFunc
+
+	// RemoveAlertSlienceConfig
+	// @Tags API.alerts
+	// @Router /api/alerts/slient [delete]
+	RemoveAlertSlienceConfig() core.HandlerFunc
+
+	// MarkAlertResolvedManually
+	// @Tags API.alerts
+	// @Router /api/alerts/resolve [post]
+	MarkAlertResolvedManually() core.HandlerFunc
 }
 
 type handler struct {
@@ -123,12 +152,13 @@ func New(
 	k8sRepo kubernetes.Repo,
 	promRepo prometheus.Repo,
 	difyRepo dify.DifyRepo,
-	alertworkFlow *workflow.AlertWorkflow,
+
+	receivers receiver.Receivers,
 ) Handler {
 	return &handler{
 		logger:                 logger,
-		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo, alertworkFlow),
-		inputService:           alertinput.New(promRepo, dbRepo, chRepo, alertworkFlow),
+		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo, receivers),
+		inputService:           alertinput.New(promRepo, dbRepo, chRepo, difyRepo),
 		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
 	}
 }

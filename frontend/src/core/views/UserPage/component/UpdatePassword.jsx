@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Form, Input, Popconfirm, Button, Flex, Tooltip } from 'antd'
-import { showToast } from 'core/utils/toast'
+import { Form, Input, Popconfirm, Button, Flex } from 'antd'
 import { logoutApi, updatePasswordApi } from 'core/api/user'
-import { LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 
 export default function UpdatePassword() {
   const { t } = useTranslation('core/userPage')
@@ -40,26 +39,26 @@ export default function UpdatePassword() {
           localStorage.removeItem('token')
           localStorage.removeItem('refreshToken')
           navigate('/login')
-          showToast({
-            title: t('updatePassword.updateSuccess'),
-            color: 'success',
+          notify({
+            message: t('updatePassword.updateSuccess'),
+            type: 'success',
           })
         } catch (error) {
           console.log(error.response.data.code)
           const errorMessage =
             error.response?.data?.message || error.message || t('updatePassword.updateFail')
-          showToast({
-            title: t('updatePassword.error'),
-            message: errorMessage,
-            color: 'danger',
+          notify({
+            message: t('updatePassword.error'),
+            description: errorMessage,
+            type: 'error',
           })
         }
       })
       .catch((error) => {
-        showToast({
-          title: t('updatePassword.formValidationFail'),
-          message: error.message || t('updatePassword.formValidationFailMessage'),
-          color: 'danger',
+        notify({
+          message: t('updatePassword.formValidationFail'),
+          description: error.message || t('updatePassword.formValidationFailMessage'),
+          type: 'error',
         })
       })
   }

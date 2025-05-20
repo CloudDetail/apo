@@ -8,6 +8,8 @@ definitions:
         type: string
       detail:
         type: string
+      duration:
+        type: string
       endTime:
         type: string
       group:
@@ -17,7 +19,17 @@ definitions:
       isValid:
         description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
         type: string
+      lastCheckAt:
+        type: string
+      lastStatus:
+        type: string
       name:
+        type: string
+      notifyAt:
+        type: string
+      notifyFailed:
+        type: string
+      notifySuccess:
         type: string
       output:
         type: string
@@ -343,6 +355,8 @@ definitions:
     properties:
       secret:
         type: string
+      sendResolved:
+        type: boolean
       url:
         type: string
     type: object
@@ -1797,6 +1811,21 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.GetAlertDetailRequest:
+    properties:
+      alertId:
+        type: string
+      endTime:
+        type: integer
+      eventId:
+        type: string
+      locateEvent:
+        type: boolean
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+      startTime:
+        type: integer
+    type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
       amConfigFile:
@@ -1821,7 +1850,6 @@ definitions:
       currentPage:
         type: integer
       group:
-        description: 'Deprecated: use Groups instead'
         type: string
       groups:
         items:
@@ -1838,6 +1866,11 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  request.GetAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
     type: object
   request.GetDataGroupRequest:
     properties:
@@ -2133,6 +2166,11 @@ definitions:
     type: object
   request.LogTableInfoRequest:
     type: object
+  request.MarkAlertResolvedManuallyRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -2178,6 +2216,18 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.RemoveAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
+  request.SetAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+      forDuration:
+        type: string
+    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -2483,6 +2533,23 @@ definitions:
         description: TraceId
         type: string
     type: object
+  response.GetAlertDetailResponse:
+    properties:
+      alertCheckId:
+        type: string
+      alertEventAnalyzeWorkflowId:
+        type: string
+      currentEvent:
+        $ref: '#/definitions/alert.AEventWithWRecord'
+      events:
+        items:
+          $ref: '#/definitions/alert.AEventWithWRecord'
+        type: array
+      locateIndex:
+        type: integer
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
   response.GetAlertEventsResponse:
     properties:
       events:
@@ -2529,6 +2596,11 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetAlertSlienceConfigResponse:
+    properties:
+      slience:
+        $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
     type: object
   response.GetDataGroupResponse:
     properties:
@@ -3101,6 +3173,13 @@ definitions:
         description: Normal or Warning
         type: string
     type: object
+  response.ListAlertSlienceConfigResponse:
+    properties:
+      sliences:
+        items:
+          $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
+        type: array
+    type: object
   response.LogChartResponse:
     properties:
       count:
@@ -3533,6 +3612,29 @@ definitions:
       value:
         description: Value metric average
         type: number
+    type: object
+  slienceconfig.AlertSlienceConfig:
+    properties:
+      alertId:
+        type: string
+      alertName:
+        type: string
+      endAt:
+        type: string
+      for:
+        type: string
+      group:
+        type: string
+      id:
+        type: integer
+      startAt:
+        type: string
+      tags:
+        $ref: '#/definitions/slienceconfig.TagsStr'
+    type: object
+  slienceconfig.TagsStr:
+    additionalProperties:
+      type: string
     type: object
 info:
   contact: {}
@@ -4243,6 +4345,30 @@ paths:
       summary: list alarm notification objects
       tags:
       - API.alerts
+  /api/alerts/event/detail:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
   /api/alerts/events/classify:
     get:
       consumes:
@@ -4344,6 +4470,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: the received alarm is forwarded to the DingTalk
+      tags:
+      - API.alerts
+  /api/alerts/resolve:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.MarkAlertResolvedManuallyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alerts/rule:
@@ -4605,6 +4755,93 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: update basic alarm rules
+      tags:
+      - API.alerts
+  /api/alerts/slient:
+    delete:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RemoveAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/slient/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alertsinput/enrich/tags/list:

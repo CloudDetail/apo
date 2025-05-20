@@ -6,10 +6,12 @@
 import React, { useCallback } from 'react'
 import { Handle, Position } from 'reactflow'
 import { BiCctv } from 'react-icons/bi'
+import { theme } from 'antd'
 const handleStyle = { left: 10 }
 const ServiceNode = React.memo(({ data, isConnectable }) => {
   const onChange = useCallback((evt) => {}, [])
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <div className="text-updater-node">
       <Handle
@@ -19,8 +21,12 @@ const ServiceNode = React.memo(({ data, isConnectable }) => {
         className="invisible"
       />
       <div
-        className="w-[200px] min-h-[60px] p-2 rounded-md border-2 border-solid border-[#6293ff] text-[#6293ff] overflow-hidden"
-        style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
+        className="w-[200px] min-h-[60px] p-2 rounded-md border-2 border-solid overflow-hidden"
+        style={{
+          backgroundColor: token.colorBgLayout,
+          color: token.colorPrimaryText,
+          borderColor: token.colorPrimaryText,
+        }}
       >
         <div className="absolute top-0 left-0">
           {' '}

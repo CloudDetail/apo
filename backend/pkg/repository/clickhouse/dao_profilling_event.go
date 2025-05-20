@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type ProfilingEvent struct {
@@ -27,7 +29,7 @@ type ProfilingEvent struct {
 
 const profiling_event_sql = `SELECT %s FROM profiling_event %s LIMIT %s`
 
-func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
+func (ch *chRepo) GetOnOffCPU(ctx core.Context, pid uint32, nodeName string, startTime, endTime int64) (*[]ProfilingEvent, error) {
 	queryBuilder := NewQueryBuilder()
 	querySql := queryBuilder.
 		Between("startTime", startTime, endTime).
@@ -47,7 +49,7 @@ func (ch *chRepo) GetOnOffCPU(pid uint32, nodeName string, startTime, endTime in
 		Alias("intDiv(endTime, 1000)", "endTime").String()
 	sql := buildProfilingEventQuery(fieldSql, querySql)
 	result := make([]ProfilingEvent, 0)
-	err := ch.conn.Select(context.Background(), &result, sql, queryBuilder.values...)
+	err := ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}

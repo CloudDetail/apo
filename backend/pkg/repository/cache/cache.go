@@ -4,26 +4,28 @@
 package cache
 
 import (
-	"github.com/CloudDetail/apo/backend/pkg/util"
 	"sync"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 type Repo interface {
-	AddToken(token string) error
-	IsInBlacklist(token string) (bool, error)
+	AddToken(ctx core.Context, token string) error
+	IsInBlacklist(ctx core.Context, token string) (bool, error)
 }
 
 type cache struct {
 	blackList sync.Map
 }
 
-func (c *cache) IsInBlacklist(token string) (bool, error) {
+func (c *cache) IsInBlacklist(ctx core.Context, token string) (bool, error) {
 	_, ok := c.blackList.Load(token)
 	return ok, nil
 }
 
-func (c *cache) AddToken(token string) error {
+func (c *cache) AddToken(ctx core.Context, token string) error {
 	c.blackList.Store(token, struct{}{})
 	return nil
 }
@@ -42,7 +44,7 @@ func (c *cache) refreshLoop() {
 
 func (c *cache) refreshCache() {
 	c.blackList.Range(func(token, _ any) bool {
-		if util.IsExpire(token.(string)) {
+		if jwt.IsExpire(token.(string)) {
 			c.blackList.Delete(token)
 		}
 		return true

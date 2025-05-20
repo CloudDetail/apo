@@ -4,7 +4,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -20,126 +19,136 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 )
 
 // Define the Database query interface
 type Repo interface {
-	CreateOrUpdateThreshold(model *Threshold) error
-	GetOrCreateThreshold(serviceName string, endPoint string, level string) (Threshold, error)
-	DeleteThreshold(serviceName string, endPoint string) error
-	OperateLogTableInfo(model *LogTableInfo, op Operator) error
-	GetAllLogTable() ([]LogTableInfo, error)
-	UpdateLogParseRule(model *LogTableInfo) error
-	GetAllOtherLogTable() ([]OtherLogTable, error)
-	OperatorOtherLogTable(model *OtherLogTable, op Operator) error
-	CreateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig) error
+	CreateOrUpdateThreshold(ctx core.Context, model *Threshold) error
+	GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error)
+	DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error
+	OperateLogTableInfo(ctx core.Context, model *LogTableInfo, op Operator) error
+	GetAllLogTable(ctx core.Context) ([]LogTableInfo, error)
+	UpdateLogParseRule(ctx core.Context, model *LogTableInfo) error
+	GetAllOtherLogTable(ctx core.Context) ([]OtherLogTable, error)
+	OperatorOtherLogTable(ctx core.Context, model *OtherLogTable, op Operator) error
+	CreateDingTalkReceiver(ctx core.Context, dingTalkConfig *amconfig.DingTalkConfig) error
 	// GetDingTalkReceiver get the webhook URL secret corresponding to the uuid.
-	GetDingTalkReceiver(uuid string) (amconfig.DingTalkConfig, error)
-	GetDingTalkReceiverByAlertName(configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error)
-	UpdateDingTalkReceiver(dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
-	DeleteDingTalkReceiver(configFile, alertName string) error
+	GetDingTalkReceiver(ctx core.Context, uuid string) (amconfig.DingTalkConfig, error)
+	GetDingTalkReceiverByAlertName(ctx core.Context, configFile string, alertName string, page, pageSize int) ([]*amconfig.DingTalkConfig, int64, error)
+	UpdateDingTalkReceiver(ctx core.Context, dingTalkConfig *amconfig.DingTalkConfig, oldName string) error
+	DeleteDingTalkReceiver(ctx core.Context, configFile, alertName string) error
 
-	ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error)
+	ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error)
 
-	Login(username, password string) (*User, error)
-	CreateUser(ctx context.Context, user *User) error
-	UpdateUserPhone(userID int64, phone string) error
-	UpdateUserEmail(userID int64, email string) error
-	UpdateUserPassword(userID int64, oldPassword, newPassword string) error
-	UpdateUserInfo(ctx context.Context, userID int64, phone string, email string, corporation string) error
-	GetUserInfo(userID int64) (User, error)
-	GetAnonymousUser() (User, error)
-	GetUserList(req *request.GetUserListRequest) ([]User, int64, error)
-	RemoveUser(ctx context.Context, userID int64) error
-	RestPassword(userID int64, newPassword string) error
-	UserExists(userID ...int64) (bool, error)
+	Login(ctx core.Context, username, password string) (*User, error)
+	CreateUser(ctx core.Context, user *User) error
+	UpdateUserPhone(ctx core.Context, userID int64, phone string) error
+	UpdateUserEmail(ctx core.Context, userID int64, email string) error
+	UpdateUserPassword(ctx core.Context, userID int64, oldPassword, newPassword string) error
+	UpdateUserInfo(ctx core.Context, userID int64, phone string, email string, corporation string) error
+	GetUserInfo(ctx core.Context, userID int64) (User, error)
+	GetAnonymousUser(ctx core.Context) (User, error)
+	GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]User, int64, error)
+	RemoveUser(ctx core.Context, userID int64) error
+	RestPassword(ctx core.Context, userID int64, newPassword string) error
+	UserExists(ctx core.Context, userID ...int64) (bool, error)
 
-	GetUserRole(userID int64) ([]UserRole, error)
-	GetUsersRole(userIDs []int64) ([]UserRole, error)
-	GetRoles(filter model.RoleFilter) ([]Role, error)
-	GetFeature(featureIDs []int) ([]Feature, error)
-	GetFeatureByName(name string) (int, error)
-	GrantRoleWithUser(ctx context.Context, userID int64, roleIDs []int) error
-	GrantRoleWithRole(ctx context.Context, roleID int, userIDs []int64) error
-	RevokeRole(ctx context.Context, userID int64, roleIDs []int) error
-	RevokeRoleWithRole(ctx context.Context, roleID int) error
-	GetSubjectPermission(subID int64, subType string, typ string) ([]int, error)
-	GetSubjectsPermission(subIDs []int64, subType string, typ string) ([]AuthPermission, error)
-	RoleExists(roleID int) (bool, error)
-	GrantPermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
-	RevokePermission(ctx context.Context, subID int64, subType string, typ string, permissionIDs []int) error
-	GetAddAndDeletePermissions(subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
-	RoleGrantedToUser(userID int64, roleID int) (bool, error)
-	RoleGranted(roleID int) (bool, error)
-	FillItemRouter(items *[]MenuItem) error
-	GetItemsRouter(itemIDs []int) ([]Router, error)
-	GetRouterByIDs(routerIDs []int) ([]Router, error)
-	GetRouterInsertedPage(routers []*Router, language string) error
-	GetFeatureTans(features *[]Feature, language string) error
-	GetMenuItemTans(menuItems *[]MenuItem, language string) error
+	GetUserRole(ctx core.Context, userID int64) ([]UserRole, error)
+	GetUsersRole(ctx core.Context, userIDs []int64) ([]UserRole, error)
+	GetRoles(ctx core.Context, filter model.RoleFilter) ([]Role, error)
+	GetFeature(ctx core.Context, featureIDs []int) ([]Feature, error)
+	GetFeatureByName(ctx core.Context, name string) (int, error)
+	GrantRoleWithUser(ctx core.Context, userID int64, roleIDs []int) error
+	GrantRoleWithRole(ctx core.Context, roleID int, userIDs []int64) error
+	RevokeRole(ctx core.Context, userID int64, roleIDs []int) error
+	RevokeRoleWithRole(ctx core.Context, roleID int) error
+	GetSubjectPermission(ctx core.Context, subID int64, subType string, typ string) ([]int, error)
+	GetSubjectsPermission(ctx core.Context, subIDs []int64, subType string, typ string) ([]AuthPermission, error)
+	RoleExists(ctx core.Context, roleID int) (bool, error)
+	GrantPermission(ctx core.Context, subID int64, subType string, typ string, permissionIDs []int) error
+	RevokePermission(ctx core.Context, subID int64, subType string, typ string, permissionIDs []int) error
+	GetAddAndDeletePermissions(ctx core.Context, subID int64, subType, typ string, permList []int) (toAdd []int, toDelete []int, err error)
+	RoleGrantedToUser(ctx core.Context, userID int64, roleID int) (bool, error)
+	RoleGranted(ctx core.Context, roleID int) (bool, error)
+	FillItemRouter(ctx core.Context, items *[]MenuItem) error
+	GetItemsRouter(ctx core.Context, itemIDs []int) ([]Router, error)
+	GetRouterByIDs(ctx core.Context, routerIDs []int) ([]Router, error)
+	GetRouterInsertedPage(ctx core.Context, routers []*Router, language string) error
+	GetFeatureTans(ctx core.Context, features *[]Feature, language string) error
+	GetMenuItemTans(ctx core.Context, menuItems *[]MenuItem, language string) error
 
-	CreateDataGroup(ctx context.Context, group *DataGroup) error
-	DeleteDataGroup(ctx context.Context, groupID int64) error
-	CreateDatasourceGroup(ctx context.Context, datasource []model.Datasource, dataGroupID int64) error
-	DeleteDSGroup(ctx context.Context, groupID int64) error
-	DataGroupExist(filter model.DataGroupFilter) (bool, error)
-	UpdateDataGroup(ctx context.Context, groupID int64, groupName string, description string) error
-	GetDataGroup(filter model.DataGroupFilter) ([]DataGroup, int64, error)
-	RetrieveDataFromGroup(ctx context.Context, groupID int64, datasource []string) error
-	GetGroupDatasource(groupID ...int64) ([]DatasourceGroup, error)
+	CreateDataGroup(ctx core.Context, group *DataGroup) error
+	DeleteDataGroup(ctx core.Context, groupID int64) error
+	CreateDatasourceGroup(ctx core.Context, datasource []model.Datasource, dataGroupID int64) error
+	DeleteDSGroup(ctx core.Context, groupID int64) error
+	DataGroupExist(ctx core.Context, filter model.DataGroupFilter) (bool, error)
+	UpdateDataGroup(ctx core.Context, groupID int64, groupName string, description string) error
+	GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]DataGroup, int64, error)
+	RetrieveDataFromGroup(ctx core.Context, groupID int64, datasource []string) error
+	GetGroupDatasource(ctx core.Context, groupID ...int64) ([]DatasourceGroup, error)
 
-	GetFeatureMappingByFeature(featureIDs []int, mappedType string) ([]FeatureMapping, error)
-	GetFeatureMappingByMapped(mappedID int, mappedType string) (FeatureMapping, error)
-	GetMenuItems() ([]MenuItem, error)
+	GetFeatureMappingByFeature(ctx core.Context, featureIDs []int, mappedType string) ([]FeatureMapping, error)
+	GetFeatureMappingByMapped(ctx core.Context, mappedID int, mappedType string) (FeatureMapping, error)
+	GetMenuItems(ctx core.Context) ([]MenuItem, error)
 
-	GetTeamList(req *request.GetTeamRequest) ([]Team, int64, error)
-	DeleteTeam(ctx context.Context, teamID int64) error
-	CreateTeam(ctx context.Context, team Team) error
-	TeamExist(filter model.TeamFilter) (bool, error)
-	GetTeam(teamID int64) (Team, error)
-	UpdateTeam(ctx context.Context, team Team) error
-	InviteUserToTeam(ctx context.Context, teamID int64, userIDs []int64) error
-	AssignUserToTeam(ctx context.Context, userID int64, teamIDs []int64) error
-	GetUserTeams(userID int64) ([]int64, error)
-	GetTeamUsers(teamID int64) ([]int64, error)
-	GetTeamUserList(teamID int64) ([]User, error)
-	RemoveFromTeamByUser(ctx context.Context, userID int64, teamIDs []int64) error
-	RemoveFromTeamByTeam(ctx context.Context, teamID int64, userIDs []int64) error
-	DeleteAllUserTeam(ctx context.Context, id int64, by string) error
-	GetAssignedTeam(userID int64) ([]Team, error)
+	GetTeamList(ctx core.Context, req *request.GetTeamRequest) ([]Team, int64, error)
+	DeleteTeam(ctx core.Context, teamID int64) error
+	CreateTeam(ctx core.Context, team Team) error
+	TeamExist(ctx core.Context, filter model.TeamFilter) (bool, error)
+	GetTeam(ctx core.Context, teamID int64) (Team, error)
+	UpdateTeam(ctx core.Context, team Team) error
+	InviteUserToTeam(ctx core.Context, teamID int64, userIDs []int64) error
+	AssignUserToTeam(ctx core.Context, userID int64, teamIDs []int64) error
+	GetUserTeams(ctx core.Context, userID int64) ([]int64, error)
+	GetTeamUsers(ctx core.Context, teamID int64) ([]int64, error)
+	GetTeamUserList(ctx core.Context, teamID int64) ([]User, error)
+	RemoveFromTeamByUser(ctx core.Context, userID int64, teamIDs []int64) error
+	RemoveFromTeamByTeam(ctx core.Context, teamID int64, userIDs []int64) error
+	DeleteAllUserTeam(ctx core.Context, id int64, by string) error
+	GetAssignedTeam(ctx core.Context, userID int64) ([]Team, error)
 
-	CreateRole(ctx context.Context, role *Role) error
-	DeleteRole(ctx context.Context, roleID int) error
-	UpdateRole(ctx context.Context, roleID int, roleName, description string) error
+	CreateRole(ctx core.Context, role *Role) error
+	DeleteRole(ctx core.Context, roleID int) error
+	UpdateRole(ctx core.Context, roleID int, roleName, description string) error
 
-	GetAuthDataGroupBySub(subjectID int64, subjectType string) ([]AuthDataGroup, error)
-	GetGroupAuthDataGroupByGroup(groupID int64, subjectType string) ([]AuthDataGroup, error)
-	AssignDataGroup(ctx context.Context, authDataGroups []AuthDataGroup) error
-	RevokeDataGroupByGroup(ctx context.Context, dataGroupIDs []int64, subjectID int64) error
-	RevokeDataGroupBySub(ctx context.Context, subjectIDs []int64, groupID int64) error
-	GetSubjectDataGroupList(subjectID int64, subjectType string, category string) ([]DataGroup, error)
-	GetModifyAndDeleteDataGroup(subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
-	DeleteAuthDataGroup(ctx context.Context, subjectID int64, subjectType string) error
-	GetDataGroupUsers(groupID int64) ([]AuthDataGroup, error)
-	GetDataGroupTeams(groupID int64) ([]AuthDataGroup, error)
-	CheckGroupPermission(userID, groupID int64, typ string) (bool, error)
+	GetAuthDataGroupBySub(ctx core.Context, subjectID int64, subjectType string) ([]AuthDataGroup, error)
+	GetGroupAuthDataGroupByGroup(ctx core.Context, groupID int64, subjectType string) ([]AuthDataGroup, error)
+	AssignDataGroup(ctx core.Context, authDataGroups []AuthDataGroup) error
+	RevokeDataGroupByGroup(ctx core.Context, dataGroupIDs []int64, subjectID int64) error
+	RevokeDataGroupBySub(ctx core.Context, subjectIDs []int64, groupID int64) error
+	GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string, category string) ([]DataGroup, error)
+	GetModifyAndDeleteDataGroup(ctx core.Context, subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
+	DeleteAuthDataGroup(ctx core.Context, subjectID int64, subjectType string) error
+	GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
+	GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
+	CheckGroupPermission(ctx core.Context, userID, groupID int64, typ string) (bool, error)
 
-	GetAPIByPath(path string, method string) (*API, error)
+	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
 
 	// GetContextDB Gets transaction form ctx.
-	GetContextDB(ctx context.Context) *gorm.DB
+	GetContextDB(ctx core.Context) *gorm.DB
 	// WithTransaction Puts transaction into ctx.
-	WithTransaction(ctx context.Context, tx *gorm.DB) context.Context
+	WithTransaction(ctx core.Context, tx *gorm.DB) core.Context
 	// Transaction Starts a transaction and automatically commit and rollback.
-	Transaction(ctx context.Context, funcs ...func(txCtx context.Context) error) error
+	Transaction(ctx core.Context, funcs ...func(txCtx core.Context) error) error
+
+	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int, error)
+	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(ctx core.Context, name string) error
+
+	CheckAMReceiverCount(ctx core.Context) int64
+	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
 }
 
 type daoRepo struct {
-	db             *gorm.DB
-	sqlDB          *sql.DB
-	transactionCtx struct{}
+	*driver.DB
+	sqlDB *sql.DB
 
 	integration.ObservabilityInputManage
 }
@@ -186,51 +195,52 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 	daoRepo := &daoRepo{
-		db:    database,
+		DB:    &driver.DB{DB: database},
 		sqlDB: sqlDb,
 	}
 
-	if err = driver.InitSQL(daoRepo.db, &AlertMetricsData{}); err != nil {
+	if err = driver.InitSQL(database, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRole(); err != nil {
+	if err = daoRepo.initRole(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeature(); err != nil {
+	if err = daoRepo.initFeature(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRouterData(); err != nil {
+	if err = daoRepo.initRouterData(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initMenuItems(); err != nil {
+	if err = daoRepo.initMenuItems(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initInsertPages(); err != nil {
+	if err = daoRepo.initInsertPages(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initRouterPage(); err != nil {
+	if err = daoRepo.initRouterPage(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeatureMenuItems(); err != nil {
+	if err = daoRepo.initFeatureMenuItems(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initFeatureRouter(); err != nil {
+	if err = daoRepo.initFeatureRouter(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initPermissions(); err != nil {
+	if err = daoRepo.initPermissions(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.initI18nTranslation(); err != nil {
+	if err = daoRepo.initI18nTranslation(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.createAdmin(); err != nil {
+	// TODO core.Context
+	if err = daoRepo.createAdmin(nil); err != nil {
 		return nil, err
 	}
-	if err = daoRepo.createAnonymousUser(); err != nil {
+	if err = daoRepo.createAnonymousUser(nil); err != nil {
 		return nil, err
 	}
 
-	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(daoRepo.db, globalCfg); err != nil {
+	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(database, globalCfg); err != nil {
 		return nil, err
 	}
 
@@ -255,6 +265,8 @@ func migrateTable(db *gorm.DB) error {
 	}
 
 	return db.AutoMigrate(
+		&amconfig.Receiver{},
+		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},
 		&Feature{},
 		&FeatureMapping{},

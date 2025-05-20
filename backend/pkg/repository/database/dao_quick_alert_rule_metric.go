@@ -5,6 +5,8 @@ package database
 
 import (
 	"strings"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 // AlertMetricsData provide PQL corresponding to user selectable metrics
@@ -23,10 +25,10 @@ func (a *AlertMetricsData) TableName() string {
 }
 
 // ListQuickMutationMetric list of all quick metrics
-func (repo *daoRepo) ListQuickAlertRuleMetric(lang string) ([]AlertMetricsData, error) {
+func (repo *daoRepo) ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error) {
 	var quickAlertMetrics []AlertMetricsData
-	err := repo.db.Model(&AlertMetricsData{}).
-		Select(getQuickAlertRuleNameField(lang), "pql", "unit", "group").
+	err := repo.GetContextDB(ctx).Model(&AlertMetricsData{}).
+		Select(getQuickAlertRuleNameField(ctx.LANG()), "pql", "unit", "group").
 		Scan(&quickAlertMetrics).
 		Error
 	return quickAlertMetrics, err

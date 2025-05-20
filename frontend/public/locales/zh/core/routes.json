@@ -24,5 +24,6 @@
   "dataIntegration": "数据接入",
   "dataIntegrationSettings": "集群接入",
   "alertEvents": "告警事件",
-  "workflows": "工作流"
+  "workflows": "工作流",
+  "eventDetail": "告警事件详情"
 }
