@@ -134,6 +134,57 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 	return sql
 }
 
+type queryTraceResult struct {
+	Timestamp      int64   `ch:"ts" json:"timestamp"`
+	Duration       uint64  `ch:"duration_us" json:"duration"`
+	ServiceName    string  `ch:"service_name" json:"serviceName"`
+	Pid            uint32  `ch:"pid" json:"pid"`
+	Tid            uint32  `ch:"tid" json:"tid"`
+	TraceId        string  `ch:"trace_id" json:"traceId"`
+	EndPoint       string  `ch:"endpoint" json:"endpoint"`
+	InstanceId     string  `ch:"instance_id" json:"instanceId"`
+	SpanId         string  `ch:"span_id" json:"spanId"`
+	ApmType        string  `ch:"apm_type" json:"apmType"`
+	Reason         string  `ch:"reason" json:"reason"`
+	IsError        bool    `ch:"is_error" json:"isError"`
+	IsSlow         bool    `ch:"is_slow" json:"isSlow"`
+	ThresholdValue float64 `ch:"threshold_value" json:"thresholdValue"`
+
+	Labels  map[string]string `ch:"labels" json:"labels"`
+	Flags   map[string]uint8  `ch:"flags"  json:"flags"`
+	Metrics map[string]uint64 `ch:"metrics" json:"metrics"`
+
+	MutatedValue uint64 `ch:"mutated_value" json:"mutatedValue"`
+	IsMutated    uint8  `ch:"is_mutated" json:"isMutated"` // 延时是否突变
+}
+
+func (t *queryTraceResult) toQueryTraceResult() QueryTraceResult {
+	boolFlags := map[string]bool{}
+	for k, v := range t.Flags {
+		boolFlags[k] = v == 1
+	}
+	return QueryTraceResult{
+		Timestamp:      t.Timestamp,
+		Duration:       t.Duration,
+		ServiceName:    t.ServiceName,
+		Pid:            t.Pid,
+		Tid:            t.Tid,
+		TraceId:        t.TraceId,
+		EndPoint:       t.EndPoint,
+		InstanceId:     t.InstanceId,
+		SpanId:         t.SpanId,
+		ApmType:        t.ApmType,
+		Reason:         t.Reason,
+		IsError:        t.IsError,
+		IsSlow:         t.IsSlow,
+		ThresholdValue: t.ThresholdValue,
+		Labels:         t.Labels,
+		Flags:          boolFlags,
+		Metrics:        t.Metrics,
+		MutatedValue:   t.MutatedValue,
+		IsMutated:      t.IsMutated,
+	}
+}
 func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("toUnixTimestamp(timestamp)", req.StartTime/1000000, req.EndTime/1000000).
@@ -193,9 +244,14 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
+	tmpResult := []queryTraceResult{}
+	err = ch.GetContextDB(ctx).Select(context.Background(), &tmpResult, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
+	}
+	result = make([]QueryTraceResult, len(tmpResult))
+	for i, v := range tmpResult {
+		result[i] = v.toQueryTraceResult()
 	}
 	return result, int64(count), nil
 }
