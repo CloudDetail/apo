@@ -106,6 +106,7 @@ SELECT
   ae.detail,
   ae.status,
   ae.tags,
+  ae.raw_tags,
   ae.source,
   fw.workflow_run_id,
   fw.workflow_id,
