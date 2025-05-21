@@ -24,8 +24,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
 	"github.com/CloudDetail/apo/backend/pkg/api/user"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/util"
-	"github.com/CloudDetail/metadata/source"
 )
 
 func setApiRouter(r *resource) {
@@ -323,14 +321,5 @@ func setApiRouter(r *resource) {
 		handler := metric.New(r.logger, r.prom)
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
-	}
-}
-
-func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
-	api := srv.Mux.Group("/metadata")
-	for path, handler := range meta.Handlers() {
-		// This set of APIs supports both GET and POST
-		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
-		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}
 }
