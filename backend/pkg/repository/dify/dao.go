@@ -87,6 +87,9 @@ func (r *difyRepo) GetAlertAnalyzeFlowID() string {
 
 func (r *difyRepo) WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error) {
 	resp, err := r.cli.WorkflowsRun(req, authorization)
+	if err != nil {
+		return nil, err
+	}
 	if completResp, ok := resp.(*CompletionResponse); ok {
 		return completResp, err
 	}
