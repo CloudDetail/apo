@@ -61,8 +61,6 @@ apoOneAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/ebpf-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.7.3"
   resources:
     limits:
       cpu: 1000m
@@ -73,14 +71,11 @@ apoOneAgent:
   config:
     apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
     apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
-    javaAgentType: "opentelemetry"
 
 apoNodeAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/node-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.8.0"
   resources:
     limits:
       cpu: 200m
@@ -94,8 +89,6 @@ apoIlogtail:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/ilogtail" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.5.2"
   resources:
     limits:
       cpu: 1000m
@@ -110,8 +103,6 @@ grafanaAlloy:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/grafana-alloy" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.4.2-1"
   resources:
     limits:
       cpu: 2000m
@@ -128,7 +119,6 @@ grafanaBeyla:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-beyla" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.8.4-1"
   resources:
     limits:
       cpu: 1000m
@@ -143,7 +133,6 @@ odiglet:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-odiglet" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.0.2"
   resources:
     limits:
       cpu: 200m
@@ -159,7 +148,6 @@ apoOtelCollectorAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.0.1"
   resources:
     limits:
       cpu: 1000m
@@ -177,7 +165,6 @@ originxGcAgent:
   image:
     repository: "{{ "{{ .Values.global.image.eeRepository }}/originx-gc-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    tag: "v1.4.1"
   resources:
     limits:
       cpu: 1000m
@@ -195,7 +182,6 @@ odigos:
     image:
       repository: "{{ "{{ .Values.global.image.repository }}/apo-odigos-instrumentor" }}"
       imagePullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-      tag: "v1.0.0"
     resources:
       limits:
         cpu: 1000m
@@ -240,8 +226,6 @@ apo-nginx-proxy:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/nginx" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "stable-alpine3.20"
   # resources:
   #   limits:
   #     cpu: 1000m
@@ -258,8 +242,6 @@ apo-otel-collector:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.0.1"
   config:
     apoBackendUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
     apoBackendPort: "{{ "{{ .Values.global.apoBackendPort }}" }}"
