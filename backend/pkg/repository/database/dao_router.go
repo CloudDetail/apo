@@ -3,10 +3,9 @@
 
 package database
 
-import
-
-// Router front end router.
-core "github.com/CloudDetail/apo/backend/pkg/core"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/core"
+)
 
 type Router struct {
 	RouterID         int    `gorm:"column:router_id;primary_key" json:"routerId"`
