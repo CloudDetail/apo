@@ -104,7 +104,10 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 			Namespace:   records[i].AlertEvent.GetK8sNamespaceTag(),
 			Pod:         records[i].AlertEvent.GetK8sPodTag(),
 			Pid:         records[i].AlertEvent.GetPidTag(),
+			Detail:      records[i].AlertEvent.Detail,
 			ContainerID: records[i].AlertEvent.GetContainerIDTag(),
+			Tags:        records[i].AlertEvent.EnrichTags,
+			RawTags:     records[i].AlertEvent.Tags,
 		}
 
 		if len(services) == 1 {

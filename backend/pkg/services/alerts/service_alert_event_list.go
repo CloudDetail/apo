@@ -86,8 +86,10 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 		Namespace:   record.AlertEvent.GetK8sNamespaceTag(),
 		Pod:         record.AlertEvent.GetK8sPodTag(),
 		Pid:         record.AlertEvent.GetPidTag(),
-		ContainerID: record.AlertEvent.GetContainerIDTag(),
 		Detail:      record.Detail,
+		ContainerID: record.AlertEvent.GetContainerIDTag(),
+		Tags:        record.Alert.EnrichTags,
+		RawTags:     record.Alert.Tags,
 	}
 
 	if len(services) == 1 {
