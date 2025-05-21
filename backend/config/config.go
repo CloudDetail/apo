@@ -101,6 +101,7 @@ type Config struct {
 		} `mapstructure:"flow_ids"`
 		MaxConcurrency int    `mapstructure:"max_concurrency"`
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
 	AlertReceiver struct {

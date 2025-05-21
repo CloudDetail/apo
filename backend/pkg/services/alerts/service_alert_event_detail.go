@@ -99,11 +99,12 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		}
 
 		parmas := alert.AlertAnalyzeWorkflowParams{
-			Node:      records[i].AlertEvent.GetInfraNodeTag(),
-			Namespace: records[i].AlertEvent.GetK8sNamespaceTag(),
-			Pod:       records[i].AlertEvent.GetK8sPodTag(),
-			Pid:       records[i].AlertEvent.GetPidTag(),
-			AlertName: records[i].AlertEvent.Name,
+			AlertName:   records[i].AlertEvent.Name,
+			Node:        records[i].AlertEvent.GetInfraNodeTag(),
+			Namespace:   records[i].AlertEvent.GetK8sNamespaceTag(),
+			Pod:         records[i].AlertEvent.GetK8sPodTag(),
+			Pid:         records[i].AlertEvent.GetPidTag(),
+			ContainerID: records[i].AlertEvent.GetContainerIDTag(),
 		}
 
 		if len(services) == 1 {

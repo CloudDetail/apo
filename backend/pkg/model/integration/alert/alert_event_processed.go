@@ -62,5 +62,6 @@ type AlertAnalyzeWorkflowParams struct {
 	Pid       string `json:"pid,omitempty"`
 	AlertName string `json:"alertName,omitempty"`
 
-	Detail string `json:"detail,omitempty"`
+	Detail      string `json:"detail,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
 }
