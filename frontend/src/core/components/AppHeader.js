@@ -93,6 +93,7 @@ const AppHeader = ({ type = 'default' }) => {
                   color: selectedKeys.includes(item.key)
                     ? 'var(--menu-selected-text-color)'
                     : token.colorText,
+                  borderBottom: '1px solid var(--cui-body-bg)',
                 }}
               >
                 <span className="pr-2">{item.icon}</span> {item.label}
