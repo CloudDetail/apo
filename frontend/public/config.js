@@ -13,4 +13,5 @@ window.__APP_CONFIG__ = {
       colorPrimary: '#1677ff',
     },
   },
+  apoChartVersion: 'v1.2.0',
 }
