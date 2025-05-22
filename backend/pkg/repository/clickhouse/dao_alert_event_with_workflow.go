@@ -14,13 +14,13 @@ import (
 )
 
 const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
-  SELECT alert_id,status,%s as rounded_time
+  SELECT alert_id,status
   FROM alert_event ae
   %s
   ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
-  SELECT rounded_time,ref,output,
+  SELECT ref,output,
   CASE
     WHEN output = 'false' THEN 2
     WHEN output = 'true' THEN 1
@@ -28,6 +28,7 @@ filtered_workflows AS (
   END as importance
   FROM workflow_records
   %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
 )
 SELECT count(1) FROM
   (
@@ -40,13 +41,13 @@ SELECT count(1) FROM
         WHEN fw.importance = 2 THEN 'valid'
       END as validity
     FROM lastEvent ae
-    LEFT JOIN filtered_workflows fw on ae.rounded_time = fw.rounded_time and ae.alert_id = fw.ref
+    LEFT JOIN filtered_workflows fw on ae.alert_id = fw.ref
    )
 %s
 `
 
 const SQL_GET_ALERTEVENT_COUNTS = `WITH lastEvent AS (
-  SELECT *, %s as rounded_time
+  SELECT *
   FROM alert_event ae
   %s
   ORDER BY received_time DESC LIMIT 1 BY alert_id
@@ -60,6 +61,7 @@ filtered_workflows AS (
   END as importance
   FROM workflow_records
   %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
 )
 SELECT count(1) as count,validity,status FROM(
   SELECT status,alert_id,
@@ -71,12 +73,12 @@ SELECT count(1) as count,validity,status FROM(
       WHEN fw.importance = 2 THEN 'valid'
     END as validity
   FROM lastEvent ae
-  LEFT JOIN filtered_workflows fw on ae.rounded_time = fw.rounded_time and ae.alert_id = fw.ref
+  LEFT JOIN filtered_workflows fw on ae.alert_id = fw.ref
 ) GROUP BY validity,status
 `
 
 const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
-  SELECT *, %s as rounded_time
+  SELECT *
   FROM alert_event ae
   %s
   ORDER BY received_time DESC LIMIT 1 BY alert_id
@@ -87,10 +89,10 @@ filtered_workflows AS (
     WHEN output = 'false' THEN 2
     WHEN output = 'true' THEN 1
     ELSE 0
-  END as importance,
-  %s as rounded_time_e
+  END as importance
   FROM workflow_records
   %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
 )
 SELECT
   ae.id,
@@ -127,20 +129,8 @@ SELECT
   END as validity
 FROM lastEvent ae
 LEFT JOIN filtered_workflows fw
-ON ae.alert_id = fw.ref AND ae.rounded_time = fw.rounded_time_e
+ON ae.alert_id = fw.ref
 %s %s`
-
-// Deprecated: Used to be compatible with version 1.5, will be removed after version 1.7.
-func getWorkflowRecordRoundedTime(cacheMinutes int) string {
-	return fmt.Sprintf(`CASE
-      WHEN rounded_time > 0 THEN rounded_time
-      ELSE toStartOfInterval(created_at, INTERVAL %d MINUTE)
-    END`, cacheMinutes)
-}
-
-func getEventRoundedTime(cacheMinutes int) string {
-	return fmt.Sprintf(`toStartOfInterval(ae.update_time, INTERVAL %d MINUTE) + INTERVAL %d MINUTE`, cacheMinutes, cacheMinutes)
-}
 
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
@@ -218,7 +208,6 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 
 func buildCountQuery(alertFilter *QueryBuilder, recordFilter *QueryBuilder, resultFilter *QueryBuilder, cacheMinutes int) string {
 	return fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT,
-		getEventRoundedTime(cacheMinutes),
 		alertFilter.String(),
 		recordFilter.String(),
 		resultFilter.String(),
@@ -262,9 +251,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 	}
 
 	sql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
-		getEventRoundedTime(cacheMinutes),
 		alertFilter.String(),
-		getWorkflowRecordRoundedTime(cacheMinutes),
 		recordFilter.String(),
 		resultFilter.String(),
 		resultOrder.String(),
@@ -288,7 +275,6 @@ func (ch *chRepo) GetAlertEventCounts(req *request.AlertEventSearchRequest, cach
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_COUNTS,
-		getEventRoundedTime(cacheMinutes),
 		alertFilter.String(),
 		recordFilter.String(),
 	)
