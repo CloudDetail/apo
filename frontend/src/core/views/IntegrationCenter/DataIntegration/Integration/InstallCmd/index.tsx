@@ -9,8 +9,7 @@ import {
   getClusterInstallConfigApi,
   getClusterInstallPackageApi,
 } from 'src/core/api/integration'
-import ReactMarkdown from 'react-markdown'
-import { Button, Card, Typography } from 'antd'
+import { Button, Typography } from 'antd'
 import { IoCloudDownloadOutline } from 'react-icons/io5'
 import { Trans, useTranslation } from 'react-i18next'
 import 'github-markdown-css/github-markdown.css'
@@ -28,7 +27,14 @@ const decodeBase64 = (base64Str: string) => {
     console.error('Base64 error:', error)
   }
 }
-
+function getAPOChartVersion() {
+  try {
+    const config = window.__APP_CONFIG__ || {}
+    return config.apoChartVersion || 'v1.2.0'
+  } catch (e) {
+    return 'v1.2.0'
+  }
+}
 const InstallCmd = ({ clusterId, clusterType, apoCollector }) => {
   const { t } = useTranslation('core/dataIntegration')
   const [markdownContent, setMarkdownContent] = useState('')
@@ -91,7 +97,7 @@ const InstallCmd = ({ clusterId, clusterType, apoCollector }) => {
   const getK8sCommand1 = () => {
     return `curl -Lo apo-one-agent-values.yaml http://${apoCollector?.collectorGatewayAddr}:${apoCollector?.ports?.apoBackend || 31363}/api/integration/cluster/install/config?clusterId=${clusterId}`
   }
-  const chartVersion = import.meta.env.VITE_APP_APO_CHART_VRESION || 'v1.2.0'
+  const chartVersion = getAPOChartVersion()
   const getK8sCommand2 = () => {
     return `helm repo add apo https://apo-charts.oss-cn-hangzhou.aliyuncs.com
 helm repo update apo
