@@ -66,6 +66,8 @@ func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string) (W
 	return nil, nil
 }
 
+
+
 var DefaultDifyFastHttpClient = &http.Client{
 	Transport: &http.Transport{
 		MaxIdleConns:        10,

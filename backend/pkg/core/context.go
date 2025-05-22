@@ -196,10 +196,6 @@ func (c *context) AbortWithPermissionError(err error, expectCode string, emptyRe
 }
 
 func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
-	if err == nil {
-		return
-	}
-
 	if statusCode == 0 {
 		statusCode = http.StatusInternalServerError
 	}
