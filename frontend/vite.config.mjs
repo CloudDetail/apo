@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import autoprefixer from 'autoprefixer'
 import tailwindcss from 'tailwindcss'
+import strip from '@rollup/plugin-strip'
 export default defineConfig(() => {
   return {
     base: './',
@@ -34,7 +35,14 @@ export default defineConfig(() => {
         },
       },
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      strip({
+        include: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
+        functions: ['console.log', 'console.debug'],
+        // sourcemap: false,
+      }),
+    ],
     resolve: {
       alias: [
         {
