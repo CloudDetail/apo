@@ -224,10 +224,25 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, 
 	var user profile.User
 	err := repo.GetContextDB(ctx).
 		Select(userFieldSql).
-		Preload("RoleList").
-		Preload("TeamList").
 		Where("user_id = ?", userID).
 		First(&user).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	roleList, err := repo.getRoleByUserID(ctx, userID)
+	if err != nil {
+		return user, err
+	}
+	user.RoleList = roleList[userID]
+
+	teamList, err := repo.getTeamByUserID(ctx, userID)
+	if err != nil {
+		return user, err
+	}
+	user.TeamList = teamList[userID]
+
 	return user, err
 }
 
@@ -241,7 +256,7 @@ func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListReque
 	var users []profile.User
 	var count int64
 
-	query := repo.GetContextDB(ctx).Model(&profile.User{}).Preload("RoleList").Preload("TeamList")
+	query := repo.GetContextDB(ctx).Model(&profile.User{})
 
 	if len(req.Username) > 0 {
 		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))

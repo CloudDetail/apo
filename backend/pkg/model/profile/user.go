@@ -11,8 +11,8 @@ type User struct {
 	Email       string `gorm:"column:email;type:varchar(50)" json:"email,omitempty"`
 	Corporation string `gorm:"column:corporation;type:varchar(50)" json:"corporation,omitempty"`
 
-	RoleList    []Role    `gorm:"many2many:user_role;joinForeignKey:UserID;joinReferences:RoleID" json:"roleList,omitempty"`
-	TeamList    []Team    `gorm:"many2many:user_team;joinForeignKey:UserID;joinReferences:TeamID" json:"teamList,omitempty"`
+	RoleList    []Role    `gorm:"-" json:"roleList,omitempty"`
+	TeamList    []Team    `gorm:"-" json:"teamList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 

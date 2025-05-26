@@ -9,7 +9,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"gorm.io/gorm"
 )
 
 func (repo *daoRepo) CreateTeam(ctx core.Context, team profile.Team) error {
@@ -59,9 +58,7 @@ func (repo *daoRepo) GetTeamList(ctx core.Context, req *request.GetTeamRequest) 
 	var teams []profile.Team
 	var count int64
 
-	query := repo.GetContextDB(ctx).Model(&profile.Team{}).Preload("UserList", func(db *gorm.DB) *gorm.DB {
-		return db.Select("user_id, username")
-	})
+	query := repo.GetContextDB(ctx).Model(&profile.Team{})
 
 	if len(req.TeamName) > 0 {
 		query = query.Where("team_name LIKE ?", "%"+req.TeamName+"%")
@@ -215,4 +212,30 @@ func (repo *daoRepo) GetTeamUserList(ctx core.Context, teamID int64) ([]profile.
 	subQuery := repo.GetContextDB(ctx).Model(&profile.UserTeam{}).Select("user_id").Where("team_id = ?", teamID)
 	err := repo.GetContextDB(ctx).Where("user_id IN (?)", subQuery).Find(&users).Error
 	return users, err
+}
+
+type userTeamMap = map[int64][]profile.Team
+type userTeam struct {
+	UserID int64 `gorm:"column:user_id"`
+	profile.Team
+}
+
+func (repo *daoRepo) getTeamByUserID(ctx core.Context, userID ...int64) (userTeamMap, error) {
+	var userTeams []userTeam
+	err := repo.GetContextDB(ctx).Model(&profile.UserTeam{}).
+		Select("user_id", "team.team_id", "team_name", "description").
+		Where("user_id IN ?", userID).
+		Joins("LEFT JOIN team ON user_team.team_id = team.team_id").
+		Order("user_id").
+		Scan(&userTeams).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	userTeamMap := make(userTeamMap)
+	for _, userTeam := range userTeams {
+		userTeamMap[userTeam.UserID] = append(userTeamMap[userTeam.UserID], userTeam.Team)
+	}
+	return userTeamMap, nil
 }
