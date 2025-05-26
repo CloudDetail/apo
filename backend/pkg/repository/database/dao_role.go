@@ -172,10 +172,6 @@ type userRole struct {
 }
 
 func (repo *daoRepo) getRoleByUserID(ctx core.Context, userID ...int64) (userRoleMap, error) {
-	// var userRoles []profile.Role
-	// err := repo.GetContextDB(ctx).Where("user_id IN ?", userID).Order("user_id").Find(&userRoles).Error
-	// return userRoles, err
-
 	var userRoles []userRole
 	err := repo.GetContextDB(ctx).Model(&profile.UserRole{}).
 		Select("user_id", "role.role_id", "role_name", "description").
