@@ -82,12 +82,15 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		Node:      record.AlertEvent.GetInfraNodeTag(),
-		Namespace: record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:       record.AlertEvent.GetK8sPodTag(),
-		Pid:       record.AlertEvent.GetPidTag(),
-		AlertName: record.AlertEvent.Name,
-		Detail:    record.Detail,
+		AlertName:   record.AlertEvent.Name,
+		Node:        record.AlertEvent.GetInfraNodeTag(),
+		Namespace:   record.AlertEvent.GetK8sNamespaceTag(),
+		Pod:         record.AlertEvent.GetK8sPodTag(),
+		Pid:         record.AlertEvent.GetPidTag(),
+		Detail:      record.Detail,
+		ContainerID: record.AlertEvent.GetContainerIDTag(),
+		Tags:        record.Alert.EnrichTags,
+		RawTags:     record.Alert.Tags,
 	}
 
 	if len(services) == 1 {

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
@@ -23,7 +24,7 @@ func TestChRepo_K8sAlert(t *testing.T) {
 			NodeName: "worker-23",
 		},
 	}
-	k8sAlert, err := repo.GetK8sAlertEventsSample(nil, oneHourAgo, currentTime, instances)
+	k8sAlert, err := repo.GetK8sAlertEventsSample(core.EmptyCtx(), oneHourAgo, currentTime, instances)
 	if err != nil {
 		t.Fatalf("Error to get k8sAlert: %v", err)
 	}

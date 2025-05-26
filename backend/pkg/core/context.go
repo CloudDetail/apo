@@ -102,7 +102,6 @@ type Context interface {
 	ClientIP() string
 
 	LANG() string
-	LANGFromParam(param string) string
 	UserID() int64
 
 	ErrMessage(errCode string) string
@@ -197,10 +196,6 @@ func (c *context) AbortWithPermissionError(err error, expectCode string, emptyRe
 }
 
 func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
-	if err == nil {
-		return
-	}
-
 	if statusCode == 0 {
 		statusCode = http.StatusInternalServerError
 	}
@@ -249,22 +244,16 @@ func (c *context) LANG() string {
 	if c == nil {
 		return code.LANG_ZH
 	}
-	lang := c.GetHeader("APO-Language")
+	lang := code.LANG_EN
+
+	if c.ctx.Request != nil {
+		lang = c.GetHeader("APO-Language")
+	}
+
 	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
 		return code.LANG_EN
 	}
 	return code.LANG_ZH
-}
-
-func (c *context) LANGFromParam(param string) string {
-	if len(param) > 0 {
-		if strings.HasPrefix(strings.ToLower(param), code.LANG_EN) {
-			return code.LANG_EN
-		}
-		return code.LANG_ZH
-	}
-
-	return c.LANG()
 }
 
 func (c *context) ErrMessage(errCode string) string {

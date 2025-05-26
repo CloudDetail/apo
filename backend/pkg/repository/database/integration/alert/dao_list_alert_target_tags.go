@@ -6,36 +6,38 @@ package alert
 import (
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 func (repo *subRepo) ListAlertTargetTags(ctx core.Context) ([]alert.TargetTag, error) {
-	lang := ctx.LANG()
 	var targetTags []alert.TargetTag
 	err := repo.GetContextDB(ctx).Model(&alert.TargetTag{}).
-		Select("id", "field", getTargetTag(lang), getTargetTagDescribe(lang)).
+		Select("id", "field", getTargetTag(ctx), getTargetTagDescribe(ctx)).
 		Order("id ASC").
 		Scan(&targetTags).Error
 	return targetTags, err
 }
 
-func getTargetTag(lang string) string {
+func getTargetTag(ctx core.Context) string {
+	var lang = code.LANG_EN
+	if ctx != nil {
+		lang = ctx.LANG()
+	}
 	if strings.HasPrefix(lang, "en") { // en_US,en
 		return `tag_name_en AS "tag_name"`
 	}
-	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
-	// 	return "name"
-	// }
 	return `"tag_name"`
 }
 
-func getTargetTagDescribe(lang string) string {
+func getTargetTagDescribe(ctx core.Context) string {
+	var lang = code.LANG_EN
+	if ctx != nil {
+		lang = ctx.LANG()
+	}
 	if strings.HasPrefix(lang, "en") { // en_US,en
 		return `describe_en AS "describe"`
 	}
-	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
-	// 	return "name"
-	// }
 	return `"describe"`
 }

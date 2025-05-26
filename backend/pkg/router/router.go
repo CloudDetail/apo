@@ -175,6 +175,12 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	// Set API routing
 	setApiRouter(r)
 
+	for apiName, extraRoute := range extraRouters {
+		if err := extraRoute(mux, r); err != nil {
+			logger.Error("extraRoute create failed", zap.String("api", apiName))
+		}
+	}
+
 	s := new(Server)
 	s.Mux = mux
 	return s, nil

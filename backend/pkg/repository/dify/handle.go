@@ -16,7 +16,7 @@ type Handle func(ctx core.Context, record *model.WorkflowRecord) error
 func HandleRecords(ctx context.Context, logger *zap.Logger, records <-chan *model.WorkflowRecord, handlers ...Handle) {
 	for record := range records {
 		for _, handler := range handlers {
-			err := handler(nil, record)
+			err := handler(core.EmptyCtx(), record)
 			if err != nil {
 				logger.Error("handle workflow records failed", zap.Error(err))
 			}

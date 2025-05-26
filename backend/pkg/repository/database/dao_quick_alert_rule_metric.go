@@ -6,6 +6,7 @@ package database
 import (
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
@@ -28,18 +29,19 @@ func (a *AlertMetricsData) TableName() string {
 func (repo *daoRepo) ListQuickAlertRuleMetric(ctx core.Context) ([]AlertMetricsData, error) {
 	var quickAlertMetrics []AlertMetricsData
 	err := repo.GetContextDB(ctx).Model(&AlertMetricsData{}).
-		Select(getQuickAlertRuleNameField(ctx.LANG()), "pql", "unit", "group").
+		Select(getQuickAlertRuleNameField(ctx), "pql", "unit", "group").
 		Scan(&quickAlertMetrics).
 		Error
 	return quickAlertMetrics, err
 }
 
-func getQuickAlertRuleNameField(lang string) string {
+func getQuickAlertRuleNameField(ctx core.Context) string {
+	var lang = code.LANG_EN
+	if ctx != nil {
+		lang = ctx.LANG()
+	}
 	if strings.HasPrefix(lang, "en") { // en_US,en
 		return `name_en AS "name"`
 	}
-	// if strings.HasPrefix(lang, "zh") { // zh_CN,zh
-	// 	return "name"
-	// }
 	return `"name"`
 }

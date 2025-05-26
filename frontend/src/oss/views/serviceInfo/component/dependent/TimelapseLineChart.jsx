@@ -28,23 +28,15 @@ const TimelapseLineChart = (props) => {
     title: {},
     color: ChartColorList,
     tooltip: {
-      trigger: 'item',
+      trigger: 'axis',
       confine: true,
       enterable: true,
       // alwaysShowContent: true,
       axisPointer: {
-        type: 'cross',
+        type: 'line',
+        snap: true,
         label: {
-          formatter: function (params) {
-            // 自定义格式化函数，params.value 是轴上指示的值
-            const { axisDimension, value } = params
-            if (axisDimension === 'y') {
-              return convertTime(value, 'ms', 2) + 'ms'
-            } else {
-              return convertTime(value * 1000, 'yyyy-mm-dd hh:mm:ss')
-            }
-            // return `自定义格式: ${params.value}`;
-          },
+          show: false,
         },
       },
       //   position: function (point, params, dom, rect, size) {
@@ -75,14 +67,14 @@ const TimelapseLineChart = (props) => {
       // appendToBody: true,
       // extraCssText: 'white-space: normal;word-break: break-all;',
       formatter: (params) => {
-        let result = `<div class="rgb(102, 102, 102)">${convertTime(params.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
+        let result = `<div class="rgb(102, 102, 102)">${convertTime(params[0]?.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
         <div class="overflow-hidden" >`
         result += `<div class="flex flex-row items-center justify-between">
                       <div class="flex flex-row items-center flex-nowrap flex-shrink flex-1 break-words">
-                        <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params.color}"></div>
-                        <div class="flex-1">${params.seriesName}</div>
+                        <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params[0]?.color}"></div>
+                        <div class="flex-1">${params[0]?.seriesName}</div>
                       </div>
-                      <span class="font-bold flex-shrink-0 ml-2">${convertTime(params.data[1], 'ms', 2)} ms</span>
+                      <span class="font-bold flex-shrink-0 ml-2">${convertTime(params[0]?.data[1], 'ms', 2)} ms</span>
                       </div>`
         // params.forEach((param) => {
         //   result += `<div class="flex flex-row items-center justify-between">

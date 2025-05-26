@@ -6,6 +6,7 @@ package database
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 )
 
 type I18nTranslation struct {
@@ -27,7 +28,7 @@ func (repo *daoRepo) GetTranslation(ctx core.Context, targetIDs []int, targetTyp
 	return translations, err
 }
 
-func (repo *daoRepo) GetFeatureTans(ctx core.Context, features *[]Feature, language string) error {
+func (repo *daoRepo) GetFeatureTans(ctx core.Context, features *[]profile.Feature, language string) error {
 	featureIDs := make([]int, len(*features))
 	for i, f := range *features {
 		featureIDs[i] = f.FeatureID

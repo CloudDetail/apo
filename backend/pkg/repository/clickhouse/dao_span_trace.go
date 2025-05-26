@@ -136,7 +136,7 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 
 func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
-		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
+		Between("toUnixTimestamp(timestamp)", req.StartTime/1000000, req.EndTime/1000000).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
 		EqualsNotEmpty("labels['instance_id']", req.Instance).
 		EqualsNotEmpty("labels['node_name']", req.NodeName).
