@@ -59,8 +59,8 @@ const WorkflowsIframe = ({ src }) => {
         const { access_token, refresh_token } = event.data.data
         localStorage.setItem('difyToken', access_token)
         localStorage.setItem('difyRefreshToken', refresh_token)
-        setDifyToken(access_token)
-        setRefreshToken(refresh_token)
+        // setDifyToken(access_token)
+        // setRefreshToken(refresh_token)
       }
     }
 
