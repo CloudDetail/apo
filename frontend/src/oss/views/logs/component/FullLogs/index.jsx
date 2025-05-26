@@ -37,6 +37,8 @@ function FullLogs() {
   const [collapsed, setCollapsed] = useState(false)
   const { useToken } = theme
   const { token } = useToken()
+  //@ts-ignore
+  const contentHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-content-height)' : 'var(--ee-app-content-height)';
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
     if (startTime && endTime) {
@@ -69,7 +71,7 @@ function FullLogs() {
     <>
       <LoadingSpinner loading={loading} />
       {/* 顶部筛选 */}
-      <CCard style={{ height: 'calc(100vh - 120px)' }}>
+      <CCard style={{ height: contentHeight }}>
         <Layout className="relative ">
           <div
             onClick={() => setCollapsed(!collapsed)}

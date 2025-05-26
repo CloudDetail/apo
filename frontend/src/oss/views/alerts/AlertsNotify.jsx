@@ -12,8 +12,8 @@ import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
-import CustomCard from 'src/core/components/Card/CustomCard'
 import { RiDeleteBin5Line } from 'react-icons/ri'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -187,10 +187,11 @@ export default function AlertsNotify() {
     }
   }, [column, data, pageIndex, pageSize])
   return (
-    <CustomCard styleType="alerts">
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center justify-betweeen text-sm ">
-        <Space className="flex-grow">
+
+      <BasicCard.Header>
+        <Space className="flex-grow my-2">
           <Space className="flex-1">
             <span className="text-nowrap">{t('notify.alertNotifyName')}：</span>
             <Input
@@ -208,22 +209,22 @@ export default function AlertsNotify() {
           type="primary"
           icon={<MdAdd />}
           onClick={clickAddRule}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 my-2"
         >
           <span className="text-xs">{t('notify.addAlertNotify')}</span>
         </Button>
-      </div>
-      <div className="text-sm flex-1 overflow-auto">
-        <div className="h-full text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-      </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
       <ModifyAlertNotifyModal
         modalVisible={modalVisible}
         notifyInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </CustomCard>
+    </BasicCard>
   )
 }

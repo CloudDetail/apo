@@ -19,7 +19,7 @@ const AppContent = () => {
     return menuItems[0]?.router?.to || menuItems[0]?.children?.[0]?.router?.to || '/'
   }
   return (
-    <CContainer className="px-4" fluid>
+    <CContainer className="px-2" fluid>
       <Suspense fallback={<Spin size={'large'} />}>
         <Routes>
           {routes.map((route, idx) => {

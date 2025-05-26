@@ -17,6 +17,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 function FaultSiteLogs(props) {
   const { t, i18n } = useTranslation('oss/faultSiteLogs')
   const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
@@ -166,19 +167,17 @@ function FaultSiteLogs(props) {
     }
   }, [logContent])
   return (
-    <CCard
-      className="h-full flex flex-col overflow-hidden text-xs px-2"
-      style={{ height: 'calc(100vh - 120px)' }}
-    >
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center w-full mt-2" style={{ width: '100%' }}>
-        <div className="flex  items-center">
+
+      <BasicCard.Header>
+        <div className="w-full flex justify-start items-center text-sm font-normal">
           <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
           {i18n.language === 'zh' ? (
             <>
               {t('faultSiteLogs.faultLogTableToast')}
               <a
-                className="underline text-sky-500"
+                className="underline text-[var(--ant-color-link)] hover:text-[var(--ant-color-link-hover)] active:text-[var(--ant-color-link-active)]"
                 target="_blank"
                 href="https://kindlingx.com/docs/APO%20向导式可观测性中心/配置指南/配置日志采集/配置故障日志采集"
               >
@@ -189,7 +188,7 @@ function FaultSiteLogs(props) {
             <p className="my-0">
               {t('faultSiteLogs.faultLogTableToast1')}
               <a
-                className="underline text-sky-500"
+                className="underline text-[var(--ant-color-link)] hover:text-[var(--ant-color-link-hover)] active:text-[var(--ant-color-link-active)]"
                 target="_blank"
                 href="https://docs.autopilotobservability.com/Logs%20Monitoring/Fault%20Log%20Collection"
               >
@@ -199,11 +198,16 @@ function FaultSiteLogs(props) {
             </p>
           )}
         </div>
-      </div>
-      <div className="flex-grow-0 flex-shrink-0">
-        <LogsTraceFilter type="logs" />
-      </div>
-      <div className="flex-grow flex-shrink overflow-hidden flex-column-tab ">
+      </BasicCard.Header>
+
+      <BasicCard.Header>
+        <div className="w-full flex-none">
+          <LogsTraceFilter type="logs" />
+        </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+      <div className="h-full flex-grow flex-shrink overflow-hidden flex-column-tab ">
         {logsPageList?.length > 0 && (
           <CTabs
             key={pageIndex + activeItemKey}
@@ -290,7 +294,8 @@ function FaultSiteLogs(props) {
         )}
         {(!logsPageList || logsPageList?.length === 0) && <Empty />}
       </div>
-    </CCard>
+      </BasicCard.Table>
+    </BasicCard>
   )
 }
 export default FaultSiteLogs

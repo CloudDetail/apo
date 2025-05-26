@@ -8,7 +8,7 @@ type Team struct {
 	TeamName    string `gorm:"column:team_name;type:varchar(20)" json:"teamName"`
 	Description string `gorm:"column:description;type:varchar(50)" json:"description"`
 
-	UserList    []User    `gorm:"many2many:user_team;foreignKey:TeamID;joinForeignKey:TeamID;References:UserID;joinReferences:UserID" json:"userList,omitempty"`
+	UserList    []User    `gorm:"-" json:"userList,omitempty"`
 	FeatureList []Feature `gorm:"-" json:"featureList,omitempty"`
 }
 

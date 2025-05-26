@@ -13,6 +13,7 @@ import { deleteClusterIntegrationApi, getIntegrationClusterListApi } from 'src/c
 import { notify } from 'src/core/utils/notify'
 import InstallCmd from './Integration/InstallCmd'
 import { GoCommandPalette } from 'react-icons/go'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 const ClusterTable = () => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
@@ -110,15 +111,20 @@ const ClusterTable = () => {
     getData()
   }, [])
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center justify-between">
-        <div>{/* //serach */}</div>
-        <Button type="primary" onClick={() => toSettingPage()}>
-          {ct('add')}
-        </Button>
-      </div>
+    <BasicCard>
+      <BasicCard.Header>
+        <div className="w-full flex items-center justify-between mt-2">
+          <div>{/* //serach */}</div>
+          <Button type="primary" onClick={() => toSettingPage()}>
+            {ct('add')}
+          </Button>
+        </div>
+      </BasicCard.Header>
 
-      <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 265px)' }} />
+      <BasicCard.Table>
+        <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 265px)' }} />
+      </BasicCard.Table>
+
       <Modal
         open={modalOpen}
         footer={null}
@@ -136,7 +142,7 @@ const ClusterTable = () => {
           apoCollector={clusterInfo?.apoCollector}
         />
       </Modal>
-    </div>
+    </BasicCard>
   )
 }
 export default ClusterTable

@@ -224,11 +224,35 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, 
 	var user profile.User
 	err := repo.GetContextDB(ctx).
 		Select(userFieldSql).
-		Preload("RoleList").
-		Preload("TeamList").
 		Where("user_id = ?", userID).
 		First(&user).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	roleList, err := repo.getRoleByUserID(ctx, userID)
+	if err != nil {
+		return user, err
+	}
+	user.RoleList = roleList.Get(userID)
+
+	teamList, err := repo.getTeamByUserID(ctx, userID)
+	if err != nil {
+		return user, err
+	}
+	user.TeamList = teamList.Get(userID)
+
 	return user, err
+}
+
+func (repo *daoRepo) GetUsersInfoWithoutTeamAndRole(ctx core.Context, userIDs []int64) ([]profile.User, error) {
+	var users []profile.User
+	err := repo.GetContextDB(ctx).
+		Select(userFieldSql).
+		Where("user_id IN ?", userIDs).
+		Find(&users).Error
+	return users, err
 }
 
 func (repo *daoRepo) GetAnonymousUser(ctx core.Context) (profile.User, error) {
@@ -241,7 +265,7 @@ func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListReque
 	var users []profile.User
 	var count int64
 
-	query := repo.GetContextDB(ctx).Model(&profile.User{}).Preload("RoleList").Preload("TeamList")
+	query := repo.GetContextDB(ctx).Model(&profile.User{})
 
 	if len(req.Username) > 0 {
 		query = query.Where("username LIKE ?", fmt.Sprintf("%%%s%%", req.Username))
@@ -277,6 +301,25 @@ func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListReque
 	err = query.Find(&users).Error
 	if err != nil {
 		return nil, 0, err
+	}
+
+	var userIDs []int64
+	for _, user := range users {
+		userIDs = append(userIDs, user.UserID)
+	}
+
+	rolesMap, err := repo.getRoleByUserID(ctx, userIDs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	teamMap, err := repo.getTeamByUserID(ctx, userIDs...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := 0; i < len(users); i++ {
+		users[i].RoleList = rolesMap.Get(users[i].UserID)
+		users[i].TeamList = teamMap.Get(users[i].UserID)
 	}
 
 	return users, count, nil

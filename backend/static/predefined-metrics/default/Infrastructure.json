@@ -370,12 +370,14 @@
       "title": "容器网络 - 与下游服务RTT",
       "targets": [
         {
-          "expr": "kindling_network_rtt{src_namespace=~\"$namespace\", src_pod=~\"$pod\"}",
+          "expr": "kindling_network_rtt{src_namespace=~\"$namespace\", src_pod=~\"$pod\", node_name=~\"$node\", pid=~\"$pid\"}",
           "legendFormat": "{{src_pod}} -> {{dst_pod}} ({{dst_ip}})",
           "refId": "A",
           "variables": [
             "namespace",
-            "pod"
+            "pod",
+            "node",
+            "pid"
           ]
         }
       ],

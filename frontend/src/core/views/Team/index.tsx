@@ -13,7 +13,7 @@ import { deleteTeamApi, getTeamsApi } from 'src/core/api/team'
 import InfoModal from './InfoModal'
 import { notify } from 'src/core/utils/notify'
 import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
-import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 function TeamPage() {
   const { t } = useTranslation('core/team')
@@ -144,15 +144,18 @@ function TeamPage() {
     setCurrentPage(pagination.current)
   }
   return (
-    <>
-      <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full' }}>
-        <div className="flex justify-between mb-2">
+    <BasicCard>
+      <BasicCard.Header>
+        <div className="w-full flex justify-between mt-2">
           {/* <DataGroupFilter /> */}
           <div></div>
           <Button type="primary" onClick={() => setInfoModalVisible(true)}>
             {ct('add')}
           </Button>
         </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
         <Table
           dataSource={data}
           columns={columns}
@@ -161,7 +164,8 @@ function TeamPage() {
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"
         ></Table>
-      </CustomCard>
+      </BasicCard.Table>
+
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}
@@ -176,7 +180,7 @@ function TeamPage() {
         type="team"
         refresh={refresh}
       />
-    </>
+    </BasicCard>
   )
 }
 export default TeamPage
