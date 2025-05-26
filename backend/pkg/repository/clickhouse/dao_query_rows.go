@@ -76,7 +76,6 @@ func rowsToMapSlice(rows driver.Rows) ([]map[string]any, error) {
 			case *string:
 				rowMap[name] = *val
 			default:
-				// impossible branch,type must be handled above
 				rowMap[name] = ""
 			}
 		}
