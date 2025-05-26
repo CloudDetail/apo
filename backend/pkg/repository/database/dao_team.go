@@ -115,8 +115,14 @@ func (repo *daoRepo) GetTeamList(ctx core.Context, req *request.GetTeamRequest) 
 		})
 	}
 
+	teamUserMap, err := repo.getUsersIDNameByTeamIDs(ctx, teamIDs...)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	for i := range teams {
 		teams[i].FeatureList = featureMap[teams[i].TeamID]
+		teams[i].UserList = teamUserMap.Get(teams[i].TeamID)
 	}
 
 	return teams, count, nil
@@ -249,4 +255,54 @@ func (repo *daoRepo) getTeamByUserID(ctx core.Context, userID ...int64) (userTea
 		userTeamMap[userTeam.UserID] = append(userTeamMap[userTeam.UserID], userTeam.Team)
 	}
 	return userTeamMap, nil
+}
+
+type teamUserMap map[int64][]profile.User
+
+func (m teamUserMap) Get(teamID int64) []profile.User {
+	if m == nil {
+		return []profile.User{}
+	}
+	if v, find := m[teamID]; find {
+		return v
+	}
+	return []profile.User{}
+}
+
+func (repo *daoRepo) getUsersIDNameByTeamIDs(ctx core.Context, teamIDs ...int64) (teamUserMap, error) {
+	var user2Teams []profile.UserTeam
+	err := repo.GetContextDB(ctx).Model(&profile.UserTeam{}).Where("team_id IN ?", teamIDs).Find(&user2Teams).Error
+	if err != nil {
+		return nil, err
+	}
+
+	userIds := make([]int64, 0, len(user2Teams))
+	for _, user2Team := range user2Teams {
+		userIds = append(userIds, user2Team.UserID)
+	}
+
+	users, err := repo.GetUsersInfoWithoutTeamAndRole(ctx, userIds)
+	if err != nil {
+		return nil, err
+	}
+
+	var tmpUserID2User = make(map[int64]profile.User)
+	userMap := teamUserMap{}
+
+	for _, user2Team := range user2Teams {
+		if user, find := tmpUserID2User[user2Team.UserID]; find {
+			userMap[user2Team.TeamID] = append(userMap[user2Team.TeamID], user)
+			continue
+		}
+
+		for i := 0; i < len(users); i++ {
+			if users[i].UserID == user2Team.UserID {
+				tmpUserID2User[user2Team.UserID] = users[i]
+				userMap[user2Team.TeamID] = append(userMap[user2Team.TeamID], users[i])
+				break
+			}
+		}
+	}
+
+	return userMap, nil
 }

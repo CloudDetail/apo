@@ -246,6 +246,15 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, 
 	return user, err
 }
 
+func (repo *daoRepo) GetUsersInfoWithoutTeamAndRole(ctx core.Context, userIDs []int64) ([]profile.User, error) {
+	var users []profile.User
+	err := repo.GetContextDB(ctx).
+		Select(userFieldSql).
+		Where("user_id IN ?", userIDs).
+		Find(&users).Error
+	return users, err
+}
+
 func (repo *daoRepo) GetAnonymousUser(ctx core.Context) (profile.User, error) {
 	var user profile.User
 	err := repo.GetContextDB(ctx).Select(userFieldSql).Where("username = ?", AnonymousUsername).Find(&user).Error
