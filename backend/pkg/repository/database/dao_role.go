@@ -152,3 +152,41 @@ func (repo *daoRepo) RoleGranted(ctx core.Context, roleID int) (bool, error) {
 
 	return count > 0, nil
 }
+
+// userID -> roles
+type userRoleMap map[int64][]profile.Role
+
+func (m userRoleMap) Get(userID int64) []profile.Role {
+	if m == nil {
+		return []profile.Role{}
+	}
+	if v, find := m[userID]; find {
+		return v
+	}
+	return []profile.Role{}
+}
+
+type userRole struct {
+	UserID int64 `gorm:"column:user_id"`
+	profile.Role
+}
+
+func (repo *daoRepo) getRoleByUserID(ctx core.Context, userID ...int64) (userRoleMap, error) {
+	var userRoles []userRole
+	err := repo.GetContextDB(ctx).Model(&profile.UserRole{}).
+		Select("user_id", "role.role_id", "role_name", "description").
+		Where("user_id IN ?", userID).
+		Joins("LEFT JOIN role ON user_role.role_id = role.role_id").
+		Order("user_id").
+		Scan(&userRoles).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	userRoleMap := make(userRoleMap)
+	for _, userRole := range userRoles {
+		userRoleMap[userRole.UserID] = append(userRoleMap[userRole.UserID], userRole.Role)
+	}
+	return userRoleMap, nil
+}
