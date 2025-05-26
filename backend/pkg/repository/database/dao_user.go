@@ -241,7 +241,7 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, 
 	if err != nil {
 		return user, err
 	}
-	user.TeamList = teamList[userID]
+	user.TeamList = teamList.Get(userID)
 
 	return user, err
 }

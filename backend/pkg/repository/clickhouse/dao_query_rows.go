@@ -46,6 +46,7 @@ func rowsToMapSlice(rows driver.Rows) ([]map[string]any, error) {
 		case "UUID":
 			valuePtrs[i] = new(string)
 		default:
+			// TODO support clickhouse Map
 			valuePtrs[i] = new(string)
 		}
 	}
@@ -74,9 +75,8 @@ func rowsToMapSlice(rows driver.Rows) ([]map[string]any, error) {
 				rowMap[name] = *val
 			case *string:
 				rowMap[name] = *val
-			case *any:
-				rowMap[name] = *val
 			default:
+				// impossible branch,type must be handled above
 				rowMap[name] = ""
 			}
 		}

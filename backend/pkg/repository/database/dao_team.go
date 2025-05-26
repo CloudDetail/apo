@@ -276,11 +276,15 @@ func (repo *daoRepo) getUsersIDNameByTeamIDs(ctx core.Context, teamIDs ...int64)
 		return nil, err
 	}
 
+	userIdSet := make(map[int64]struct{}, len(user2Teams))
 	userIds := make([]int64, 0, len(user2Teams))
 	for _, user2Team := range user2Teams {
-		userIds = append(userIds, user2Team.UserID)
+		if _, exists := userIdSet[user2Team.UserID]; !exists {
+			userIdSet[user2Team.UserID] = struct{}{}
+			userIds = append(userIds, user2Team.UserID)
+		}
 	}
-
+	
 	users, err := repo.GetUsersInfoWithoutTeamAndRole(ctx, userIds)
 	if err != nil {
 		return nil, err
