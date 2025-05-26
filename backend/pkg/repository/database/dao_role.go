@@ -154,7 +154,18 @@ func (repo *daoRepo) RoleGranted(ctx core.Context, roleID int) (bool, error) {
 }
 
 // userID -> roles
-type userRoleMap = map[int64][]profile.Role
+type userRoleMap map[int64][]profile.Role
+
+func (m userRoleMap) Get(userID int64) []profile.Role {
+	if m == nil {
+		return []profile.Role{}
+	}
+	if v, find := m[userID]; find {
+		return v
+	}
+	return []profile.Role{}
+}
+
 type userRole struct {
 	UserID int64 `gorm:"column:user_id"`
 	profile.Role

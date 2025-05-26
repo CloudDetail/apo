@@ -214,7 +214,18 @@ func (repo *daoRepo) GetTeamUserList(ctx core.Context, teamID int64) ([]profile.
 	return users, err
 }
 
-type userTeamMap = map[int64][]profile.Team
+type userTeamMap map[int64][]profile.Team
+
+func (m userTeamMap) Get(userID int64) []profile.Team {
+	if m == nil {
+		return []profile.Team{}
+	}
+	if v, find := m[userID]; find {
+		return v
+	}
+	return []profile.Team{}
+}
+
 type userTeam struct {
 	UserID int64 `gorm:"column:user_id"`
 	profile.Team

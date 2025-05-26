@@ -235,7 +235,7 @@ func (repo *daoRepo) GetUserInfo(ctx core.Context, userID int64) (profile.User, 
 	if err != nil {
 		return user, err
 	}
-	user.RoleList = roleList[userID]
+	user.RoleList = roleList.Get(userID)
 
 	teamList, err := repo.getTeamByUserID(ctx, userID)
 	if err != nil {
@@ -292,6 +292,25 @@ func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListReque
 	err = query.Find(&users).Error
 	if err != nil {
 		return nil, 0, err
+	}
+
+	var userIDs []int64
+	for _, user := range users {
+		userIDs = append(userIDs, user.UserID)
+	}
+
+	rolesMap, err := repo.getRoleByUserID(ctx, userIDs...)
+	if err != nil {
+		return nil, 0, err
+	}
+	teamMap, err := repo.getTeamByUserID(ctx, userIDs...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := 0; i < len(users); i++ {
+		users[i].RoleList = rolesMap.Get(users[i].UserID)
+		users[i].TeamList = teamMap.Get(users[i].UserID)
 	}
 
 	return users, count, nil
