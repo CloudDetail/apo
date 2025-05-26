@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { Button, Tag, theme, Tooltip } from 'antd'
-import { useState } from 'react'
+import React, { FC, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ReactJson from 'react-json-view'
 import { t } from 'i18next'
@@ -24,6 +24,85 @@ interface AlertTagsProps {
   detail: string
   defaultVisible?: boolean
 }
+
+const AlertDetail = ({ json }) => {
+  try {
+    return (
+      <div className="bg-[var(--ant-color-bg-container)] p-2 rounded text-xs overflow-auto break-all space-y-3">
+        {Object.entries(json).map(([key, value], index) => {
+          // 1. 处理 description 字段
+          if (key === 'description') {
+            const descriptionLines = value.split('\n');
+
+            return (
+              <div key={index}>
+                <p className="font-semibold">{key}:</p>
+                {descriptionLines
+                  .filter(line => line.trim() !== '')
+                  .map((line, idx) => {
+                    // 检测并解析 LABELS 行
+                    if (line.trim().startsWith('LABELS = map[')) {
+                      const blankSpace = line.match(/^\s+/);
+                      const prefixBlankSpace = blankSpace ? blankSpace[0] : '';
+                      const regex = /(\w+):(.*?)(?=\s+\w+:|$)/g;
+
+                      let match;
+                      const labels = [];
+
+                      while ((match = regex.exec(line)) !== null) {
+                        labels.push({ key: match[1], value: match[2] });
+                      }
+
+                      return (
+                        <div key={idx}>
+                          <p>{prefixBlankSpace}LABELS =</p>
+                          <ul className={`list-disc pl-4 mb-0 ml-${prefixBlankSpace.length}`}>
+                            {labels.map((label, labelIndex) => (
+                              <li key={labelIndex}>
+                                <span>{label.key}:</span> {label.value}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    }
+
+                    // 渲染其他行
+                    return (
+                      <p key={idx} className="mb-1">
+                        {line}
+                      </p>
+                    );
+                  })}
+              </div>
+            );
+          }
+
+          // 2. 渲染其他字段
+          return (
+            <div key={index}>
+              <span className="font-semibold">{key}:</span>{' '}
+              {typeof value === 'object' ? (
+                <pre className="whitespace-pre-wrap break-all">{JSON.stringify(value, null, 2)}</pre>
+              ) : (
+                <span>{value}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  } catch (error) {
+    return (
+      <div className="bg-[var(--ant-color-error-bg)] p-2 rounded text-xs overflow-auto break-all">
+        {/* TODO: 中文翻译 */}
+        <p>Error parsing JSON data.</p>
+      </div>
+    );
+  }
+};
+
+
 const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => {
   const { t } = useTranslation('oss/alertEvents')
   const { reactJsonTheme } = useSelector((state) => state.settingReducer)
@@ -32,7 +111,7 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
   return (
     <div className="overflow-hidden text-xs">
       {Object.entries(tags || {}).map(([key, tagValue]) => (
-        <Tag className="text-pretty mb-1 break-all">
+        <Tag className="text-pretty mb-1 break-all" key={key}>
           <span>
             {key} = {tagValue}
           </span>
@@ -46,15 +125,9 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
       )}
 
       {(visible || defaultVisible) && isJSONString(detail) && (
-        <ReactJson
-          src={JSON.parse(detail || '')}
-          theme={reactJsonTheme}
-          collapsed={false}
-          displayDataTypes={false}
-          style={{ width: '100%' }}
-          enableClipboard={false}
-        />
+        <AlertDetail json={JSON.parse(detail || '')} />
       )}
+
     </div>
   )
 }
@@ -161,4 +234,23 @@ const ALertIsValid = ({
     </>
   )
 }
-export { AlertTags, AlertDeration, AlertStatus, ALertIsValid }
+
+const levelColorMap: Record<string, string> = {
+  critical: 'red',
+  error: 'volcano',
+  warning: 'orange',
+  info: 'blue',
+  unknown: 'default'
+};
+
+const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
+const AlertLevel = ({ level }: { level: string }) => {
+  const normalizedLevel = level.toLowerCase(); // 转小写防止大小写混乱
+  const color = levelColorMap[normalizedLevel] || levelColorMap['unknown'];
+  const label = capitalize(normalizedLevel in levelColorMap ? normalizedLevel : 'unknown');
+
+  return <Tag className='font-normal' bordered={false} color={color}>{label}</Tag>;
+};
+
+export { AlertTags, AlertDeration, AlertStatus, ALertIsValid, AlertLevel }
