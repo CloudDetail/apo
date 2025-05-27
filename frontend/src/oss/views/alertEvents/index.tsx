@@ -294,13 +294,10 @@ const AlertEventsPage = () => {
       minWidth: 150,
       Cell: ({ value, row }) => {
         const level = row.original.severity
-        console.log('value: ', value)
-        console.log('row: ', row)
         return (
           <span className="text-sm break-words">
             {value}
             <span className="ml-2 align-middle inline-block">
-              {/* TODO: 翻译 */}
               <AlertLevel level={level} />
             </span>
           </span>
@@ -324,7 +321,6 @@ const AlertEventsPage = () => {
         const result = convertUTCToLocal(value)
         return (
           <div>
-            {/* TODO: 保证纯文本的正常显示 */}
             <div>{result.split(' ')[0]}</div>
             <div>{result.split(' ')[1]}</div>
           </div>
