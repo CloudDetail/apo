@@ -112,6 +112,7 @@ const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     </Tooltip>
   )
 }
+
 const ALertIsValid = ({
   isValid,
   alertCheckId,
@@ -128,24 +129,53 @@ const ALertIsValid = ({
   const { useToken } = theme
   const { token } = useToken()
 
+  const statusColors = {
+    valid: {
+      color: token.colorSuccess,
+      backgroundColor: token.colorSuccessBg,
+    },
+    invalid: {
+      color: token.colorWarning,
+      backgroundColor: token.colorWarningBg,
+    },
+    failed: {
+      color: token.colorTextSecondary,
+      backgroundColor: 'transparent',
+    },
+    unknown: {
+      color: token.colorTextSecondary,
+      backgroundColor: 'transparent',
+    },
+    skipped: {
+      color: token.colorTextSecondary,
+      backgroundColor: 'transparent',
+    },
+  }
+
+  const currentColors = statusColors[isValid]
+
   return (
     <>
       {!alertCheckId ? (
         workflowMissToast('alertCheckId')
       ) : ['unknown', 'skipped'].includes(isValid) || (isValid === 'failed' && !workflowRunId) ? (
-        <span className="text-gray-400 text-wrap [word-break:auto-phrase] text-center flex items-center">
+        <span
+          className="text-wrap [word-break:auto-phrase] text-center flex items-center"
+          style={{ color: currentColors?.color }}
+        >
           {t(`oss/alertEvents:${isValid}`)}
         </span>
       ) : (
         <div className="text-center">
           <Button
             type="link"
-            className="text-xs text-wrap [word-break:auto-phrase] "
+            className="text-xs text-wrap [word-break:auto-phrase]"
             size="small"
-            onClick={() => {
-              openResultModal()
+            onClick={() => openResultModal()}
+            style={{
+              color: currentColors?.color,
+              backgroundColor: currentColors?.backgroundColor,
             }}
-            style={{ color: token.colorSuccess, backgroundColor: token.colorSuccessBg }}
           >
             {t(`oss/alertEvents:${isValid === 'failed' ? 'failedTo' : isValid}`)}
           </Button>
@@ -159,4 +189,27 @@ const ALertIsValid = ({
     </>
   )
 }
-export { AlertTags, AlertDeration, AlertStatus, ALertIsValid }
+
+const levelColorMap: Record<string, string> = {
+  critical: 'red',
+  error: 'volcano',
+  warning: 'orange',
+  info: 'blue',
+  unknown: 'default',
+}
+
+const AlertLevel = ({ level }: { level: string }) => {
+  const { t } = useTranslation('oss/alertEvents')
+
+  const normalizedLevel = level?.toLowerCase()
+  const color = levelColorMap[normalizedLevel] || levelColorMap['unknown']
+  const label = normalizedLevel in levelColorMap ? normalizedLevel : 'unknown'
+
+  return (
+    <Tag className="font-normal" bordered={false} color={color}>
+      {t(label)}
+    </Tag>
+  )
+}
+
+export { AlertTags, AlertDeration, AlertStatus, ALertIsValid, AlertLevel }

@@ -151,7 +151,7 @@ const Events = ({
     },
     {
       title: t('isValid'),
-      accessor: 'isValid',
+      accessor: 'validity',
       style: tdStyle,
 
       customWidth: 160,

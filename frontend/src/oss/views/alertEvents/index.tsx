@@ -292,6 +292,17 @@ const AlertEventsPage = () => {
       accessor: 'name',
       justifyContent: 'left',
       minWidth: 150,
+      Cell: ({ value, row }) => {
+        const level = row.original.severity
+        return (
+          <span className="text-sm break-words">
+            <span className="align-middle inline-block">
+              <AlertLevel level={level} />
+            </span>
+            {value}
+          </span>
+        )
+      },
     },
     {
       title: t('alertDetail'),
@@ -336,7 +347,7 @@ const AlertEventsPage = () => {
     },
     {
       title: t('isValid'),
-      accessor: 'isValid',
+      accessor: 'validity',
       customWidth: 210,
       Cell: (props) => {
         const { value, row } = props
