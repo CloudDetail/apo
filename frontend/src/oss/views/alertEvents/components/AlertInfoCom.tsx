@@ -189,6 +189,7 @@ const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
     </Tooltip>
   )
 }
+
 const ALertIsValid = ({
   isValid,
   alertCheckId,
@@ -205,24 +206,53 @@ const ALertIsValid = ({
   const { useToken } = theme
   const { token } = useToken()
 
+  const statusColors = {
+    valid: {
+      color: token.colorSuccess,
+      backgroundColor: token.colorSuccessBg,
+    },
+    invalid: {
+      color: token.colorWarning,
+      backgroundColor: token.colorWarningBg,
+    },
+    failed: {
+      color: token.colorError,
+      backgroundColor: token.colorErrorBg,
+    },
+    unknown: {
+      color: token.colorTextSecondary,
+      backgroundColor: 'transparent',
+    },
+    skipped: {
+      color: token.colorTextSecondary,
+      backgroundColor: 'transparent',
+    },
+  }
+
+  const currentColors = statusColors[isValid]
+
   return (
     <>
       {!alertCheckId ? (
         workflowMissToast('alertCheckId')
       ) : ['unknown', 'skipped'].includes(isValid) || (isValid === 'failed' && !workflowRunId) ? (
-        <span className="text-[var(--ant-color-text-secondary)] text-wrap [word-break:auto-phrase] text-center flex items-center">
+        <span
+          className="text-wrap [word-break:auto-phrase] text-center flex items-center text-xs"
+          style={{ color: currentColors?.color }}
+        >
           {t(`oss/alertEvents:${isValid}`)}
         </span>
       ) : (
         <div className="text-center">
           <Button
             type="link"
-            className="text-xs text-wrap [word-break:auto-phrase] "
+            className="text-xs text-wrap [word-break:auto-phrase]"
             size="small"
-            onClick={() => {
-              openResultModal()
+            onClick={() => openResultModal()}
+            style={{
+              color: currentColors?.color,
+              backgroundColor: currentColors?.backgroundColor,
             }}
-            style={{ color: token.colorSuccess, backgroundColor: token.colorSuccessBg }}
           >
             {t(`oss/alertEvents:${isValid === 'failed' ? 'failedTo' : isValid}`)}
           </Button>
