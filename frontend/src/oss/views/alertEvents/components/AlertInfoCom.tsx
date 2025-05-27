@@ -216,8 +216,8 @@ const ALertIsValid = ({
       backgroundColor: token.colorWarningBg,
     },
     failed: {
-      color: token.colorTextSecondary,
-      backgroundColor: 'transparent',
+      color: token.colorError,
+      backgroundColor: token.colorErrorBg,
     },
     unknown: {
       color: token.colorTextSecondary,
