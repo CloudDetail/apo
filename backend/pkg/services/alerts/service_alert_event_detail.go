@@ -25,7 +25,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 		req.EndTime = time.Now().UnixMicro()
 	}
 
-	s.fillWorkflowParams(eventDetail)
+	s.fillWorkflowParams(ctx, eventDetail)
 
 	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
@@ -40,7 +40,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 		}
 	}
 
-	s.fillSimilarEventWorkflowParams(releatedEvents)
+	s.fillSimilarEventWorkflowParams(ctx, releatedEvents)
 
 	return &response.GetAlertDetailResponse{
 		CurrentEvent:                eventDetail,
@@ -52,7 +52,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 	}, nil
 }
 
-func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWRecord) {
+func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []alert.AEventWithWRecord) {
 	if len(records) == 0 {
 		return
 	}
@@ -66,7 +66,7 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		startTime = record.UpdateTime.Add(-15 * time.Minute)
 		endTime = record.UpdateTime
 	}
-	alertServices, _ := tryGetAlertService(s.promRepo, &record.AlertEvent, startTime, endTime)
+	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
 
 	for i := 0; i < len(records); i++ {
 		records[i].Alert.EnrichTags["source"] = records[i].Alert.Source

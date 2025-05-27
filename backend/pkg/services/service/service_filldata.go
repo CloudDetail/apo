@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
@@ -100,19 +101,19 @@ func (f InstancesFilter) ExtractFilterStr() []string {
 }
 
 // InstanceRED get the RED metric of instance granularity
-func (s *service) InstanceRED(startTime, endTime time.Time, filters []string, res *InstanceMap) {
-	s.promRepo.FillMetric(res, prometheus.AVG, startTime, endTime, filters, prometheus.InstanceGranularity)
-	s.promRepo.FillMetric(res, prometheus.DOD, startTime, endTime, filters, prometheus.InstanceGranularity)
-	s.promRepo.FillMetric(res, prometheus.WOW, startTime, endTime, filters, prometheus.InstanceGranularity)
+func (s *service) InstanceRED(ctx core.Context, startTime, endTime time.Time, filters []string, res *InstanceMap) {
+	s.promRepo.FillMetric(ctx, res, prometheus.AVG, startTime, endTime, filters, prometheus.InstanceGranularity)
+	s.promRepo.FillMetric(ctx, res, prometheus.DOD, startTime, endTime, filters, prometheus.InstanceGranularity)
+	s.promRepo.FillMetric(ctx, res, prometheus.WOW, startTime, endTime, filters, prometheus.InstanceGranularity)
 
 }
 
 // InstanceRangeData get chart data for the RED metric with instance granularity
-func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) *multierror.Error {
+func (s *service) InstanceRangeData(ctx core.Context, instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(
+	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgLatencyWithFilters,
 		startTS,
 		endTS,
@@ -122,7 +123,7 @@ func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime t
 	)
 	mergeChartMetrics(instances, latencyRes, metricLatencyData)
 
-	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(
+	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgErrorRateWithFilters,
 		startTS,
 		endTS,
@@ -132,7 +133,7 @@ func (s *service) InstanceRangeData(instances *InstanceMap, startTime, endTime t
 	)
 	mergeChartMetrics(instances, errorRes, metricErrorData)
 
-	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(
+	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgTPSWithFilters,
 		startTS,
 		endTS,
@@ -180,7 +181,7 @@ func mergeLogMetrics(instances *InstanceMap, results []prometheus.MetricResult, 
 }
 
 // InstanceLog fill the mean value, DoD/WoW Growth Rate, and chart of log metrics filled with instance levels.
-func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Time, step time.Duration) *multierror.Error {
+func (s *service) InstanceLog(ctx core.Context, instances *InstanceMap, startTime, endTime time.Time, step time.Duration) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
@@ -217,18 +218,19 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 		return err
 	}
 
-	logDataRes, avgErr := s.promRepo.QueryData(endTime, pql)
+	logDataRes, avgErr := s.promRepo.QueryData(ctx, endTime, pql)
 	mergeLogMetrics(instances, logDataRes, metricLog)
 
 	pqlDOD := `(` + pql + `) / ((` + pql + `) offset 24h )`
-	logDODRes, dodErr := s.promRepo.QueryData(endTime, pqlDOD)
+	logDODRes, dodErr := s.promRepo.QueryData(ctx, endTime, pqlDOD)
 	mergeLogMetrics(instances, logDODRes, metricLogDOD)
 
 	pqlWOW := `(` + pql + `) / ((` + pql + `) offset 7d )`
-	logWOWRes, wowErr := s.promRepo.QueryData(endTime, pqlWOW)
+	logWOWRes, wowErr := s.promRepo.QueryData(ctx, endTime, pqlWOW)
 	mergeLogMetrics(instances, logWOWRes, metricLogWOW)
 
 	logData, chartErr := s.promRepo.QueryInstanceLogRangeData(
+		ctx,
 		prometheus.PQLAvgLogErrorCountWithFilters,
 		startTS,
 		endTS,
@@ -242,7 +244,7 @@ func (s *service) InstanceLog(instances *InstanceMap, startTime, endTime time.Ti
 	return err
 }
 
-func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string, offset time.Duration) []prometheus.MetricResult {
+func (s *service) GetNormalLog(ctx core.Context, startTime, endTime time.Time, filterKVs []string, offset time.Duration) []prometheus.MetricResult {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
@@ -255,6 +257,6 @@ func (s *service) GetNormalLog(startTime, endTime time.Time, filterKVs []string,
 	}
 	vector := prometheus.VecFromS2E(startTS, endTS)
 	pql := prometheus.PQLNormalLogCountWithFilters(vector, string(prometheus.LogGranularity), filters)
-	data, _ := s.promRepo.QueryData(endTime.Add(-offset), pql)
+	data, _ := s.promRepo.QueryData(ctx, endTime.Add(-offset), pql)
 	return data
 }

@@ -168,7 +168,7 @@ func New(logger *zap.Logger, address []string, database string, username string,
 	}
 
 	now := time.Now()
-	filters, err := repo.UpdateFilterKey(nil, now.Add(-48*time.Hour), now)
+	filters, err := repo.UpdateFilterKey(core.EmptyCtx(), now.Add(-48*time.Hour), now)
 	if err == nil {
 		repo.SetAvailableFilters(filters, now)
 	}

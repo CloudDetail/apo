@@ -25,31 +25,37 @@ interface AlertTagsProps {
   defaultVisible?: boolean
 }
 
-const AlertDetail = ({ json }) => {
-  try {
-    return (
-      <div className="bg-[var(--ant-color-bg-container)] p-2 rounded text-xs overflow-auto break-all space-y-3">
-        {Object.entries(json).map(([key, value], index) => {
-          // 1. 处理 description 字段
+const AlertDetail = ({ detail }) => {
+  // Check if detail is an object
+  const isObject = typeof detail === 'object' && detail !== null;
+
+  return (
+    <div className="bg-[var(--ant-color-fill-tertiary)] p-2 rounded text-xs overflow-auto break-all space-y-3">
+      {isObject ? (
+        Object.entries(detail).map(([key, value], index) => {
+          // Handle the description field
           if (key === 'description') {
             const descriptionLines = value.split('\n');
 
             return (
               <div key={index}>
-                <p className="font-semibold">{key}:</p>
+                <p className="font-semibold">{key.toUpperCase()}:</p>
                 {descriptionLines
                   .filter(line => line.trim() !== '')
                   .map((line, idx) => {
-                    // 检测并解析 LABELS 行
+                    // Detect and parse LABELS lines
                     if (line.trim().startsWith('LABELS = map[')) {
                       const blankSpace = line.match(/^\s+/);
                       const prefixBlankSpace = blankSpace ? blankSpace[0] : '';
                       const regex = /(\w+):(.*?)(?=\s+\w+:|$)/g;
 
+                      // remove 'LABELS = map[' and ']'
+                      const lineReady = line.slice('LABELS = map['.length, -1)
+
                       let match;
                       const labels = [];
 
-                      while ((match = regex.exec(line)) !== null) {
+                      while ((match = regex.exec(lineReady)) !== null) {
                         labels.push({ key: match[1], value: match[2] });
                       }
 
@@ -67,7 +73,7 @@ const AlertDetail = ({ json }) => {
                       );
                     }
 
-                    // 渲染其他行
+                    // Render other lines
                     return (
                       <p key={idx} className="mb-1">
                         {line}
@@ -78,10 +84,10 @@ const AlertDetail = ({ json }) => {
             );
           }
 
-          // 2. 渲染其他字段
+          // Render other fields
           return (
             <div key={index}>
-              <span className="font-semibold">{key}:</span>{' '}
+              <span className="font-semibold">{key.toUpperCase()}:</span>{' '}
               {typeof value === 'object' ? (
                 <pre className="whitespace-pre-wrap break-all">{JSON.stringify(value, null, 2)}</pre>
               ) : (
@@ -89,17 +95,13 @@ const AlertDetail = ({ json }) => {
               )}
             </div>
           );
-        })}
-      </div>
-    );
-  } catch (error) {
-    return (
-      <div className="bg-[var(--ant-color-error-bg)] p-2 rounded text-xs overflow-auto break-all">
-        {/* TODO: 中文翻译 */}
-        <p>Error parsing JSON data.</p>
-      </div>
-    );
-  }
+        })
+      ) : (
+        // If detail is not an object, render it as plain text
+        <p className="whitespace-pre-wrap break-all">{detail}</p>
+      )}
+    </div>
+  );
 };
 
 
@@ -125,7 +127,7 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
       )}
 
       {(visible || defaultVisible) && isJSONString(detail) && (
-        <AlertDetail json={JSON.parse(detail || '')} />
+        <AlertDetail detail={JSON.parse(detail || '')} />
       )}
 
     </div>
@@ -243,14 +245,14 @@ const levelColorMap: Record<string, string> = {
   unknown: 'default'
 };
 
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
 const AlertLevel = ({ level }: { level: string }) => {
-  const normalizedLevel = level.toLowerCase(); // 转小写防止大小写混乱
-  const color = levelColorMap[normalizedLevel] || levelColorMap['unknown'];
-  const label = capitalize(normalizedLevel in levelColorMap ? normalizedLevel : 'unknown');
+  const { t } = useTranslation('oss/alertEvents')
 
-  return <Tag className='font-normal' bordered={false} color={color}>{label}</Tag>;
+  const normalizedLevel = level.toLowerCase();
+  const color = levelColorMap[normalizedLevel] || levelColorMap['unknown'];
+  const label = normalizedLevel in levelColorMap ? normalizedLevel : 'unknown';
+
+  return <Tag className='font-normal' bordered={false} color={color}>{t(label)}</Tag>;
 };
 
 export { AlertTags, AlertDeration, AlertStatus, ALertIsValid, AlertLevel }

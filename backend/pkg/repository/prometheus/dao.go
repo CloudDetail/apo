@@ -13,6 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	prommodel "github.com/prometheus/common/model"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
@@ -20,78 +21,78 @@ import (
 type Repo interface {
 	// ========== span_trace_duration_bucket Start ==========
 	// Query the P90 curve based on the service list, URL list, time period and step size.
-	QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	QueryRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// Query the P90 delay curve of the instance
-	QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
+	QueryInstanceP90(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	// ========== span_trace_duration_bucket END ==========
 
 	// ========== span_trace_duration_count Start ==========
 	// Query the service list
-	GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error)
+	GetServiceList(ctx core.Context, startTime int64, endTime int64, namespace []string) ([]string, error)
 	// 根据过滤规则查询服务列表
-	GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
+	GetServiceListByFilter(ctx core.Context, startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
 	// 基于DatabaseURL,IP,Port查询上游服务列表
-	GetServiceListByDatabase(startTime, endTime time.Time, dbURL, dbIP, dbPort string) ([]string, error)
+	GetServiceListByDatabase(ctx core.Context, startTime, endTime time.Time, dbURL, dbIP, dbPort string) ([]string, error)
 	// Query the service instance list. The URL can be empty.
-	GetServiceWithNamespace(startTime, endTime int64, namespace []string) (map[string][]string, error)
+	GetServiceWithNamespace(ctx core.Context, startTime, endTime int64, namespace []string) (map[string][]string, error)
 	// GetServiceNamespace  Get service's namespaces.
-	GetServiceNamespace(startTime, endTime int64, service string) ([]string, error)
+	GetServiceNamespace(ctx core.Context, startTime, endTime int64, service string) ([]string, error)
 	// GetInstanceList query service instance list. URL can be empty.
-	GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
+	GetInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the db instance for specified service
-	GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
+	GetDescendantDatabase(ctx core.Context, startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
-	GetActiveInstanceList(startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
+	GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
-	GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error)
-	GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
+	GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error)
+	GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
 	// Query service instance failure rate
-	QueryInstanceErrorRate(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
-	FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error
-	FillRangeMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error
+	QueryInstanceErrorRate(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
+	FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error
+	FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error
 	// ========== span_trace_duration_count END ==========
 
-	QueryData(searchTime time.Time, query string) ([]MetricResult, error)
-	QueryRangeData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
-	QueryLatencyData(searchTime time.Time, query string) ([]MetricResult, error)
-	QueryRangeLatencyData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
-	QueryErrorRateData(searchTime time.Time, query string) ([]MetricResult, error)
-	QueryRangeErrorData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
+	QueryData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error)
+	QueryRangeData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
+	QueryLatencyData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error)
+	QueryRangeLatencyData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
+	QueryErrorRateData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error)
+	QueryRangeErrorData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error)
 
 	// ========== originx_logparser_level_count_total Start ==========
 	// Query the number of errors in the instance log
-	QueryLogCountByInstanceId(instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error)
+	QueryLogCountByInstanceId(ctx core.Context, instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error)
 	// QueryInstanceLogRangeData query instance-level log graphs
-	QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
+	QueryInstanceLogRangeData(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
 	// ========== originx_logparser_level_count_total END ==========
 
 	// ========== db_duration_bucket Start ==========
 	// Query the P90 curve based on the service list, URL list, time period and step size.
-	QueryDbRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	QueryDbRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== db_duration_bucket END ==========
 
 	// ========== external_duration_bucket Start ==========
 	// Query the P90 curve based on the service list, URL list, time period and step size.
-	QueryExternalRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	QueryExternalRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== external_duration_bucket END ==========
 
 	// ========== mq_duration_bucket Start ==========
 	// Query the P90 curve based on the service list, URL list, time period and step size.
-	QueryMqRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
+	QueryMqRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error)
 	// ========== mq_duration_nanoseconds_bucket END ==========
 
-	QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
-	QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, step int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
+	QueryAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
+	QueryRangeAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, step int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error)
 	// originx_process_start_time
-	QueryProcessStartTime(startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
+	QueryProcessStartTime(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) (map[model.ServiceInstance]int64, error)
 	GetApi() v1.API
 	GetRange() string
 
-	LabelValues(expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
-	QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error)
+	LabelValues(ctx core.Context, expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
+	QueryResult(ctx core.Context, expr string, regex string, startTime, endTime int64) ([]string, error)
 
-	GetNamespaceList(startTime int64, endTime int64) ([]string, error)
-	GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error)
+	GetNamespaceList(ctx core.Context, startTime int64, endTime int64) ([]string, error)
+	GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error)
 }
 
 type promRepo struct {

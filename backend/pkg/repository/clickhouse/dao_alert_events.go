@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -109,7 +108,7 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx core.Context, startTime 
 	sql := fmt.Sprintf(SQL_GET_GROUP_COUNTS_ALERT_EVENT, groupByInstance, groupByInstance, builder.String())
 
 	var events []model.AlertEventCount
-	err := ch.GetContextDB(ctx).Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
@@ -139,7 +138,7 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 	sql := fmt.Sprintf(SQL_GET_SAMPLE_ALERT_EVENT, builder.String(), sampleCount, byBuilder.String())
 
 	var events []AlertEventSample
-	err := ch.GetContextDB(ctx).Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
@@ -164,7 +163,7 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 
 	var count uint64
 	countSql := buildAlertEventsCountQuery(GET_ALERT_EVENTS_COUNT, builder)
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, builder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, builder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -180,7 +179,7 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 
 	sql := buildGetPagedAlertEventQuery(SQL_GET_PAGED_ALERT_EVENT, builder, orderBuilder)
 	var events []alert.AlertEvent
-	err = ch.GetContextDB(ctx).Select(context.Background(), &events, sql, builder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	if err != nil {
 		return nil, 0, err
 	}

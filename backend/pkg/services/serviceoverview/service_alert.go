@@ -26,7 +26,7 @@ func contains(arr []string, str string) bool {
 	return false
 }
 func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
-	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
+	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
 	if err != nil {
 		return nil, err
 	}
@@ -75,10 +75,10 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 					Pods = append(Pods, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByPod(&services[i].Instances, Pods, endTime, duration)
-			_, err = s.LogDODByPod(&services[i].Instances, Pods, endTime, duration)
-			_, err = s.LogWOWByPod(&services[i].Instances, Pods, endTime, duration)
-			_, err = s.ServiceLogRangeDataByPod(&services[i], Pods, startTime, endTime, duration, step)
+			_, err = s.AvgLogByPod(ctx, &services[i].Instances, Pods, endTime, duration)
+			_, err = s.LogDODByPod(ctx, &services[i].Instances, Pods, endTime, duration)
+			_, err = s.LogWOWByPod(ctx, &services[i].Instances, Pods, endTime, duration)
+			_, err = s.ServiceLogRangeDataByPod(ctx, &services[i], Pods, startTime, endTime, duration, step)
 		}
 		for i := range services {
 			var ContainerIds []string
@@ -87,10 +87,10 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 					ContainerIds = append(ContainerIds, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.LogDODByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.LogWOWByContainerId(&services[i].Instances, ContainerIds, endTime, duration)
-			_, err = s.ServiceLogRangeDataByContainerId(&services[i], ContainerIds, startTime, endTime, duration, step)
+			_, err = s.AvgLogByContainerId(ctx, &services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.LogDODByContainerId(ctx, &services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.LogWOWByContainerId(ctx, &services[i].Instances, ContainerIds, endTime, duration)
+			_, err = s.ServiceLogRangeDataByContainerId(ctx, &services[i], ContainerIds, startTime, endTime, duration, step)
 		}
 		for i := range services {
 			var Pids []string
@@ -99,10 +99,10 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 					Pids = append(Pids, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByPid(&services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogDODByPid(&services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogWOWByPid(&services[i].Instances, Pids, endTime, duration)
-			_, err = s.ServiceLogRangeDataByPid(&services[i], Pids, startTime, endTime, duration, step)
+			_, err = s.AvgLogByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+			_, err = s.LogDODByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+			_, err = s.LogWOWByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+			_, err = s.ServiceLogRangeDataByPid(ctx, &services[i], Pids, startTime, endTime, duration, step)
 		}
 	}
 
@@ -127,9 +127,9 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 			}
 			newLogs.ChartData = values
 		}
-		normalNowLog := s.getNormalLog(service, startTime, endTime, 0)
-		normalDayLog := s.getNormalLog(service, startTime, endTime, time.Hour*24)
-		normalWeekLog := s.getNormalLog(service, startTime, endTime, time.Hour*24*7)
+		normalNowLog := s.getNormalLog(ctx, service, startTime, endTime, 0)
+		normalDayLog := s.getNormalLog(ctx, service, startTime, endTime, time.Hour*24)
+		normalWeekLog := s.getNormalLog(ctx, service, startTime, endTime, time.Hour*24*7)
 		var allLogNow, allLogDay, allLogWeek *float64 // Total log errors for current, yesterday, and last week
 		// Integrate instance now,day,week,avg data
 		for _, instance := range service.Instances {
@@ -237,7 +237,7 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 
 		// Fill in last start time
 		if returnData == nil || contains(returnData, "lastStartTime") {
-			startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, serviceInstances)
+			startTSmap, _ := s.promRepo.QueryProcessStartTime(ctx, startTime, endTime, serviceInstances)
 			latestStartTime := getLatestStartTime(startTSmap) * 1e6
 			if latestStartTime > 0 {
 				newServiceRes.Timestamp = &latestStartTime
@@ -338,7 +338,7 @@ func getLatestStartTime(startTSmap map[model.ServiceInstance]int64) int64 {
 }
 
 // getNormalLog whether all instances in the service have normal log metrics.
-func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Time, offset time.Duration) []prometheus.MetricResult {
+func (s *service) getNormalLog(ctx core.Context, service ServiceDetail, startTime, endTime time.Time, offset time.Duration) []prometheus.MetricResult {
 	startTS, endTS := startTime.UnixMicro(), endTime.UnixMicro()
 	var pods, pids, nodeNames []string
 	for _, instance := range service.Instances {
@@ -366,7 +366,7 @@ func (s *service) getNormalLog(service ServiceDetail, startTime, endTime time.Ti
 	if err != nil {
 		return nil
 	}
-	normalLog, err := s.promRepo.QueryData(endTime.Add(-offset), pql)
+	normalLog, err := s.promRepo.QueryData(ctx, endTime.Add(-offset), pql)
 	if err != nil {
 		log.Println(err)
 	}

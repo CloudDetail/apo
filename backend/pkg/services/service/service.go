@@ -48,8 +48,6 @@ type Service interface {
 	// Get the list of service instances
 	// New interface
 	GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
-	// Old interface
-	GetInstances(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
 	// Get the list of service instances
 	// DEPRECATED
 	GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error)

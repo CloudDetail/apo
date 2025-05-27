@@ -294,13 +294,10 @@ const AlertEventsPage = () => {
       minWidth: 150,
       Cell: ({ value, row }) => {
         const level = row.original.severity
-        console.log('value: ', value)
-        console.log('row: ', row)
         return (
           <span className="text-sm break-words">
             {value}
             <span className="ml-2 align-middle inline-block">
-              {/* TODO: 翻译 */}
               <AlertLevel level={level} />
             </span>
           </span>

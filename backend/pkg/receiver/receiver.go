@@ -72,7 +72,7 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil, nil)
+	receivers, _, err := dbRepo.GetAMConfigReceiver(core.EmptyCtx(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Durat
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
 					// ctx
-					if err := r.database.DeleteAlertSlience(nil, val.ID); err == nil {
+					if err := r.database.DeleteAlertSlience(core.EmptyCtx(), val.ID); err == nil {
 						r.slientCFGMap.Delete(key)
 					}
 				}

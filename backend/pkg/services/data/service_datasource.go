@@ -26,12 +26,12 @@ func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceRe
 		startTimeMicro = startTime.UnixMicro()
 	)
 
-	servicesMap, err := s.promRepo.GetServiceWithNamespace(startTimeMicro, endTimeMicro, nil)
+	servicesMap, err := s.promRepo.GetServiceWithNamespace(ctx, startTimeMicro, endTimeMicro, nil)
 	if err != nil {
 		return
 	}
 
-	namespaceMap, err := s.promRepo.GetNamespaceWithService(startTimeMicro, endTimeMicro)
+	namespaceMap, err := s.promRepo.GetNamespaceWithService(ctx, startTimeMicro, endTimeMicro)
 	if err != nil {
 		return
 	}
@@ -140,7 +140,7 @@ func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupData
 	}
 
 	for namespace := range namespaceMap {
-		nested, err := s.getNested(namespace, model.DATASOURCE_TYP_NAMESPACE)
+		nested, err := s.getNested(ctx, namespace, model.DATASOURCE_TYP_NAMESPACE)
 		if err != nil {
 			return resp, err
 		}
@@ -153,7 +153,7 @@ func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupData
 	}
 
 	for service := range serviceMap {
-		nested, err := s.getNested(service, model.DATASOURCE_TYP_SERVICE)
+		nested, err := s.getNested(ctx, service, model.DATASOURCE_TYP_SERVICE)
 		if err != nil {
 			return resp, err
 		}
@@ -164,7 +164,7 @@ func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupData
 			namespaceMap[namespace] = append(namespaceMap[namespace], service)
 			filterMap[namespace+service] = struct{}{}
 		}
-		endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), service)
+		endpoints, err := s.promRepo.GetServiceEndPointList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), service)
 		if err != nil {
 			return resp, err
 		}
@@ -177,7 +177,7 @@ func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupData
 	return resp, nil
 }
 
-func (s *service) getNested(datasource string, typ string) ([]string, error) {
+func (s *service) getNested(ctx core.Context, datasource string, typ string) ([]string, error) {
 	var (
 		endTime   = time.Now()
 		startTime = endTime.Add(-24 * time.Hour)
@@ -186,9 +186,9 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	)
 
 	if typ == model.DATASOURCE_TYP_NAMESPACE {
-		nested, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), []string{datasource})
+		nested, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), []string{datasource})
 	} else if typ == model.DATASOURCE_TYP_SERVICE {
-		nested, err = s.promRepo.GetServiceNamespace(startTime.UnixMicro(), endTime.UnixMicro(), datasource)
+		nested, err = s.promRepo.GetServiceNamespace(ctx, startTime.UnixMicro(), endTime.UnixMicro(), datasource)
 	}
 
 	return nested, err

@@ -46,6 +46,7 @@
   "updateTime": "最后触发于",
   "critical": "严重",
   "warning": "警告",
+  "info": "通知",
   "normal": "一般",
   "historyTitle": "告警历史记录",
   "alertResolved": "告警已解决",
