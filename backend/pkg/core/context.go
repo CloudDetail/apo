@@ -219,6 +219,9 @@ func (c *context) abortError() BusinessError {
 }
 
 func (c *context) GetContext() go_context.Context {
+	if c == nil {
+		return go_context.Background()
+	}
 	return c.ctx
 }
 

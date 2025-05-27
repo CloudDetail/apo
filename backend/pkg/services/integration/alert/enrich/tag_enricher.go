@@ -127,7 +127,7 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 	case "tagMapping":
 		alertEvent.EnrichTags[e.targetTag] = value
 	case "schemaMapping":
-		targets, err := e.DBRepo.SearchSchemaTarget(nil, e.Schema, e.SchemaSource, value, e.SchemaTarget)
+		targets, err := e.DBRepo.SearchSchemaTarget(core.EmptyCtx(), e.Schema, e.SchemaSource, value, e.SchemaTarget)
 		if err != nil {
 			return
 		}
