@@ -162,10 +162,15 @@ const AlertStatus = ({
   status: string
   resolvedTime?: string | null
 }) => {
+  const { i18n } = useTranslation()
   if (!status) return
   return (
     <div className="text-center">
-      <Tag color={status === 'firing' ? 'error' : 'success'}>{t(`oss/alertEvents:${status}`)}</Tag>
+      <Tooltip overlayStyle={{ whiteSpace: i18n.language === 'zh' ? 'nowrap' : '' }} title={t(`oss/alertEvents:${status}Tip`)} >
+        <Tag color={status === 'firing' ? 'error' : 'success'}>
+          {t(`oss/alertEvents:${status}`)}
+        </Tag>
+      </Tooltip>
       {status === 'resolved' && resolvedTime && (
         <span className="text-[10px] block text-[var(--ant-color-text-secondary)]">
           {t('oss/alertEvents:resolvedOn')} {resolvedTime}
