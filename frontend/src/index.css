@@ -7,6 +7,10 @@
 @tailwind components;
 @tailwind utilities;
 
+p {
+  margin-bottom: 0 !important;
+}
+
 .accordion-item .show {
     visibility: visible !important;
 }
