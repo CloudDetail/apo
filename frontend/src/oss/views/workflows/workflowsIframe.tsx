@@ -17,7 +17,7 @@ const WorkflowsIframe = ({ src }) => {
   const difyToken = useRef(localStorage.getItem('difyToken'))
   const refreshToken = useRef(localStorage.getItem('difyRefreshToken'))
 
-  const [loading, setLoading] = useState(!difyToken || !refreshToken)
+  const [loading, setLoading] = useState(!difyToken.current || !refreshToken.current)
   const [error, setError] = useState(false)
 
   const loginDify = useCallback(async () => {
@@ -71,10 +71,10 @@ const WorkflowsIframe = ({ src }) => {
   }, [])
 
   useEffect(() => {
-    if ((!difyToken || !refreshToken) && user.username === 'anonymous') {
+    if ((!difyToken.current || !refreshToken.current) && user.username === 'anonymous') {
       loginDify()
     }
-  }, [difyToken, refreshToken, user.username, loginDify])
+  }, [difyToken.current, refreshToken.current, user.username, loginDify])
 
   if (loading) {
     return <LoadingSpinner loading={loading} />
@@ -87,7 +87,7 @@ const WorkflowsIframe = ({ src }) => {
   return (
     <iframe
       ref={workflowRef}
-      src={`${src}${src.includes('?') ? '&' : '?'}access_token=${difyToken}&refresh_token=${refreshToken}`}
+      src={`${src}${src.includes('?') ? '&' : '?'}access_token=${difyToken.current}&refresh_token=${refreshToken.current}`}
       width="100%"
       height="100%"
       frameBorder={0}
