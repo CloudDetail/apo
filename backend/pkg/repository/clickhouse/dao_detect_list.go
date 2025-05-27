@@ -1,7 +1,6 @@
 package clickhouse
 
 import (
-	"context"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -26,11 +25,11 @@ func (ch *chRepo) GetDetectExecList(ctx core.Context, req *request.GetDefectDete
 	resp := []model.DetectMutation{}
 	countSql := `SELECT count(*) as total FROM detect_list`
 	var count uint64
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, nil).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
-	err = ch.GetContextDB(ctx).Select(context.Background(), &resp, sql, req.PageSize, (req.CurrentPage-1)*req.PageSize)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &resp, sql, req.PageSize, (req.CurrentPage-1)*req.PageSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,7 +48,7 @@ func (ch *chRepo) AddDetectMutation(ctx core.Context, mutation model.DetectMutat
 		            group)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
-	err := ch.GetContextDB(ctx).Exec(context.Background(), sql,
+	err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), sql,
 		mutation.DetectName,
 		mutation.MutationCheck,
 		mutation.For, mutation.Step,
@@ -81,13 +80,13 @@ func (ch *chRepo) GetDistinctDetectExecList(ctx core.Context, req *request.GetDe
 		LIMIT ? OFFSET ?`
 
 	var mutations []model.DetectMutation
-	err := ch.GetContextDB(ctx).Select(context.Background(), &mutations, sql, req.PageSize, (req.CurrentPage-1)*req.PageSize)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &mutations, sql, req.PageSize, (req.CurrentPage-1)*req.PageSize)
 	if err != nil {
 		return nil, 0, err
 	}
 	countSql := `SELECT COUNT(DISTINCT name, mutation_check_pql, for_duration, step, group) as total FROM detect_list`
 	var count uint64
-	err = ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, nil).Scan(&count)
+	err = ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, nil).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}

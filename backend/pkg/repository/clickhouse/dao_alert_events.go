@@ -206,7 +206,7 @@ func (ch *chRepo) getGroupAlertEvents(ctx core.Context, startTime time.Time, end
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_WITH_LABEL_KEY, builder.String(), orderBuilder.String())
 	var events []AlertEventWithKey
-	err := ch.GetContextDB(ctx).Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
@@ -311,7 +311,7 @@ func (ch *chRepo) GetAlertEventById(ctx core.Context, eventId string, startTime,
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT, builder.String(), byLimit.String())
 	var event []model.AlertEvent
-	err := ch.GetContextDB(ctx).Select(context.Background(), &event, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &event, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	} else if len(event) == 0 {

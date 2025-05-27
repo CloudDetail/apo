@@ -592,7 +592,7 @@ func (ch *chRepo) GetAnomalyTrace(ctx core.Context, req *request.GetAnomalySpanR
 	countSql := fmt.Sprintf(TEMPLATE_QUERY_MUTATED_SPAN_TRACE, fieldSql, mutatedValueField, querySql, "")
 
 	var count uint64
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), fmt.Sprintf(TEMPLATE_COUNT_MUTATED_SPAN_TRACE, countSql), queryBuilder.values...).Scan(&count)
 	if err != nil {
 		log.Println("get total count error", err)
 		return nil, 0, err
@@ -602,7 +602,7 @@ func (ch *chRepo) GetAnomalyTrace(ctx core.Context, req *request.GetAnomalySpanR
 	if count == 0 {
 		return result, 0, nil
 	}
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		log.Println("query error", err)
 		return result, 0, err

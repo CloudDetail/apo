@@ -91,7 +91,7 @@ func (ch *chRepo) ListErrorByEntryService(ctx core.Context, startTime, endTime i
 
 	var results []ErrorPropation
 	sql := fmt.Sprintf(SQL_GET_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql)
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil
