@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -195,7 +194,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 
 	values := append(alertFilter.values, recordFilter.values...)
 	values = append(values, resultFilter.values...)
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -203,7 +202,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 	sql, values := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
 
 	result := make([]alert.AEventWithWRecord, 0)
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
 	return result, int64(count), err
 }
 
@@ -280,7 +279,7 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 		recordFilter.String(),
 	)
 	values := append(alertFilter.values, recordFilter.values...)
-	err := ch.GetContextDB(ctx).Select(context.Background(), &counts, countSql, values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &counts, countSql, values...)
 	if err != nil {
 		return nil, err
 	}

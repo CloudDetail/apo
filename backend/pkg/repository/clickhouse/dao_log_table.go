@@ -4,8 +4,6 @@
 package clickhouse
 
 import (
-	"context"
-
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/factory"
@@ -14,7 +12,7 @@ import (
 func (ch *chRepo) CreateLogTable(ctx core.Context, params *request.LogTableRequest) ([]string, error) {
 	sqls := factory.GetCreateTableSQL(params)
 	for _, sql := range sqls {
-		err := ch.GetContextDB(ctx).Exec(context.Background(), sql)
+		err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), sql)
 		if err != nil {
 			return nil, err
 		}
@@ -25,7 +23,7 @@ func (ch *chRepo) CreateLogTable(ctx core.Context, params *request.LogTableReque
 func (ch *chRepo) DropLogTable(ctx core.Context, params *request.LogTableRequest) ([]string, error) {
 	sqls := factory.GetDropTableSQL(params)
 	for _, sql := range sqls {
-		err := ch.GetContextDB(ctx).Exec(context.Background(), sql)
+		err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), sql)
 		if err != nil {
 			return nil, err
 		}
@@ -36,7 +34,7 @@ func (ch *chRepo) DropLogTable(ctx core.Context, params *request.LogTableRequest
 func (ch *chRepo) UpdateLogTable(ctx core.Context, req *request.LogTableRequest, old []request.Field) ([]string, error) {
 	sqls := factory.GetUpdateTableSQLByFields(req, old)
 	for _, sql := range sqls {
-		err := ch.GetContextDB(ctx).Exec(context.Background(), sql)
+		err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), sql)
 		if err != nil {
 			return nil, err
 		}

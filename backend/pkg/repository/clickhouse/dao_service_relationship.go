@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -67,7 +66,7 @@ func (ch *chRepo) ListParentNodes(ctx core.Context, req *request.GetServiceEndpo
 
 	results := []ParentNode{}
 	sql := fmt.Sprintf(SQL_GET_PARENT_NODES, queryBuilder.String())
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +84,7 @@ func (ch *chRepo) ListChildNodes(ctx core.Context, req *request.GetServiceEndpoi
 
 	results := []ChildNode{}
 	sql := fmt.Sprintf(SQL_GET_CHILD_NODES, queryBuilder.String())
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
@@ -104,7 +103,7 @@ func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescenda
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantNodes(results), nil
@@ -122,7 +121,7 @@ func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServ
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantRelations(results), nil
@@ -141,7 +140,7 @@ func (ch *chRepo) ListEntryEndpoints(ctx core.Context, req *request.GetServiceEn
 	}
 	results := []EntryNode{}
 	sql := fmt.Sprintf(SQL_GET_ENTRY_NODES, queryBuilder.String())
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil

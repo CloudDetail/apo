@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
@@ -56,7 +55,7 @@ func (ch *chRepo) QueryApplicationLogs(ctx core.Context, req *request.GetFaultLo
 
 	sql := fmt.Sprintf(SQL_GET_APP_LOG, builder.String(), byBuilder.String())
 	var logRaws []LogContent
-	err = ch.GetContextDB(ctx).Select(context.Background(), &logRaws, sql, builder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &logRaws, sql, builder.values...)
 	return &Logs{req.SourceFrom, logRaws}, sources, err
 }
 
@@ -86,7 +85,7 @@ func (ch *chRepo) queryApplicationLogsSource(ctx core.Context, builder *QueryBui
 
 	sql := fmt.Sprintf(SQL_GET_APP_LOG_SOURCE, builder.String(), byBuilder.String())
 	var sources []Source
-	err := ch.GetContextDB(ctx).Select(context.Background(), &sources, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &sources, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}

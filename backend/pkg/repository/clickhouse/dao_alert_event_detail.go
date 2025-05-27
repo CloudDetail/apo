@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -174,7 +173,7 @@ func (ch *chRepo) GetAlertDetail(ctx core.Context, req *request.GetAlertDetailRe
 	values = append(values, recordFilter.values...)
 
 	var result alert.AEventWithWRecord
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, values...).ScanStruct(&result)
 	return &result, err
 }
 
@@ -187,7 +186,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 	countSql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT_COUNT, alertEventFilter.String())
 
 	var count uint64
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), countSql, alertEventFilter.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, alertEventFilter.values...).Scan(&count)
 	if err != nil || count == 0 {
 		return nil, int64(count), err
 	}
@@ -203,7 +202,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		values = append(values, alertEventFilter.values...)
 
 		var index uint64
-		err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, values...).Scan(&index)
+		err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, values...).Scan(&index)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -236,7 +235,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 	values = append(values, notifyFilter.values...)
 
 	var result = make([]alert.AEventWithWRecord, 0)
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
 	return result, int64(count), err
 }
 
@@ -255,7 +254,7 @@ func (ch *chRepo) GetLatestAlertEventByAlertID(ctx core.Context, alertID string)
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
 	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
 	var result = alert.AlertEvent{}
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, alertEventFilter.values...).ScanStruct(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +267,7 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alert
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
 	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
 	var result = alert.AlertEvent{}
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), sql, alertEventFilter.values...).ScanStruct(&result)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, alertEventFilter.values...).ScanStruct(&result)
 	if err != nil {
 		return err
 	}

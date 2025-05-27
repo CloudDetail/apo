@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -39,7 +38,7 @@ func (ch *chRepo) GetFlameGraphData(ctx core.Context, startTime, endTime int64, 
 	}
 	sql := buildFlameGraphQuery(queryBuilder)
 	result := make([]FlameGraphData, 0)
-	err := ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, err
 	}

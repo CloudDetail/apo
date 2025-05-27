@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -53,7 +52,7 @@ func (ch *chRepo) GetK8sAlertEventsSample(ctx core.Context, startTime time.Time,
 	query := fmt.Sprintf(SQL_GET_K8S_EVENTS, builder.String(), 1)
 	// Execute query
 	var res []K8sEvents
-	err := ch.GetContextDB(ctx).Select(context.Background(), &res, query, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &res, query, builder.values...)
 	if err != nil {
 		return nil, err
 	}
