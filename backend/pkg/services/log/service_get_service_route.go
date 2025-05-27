@@ -19,7 +19,7 @@ func (s *service) GetServiceRoute(ctx core.Context, req *request.GetServiceRoute
 	sevenDaysAgo := now.AddDate(0, 0, -7)
 	sevenDaysAgoTimestamp := sevenDaysAgo.UnixMicro()
 	for _, service := range req.Service {
-		instances, err := s.promRepo.GetActiveInstanceList(sevenDaysAgoTimestamp, currentTimestamp, []string{service})
+		instances, err := s.promRepo.GetActiveInstanceList(ctx, sevenDaysAgoTimestamp, currentTimestamp, []string{service})
 		if err != nil {
 			return nil, err
 		}

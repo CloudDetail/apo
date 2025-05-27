@@ -69,7 +69,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
-	descendantStatus, err := s.queryDescendantStatus(services, endpoints, req.StartTime, req.EndTime)
+	descendantStatus, err := s.queryDescendantStatus(ctx, services, endpoints, req.StartTime, req.EndTime)
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
@@ -96,7 +96,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
 
 		// Get all instances under each endpoint
-		instances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		instances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			// TODO deal error
 			continue
@@ -116,7 +116,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		)
 
 		// Query and populate the process start time
-		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceList)
+		startTSmap, _ := s.promRepo.QueryProcessStartTime(ctx, startTime, endTime, instanceList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
 		if latestStartTime > 0 {
 			descendantResp.LastUpdateTime = &latestStartTime
@@ -127,8 +127,8 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	return resp, nil
 }
 
-func (s *service) queryDescendantStatus(services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
-	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+func (s *service) queryDescendantStatus(ctx core.Context, services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
+	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.WithDefaultIFPolarisMetricExits(prom.PQLAvgDepLatencyWithFilters, prom.DefaultDepLatency),
 		startTime, endTime,
 		prom.EndpointGranularity,
@@ -138,7 +138,7 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		return nil, err
 	}
 
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.PQLAvgLatencyWithFilters,
 		startTime, endTime,
 		prom.EndpointGranularity,
@@ -148,7 +148,7 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		return nil, err
 	}
 
-	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,
@@ -158,7 +158,7 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 		return nil, err
 	}
 
-	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,
@@ -167,7 +167,7 @@ func (s *service) queryDescendantStatus(services []string, endpoints []string, s
 	if err != nil {
 		return nil, err
 	}
-	avgRequestPerSecondDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgRequestPerSecondDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgTPSWithFilters),
 		startTime, endTime,
 		prom.EndpointGranularity,

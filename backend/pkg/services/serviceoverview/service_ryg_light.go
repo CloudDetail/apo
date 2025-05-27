@@ -27,7 +27,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 	filters := filter.ExtractFilterStr()
 
 	// FIX for showing services without LatencyDay-over-Day Growth Rate
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.PQLAvgLatencyWithFilters,
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -35,7 +35,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		servicesMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
 	}
 
-	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -43,7 +43,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		servicesMap.MergeMetricResults(prom.DOD, prom.LATENCY, avgLatencyDoD)
 	}
 
-	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -51,7 +51,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		servicesMap.MergeMetricResults(prom.DOD, prom.ERROR_RATE, avgErrorRateDoD)
 	}
 
-	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -69,7 +69,7 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		nil,
 	)
 	for svcKey, status := range servicesMap.MetricGroupMap {
-		instances, err := s.promRepo.GetInstanceList(startMicroTS, endMicroTs, svcKey.SvcName, "")
+		instances, err := s.promRepo.GetInstanceList(ctx, startMicroTS, endMicroTs, svcKey.SvcName, "")
 		if err != nil {
 			continue
 		}

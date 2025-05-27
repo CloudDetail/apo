@@ -71,7 +71,7 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 			if datasource.Type == model.DATASOURCE_TYP_NAMESPACE {
 				namespaceMap[ds] = true
 			} else if datasource.Type == model.DATASOURCE_TYP_SERVICE {
-				namespaceList, err := s.promRepo.GetServiceNamespace(startTime.UnixMicro(), endTime.UnixMicro(), ds)
+				namespaceList, err := s.promRepo.GetServiceNamespace(ctx, startTime.UnixMicro(), endTime.UnixMicro(), ds)
 				if err != nil {
 					return err
 				}
@@ -107,7 +107,7 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 
 	// has rights to view this namespace's services
 	if len(namespaceDs) > 0 {
-		serviceList, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
+		serviceList, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
 		if err != nil {
 			return err
 		}

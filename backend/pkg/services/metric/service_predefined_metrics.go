@@ -79,7 +79,7 @@ func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *Quer
 	if len(req.MetricName) > 0 {
 		querys = queryDict.GetQuerysByNames([]string{req.MetricName})
 		if len(querys) > 0 {
-			return &QueryMetricsResult{Result: s.executeQuery(querys[0], req)}
+			return &QueryMetricsResult{Result: s.executeQuery(ctx, querys[0], req)}
 		}
 	} else if len(req.MetricIds) > 0 {
 		querys = queryDict.GetQuerysByIds(req.MetricIds)
@@ -95,7 +95,7 @@ func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *Quer
 
 	var resp []QueryResult
 	for _, query := range querys {
-		queryRes := s.executeQuery(query, req)
+		queryRes := s.executeQuery(ctx, query, req)
 		resp = append(resp, *queryRes)
 	}
 
@@ -107,13 +107,14 @@ func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *Quer
 var legendFormatReg = regexp.MustCompile("{{([^{}]*)}}")
 
 func (s *service) executeQuery(
+	ctx core.Context,
 	query Query,
 	req *QueryMetricsRequest,
 ) *QueryResult {
 	var res = []Timeseries{}
 
 	for _, target := range query.Targets {
-		value, _, err := s.executeTargets(query.GroupID, &target, req)
+		value, _, err := s.executeTargets(ctx, query.GroupID, &target, req)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -170,7 +171,7 @@ func (s *service) executeQuery(
 	}
 }
 
-func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsRequest) (model.Value, v1.Warnings, error) {
+func (s *service) executeTargets(ctx core.Context, groupId int, target *Target, req *QueryMetricsRequest) (model.Value, v1.Warnings, error) {
 	var varMap = make(map[string]string)
 
 	var varSpecs []Variable
@@ -199,7 +200,7 @@ func (s *service) executeTargets(groupId int, target *Target, req *QueryMetricsR
 
 		var unknownSpec = make([]Variable, 0)
 		for i := 0; i < len(varSpecs); i++ {
-			variable, find, dep := s.queryVar(&varSpecs[i], req.StartTime, req.EndTime)
+			variable, find, dep := s.queryVar(ctx, &varSpecs[i], req.StartTime, req.EndTime)
 			if find {
 				varMap[varSpecs[i].Name] = variable
 				continue
@@ -239,6 +240,7 @@ var labelValuesQry = regexp.MustCompile(`label_values\(([^,]+),([^)]+)\)`)
 var variableQry = regexp.MustCompile(`\$([a-zA-Z0-9_]+)`)
 
 func (s *service) queryVar(
+	ctx core.Context,
 	varSpec *Variable,
 	startTime, endTime int64,
 ) (res string, find bool, dep []string) {
@@ -267,7 +269,7 @@ func (s *service) queryVar(
 			return "", true, nil
 		}
 
-		labelValues, err := s.promRepo.LabelValues(matches[1], matches[2], startTime, endTime)
+		labelValues, err := s.promRepo.LabelValues(ctx, matches[1], matches[2], startTime, endTime)
 		if err != nil {
 			log.Println("query result err:", err)
 			return "", true, nil
@@ -281,7 +283,7 @@ func (s *service) queryVar(
 	case 3: // query_result
 		expr, _ := strings.CutPrefix(varSpec.Query.Query, "query_result(")
 		expr, _ = strings.CutSuffix(expr, ")")
-		labels, err := s.promRepo.QueryResult(expr, varSpec.Regex, startTime, endTime)
+		labels, err := s.promRepo.QueryResult(ctx, expr, varSpec.Regex, startTime, endTime)
 		if err != nil {
 			log.Println("query result err:", err)
 			return "", true, nil

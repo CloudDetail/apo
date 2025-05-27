@@ -4,19 +4,19 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 )
 
-func (repo *promRepo) LabelValues(expr string, label string, startTime, endTime int64) (model.LabelValues, error) {
+func (repo *promRepo) LabelValues(ctx core.Context, expr string, label string, startTime, endTime int64) (model.LabelValues, error) {
 	labelValues, _, err := repo.api.LabelValues(
-		context.Background(),
+		ctx.GetContext(),
 		label,
 		[]string{expr},
 		time.UnixMicro(startTime),
@@ -28,8 +28,8 @@ func (repo *promRepo) LabelValues(expr string, label string, startTime, endTime 
 	return labelValues, nil
 }
 
-func (repo *promRepo) QueryResult(expr string, regex string, startTime, endTime int64) ([]string, error) {
-	value, _, err := repo.api.QueryRange(context.Background(), expr, v1.Range{
+func (repo *promRepo) QueryResult(ctx core.Context, expr string, regex string, startTime, endTime int64) ([]string, error) {
+	value, _, err := repo.api.QueryRange(ctx.GetContext(), expr, v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
 		Step:  time.Duration(endTime-startTime) * time.Microsecond,
