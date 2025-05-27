@@ -66,7 +66,6 @@ const CurrentEventDetail = ({
     {
       key: '2',
       label: t('severity'),
-      // children: t(detail?.severity),
       children: <AlertLevel level={detail?.severity} />
     },
     {

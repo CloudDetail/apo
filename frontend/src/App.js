@@ -13,7 +13,6 @@ import 'src/core/scss/style.scss'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 import { Spin } from 'antd'
-import { useTranslation } from 'react-i18next'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const Login = React.lazy(() => import('./core/views/Login/Login'))
@@ -27,7 +26,6 @@ const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   // const { isColorModeSet, setColorMode } = useColorModes('dark')
   const { theme } = useSelector((state) => state.settingReducer)
-  const { t, i18n } = useTranslation()
   const dispatch = useDispatch()
   const setGroupLabel = (value) => {
     dispatch({ type: 'setGroupLabel', payload: value })
@@ -53,9 +51,6 @@ const App = () => {
   useEffect(() => {
     setColorMode(theme)
   }, [theme])
-  useEffect(() => {
-    document.title = t('apoTitle');
-  }, [i18n.language, t]);
   useEffect(() => {
     if (window.location.hash !== '#/login') {
       getRuleGroupLabels()
