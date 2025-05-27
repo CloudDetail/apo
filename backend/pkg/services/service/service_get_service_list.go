@@ -9,5 +9,5 @@ import (
 )
 
 func (s *service) GetServiceList(ctx core.Context, req *request.GetServiceListRequest) ([]string, error) {
-	return s.promRepo.GetServiceList(req.StartTime, req.EndTime, req.Namespace)
+	return s.promRepo.GetServiceList(ctx, req.StartTime, req.EndTime, req.Namespace)
 }

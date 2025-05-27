@@ -9,119 +9,23 @@ import (
 	"strconv"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) UrlAVG(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
-	var AvgErrorRateRes []prom.MetricResult
-	//AvgErrorRateRes, err = s.promRepo.QueryPrometheusError(searchTime)
-	queryAvgError := prom.QueryEndPointPromql(duration, prom.AvgError, serviceName)
-	AvgErrorRateRes, err := s.promRepo.QueryErrorRateData(endTime, queryAvgError)
-	for _, result := range AvgErrorRateRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.Avg.ErrorRate = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.Avg.ErrorRate = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	var AvgLatencyRes []prom.MetricResult
-	//AvgLatencyRes, err = s.promRepo.QueryPrometheusLatency(searchTime)
-	queryAvgLatency := prom.QueryEndPointPromql(duration, prom.AvgLatency, serviceName)
-	AvgLatencyRes, err = s.promRepo.QueryLatencyData(endTime, queryAvgLatency)
-	for _, result := range AvgLatencyRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.Avg.Latency = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.Avg.Latency = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	var AvgTPSRes []prom.MetricResult
-	//AvgTPSRes, err = s.promRepo.QueryPrometheusTPS(searchTime)
-	queryAvgTPS := prom.QueryEndPointPromql(duration, prom.AvgTPS, serviceName)
-	AvgTPSRes, err = s.promRepo.QueryData(endTime, queryAvgTPS)
-	for _, result := range AvgTPSRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.Avg.TPM = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.Avg.TPM = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	return Urls, err
-}
-
 // EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
-func (s *service) EndpointsREDMetric(startTime, endTime time.Time, filters []string) *EndpointsMap {
+func (s *service) EndpointsREDMetric(ctx core.Context, startTime, endTime time.Time, filters []string) *EndpointsMap {
 	var res = &EndpointsMap{
 		MetricGroupList: []*prom.EndpointMetrics{},
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
 	// Average RED metric over the fill time period
-	s.promRepo.FillMetric(res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
 	// RED metric day-to-day-on-da during the fill period
-	s.promRepo.FillMetric(res, prom.DOD, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.DOD, startTime, endTime, filters, prom.EndpointGranularity)
 	// RED metric week-on-week in the fill time period
-	s.promRepo.FillMetric(res, prom.WOW, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.WOW, startTime, endTime, filters, prom.EndpointGranularity)
 
 	return res
 }
@@ -153,18 +57,18 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	return filters
 }
 
-func (s *service) EndpointsRealtimeREDMetric(filters []string, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	s.promRepo.FillMetric(endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
+func (s *service) EndpointsRealtimeREDMetric(ctx core.Context, filters []string, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
+	s.promRepo.FillMetric(ctx, endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
 }
 
 // EndpointsDelaySource fill delay source
 // Based on the input Endpoints, records that do not exist in the Endpoints are discarded.
-func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+func (s *service) EndpointsDelaySource(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	metricResults, err := s.promRepo.QueryAggMetricsWithFilter(
+	metricResults, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.WithDefaultIFPolarisMetricExits(prom.PQLDepLatencyRadioWithFilters, prom.DefaultDepLatency),
 		startTS, endTS,
 		prom.EndpointGranularity,
@@ -191,11 +95,11 @@ func (s *service) EndpointsDelaySource(endpoints *EndpointsMap, startTime, endTi
 	return nil
 }
 
-func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+func (s *service) EndpointsNamespaceInfo(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	metricResult, err := s.promRepo.QueryAggMetricsWithFilter(
+	metricResult, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.PQLAvgTPSWithFilters,
 		startTS, endTS,
 		prom.NSEndpointGranularity,
@@ -224,209 +128,8 @@ func (s *service) EndpointsNamespaceInfo(endpoints *EndpointsMap, startTime, end
 	return nil
 }
 
-func (s *service) UrlDOD(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
-	latencyDODquery := prom.QueryEndPointPromql(duration, prom.LatencyDOD, serviceName)
-	latencyDoDres, err := s.promRepo.QueryData(endTime, latencyDODquery)
-	for _, result := range latencyDoDres {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.DOD.Latency = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.DOD.Latency = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-
-	errorDODquery := prom.QueryEndPointPromql(duration, prom.ErrorDOD, serviceName)
-	errorDoDres, err := s.promRepo.QueryData(endTime, errorDODquery)
-	// Update the contents of the wrongUrls
-	for _, result := range errorDoDres {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // if value is infinity, the error rate is assigned to MaxFloat64
-					(*Urls)[i].REDMetrics.DOD.ErrorRate = &value
-				} else {
-					var value float64
-					value = RES_MAX_VALUE
-					pointer := &value
-					(*Urls)[i].REDMetrics.DOD.ErrorRate = pointer
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.DOD.ErrorRate = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	//tpsResults, err := s.promRepo.QueryPrometheusTPSDayOver(searchTime)
-	tpsDODquery := prom.QueryEndPointPromql(duration, prom.TPSDOD, serviceName)
-	tpsResults, err := s.promRepo.QueryData(endTime, tpsDODquery)
-	for _, result := range tpsResults {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.DOD.TPM = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.DOD.TPM = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	return Urls, err
-}
-func (s *service) UrlWOW(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
-
-	var LatencyWoWRes []prom.MetricResult
-	//LatencyWoWRes, err = s.promRepo.QueryPrometheusLatencyWeekOver(searchTime)
-	latencyWOWquery := prom.QueryEndPointPromql(duration, prom.LatencyWOW, serviceName)
-	LatencyWoWRes, err := s.promRepo.QueryData(endTime, latencyWOWquery)
-	for _, result := range LatencyWoWRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.WOW.Latency = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.WOW.Latency = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	var TPSWoWRes []prom.MetricResult
-	//TPSWoWRes, err = s.promRepo.QueryPrometheusTPSWeekOver(searchTime)
-	TPSWOWquery := prom.QueryEndPointPromql(duration, prom.TPSWOW, serviceName)
-	TPSWoWRes, err = s.promRepo.QueryData(endTime, TPSWOWquery)
-	for _, result := range TPSWoWRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // does not assign value when it is infinity
-					(*Urls)[i].REDMetrics.WOW.TPM = &value
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.WOW.TPM = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	var ErrorWoWRes []prom.MetricResult
-	//ErrorWoWRes, err = s.promRepo.QueryPrometheusErrorWeekOver(searchTime)
-	errorWoWquery := prom.QueryEndPointPromql(duration, prom.ErrorWOW, serviceName)
-	ErrorWoWRes, err = s.promRepo.QueryData(endTime, errorWoWquery)
-	for _, result := range ErrorWoWRes {
-		contentKey := result.Metric.ContentKey
-		serviceName := result.Metric.SvcName
-		found := false
-		value := result.Values[0].Value
-		for i, Url := range *Urls {
-			if Url.ContentKey == contentKey && Url.SvcName == serviceName {
-				found = true
-				if !math.IsInf(value, 0) { // if value is infinity, the error rate is assigned to MaxFloat64
-					(*Urls)[i].REDMetrics.WOW.ErrorRate = &value
-				} else {
-					var value float64
-					value = RES_MAX_VALUE
-					pointer := &value
-					(*Urls)[i].REDMetrics.WOW.ErrorRate = pointer
-				}
-				break
-			}
-		}
-		if !found {
-			newUrl := prom.EndpointMetrics{
-				EndpointKey: prom.EndpointKey{
-					ContentKey: contentKey,
-					SvcName:    serviceName,
-				},
-			}
-			if !math.IsInf(value, 0) { // does not assign value when it is infinity
-				newUrl.REDMetrics.WOW.ErrorRate = &value
-			}
-			*Urls = append(*Urls, newUrl)
-		}
-	}
-	return Urls, err
-}
-
 // EndpointRangeREDChart query graph
-func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]ServiceDetail, error) {
+func (s *service) EndpointRangeREDChart(ctx core.Context, Services *[]ServiceDetail, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]ServiceDetail, error) {
 	var newUrls []prom.EndpointMetrics
 	var contentKeys []string
 	var stepToStr string
@@ -454,7 +157,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 		}
 		batch := contentKeys[i:end]
 		errorDataQuery := prom.QueryEndPointRangePromql(stepToStr, duration, prom.ErrorData, batch)
-		errorDataRes, err = s.promRepo.QueryRangeErrorData(startTime, endTime, errorDataQuery, step)
+		errorDataRes, err = s.promRepo.QueryRangeErrorData(ctx, startTime, endTime, errorDataQuery, step)
 		for _, result := range errorDataRes {
 			contentKey := result.Metric.ContentKey
 			serviceName := result.Metric.SvcName
@@ -489,7 +192,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 		batch := contentKeys[i:end]
 		//LatencyDataRes, err = s.promRepo.QueryRangePrometheusLatencyLast30min(searchTime)
 		latencyDataQuery := prom.QueryEndPointRangePromql(stepToStr, duration, prom.LatencyData, batch)
-		LatencyDataRes, err = s.promRepo.QueryRangeLatencyData(startTime, endTime, latencyDataQuery, step)
+		LatencyDataRes, err = s.promRepo.QueryRangeLatencyData(ctx, startTime, endTime, latencyDataQuery, step)
 		for _, result := range LatencyDataRes {
 			contentKey := result.Metric.ContentKey
 			serviceName := result.Metric.SvcName
@@ -523,7 +226,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 		batch := contentKeys[i:end]
 		//TPSLastDataRes, err = s.promRepo.QueryRangePrometheusTPSLast30min(searchTime)
 		TPSDataQuery := prom.QueryEndPointRangePromql(stepToStr, duration, prom.TPSData, batch)
-		TPSLastDataRes, err = s.promRepo.QueryRangeData(startTime, endTime, TPSDataQuery, step)
+		TPSLastDataRes, err = s.promRepo.QueryRangeData(ctx, startTime, endTime, TPSDataQuery, step)
 		for _, result := range TPSLastDataRes {
 			contentKey := result.Metric.ContentKey
 			serviceName := result.Metric.SvcName
@@ -568,7 +271,7 @@ func (s *service) EndpointRangeREDChart(Services *[]ServiceDetail, startTime tim
 }
 
 // UrlLatencySource query latency depends on
-func (s *service) UrlLatencySource(Urls *[]prom.EndpointMetrics, serviceName string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]prom.EndpointMetrics, error) {
+func (s *service) UrlLatencySource(ctx core.Context, Urls *[]prom.EndpointMetrics, serviceName string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]prom.EndpointMetrics, error) {
 	var stepToStr string
 	if step >= time.Hour {
 		stepToStr = strconv.FormatInt(int64(step/time.Hour), 10) + "h"
@@ -580,7 +283,7 @@ func (s *service) UrlLatencySource(Urls *[]prom.EndpointMetrics, serviceName str
 	var LatencySourceRes []prom.MetricResult
 	//LatencySourceRes, err = s.promRepo.QueryPrometheusLatencyWeekOver(searchTime)
 	LatencySourcequery := prom.QueryEndPointPromql(stepToStr, prom.DelaySource, serviceName)
-	LatencySourceRes, err := s.promRepo.QueryRangeData(startTime, endTime, LatencySourcequery, step)
+	LatencySourceRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LatencySourcequery, step)
 	for _, result := range LatencySourceRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName
@@ -600,11 +303,11 @@ func (s *service) UrlLatencySource(Urls *[]prom.EndpointMetrics, serviceName str
 }
 
 // UrlAVG1min the average value in the last minute
-func (s *service) UrlAVG1min(Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
+func (s *service) UrlAVG1min(ctx core.Context, Urls *[]prom.EndpointMetrics, serviceName string, endTime time.Time, duration string) (*[]prom.EndpointMetrics, error) {
 	var Avg1minErrorRateRes []prom.MetricResult
 	//Avg1minErrorRateRes, err = s.promRepo.QueryPrometheusError(searchTime)
 	queryAvg1minError := prom.QueryEndPointPromql(duration, prom.Avg1minError, serviceName)
-	Avg1minErrorRateRes, err := s.promRepo.QueryErrorRateData(endTime, queryAvg1minError)
+	Avg1minErrorRateRes, err := s.promRepo.QueryErrorRateData(ctx, endTime, queryAvg1minError)
 	//log.Printf("%v", Avg1minErrorRateRes)
 	for _, result := range Avg1minErrorRateRes {
 		contentKey := result.Metric.ContentKey
@@ -636,7 +339,7 @@ func (s *service) UrlAVG1min(Urls *[]prom.EndpointMetrics, serviceName string, e
 	var Avg1minLatencyRes []prom.MetricResult
 	//Avg1minLatencyRes, err = s.promRepo.QueryPrometheusLatency(searchTime)
 	queryAvg1minLatency := prom.QueryEndPointPromql(duration, prom.Avg1minLatency, serviceName)
-	Avg1minLatencyRes, err = s.promRepo.QueryLatencyData(endTime, queryAvg1minLatency)
+	Avg1minLatencyRes, err = s.promRepo.QueryLatencyData(ctx, endTime, queryAvg1minLatency)
 	for _, result := range Avg1minLatencyRes {
 		contentKey := result.Metric.ContentKey
 		serviceName := result.Metric.SvcName

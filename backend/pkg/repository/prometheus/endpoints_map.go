@@ -7,6 +7,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -14,6 +15,7 @@ import (
 type EndpointsMap = MetricGroupMap[EndpointKey, *EndpointMetrics]
 
 type FetchEMOption func(
+	ctx core.Context,
 	promRepo Repo,
 	em *EndpointsMap,
 	startTime, endTime time.Time,
@@ -21,6 +23,7 @@ type FetchEMOption func(
 ) error
 
 func FetchEndpointsData(
+	ctx core.Context,
 	promRepo Repo,
 	filters []string,
 	startTime, endTime time.Time,
@@ -32,7 +35,7 @@ func FetchEndpointsData(
 
 	var errs []error
 	for _, fetchFunc := range opts {
-		err := fetchFunc(promRepo, result, startTime, endTime, filters)
+		err := fetchFunc(ctx, promRepo, result, startTime, endTime, filters)
 		errs = append(errs, err)
 	}
 
@@ -40,18 +43,18 @@ func FetchEndpointsData(
 }
 
 func WithREDMetric() FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
 		var errs []error
 		// Average RED metric over the fill time period
-		if err := promRepo.FillMetric(em, AVG, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, AVG, startTime, endTime, filters, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		// RED metric day-to-day-on-da during the fill period
-		if err := promRepo.FillMetric(em, DOD, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, DOD, startTime, endTime, filters, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		// RED metric week-on-week in the fill time period
-		if err := promRepo.FillMetric(em, WOW, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, WOW, startTime, endTime, filters, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		return errors.Join(errs...)
@@ -59,8 +62,8 @@ func WithREDMetric() FetchEMOption {
 }
 
 func WithDelaySource() FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		metricResults, err := promRepo.QueryAggMetricsWithFilter(
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		metricResults, err := promRepo.QueryAggMetricsWithFilter(ctx,
 			WithDefaultIFPolarisMetricExits(PQLDepLatencyRadioWithFilters, DefaultDepLatency),
 			startTime.UnixMicro(), endTime.UnixMicro(),
 			EndpointGranularity,
@@ -90,8 +93,8 @@ func WithDelaySource() FetchEMOption {
 }
 
 func WithNamespace() FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		metricResult, err := promRepo.QueryAggMetricsWithFilter(
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		metricResult, err := promRepo.QueryAggMetricsWithFilter(ctx,
 			PQLAvgTPSWithFilters,
 			startTime.UnixMicro(), endTime.UnixMicro(),
 			NSEndpointGranularity,
@@ -130,20 +133,20 @@ func appendIfNotExist(slice []string, str string) []string {
 }
 
 func WithRealTimeREDMetric() FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		return promRepo.FillMetric(em, REALTIME, startTime, endTime, filters, EndpointGranularity)
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		return promRepo.FillMetric(ctx, em, REALTIME, startTime, endTime, filters, EndpointGranularity)
 	}
 }
 
 func WithREDChart(step time.Duration) FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		return promRepo.FillRangeMetric(em, AVG, startTime, endTime, step, filters, EndpointGranularity)
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		return promRepo.FillRangeMetric(ctx, em, AVG, startTime, endTime, step, filters, EndpointGranularity)
 	}
 }
 
 func WithLogErrorCount() FetchEMOption {
-	return func(promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		result, err := promRepo.QueryAggMetricsWithFilter(PQLAvgLogErrorCountCombineEndpointsInfoWithFilters,
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+		result, err := promRepo.QueryAggMetricsWithFilter(ctx, PQLAvgLogErrorCountCombineEndpointsInfoWithFilters,
 			startTime.UnixMicro(), endTime.UnixMicro(), EndpointGranularity, filters...,
 		)
 		if err != nil {

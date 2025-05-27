@@ -35,6 +35,7 @@ func (s *service) GetServicesEndpointDataWithChart(ctx core.Context,
 	}
 
 	endpointsMap, err := prometheus.FetchEndpointsData(
+		ctx,
 		s.promRepo, filtersStr, startTime, endTime,
 		opts...,
 	)
