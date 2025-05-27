@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -62,7 +61,7 @@ func (ch *chRepo) GetTables(ctx core.Context, tables []model.Table) ([]model.Tab
 		argIndex++
 	}
 
-	rows, err := ch.GetContextDB(ctx).Query(context.Background(), query, args...)
+	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), query, args...)
 	if err != nil {
 		log.Println("Query failed:", err)
 		return nil, err

@@ -4,7 +4,6 @@
 package metric
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -229,7 +228,7 @@ func (s *service) executeTargets(ctx core.Context, groupId int, target *Target, 
 		expr = strings.ReplaceAll(expr, "$"+k, v)
 	}
 
-	return s.promRepo.GetApi().QueryRange(context.Background(), expr, v1.Range{
+	return s.promRepo.GetApi().QueryRange(ctx.GetContext(), expr, v1.Range{
 		Start: time.UnixMicro(req.StartTime),
 		End:   time.UnixMicro(req.EndTime),
 		Step:  time.Microsecond * time.Duration(req.Step),

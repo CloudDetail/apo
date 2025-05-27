@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -68,7 +67,7 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 	logCountQuery := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), logCountQuery, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), logCountQuery, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -96,7 +95,7 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}
@@ -162,7 +161,7 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 	query := buildTraceCountQuery(TEMPLATE_COUNT_SPAN_TRACE, queryBuilder)
 	var count uint64
 	// Number of query records
-	err := ch.GetContextDB(ctx).QueryRow(context.Background(), query, queryBuilder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), query, queryBuilder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -193,7 +192,7 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		String()
 	// Query list data
 	sql := buildSpanTraceQuery(TEMPLATE_QUERY_SPAN_TRACE, fieldSql, bySql, queryBuilder)
-	err = ch.GetContextDB(ctx).Select(context.Background(), &result, sql, queryBuilder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, queryBuilder.values...)
 	if err != nil {
 		return nil, int64(count), err
 	}
@@ -400,14 +399,14 @@ func (ch *chRepo) UpdateFilterKey(ctx core.Context, startTime, endTime time.Time
 
 	sql := fmt.Sprintf(SQL_GET_LABEL_FILTER_KEYS, builder.String(), byLimits.String())
 	var labelRes []request.SpanTraceFilter
-	err := ch.GetConn(ctx).Select(context.Background(), &labelRes, sql, builder.values...)
+	err := ch.GetConn(ctx).Select(ctx.GetContext(), &labelRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
 
 	sql = fmt.Sprintf(SQL_GET_FLAGS_FILTER_KEYS, builder.String(), byLimits.String())
 	var flagRes []request.SpanTraceFilter
-	err = ch.GetConn(ctx).Select(context.Background(), &flagRes, sql, builder.values...)
+	err = ch.GetConn(ctx).Select(ctx.GetContext(), &flagRes, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}
@@ -446,7 +445,7 @@ func (ch *chRepo) GetFieldValues(ctx core.Context, searchText string, filter *re
 
 	sql := fmt.Sprintf(SQL_GET_FILTER_VALUES, field, builder.String(), byLimits.String())
 
-	rows, err := ch.GetConn(ctx).Query(context.Background(), sql, builder.values...)
+	rows, err := ch.GetConn(ctx).Query(ctx.GetContext(), sql, builder.values...)
 	if err != nil {
 		return nil, err
 	}

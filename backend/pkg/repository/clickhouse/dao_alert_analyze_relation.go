@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -115,7 +114,7 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(ctx core.Context, alertServ
 		ch.database,
 		queryBuilder.String(),
 	)
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &parentTopologys, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &parentTopologys, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +132,7 @@ func (ch *chRepo) ListDescendantRelationsWithoutEdge(ctx core.Context, req *requ
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.GetContextDB(ctx).Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantServiceNode(results), nil
