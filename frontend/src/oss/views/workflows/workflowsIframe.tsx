@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Result } from 'antd'
+import { Result } from 'antd'
 import i18next, { t } from 'i18next'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { workflowAnonymousLoginApi } from 'src/core/api/workflows'
@@ -14,9 +14,9 @@ const WorkflowsIframe = ({ src }) => {
   const workflowRef = useRef(null)
   const { user } = useUserContext()
   const language = i18next.language
+  const difyToken = useRef(localStorage.getItem('difyToken'))
+  const refreshToken = useRef(localStorage.getItem('difyRefreshToken'))
 
-  const [difyToken, setDifyToken] = useState(() => localStorage.getItem('difyToken'))
-  const [refreshToken, setRefreshToken] = useState(() => localStorage.getItem('difyRefreshToken'))
   const [loading, setLoading] = useState(!difyToken || !refreshToken)
   const [error, setError] = useState(false)
 
@@ -35,8 +35,8 @@ const WorkflowsIframe = ({ src }) => {
         const { access_token, refresh_token } = res.data
         localStorage.setItem('difyToken', access_token)
         localStorage.setItem('difyRefreshToken', refresh_token)
-        setDifyToken(access_token)
-        setRefreshToken(refresh_token)
+        difyToken.current = access_token
+        refreshToken.current = refresh_token
       } else {
         setError(true)
       }
