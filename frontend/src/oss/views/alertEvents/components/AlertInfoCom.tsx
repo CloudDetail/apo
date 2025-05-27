@@ -237,7 +237,7 @@ const ALertIsValid = ({
         workflowMissToast('alertCheckId')
       ) : ['unknown', 'skipped'].includes(isValid) || (isValid === 'failed' && !workflowRunId) ? (
         <span
-          className="text-wrap [word-break:auto-phrase] text-center flex items-center text-xs"
+          className="text-wrap [word-break:auto-phrase] text-center flex items-center"
           style={{ color: currentColors?.color }}
         >
           {t(`oss/alertEvents:${isValid}`)}
@@ -278,7 +278,7 @@ const levelColorMap: Record<string, string> = {
 const AlertLevel = ({ level }: { level: string }) => {
   const { t } = useTranslation('oss/alertEvents')
 
-  const normalizedLevel = level.toLowerCase();
+  const normalizedLevel = level?.toLowerCase();
   const color = levelColorMap[normalizedLevel] || levelColorMap['unknown'];
   const label = normalizedLevel in levelColorMap ? normalizedLevel : 'unknown';
 
