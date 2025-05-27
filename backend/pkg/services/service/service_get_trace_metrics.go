@@ -11,7 +11,7 @@ import (
 
 func (s *service) GetTraceMetrics(ctx core.Context, req *request.GetTraceMetricsRequest) ([]*response.GetTraceMetricsResponse, error) {
 	// Get Trace related metrics
-	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+	serviceInstances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -19,17 +19,17 @@ func (s *service) GetTraceMetrics(ctx core.Context, req *request.GetTraceMetrics
 	result := make([]*response.GetTraceMetricsResponse, 0)
 	for _, instance := range serviceInstances.GetInstances() {
 		// Log alarm query based on Instance grouping
-		logs, err := s.promRepo.QueryLogCountByInstanceId(instance, req.StartTime, req.EndTime, req.Step)
+		logs, err := s.promRepo.QueryLogCountByInstanceId(ctx, instance, req.StartTime, req.EndTime, req.Step)
 		if err != nil {
 			return nil, err
 		}
 		// P90 delayed instance-based query
-		p90, err := s.promRepo.QueryInstanceP90(req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
+		p90, err := s.promRepo.QueryInstanceP90(ctx, req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
 		if err != nil {
 			return nil, err
 		}
 		// Error rate for instance-based queries
-		errorRate, err := s.promRepo.QueryInstanceErrorRate(req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
+		errorRate, err := s.promRepo.QueryInstanceErrorRate(ctx, req.StartTime, req.EndTime, req.Step, req.Endpoint, instance)
 		if err != nil {
 			return nil, err
 		}

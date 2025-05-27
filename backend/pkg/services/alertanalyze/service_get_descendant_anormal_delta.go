@@ -55,7 +55,7 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		}
 		instanceMap.AddEndpoint(endpoint)
 		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			continue
 		}
@@ -68,7 +68,7 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 
 		// 查询服务下游的数据库服务
 		if isSelect(selectedEvents, "database") {
-			dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 			if err != nil {
 				continue
 			}

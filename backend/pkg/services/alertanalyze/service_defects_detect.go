@@ -65,7 +65,7 @@ func (s *service) DetectDefects(ctx core.Context, req *request.DetectMutationReq
 		}
 	}
 
-	metricResults, err := s.promRepo.ExecutedMutationCheck(mutationPQLCheck, startTime, endTime, step)
+	metricResults, err := s.promRepo.ExecutedMutationCheck(ctx, mutationPQLCheck, startTime, endTime, step)
 	if err != nil {
 		return err
 	}

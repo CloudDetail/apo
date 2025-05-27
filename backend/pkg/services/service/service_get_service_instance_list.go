@@ -13,7 +13,7 @@ import (
 
 func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error) {
 	// Get the list of active service instances
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, []string{req.ServiceName})
+	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, []string{req.ServiceName})
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServi
 func (s *service) GetServiceInstanceInfoList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
 	var ins []prometheus.InstanceKey
 	// Get instance
-	instanceList, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.ServiceName, "")
+	instanceList, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, req.ServiceName, "")
 	if err != nil {
 		return ins, err
 	}

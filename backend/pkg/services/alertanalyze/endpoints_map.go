@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -51,9 +52,9 @@ type databaseKey struct {
 	Port string
 }
 
-func (m *EndpointsMap) SearchAndAddEndpointsForAlert(repo prometheus.Repo, event *alert.Alert, startTime, endTime time.Time) ([]clickhouse.AlertService, bool) {
+func (m *EndpointsMap) SearchAndAddEndpointsForAlert(ctx core.Context, repo prometheus.Repo, event *alert.Alert, startTime, endTime time.Time) ([]clickhouse.AlertService, bool) {
 	// 尝试下面的方法去获取event的关联入口
-	endpoints, err := tryGetAlertService(repo, m, event, startTime, endTime)
+	endpoints, err := tryGetAlertService(ctx, repo, m, event, startTime, endTime)
 	if err != nil && len(endpoints) == 0 {
 		var vErr alert.ErrAlertImpactNoMatchedService
 		if errors.As(err, &vErr) {
@@ -78,8 +79,8 @@ func (m *EndpointsMap) EndpointsList() []clickhouse.AlertService {
 	return endpointList
 }
 
-func tryGetAlertService(repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
-	var tryMethods = []func(prometheus.Repo, *EndpointsMap, *alert.Alert, time.Time, time.Time) ([]clickhouse.AlertService, error){
+func tryGetAlertService(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+	var tryMethods = []func(core.Context, prometheus.Repo, *EndpointsMap, *alert.Alert, time.Time, time.Time) ([]clickhouse.AlertService, error){
 		tryGetAlertServiceByService,
 		tryGetAlertServiceByDB,
 		tryGetAlertServiceByK8sPod,
@@ -93,7 +94,7 @@ func tryGetAlertService(repo prometheus.Repo, endpointsMap *EndpointsMap, event 
 	}
 	for _, tryGetService := range tryMethods {
 		var err error
-		endpoints, err = tryGetService(repo, endpointsMap, event, startTime, endTime)
+		endpoints, err = tryGetService(ctx, repo, endpointsMap, event, startTime, endTime)
 		if err == nil {
 			return endpoints, nil
 		}
@@ -115,7 +116,7 @@ func tryGetAlertService(repo prometheus.Repo, endpointsMap *EndpointsMap, event 
 	return endpoints, checkedError
 }
 
-func tryGetAlertServiceByService(_ prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, _ time.Time, _ time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByService(ctx core.Context, _ prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, _ time.Time, _ time.Time) ([]clickhouse.AlertService, error) {
 	serviceName := event.GetServiceNameTag()
 	if len(serviceName) == 0 {
 		return nil, alert.ErrAlertImpactMissingTag{
@@ -140,7 +141,7 @@ func tryGetAlertServiceByService(_ prometheus.Repo, endpointsMap *EndpointsMap, 
 	return alertServices, nil
 }
 
-func tryGetAlertServiceByK8sPod(repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByK8sPod(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	podName := event.GetNetSrcPodTag()
 	namespace := event.GetK8sNamespaceTag()
 	if len(podName) == 0 || len(namespace) == 0 {
@@ -160,6 +161,7 @@ func tryGetAlertServiceByK8sPod(repo prometheus.Repo, endpointsMap *EndpointsMap
 
 	// 通常也只会有一个Service
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NamespacePQLFilter, namespace,
 		prometheus.PodPQLFilter, podName,
@@ -193,7 +195,7 @@ func tryGetAlertServiceByK8sPod(repo prometheus.Repo, endpointsMap *EndpointsMap
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByVMProcess(repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByVMProcess(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	nodeName := event.GetNetSrcNodeTag()
 	pid := event.GetNetSrcPidTag()
 	if len(nodeName) == 0 || len(pid) == 0 {
@@ -214,6 +216,7 @@ func tryGetAlertServiceByVMProcess(repo prometheus.Repo, endpointsMap *Endpoints
 	}
 
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NodeNamePQLFilter, nodeName,
 		prometheus.PidPQLFilter, pid,
@@ -247,7 +250,7 @@ func tryGetAlertServiceByVMProcess(repo prometheus.Repo, endpointsMap *Endpoints
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByInfraNode(repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByInfraNode(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	if event.Group != string(clickhouse.INFRA_GROUP) {
 		return nil, alert.ErrAlertImpactNotFit{
 			TagGroup: []string{"node"},
@@ -270,6 +273,7 @@ func tryGetAlertServiceByInfraNode(repo prometheus.Repo, endpointsMap *Endpoints
 	}
 
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NodeNamePQLFilter, nodeName,
 	)
@@ -302,7 +306,7 @@ func tryGetAlertServiceByInfraNode(repo prometheus.Repo, endpointsMap *Endpoints
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByDB(repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByDB(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	// 尝试获取数据库URL
 	dbURL := event.GetDatabaseURL()
 	dbIP := event.GetDatabaseIP()
@@ -326,6 +330,7 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, endpointsMap *EndpointsMap, ev
 
 	// 查询受此数据库影响的服务
 	services, err := repo.GetServiceListByDatabase(
+		ctx,
 		startTime, endTime, dbURL, dbIP, dbPort)
 
 	if err != nil {

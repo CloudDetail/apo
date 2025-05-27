@@ -10,7 +10,7 @@ import (
 )
 
 func (s *service) GetServiceNamespaceList(ctx core.Context, req *request.GetServiceNamespaceListRequest) (response.GetServiceNamespaceListResponse, error) {
-	list, err := s.promRepo.GetNamespaceList(req.StartTime, req.EndTime)
+	list, err := s.promRepo.GetNamespaceList(ctx, req.StartTime, req.EndTime)
 	var resp response.GetServiceNamespaceListResponse
 	if err != nil {
 		return resp, err

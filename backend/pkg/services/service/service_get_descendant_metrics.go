@@ -24,19 +24,19 @@ func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescend
 	// In addition to descendant nodes, the current node needs to be supplemented
 	nodes.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint), req.Service, req.Endpoint, true)
 
-	serverResult, err := s.promRepo.QueryRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	serverResult, err := s.promRepo.QueryRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	dbResult, err := s.promRepo.QueryDbRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	dbResult, err := s.promRepo.QueryDbRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	externalResult, err := s.promRepo.QueryExternalRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	externalResult, err := s.promRepo.QueryExternalRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	mqResult, err := s.promRepo.QueryMqRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	mqResult, err := s.promRepo.QueryMqRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}

@@ -4,17 +4,17 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 )
 
-func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricResult, error) {
-	value, warnings, err := repo.GetApi().Query(context.Background(), query, searchTime)
+func (repo *promRepo) QueryData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error) {
+	value, warnings, err := repo.GetApi().Query(ctx.GetContext(), query, searchTime)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +42,14 @@ func (repo *promRepo) QueryData(searchTime time.Time, query string) ([]MetricRes
 	return results, nil
 }
 
-func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
+func (repo *promRepo) QueryRangeData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
 	r := v1.Range{
 		Start: startTime,
 		End:   endTime,
 		Step:  step,
 	}
 
-	value, warnings, err := repo.GetApi().QueryRange(context.Background(), query, r)
+	value, warnings, err := repo.GetApi().QueryRange(ctx.GetContext(), query, r)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +84,8 @@ func (repo *promRepo) QueryRangeData(startTime time.Time, endTime time.Time, que
 
 // latency the query graph needs to be processed, turn it into microseconds
 
-func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]MetricResult, error) {
-	value, warnings, err := repo.GetApi().Query(context.Background(), query, searchTime)
+func (repo *promRepo) QueryLatencyData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error) {
+	value, warnings, err := repo.GetApi().Query(ctx.GetContext(), query, searchTime)
 	if err != nil {
 		return nil, err
 	}
@@ -114,14 +114,14 @@ func (repo *promRepo) QueryLatencyData(searchTime time.Time, query string) ([]Me
 	return results, nil
 }
 
-func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
+func (repo *promRepo) QueryRangeLatencyData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
 	r := v1.Range{
 		Start: startTime,
 		End:   endTime,
 		Step:  step,
 	}
 
-	value, warnings, err := repo.GetApi().QueryRange(context.Background(), query, r)
+	value, warnings, err := repo.GetApi().QueryRange(ctx.GetContext(), query, r)
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +155,8 @@ func (repo *promRepo) QueryRangeLatencyData(startTime time.Time, endTime time.Ti
 }
 
 // Error rate needs to be handled as a percentage
-func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]MetricResult, error) {
-	value, warnings, err := repo.GetApi().Query(context.Background(), query, searchTime)
+func (repo *promRepo) QueryErrorRateData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error) {
+	value, warnings, err := repo.GetApi().Query(ctx.GetContext(), query, searchTime)
 	if err != nil {
 		return nil, err
 	}
@@ -185,14 +185,14 @@ func (repo *promRepo) QueryErrorRateData(searchTime time.Time, query string) ([]
 	return results, nil
 }
 
-func (repo *promRepo) QueryRangeErrorData(startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
+func (repo *promRepo) QueryRangeErrorData(ctx core.Context, startTime time.Time, endTime time.Time, query string, step time.Duration) ([]MetricResult, error) {
 	r := v1.Range{
 		Start: startTime,
 		End:   endTime,
 		Step:  step,
 	}
 
-	value, warnings, err := repo.GetApi().QueryRange(context.Background(), query, r)
+	value, warnings, err := repo.GetApi().QueryRange(ctx.GetContext(), query, r)
 	if err != nil {
 		return nil, err
 	}

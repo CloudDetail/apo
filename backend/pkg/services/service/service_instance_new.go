@@ -29,7 +29,7 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 	filter := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}
 	filters := filter.ExtractFilterStr()
 	// Get instance
-	instanceList, err := s.promRepo.GetInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), serviceName, endPoint)
+	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), serviceName, endPoint)
 	if err != nil {
 		return res, err
 	}
@@ -58,15 +58,15 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 		}
 	}
 	// Fill RED metric
-	s.InstanceRED(startTime, endTime, filters, instances)
+	s.InstanceRED(ctx, startTime, endTime, filters, instances)
 
 	// populate chart data
-	chartErr := s.InstanceRangeData(instances, startTime, endTime, step, filters)
+	chartErr := s.InstanceRangeData(ctx, instances, startTime, endTime, step, filters)
 	if chartErr.ErrorOrNil() != nil {
 		log.Println("get instance range data error: ", chartErr)
 	}
 	// Fill log data
-	logErr := s.InstanceLog(instances, startTime, endTime, step)
+	logErr := s.InstanceLog(ctx, instances, startTime, endTime, step)
 	if logErr.ErrorOrNil() != nil {
 		log.Println("get instance log data error: ", logErr)
 	}
@@ -157,9 +157,9 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 		filters := ExtractLogFilter(instance.InstanceKey)
 		var normalNowLog, normalDayLog, normalWeekLog []prometheus.MetricResult
 		if len(filters) > 0 {
-			normalNowLog = s.GetNormalLog(startTime, endTime, filters, 0)
-			normalDayLog = s.GetNormalLog(startTime, endTime, filters, time.Hour*24)
-			normalWeekLog = s.GetNormalLog(startTime, endTime, filters, time.Hour*24*7)
+			normalNowLog = s.GetNormalLog(ctx, startTime, endTime, filters, 0)
+			normalDayLog = s.GetNormalLog(ctx, startTime, endTime, filters, time.Hour*24)
+			normalWeekLog = s.GetNormalLog(ctx, startTime, endTime, filters, time.Hour*24*7)
 		}
 
 		// normal data, log error average should be filled with 0
@@ -230,7 +230,7 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 		)
 
 		// Fill in last start time
-		startTSmap, _ := s.promRepo.QueryProcessStartTime(startTime, endTime, instanceSingleList)
+		startTSmap, _ := s.promRepo.QueryProcessStartTime(ctx, startTime, endTime, instanceSingleList)
 		latestStartTime := getLatestStartTime(startTSmap) * 1e6
 		if latestStartTime > 0 {
 			newInstance.Timestamp = &latestStartTime

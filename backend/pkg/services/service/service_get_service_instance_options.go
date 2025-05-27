@@ -11,7 +11,7 @@ import (
 
 func (s *service) GetServiceInstanceOptions(ctx core.Context, req *request.GetServiceInstanceOptionsRequest) (map[string]*model.ServiceInstance, error) {
 	// Get the list of active service instances
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, []string{req.ServiceName})
+	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, []string{req.ServiceName})
 	if err != nil {
 		return nil, err
 	}

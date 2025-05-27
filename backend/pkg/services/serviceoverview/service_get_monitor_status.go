@@ -18,7 +18,7 @@ func (s *service) GetMonitorStatus(ctx core.Context, startTime time.Time, endTim
 	startMicroTS := startTime.UnixMicro()
 	endMicroTs := endTime.UnixMicro()
 
-	status, err := s.promRepo.QueryAggMetricsWithFilter(prometheus.PQLMonitorStatus, startMicroTS, endMicroTs, "")
+	status, err := s.promRepo.QueryAggMetricsWithFilter(ctx, prometheus.PQLMonitorStatus, startMicroTS, endMicroTs, "")
 	if err != nil {
 		return resp, nil
 	}

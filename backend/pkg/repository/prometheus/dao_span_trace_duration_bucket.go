@@ -4,10 +4,10 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prometheus_model "github.com/prometheus/common/model"
@@ -21,7 +21,7 @@ const (
 )
 
 // Query the P90 curve based on the service list, URL list, time period and step size.
-func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
+func (repo *promRepo) QueryRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
 	svcs, endpoints, _ := nodes.GetLabels(model.GROUP_SERVICE)
 	if len(svcs) == 0 {
 		return nil, nil
@@ -33,7 +33,7 @@ func (repo *promRepo) QueryRangePercentile(startTime int64, endTime int64, step 
 		Step:  time.Duration(step * 1000),
 	}
 	query := getSpanTraceP9xSql(repo.GetRange(), tRange.Step, svcs, endpoints)
-	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func getSpanTraceP9xSql(promRange string, step time.Duration, svcs []string, end
 	return builder.ToString()
 }
 
-func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
+func (repo *promRepo) QueryInstanceP90(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
 	tRange := v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
@@ -71,7 +71,7 @@ func (repo *promRepo) QueryInstanceP90(startTime int64, endTime int64, step int6
 	}
 	sql := getSpanTraceInstanceP9xSql(repo.GetRange(), tRange.Step, endpoint, extraCondition)
 
-	res, _, err := repo.GetApi().QueryRange(context.Background(), sql, tRange)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), sql, tRange)
 	if err != nil {
 		return nil, err
 	}

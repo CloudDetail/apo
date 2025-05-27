@@ -21,7 +21,7 @@ func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceR
 	filters = append(filters, prometheus.ContentKeyRegexPQLFilter)
 	filters = append(filters, prometheus.RegexMultipleValue(req.EndpointList...))
 	serviceDetails := make(map[string]map[string]response.RedCharts)
-	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgLatencyWithFilters,
 		req.StartTime,
 		req.EndTime,
@@ -35,7 +35,7 @@ func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceR
 
 	mergeResult(latencyRes, serviceDetails, "latency")
 
-	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgErrorRateWithFilters,
 		req.StartTime,
 		req.EndTime,
@@ -50,7 +50,7 @@ func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceR
 		log.Println("get instance range data error: ", err)
 	}
 
-	tpsRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	tpsRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgTPSWithFilters,
 		req.StartTime,
 		req.EndTime,

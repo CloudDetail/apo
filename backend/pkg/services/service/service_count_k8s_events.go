@@ -14,7 +14,7 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first
-	instanceList, err := s.promRepo.GetInstanceList(startTime, endTime, req.ServiceName, "")
+	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime, endTime, req.ServiceName, "")
 	if err != nil {
 		return nil, err
 	}

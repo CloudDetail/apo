@@ -58,14 +58,14 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		tmpServiceSet[node.Service] = struct{}{}
 
 		// 忽略URL查询Instance
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, node.Service, "")
+		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, node.Service, "")
 		if err != nil {
 			continue
 		}
 		instances = append(instances, instanceList.GetInstances()...)
 
 		// 查询服务下游的数据库服务
-		dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, node.Service, node.Endpoint)
+		dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, node.Service, node.Endpoint)
 		if err != nil {
 			continue
 		}
