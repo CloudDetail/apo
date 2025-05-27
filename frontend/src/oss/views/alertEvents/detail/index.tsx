@@ -104,44 +104,6 @@ const AlertEventDetailPage = () => {
           <div className="font-bold flex justify-between items-center">
             {t('historyTitle')}
             <div className="flex items-center">
-              {detail?.lastStatus === 'resolved' ? (
-                <Button
-                  // color="green"
-                  variant="outlined"
-                  className="ml-2"
-                  classNames={{ icon: 'flex items-center' }}
-                  icon={<FaCheck size={20} />}
-                  style={{
-                    color: token.colorSuccessText,
-                    backgroundColor: token.colorSuccessBg,
-                    borderColor: token.colorSuccessBorder
-                  }}
-                  onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBgHover; e.currentTarget.style.color = token.colorSuccessTextActive}}
-                  onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBg}}
-                >
-                  {t('alertResolved')}
-                </Button>
-              ) : (
-                <></>
-                // <Button
-                //   // color="green"
-                //   variant="outlined"
-                //   className="ml-2"
-                //   classNames={{ icon: 'flex items-center' }}
-                //   icon={<IoIosNotificationsOff size={20} />}
-                //   onClick={onResolvedAlert}
-                //   style={{
-                //     color: token.colorSuccessText,
-                //     backgroundColor: token.colorSuccessBg,
-                //     borderColor: token.colorSuccessBorder
-                //   }}
-                //   onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBgHover; e.currentTarget.style.color = token.colorSuccessTextActive}}
-                //   onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = token.colorSuccessBg}}
-                // >
-                //   {t('onResolved')}
-                // </Button>
-              )}
-
               <SilentAlert alertId={alertId} />
               <Button
                 color="primary"
