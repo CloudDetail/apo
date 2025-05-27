@@ -15,7 +15,13 @@ import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
-import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
+import {
+  AlertDeration,
+  ALertIsValid,
+  AlertLevel,
+  AlertStatus,
+  AlertTags,
+} from './components/AlertInfoCom'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
@@ -85,8 +91,8 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
         style={{ backgroundColor: token.colorBgContainer }}
       >
         <div className="h-full shrink-0 pl-4 flex">
-          {chartData.map((item) => (
-            <div className="w-[100px] h-full block items-center">
+          {chartData.map((item, index) => (
+            <div className="w-[100px] h-full block items-center" key={index}>
               <Statistic
                 className="h-full flex flex-col justify-center"
                 title={<Tag color={item.type}>{item.name}</Tag>}
