@@ -29,8 +29,6 @@ const AlertDetail = ({ detail }) => {
   // Check if detail is an object
   const isObject = typeof detail === 'object' && detail !== null;
 
-  console.log('detail: ', detail)
-
   return (
     <div className="bg-[var(--ant-color-fill-tertiary)] p-2 rounded text-xs overflow-auto break-all space-y-3">
       {isObject ? (
