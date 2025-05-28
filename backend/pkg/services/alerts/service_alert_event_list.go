@@ -55,10 +55,15 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
+			if record.LastCheckAt.Before(record.UpdateTime) {
+				endTime = record.UpdateTime
+			} else {
+				endTime = record.LastCheckAt
+			}
 		} else {
 			startTime = record.UpdateTime.Add(-15 * time.Minute)
+			endTime = record.UpdateTime
 		}
-		endTime = record.UpdateTime
 		record.Duration = formatDuration(time.Since(record.CreateTime))
 	}
 
