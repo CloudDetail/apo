@@ -15,7 +15,13 @@ import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
-import { AlertDeration, ALertIsValid, AlertLevel, AlertStatus, AlertTags } from './components/AlertInfoCom'
+import {
+  AlertDeration,
+  ALertIsValid,
+  AlertLevel,
+  AlertStatus,
+  AlertTags,
+} from './components/AlertInfoCom'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
@@ -153,8 +159,8 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
         )}
         {!alertCheck && (
           <div className="flex flex-col h-full justify-center gap-4">
-            <span className="text-white">{t('rate')}</span>
-            <span className="text-white">{t('noAlertCheckId')}</span>
+            <span className="text-[var(--ant-color-text)]">{t('rate')}</span>
+            <span className="text-[var(--ant-color-text)]">{t('noAlertCheckId')}</span>
           </div>
         )}
       </div>
@@ -302,7 +308,7 @@ const AlertEventsPage = () => {
             {value}
           </span>
         )
-      }
+      },
     },
     {
       title: t('alertDetail'),
