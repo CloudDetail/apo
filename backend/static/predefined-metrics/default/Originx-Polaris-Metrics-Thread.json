@@ -435,27 +435,6 @@
                 "query": "label_values(originx_thread_polaris_nanoseconds_count{pod=~\"$pod\"},container_id)",
                 "refId": "PrometheusVariableQueryEditor-VariableQuery"
             }
-        },
-        {
-            "name": "tid_key",
-            "type": "query",
-            "label": "ThreadID",
-            "options": null,
-            "current": {
-                "selected": true,
-                "text": [
-                    "All"
-                ],
-                "value": [
-                    "$__all"
-                ]
-            },
-            "regex": "",
-            "query": {
-                "qryType": 1,
-                "query": "label_values(originx_thread_polaris_nanoseconds_count{container_id=~\"$container_id\"},tid_key)",
-                "refId": "PrometheusVariableQueryEditor-VariableQuery"
-            }
         }
     ],
     "title": "Thread Polaris Metrics"
