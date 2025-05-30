@@ -2,5 +2,7 @@
   "personalCenter": "个人中心",
   "logout": "退出登录",
   "logoutSuccess": "退出登录成功",
-  "login": "登录"
+  "login": "登录",
+  "colorMode": "主题切换",
+  "language": "语言设置"
 }

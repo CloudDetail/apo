@@ -15,7 +15,6 @@ import DateTimeCombine from './DateTime/DateTimeCombine'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
-import ThemeSwitcher from './ThemeSwitcher'
 import { theme } from 'antd'
 
 const AppHeader = ({ type = 'default' }) => {
@@ -108,7 +107,6 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <ThemeSwitcher />
           <UserToolBox />
         </CHeaderNav>
       </div>

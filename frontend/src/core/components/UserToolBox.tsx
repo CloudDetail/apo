@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button, theme } from 'antd'
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { Flex, Popover, Button, Divider, Segmented } from 'antd'
+import { LogoutOutlined, UserOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
+import { useColorModes } from '@coreui/react'
+import { VscColorMode } from "react-icons/vsc";
+import { IoLanguageOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
 import { HiUserCircle } from 'react-icons/hi'
@@ -12,25 +15,66 @@ import { useEffect } from 'react'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { notify } from '../utils/notify'
+import i18next from 'i18next'
+import { useDispatch, useSelector } from 'react-redux'
 
 const UserToolBox = () => {
-  const { user, dispatch } = useUserContext()
+  const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
-  const { t } = useTranslation('core/userToolBox')
+  const { t, i18n } = useTranslation('core/userToolBox')
 
-  const { useToken } = theme
-  const { token } = useToken()
+  const { theme } = useSelector((state) => state.settingReducer)
+  const dispatch = useDispatch()
+
+  const { setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+
+  const toggleTheme = (value: 'light' | 'dark') => {
+    setColorMode(value)
+    dispatch({ type: 'setTheme', payload: value })
+  }
+
+  const toggleLanguage = (value: 'zh' | 'en') => {
+    i18next
+      .changeLanguage(value)
+      .then(() => {
+        dispatch({ type: 'setLanguage', payload: value })
+      })
+  }
 
   const content = (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
+        <div className="w-full h-9 flex justify-center items-center gap-2">
+          <VscColorMode className="text-base" title={t('colorMode')} />
+          <Segmented
+            defaultValue={theme}
+            onChange={(value) => toggleTheme(value)}
+            size="small"
+            shape="round"
+            options={[
+              { value: 'light', icon: <SunOutlined />, className: 'w-8' },
+              { value: 'dark', icon: <MoonOutlined />, className: 'w-8' },
+            ]}
+          />
+        </div>
+        <div className="w-full h-9 flex justify-center items-center gap-2">
+          <IoLanguageOutline className="text-base" title={t('language')} />
+          <Segmented
+            defaultValue={i18n.language}
+            onChange={(value) => toggleLanguage(value)}
+            size="small"
+            shape="round"
+            options={[
+              { value: 'zh', icon: 'ZH' },
+              { value: 'en', icon: 'EN' },
+            ]}
+          />
+        </div>
+        <Divider className='p-0 my-2' />
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={() => navigate('/user')}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
@@ -39,11 +83,8 @@ const UserToolBox = () => {
         </Flex>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 mt-2 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={logout}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
@@ -67,7 +108,7 @@ const UserToolBox = () => {
       localStorage.removeItem('difyToken')
       localStorage.removeItem('difyRefreshToken')
       // @ts-ignore
-      dispatch({
+      userDispatch({
         type: 'removeUser',
       })
       navigate('/login')
@@ -83,9 +124,8 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
-        console.log('res', res)
         // @ts-ignore
-        dispatch({
+        userDispatch({
           type: 'setUser',
           payload: res,
         })

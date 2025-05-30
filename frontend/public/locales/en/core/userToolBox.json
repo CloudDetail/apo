@@ -2,5 +2,7 @@
   "personalCenter": "Profile",
   "logout": "Logout",
   "logoutSuccess": "Logout successfully",
-  "login": "Login"
+  "login": "Login",
+  "colorMode": "ColorMode",
+  "language": "Language"
 }
