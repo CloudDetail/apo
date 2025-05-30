@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button, theme as themeAntd, Divider, Segmented } from 'antd'
+import { Flex, Popover, Button, Divider, Segmented } from 'antd'
 import { LogoutOutlined, UserOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
 import { VscColorMode } from "react-icons/vsc";
 import { IoLanguageOutline } from "react-icons/io5";
@@ -21,9 +21,6 @@ const UserToolBox = () => {
   const { user, dispatch } = useUserContext()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('core/userToolBox')
-
-  const { useToken } = themeAntd
-  const { token } = useToken()
 
   const { theme } = useSelector((state) => state.settingReducer)
   const themeDispatch = useDispatch()
@@ -72,11 +69,8 @@ const UserToolBox = () => {
         <Divider className='p-0 my-2' />
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={() => navigate('/user')}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
@@ -85,11 +79,8 @@ const UserToolBox = () => {
         </Flex>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={logout}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
