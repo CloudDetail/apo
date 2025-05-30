@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useDebounce, useUpdateEffect } from 'react-use'
 import {
-  getAlertDescendantApi,
   getAlertDescendantDeltaApi,
   getAlertEventImpactApi,
   getAlertDescendantTrendApi,
@@ -101,6 +100,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
     'network',
     'error',
     'appInstance',
+    'middleware',
   ])
   const [timeLineChartData, setTimeLineChartData] = useState([])
   //当前的拓扑图节点信息map

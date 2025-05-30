@@ -129,7 +129,7 @@ const TopologyCom = () => {
     <>
       <Topology
         data={topologyData}
-        nodeHeight={250}
+        nodeHeight={260}
         nodeWidth={200}
         nodeTypes={{ alertAnalyzeNode: AlertAnalyzeNode }}
       />
