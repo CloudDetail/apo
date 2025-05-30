@@ -5,7 +5,7 @@
             "describe": "查询节点上被监控的服务列表",
             "targets": [
                 {
-                    "expr": "sum without (tid,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"})",
+                    "expr": "sum without (tid_key,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"})",
                     "legendFormat": "{{namespace}}:{{pod}}",
                     "refId": "A",
                     "variables": [
@@ -26,7 +26,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\"})[$__interval])",
                     "legendFormat": "{{type}}",
                     "refId": "A",
                     "variables": [
@@ -45,7 +45,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"cpu\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"cpu\"})[$__interval])",
                     "legendFormat": "OnCPU",
                     "refId": "oncpu",
                     "variables": [
@@ -64,7 +64,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"file\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"file\"})[$__interval])",
                     "legendFormat": "File",
                     "refId": "File",
                     "variables": [
@@ -83,7 +83,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"net\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"net\"})[$__interval])",
                     "legendFormat": "Net",
                     "refId": "net",
                     "variables": [
@@ -102,7 +102,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"epoll\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"epoll\"})[$__interval])",
                     "legendFormat": "Epoll",
                     "refId": "epoll",
                     "variables": [
@@ -121,7 +121,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"futex\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"futex\"})[$__interval])",
                     "legendFormat": "Futex",
                     "refId": "futex",
                     "variables": [
@@ -140,7 +140,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"idle\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"idle\"})[$__interval])",
                     "legendFormat": "Idle",
                     "refId": "idle",
                     "variables": [
@@ -159,7 +159,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"other\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"other\"})[$__interval])",
                     "legendFormat": "Other",
                     "refId": "other",
                     "variables": [
@@ -178,7 +178,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"runq\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"runq\"})[$__interval])",
                     "legendFormat": "Runqueue",
                     "refId": "runq",
                     "variables": [
@@ -437,7 +437,7 @@
             }
         },
         {
-            "name": "tid",
+            "name": "tid_key",
             "type": "query",
             "label": "ThreadID",
             "options": null,
@@ -453,7 +453,7 @@
             "regex": "",
             "query": {
                 "qryType": 1,
-                "query": "label_values(originx_thread_polaris_nanoseconds_count{container_id=~\"$container_id\"},tid)",
+                "query": "label_values(originx_thread_polaris_nanoseconds_count{container_id=~\"$container_id\"},tid_key)",
                 "refId": "PrometheusVariableQueryEditor-VariableQuery"
             }
         }
