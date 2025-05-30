@@ -45,7 +45,7 @@ const UserToolBox = () => {
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
         <div className="w-full h-9 flex justify-center items-center gap-2">
-          <VscColorMode className="text-base" title="ColorMode" />
+          <VscColorMode className="text-base" title={t('colorMode')} />
           <Segmented
             defaultValue={theme}
             onChange={(value) => toggleTheme(value)}
@@ -58,7 +58,7 @@ const UserToolBox = () => {
           />
         </div>
         <div className="w-full h-9 flex justify-center items-center gap-2">
-          <IoLanguageOutline className="text-base" title="Language" />
+          <IoLanguageOutline className="text-base" title={t('language')} />
           <Segmented
             defaultValue={i18n.language}
             onChange={(value) => toggleLanguage(value)}
