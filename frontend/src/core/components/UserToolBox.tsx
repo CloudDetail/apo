@@ -19,21 +19,21 @@ import i18next from 'i18next'
 import { useDispatch, useSelector } from 'react-redux'
 
 const UserToolBox = () => {
-  const { user, dispatch } = useUserContext()
+  const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('core/userToolBox')
 
+  const { theme } = useSelector((state) => state.settingReducer)
+  const dispatch = useDispatch()
+
   const { setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
 
-  const { theme } = useSelector((state) => state.settingReducer)
-  const themeDispatch = useDispatch()
-
-  const toggleTheme = (value) => {
-    setColorMode(theme)
-    themeDispatch({ type: 'setTheme', payload: value })
+  const toggleTheme = (value: 'light' | 'dark') => {
+    setColorMode(value)
+    dispatch({ type: 'setTheme', payload: value })
   }
 
-  const toggleLanguage = (value) => {
+  const toggleLanguage = (value: 'zh' | 'en') => {
     i18next
       .changeLanguage(value)
       .then(() => {
@@ -108,7 +108,7 @@ const UserToolBox = () => {
       localStorage.removeItem('difyToken')
       localStorage.removeItem('difyRefreshToken')
       // @ts-ignore
-      dispatch({
+      userDispatch({
         type: 'removeUser',
       })
       navigate('/login')
@@ -124,9 +124,8 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
-        console.log('res', res)
         // @ts-ignore
-        dispatch({
+        userDispatch({
           type: 'setUser',
           payload: res,
         })
