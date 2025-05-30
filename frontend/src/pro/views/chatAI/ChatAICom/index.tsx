@@ -17,7 +17,7 @@ import { anormalTypes } from 'src/pro/constants'
 import { FaLocationCrosshairs } from 'react-icons/fa6'
 import { Explanations } from './Explanations'
 import { useTranslation } from 'react-i18next'
-import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 const ChatAICom = () => {
   const { t } = useTranslation('pro/chatAI')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
@@ -399,7 +399,8 @@ const ChatAICom = () => {
     }
   }, [dialogue, isAutoScroll, causeConfirmvisibility]) // 在消息更新时检查自动滚动状态
   return (
-    <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full p-0' }}>
+    // <CustomCard style={{ overflow: 'hidden' }} classNames={{ body: 'h-full p-0' }}>
+    <BasicCard>
       <LoadingSpinner loading={!isDone && dialogue?.length === 0} />
       <div className="h-full w-full flex overflow-hidden flex-col">
         <div
@@ -469,7 +470,8 @@ const ChatAICom = () => {
         </div>
         <ChartInput addChart={setChatQuery} loading={!isDone} closeStream={closeStream} />
       </div>
-    </CustomCard>
+    </BasicCard>
+    // </CustomCard>
   )
 }
 export default React.memo(ChatAICom)
