@@ -5,6 +5,7 @@
 
 import { Flex, Popover, Button, Divider, Segmented } from 'antd'
 import { LogoutOutlined, UserOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
+import { useColorModes } from '@coreui/react'
 import { VscColorMode } from "react-icons/vsc";
 import { IoLanguageOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom'
@@ -22,10 +23,13 @@ const UserToolBox = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation('core/userToolBox')
 
+  const { setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
+
   const { theme } = useSelector((state) => state.settingReducer)
   const themeDispatch = useDispatch()
 
   const toggleTheme = (value) => {
+    setColorMode(theme)
     themeDispatch({ type: 'setTheme', payload: value })
   }
 
@@ -41,7 +45,7 @@ const UserToolBox = () => {
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
         <div className="w-full h-9 flex justify-center items-center gap-2">
-          <VscColorMode className="text-base" />
+          <VscColorMode className="text-base" title="ColorMode" />
           <Segmented
             defaultValue={theme}
             onChange={(value) => toggleTheme(value)}
@@ -54,7 +58,7 @@ const UserToolBox = () => {
           />
         </div>
         <div className="w-full h-9 flex justify-center items-center gap-2">
-          <IoLanguageOutline className="text-base" />
+          <IoLanguageOutline className="text-base" title="Language" />
           <Segmented
             defaultValue={i18n.language}
             onChange={(value) => toggleLanguage(value)}
