@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { notify } from 'src/core/utils/notify'
+import { redirectToLogin } from 'src/core/utils/redirectToLogin'
 
 export default function UpdatePassword() {
   const { t } = useTranslation('core/userPage')
@@ -38,7 +39,7 @@ export default function UpdatePassword() {
           await logoutApi(paramsForLogout)
           localStorage.removeItem('token')
           localStorage.removeItem('refreshToken')
-          navigate('/login')
+          redirectToLogin(false)
           notify({
             message: t('updatePassword.updateSuccess'),
             type: 'success',

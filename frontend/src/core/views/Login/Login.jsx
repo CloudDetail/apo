@@ -42,7 +42,15 @@ export default function Login() {
           if (accessToken && refreshToken) {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
-            navigate('/')
+
+            const redirectUrl = sessionStorage.getItem('urlBeforeLogin')
+            if (redirectUrl !== null) {
+              window.location.href = redirectUrl
+              sessionStorage.removeItem('urlBeforeLogin')
+            } else {
+              navigate('/')
+            }
+
             notify({ message: t('index.loginSuccess'), type: 'success' })
             remeberMe
               ? localStorage.setItem('username', values.username)
