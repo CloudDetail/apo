@@ -13,6 +13,7 @@ import { useEffect, useState, useReducer } from 'react'
 import userReducer, { initialState } from '../store/reducers/userReducer'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { redirectToLogin } from '../utils/redirectToLogin'
 
 const UserToolBox = () => {
   const { user, dispatch } = useUserContext()
@@ -62,7 +63,7 @@ const UserToolBox = () => {
       dispatch({
         type: 'removeUser',
       })
-      navigate('/login')
+      redirectToLogin(false)
       showToast({
         title: t('logoutSuccess'),
         color: 'success',
@@ -83,7 +84,7 @@ const UserToolBox = () => {
         })
       })
       .catch((error) => {
-        navigate('/login')
+        redirectToLogin(true)
         console.error(error)
       })
   }
@@ -106,7 +107,7 @@ const UserToolBox = () => {
           </div>
         </Popover>
       ) : (
-        <Button type="link" onClick={() => navigate('/login')}>
+        <Button type="link" onClick={() => redirectToLogin(true)}>
           {t('login')}
         </Button>
       )}

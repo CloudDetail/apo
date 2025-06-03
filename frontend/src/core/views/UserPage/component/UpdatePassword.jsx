@@ -10,6 +10,7 @@ import { LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { redirectToLogin } from 'src/core/utils/redirectToLogin'
 
 export default function UpdatePassword() {
   const { t } = useTranslation('core/userPage')
@@ -39,7 +40,7 @@ export default function UpdatePassword() {
           await logoutApi(paramsForLogout)
           localStorage.removeItem('token')
           localStorage.removeItem('refreshToken')
-          navigate('/login')
+          redirectToLogin(false)
           showToast({
             title: t('updatePassword.updateSuccess'),
             color: 'success',
