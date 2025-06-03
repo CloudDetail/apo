@@ -5,8 +5,11 @@
 
 export const redirectToLogin = (shouldRecordUrl = true) => {
   if (shouldRecordUrl) {
-    const currentUrl = window.location.href;
-    sessionStorage.setItem('urlBeforeLogin', currentUrl);
+    const pathWithQueryAndHash =
+      window.location.pathname +
+      window.location.search +
+      window.location.hash;
+    sessionStorage.setItem('urlBeforeLogin', pathWithQueryAndHash);
   }
   window.location.href = '/#/login';
 };
