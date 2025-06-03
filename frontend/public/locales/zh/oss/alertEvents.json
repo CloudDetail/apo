@@ -18,7 +18,7 @@
   "invalid": "无效",
   "valid": "有效",
   "unknown": "未知",
-  "skipped": "已解决，跳过分析",
+  "skipped": "已恢复，跳过分析",
   "failed": "有效性检查失败",
   "failedTo": "有效性检查失败，查看详情",
   "viewWorkflow": "查看根因分析",
@@ -39,7 +39,7 @@
   "rate": "告警降噪率",
   "expand": "详情",
   "collapse": "收起",
-  "resolvedOn": "解决于",
+  "resolvedOn": "恢复于",
   "createTime": "首次触发时间",
   "duration": "持续时间",
   "checkedOn": "检查于",
@@ -49,8 +49,8 @@
   "info": "通知",
   "normal": "一般",
   "historyTitle": "告警历史记录",
-  "alertResolved": "告警已解决",
-  "onResolved": "标记为已解决",
+  "alertResolved": "告警已恢复",
+  "onResolved": "标记为已恢复",
   "location": "定位当前告警",
   "recordTime": "记录时间",
   "currentStatus": "当前告警事件状态",
@@ -64,5 +64,7 @@
   "silentTimerange": "抑制起止时间",
   "silentNotify": "抑制时间内将不再通知",
   "silent": "告警抑制中",
-  "onSilent": "抑制后续告警"
+  "onSilent": "抑制后续告警",
+  "firingTip": "持续满足告警规则，当前告警正在进行",
+  "resolvedTip": "未再触发告警规则，系统自动关闭告警"
 }

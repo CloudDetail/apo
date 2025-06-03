@@ -24,5 +24,7 @@
   "dataTimeCombine": {
     "absoluteTimeText": "绝对时间",
     "relativeTimeText": "相对时间"
-  }
+  },
+  "group": "自动刷新间隔",
+  "refresh": "刷新时间"
 }
