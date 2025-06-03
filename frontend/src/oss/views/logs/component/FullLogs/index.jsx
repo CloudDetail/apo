@@ -3,6 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import React, { useEffect, useRef } from 'react'
+import { CCard } from '@coreui/react'
+import { getFullLogApi, getFullLogChartApi } from 'core/api/logs'
+import { useSearchParams } from 'react-router-dom'
+import { ISOToTimestamp } from 'src/core/utils/time'
 import LoadingSpinner from 'src/core/components/Spinner'
 import SearchBar from './component/SerarchBar'
 import IndexList from './component/IndexList'
@@ -16,6 +21,8 @@ import './index.css'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useState } from 'react'
+import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
 function FullLogs() {
   const {
     query,
@@ -26,6 +33,8 @@ function FullLogs() {
     updateLogsPagination,
     tableInfo,
   } = useLogsContext()
+
+const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300)
 
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
@@ -59,35 +68,54 @@ function FullLogs() {
   // Record the collapse state of the FullLogSider
   const handleResize = (sizes) => {
     if (sizes[0] === 0) {
+      // setSideCollapse(true)
+      setSiderSize(0)
       sessionStorage.setItem('fullLogs:siderCollapse', "true")
     } else {
+      setSiderSize(sizes[0])
       sessionStorage.setItem('fullLogs:siderCollapse', "false")
     }
   }
 
   return (
+    <BasicCard
+      bodyStyle={{ padding: 0 }}
+    >
+      <LoadingSpinner loading={loading} />
 
-      <BasicCard
-        bodyStyle={{ padding: 0 }}
-      >
-        <LoadingSpinner loading={loading} />
-
-        <Splitter onResize={handleResize}>
-          <Splitter.Panel
-            collapsible
-            defaultSize={
-              sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
-            }
+      <Splitter onResize={handleResize}>
+        <Splitter.Panel
+          // collapsible
+          defaultSize={
+            sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
+          }
+          className='relative text-[var(--ant-color-primary)]'
+          size={siderSize}
+        >
+          <FullLogSider />
+          {siderSize && <div
+            onClick={() => {setSiderSize(0); sessionStorage.setItem('fullLogs:siderCollapse', "true");}}
+            className='logSiderButton closeButton'
           >
-            <FullLogSider />
-          </Splitter.Panel>
-          <Splitter.Panel collapsible defaultSize={300}>
-            <div className="h-full px-2">
-              <IndexList />
-            </div>
-          </Splitter.Panel>
-          <Splitter.Panel>
-            <Content className="h-full relative flex overflow-hidden px-2">
+            <AiOutlineCaretLeft />
+          </div>}
+        </Splitter.Panel>
+        {/* <Content className="h-full relative flex overflow-hidden px-2"> */}
+        <Splitter.Panel
+          defaultSize={300}
+        >
+          {!siderSize && <div
+            onClick={() => {setSiderSize(300); sessionStorage.setItem('fullLogs:siderCollapse', "false");}}
+            className={`relative text-[var(--ant-color-primary)] logSiderButton openButton`}
+          >
+            <AiOutlineCaretRight />
+          </div>}
+          <div className="h-full px-2">
+            <IndexList />
+          </div>
+        </Splitter.Panel>
+        <Splitter.Panel>
+          <Content className="h-full relative flex overflow-hidden px-2">
             <div className="flex flex-col flex-1 overflow-hidden ">
               <div className="flex-grow-0 flex-shrink-0">
                 <SearchBar />
@@ -96,11 +124,10 @@ function FullLogs() {
                 <LogQueryResult />
               </div>
             </div>
-            </Content>
-          </Splitter.Panel>
-        </Splitter>
-      </BasicCard>
-
+          </Content>
+        </Splitter.Panel>
+      </Splitter>
+    </BasicCard>
   )
 }
 export default FullLogs
