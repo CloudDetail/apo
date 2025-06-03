@@ -137,7 +137,7 @@ const DataSourceTree = () => {
   }, [tableInfo])
   return (
     <Card
-      className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
+      className="overflow-y-auto h-1/2 w-full overflow-x-hidden border-t-0 border-l-0 border-r-0"
       title={t('fullLogSider.dataSourceTree.ExternalRepositoryText')}
       classNames={{
         body: 'p-0',
