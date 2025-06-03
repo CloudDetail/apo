@@ -27,19 +27,19 @@ func (h *handler) GetLogParseRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.QueryLogParseRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		resp, err := h.logService.GetLogParseRule(req)
+		resp, err := h.logService.GetLogParseRule(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetLogParseRuleError,
-				c.ErrMessage(code.GetLogParseRuleError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

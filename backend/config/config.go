@@ -86,7 +86,6 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
-
 	Dify struct {
 		User    string `mapstructure:"user"`
 		URL     string `mapstructure:"url"`
@@ -100,8 +99,13 @@ type Config struct {
 		} `mapstructure:"flow_ids"`
 		MaxConcurrency int    `mapstructure:"max_concurrency"`
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
+	AlertReceiver struct {
+		Enabled     bool   `mapstructure:"enabled"`
+		ExternalURL string `mapstructure:"external_url"`
+	} `mapstructure:"alert_receiver"`
 }
 
 type AnonymousUser struct {

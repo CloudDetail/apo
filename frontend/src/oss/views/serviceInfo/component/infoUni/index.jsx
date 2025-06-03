@@ -35,7 +35,7 @@ function panelLabel(key, icon, extra) {
   const statusPanels = useServiceInfoContext((ctx) => ctx.statusPanels)
   const { serviceName } = usePropsContext()
   return (
-    <Space className="h-[32px]">
+    <Space className="h-[32px] ">
       {statusPanels[key] && (
         <div className="w-[32px] h-[32px]">
           <StatusInfo status={statusPanels[key]} />
@@ -163,6 +163,7 @@ export default function InfoUni() {
         items={getItems(panelStyle)}
         activeKey={activeTabKey}
         onChange={setActiveTabKey}
+        // rootClassName="bg-[#000000]"
         expandIcon={({ isActive }) => {
           return isActive ? (
             <SlArrowDown className={'rotate-180'} size={18} />

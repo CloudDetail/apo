@@ -8,7 +8,9 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"gorm.io/gorm"
 )
@@ -19,24 +21,24 @@ var IndependentLogDatabase = false
 
 type ObservabilityInputManage interface {
 	// Manage Cluster
-	CreateCluster(cluster *integration.Cluster) error
-	UpdateCluster(cluster *integration.Cluster) error
-	DeleteCluster(cluster *integration.Cluster) error
-	ListCluster() ([]integration.Cluster, error)
-	GetCluster(clusterID string) (integration.Cluster, error)
-	CheckClusterNameExisted(clusterName string) (bool, error)
+	CreateCluster(ctx core.Context, cluster *integration.Cluster) error
+	UpdateCluster(ctx core.Context, cluster *integration.Cluster) error
+	DeleteCluster(ctx core.Context, cluster *integration.Cluster) error
+	ListCluster(ctx core.Context) ([]integration.Cluster, error)
+	GetCluster(ctx core.Context, clusterID string) (integration.Cluster, error)
+	CheckClusterNameExisted(ctx core.Context, clusterName string) (bool, error)
 
-	SaveIntegrationConfig(iConfig integration.ClusterIntegration) error
-	GetIntegrationConfig(clusterID string) (*integration.ClusterIntegration, error)
-	DeleteIntegrationConfig(clusterID string) error
+	SaveIntegrationConfig(ctx core.Context, iConfig integration.ClusterIntegration) error
+	GetIntegrationConfig(ctx core.Context, clusterID string) (*integration.ClusterIntegration, error)
+	DeleteIntegrationConfig(ctx core.Context, clusterID string) error
 
-	GetLatestTraceAPIs(lastUpdateTS int64) (*integration.AdapterAPIConfig, error)
+	GetLatestTraceAPIs(ctx core.Context, lastUpdateTS int64) (*integration.AdapterAPIConfig, error)
 
 	alert.AlertInput
 }
 
 type subRepos struct {
-	db *gorm.DB
+	*driver.DB
 
 	alert.AlertInput
 }
@@ -47,7 +49,7 @@ func NewObservabilityInputManage(db *gorm.DB, cfg *config.Config) (*subRepos, er
 	}
 
 	subRepos := &subRepos{
-		db: db,
+		DB: &driver.DB{DB: db},
 	}
 
 	var err error
@@ -55,7 +57,7 @@ func NewObservabilityInputManage(db *gorm.DB, cfg *config.Config) (*subRepos, er
 		return nil, fmt.Errorf("failed to init observability input manage, err: %v", err)
 	}
 
-	if err := subRepos.db.AutoMigrate(
+	if err := subRepos.GetContextDB(nil).AutoMigrate(
 		&integration.Cluster{},
 		&integration.TraceIntegration{},
 		&integration.MetricIntegration{},

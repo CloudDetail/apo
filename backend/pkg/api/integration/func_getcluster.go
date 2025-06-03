@@ -25,20 +25,20 @@ func (h *handler) GetCluster() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.Cluster)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		clusterIntegration, err := h.integrationService.GetClusterIntegration(req.ID)
+		clusterIntegration, err := h.integrationService.GetClusterIntegration(c, req.ID)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetClusterIntegrationFailed,
-				c.ErrMessage(code.GetClusterIntegrationFailed)).WithError(err),
+				err,
 			)
 			return
 		}

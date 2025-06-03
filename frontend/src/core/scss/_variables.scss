@@ -9,5 +9,20 @@
 
 $enable-deprecation-messages: false !default;
 $card-border-radius: 0.75rem;
-$card-box-shadow:rgba(62, 72, 83, 0.3) 0px 8px 24px;
+$card-box-shadow: rgba(62, 72, 83, 0.3) 0px 8px 24px;
 $--cui-border-radius: 0.75rem;
+$--cui-body-bg: rgba(255, 255, 255);
+
+$--ce-app-head-height: 60px;
+$--ee-app-head-height: 100px;
+$--service-page-tab-list-height: 60px;
+
+:root {
+  --service-page-tab-list-height: #{$--service-page-tab-list-height};
+
+  --ce-app-head-height: #{$--ce-app-head-height};
+  --ee-app-head-height: #{$--ee-app-head-height};
+
+  --ce-app-content-height: #{calc(100vh - #{$--ce-app-head-height})};
+  --ee-app-content-height: #{calc(100vh - #{$--ee-app-head-height})};
+}

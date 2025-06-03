@@ -236,6 +236,13 @@ const (
 
 	GetAlertEventListError     = "B1501"
 	GetAlertEventClassifyError = "B1502"
+
+	// alert notify
+	GetAlertSlienceError    = "B1701"
+	ListAlertSlienceError   = "B1702"
+	SetAlertSlienceError    = "B1703"
+	RemoveAlertSlienceError = "B1704"
+	MarkAlertResolvedError  = "B1705"
 )
 
 func Text(lang string, code string) string {

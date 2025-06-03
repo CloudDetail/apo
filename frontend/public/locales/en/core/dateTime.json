@@ -24,5 +24,7 @@
   "dataTimeCombine": {
     "absoluteTimeText": "Absolute time",
     "relativeTimeText": "Relative time"
-  }
+  },
+  "group": "Auto Refresh Interval",
+  "refresh": "Refresh Time"
 }

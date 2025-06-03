@@ -7,12 +7,13 @@ import (
 	"errors"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 )
 
-func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
-	isExist, err := s.dbRepo.CheckClusterNameExisted(cluster.Name)
+func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
+	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx, cluster.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +23,7 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integ
 
 	cluster.ID = uuid.NewString()
 	cluster.APOCollector.RemoveHttpPrefix()
-	err = s.dbRepo.CreateCluster(&cluster.Cluster)
+	err = s.dbRepo.CreateCluster(ctx, &cluster.Cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func (s *service) CreateCluster(cluster *integration.ClusterIntegration) (*integ
 	// HACK 当前强制指定VM和CK配置
 	forceSetupMetricLogAPI(cluster)
 
-	err = s.dbRepo.SaveIntegrationConfig(*cluster)
+	err = s.dbRepo.SaveIntegrationConfig(ctx, *cluster)
 	if err != nil {
 		return nil, err
 	}

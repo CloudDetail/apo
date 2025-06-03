@@ -4,13 +4,14 @@
 package trace
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetTracePageList(req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error) {
-	list, total, err := s.chRepo.GetTracePageList(req)
+func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error) {
+	list, total, err := s.chRepo.GetTracePageList(ctx, req)
 	if err != nil {
 		return nil, err
 	}

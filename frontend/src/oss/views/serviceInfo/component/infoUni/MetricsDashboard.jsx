@@ -3,19 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody } from '@coreui/react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import IframeDashboard from 'src/core/components/Dashboard/IframeDashboard'
-import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers/timeRangeReducer'
 import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 
 function MetricsDashboard() {
   const dashboardVariable = useServiceInfoContext((ctx) => ctx.dashboardVariable)
   const [src, setSrc] = useState()
   const { i18n } = useTranslation()
-
+  const { theme } = useSelector((state) => state.settingReducer)
   useEffect(() => {
     let src =
       i18n.language === 'zh'
@@ -36,8 +34,9 @@ function MetricsDashboard() {
     if (dashboardVariable?.service) {
       src += `&var-service_name=${encodeURIComponent(dashboardVariable?.service)}`
     }
+    src += `&theme=${theme}`
     setSrc(src)
-  }, [dashboardVariable])
+  }, [dashboardVariable, theme])
   return <div className="text-xs h-[800px]">{src && <IframeDashboard srcProp={src} />}</div>
 }
 

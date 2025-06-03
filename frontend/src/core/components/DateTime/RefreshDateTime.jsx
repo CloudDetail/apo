@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Dropdown } from 'antd'
+import { Dropdown, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { LuRefreshCw } from 'react-icons/lu'
 import { MdArrowDropDown } from 'react-icons/md'
@@ -27,44 +27,51 @@ export default function RefreshDateTime() {
   }
   const items = [
     {
-      label: t('refreshDateTime.refreshDateTimeOffText'),
-      value: 0,
-      key: '关',
-    },
-    {
-      label: '15s',
-      value: 15000,
-      key: '15s',
-    },
-    {
-      label: '1m',
-      value: 60000,
-      key: '1m',
-    },
-    {
-      label: '5m',
-      value: 300000,
-      key: '5m',
-    },
-    {
-      label: '15m',
-      value: 900000,
-      key: '15m',
-    },
-    {
-      label: '30m',
-      value: 1800000,
-      key: '30m',
-    },
-    {
-      label: '1h',
-      value: 3600000,
-      key: '1h',
-    },
-    {
-      label: '1d',
-      value: 86400000,
-      key: '1d',
+      key: 'grp',
+      label: t('group'),
+      type: 'group',
+      children: [
+        {
+          label: t('refreshDateTime.refreshDateTimeOffText'),
+          value: 0,
+          key: '关',
+        },
+        {
+          label: '15s',
+          value: 15000,
+          key: '15s',
+        },
+        {
+          label: '1m',
+          value: 60000,
+          key: '1m',
+        },
+        {
+          label: '5m',
+          value: 300000,
+          key: '5m',
+        },
+        {
+          label: '15m',
+          value: 900000,
+          key: '15m',
+        },
+        {
+          label: '30m',
+          value: 1800000,
+          key: '30m',
+        },
+        {
+          label: '1h',
+          value: 3600000,
+          key: '1h',
+        },
+        {
+          label: '1d',
+          value: 86400000,
+          key: '1d',
+        },
+      ],
     },
   ]
   const menuProps = {
@@ -99,13 +106,15 @@ export default function RefreshDateTime() {
         menu={menuProps}
         onClick={handleButtonClick}
         icon={
-          <div className="flex w-full">
+          <div className="flex w-full items-center">
             {refreshKey && refreshKey !== '关' && refreshKey}
             <MdArrowDropDown />
           </div>
         }
       >
-        <LuRefreshCw />
+        <Tooltip title={t('refresh')}>
+          <LuRefreshCw />
+        </Tooltip>
       </Dropdown.Button>
     </div>
   )

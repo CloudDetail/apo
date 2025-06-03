@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/prometheus/alertmanager/types"
+	"github.com/prometheus/common/model"
 )
 
 type AlertEvent struct {
@@ -77,4 +79,34 @@ func (e *AlertEvent) TagsInStr() string {
 	}
 
 	return string(bytes)
+}
+
+func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
+	var convertLabels = make(model.LabelSet)
+	for k, v := range e.EnrichTags {
+		convertLabels[model.LabelName(k)] = model.LabelValue(v)
+	}
+
+	var convertAnnos = make(model.LabelSet)
+	err := convertAnnos.UnmarshalJSON([]byte(e.Detail))
+	if err != nil {
+		convertAnnos["detail"] = model.LabelValue(e.Detail)
+	}
+	for k, v := range e.Tags {
+		if vStr, ok := v.(string); ok {
+			convertAnnos[model.LabelName(k)] = model.LabelValue(vStr)
+		}
+	}
+
+	return &types.Alert{
+		Alert: model.Alert{
+			Labels:       convertLabels,
+			Annotations:  convertAnnos,
+			StartsAt:     e.CreateTime,
+			EndsAt:       e.EndTime,
+			GeneratorURL: fmt.Sprintf("%s/detail/%s/%s", externalURL, e.AlertID, e.ID.String()),
+		},
+		UpdatedAt: e.UpdateTime,
+		Timeout:   timeout,
+	}
 }

@@ -9,69 +9,81 @@ import (
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/util"
-)
-
-const (
-	UserIDKey = "userID"
+	"github.com/CloudDetail/apo/backend/pkg/util/jwt"
 )
 
 func (m *middleware) AuthMiddleware() core.HandlerFunc {
 	return func(c core.Context) {
-		rawToken := c.GetHeader("Authorization")
-		token := util.ParseRawToken(rawToken)
+		authMethods := []authBy{
+			authByToken,
+			authByAnonymousUser,
+		}
 
-		if len(token) == 0 {
-			if !config.Get().User.AnonymousUser.Enable {
-				c.AbortWithError(core.Error(
+		for _, auth := range authMethods {
+			ok, err := auth(c, m)
+			if ok {
+				return // auth success
+			}
+
+			if err != nil {
+				c.AbortWithError(
 					http.StatusBadRequest,
 					code.UnAuth,
-					c.ErrMessage(code.UnAuth),
-				))
-				return
+					err,
+				)
+				return // auth failed with error
 			}
-
-			anonymousUser, err := m.userService.GetUserInfo(0)
-			if err != nil {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.AuthError,
-					c.ErrMessage(code.AuthError),
-				))
-				return
-			}
-
-			c.Set(UserIDKey, anonymousUser.UserID)
-			c.Next()
-			return
 		}
 
-		if ok, _ := m.userService.IsInBlacklist(token); ok {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.InValidToken,
-				c.ErrMessage(code.InValidToken),
-			))
-			return
-		}
-
-		claims, err := util.ParseAccessToken(token)
-		if err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.InValidToken,
-				c.ErrMessage(code.InValidToken),
-			))
-			return
-		}
-
-		c.Set(UserIDKey, claims.UserID)
-		c.Next()
+		// unauth
+		c.AbortWithError(
+			http.StatusBadRequest,
+			code.UnAuth,
+			nil,
+		)
 	}
 }
 
+type authBy func(c core.Context, m *middleware) (bool, core.BusinessError)
+
+func authByToken(c core.Context, m *middleware) (ok bool, err core.BusinessError) {
+	rawToken := c.GetHeader("Authorization")
+	token := jwt.ParseRawToken(rawToken)
+
+	if len(token) == 0 {
+		return false, nil
+	}
+
+	if ok, _ := m.userService.IsInBlacklist(c, token); ok {
+		return false, core.Error(code.InValidToken, "")
+	}
+
+	claims, err2 := jwt.ParseAccessToken(token)
+	if err2 != nil {
+		return false, core.Error(code.InValidToken, "")
+	}
+
+	c.Set(core.UserIDKey, claims.UserID)
+	c.Next()
+	return true, nil
+}
+
+func authByAnonymousUser(c core.Context, m *middleware) (bool, core.BusinessError) {
+	if !config.Get().User.AnonymousUser.Enable {
+		return false, nil
+	}
+
+	anonymousUser, err := m.userService.GetUserInfo(c, 0)
+	if err != nil {
+		return false, core.Error(code.AuthError, "").WithStack(err)
+	}
+	c.Set(core.UserIDKey, anonymousUser.UserID)
+	c.Next()
+	return true, nil
+}
+
 func GetContextUserID(c core.Context) int64 {
-	userID, ok := c.Get(UserIDKey)
+	userID, ok := c.Get(core.UserIDKey)
 	if !ok {
 		return 0
 	}

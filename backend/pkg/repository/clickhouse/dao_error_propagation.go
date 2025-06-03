@@ -4,10 +4,10 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -45,7 +45,7 @@ const (
 )
 
 // Query instance-related error propagation chain
-func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
+func (ch *chRepo) ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -62,7 +62,7 @@ func (ch *chRepo) ListErrorPropagation(req *request.GetErrorInstanceRequest) ([]
 		Limit(2000).String()
 	var results []ErrorInstancePropagation
 	sql := fmt.Sprintf(SQL_GET_INSTANCE_ERROR_PROPAGATION, ch.database, queryBuilder.String(), bySql, startTime, endTime, startTime, endTime)
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil

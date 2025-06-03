@@ -9,9 +9,10 @@ import './index.css'
 import _ from 'lodash'
 import TableBody from './tableBody'
 import LoadingSpinner from '../Spinner'
-import { Pagination, Tooltip } from 'antd'
+import { Pagination, Tooltip, theme } from 'antd'
 import { VscTriangleUp, VscTriangleDown } from 'react-icons/vsc'
 import { useTranslation } from 'react-i18next'
+const { useToken } = theme
 const BasicTable = React.memo((props) => {
   const { t } = useTranslation('core/table')
   const {
@@ -47,6 +48,8 @@ const BasicTable = React.memo((props) => {
     return sortByColumns
   }
   const [paginationLoading, setPaginationLoading] = useState(false)
+  const { token } = useToken()
+
   const {
     getTableProps,
     getTableBodyProps,
@@ -146,12 +149,12 @@ const BasicTable = React.memo((props) => {
   const SortIcon = ({ isSorted, isSortedDesc, sortType }) => (
     <div className="flex flex-col cursor-pointer items-center">
       {sortType.includes('asc') && (
-        <VscTriangleUp color={isSorted && !isSortedDesc ? '#5286e8' : 'grey'} />
+        <VscTriangleUp color={isSorted && !isSortedDesc ? token.colorPrimary : 'grey'} />
       )}
       {sortType.includes('desc') && (
         <VscTriangleDown
           style={{ marginTop: sortType.length === 2 ? -6 : 0 }}
-          color={isSorted && isSortedDesc ? '#5286e8' : 'grey'}
+          color={isSorted && isSortedDesc ? token.colorPrimary : 'grey'}
         />
       )}
     </div>
@@ -163,10 +166,10 @@ const BasicTable = React.memo((props) => {
   }, [pagination])
   return (
     <div className={showBorder ? 'basic-table border-table' : 'basic-table'}>
-      <table {...getTableProps()} ref={tableRef}>
+      <table {...getTableProps()} ref={tableRef} className='m-0'>
         <thead
-          className="m-0 overflow-y-scroll bg-[#1d1d1d]"
-          style={{ borderRadius: '8px 8px 0 0' }}
+          className="m-0 overflow-y-scroll "
+          style={{ borderRadius: '8px 8px 0 0', color: token?.headerColor }}
         >
           {!noHeader &&
             headerGroups.map((headerGroup, idx) => (
@@ -191,9 +194,11 @@ const BasicTable = React.memo((props) => {
                         },
                       })}
                       className={
-                        (isSorted ? (isSortedDesc ? 'sort-desc' : 'sort-asc') : '') +
+                        (isSorted
+                          ? (isSortedDesc ? 'sort-desc' : 'sort-asc') + 'bg-[#f0f0f0]'
+                          : '') +
                         (column.canSort ? 'cursor-pointer no-underline' : '') +
-                        (!column.isNested && 'hover:bg-[#303030]') +
+                        (!column.isNested && '') +
                         '    hover:no-underline'
                       }
                       key={`header_th_${idx}`}
@@ -238,8 +243,7 @@ const BasicTable = React.memo((props) => {
                                 minWidth: item.minWidth,
                               }}
                               className={
-                                'hover:bg-[#303030] ' +
-                                (item.sortType?.length > 0 && 'cursor-pointer  no-underline')
+                                '' + (item.sortType?.length > 0 && 'cursor-pointer  no-underline')
                               }
                               key={index}
                               onClick={() => {
@@ -291,7 +295,9 @@ const BasicTable = React.memo((props) => {
           }}
           className="mt-1"
           showTotal={(total) => (
-            <span className="text-xs text-gray-400">{t('pagination', { total })}</span>
+            <span className="text-xs text-[var(--ant-color-text-secondary)]">
+              {t('pagination', { total })}
+            </span>
           )}
           size={paginationSize}
         />

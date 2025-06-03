@@ -15,6 +15,7 @@ import { UserTable } from './components/UserTable';
 import { AddUserModal } from './components/AddUserModal';
 import { EditUserModal } from './components/EditUserModal';
 import { useUserActions } from './hooks/useUserActions';
+import { BasicCard } from 'src/core/components/Card/BasicCard';
 
 interface UserSearchParams {
   username?: string;
@@ -123,39 +124,40 @@ export default function UserManage() {
   }, []);
 
   return (
-    <>
+    <BasicCard>
       <LoadingSpinner loading={loading || roleLoading} />
-      <div className={style.userManageContainer}>
+
+      <BasicCard.Header>
         <SearchBar
           username={searchParams.username}
           corporation={searchParams.corporation}
           onSearch={handleSearch}
           onAddUser={() => toggleModal('add', true)}
         />
+      </BasicCard.Header>
 
-        <Flex vertical className="w-full flex-1 pb-4 justify-between">
-          <UserTable
-            userList={userList}
-            loading={loading}
-            onEdit={(user) => {
-              setSelectedUser(user);
-              toggleModal('edit', true);
-            }}
-            onDelete={handleRemoveUser}
-            onAuthorize={(user) => {
-              setSelectedUser(user);
-              toggleModal('authorize', true);
-            }}
-          />
-          <Pagination
-            className="mt-4 absolute bottom-5 right-0"
-            current={currentPage}
-            pageSize={pageSize}
-            total={total}
-            onChange={handlePaginationChange}
-          />
-        </Flex>
-      </div>
+      <BasicCard.Table>
+        <UserTable
+          userList={userList}
+          loading={loading}
+          onEdit={(user) => {
+            setSelectedUser(user);
+            toggleModal('edit', true);
+          }}
+          onDelete={handleRemoveUser}
+          onAuthorize={(user) => {
+            setSelectedUser(user);
+            toggleModal('authorize', true);
+          }}
+        />
+        <Pagination
+          className="mt-4 absolute bottom-5 right-0"
+          current={currentPage}
+          pageSize={pageSize}
+          total={total}
+          onChange={handlePaginationChange}
+        />
+      </BasicCard.Table>
 
       <AddUserModal
         visible={modalStates.add}
@@ -208,6 +210,6 @@ export default function UserManage() {
         type="user"
         refresh={() => toggleModal('authorize', false)}
       />
-    </>
+    </BasicCard>
   );
 }

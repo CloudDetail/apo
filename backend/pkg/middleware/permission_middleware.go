@@ -4,45 +4,29 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 func (m *middleware) PermissionMiddleware() core.HandlerFunc {
 	return func(c core.Context) {
-		userID := GetContextUserID(c)
+		userID := c.UserID()
 		if userID == 0 {
-			c.AbortWithError(core.Error(http.StatusUnauthorized, code.UnAuth, c.ErrMessage(code.UnAuth)))
+			c.AbortWithError(http.StatusUnauthorized, code.UnAuth, nil)
 			return
 		}
 		method, path := c.GetMethodPath()
 
-		can, err := m.permissionService.CheckApiPermission(userID, method, path)
+		can, err := m.permissionService.CheckApiPermission(c, userID, method, path)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusForbidden,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusForbidden,
-					code.AuthError,
-					c.ErrMessage(code.AuthError)).WithError(err))
-			}
+			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
 			return
 		}
 
 		if !can {
-			c.AbortWithError(core.Error(
-				http.StatusForbidden,
-				code.UserNoPermissionError,
-				c.ErrMessage(code.UserNoPermissionError)))
+			c.AbortWithError(http.StatusForbidden, code.UserNoPermissionError, nil)
 			return
 		}
 

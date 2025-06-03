@@ -6,13 +6,14 @@ package service
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetDescendantMetrics(req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
+func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
 	// Query all descendant nodes
-	nodes, err := s.chRepo.ListDescendantNodes(req)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -23,19 +24,19 @@ func (s *service) GetDescendantMetrics(req *request.GetDescendantMetricsRequest)
 	// In addition to descendant nodes, the current node needs to be supplemented
 	nodes.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint), req.Service, req.Endpoint, true)
 
-	serverResult, err := s.promRepo.QueryRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	serverResult, err := s.promRepo.QueryRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	dbResult, err := s.promRepo.QueryDbRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	dbResult, err := s.promRepo.QueryDbRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	externalResult, err := s.promRepo.QueryExternalRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	externalResult, err := s.promRepo.QueryExternalRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}
-	mqResult, err := s.promRepo.QueryMqRangePercentile(req.StartTime, req.EndTime, req.Step, nodes)
+	mqResult, err := s.promRepo.QueryMqRangePercentile(ctx, req.StartTime, req.EndTime, req.Step, nodes)
 	if err != nil {
 		return nil, err
 	}

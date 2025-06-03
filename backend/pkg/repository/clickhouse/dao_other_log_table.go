@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -17,18 +18,18 @@ FROM system.tables;
 `
 
 const queryOtherTableInfoSQL = `
-SELECT 
+SELECT
     name,type
-FROM 
+FROM
     system.columns
 WHERE database = '%s' And table = '%s';
 `
 
-func (ch *chRepo) OtherLogTable() ([]map[string]any, error) {
-	return ch.queryRowsData(queryOtherTablesSQL)
+func (ch *chRepo) OtherLogTable(ctx core.Context) ([]map[string]any, error) {
+	return ch.queryRowsData(ctx, queryOtherTablesSQL)
 }
 
-func (ch *chRepo) OtherLogTableInfo(req *request.OtherTableInfoRequest) ([]map[string]any, error) {
+func (ch *chRepo) OtherLogTableInfo(ctx core.Context, req *request.OtherTableInfoRequest) ([]map[string]any, error) {
 	sql := fmt.Sprintf(queryOtherTableInfoSQL, req.DataBase, req.TableName)
-	return ch.queryRowsData(sql)
+	return ch.queryRowsData(ctx, sql)
 }

@@ -4,22 +4,20 @@
 package team
 
 import (
-	"context"
-	"errors"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
-	team, err := s.dbRepo.GetTeam(req.TeamID)
+func (s *service) UpdateTeam(ctx core.Context, req *request.UpdateTeamRequest) error {
+	team, err := s.dbRepo.GetTeam(ctx, req.TeamID)
 	if err != nil {
 		return err
 	}
 
 	if team.TeamID == 0 {
-		return model.NewErrWithMessage(errors.New("team does not exist"), code.TeamAlreadyExistError)
+		return core.Error(code.TeamAlreadyExistError, "team does not exist")
 	}
 
 	if team.TeamName != req.TeamName {
@@ -27,13 +25,13 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 			Name: req.TeamName,
 		}
 
-		exists, err := s.dbRepo.TeamExist(filter)
+		exists, err := s.dbRepo.TeamExist(ctx, filter)
 		if err != nil {
 			return err
 		}
 
 		if exists {
-			return model.NewErrWithMessage(errors.New("team already existed"), code.TeamAlreadyExistError)
+			return core.Error(code.TeamAlreadyExistError, "team already existed")
 		}
 	}
 
@@ -51,7 +49,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	// }
 
 	// determine added or removed users
-	hasUsers, err := s.dbRepo.GetTeamUsers(req.TeamID)
+	hasUsers, err := s.dbRepo.GetTeamUsers(ctx, req.TeamID)
 	if err != nil {
 		return err
 	}
@@ -60,7 +58,7 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 	for _, id := range hasUsers {
 		hasUserMap[id] = struct{}{}
 	}
-	
+
 	var toAdd, toDelete []int64
 	for _, id := range req.UserList {
 		if _, ok := hasUserMap[id]; !ok {
@@ -74,33 +72,33 @@ func (s *service) UpdateTeam(req *request.UpdateTeamRequest) error {
 		toDelete = append(toDelete, id)
 	}
 
-	var inviteFunc = func(ctx context.Context) error {
+	var inviteFunc = func(ctx core.Context) error {
 		return s.dbRepo.InviteUserToTeam(ctx, req.TeamID, toAdd)
 	}
 
-	var removeFunc = func(ctx context.Context) error {
+	var removeFunc = func(ctx core.Context) error {
 		return s.dbRepo.RemoveFromTeamByTeam(ctx, req.TeamID, toDelete)
 	}
 
-	var updateTeamFunc = func(ctx context.Context) error {
+	var updateTeamFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateTeam(ctx, team)
 	}
 
-	// var grantPermissionFunc = func(ctx context.Context) error {
+	// var grantPermissionFunc = func(ctx core.Context) error {
 	// 	return s.dbRepo.GrantPermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toAddFeature)
 	// }
 
-	// var revokePermissionFunc = func(ctx context.Context) error {
+	// var revokePermissionFunc = func(ctx core.Context) error {
 	// 	return s.dbRepo.RevokePermission(ctx, req.TeamID, model.PERMISSION_SUB_TYP_TEAM, model.PERMISSION_TYP_FEATURE, toDeleteFeature)
 	// }
 
-	// var assignDataGroupFunc = func(ctx context.Context) error {
+	// var assignDataGroupFunc = func(ctx core.Context) error {
 	// 	return s.dbRepo.AssignDataGroup(ctx, toModifyDg)
 	// }
 
-	// var removeDataGroupFunc = func(ctx context.Context) error {
-	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)	
+	// var removeDataGroupFunc = func(ctx core.Context) error {
+	// 	return s.dbRepo.RevokeDataGroupByGroup(ctx, toDeleteDg, req.TeamID)
 	// }
 
-	return s.dbRepo.Transaction(context.Background(), updateTeamFunc, inviteFunc, removeFunc)
+	return s.dbRepo.Transaction(ctx, updateTeamFunc, inviteFunc, removeFunc)
 }

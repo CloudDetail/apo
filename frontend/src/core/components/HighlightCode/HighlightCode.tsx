@@ -142,7 +142,7 @@ export default function HighlightCode(props: any) {
     }, [index, rowRef])
 
     return (
-      <div style={style} ref={rowRef} className="text-xs text-gray-300">
+      <div style={style} ref={rowRef} className="text-xs text-[var(--ant-color-text)]">
         <Highlighter
           highlightClassName=""
           searchWords={searchWords}

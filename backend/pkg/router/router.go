@@ -4,16 +4,14 @@
 package router
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net"
-	"net/http"
-	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
-	"github.com/CloudDetail/apo/backend/pkg/services/integration/workflow"
 
 	"go.uber.org/zap"
 
@@ -38,8 +36,8 @@ type resource struct {
 	k8sApi             kubernetes.Repo
 	deepflowClickhouse clickhouse.Repo
 	jaegerRepo         jaeger.JaegerRepo
-	alertWorkflow      *workflow.AlertWorkflow
 	dify               dify.DifyRepo
+	receivers          receiver.Receivers
 }
 
 type Server struct {
@@ -118,6 +116,29 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	}
 	r.k8sApi = k8sApi
 
+	if config.Get().AlertReceiver.Enabled {
+		// migrate AMReceiver from ConfigMap to database
+		if r.pkg_db.CheckAMReceiverCount(nil) <= 0 {
+			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
+			if total > 0 {
+				migratedReceivers, err := r.pkg_db.MigrateAMReceiver(core.EmptyCtx(), receivers)
+				if err != nil {
+					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
+				}
+				for _, receiver := range migratedReceivers {
+					err := r.k8sApi.DeleteAMConfigReceiver("", receiver.Name)
+					if err != nil {
+						logger.Warn("remove migratedReceiver failed", zap.String("name", receiver.Name), zap.Error(err))
+					}
+				}
+			}
+		}
+		r.receivers, err = receiver.SetupReceiver(config.Get().AlertReceiver.ExternalURL, r.logger, r.pkg_db, r.ch)
+		if err != nil {
+			logger.Fatal("new alertReceiver err", zap.Error(err))
+		}
+	}
+
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
@@ -125,10 +146,8 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.dify = difyRepo
 
 	difyConfig := config.Get().Dify
-	difyClient := workflow.NewDifyClient(DefaultDifyFastHttpClient, difyConfig.URL)
-	r.alertWorkflow = workflow.New(r.ch, difyClient, r.logger,
-		workflow.WithAlertAnalyzeFlow(difyConfig.FlowIDs.AlertEventAnalyze),
-		workflow.WithAlertCheckFlow(&workflow.AlertCheckCfg{
+	if len(difyConfig.APIKeys.AlertCheck) > 0 {
+		records, err := r.dify.PrepareAsyncAlertCheckWorkflow(&dify.AlertCheckConfig{
 			FlowId:         difyConfig.FlowIDs.AlertCheck,
 			APIKey:         difyConfig.APIKeys.AlertCheck,
 			Authorization:  fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
@@ -136,25 +155,33 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			MaxConcurrency: difyConfig.MaxConcurrency,
 			CacheMinutes:   difyConfig.CacheMinutes,
 			Sampling:       difyConfig.Sampling,
-		}),
-	)
+		}, r.logger)
+		if err != nil {
+			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
+		} else {
+			if config.Get().AlertReceiver.Enabled {
+				go dify.HandleRecords(context.Background(), r.logger, records,
+					r.ch.AddWorkflowRecord,
+					r.receivers.HandleAlertCheckRecord,
+				)
+			} else {
+				go dify.HandleRecords(context.Background(), r.logger, records,
+					r.ch.AddWorkflowRecord,
+				)
+			}
+		}
+	}
 
 	// Set API routing
 	setApiRouter(r)
 
+	for apiName, extraRoute := range extraRouters {
+		if err := extraRoute(mux, r); err != nil {
+			logger.Error("extraRoute create failed", zap.String("api", apiName))
+		}
+	}
+
 	s := new(Server)
 	s.Mux = mux
 	return s, nil
-}
-
-var DefaultDifyFastHttpClient = &http.Client{
-	Transport: &http.Transport{
-		MaxIdleConns:        10,
-		MaxIdleConnsPerHost: 10,
-		DialContext: (&net.Dialer{
-			Timeout:   1 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-	},
-	Timeout: 3 * time.Minute,
 }

@@ -4,10 +4,15 @@
 package dify
 
 import (
-	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"go.uber.org/zap"
 )
 
 const (
@@ -30,49 +35,80 @@ type DifyResponse struct {
 	Message string `json:"message"`
 }
 
-type DifyWorkflowRequest struct {
-	Inputs       json.RawMessage `json:"inputs"`
-	ResponseMode string          `json:"response_mode"`
-	User         string          `json:"user"`
-}
-
-type CompletionResponse struct {
-	WorkflowRunID string                 `json:"workflow_run_id"`
-	TaskID        string                 `json:"task_id"`
-	Data          CompletionResponseData `json:"data"`
-}
-
-type CompletionResponseData struct {
-	ID         string          `json:"id"`
-	WorkflowID string          `json:"workload_id"`
-	Status     string          `json:"status"`
-	Outputs    json.RawMessage `json:"outputs"`
-
-	// Optional Response
-	// Error      string          `json:"error,omitempty"`
-	// ...
-
-	CreatedAt int64 `json:"created_at"`
-}
-
 type DifyRepo interface {
 	AddUser(username string, password string, role string) (*DifyResponse, error)
 	UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error)
 	RemoveUser(username string) (*DifyResponse, error)
 	ResetPassword(username string, newPassword string) (*DifyResponse, error)
-	WorkflowsRun(req *DifyWorkflowRequest, authorization string) (*CompletionResponse, error)
+
+	// ########################## Async AlertCheck Workflow #########################
+
+	PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan *model.WorkflowRecord, err error)
+	SubmitAlertEvents(events []alert.AlertEvent)
+
+	GetCacheMinutes() int
+	GetAlertCheckFlowID() string
+	GetAlertAnalyzeFlowID() string
+
+	WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error)
 }
 
 type difyRepo struct {
-	cli *http.Client
+	cli *DifyClient
 	url string
+
+	asyncAlertCheck
+
+	AlertCheckCFG      AlertCheckConfig
+	AlertAnalyzeFlowId string
 }
 
 func New() (DifyRepo, error) {
-	client := &http.Client{}
+	// client := &http.Client{}
 	difyConf := config.Get().Dify
+	if difyConf.TimeoutSecond <= 0 {
+		difyConf.TimeoutSecond = 180
+	}
+
 	return &difyRepo{
-		cli: client,
-		url: difyConf.URL,
+		cli: &DifyClient{
+			Client: &http.Client{
+				Transport: &http.Transport{
+					MaxIdleConns:        10,
+					MaxIdleConnsPerHost: 10,
+					DialContext: (&net.Dialer{
+						Timeout:   1 * time.Second,
+						KeepAlive: 30 * time.Second,
+					}).DialContext,
+				},
+				Timeout: time.Duration(difyConf.TimeoutSecond) * time.Second,
+			},
+			BaseURL: difyConf.URL,
+		},
+		AlertCheckCFG: DefaultAlertCheckConfig(),
+		url:           difyConf.URL,
 	}, nil
+}
+
+func (r *difyRepo) GetCacheMinutes() int {
+	return r.AlertCheckCFG.CacheMinutes
+}
+
+func (r *difyRepo) GetAlertCheckFlowID() string {
+	return r.AlertCheckCFG.FlowId
+}
+
+func (r *difyRepo) GetAlertAnalyzeFlowID() string {
+	return r.AlertAnalyzeFlowId
+}
+
+func (r *difyRepo) WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error) {
+	resp, err := r.cli.WorkflowsRun(req, authorization)
+	if err != nil {
+		return nil, err
+	}
+	if completResp, ok := resp.(*CompletionResponse); ok {
+		return completResp, err
+	}
+	return nil, fmt.Errorf("only support block request now")
 }

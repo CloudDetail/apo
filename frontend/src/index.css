@@ -7,6 +7,10 @@
 @tailwind components;
 @tailwind utilities;
 
+p {
+  margin-bottom: 0 !important;
+}
+
 .accordion-item .show {
     visibility: visible !important;
 }
@@ -38,7 +42,7 @@
 
 /* 设置滚动条滑块的样式 */
 ::-webkit-scrollbar-thumb {
-    background: #424242;
+    background: var(--scrollbar-bg);
     /* 滑块背景色 */
     border-radius: 5px;
     /* 滑块圆角 */
