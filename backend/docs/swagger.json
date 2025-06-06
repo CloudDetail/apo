@@ -4926,7 +4926,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Feature"
+                                "$ref": "#/definitions/profile.Feature"
                             }
                         }
                     },
@@ -5134,7 +5134,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Feature"
+                                "$ref": "#/definitions/profile.Feature"
                             }
                         }
                     },
@@ -5343,7 +5343,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Role"
+                                "$ref": "#/definitions/profile.Role"
                             }
                         }
                     },
@@ -5451,7 +5451,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Role"
+                                "$ref": "#/definitions/profile.Role"
                             }
                         }
                     },
@@ -8109,7 +8109,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.User"
+                                "$ref": "#/definitions/profile.User"
                             }
                         }
                     },
@@ -9054,7 +9054,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Team"
+                                "$ref": "#/definitions/profile.Team"
                             }
                         }
                     },
@@ -10392,14 +10392,14 @@
             "type": "object",
             "properties": {
                 "team": {
-                    "$ref": "#/definitions/database.Team"
+                    "$ref": "#/definitions/profile.Team"
                 },
                 "type": {
                     "description": "view, edit",
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/database.User"
+                    "$ref": "#/definitions/profile.User"
                 }
             }
         },
@@ -10442,20 +10442,6 @@
                 },
                 "type": {
                     "description": "service or namespace",
-                    "type": "string"
-                }
-            }
-        },
-        "database.Feature": {
-            "type": "object",
-            "properties": {
-                "featureId": {
-                    "type": "integer"
-                },
-                "featureName": {
-                    "type": "string"
-                },
-                "source": {
                     "type": "string"
                 }
             }
@@ -10504,20 +10490,6 @@
                 }
             }
         },
-        "database.Role": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "roleId": {
-                    "type": "integer"
-                },
-                "roleName": {
-                    "type": "string"
-                }
-            }
-        },
         "database.Router": {
             "type": "object",
             "properties": {
@@ -10531,70 +10503,6 @@
                     "type": "integer"
                 },
                 "to": {
-                    "type": "string"
-                }
-            }
-        },
-        "database.Team": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "featureList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Feature"
-                    }
-                },
-                "teamId": {
-                    "type": "integer"
-                },
-                "teamName": {
-                    "type": "string"
-                },
-                "userList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.User"
-                    }
-                }
-            }
-        },
-        "database.User": {
-            "type": "object",
-            "properties": {
-                "corporation": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "featureList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Feature"
-                    }
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "roleList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Role"
-                    }
-                },
-                "teamList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Team"
-                    }
-                },
-                "userId": {
-                    "type": "integer"
-                },
-                "username": {
                     "type": "string"
                 }
             }
@@ -11712,6 +11620,98 @@
                     "type": "string"
                 },
                 "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.Feature": {
+            "type": "object",
+            "properties": {
+                "featureId": {
+                    "type": "integer"
+                },
+                "featureName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.Role": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "integer"
+                },
+                "roleName": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.Team": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.User"
+                    }
+                }
+            }
+        },
+        "profile.User": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Team"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -14362,7 +14362,7 @@
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "total": {
@@ -14475,7 +14475,7 @@
                 "featureList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Feature"
+                        "$ref": "#/definitions/profile.Feature"
                     }
                 },
                 "phone": {
@@ -14484,13 +14484,13 @@
                 "roleList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Role"
+                        "$ref": "#/definitions/profile.Role"
                     }
                 },
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "userId": {
@@ -14519,7 +14519,7 @@
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.User"
+                        "$ref": "#/definitions/profile.User"
                     }
                 }
             }
@@ -14672,17 +14672,6 @@
                 }
             }
         },
-        "response.ListAlertSlienceConfigResponse": {
-            "type": "object",
-            "properties": {
-                "sliences": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
-                    }
-                }
-            }
-        },
         "response.LicenseResp": {
             "type": "object",
             "properties": {
@@ -14709,6 +14698,17 @@
                 },
                 "seatsCurrentlyInUse": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.ListAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "sliences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
+                    }
                 }
             }
         },
@@ -14916,7 +14916,7 @@
                 "featureList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Feature"
+                        "$ref": "#/definitions/profile.Feature"
                     }
                 },
                 "phone": {
@@ -14929,13 +14929,13 @@
                 "roleList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Role"
+                        "$ref": "#/definitions/profile.Role"
                     }
                 },
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "userId": {
