@@ -6,6 +6,7 @@
 import LogItem from './LogItem'
 import { Empty, List } from 'antd'
 import { useTranslation } from 'react-i18next' // 引入i18n
+import "./index.scss"
 
 const QueryList = ({ logs, openContextModal = null, loading }) => {
   const { t } = useTranslation('oss/fullLogs')

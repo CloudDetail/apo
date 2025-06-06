@@ -15,13 +15,14 @@ import { useTranslation } from 'react-i18next' // 引入i18n
 const LogItem = (props) => {
   const { log, openContextModal } = props
   const { tableInfo } = useLogsContext()
+  const [nullFieldVisibility, setNullFieldVisibility] = useState(false)
   const { t } = useTranslation('oss/fullLogs')
 
   return (
-    <div className="flex overflow-hidden px-2 w-full">
+    <div className="flex flex-col overflow-hidden px-2 w-full">
       {/* icon 和 时间 */}
-      <div className="flex-grow-0 flex-shrink-0  w-[230px]">
-        <div className="items-center pl-2 j">
+      <div className="flex-grow-0 flex-shrink-0 w-full">
+        <div className="flex items-center gap-2 pl-2 pb-2 j">
           <div className="flex-shrink-0 flex-grow-0 flex items-center">
             <span>{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</span>
           </div>
@@ -36,14 +37,24 @@ const LogItem = (props) => {
               {t('queryList.logItem.viewContextText')}
             </Button>
           )}
+          <Button
+            color="primary"
+            variant="outlined"
+            size="small"
+            onClick={() => setNullFieldVisibility(!nullFieldVisibility)}
+            className="text-xs"
+          >
+            {nullFieldVisibility && '隐藏空白标签'}
+            {!nullFieldVisibility && '显示空白标签'}
+          </Button>
         </div>
       </div>
       {/* 具体日志 */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden w-full">
         {
           <>
             <LogItemFold tags={log.tags} />
-            <LogItemDetail log={log} contentVisibility={!tableInfo?.timeField} />
+            <LogItemDetail log={log} contentVisibility={!tableInfo?.timeField} nullFieldVisibility={nullFieldVisibility} />
           </>
         }
       </div>
