@@ -3,75 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button, Divider, Segmented } from 'antd'
-import { LogoutOutlined, UserOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
-import { MdTune } from "react-icons/md";
-import { useColorModes } from '@coreui/react'
-import { VscColorMode } from "react-icons/vsc";
-import { IoLanguageOutline } from "react-icons/io5";
+import { Flex, Popover, Button, Divider, Segmented, Drawer, Space } from 'antd'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
 import { HiUserCircle } from 'react-icons/hi'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { notify } from '../utils/notify'
-import i18next from 'i18next'
-import { useDispatch, useSelector } from 'react-redux'
 
 const UserToolBox = () => {
   const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
-  const { t, i18n } = useTranslation('core/userToolBox')
+  const { t } = useTranslation('core/userToolBox')
 
-  const { theme } = useSelector((state) => state.settingReducer)
-  const dispatch = useDispatch()
 
-  const { setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
 
-  const toggleTheme = (value: 'light' | 'dark') => {
-    setColorMode(value)
-    dispatch({ type: 'setTheme', payload: value })
-  }
-
-  const toggleLanguage = (value: 'zh' | 'en') => {
-    i18next
-      .changeLanguage(value)
-      .then(() => {
-        dispatch({ type: 'setLanguage', payload: value })
-      })
-  }
-
-  const content = (type: 'anonymous' | 'loggedIn') => (
+  const content = () => (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
-        <div className="w-full h-9 flex justify-center items-center gap-2">
-          <VscColorMode className="text-base" title={t('colorMode')} />
-          <Segmented
-            defaultValue={theme}
-            onChange={(value) => toggleTheme(value)}
-            size="small"
-            shape="round"
-            options={[
-              { value: 'light', icon: <SunOutlined />, className: 'w-8' },
-              { value: 'dark', icon: <MoonOutlined />, className: 'w-8' },
-            ]}
-          />
-        </div>
-        <div className="w-full h-9 flex justify-center items-center gap-2">
-          <IoLanguageOutline className="text-base" title={t('language')} />
-          <Segmented
-            defaultValue={i18n.language}
-            onChange={(value) => toggleLanguage(value)}
-            size="small"
-            shape="round"
-            options={[
-              { value: 'zh', icon: 'ZH' },
-              { value: 'en', icon: 'EN' },
-            ]}
-          />
-        </div>
-        { type === 'loggedIn' &&<>
         <Divider className='p-0 my-2' />
         <Flex
           vertical
@@ -93,7 +44,6 @@ const UserToolBox = () => {
             <p className="text-md select-none my-2">{t('logout')}</p>
           </Flex>
         </Flex>
-        </>}
       </Flex>
     </>
   )
@@ -146,7 +96,7 @@ const UserToolBox = () => {
   return (
     <>
       {user?.username !== 'anonymous' ? (
-        <Popover content={content('loggedIn')}>
+        <Popover content={content}>
           <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md cursor-pointer">
             <div>
               <HiUserCircle className="w-8 h-8" />
@@ -158,9 +108,6 @@ const UserToolBox = () => {
         </Popover>
       ) : (
         <>
-        <Popover content={content('anonymous')}>
-          <Button type="text" icon={<MdTune />}></Button>
-        </Popover>
         <Button type="link" onClick={() => navigate('/login')}>
           {t('login')}
         </Button>
