@@ -65,16 +65,6 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
     [startTime, endTime, tableInfo, query],
   )
 
-  // Record the collapse state of the FullLogSider
-//   const handleResize = (sizes) => {
-//   if (sizes[0] === 0) {
-//     setSiderSize(0)
-//     sessionStorage.setItem('fullLogs:siderCollapse', "true")
-//   } else {
-//     // setSiderSize(sizes[0])
-//     sessionStorage.setItem('fullLogs:siderCollapse', "false")
-//   }
-// }
   const handleResize = (sizes) => {
     setSiderSize(sizes[0])
   }

@@ -44,8 +44,8 @@ const LogItem = (props) => {
             onClick={() => setNullFieldVisibility(!nullFieldVisibility)}
             className="text-xs"
           >
-            {nullFieldVisibility && '隐藏空白标签'}
-            {!nullFieldVisibility && '显示空白标签'}
+            {nullFieldVisibility && t("logQueryResult.hideNull")}
+            {!nullFieldVisibility && t("logQueryResult.displayNull")}
           </Button>
         </div>
       </div>

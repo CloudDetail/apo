@@ -327,7 +327,6 @@ const AlertEventsPage = () => {
         const result = convertUTCToLocal(value)
         return (
           <div>
-            {/* TODO: 保证纯文本的正常显示 */}
             <div>{result.split(' ')[0]}</div>
             <div>{result.split(' ')[1]}</div>
           </div>
