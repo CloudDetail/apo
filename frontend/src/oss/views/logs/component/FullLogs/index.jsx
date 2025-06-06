@@ -66,16 +66,30 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
   )
 
   // Record the collapse state of the FullLogSider
+//   const handleResize = (sizes) => {
+//   if (sizes[0] === 0) {
+//     setSiderSize(0)
+//     sessionStorage.setItem('fullLogs:siderCollapse', "true")
+//   } else {
+//     // setSiderSize(sizes[0])
+//     sessionStorage.setItem('fullLogs:siderCollapse', "false")
+//   }
+// }
   const handleResize = (sizes) => {
-    if (sizes[0] === 0) {
-      // setSideCollapse(true)
-      setSiderSize(0)
-      sessionStorage.setItem('fullLogs:siderCollapse', "true")
-    } else {
-      setSiderSize(sizes[0])
-      sessionStorage.setItem('fullLogs:siderCollapse', "false")
-    }
+    setSiderSize(sizes[0])
   }
+
+  useDebounce(
+    () => {
+      if (siderSize === 0) {
+        sessionStorage.setItem('fullLogs:siderCollapse', "true")
+      } else {
+        sessionStorage.setItem('fullLogs:siderCollapse', "false")
+      }
+    },
+    1000,
+    [siderSize]
+  )
 
   return (
     <BasicCard
@@ -89,8 +103,9 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
           defaultSize={
             sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
           }
-          className='relative text-[var(--ant-color-primary)]'
-          size={siderSize}
+          className='relative text-[var(--ant-color-primary)] siderPanel'
+          {...((siderSize === 0 || siderSize === 300) && { size: siderSize })}
+          // size={siderSize}
         >
           <FullLogSider />
           {siderSize && <div

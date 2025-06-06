@@ -28,7 +28,3 @@
   transition: left 0.2s ease;
   /* 添加 transition */
 }
-
-/* .ant-splitter-bar-dragger::after {
-  background-color: transparent !important;
-} */
