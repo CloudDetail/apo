@@ -5,6 +5,7 @@
 
 import { Flex, Popover, Button, Divider, Segmented } from 'antd'
 import { LogoutOutlined, UserOutlined, SunOutlined, MoonOutlined } from '@ant-design/icons'
+import { MdTune } from "react-icons/md";
 import { useColorModes } from '@coreui/react'
 import { VscColorMode } from "react-icons/vsc";
 import { IoLanguageOutline } from "react-icons/io5";
@@ -41,7 +42,7 @@ const UserToolBox = () => {
       })
   }
 
-  const content = (
+  const content = (type: 'anonymous' | 'loggedIn') => (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
         <div className="w-full h-9 flex justify-center items-center gap-2">
@@ -70,6 +71,7 @@ const UserToolBox = () => {
             ]}
           />
         </div>
+        { type === 'loggedIn' &&<>
         <Divider className='p-0 my-2' />
         <Flex
           vertical
@@ -91,6 +93,7 @@ const UserToolBox = () => {
             <p className="text-md select-none my-2">{t('logout')}</p>
           </Flex>
         </Flex>
+        </>}
       </Flex>
     </>
   )
@@ -143,7 +146,7 @@ const UserToolBox = () => {
   return (
     <>
       {user?.username !== 'anonymous' ? (
-        <Popover content={content}>
+        <Popover content={content('loggedIn')}>
           <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md cursor-pointer">
             <div>
               <HiUserCircle className="w-8 h-8" />
@@ -154,9 +157,14 @@ const UserToolBox = () => {
           </div>
         </Popover>
       ) : (
+        <>
+        <Popover content={content('anonymous')}>
+          <Button type="text" icon={<MdTune />}></Button>
+        </Popover>
         <Button type="link" onClick={() => navigate('/login')}>
           {t('login')}
         </Button>
+        </>
       )}
     </>
   )
