@@ -6,8 +6,6 @@ package config
 import (
 	"os"
 
-	"192.168.1.22/apo/license-manager/pkg/encrypt"
-	"192.168.1.22/apo/license-manager/pkg/license"
 	"github.com/CloudDetail/metadata/configs"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -105,13 +103,6 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
-	License struct {
-		LicensePath  string `mapstructure:"path"`
-		PrivatePath  string `mapstructure:"private_key"` // your private key to decrypt the license
-		PublicPath   string `mapstructure:"public_key"`  // our's public key to verify license signature
-		Token        []byte
-		BasicLicense *license.BasicLicense
-	} `mapstructure:"license"`
 }
 
 type AnonymousUser struct {
@@ -162,22 +153,4 @@ func getConfig() {
 
 func GetCHCluster() string {
 	return config.ClickHouse.Cluster
-}
-
-func (c *Config) ParseLicense() error {
-	if c.License.BasicLicense != nil {
-		return nil
-	}
-
-	c.License.BasicLicense = &license.BasicLicense{}
-	decryptor, err := encrypt.NewRSAFromKeyFiles("", c.License.PrivatePath)
-	if err != nil {
-		return err
-	}
-
-	singer, err := encrypt.NewRSAFromKeyFiles(c.License.PublicPath, "")
-	if err != nil {
-		return err
-	}
-	return license.ParseWithLicense(c.License.Token, c.License.BasicLicense, decryptor, singer)
 }

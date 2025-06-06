@@ -243,9 +243,14 @@ const (
 	GetAlertEventListError     = "B1501"
 	GetAlertEventClassifyError = "B1502"
 
-	UploadLicenseError = "B1401"
-	GetLicenseError    = "B1402"
-	LicenseFeatureValidationError = "B1403"
+	UploadLicenseError            = "B1601"
+	GetLicenseError               = "B1602"
+	LicenseFeatureValidationError = "B1603"
+	ActivatedLicenseNotFound      = "B1604"
+	ActivateLicenseFailed         = "B1605"
+	LicenseCheckError             = "B1606"
+	LicenseExpired                = "B1607"
+	NoLicenseError                = "B1608"
 )
 
 func Text(lang string, code string) string {

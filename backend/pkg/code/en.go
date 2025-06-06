@@ -210,4 +210,9 @@ var enText = map[string]string{
 	UploadLicenseError:            "Failed to upload license",
 	GetLicenseError:               "Failed to get local license",
 	LicenseFeatureValidationError: "The feature you requested is not in the license",
+	ActivatedLicenseNotFound:      "Can not find local activated license",
+	ActivateLicenseFailed:         "Failed to active license",
+	LicenseCheckError:             "Failed to check license",
+	LicenseExpired:                "License has expired",
+	NoLicenseError:                "No local license detected, please upload your license",
 }

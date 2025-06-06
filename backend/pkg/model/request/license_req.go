@@ -4,8 +4,5 @@
 package request
 
 type UploadLicenseRequest struct {
-	Output      string `form:"output" json:"license"`
-	LicensePath string `form:"licensePath" json:"licensePath" `
-	PubKeyPath  string `form:"pubKeyPath" json:"pubKeyPath"`
-	PrivKeyPath string `form:"privKeyPath" json:"privKeyPath"`
+	Output string `form:"output" json:"license"`
 }

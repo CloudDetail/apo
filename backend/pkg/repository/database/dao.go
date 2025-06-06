@@ -18,6 +18,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/license"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -140,6 +141,7 @@ type Repo interface {
 	DeleteCustomQuery(customName string) error
 
 	integration.ObservabilityInputManage
+	license.LicenseRepo
 }
 
 type daoRepo struct {
@@ -148,6 +150,7 @@ type daoRepo struct {
 	transactionCtx struct{}
 
 	integration.ObservabilityInputManage
+	license.LicenseRepo
 }
 
 // Connect to connect to the database
@@ -242,6 +245,10 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(daoRepo.db, globalCfg); err != nil {
+		return nil, err
+	}
+
+	if daoRepo.LicenseRepo, err = license.NewLicenseRepo(daoRepo.db); err != nil {
 		return nil, err
 	}
 

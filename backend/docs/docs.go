@@ -41,7 +41,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.Cluster"
-                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -82,7 +81,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.Cluster"
-                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -120,7 +118,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/integration.ListClusterResponse"
-                            "$ref": "#/definitions/integration.ListClusterResponse"
                         }
                     },
                     "400": {
@@ -152,7 +149,6 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
                             "$ref": "#/definitions/integration.Cluster"
                         }
                     }
@@ -2619,190 +2615,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/custom/create": {
-            "post": {
-                "description": "创建一个用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "创建一个用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/delete": {
-            "delete": {
-                "description": "删除用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "删除用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/get": {
-            "get": {
-                "description": "获取用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "获取用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetCustomResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/update": {
-            "post": {
-                "description": "更新用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "更新用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/data/datasource": {
             "get": {
                 "description": "Gets all datasource.",
@@ -3354,9 +3166,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/integration/adapter/update": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/integration/cluster/create": {
             "post": {
-                "description": "Create Cluster",
                 "description": "Create Cluster",
                 "consumes": [
                     "application/json"
@@ -3366,13 +3204,50 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "API.alertinput"
-                    "API.alertinput"
                 ],
-                "summary": "Create Cluster",
                 "summary": "Create Cluster",
                 "parameters": [
                     {
                         "description": "Cluster Info",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "created cluster info",
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/cluster/delete": {
+            "get": {
+                "description": "DeleteCluster",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "DeleteCluster",
+                "parameters": [
+                    {
                         "description": "Cluster Info",
                         "name": "Request",
                         "in": "body",
@@ -3398,27 +3273,24 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/integration/cluster/delete": {
-            "post": {
-                "description": "DeleteCluster",
+        "/api/integration/cluster/get": {
+            "get": {
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "API.alertinput"
+                    "API.integration"
                 ],
-                "summary": "DeleteCluster",
                 "parameters": [
                     {
-                        "description": "Cluster Info",
+                        "description": "请求信息",
                         "name": "Request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
                             "$ref": "#/definitions/integration.Cluster"
                         }
                     }
@@ -3440,7 +3312,6 @@ const docTemplate = `{
             }
         },
         "/api/integration/cluster/install/cmd": {
-        "/api/integration/cluster/install/cmd": {
             "get": {
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -3449,7 +3320,6 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "API.integration"
                     "API.integration"
                 ],
                 "parameters": [
@@ -3460,7 +3330,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.GetCInstallRequest"
-                            "$ref": "#/definitions/integration.GetCInstallRequest"
                         }
                     }
                 ],
@@ -3468,7 +3337,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/integration.GetCInstallDocResponse"
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
                         }
                     },
                     "400": {
@@ -3482,18 +3351,13 @@ const docTemplate = `{
         },
         "/api/integration/cluster/install/config": {
             "get": {
-        "/api/integration/cluster/install/config": {
-            "get": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
                     "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "text/plain"
-                    "text/plain"
                 ],
                 "tags": [
-                    "API.integration"
                     "API.integration"
                 ],
                 "parameters": [
@@ -3504,11 +3368,16 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.GetCInstallRequest"
-                            "$ref": "#/definitions/integration.GetCInstallRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallConfigResponse"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -3533,7 +3402,6 @@ const docTemplate = `{
                 "summary": "ListCluster",
                 "responses": {
                     "200": {
-                        "description": "OK",
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/integration.ListClusterResponse"
@@ -3759,6 +3627,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/license": {
+            "get": {
+                "description": "get all license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get all license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.LicenseResp"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license/current": {
+            "get": {
+                "description": "get current license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get current license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCurrentLicenseResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/license/upload": {
             "post": {
                 "description": "uploads your license, sign public key, decrypt key.",
@@ -3779,24 +3724,6 @@ const docTemplate = `{
                         "name": "output",
                         "in": "formData",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save license",
-                        "name": "licensePath",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save public key",
-                        "name": "pubKeyPath",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save private key",
-                        "name": "privKeyPath",
-                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -9491,7 +9418,6 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/integration.Cluster"
-                        "$ref": "#/definitions/integration.Cluster"
                     }
                 },
                 "sourceId": {
@@ -10169,9 +10095,6 @@ const docTemplate = `{
                 "thresholdMultiple": {
                     "type": "number"
                 },
-                "thresholdMultiple": {
-                    "type": "number"
-                },
                 "thresholdValue": {
                     "type": "number"
                 },
@@ -10742,9 +10665,64 @@ const docTemplate = `{
         "httpconfig.URL": {
             "type": "object"
         },
+        "integration.APOCollector": {
+            "type": "object",
+            "properties": {
+                "collectorAddr": {
+                    "type": "string"
+                },
+                "collectorGatewayAddr": {
+                    "type": "string"
+                },
+                "ports": {
+                    "$ref": "#/definitions/integration.CollectorGatewayPorts"
+                }
+            }
+        },
+        "integration.ArmsConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ClickhouseConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "database": {
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Encrypt in B64",
+                    "type": "string"
+                },
+                "replication": {
+                    "type": "boolean"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "integration.Cluster": {
             "type": "object",
             "properties": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
                 "clusterType": {
                     "type": "string"
                 },
@@ -10756,14 +10734,63 @@ const docTemplate = `{
                 }
             }
         },
-        "integration.GetCInstallDocResponse": {
+        "integration.ClusterIntegration": {
             "type": "object",
             "properties": {
-                "installMd": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
+                "clusterType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "log": {
+                    "$ref": "#/definitions/integration.LogIntegration"
+                },
+                "metric": {
+                    "$ref": "#/definitions/integration.MetricIntegration"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trace": {
+                    "$ref": "#/definitions/integration.TraceIntegration"
+                }
+            }
+        },
+        "integration.CollectorGatewayPorts": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "integration.ElasticConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.GetCInstallConfigResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
+                },
+                "fileName": {
+                    "type": "string"
                 }
             }
         },
@@ -10771,6 +10798,65 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "clusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.HuaweiConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JSONField-integration_MetricAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.MetricAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JaegerConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
                     "type": "string"
                 }
             }
@@ -10786,29 +10872,43 @@ const docTemplate = `{
                 }
             }
         },
-        "model.AlertDetail": {
+        "integration.LogAPI": {
             "type": "object",
             "properties": {
-                "alertMessage": {
-                    "type": "string"
-                },
-                "alertObject": {
-                    "type": "string"
-                },
-                "alertReason": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
+                "clickhouse": {
+                    "$ref": "#/definitions/integration.ClickhouseConfig"
                 }
             }
         },
-        "model.AlertReason": {
+        "integration.LogIntegration": {
             "type": "object",
-            "additionalProperties": {
-                "type": "array",
-                "items": {
-                    "$ref": "#/definitions/model.AlertDetail"
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "dbType": {
+                    "type": "string"
+                },
+                "logAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogAPI"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "selfCollectConfig": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "description": "full,abnormal",
+                    "type": "string"
                 }
             }
         },
@@ -11080,14 +11180,11 @@ const docTemplate = `{
                 5,
                 6,
                 7
-                6,
-                7
             ],
             "x-enum-comments": {
                 "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
                 "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
                 "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
-                "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=database",
                 "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=database",
                 "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
                 "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
@@ -11101,34 +11198,9 @@ const docTemplate = `{
                 "AnormalTypeAlertInfra",
                 "AnormalTypeAlertNet",
                 "AnormalTypeAlertDatabase",
-                "AnormalTypeAlertDatabase",
                 "AnormalTypeError",
                 "AnormalTypeAlertAppInstance"
             ]
-        },
-        "model.Datasource": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "description": "normal or apm",
-                    "type": "string"
-                },
-                "datasource": {
-                    "description": "namespaceName or serviceName",
-                    "type": "string"
-                },
-                "nested": {
-                    "description": "Nested datasource (namespace service belongs to or service under namespace)",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "type": {
-                    "description": "namespace or service",
-                    "type": "string"
-                }
-            }
         },
         "model.Datasource": {
             "type": "object",
@@ -11688,6 +11760,38 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ComplexSpanTraceFilter": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mergeSep": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "subFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
+                    }
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.CreateCustomRequest": {
             "type": "object",
             "properties": {
@@ -12082,26 +12186,6 @@ const docTemplate = `{
         },
         "request.GetCustomRequest": {
             "type": "object"
-        },
-        "request.GetDataGroupRequest": {
-            "type": "object",
-            "properties": {
-                "currentPage": {
-                    "type": "integer"
-                },
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Datasource"
-                    }
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "pageSize": {
-                    "type": "integer"
-                }
-            }
         },
         "request.GetDataGroupRequest": {
             "type": "object",
@@ -12744,21 +12828,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdateCustomRequest": {
-            "type": "object",
-            "properties": {
-                "customName": {
-                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
-                    "type": "string"
-                },
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "request.UpdateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -13261,28 +13330,32 @@ const docTemplate = `{
                 }
             }
         },
-        "response.GetCustomResponse": {
+        "response.GetCurrentLicenseResp": {
             "type": "object",
             "properties": {
-                "customs": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.CustonType"
-                    }
-                }
-            }
-        },
-        "response.GetAnomalySpanResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                        "type": "string"
                     }
                 },
-                "pagination": {
-                    "$ref": "#/definitions/model.Pagination"
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
                 }
             }
         },
@@ -14279,6 +14352,35 @@ const docTemplate = `{
                 "severity": {
                     "description": "Normal or Warning",
                     "type": "string"
+                }
+            }
+        },
+        "response.LicenseResp": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
                 }
             }
         },

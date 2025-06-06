@@ -17,9 +17,6 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param output formData string true "output json"
-// @Param licensePath formData string false "path to save license"
-// @Param pubKeyPath formData string false "path to save public key"
-// @Param privKeyPath formData string false "path to save private key"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
@@ -31,14 +28,14 @@ func (h *handler) UploadLicense() core.HandlerFunc {
 			c.AbortWithError(core.Error(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				code.Text(code.ParamBindError)).WithError(err),
+				c.ErrMessage(code.ParamBindError)).WithError(err),
 			)
 			return
 		}
 
 		err := h.service.UploadLicense(req)
 		if err != nil {
-			c.HandleError(err, code.UploadLicenseError)
+			c.HandleError(err, code.UploadLicenseError, nil)
 			return
 		}
 		c.Payload("ok")

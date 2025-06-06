@@ -212,4 +212,9 @@ var zhCnText = map[string]string{
 	UploadLicenseError:            "上传许可证失败",
 	GetLicenseError:               "获取本地许可证失败",
 	LicenseFeatureValidationError: "license无权访问该功能",
+	ActivatedLicenseNotFound:      "未找到本地激活许可证",
+	ActivateLicenseFailed:         "激活license失败",
+	LicenseCheckError:             "检查license时失败",
+	LicenseExpired:                "license已过期",
+	NoLicenseError:                "无本地license，请先上传license",
 }

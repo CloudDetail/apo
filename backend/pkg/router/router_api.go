@@ -30,7 +30,7 @@ import (
 )
 
 func setApiRouter(r *resource) {
-	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
+	middlewares := middleware.New(r.cache, r.pkg_db, r.dify, r.prom, r.logger)
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
@@ -318,10 +318,12 @@ func setApiRouter(r *resource) {
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
 	}
-	licenseApi := r.mux.Group("/api/license")
+	licenseApi := r.mux.Group("/api/license").Use(middlewares.LicMiddleware())
 	{
-		licenseHandler := license.New(r.logger, r.cache, r.prom)
+		licenseHandler := license.New(r.logger, r.prom, r.pkg_db)
 		licenseApi.POST("/upload", licenseHandler.UploadLicense())
+		licenseApi.GET("", licenseHandler.GetLicenses())
+		licenseApi.GET("/current", licenseHandler.GetCurrentLicense())
 	}
 }
 

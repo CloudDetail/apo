@@ -166,7 +166,6 @@ definitions:
       clusters:
         items:
           $ref: '#/definitions/integration.Cluster'
-          $ref: '#/definitions/integration.Cluster'
         type: array
       sourceId:
         type: string
@@ -615,8 +614,6 @@ definitions:
         type: string
       thresholdMultiple:
         type: number
-      thresholdMultiple:
-        type: number
       thresholdValue:
         type: number
       tid:
@@ -1023,8 +1020,44 @@ definitions:
     type: object
   httpconfig.URL:
     type: object
+  integration.APOCollector:
+    properties:
+      collectorAddr:
+        type: string
+      collectorGatewayAddr:
+        type: string
+      ports:
+        $ref: '#/definitions/integration.CollectorGatewayPorts'
+    type: object
+  integration.ArmsConfig:
+    properties:
+      accessKey:
+        type: string
+      accessSecret:
+        type: string
+      address:
+        type: string
+    type: object
+  integration.ClickhouseConfig:
+    properties:
+      address:
+        type: string
+      cluster:
+        type: string
+      database:
+        type: string
+      password:
+        description: Encrypt in B64
+        type: string
+      replication:
+        type: boolean
+      userName:
+        type: string
+    type: object
   integration.Cluster:
     properties:
+      apoCollector:
+        $ref: '#/definitions/integration.APOCollector'
       clusterType:
         type: string
       id:
@@ -1032,16 +1065,85 @@ definitions:
       name:
         type: string
     type: object
-  integration.GetCInstallDocResponse:
+  integration.ClusterIntegration:
     properties:
-      installMd:
+      apoCollector:
+        $ref: '#/definitions/integration.APOCollector'
+      clusterType:
+        type: string
+      id:
+        type: string
+      log:
+        $ref: '#/definitions/integration.LogIntegration'
+      metric:
+        $ref: '#/definitions/integration.MetricIntegration'
+      name:
+        type: string
+      trace:
+        $ref: '#/definitions/integration.TraceIntegration'
+    type: object
+  integration.CollectorGatewayPorts:
+    additionalProperties:
+      type: string
+    type: object
+  integration.ElasticConfig:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.GetCInstallConfigResponse:
+    properties:
+      content:
         items:
           type: integer
         type: array
+      fileName:
+        type: string
     type: object
   integration.GetCInstallRequest:
     properties:
       clusterId:
+        type: string
+    type: object
+  integration.HuaweiConfig:
+    properties:
+      accessKey:
+        type: string
+      accessSecret:
+        type: string
+    type: object
+  integration.JSONField-integration_LogAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.LogAPI'
+    type: object
+  integration.JSONField-integration_LogSelfCollectConfig:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.LogSelfCollectConfig'
+    type: object
+  integration.JSONField-integration_MetricAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.MetricAPI'
+    type: object
+  integration.JSONField-integration_TraceAPI:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.TraceAPI'
+    type: object
+  integration.JSONField-integration_TraceSelfCollectConfig:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.TraceSelfCollectConfig'
+    type: object
+  integration.JaegerConfig:
+    properties:
+      address:
         type: string
     type: object
   integration.ListClusterResponse:
@@ -1050,6 +1152,182 @@ definitions:
         items:
           $ref: '#/definitions/integration.Cluster'
         type: array
+    type: object
+  integration.LogAPI:
+    properties:
+      clickhouse:
+        $ref: '#/definitions/integration.ClickhouseConfig'
+    type: object
+  integration.LogIntegration:
+    properties:
+      clusterId:
+        type: string
+      dbType:
+        type: string
+      logAPI:
+        $ref: '#/definitions/integration.JSONField-integration_LogAPI'
+      mode:
+        type: string
+      name:
+        type: string
+      selfCollectConfig:
+        $ref: '#/definitions/integration.JSONField-integration_LogSelfCollectConfig'
+    type: object
+  integration.LogSelfCollectConfig:
+    properties:
+      mode:
+        description: full,abnormal
+        type: string
+    type: object
+  integration.MetricAPI:
+    properties:
+      victoriametric:
+        $ref: '#/definitions/integration.VictoriaMetricConfig'
+    type: object
+  integration.MetricIntegration:
+    properties:
+      clusterId:
+        type: string
+      dsType:
+        type: string
+      metricAPI:
+        $ref: '#/definitions/integration.JSONField-integration_MetricAPI'
+      mode:
+        type: string
+      name:
+        type: string
+    type: object
+  integration.Nbs3Config:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.PinpointConfig:
+    properties:
+      address:
+        type: string
+    type: object
+  integration.SkywalkingConfig:
+    properties:
+      address:
+        type: string
+      password:
+        type: string
+      user:
+        type: string
+    type: object
+  integration.TraceAPI:
+    properties:
+      arms:
+        $ref: '#/definitions/integration.ArmsConfig'
+      elastic:
+        $ref: '#/definitions/integration.ElasticConfig'
+      huawei:
+        $ref: '#/definitions/integration.HuaweiConfig'
+      jaeger:
+        $ref: '#/definitions/integration.JaegerConfig'
+      nbs3:
+        $ref: '#/definitions/integration.Nbs3Config'
+      pinpoint:
+        $ref: '#/definitions/integration.PinpointConfig'
+      skywalking:
+        $ref: '#/definitions/integration.SkywalkingConfig'
+      timeout:
+        description: Second
+        type: integer
+    type: object
+  integration.TraceIntegration:
+    properties:
+      apmType:
+        type: string
+      clusterId:
+        type: string
+      isDeleted:
+        type: boolean
+      mode:
+        type: string
+      selfCollectConfig:
+        $ref: '#/definitions/integration.JSONField-integration_TraceSelfCollectConfig'
+      traceAPI:
+        $ref: '#/definitions/integration.JSONField-integration_TraceAPI'
+    type: object
+  integration.TraceSelfCollectConfig:
+    properties:
+      instrumentAll:
+        type: boolean
+      instrumentDisabledNS:
+        items:
+          type: string
+        type: array
+      instrumentNS:
+        items:
+          type: string
+        type: array
+    type: object
+  integration.VictoriaMetricConfig:
+    properties:
+      password:
+        type: string
+      serverURL:
+        type: string
+      username:
+        type: string
+    type: object
+  metric.Labels:
+    additionalProperties:
+      type: string
+    type: object
+  metric.QueryInfo:
+    properties:
+      describe:
+        type: string
+      id:
+        type: integer
+      params:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.QueryMetricsResult:
+    properties:
+      msg:
+        type: string
+      result:
+        $ref: '#/definitions/metric.QueryResult'
+      results:
+        items:
+          $ref: '#/definitions/metric.QueryResult'
+        type: array
+    type: object
+  metric.QueryResult:
+    properties:
+      timeseries:
+        items:
+          $ref: '#/definitions/metric.Timeseries'
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  metric.Timeseries:
+    properties:
+      chart:
+        $ref: '#/definitions/response.TempChartObject'
+      labels:
+        $ref: '#/definitions/metric.Labels'
+      legend:
+        type: string
+      legendFormat:
+        type: string
     type: object
   model.AlertDetail:
     properties:
@@ -1097,35 +1375,6 @@ definitions:
     - AnormalTypeAlertDatabase
     - AnormalTypeError
     - AnormalTypeAlertAppInstance
-  model.AnormalType:
-    enum:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    type: integer
-    x-enum-comments:
-      AnormalTypeAlertApp: 应用接口告警     => group=app
-      AnormalTypeAlertAppInstance: 应用实例告警     => group=appInstance
-      AnormalTypeAlertContainer: 容器告警         => group=container
-      AnormalTypeAlertDatabase: 数据库告警       => group=database
-      AnormalTypeAlertInfra: 基础设施告警     => group=infra
-      AnormalTypeAlertNet: 网络告警         => group=net
-      AnormalTypeError: 错误事件告警 => 来自JavaException等
-      AnormalTypeUnknown: 未定义的告警类型
-    x-enum-varnames:
-    - AnormalTypeUnknown
-    - AnormalTypeAlertApp
-    - AnormalTypeAlertContainer
-    - AnormalTypeAlertInfra
-    - AnormalTypeAlertNet
-    - AnormalTypeAlertDatabase
-    - AnormalTypeError
-    - AnormalTypeAlertAppInstance
   model.Datasource:
     properties:
       category:
@@ -1143,79 +1392,6 @@ definitions:
       type:
         description: namespace or service
         type: string
-    type: object
-  model.DetectExprPart:
-    properties:
-      compareGroup:
-        description: 用于记录可以相互比较的检测表达式
-        type: string
-      customMetric:
-        description: 常量表达式
-        type: string
-      group:
-        description: 用于记录指标所属的告警事件组
-        type: string
-      metric:
-        type: string
-      modifier:
-        $ref: '#/definitions/model.Modifier'
-      name:
-        type: string
-    type: object
-  model.DetectMutation:
-    properties:
-      endTime:
-        description: 查询结束时间
-        type: integer
-      for:
-        description: 突变告警等待时间
-        type: string
-      group:
-        description: 告警组名
-        type: string
-      mutationCheckPQL:
-        description: 需要执行故障检测的语句
-        type: string
-      name:
-        description: 告警名
-        type: string
-      startTime:
-        description: 查询开始时间
-        type: integer
-      step:
-        description: 查询步长(us)
-        type: integer
-      synchronizeToAlertRules:
-        description: 是否同步到告警规则
-        type: boolean
-      timestamp:
-        description: 执行时间
-        type: integer
-    type: object
-  model.EndpointKey:
-    properties:
-      endpoint:
-        type: string
-      serviceName:
-        type: string
-    type: object
-  model.Modifier:
-    properties:
-      dayOnDay:
-        description: 使用昨日同时段数据
-        type: boolean
-      quantile:
-        description: 百分位数
-        type: string
-      rangeVector:
-        description: 1m/1h/1d
-        type: string
-      scale:
-        description: 倍率
-        type: string
-      weekOnWeek:
-        description: 使用上周同时段数据
-        type: boolean
     type: object
   model.DetectExprPart:
     properties:
@@ -1581,6 +1757,27 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.ComplexSpanTraceFilter:
+    properties:
+      dataType:
+        $ref: '#/definitions/request.DataType'
+      key:
+        type: string
+      mergeSep:
+        type: string
+      operation:
+        $ref: '#/definitions/request.Operation'
+      parentField:
+        $ref: '#/definitions/request.ParentField'
+      subFilters:
+        items:
+          $ref: '#/definitions/request.ComplexSpanTraceFilter'
+        type: array
+      value:
+        items:
+          type: string
+        type: array
+    type: object
   request.CreateCustomRequest:
     properties:
       customName:
@@ -1847,34 +2044,6 @@ definitions:
     type: object
   request.GetCustomRequest:
     type: object
-  request.GetAnomalySpanRequest:
-    properties:
-      contentKey:
-        type: string
-      currentPage:
-        type: integer
-      endTime:
-        type: integer
-      isError:
-        type: string
-      isSlow:
-        type: string
-      pageSize:
-        type: integer
-      reason:
-        type: string
-      service:
-        type: string
-      startTime:
-        type: integer
-    required:
-    - contentKey
-    - endTime
-    - service
-    - startTime
-    type: object
-  request.GetCustomRequest:
-    type: object
   request.GetDataGroupRequest:
     properties:
       currentPage:
@@ -1887,33 +2056,6 @@ definitions:
         type: string
       pageSize:
         type: integer
-    type: object
-  request.GetDescendantAnormalTrendRequest:
-    properties:
-      anormalTypes:
-        description: 要查询的异常类型
-        type: string
-      endTime:
-        description: 查询结束时间
-        type: integer
-      endpoint:
-        description: 查询Endpoint
-        type: string
-      service:
-        description: 查询服务名
-        type: string
-      startTime:
-        description: 查询开始时间
-        minimum: 0
-        type: integer
-      step:
-        description: 查询步长(us)
-        minimum: 1000000
-        type: integer
-    required:
-    - endTime
-    - endpoint
-    - service
     type: object
   request.GetDescendantAnormalTrendRequest:
     properties:
@@ -2351,18 +2493,6 @@ definitions:
           type: string
         type: array
     type: object
-  request.UpdateCustomRequest:
-    properties:
-      customName:
-        description: |-
-          UserName   string   `json:"userName"`
-          GroupName  string   `json:"groupName"`
-        type: string
-      type:
-        items:
-          type: string
-        type: array
-    type: object
   request.UpdateDataGroupRequest:
     properties:
       datasourceList:
@@ -2697,21 +2827,24 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
-  response.GetCustomResponse:
+  response.GetCurrentLicenseResp:
     properties:
-      customs:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
         items:
-          $ref: '#/definitions/response.CustonType'
+          type: string
         type: array
-    type: object
-  response.GetAnomalySpanResponse:
-    properties:
-      list:
-        items:
-          $ref: '#/definitions/clickhouse.QueryTraceResult'
-        type: array
-      pagination:
-        $ref: '#/definitions/model.Pagination'
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
     type: object
   response.GetCustomResponse:
     properties:
@@ -2783,7 +2916,7 @@ definitions:
     properties:
       alertEvents:
         items:
-          $ref: '#/definitions/clickhouse.PagedAlertEvent'
+          $ref: '#/definitions/alert.AlertEvent'
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
@@ -3380,6 +3513,25 @@ definitions:
         description: Normal or Warning
         type: string
     type: object
+  response.LicenseResp:
+    properties:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
+    type: object
   response.LogChartResponse:
     properties:
       count:
@@ -3859,7 +4011,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/integration.Cluster'
-          $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
       responses:
@@ -3885,7 +4036,6 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/integration.Cluster'
           $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
@@ -3913,7 +4063,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/integration.ListClusterResponse'
-            $ref: '#/definitions/integration.ListClusterResponse'
         "400":
           description: Bad Request
           schema:
@@ -3932,7 +4081,6 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/integration.Cluster'
           $ref: '#/definitions/integration.Cluster'
       produces:
       - application/json
@@ -5551,126 +5699,6 @@ paths:
       summary: 更新用户自定义查询数据类型
       tags:
       - API.custom
-  /api/custom/create:
-    post:
-      consumes:
-      - application/json
-      description: 创建一个用户自定义查询数据类型
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateCustomRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 创建一个用户自定义查询数据类型
-      tags:
-      - API.custom
-  /api/custom/delete:
-    delete:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 删除用户自定义查询数据类型
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.DeleteCustomRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 删除用户自定义查询数据类型
-      tags:
-      - API.custom
-  /api/custom/get:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: 获取用户自定义查询数据类型
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetCustomRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.GetCustomResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 获取用户自定义查询数据类型
-      tags:
-      - API.custom
-  /api/custom/update:
-    post:
-      consumes:
-      - application/json
-      description: 更新用户自定义查询数据类型
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.UpdateCustomRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: 更新用户自定义查询数据类型
-      tags:
-      - API.custom
   /api/data/datasource:
     get:
       consumes:
@@ -6033,6 +6061,23 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: for k8s to check backend health status
+  /api/integration/adapter/update:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
   /api/integration/cluster/create:
     post:
       consumes:
@@ -6049,9 +6094,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: ok
+          description: created cluster info
           schema:
-            type: string
+            $ref: '#/definitions/integration.Cluster'
         "400":
           description: Bad Request
           schema:
@@ -6060,7 +6105,7 @@ paths:
       tags:
       - API.alertinput
   /api/integration/cluster/delete:
-    post:
+    get:
       consumes:
       - application/json
       description: DeleteCluster
@@ -6085,6 +6130,30 @@ paths:
       summary: DeleteCluster
       tags:
       - API.alertinput
+  /api/integration/cluster/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.Cluster'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.ClusterIntegration'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
   /api/integration/cluster/install/cmd:
     get:
       consumes:
@@ -6102,7 +6171,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/integration.GetCInstallDocResponse'
+            $ref: '#/definitions/integration.GetCInstallRequest'
         "400":
           description: Bad Request
           schema:
@@ -6123,6 +6192,10 @@ paths:
       produces:
       - text/plain
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/integration.GetCInstallConfigResponse'
         "400":
           description: Bad Request
           schema:
@@ -6172,6 +6245,19 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: UpdateCluster
+      tags:
+      - API.integration
+  /api/integration/configuration:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.integration
   /api/k8s/namespace/info:
@@ -6273,6 +6359,56 @@ paths:
       summary: get all pod information
       tags:
       - API.k8s
+  /api/license:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get all license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LicenseResp'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get all license.
+      tags:
+      - API.license
+  /api/license/current:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get current license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetCurrentLicenseResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get current license.
+      tags:
+      - API.license
   /api/license/upload:
     post:
       consumes:
@@ -6283,18 +6419,6 @@ paths:
         in: formData
         name: output
         required: true
-        type: string
-      - description: path to save license
-        in: formData
-        name: licensePath
-        type: string
-      - description: path to save public key
-        in: formData
-        name: pubKeyPath
-        type: string
-      - description: path to save private key
-        in: formData
-        name: privKeyPath
         type: string
       - description: Bearer accessToken
         in: header

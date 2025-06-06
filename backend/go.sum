@@ -6,6 +6,12 @@
 192.168.1.22/apo/license-manager v1.3.1/go.mod h1:Z050lxcUsKZbj+wei0iDfUGxddDHHs2CzGMwMu7Do5c=
 192.168.1.22/apo/license-manager v1.3.2 h1:F9pCTCwYVxToZ6TXVhmg/cIHtldcwMzmRvkR6aGdAOw=
 192.168.1.22/apo/license-manager v1.3.2/go.mod h1:Z050lxcUsKZbj+wei0iDfUGxddDHHs2CzGMwMu7Do5c=
+192.168.1.22/apo/license-manager v1.4.0 h1:xvmrS7mafY46RmioaaqN3SONAM+yaV5ZjCUeAUE0wio=
+192.168.1.22/apo/license-manager v1.4.0/go.mod h1:Z050lxcUsKZbj+wei0iDfUGxddDHHs2CzGMwMu7Do5c=
+192.168.1.22/apo/license-manager v1.4.1-0.20250606065948-5a8a5a175959 h1:M+IWj0pcd6jQW3lr1d5lz3RKHPR37BF3OxzFhqRzUUk=
+192.168.1.22/apo/license-manager v1.4.1-0.20250606065948-5a8a5a175959/go.mod h1:+qwGpdytjhCn/nKZ5KuDFhlRnpYAk0hiG2y0tGpxSpM=
+192.168.1.22/apo/license-manager v1.4.1-0.20250606085407-a01f84304596 h1:RoHOCzPrKGrOPBiiD99n+omUmidrlZE/cXPELLmgdgo=
+192.168.1.22/apo/license-manager v1.4.1-0.20250606085407-a01f84304596/go.mod h1:+qwGpdytjhCn/nKZ5KuDFhlRnpYAk0hiG2y0tGpxSpM=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.38.0/go.mod h1:990N+gfupTy94rShfmMCWGDn0LpTmnzTp2qbd1dvSRU=

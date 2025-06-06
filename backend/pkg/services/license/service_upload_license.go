@@ -5,84 +5,62 @@ package license
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
-	"path/filepath"
+	"errors"
 
+	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	mylicense "github.com/CloudDetail/apo/backend/pkg/model/license"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
-	if len(req.PrivKeyPath) == 0 {
-		req.PrivKeyPath = PRIVATE_KEY_PATH
-	}
-
-	if len(req.LicensePath) == 0 {
-		req.LicensePath = LICENSE_PATH
-	}
-
-	if len(req.PubKeyPath) == 0 {
-		req.PubKeyPath = PUBLIC_KEY_PATH
-	}
-
-	err := checkAndCreateDir(req.PrivKeyPath)
-	if err != nil {
-		return err
-	}
-
-	err = checkAndCreateDir(req.PubKeyPath)
-	if err != nil {
-		return err
-	}
-
-	err = checkAndCreateDir(req.LicensePath)
-	if err != nil {
-		return err
-	}
-
 	output := &license.OutputFile{}
-	err = json.Unmarshal([]byte(req.Output), output)
+	err := json.Unmarshal([]byte(req.Output), output)
 	if err != nil {
 		return err
 	}
 
-	if len(output.PrivateKey) > 0 {
-		err = os.WriteFile(req.PrivKeyPath, []byte(output.PrivateKey), 0644)
-		if err != nil {
-			return err
-		}
-	}
-
-	if len(output.PublicKey) > 0 {
-		err = os.WriteFile(req.PubKeyPath, []byte(output.PublicKey), 0644)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	if len(output.License) > 0 {
-		err = os.WriteFile(req.LicensePath, []byte(output.License), 0644)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func checkAndCreateDir(path string) error {
-	dir := filepath.Dir(path)
-	_, err := os.Stat(dir)
+	encryptor, err := encrypt.NewRSAFromKeys([]byte(output.EncryptPublicKey), []byte(output.DecryptPrivateKey))
 	if err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(dir, 0755)
-			if err != nil {
-				return fmt.Errorf("failed to create directory: %w", err)
-			}
-		} else {
-			return fmt.Errorf("failed to stat directory: %w", err)
+		return err
+	}
+
+	newToken, err := license.Activate([]byte(output.License), encryptor, nil)
+	if err != nil {
+		return model.NewErrWithMessage(errors.New("activate license failed"), code.ActivateLicenseFailed)
+	}
+
+	lic := mylicense.License{
+		Token:             string(newToken),
+		EncryptPublicKey:  output.EncryptPublicKey,
+		DecryptPrivateKey: output.DecryptPrivateKey,
+		SignPublicKey:     output.SignPublicKey,
+		Activated:         true,
+	}
+
+	bLic := &license.BasicLicense{}
+	err = license.ParseWithLicense(newToken, bLic, encryptor, nil)
+	if err != nil {
+		return nil
+	}
+
+	activations, err := s.dbRepo.GetActivations()
+	if err != nil {
+		return err
+	}
+
+	if len(activations) == 0 {
+		err = s.dbRepo.CreateActivation(&mylicense.Activation{Mode: bLic.DistributionType})
+		if err != nil {
+			return err
 		}
+	}
+
+	err = s.dbRepo.CreateLicense(&lic)
+	if err != nil {
+		return err
 	}
 	return nil
 }

@@ -32,7 +32,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.Cluster"
-                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -73,7 +72,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/integration.Cluster"
-                            "$ref": "#/definitions/integration.Cluster"
                         }
                     }
                 ],
@@ -111,7 +109,6 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/integration.ListClusterResponse"
-                            "$ref": "#/definitions/integration.ListClusterResponse"
                         }
                     },
                     "400": {
@@ -143,7 +140,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
                             "$ref": "#/definitions/integration.Cluster"
                         }
                     }
@@ -2610,190 +2606,6 @@
                 }
             }
         },
-        "/api/custom/create": {
-            "post": {
-                "description": "创建一个用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "创建一个用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/delete": {
-            "delete": {
-                "description": "删除用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "删除用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/get": {
-            "get": {
-                "description": "获取用户自定义查询数据类型",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "获取用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetCustomResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/custom/update": {
-            "post": {
-                "description": "更新用户自定义查询数据类型",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.custom"
-                ],
-                "summary": "更新用户自定义查询数据类型",
-                "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateCustomRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/data/datasource": {
             "get": {
                 "description": "Gets all datasource.",
@@ -3345,6 +3157,33 @@
                 }
             }
         },
+        "/api/integration/adapter/update": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/integration/cluster/create": {
             "post": {
                 "description": "Create Cluster",
@@ -3371,9 +3210,9 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "created cluster info",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/integration.Cluster"
                         }
                     },
                     "400": {
@@ -3386,7 +3225,7 @@
             }
         },
         "/api/integration/cluster/delete": {
-            "post": {
+            "get": {
                 "description": "DeleteCluster",
                 "consumes": [
                     "application/json"
@@ -3425,6 +3264,44 @@
                 }
             }
         },
+        "/api/integration/cluster/get": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.Cluster"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.ClusterIntegration"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/integration/cluster/install/cmd": {
             "get": {
                 "consumes": [
@@ -3451,7 +3328,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/integration.GetCInstallDocResponse"
+                            "$ref": "#/definitions/integration.GetCInstallRequest"
                         }
                     },
                     "400": {
@@ -3486,6 +3363,12 @@
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetCInstallConfigResponse"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -3555,6 +3438,27 @@
                             "type": "string"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/configuration": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "responses": {
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -3714,6 +3618,83 @@
                 }
             }
         },
+        "/api/license": {
+            "get": {
+                "description": "get all license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get all license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.LicenseResp"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license/current": {
+            "get": {
+                "description": "get current license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get current license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCurrentLicenseResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/license/upload": {
             "post": {
                 "description": "uploads your license, sign public key, decrypt key.",
@@ -3734,24 +3715,6 @@
                         "name": "output",
                         "in": "formData",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save license",
-                        "name": "licensePath",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save public key",
-                        "name": "pubKeyPath",
-                        "in": "formData"
-                    },
-                    {
-                        "type": "string",
-                        "description": "path to save private key",
-                        "name": "privKeyPath",
-                        "in": "formData"
                     },
                     {
                         "type": "string",
@@ -9446,7 +9409,6 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/integration.Cluster"
-                        "$ref": "#/definitions/integration.Cluster"
                     }
                 },
                 "sourceId": {
@@ -10124,9 +10086,6 @@
                 "thresholdMultiple": {
                     "type": "number"
                 },
-                "thresholdMultiple": {
-                    "type": "number"
-                },
                 "thresholdValue": {
                     "type": "number"
                 },
@@ -10697,9 +10656,64 @@
         "httpconfig.URL": {
             "type": "object"
         },
+        "integration.APOCollector": {
+            "type": "object",
+            "properties": {
+                "collectorAddr": {
+                    "type": "string"
+                },
+                "collectorGatewayAddr": {
+                    "type": "string"
+                },
+                "ports": {
+                    "$ref": "#/definitions/integration.CollectorGatewayPorts"
+                }
+            }
+        },
+        "integration.ArmsConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                },
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.ClickhouseConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "database": {
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Encrypt in B64",
+                    "type": "string"
+                },
+                "replication": {
+                    "type": "boolean"
+                },
+                "userName": {
+                    "type": "string"
+                }
+            }
+        },
         "integration.Cluster": {
             "type": "object",
             "properties": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
                 "clusterType": {
                     "type": "string"
                 },
@@ -10711,14 +10725,63 @@
                 }
             }
         },
-        "integration.GetCInstallDocResponse": {
+        "integration.ClusterIntegration": {
             "type": "object",
             "properties": {
-                "installMd": {
+                "apoCollector": {
+                    "$ref": "#/definitions/integration.APOCollector"
+                },
+                "clusterType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "log": {
+                    "$ref": "#/definitions/integration.LogIntegration"
+                },
+                "metric": {
+                    "$ref": "#/definitions/integration.MetricIntegration"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "trace": {
+                    "$ref": "#/definitions/integration.TraceIntegration"
+                }
+            }
+        },
+        "integration.CollectorGatewayPorts": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "integration.ElasticConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.GetCInstallConfigResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
+                },
+                "fileName": {
+                    "type": "string"
                 }
             }
         },
@@ -10726,6 +10789,65 @@
             "type": "object",
             "properties": {
                 "clusterId": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.HuaweiConfig": {
+            "type": "object",
+            "properties": {
+                "accessKey": {
+                    "type": "string"
+                },
+                "accessSecret": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JSONField-integration_MetricAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.MetricAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceAPI": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceAPI"
+                }
+            }
+        },
+        "integration.JSONField-integration_TraceSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.TraceSelfCollectConfig"
+                }
+            }
+        },
+        "integration.JaegerConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
                     "type": "string"
                 }
             }
@@ -10738,6 +10860,277 @@
                     "items": {
                         "$ref": "#/definitions/integration.Cluster"
                     }
+                }
+            }
+        },
+        "integration.LogAPI": {
+            "type": "object",
+            "properties": {
+                "clickhouse": {
+                    "$ref": "#/definitions/integration.ClickhouseConfig"
+                }
+            }
+        },
+        "integration.LogIntegration": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "dbType": {
+                    "type": "string"
+                },
+                "logAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogAPI"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "selfCollectConfig": {
+                    "$ref": "#/definitions/integration.JSONField-integration_LogSelfCollectConfig"
+                }
+            }
+        },
+        "integration.LogSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "mode": {
+                    "description": "full,abnormal",
+                    "type": "string"
+                }
+            }
+        },
+        "integration.MetricAPI": {
+            "type": "object",
+            "properties": {
+                "victoriametric": {
+                    "$ref": "#/definitions/integration.VictoriaMetricConfig"
+                }
+            }
+        },
+        "integration.MetricIntegration": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "dsType": {
+                    "type": "string"
+                },
+                "metricAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_MetricAPI"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.Nbs3Config": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.PinpointConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.SkywalkingConfig": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.TraceAPI": {
+            "type": "object",
+            "properties": {
+                "arms": {
+                    "$ref": "#/definitions/integration.ArmsConfig"
+                },
+                "elastic": {
+                    "$ref": "#/definitions/integration.ElasticConfig"
+                },
+                "huawei": {
+                    "$ref": "#/definitions/integration.HuaweiConfig"
+                },
+                "jaeger": {
+                    "$ref": "#/definitions/integration.JaegerConfig"
+                },
+                "nbs3": {
+                    "$ref": "#/definitions/integration.Nbs3Config"
+                },
+                "pinpoint": {
+                    "$ref": "#/definitions/integration.PinpointConfig"
+                },
+                "skywalking": {
+                    "$ref": "#/definitions/integration.SkywalkingConfig"
+                },
+                "timeout": {
+                    "description": "Second",
+                    "type": "integer"
+                }
+            }
+        },
+        "integration.TraceIntegration": {
+            "type": "object",
+            "properties": {
+                "apmType": {
+                    "type": "string"
+                },
+                "clusterId": {
+                    "type": "string"
+                },
+                "isDeleted": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "selfCollectConfig": {
+                    "$ref": "#/definitions/integration.JSONField-integration_TraceSelfCollectConfig"
+                },
+                "traceAPI": {
+                    "$ref": "#/definitions/integration.JSONField-integration_TraceAPI"
+                }
+            }
+        },
+        "integration.TraceSelfCollectConfig": {
+            "type": "object",
+            "properties": {
+                "instrumentAll": {
+                    "type": "boolean"
+                },
+                "instrumentDisabledNS": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "instrumentNS": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "integration.VictoriaMetricConfig": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "serverURL": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.Labels": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
+        "metric.QueryInfo": {
+            "type": "object",
+            "properties": {
+                "describe": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "params": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.QueryMetricsResult": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "result": {
+                    "$ref": "#/definitions/metric.QueryResult"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.QueryResult"
+                    }
+                }
+            }
+        },
+        "metric.QueryResult": {
+            "type": "object",
+            "properties": {
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/metric.Timeseries"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "metric.Timeseries": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "labels": {
+                    "$ref": "#/definitions/metric.Labels"
+                },
+                "legend": {
+                    "type": "string"
+                },
+                "legendFormat": {
+                    "type": "string"
                 }
             }
         },
@@ -10800,39 +11193,6 @@
                 "AnormalTypeAlertAppInstance"
             ]
         },
-        "model.AnormalType": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-comments": {
-                "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
-                "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
-                "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
-                "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=database",
-                "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
-                "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
-                "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
-                "AnormalTypeUnknown": "未定义的告警类型"
-            },
-            "x-enum-varnames": [
-                "AnormalTypeUnknown",
-                "AnormalTypeAlertApp",
-                "AnormalTypeAlertContainer",
-                "AnormalTypeAlertInfra",
-                "AnormalTypeAlertNet",
-                "AnormalTypeAlertDatabase",
-                "AnormalTypeError",
-                "AnormalTypeAlertAppInstance"
-            ]
-        },
         "model.Datasource": {
             "type": "object",
             "properties": {
@@ -10854,109 +11214,6 @@
                 "type": {
                     "description": "namespace or service",
                     "type": "string"
-                }
-            }
-        },
-        "model.DetectExprPart": {
-            "type": "object",
-            "properties": {
-                "compareGroup": {
-                    "description": "用于记录可以相互比较的检测表达式",
-                    "type": "string"
-                },
-                "customMetric": {
-                    "description": "常量表达式",
-                    "type": "string"
-                },
-                "group": {
-                    "description": "用于记录指标所属的告警事件组",
-                    "type": "string"
-                },
-                "metric": {
-                    "type": "string"
-                },
-                "modifier": {
-                    "$ref": "#/definitions/model.Modifier"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.DetectMutation": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "description": "查询结束时间",
-                    "type": "integer"
-                },
-                "for": {
-                    "description": "突变告警等待时间",
-                    "type": "string"
-                },
-                "group": {
-                    "description": "告警组名",
-                    "type": "string"
-                },
-                "mutationCheckPQL": {
-                    "description": "需要执行故障检测的语句",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "告警名",
-                    "type": "string"
-                },
-                "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer"
-                },
-                "step": {
-                    "description": "查询步长(us)",
-                    "type": "integer"
-                },
-                "synchronizeToAlertRules": {
-                    "description": "是否同步到告警规则",
-                    "type": "boolean"
-                },
-                "timestamp": {
-                    "description": "执行时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "model.EndpointKey": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.Modifier": {
-            "type": "object",
-            "properties": {
-                "dayOnDay": {
-                    "description": "使用昨日同时段数据",
-                    "type": "boolean"
-                },
-                "quantile": {
-                    "description": "百分位数",
-                    "type": "string"
-                },
-                "rangeVector": {
-                    "description": "1m/1h/1d",
-                    "type": "string"
-                },
-                "scale": {
-                    "description": "倍率",
-                    "type": "string"
-                },
-                "weekOnWeek": {
-                    "description": "使用上周同时段数据",
-                    "type": "boolean"
                 }
             }
         },
@@ -11494,6 +11751,38 @@
                 }
             }
         },
+        "request.ComplexSpanTraceFilter": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mergeSep": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "subFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
+                    }
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.CreateCustomRequest": {
             "type": "object",
             "properties": {
@@ -11889,47 +12178,6 @@
         "request.GetCustomRequest": {
             "type": "object"
         },
-        "request.GetAnomalySpanRequest": {
-            "type": "object",
-            "required": [
-                "contentKey",
-                "endTime",
-                "service",
-                "startTime"
-            ],
-            "properties": {
-                "contentKey": {
-                    "type": "string"
-                },
-                "currentPage": {
-                    "type": "integer"
-                },
-                "endTime": {
-                    "type": "integer"
-                },
-                "isError": {
-                    "type": "string"
-                },
-                "isSlow": {
-                    "type": "string"
-                },
-                "pageSize": {
-                    "type": "integer"
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "integer"
-                }
-            }
-        },
-        "request.GetCustomRequest": {
-            "type": "object"
-        },
         "request.GetDataGroupRequest": {
             "type": "object",
             "properties": {
@@ -11947,42 +12195,6 @@
                 },
                 "pageSize": {
                     "type": "integer"
-                }
-            }
-        },
-        "request.GetDescendantAnormalTrendRequest": {
-            "type": "object",
-            "required": [
-                "endTime",
-                "endpoint",
-                "service"
-            ],
-            "properties": {
-                "anormalTypes": {
-                    "description": "要查询的异常类型",
-                    "type": "string"
-                },
-                "endTime": {
-                    "description": "查询结束时间",
-                    "type": "integer"
-                },
-                "endpoint": {
-                    "description": "查询Endpoint",
-                    "type": "string"
-                },
-                "service": {
-                    "description": "查询服务名",
-                    "type": "string"
-                },
-                "startTime": {
-                    "description": "查询开始时间",
-                    "type": "integer",
-                    "minimum": 0
-                },
-                "step": {
-                    "description": "查询步长(us)",
-                    "type": "integer",
-                    "minimum": 1000000
                 }
             }
         },
@@ -12607,21 +12819,6 @@
                 }
             }
         },
-        "request.UpdateCustomRequest": {
-            "type": "object",
-            "properties": {
-                "customName": {
-                    "description": "UserName   string   `json:\"userName\"`\nGroupName  string   `json:\"groupName\"`",
-                    "type": "string"
-                },
-                "type": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "request.UpdateDataGroupRequest": {
             "type": "object",
             "required": [
@@ -13124,28 +13321,32 @@
                 }
             }
         },
-        "response.GetCustomResponse": {
+        "response.GetCurrentLicenseResp": {
             "type": "object",
             "properties": {
-                "customs": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.CustonType"
-                    }
-                }
-            }
-        },
-        "response.GetAnomalySpanResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                        "type": "string"
                     }
                 },
-                "pagination": {
-                    "$ref": "#/definitions/model.Pagination"
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
                 }
             }
         },
@@ -13255,7 +13456,7 @@
                 "alertEvents": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                        "$ref": "#/definitions/alert.AlertEvent"
                     }
                 },
                 "pagination": {
@@ -14142,6 +14343,35 @@
                 "severity": {
                     "description": "Normal or Warning",
                     "type": "string"
+                }
+            }
+        },
+        "response.LicenseResp": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
                 }
             }
         },

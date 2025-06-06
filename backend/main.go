@@ -43,21 +43,6 @@ func main() {
 		_ = accessLogger.Sync()
 	}()
 
-	conf := config.Get()
-
-	err := conf.ParseLicense()
-	if err != nil {
-		accessLogger.Warn("could not get your license", zap.Error(err))
-	}
-
-	if err := conf.License.BasicLicense.CheckExpireDate(); err != nil {
-		accessLogger.Warn("your license has been expired, please contact us to renew", zap.Error(err))
-	}
-
-	if err := conf.License.BasicLicense.CheckTrailDate(); err != nil {
-		accessLogger.Warn("your license trail period has been expired, pleas contact us to renew", zap.Error(err))
-	}
-
 	// Initialize the HTTP service
 	s, err := router.NewHTTPServer(accessLogger)
 	if err != nil {

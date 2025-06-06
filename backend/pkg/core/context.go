@@ -62,7 +62,6 @@ type Context interface {
 
 	Param(key string) string
 
-	// Payload returned correctly
 	GetMethodPath() (method string, path string)
 
 	// Payload 正确返回
