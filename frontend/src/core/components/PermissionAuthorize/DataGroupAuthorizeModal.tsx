@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Alert, Form, Input, Modal, Select, Tag, Typography } from 'antd'
+import { Form, Input, Modal, Tag, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import DataGroupPermission from './DaraGroupPermission'
 import { SubsDataGroupParams } from 'src/core/types/dataGroup'
 import { getSubsDataGroupApi, updateSubsDataGroupApi } from 'src/core/api/dataGroup'
-import { showToast } from 'src/core/utils/toast'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 
 interface PermissionModalProps {
   open: boolean
@@ -34,9 +34,9 @@ const DataGroupAuthorizeModal = ({
   const [permissionSourceTeam, setPermissionSourceTeam] = useState([])
   const authorizePermission = (params: SubsDataGroupParams) => {
     updateSubsDataGroupApi(params).then((res) => {
-      showToast({
-        color: 'success',
-        title: t('authorizedSuccess'),
+      notify({
+        type: 'success',
+        message: t('authorizedSuccess'),
       })
       refresh()
     })

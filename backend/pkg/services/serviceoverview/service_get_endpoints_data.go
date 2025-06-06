@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -15,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (s *service) GetServicesEndPointData(
+func (s *service) GetServicesEndPointData(ctx core.Context,
 	startTime, endTime time.Time, step time.Duration,
 	filter EndpointsFilter,
 	sortRule request.SortType,
@@ -35,6 +36,7 @@ func (s *service) GetServicesEndPointData(
 	}
 
 	endpointsMap, err := prometheus.FetchEndpointsData(
+		ctx,
 		s.promRepo, filterStrs, startTime, endTime,
 		opts...,
 	)
@@ -43,7 +45,7 @@ func (s *service) GetServicesEndPointData(
 		s.logger.Error("failed to fetch endpoints data form", zap.Error(err))
 	}
 
-	s.sortWithRule(sortRule, endpointsMap)
+	s.sortWithRule(ctx, sortRule, endpointsMap)
 
 	services := groupEndpointsByService(endpointsMap.MetricGroupList, 3)
 	var servicesResMsg []response.ServiceEndPointsRes
@@ -82,12 +84,12 @@ func (s *service) GetServicesEndPointData(
 	return servicesResMsg, err
 }
 
-func (s *service) sortWithRule(sortRule request.SortType, endpointsMap *EndpointsMap) error {
+func (s *service) sortWithRule(ctx core.Context, sortRule request.SortType, endpointsMap *EndpointsMap) error {
 	switch sortRule {
 	case request.SortByLatency, request.SortByErrorRate, request.SortByThroughput, request.SortByLogErrorCount:
 		slices.SortStableFunc(endpointsMap.MetricGroupList, prometheus.ReverseSortWithMetrics(sortRule))
 	case request.DODThreshold: //Sort by Day-to-Year Threshold
-		threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+		threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 		if err != nil {
 			return err
 		}

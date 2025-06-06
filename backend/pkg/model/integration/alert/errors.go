@@ -36,22 +36,6 @@ func (e *ErrAlertImpactMissingTag) AddCheckedGroup(err ErrAlertImpactMissingTag)
 	e.TagGroups = append(e.TagGroups, err.TagGroups...)
 }
 
-type ErrMutationCheckFailed struct {
-	PQL        string
-	UpperLimit string
-	LowerLimit string
-	UserMsg    string
-	Err        error
-}
-
-func (e ErrMutationCheckFailed) Error() string {
-	return fmt.Sprintf("failed to check mutation for (%s) outside [%s,%s]: %v,", e.PQL, e.LowerLimit, e.UpperLimit, e.Err)
-}
-
-func (e ErrMutationCheckFailed) Msg() string {
-	return fmt.Sprintf("指标突变查询失败 (%s), %s", e.PQL, e.UserMsg)
-}
-
 type ErrAlertImpactNoMatchedService struct {
 	TagGroup  TagGroup
 	TagValues []string

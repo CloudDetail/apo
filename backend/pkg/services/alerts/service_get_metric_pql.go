@@ -9,7 +9,7 @@ import (
 )
 
 func (s *service) GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error) {
-	alertMetrics, err := s.dbRepo.ListQuickAlertRuleMetric(ctx.LANG())
+	alertMetrics, err := s.dbRepo.ListQuickAlertRuleMetric(ctx)
 	if err != nil {
 		return nil, err
 	}

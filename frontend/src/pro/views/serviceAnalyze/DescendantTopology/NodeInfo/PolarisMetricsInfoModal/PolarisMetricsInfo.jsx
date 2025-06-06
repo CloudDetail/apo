@@ -154,7 +154,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
           <Table dataSource={dataSource} columns={columns} pagination={false} className="mt-1" />
           <div className="flex items-center mt-4">
             <div className="flex items-center w-9/12">
-              <p> {t(`${i18nKey}.costTime`)}</p>
+              <span> {t(`${i18nKey}.costTime`)}</span>
               <Select
                 defaultValue={defaultSelected}
                 style={{ width: '30%' }}
@@ -163,7 +163,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
               />
             </div>
             <div className="flex items-center">
-              <Button onClick={handlePolarisDetails} disabled={!selectedErrorType}>
+              <Button onClick={handlePolarisDetails} type="primary" disabled={!selectedErrorType}>
                 {t(`${i18nKey}.clickToView`)}
               </Button>
             </div>

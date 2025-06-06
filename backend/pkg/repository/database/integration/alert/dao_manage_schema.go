@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
@@ -18,7 +19,7 @@ var (
 	AllowSchema = regexp.MustCompile("^[a-zA-Z0-9_-]{1,40}$")
 )
 
-func (repo *subRepo) CreateSchema(schema string, columns []string) error {
+func (repo *subRepo) CreateSchema(ctx core.Context, schema string, columns []string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -41,16 +42,16 @@ func (repo *subRepo) CreateSchema(schema string, columns []string) error {
 		return err
 	}
 
-	return repo.db.Exec(validSql).Error
+	return repo.GetContextDB(ctx).Exec(validSql).Error
 }
 
-func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string, error) {
+func (repo *subRepo) GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error) {
 	if !AllowSchema.MatchString(schema) {
 		return nil, nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
 
-	rows, err := repo.db.Table(schema).Rows()
+	rows, err := repo.GetContextDB(ctx).Table(schema).Rows()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,10 +94,10 @@ func (repo *subRepo) GetSchemaData(schema string) ([]string, map[int64][]string,
 }
 
 // Delete schema and related alertRules
-func (repo *subRepo) DeleteSchema(schema string) error {
+func (repo *subRepo) DeleteSchema(ctx core.Context, schema string) error {
 	var enrichRules []alert.AlertEnrichRule
 
-	err := repo.db.Find(&enrichRules, "schema = ?", schema).Error
+	err := repo.GetContextDB(ctx).Find(&enrichRules, "schema = ?", schema).Error
 	if err != nil {
 		return err
 	}
@@ -106,23 +107,23 @@ func (repo *subRepo) DeleteSchema(schema string) error {
 		ruleIds = append(ruleIds, enrichRule.EnrichRuleID)
 	}
 
-	err = repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
+	err = repo.GetContextDB(ctx).Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
 	if err != nil {
 		return err
 	}
 
 	schema = SchemaPrefix + schema
 
-	return repo.db.Migrator().DropTable(schema)
+	return repo.GetContextDB(ctx).Migrator().DropTable(schema)
 }
 
-func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
+func (repo *subRepo) ListSchemaColumns(ctx core.Context, schema string) ([]string, error) {
 	if !AllowSchema.MatchString(schema) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 	schema = SchemaPrefix + schema
 
-	rows, err := repo.db.Table(schema).Rows()
+	rows, err := repo.GetContextDB(ctx).Table(schema).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +141,7 @@ func (repo *subRepo) ListSchemaColumns(schema string) ([]string, error) {
 	return append(columns[:idIdx], columns[idIdx+1:]...), nil
 }
 
-func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[int][]string) error {
+func (repo *subRepo) UpdateSchemaData(ctx core.Context, schema string, columns []string, rows map[int][]string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
@@ -156,7 +157,7 @@ func (repo *subRepo) UpdateSchemaData(schema string, columns []string, rows map[
 		}
 		args = append(args, idx)
 
-		err = repo.db.Exec(updateTemp, args...).Error
+		err = repo.GetContextDB(ctx).Exec(updateTemp, args...).Error
 		if err != nil {
 			return err
 		}
@@ -180,8 +181,8 @@ func buildUpdateSchema(schema string, columns []string) (string, error) {
 	return updateTemp, nil
 }
 
-func (repo *subRepo) ListSchema() ([]string, error) {
-	tables, err := repo.db.Migrator().GetTables()
+func (repo *subRepo) ListSchema(ctx core.Context) ([]string, error) {
+	tables, err := repo.GetContextDB(ctx).Migrator().GetTables()
 	if err != nil {
 		return nil, err
 	}
@@ -196,13 +197,13 @@ func (repo *subRepo) ListSchema() ([]string, error) {
 	return schemas, nil
 }
 
-func (repo *subRepo) ClearSchemaData(schema string) error {
+func (repo *subRepo) ClearSchemaData(ctx core.Context, schema string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 
 	schema = SchemaPrefix + schema
-	return repo.clearSchemaData(schema)
+	return repo.clearSchemaData(ctx, schema)
 }
 
 func EscapeString(input string) string {
@@ -256,20 +257,20 @@ func buildInsertSchema(schema string, columns []string, fullRows [][]string) (st
 	return sql, params
 }
 
-func (repo *subRepo) InsertSchemaData(schema string, columns []string, fullRows [][]string) error {
+func (repo *subRepo) InsertSchemaData(ctx core.Context, schema string, columns []string, fullRows [][]string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 	sql, params := buildInsertSchema(schema, columns, fullRows)
 
-	return repo.db.Raw(sql, params...).Error
+	return repo.GetContextDB(ctx).Raw(sql, params...).Error
 }
 
-func (repo *subRepo) clearSchemaData(schema string) error {
+func (repo *subRepo) clearSchemaData(ctx core.Context, schema string) error {
 	if !AllowSchema.MatchString(schema) {
 		return alert.ErrNotAllowSchema{Table: schema}
 	}
 	sql := "TRUNCATE TABLE " + schema + ";"
 
-	return repo.db.Exec(sql).Error
+	return repo.GetContextDB(ctx).Exec(sql).Error
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -11,7 +12,7 @@ import (
 )
 
 // GetDescendantAnormal 查询入口节点的下游告警情况
-func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventRequest) (*response.GetDescendantAnormalEventResponse, error) {
+func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescendantAnormalEventRequest) (*response.GetDescendantAnormalEventResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
@@ -23,14 +24,16 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 	}
 
 	// 先查询入口节点的下游节点
-	nodes, err := s.chRepo.ListDescendantNodes(&request.GetDescendantMetricsRequest{
-		StartTime:     req.StartTime,
-		EndTime:       req.EndTime,
-		Service:       req.Service,
-		Endpoint:      req.Endpoint,
-		EntryService:  req.EntryService,
-		EntryEndpoint: req.EntryEndpoint,
-	})
+	nodes, err := s.chRepo.ListDescendantNodes(
+		ctx,
+		&request.GetDescendantMetricsRequest{
+			StartTime:     req.StartTime,
+			EndTime:       req.EndTime,
+			Service:       req.Service,
+			Endpoint:      req.Endpoint,
+			EntryService:  req.EntryService,
+			EntryEndpoint: req.EntryEndpoint,
+		})
 	if err != nil {
 		return &response.GetDescendantAnormalEventResponse{}, err
 	}
@@ -55,14 +58,14 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 		tmpServiceSet[node.Service] = struct{}{}
 
 		// 忽略URL查询Instance
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, node.Service, "")
+		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, node.Service, "")
 		if err != nil {
 			continue
 		}
 		instances = append(instances, instanceList.GetInstances()...)
 
 		// 查询服务下游的数据库服务
-		dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, node.Service, node.Endpoint)
+		dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, node.Service, node.Endpoint)
 		if err != nil {
 			continue
 		}
@@ -71,7 +74,7 @@ func (s *service) GetDescendantAnormal(req *request.GetDescendantAnormalEventReq
 	}
 
 	// 通过下游节点查询告警事件
-	events, count, err := s.chRepo.GetAlertEventsByInstanceAndEndpoints(startTime, endTime,
+	events, count, err := s.chRepo.GetAlertEventsByInstanceAndEndpoints(ctx, startTime, endTime,
 		request.AlertFilter{Status: "firing", WithMutation: true, EndpointKeys: endpointList},
 		&model.RelatedInstances{
 			SIs: instances,

@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useMemo } from 'react';
-import { Menu, Layout, Card, Typography } from 'antd';
+import { Menu, Layout, Card, Typography, theme } from 'antd';
 import { TeamOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import LoadingSpinner from 'src/core/components/Spinner';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,8 @@ function MenuManagePage() {
     handleSavePermissions
   } = useMenuPermission();
   const { t } = useTranslation('core/menuManage');
+  const { useToken } = theme
+  const { token } = useToken()
 
   const menuItems = useMemo(() => {
     return roleList.map((role) => ({
@@ -51,12 +53,12 @@ function MenuManagePage() {
                 height: '100%', padding: '0px', paddingBlockStart: '2px'
               },
               header: {
-                backgroundColor: '#1d1d1d',
+                backgroundColor: token.colorBgContainer,
               }
             }}
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
-                <TeamOutlined className="mr-2 text-blue-500" />
+                <TeamOutlined className="mr-2 text-[var(--ant-color-primary)]" />
                 {t('index.roleList')}
               </Typography.Title>
             }
@@ -80,12 +82,12 @@ function MenuManagePage() {
                 padding: '0px', paddingBlockStart: '2px'
               },
               header: {
-                backgroundColor: '#1d1d1d',
+                backgroundColor: token.colorBgContainer,
               }
             }}
             title={
               <Typography.Title level={5} className="mb-0 flex items-center">
-                <SafetyCertificateOutlined className="mr-2 text-blue-500" />
+                <SafetyCertificateOutlined className="mr-2 text-[var(--ant-color-primary)]" />
                 {selectedRole ? `${t('index.menuPermissionSetting')} - ${selectedRole.roleName}` : t('index.selectRole')}
               </Typography.Title>
             }
@@ -101,7 +103,7 @@ function MenuManagePage() {
                 actionStyle={{ paddingInlineEnd: '32px', justifyContent: 'flex-end' }}
               />
             ) : (
-              <div className="text-center text-gray-500 py-8">
+              <div className="text-center text-[var(--ant-color-text-secondary)] py-8">
                 {t('index.selectRole')}
               </div>
             )}

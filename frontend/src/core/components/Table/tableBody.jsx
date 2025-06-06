@@ -22,7 +22,6 @@ function TableBody(props) {
   }
   return (
     <tbody
-      className="bg-[#141414]"
       style={{
         maxHeight: scrollY ? scrollY : 'auto',
         overflowY: scrollY ? 'scroll' : 'auto',

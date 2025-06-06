@@ -4,13 +4,14 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error) {
-	serviceInstances, err := s.promRepo.GetInstanceList(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+func (s *service) GetErrorInstance(ctx core.Context, req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error) {
+	serviceInstances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +19,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 	// Traverses the service instance and queries the corresponding log alarm data.
 	instanceList := make([]*response.ErrorInstance, 0)
 	for _, instance := range serviceInstances.GetInstances() {
-		logs, err := s.promRepo.QueryLogCountByInstanceId(instance, req.StartTime, req.EndTime, req.Step)
+		logs, err := s.promRepo.QueryLogCountByInstanceId(ctx, instance, req.StartTime, req.EndTime, req.Step)
 		if err != nil {
 			return nil, err
 		}
@@ -34,7 +35,7 @@ func (s *service) GetErrorInstance(req *request.GetErrorInstanceRequest) (*respo
 	}
 
 	// Get error propagation link
-	propagations, err := s.chRepo.ListErrorPropagation(req)
+	propagations, err := s.chRepo.ListErrorPropagation(ctx, req)
 	if err != nil {
 		return nil, err
 	}

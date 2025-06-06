@@ -11,6 +11,8 @@ import { useTranslation } from 'react-i18next'
 
 export default function DataGroupTabs({ children }) {
   const { t } = useTranslation('core/dataGroup')
+  //@ts-ignore
+  const headerHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-head-height)' : 'var(--ee-app-head-height)';
   const { dataGroupList } = useUserContext()
   const navigate = useNavigate()
   const getTabItems = () => {
@@ -18,7 +20,7 @@ export default function DataGroupTabs({ children }) {
       label: dataGroup.groupName,
       key: dataGroup.groupId,
       closable: false,
-      children: children(dataGroup.groupId, 'calc(100vh - 200px)'),
+      children: children(dataGroup.groupId, `calc(100vh - ${headerHeight} - var(--service-page-tab-list-height))`),
     }))
   }
   return (

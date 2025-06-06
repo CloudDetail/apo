@@ -21,9 +21,9 @@ import streamFetch from '../util/streamFetch'
 import { anormalTypes } from '../constants'
 import PolarisPng from 'src/pro/assets/9-1.png'
 import PolarisPngEn from 'src/pro/assets/en/9-1.png'
-import { showToast } from 'src/core/utils/toast'
 import GlossaryTable from 'src/core/components/PolarisMetrics/GlossaryTable'
 import i18next, { t } from 'i18next'
+import { notify } from 'src/core/utils/notify'
 const i18nKey = 'pro/chatAI:'
 const currentLang = i18next.language
 const imageMap = {
@@ -159,17 +159,17 @@ export const ChatAIProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }
   const analysisNode = async (type) => {
     if (type?.length === 0) {
-      showToast({
-        title: t(`${i18nKey}emptyDataType`),
-        color: 'danger',
+      notify({
+        message: t(`${i18nKey}emptyDataType`),
+        type: 'error',
       })
       return
     }
 
     if (!selectedSuspectedNode?.service) {
-      showToast({
-        title: t(`${i18nKey}selectRootCauseNode`),
-        color: 'danger',
+      notify({
+        message: t(`${i18nKey}selectRootCauseNode`),
+        type: 'error',
       })
       return
     }

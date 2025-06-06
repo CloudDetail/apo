@@ -4,6 +4,7 @@
 package role
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -12,12 +13,12 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	RoleOperation(req *request.RoleOperationRequest) error
-	GetRoles() (response.GetRoleResponse, error)
-	GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
-	CreateRole(req *request.CreateRoleRequest) error
-	UpdateRole(req *request.UpdateRoleRequest) error
-	DeleteRole(req *request.DeleteRoleRequest) error
+	RoleOperation(ctx core.Context, req *request.RoleOperationRequest) error
+	GetRoles(ctx core.Context) (response.GetRoleResponse, error)
+	GetUserRole(ctx core.Context, req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error)
+	CreateRole(ctx core.Context, req *request.CreateRoleRequest) error
+	UpdateRole(ctx core.Context, req *request.UpdateRoleRequest) error
+	DeleteRole(ctx core.Context, req *request.DeleteRoleRequest) error
 }
 
 type service struct {

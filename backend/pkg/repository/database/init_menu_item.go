@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -30,6 +31,7 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "alertsNotify", Order: 29}, RouterKey: "/alerts/notify"},
 	{MenuItem: MenuItem{Key: "alertEvents", Order: 31}, RouterKey: "/alerts/events"},
 	{MenuItem: MenuItem{Key: "healthy", Order: 32}, RouterKey: "/healthy-service"},
+	{MenuItem: MenuItem{Key: "alertEventDetail", Order: 32}, RouterKey: "/alerts/events/detail/:alertID/:eventID"},
 	{MenuItem: MenuItem{Key: "integration", Order: 33}},
 	{MenuItem: MenuItem{Key: "dataIntegration", Order: 35}, RouterKey: "/integration/data"},
 	{MenuItem: MenuItem{Key: "alertsIntegration", Order: 37}, RouterKey: "/integration/alerts"},
@@ -43,10 +45,9 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "role", Order: 52}, RouterKey: "/system/role-manage"},
 }
 
-func (repo *daoRepo) initMenuItems() error {
-	
+func (repo *daoRepo) initMenuItems(ctx core.Context) error {
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		// Menu item might include item which not support to existing
 		// but the mapping between item and feature will be deleted
 		// because once a menu was deleted, the feature should also be deleted.

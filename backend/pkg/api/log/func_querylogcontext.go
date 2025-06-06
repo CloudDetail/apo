@@ -26,19 +26,19 @@ func (h *handler) QueryLogContext() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LogQueryContextRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		resp, err := h.logService.QueryLogContext(req)
+		resp, err := h.logService.QueryLogContext(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.QueryLogContextError,
-				c.ErrMessage(code.QueryLogContextError)).WithError(err),
+				err,
 			)
 			return
 		}

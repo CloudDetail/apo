@@ -10,7 +10,7 @@ import {
   getLogOtherTableInfoApi,
   getLogOtherTableListApi,
 } from 'core/api/logs'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
@@ -57,9 +57,9 @@ const ConfigTableModal = ({ modalVisible, closeModal }) => {
 
   function addOtherTable(params) {
     addLogOtherTableApi(params).then((res) => {
-      showToast({
-        title: t('configTableModal.configSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('configTableModal.configSuccessToast'),
+        type: 'success',
       })
 
       getLogTableInfo()

@@ -7,12 +7,13 @@ import (
 	"log"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error) {
+func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error) {
 	step := time.Duration(req.Step * 1000)
 	filters := make([]string, 0, 4)
 	filters = append(filters, prometheus.ServiceRegexPQLFilter)
@@ -20,7 +21,7 @@ func (s *service) GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (
 	filters = append(filters, prometheus.ContentKeyRegexPQLFilter)
 	filters = append(filters, prometheus.RegexMultipleValue(req.EndpointList...))
 	serviceDetails := make(map[string]map[string]response.RedCharts)
-	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgLatencyWithFilters,
 		req.StartTime,
 		req.EndTime,
@@ -34,7 +35,7 @@ func (s *service) GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (
 
 	mergeResult(latencyRes, serviceDetails, "latency")
 
-	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgErrorRateWithFilters,
 		req.StartTime,
 		req.EndTime,
@@ -49,7 +50,7 @@ func (s *service) GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (
 		log.Println("get instance range data error: ", err)
 	}
 
-	tpsRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(
+	tpsRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
 		prometheus.PQLAvgTPSWithFilters,
 		req.StartTime,
 		req.EndTime,
@@ -67,34 +68,34 @@ func (s *service) GetServiceREDCharts(req *request.GetServiceREDChartsRequest) (
 }
 
 func mergeResult(results []prometheus.MetricResult, serviceDetails map[string]map[string]response.RedCharts, metricType string) {
-    for _, result := range results {
-        svc, contentKey := result.Metric.SvcName, result.Metric.ContentKey
-        contents, ok := serviceDetails[svc]
-        if !ok {
-            contents = make(map[string]response.RedCharts)
-            serviceDetails[svc] = contents
-        }
+	for _, result := range results {
+		svc, contentKey := result.Metric.SvcName, result.Metric.ContentKey
+		contents, ok := serviceDetails[svc]
+		if !ok {
+			contents = make(map[string]response.RedCharts)
+			serviceDetails[svc] = contents
+		}
 
-        redCharts := contents[contentKey]
+		redCharts := contents[contentKey]
 
-        switch metricType {
-        case "latency":
-            for i := range result.Values {
-                result.Values[i].Value /= 1e3
-            }
-            redCharts.Latency = DataToChart(result.Values)
-        case "errorRate":
-            for i := range result.Values {
-                result.Values[i].Value *= 100
-            }
-            redCharts.ErrorRate = DataToChart(result.Values)
-        case "rps":
-            for i := range result.Values {
-                result.Values[i].Value *= 60
-            }
-            redCharts.RPS = DataToChart(result.Values)
-        }
+		switch metricType {
+		case "latency":
+			for i := range result.Values {
+				result.Values[i].Value /= 1e3
+			}
+			redCharts.Latency = DataToChart(result.Values)
+		case "errorRate":
+			for i := range result.Values {
+				result.Values[i].Value *= 100
+			}
+			redCharts.ErrorRate = DataToChart(result.Values)
+		case "rps":
+			for i := range result.Values {
+				result.Values[i].Value *= 60
+			}
+			redCharts.RPS = DataToChart(result.Values)
+		}
 
-        contents[contentKey] = redCharts
-    }
+		contents[contentKey] = redCharts
+	}
 }

@@ -25,20 +25,20 @@ func (h *handler) CreateSchema() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.CreateSchemaRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CreateSchemaFailed,
-				c.ErrMessage(code.CreateSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.inputService.CreateSchema(req)
+		err := h.inputService.CreateSchema(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.CreateSchemaFailed,
-				c.ErrMessage(code.CreateSchemaFailed)).WithError(err),
+				err,
 			)
 			return
 		}

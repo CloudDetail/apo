@@ -215,4 +215,10 @@ var enText = map[string]string{
 	LicenseCheckError:             "Failed to check license",
 	LicenseExpired:                "License has expired",
 	NoLicenseError:                "No local license detected, please upload your license",
+
+	GetAlertSlienceError:    "Failed to get AlertSlience",
+	ListAlertSlienceError:   "Failed to list AlertSlience",
+	SetAlertSlienceError:    "Failed to set alertSlience",
+	RemoveAlertSlienceError: "Failed to remove alertSlience",
+	MarkAlertResolvedError:  "Failed to mark alertResourved",
 }

@@ -33,10 +33,10 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceMoreUrlListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -50,12 +50,12 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 		//step := time.Minute
 		serviceName := req.ServiceName
 		var res []response.ServiceDetail
-		data, err := h.serviceoverview.GetServiceMoreUrl(startTime, endTime, step, serviceName, req.SortRule)
+		data, err := h.serviceoverview.GetServiceMoreUrl(c, startTime, endTime, step, serviceName, req.SortRule)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceMoreUrlListError,
-				c.ErrMessage(code.GetServiceMoreUrlListError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -29,23 +28,23 @@ func (h *handler) GetMonitorStatus() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetMonitorStatusRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
 
-		resp, err := h.serviceoverview.GetMonitorStatus(startTime, endTime)
+		resp, err := h.serviceoverview.GetMonitorStatus(c, startTime, endTime)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetMonitorStatusError,
-				c.ErrMessage(code.GetMonitorStatusError),
-			))
+				err,
+			)
 		}
 		c.Payload(resp)
 	}

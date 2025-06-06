@@ -1,13 +1,14 @@
 package alertanalyze
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetDefectDetectRuleList(req *request.GetDefectDetectRuleListRequest) (*response.GetDefectDetectRuleListResponse, error) {
-	list, totalCount, err := s.chRepo.GetDistinctDetectExecList(req)
+func (s *service) GetDefectDetectRuleList(ctx core.Context, req *request.GetDefectDetectRuleListRequest) (*response.GetDefectDetectRuleListResponse, error) {
+	list, totalCount, err := s.chRepo.GetDistinctDetectExecList(ctx, req)
 	if err != nil {
 		return nil, err
 	}

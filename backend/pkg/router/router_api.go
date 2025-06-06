@@ -25,8 +25,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
 	"github.com/CloudDetail/apo/backend/pkg/api/user"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/util"
-	"github.com/CloudDetail/metadata/source"
 )
 
 func setApiRouter(r *resource) {
@@ -117,8 +115,9 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.alertWorkflow)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.receivers)
 		alertApi.POST("/event/list", alertHandler.AlertEventList())
+		alertApi.POST("/event/detail", alertHandler.AlertEventDetail())
 		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
@@ -153,6 +152,12 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/detect/mutation/add", alertanalyzeHandler.AddDefectsDetect())
 		alertApi.GET("/detect/mutation/exec-list", alertanalyzeHandler.GetDefectDetectExecList())
 		alertApi.GET("/detect/mutation/rule-list", alertanalyzeHandler.GetDefectDetectRuleList())
+		alertApi.GET("/slient", alertHandler.GetAlertSlienceConfig())
+		alertApi.GET("/slient/list", alertHandler.ListAlertSlienceConfig())
+		alertApi.DELETE("/slient", alertHandler.RemoveAlertSlienceConfig())
+		alertApi.POST("/slient", alertHandler.SetAlertSlienceConfig())
+
+		alertApi.POST("/resolve", alertHandler.MarkAlertResolvedManually())
 	}
 
 	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
@@ -265,7 +270,7 @@ func setApiRouter(r *resource) {
 
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
-		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.alertWorkflow)
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.dify)
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
@@ -324,14 +329,5 @@ func setApiRouter(r *resource) {
 		licenseApi.POST("/upload", licenseHandler.UploadLicense())
 		licenseApi.GET("", licenseHandler.GetLicenses())
 		licenseApi.GET("/current", licenseHandler.GetCurrentLicense())
-	}
-}
-
-func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
-	api := srv.Mux.Group("/metadata")
-	for path, handler := range meta.Handlers() {
-		// This set of APIs supports both GET and POST
-		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
-		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}
 }

@@ -8,10 +8,10 @@ import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { useChatAIContext } from 'src/pro/contexts/ChatAIContext'
 import React from 'react'
-import { showToast } from 'src/core/utils/toast'
 import ErrorDataTypeExample from './ErrorDataTypeExample'
 import styles from './index.module.scss'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 const i18nKey = 'causeConfirm'
 const DataViewConfirmStep = () => {
   const { t } = useTranslation('pro/chatAI')
@@ -67,8 +67,9 @@ const DataViewConfirmStep = () => {
       } else {
         deleteCustomDataView(targetItem.label)
           .then((res) => {
-            showToast({
-              title: t(`${i18nKey}.deleteSuccess`, { name: targetItem.label }),
+            notify({
+              message: t(`${i18nKey}.deleteSuccess`, { name: targetItem.label }),
+              type: 'success',
             }),
               getCustomItems()
           })

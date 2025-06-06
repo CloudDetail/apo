@@ -4,6 +4,7 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
@@ -21,8 +22,8 @@ var validPages = []InsertPage{
 	{Url: "grafana/d/0D6dTg3Zk/mysql-e68c87-e6a087", Type: "grafana"},
 }
 
-func (repo *daoRepo) initInsertPages() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+func (repo *daoRepo) initInsertPages(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingPage, toAdd []InsertPage
 		var toDelete []int
 		var toUpdate []InsertPage

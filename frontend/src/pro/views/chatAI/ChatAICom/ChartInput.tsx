@@ -34,26 +34,26 @@ const ChartInput = ({ addChart, loading, closeStream }: ChartInputProps) => {
   }
   return (
     <div className="w-full  min-h-[80px] rounded-lg  text-center left-0 flex items-center justify-center ">
-      <div className="w-2/3 min-h-[40px] bg-[#2f2f2f] rounded-lg  flex items-center justify-center mb-3 overflow-hidden">
+      <div className="w-2/3 min-h-[40px] bg-[var(--chat-ask-bg)] rounded-lg  flex items-center justify-center mb-3 overflow-hidden">
         <ConfigProvider
           theme={{
             components: {
               Input: {
                 activeBorderColor: 'none',
-                activeBg: '#2f2f2f',
-                hoverBorderColor: '#2f2f2f',
-                hoverBg: '#2f2f2f',
-                activeShadow: '#2f2f2f',
+                activeBg: 'var(--chat-ask-bg)',
+                hoverBorderColor: 'var(--chat-ask-bg)',
+                hoverBg: 'var(--chat-ask-bg)',
+                activeShadow: 'var(--chat-ask-bg)',
               },
             },
           }}
         >
           <Input.TextArea
             ref={textareaRef}
-            className=" bg-[#2f2f2f] pr-10 "
+            className=" bg-[var(--chat-ask-bg)] pr-10 "
             variant="filled"
             autoSize={{ minRows: 1, maxRows: 5 }}
-            style={{ background: '#2f2f2f ' }}
+            style={{ background: 'var(--chat-ask-bg) ' }}
             placeholder={t('pro/chatAI:chatWithAI')}
             value={question}
             onChange={(e) => changeQueationValue(e)}

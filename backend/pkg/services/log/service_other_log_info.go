@@ -4,13 +4,14 @@
 package log
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) OtherTableInfo(req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error) {
+func (s *service) OtherTableInfo(ctx core.Context, req *request.OtherTableInfoRequest) (*response.OtherTableInfoResponse, error) {
 	res := &response.OtherTableInfoResponse{}
-	rows, err := s.chRepo.OtherLogTableInfo(req)
+	rows, err := s.chRepo.OtherLogTableInfo(ctx, req)
 	if err != nil {
 		res.Err = err.Error()
 		return res, nil

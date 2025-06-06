@@ -18,6 +18,7 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { Card, Tooltip, Button } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { useDebouncedCallback } from 'use-debounce';
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 function FaultSiteTrace() {
   const { t } = useTranslation('oss/trace')
@@ -239,7 +240,7 @@ function FaultSiteTrace() {
         const { value } = props
 
         return (
-          <a className=" cursor-pointer text-blue-500" onClick={() => openJeagerModal(value)}>
+          <a className=" cursor-pointer text-[var(--ant-color-link)]" onClick={() => openJeagerModal(value)}>
             {value}
           </a>
         )
@@ -412,24 +413,25 @@ function FaultSiteTrace() {
     }
   }, [tracePageList, column])
   return (
-    <Card
-      className="h-full flex flex-col overflow-hidden text-xs px-2"
-      style={{ height: 'calc(100vh - 120px)' }}
-      styles={{ body: { padding: '8px', height: '100%' } }}
-    >
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="text-xs flex flex-col h-full overflow-hidden">
-        <div className="flex-shrink-0 flex-grow">
+
+      <BasicCard.Header>
+        <div className="w-full flex-shrink-0 flex-grow mb-2">
           <LogsTraceFilter type="trace" />
         </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
         {traceTableMock && <BasicTable {...tableProps} />}
-      </div>
+      </BasicCard.Table>
+
       <EndpointTableModal
         traceId={selectTraceId}
         visible={modalVisible}
         closeModal={() => setModalVisible(false)}
       />
-    </Card>
+    </BasicCard>
     // </PropsProvider>
   )
 }

@@ -4,10 +4,8 @@
 package data
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -29,28 +27,21 @@ func (h *handler) UpdateDataGroup() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateDataGroupRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.dataService.UpdateDataGroup(req)
+		err := h.dataService.UpdateDataGroup(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UpdateDataGroupError,
-					c.ErrMessage(code.UpdateDataGroupError)).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UpdateDataGroupError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

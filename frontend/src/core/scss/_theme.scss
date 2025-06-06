@@ -60,25 +60,33 @@ body {
   min-height: calc(3rem + 1px); // stylelint-disable-line function-disallowed-list
 }
 
-@if $enable-dark-mode {
-  @include color-mode(dark) {
-    body {
-      background-color: var(--cui-dark-bg-subtle);
-      font-size: 0.75rem; /* 12px */
-      // line-height: 1rem; /* 16px */
-      .card {
-        box-shadow: rgba(62, 72, 83, 0.3) 0px 8px 24px;
-      }
-    }
-    .header {
-      --cui-header-bg: var(--cui-dark-bg-subtle);
-    }
+// @if $enable-dark-mode {
+//   @include color-mode(dark) {
+//     body {
+//       background-color: var(--cui-dark-bg-subtle);
+//       font-size: 0.75rem; /* 12px */
+//       // line-height: 1rem; /* 16px */
+//       .card {
+//         box-shadow: rgba(62, 72, 83, 0.3) 0px 8px 24px;
+//       }
+//     }
+//     .header {
+//       --cui-header-bg: var(--cui-dark-bg-subtle);
+//     }
 
-    .footer {
-      --cui-footer-bg: var(--cui-body-bg);
-    }
-  }
-}
+//     .footer {
+//       --cui-footer-bg: var(--cui-body-bg);
+//     }
+//   }
+//   @include color-mode(light) {
+//     body {
+//       background-color: rgba(255, 255, 255, 1); // 或你自定义的颜色
+//     }
+//     .card {
+//       box-shadow: rgba(255, 255, 255, 1) 0px 4px 12px;
+//     }
+//   }
+// }
 
 // [data-coreui-theme=dark] {
 //   --cui-body-bg:rgba(12, 11, 16, 1)

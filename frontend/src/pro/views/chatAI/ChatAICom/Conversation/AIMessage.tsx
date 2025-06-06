@@ -1,6 +1,6 @@
 import { marked } from 'marked'
 import { RiRobot2Line } from 'react-icons/ri'
-import 'github-markdown-css/github-markdown-dark.css'
+import './github-markdown.css'
 import { CSpinner } from '@coreui/react'
 import { Button } from 'antd'
 import React from 'react'
@@ -47,8 +47,8 @@ const AIMessage: React.FC<AIMessageProps> = ({
           {message?.length > 0 && (
             <div
               dangerouslySetInnerHTML={renderMarkdown()}
-              className={`p-3 markdown-body rounded-2xl ${loading ? styles.loading : ''}`}
-              style={{ fontSize: 14, background: '#3e3f4c', minHeight: 0 }}
+              className={`p-3 markdown-body rounded-2xl  ${loading ? styles.loading : ''}`}
+              style={{ fontSize: 14, background: 'var(--chat-ai-bg)', minHeight: 0 }}
             />
           )}
           {reportUrlList?.map((reportUrl, index) => (

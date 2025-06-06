@@ -22,12 +22,13 @@ import (
 func (h *handler) GetNamespaceList() core.HandlerFunc {
 	return func(c core.Context) {
 
-		resp, err := h.k8sService.GetNamespaceList()
+		resp, err := h.k8sService.GetNamespaceList(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.K8sGetResourceError,
-				c.ErrMessage(code.K8sGetResourceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

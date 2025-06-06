@@ -25,20 +25,20 @@ func (h *handler) UpdateSchemaData() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.UpdateSchemaDataRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.inputService.UpdateSchemaData(req)
+		err := h.inputService.UpdateSchemaData(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.UpdateSchemaDataFailed,
-				c.ErrMessage(code.UpdateSchemaDataFailed)).WithError(err),
+				err,
 			)
 			return
 		}

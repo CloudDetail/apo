@@ -7,18 +7,19 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceRoute(req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
+func (s *service) GetServiceRoute(ctx core.Context, req *request.GetServiceRouteRequest) (*response.GetServiceRouteResponse, error) {
 	serviceNames := []string{}
 	now := time.Now()
 	currentTimestamp := now.UnixMicro()
 	sevenDaysAgo := now.AddDate(0, 0, -7)
 	sevenDaysAgoTimestamp := sevenDaysAgo.UnixMicro()
 	for _, service := range req.Service {
-		instances, err := s.promRepo.GetActiveInstanceList(sevenDaysAgoTimestamp, currentTimestamp, []string{service})
+		instances, err := s.promRepo.GetActiveInstanceList(ctx, sevenDaysAgoTimestamp, currentTimestamp, []string{service})
 		if err != nil {
 			return nil, err
 		}

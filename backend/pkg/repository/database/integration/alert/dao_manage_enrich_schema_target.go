@@ -3,16 +3,19 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+)
 
-func (repo *subRepo) CheckSchemaIsUsed(schema string) ([]string, error) {
+func (repo *subRepo) CheckSchemaIsUsed(ctx core.Context, schema string) ([]string, error) {
 	var alertSource = make([]string, 0)
 	if !AllowSchema.MatchString(schema) {
 		return nil, alert.ErrNotAllowSchema{Table: schema}
 	}
 
 	sql := `SELECT source_name,schema FROM alert_enrich_rules st left join alert_sources s on s.source_id = st.source_id WHERE st.schema = ?`
-	rows, err := repo.db.Raw(sql, schema).Rows()
+	rows, err := repo.GetContextDB(ctx).Raw(sql, schema).Rows()
 	if err != nil {
 		return nil, err
 	}
@@ -34,26 +37,26 @@ func (repo *subRepo) CheckSchemaIsUsed(schema string) ([]string, error) {
 	return alertSource, err
 }
 
-func (repo *subRepo) AddAlertEnrichSchemaTarget(enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error {
+func (repo *subRepo) AddAlertEnrichSchemaTarget(ctx core.Context, enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error {
 	if len(enrichSchemaTarget) == 0 {
 		return nil
 	}
-	return repo.db.Create(&enrichSchemaTarget).Error
+	return repo.GetContextDB(ctx).Create(&enrichSchemaTarget).Error
 }
 
-func (repo *subRepo) GetAlertEnrichSchemaTarget(sourceId string) ([]alert.AlertEnrichSchemaTarget, error) {
+func (repo *subRepo) GetAlertEnrichSchemaTarget(ctx core.Context, sourceId string) ([]alert.AlertEnrichSchemaTarget, error) {
 	var enrichSchemaTarget []alert.AlertEnrichSchemaTarget
-	err := repo.db.Find(&enrichSchemaTarget, "source_id = ?", sourceId).Error
+	err := repo.GetContextDB(ctx).Find(&enrichSchemaTarget, "source_id = ?", sourceId).Error
 	return enrichSchemaTarget, err
 }
 
-func (repo *subRepo) DeleteAlertEnrichSchemaTarget(ruleIds []string) error {
+func (repo *subRepo) DeleteAlertEnrichSchemaTarget(ctx core.Context, ruleIds []string) error {
 	if len(ruleIds) == 0 {
 		return nil
 	}
-	return repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
+	return repo.GetContextDB(ctx).Delete(&alert.AlertEnrichSchemaTarget{}, "enrich_rule_id in ?", ruleIds).Error
 }
 
-func (repo *subRepo) DeleteAlertEnrichSchemaTargetBySourceId(sourceId string) error {
-	return repo.db.Delete(&alert.AlertEnrichSchemaTarget{}, "source_id = ?", sourceId).Error
+func (repo *subRepo) DeleteAlertEnrichSchemaTargetBySourceId(ctx core.Context, sourceId string) error {
+	return repo.GetContextDB(ctx).Delete(&alert.AlertEnrichSchemaTarget{}, "source_id = ?", sourceId).Error
 }

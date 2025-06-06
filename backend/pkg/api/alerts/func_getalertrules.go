@@ -26,10 +26,10 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -37,7 +37,7 @@ func (h *handler) GetAlertRules() core.HandlerFunc {
 			req.AlertRuleFilter.Groups = append(req.AlertRuleFilter.Groups, req.AlertRuleFilter.Group)
 		}
 
-		resp := h.alertService.GetAlertRules(req)
+		resp := h.alertService.GetAlertRules(c, req)
 		c.Payload(resp)
 	}
 }

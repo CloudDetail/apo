@@ -8,16 +8,17 @@ import (
 	"errors"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
+func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*response.LogQueryResponse, error) {
 	// calculate offset, if offset > 10000, calculate from histogram
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
-		logcharts, _ := s.GetLogChart(req)
+		logcharts, _ := s.GetLogChart(ctx, req)
 		var count = 0
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)
@@ -30,7 +31,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	}
 
 	req.PageNum = offset
-	logs, sql, err := s.chRepo.QueryAllLogs(req)
+	logs, sql, err := s.chRepo.QueryAllLogs(ctx, req)
 	res := &response.LogQueryResponse{Query: sql}
 	if err != nil {
 		res.Err = err.Error()
@@ -38,7 +39,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 	}
 
 	// query column name and type
-	rows, err := s.chRepo.OtherLogTableInfo(&request.OtherTableInfoRequest{
+	rows, err := s.chRepo.OtherLogTableInfo(ctx, &request.OtherTableInfoRequest{
 		DataBase:  req.DataBase,
 		TableName: req.TableName,
 	})
@@ -62,7 +63,7 @@ func (s *service) QueryLog(req *request.LogQueryRequest) (*response.LogQueryResp
 			Table:    req.TableName,
 		}
 		// query log field json
-		s.dbRepo.OperateLogTableInfo(model, database.QUERY)
+		s.dbRepo.OperateLogTableInfo(ctx, model, database.QUERY)
 		var fields []request.Field
 		_ = json.Unmarshal([]byte(model.Fields), &fields)
 

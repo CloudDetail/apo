@@ -4,10 +4,10 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	prometheus_model "github.com/prometheus/common/model"
 )
@@ -18,7 +18,7 @@ const (
 )
 
 // GetDescendantDatabase query database which the service connected to.
-func (repo *promRepo) GetDescendantDatabase(startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error) {
+func (repo *promRepo) GetDescendantDatabase(ctx core.Context, startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error) {
 	vec := VecFromS2E(startTime, endTime)
 
 	pql := fmt.Sprintf(
@@ -27,7 +27,7 @@ func (repo *promRepo) GetDescendantDatabase(startTime int64, endTime int64, serv
 		vec, vec,
 	)
 
-	res, _, err := repo.GetApi().Query(context.Background(), pql, time.UnixMicro(endTime))
+	res, _, err := repo.GetApi().Query(ctx.GetContext(), pql, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err
 	}

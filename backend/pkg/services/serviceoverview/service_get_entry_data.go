@@ -7,12 +7,13 @@ import (
 	"sort"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 // Fetch the endpoint overview information based on the input endpoints.
-func (s *service) GetAlertRelatedEntryData(
+func (s *service) GetAlertRelatedEntryData(ctx core.Context,
 	startTime, endTime time.Time, namespaces []string,
 	entry []response.AlertRelatedEntry,
 ) (res []response.AlertRelatedEntry, err error) {
@@ -20,8 +21,8 @@ func (s *service) GetAlertRelatedEntryData(
 
 	var filteredEntryIdx []int
 	for i := 0; i < len(filters); i++ {
-		endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters[i])
-		_ = s.EndpointsNamespaceInfo(endpointsMap, startTime, endTime, filters[i])
+		endpointsMap := s.EndpointsREDMetric(ctx, startTime, endTime, filters[i])
+		_ = s.EndpointsNamespaceInfo(ctx, endpointsMap, startTime, endTime, filters[i])
 
 		for k, metrics := range endpointsMap.MetricGroupMap {
 			idx, find := entryMap[k]

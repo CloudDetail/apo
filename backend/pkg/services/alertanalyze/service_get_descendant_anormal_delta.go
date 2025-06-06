@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -20,11 +21,11 @@ const (
 )
 
 // SearchAnormalDeltaByEntry 基于入口查询异常事件
-func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
+func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDescendantAnormalDeltaEventRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
-	descendants, err := s.chRepo.ListDescendantNodes(&request.GetDescendantMetricsRequest{
+	descendants, err := s.chRepo.ListDescendantNodes(ctx, &request.GetDescendantMetricsRequest{
 		StartTime: req.StartTime,
 		EndTime:   req.EndTime,
 		Service:   req.Service,
@@ -54,7 +55,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 		}
 		instanceMap.AddEndpoint(endpoint)
 		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 		if err != nil {
 			continue
 		}
@@ -67,7 +68,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 		// 查询服务下游的数据库服务
 		if isSelect(selectedEvents, "database") {
-			dbInstance, err := s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 			if err != nil {
 				continue
 			}
@@ -81,7 +82,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 	// 获取匹配的error
 	if len(selectedEvents) == 0 || isSelect(selectedEvents, errorEvent) {
-		propagations, err := s.chRepo.ListErrorByEntryService(req.StartTime, req.EndTime, req.Service, req.Endpoint, endpoints)
+		propagations, err := s.chRepo.ListErrorByEntryService(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint, endpoints)
 		if err == nil {
 			errorEvents := s.parseErrorEvent(propagations, instanceMap, req.Step)
 			// 存放error事件
@@ -93,7 +94,7 @@ func (s *service) SearchAnormalDeltaByEntry(req *request.GetDescendantAnormalDel
 
 	if len(selectedEvents) == 0 || isSelect(selectedEvents, alertEvent) {
 		// 获取匹配的alertEvents
-		alertEvents, err := s.chRepo.GetAlertEventsWithKeyByInstanceAndEndpoints(
+		alertEvents, err := s.chRepo.GetAlertEventsWithKeyByInstanceAndEndpoints(ctx,
 			startTime, endTime,
 			// 同时获取Firing和Resolved故障
 			request.AlertFilter{WithMutation: true, EndpointKeys: endpoints},

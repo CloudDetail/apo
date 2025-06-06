@@ -47,11 +47,11 @@ export const RoleTable: React.FC<RoleTableProps> = ({
         <>
           <Button
             onClick={() => onEdit(record)}
-            icon={<MdOutlineModeEdit className="text-blue-400 hover:text-blue-400" />}
+            icon={<MdOutlineModeEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             type="text"
             className="mr-2"
           >
-            <span className="text-blue-400 hover:text-blue-400">
+            <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
               {t('index.edit')}
             </span>
           </Button>

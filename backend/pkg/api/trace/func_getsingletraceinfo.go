@@ -27,20 +27,21 @@ func (h *handler) GetSingleTraceInfo() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetSingleTraceInfoRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.traceService.GetSingleTraceID(req)
+		resp, err := h.traceService.GetSingleTraceID(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetSingleTraceError,
-				c.ErrMessage(code.GetSingleTraceError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

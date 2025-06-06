@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Table, Pagination, Button, Modal, Input, Popconfirm } from 'antd'
-import { getDetectionRecordApi, addMutationRule } from 'src/pro/api/alertAnalyze'
+import { Table, Pagination, Button, Modal, Input } from 'antd'
+import { getDetectionRecordApi } from 'src/pro/api/alertAnalyze'
 import { convertTime } from 'src/core/utils/time'
-import { showToast } from 'src/core/utils/toast'
-import '../index.css'
 import { useTranslation } from 'react-i18next'
 
 const i18nKey = 'detectionRecord'
@@ -155,7 +153,7 @@ export default function DetectionRecord({ refresh }) {
             loading={loadingStatus}
           />
         </div>
-        <div className="absolute bottom-0 right-0 w-full p-2 bg-[#1F1F1F] flex justify-end">
+        <div className="absolute bottom-0 right-0 w-full p-2 flex justify-end">
           <Pagination
             defaultCurrent={1}
             total={total}
@@ -165,7 +163,7 @@ export default function DetectionRecord({ refresh }) {
             onChange={pageChange}
             showQuickJumper={true}
             showSizeChanger={true}
-            style={{ zIndex: 10, backgroundColor: '#1F1F1F' }}
+            style={{ zIndex: 10 }}
           />
         </div>
       </div>

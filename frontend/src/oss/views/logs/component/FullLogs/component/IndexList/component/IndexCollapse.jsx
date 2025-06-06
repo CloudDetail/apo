@@ -64,11 +64,11 @@ const IndexCollapse = (props) => {
             </div>
             {!displayFields[`${tableInfo.tableName}_${tableInfo.type}`].includes(item) ?
               <Button size='small' className='border-0' onClick={(e) => addToDisplayField(e, item)}>
-                <IoMdEyeOff size={16} className='opacity-40 text-[#999999]' />
+                <IoMdEyeOff size={16} className='opacity-40' />
               </Button>
               :
               <Button size='small' className='border-0' onClick={(e) => removeToDisplayField(e, item)}>
-                <IoEye size={16} className='opacity-60 text-[#ffffff]' />
+                <IoEye size={16} className='opacity-60' />
               </Button>
             }
           </div>),

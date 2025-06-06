@@ -14,6 +14,7 @@ import { RoleTable } from './components/RoleTable';
 import { AddRoleModal } from './components/AddRoleModal';
 import { EditRoleModal } from './components/EditRoleModal';
 import { PermissionModal } from './components/PermissionModal';
+import { BasicCard } from 'src/core/components/Card/BasicCard';
 
 export default function RoleManage() {
   const { t } = useTranslation('core/roleManage');
@@ -69,49 +70,49 @@ export default function RoleManage() {
   };
 
   return (
-    <>
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="p-0">
-        <Flex justify='flex-end'>
+
+      <BasicCard.Header>
+        <div className="w-full flex justify-end mt-2">
           <Button
             type="primary"
             onClick={() => setAddModalVisible(true)}
             icon={<TeamOutlined />}
-            className="mb-4"
           >
             {t('index.addRole')}
           </Button>
-        </Flex>
+        </div>
+      </BasicCard.Header>
 
+      <BasicCard.Table>
         <RoleTable
           roleList={roleList}
           onEdit={showEditModal}
           onDelete={removeRole}
           onConfigPermission={showPermissionModal}
         />
+      </BasicCard.Table>
 
-        <AddRoleModal
-          visible={addModalVisible}
-          loading={addLoading}
-          onCancel={() => setAddModalVisible(false)}
-          onFinish={handleAddRole}
-        />
-
-        <EditRoleModal
-          visible={editModalVisible}
-          loading={updateLoading}
-          selectedRole={selectedRole}
-          onCancel={() => setEditModalVisible(false)}
-          onFinish={handleEditRole}
-        />
-
-        <PermissionModal
-          visible={permissionModalVisible}
-          selectedRole={selectedRole}
-          onCancel={() => setPermissionModalVisible(false)}
-          onSave={handleSavePermissions}
-        />
-      </div>
-    </>
+      <AddRoleModal
+        visible={addModalVisible}
+        loading={addLoading}
+        onCancel={() => setAddModalVisible(false)}
+        onFinish={handleAddRole}
+      />
+      <EditRoleModal
+        visible={editModalVisible}
+        loading={updateLoading}
+        selectedRole={selectedRole}
+        onCancel={() => setEditModalVisible(false)}
+        onFinish={handleEditRole}
+      />
+      <PermissionModal
+        visible={permissionModalVisible}
+        selectedRole={selectedRole}
+        onCancel={() => setPermissionModalVisible(false)}
+        onSave={handleSavePermissions}
+      />
+    </BasicCard>
   );
 }

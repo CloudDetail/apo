@@ -4,8 +4,9 @@
 package clickhouse
 
 import (
-	"context"
 	"log"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const (
@@ -49,10 +50,10 @@ const (
 
 // CountK8sEvents count the number of K8s events
 // Time in microseconds
-func (ch *chRepo) CountK8sEvents(startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
+func (ch *chRepo) CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
 	result := make([]K8sEventsCount, 0)
 	// Execute query
-	rows, err := ch.conn.Query(context.Background(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
+	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
 	if err != nil {
 		return result, err
 	}

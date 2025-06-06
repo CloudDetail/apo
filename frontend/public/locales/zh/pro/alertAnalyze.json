@@ -95,5 +95,7 @@
     "alertDetail": "告警详情",
     "alertListFor": "{{service}} ({{endpoint}})告警列表",
     "close": "关闭"
-  }
+  },
+  "expand": "详情",
+  "collapse": "收起"
 }

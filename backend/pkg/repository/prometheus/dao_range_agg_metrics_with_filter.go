@@ -6,9 +6,11 @@ package prometheus
 import (
 	"fmt"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-func (repo *promRepo) QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
+func (repo *promRepo) QueryRangeAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
 	if len(filterKVs)%2 != 0 {
 		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
 	}
@@ -21,12 +23,13 @@ func (repo *promRepo) QueryRangeAggMetricsWithFilter(pqlTemplate AggPQLWithFilte
 	vector := VecFromDuration(step)
 	pql := pqlTemplate(vector, string(granularity), filters)
 	return repo.QueryRangeData(
+		ctx,
 		time.UnixMicro(startTime), time.UnixMicro(endTime),
 		pql,
 		step)
 }
 
-func (repo *promRepo) QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error) {
+func (repo *promRepo) QueryInstanceLogRangeData(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error) {
 	if len(podFilterKVs)%2 != 0 {
 		return nil, fmt.Errorf("size of podFilterKVs is not even: %d", len(podFilterKVs))
 	}
@@ -48,5 +51,5 @@ func (repo *promRepo) QueryInstanceLogRangeData(pqlTemplate AggPQLWithFilters, s
 	podPql := pqlTemplate(vector, string(granularity), podFilters)
 	vmPql := pqlTemplate(vector, string(granularity), vmFilters)
 	pql := `(` + podPql + `) or (` + vmPql + `)`
-	return repo.QueryRangeData(time.UnixMicro(startTime), time.UnixMicro(endTime), pql, step)
+	return repo.QueryRangeData(ctx, time.UnixMicro(startTime), time.UnixMicro(endTime), pql, step)
 }

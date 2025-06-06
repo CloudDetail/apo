@@ -6,8 +6,6 @@ package log
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -29,27 +27,27 @@ func (h *handler) GetServiceRoute() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceRouteRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, "")
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, "")
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetServiceRouteResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceRouteResponse{
 				RouteRule: map[string]string{},
 			})
 			return
 		}
-		resp, err := h.logService.GetServiceRoute(req)
+		resp, err := h.logService.GetServiceRoute(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceRouteError,
-				c.ErrMessage(code.GetServiceRouteError)+err.Error()).WithError(err),
+				err,
 			)
 			return
 		}

@@ -10,7 +10,7 @@ import { addTeamApi, updateTeamApi } from 'src/core/api/team'
 import { getUserListApi } from 'src/core/api/user'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { SaveTeamParams } from 'src/core/types/team'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 interface InfoModalProps {
   open: boolean
   closeModal: any
@@ -36,9 +36,9 @@ const InfoModal = ({ open, closeModal, teamInfo, refresh }: InfoModalProps) => {
   const addTeam = (params: SaveTeamParams) => {
     addTeamApi(params)
       .then((res) => {
-        showToast({
-          color: 'success',
-          title: ct('addSuccess'),
+        notify({
+          type: 'success',
+          message: ct('addSuccess'),
         })
         refresh()
       })
@@ -49,9 +49,9 @@ const InfoModal = ({ open, closeModal, teamInfo, refresh }: InfoModalProps) => {
   const updateTeam = (params: SaveTeamParams) => {
     updateTeamApi(params)
       .then((res) => {
-        showToast({
-          color: 'success',
-          title: ct('saveSuccess'),
+        notify({
+          type: 'success',
+          message: ct('saveSuccess'),
         })
         refresh()
       })

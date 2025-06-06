@@ -27,20 +27,21 @@ func (h *handler) GetDescendantAnormal() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAnormalEventRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertanalyzeService.GetDescendantAnormal(req)
+		resp, err := h.alertanalyzeService.GetDescendantAnormal(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AlertAnalyzeDescendantAnormalEventError,
-				c.ErrMessage(code.AlertAnalyzeDescendantAnormalEventError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

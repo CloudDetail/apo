@@ -85,7 +85,7 @@ const CauseConfirm = () => {
           {/* 左侧卡片 */}
           <div className="h-full w-full">
             <Card
-              className="h-full bg-[#212631]"
+              className="h-full bg-[var(--ant-color-bg-layout)]"
               styles={{
                 body: {
                   height: '100%',
@@ -107,7 +107,7 @@ const CauseConfirm = () => {
           {/* 右侧卡片 */}
           <div className="h-full overflow-hidden">
             <Card
-              className="h-full bg-[#212631]"
+              className="h-full bg-[var(--ant-color-bg-layout)]"
               styles={{
                 body: {
                   height: '100%',

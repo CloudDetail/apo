@@ -4,10 +4,10 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prometheus_model "github.com/prometheus/common/model"
@@ -23,7 +23,7 @@ const (
 )
 
 // Query the log alarm distribution curve
-func (repo *promRepo) QueryLogCountByInstanceId(instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error) {
+func (repo *promRepo) QueryLogCountByInstanceId(ctx core.Context, instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error) {
 	tRange := v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
@@ -50,7 +50,7 @@ func (repo *promRepo) QueryLogCountByInstanceId(instance *model.ServiceInstance,
 		key, queryCondition, queryStep,
 		key, queryCondition, queryStep,
 	)
-	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
 	if err != nil {
 		return nil, err
 	}

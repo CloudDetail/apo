@@ -5,13 +5,15 @@ package serviceoverview
 
 import (
 	"fmt"
-	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/logger"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"github.com/magiconair/properties/assert"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/logger"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/magiconair/properties/assert"
 )
 
 func init() {
@@ -35,7 +37,7 @@ func TestMultiNamespaceEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -54,7 +56,7 @@ func TestContainsSvcEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -73,7 +75,7 @@ func TestNamespaceEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -92,7 +94,7 @@ func TestServiceEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -111,7 +113,7 @@ func TestMultiServiceEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -130,7 +132,7 @@ func TestEndpointEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -149,7 +151,7 @@ func TestMultiEndpointEscape(t *testing.T) {
 
 	filterStr := filter.ExtractFilterStr()
 	query := fmt.Sprintf("last_over_time(test_metric{%s\"%s\"}[24h])", filterStr[0], filterStr[1])
-	data, err := repo.QueryData(time.Now(), query)
+	data, err := repo.QueryData(core.EmptyCtx(), time.Now(), query)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

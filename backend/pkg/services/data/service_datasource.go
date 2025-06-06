@@ -4,12 +4,12 @@
 package data
 
 import (
-	"errors"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -18,7 +18,7 @@ import (
 
 var subTime = -time.Hour * 24 * 15
 
-func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err error) {
+func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceResponse, err error) {
 	var (
 		endTime        = time.Now()
 		startTime      = endTime.Add(subTime)
@@ -26,12 +26,12 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 		startTimeMicro = startTime.UnixMicro()
 	)
 
-	servicesMap, err := s.promRepo.GetServiceWithNamespace(startTimeMicro, endTimeMicro, nil)
+	servicesMap, err := s.promRepo.GetServiceWithNamespace(ctx, startTimeMicro, endTimeMicro, nil)
 	if err != nil {
 		return
 	}
 
-	namespaceMap, err := s.promRepo.GetNamespaceWithService(startTimeMicro, endTimeMicro)
+	namespaceMap, err := s.promRepo.GetNamespaceWithService(ctx, startTimeMicro, endTimeMicro)
 	if err != nil {
 		return
 	}
@@ -96,7 +96,7 @@ func (s *service) GetDataSource() (resp response.GetDatasourceResponse, err erro
 	return resp, nil
 }
 
-func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
+func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
 	var (
 		groups       []database.DataGroup
 		err          error
@@ -108,13 +108,13 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 		startTime    = endTime.Add(subTime)
 	)
 	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(req.GroupID, req.Category)
+		groups, err = s.getDataGroup(ctx, req.GroupID, req.Category)
 	} else {
-		groups, err = s.getUserDataGroup(userID, req.Category)
+		groups, err = s.getUserDataGroup(ctx, userID, req.Category)
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(req.Category)
+		defaultGroup, err := s.getDefaultDataGroup(ctx, req.Category)
 		if err != nil {
 			return resp, err
 		}
@@ -134,13 +134,13 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 				}
 				namespaceMap[ds.Datasource] = []string{}
 			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
-				serviceMap[ds.Datasource] = []string{}	
+				serviceMap[ds.Datasource] = []string{}
 			}
 		}
 	}
 
 	for namespace := range namespaceMap {
-		nested, err := s.getNested(namespace, model.DATASOURCE_TYP_NAMESPACE)
+		nested, err := s.getNested(ctx, namespace, model.DATASOURCE_TYP_NAMESPACE)
 		if err != nil {
 			return resp, err
 		}
@@ -153,7 +153,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 	}
 
 	for service := range serviceMap {
-		nested, err := s.getNested(service, model.DATASOURCE_TYP_SERVICE)
+		nested, err := s.getNested(ctx, service, model.DATASOURCE_TYP_SERVICE)
 		if err != nil {
 			return resp, err
 		}
@@ -164,7 +164,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 			namespaceMap[namespace] = append(namespaceMap[namespace], service)
 			filterMap[namespace+service] = struct{}{}
 		}
-		endpoints, err := s.promRepo.GetServiceEndPointList(startTime.UnixMicro(), endTime.UnixMicro(), service)
+		endpoints, err := s.promRepo.GetServiceEndPointList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), service)
 		if err != nil {
 			return resp, err
 		}
@@ -177,7 +177,7 @@ func (s *service) GetGroupDatasource(req *request.GetGroupDatasourceRequest, use
 	return resp, nil
 }
 
-func (s *service) getNested(datasource string, typ string) ([]string, error) {
+func (s *service) getNested(ctx core.Context, datasource string, typ string) ([]string, error) {
 	var (
 		endTime   = time.Now()
 		startTime = endTime.Add(-24 * time.Hour)
@@ -186,26 +186,26 @@ func (s *service) getNested(datasource string, typ string) ([]string, error) {
 	)
 
 	if typ == model.DATASOURCE_TYP_NAMESPACE {
-		nested, err = s.promRepo.GetServiceList(startTime.UnixMicro(), endTime.UnixMicro(), []string{datasource})
+		nested, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), []string{datasource})
 	} else if typ == model.DATASOURCE_TYP_SERVICE {
-		nested, err = s.promRepo.GetServiceNamespace(startTime.UnixMicro(), endTime.UnixMicro(), datasource)
+		nested, err = s.promRepo.GetServiceNamespace(ctx, startTime.UnixMicro(), endTime.UnixMicro(), datasource)
 	}
 
 	return nested, err
 }
 
-func (s *service) getDataGroup(groupID int64, category string) ([]database.DataGroup, error) {
+func (s *service) getDataGroup(ctx core.Context, groupID int64, category string) ([]database.DataGroup, error) {
 	filter := model.DataGroupFilter{
 		ID: groupID,
 	}
 
-	dataGroups, _, err := s.dbRepo.GetDataGroup(filter)
+	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx, filter)
 	if err != nil {
 		return dataGroups, err
 	}
 
 	if len(dataGroups) == 0 {
-		return nil, model.NewErrWithMessage(errors.New("data group does not exits"), code.DataGroupNotExistError)
+		return nil, core.Error(code.DataGroupNotExistError, "data group does not exits")
 	}
 
 	for i, group := range dataGroups {

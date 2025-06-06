@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 type MutationPQLCheck struct {
@@ -30,7 +32,7 @@ func (c *MutationPQLCheck) GetExecutedPQL() string {
 	return pql
 }
 
-func (r *promRepo) ExecutedMutationCheck(c *MutationPQLCheck, startTime, endTime time.Time, step time.Duration) ([]MetricResult, error) {
+func (r *promRepo) ExecutedMutationCheck(ctx core.Context, c *MutationPQLCheck, startTime, endTime time.Time, step time.Duration) ([]MetricResult, error) {
 	pql := c.GetExecutedPQL()
-	return r.QueryRangeData(startTime, endTime, pql, step)
+	return r.QueryRangeData(ctx, startTime, endTime, pql, step)
 }

@@ -1,6 +1,6 @@
-import i18next from 'i18next'
+import i18next, { t } from 'i18next'
+import { notify } from 'src/core/utils/notify'
 import { refreshAccessToken } from 'src/core/utils/request'
-import { showToast } from 'src/core/utils/toast'
 
 const streamFetch = async (url: string, options: any = {}) => {
   const token = localStorage.getItem('token') // 从本地存储获取 token
@@ -25,58 +25,54 @@ const streamFetch = async (url: string, options: any = {}) => {
         case 400:
           if (errorData.code === 'A0004') {
             window.location.href = '/#/login'
-            showToast({
-              title: '未登录,请先登录',
-              color: 'danger',
+            notify({
+              message: t('core/login:request.notLoggedIn'),
+              type: 'error',
             })
           } else if (errorData.code === 'A0005') {
             const newToken = await refreshAccessToken()
             if (newToken) {
               localStorage.setItem('token', newToken)
-              return streamFetch(url, options) // 递归调用需返回结果
+              return streamFetch(url, options)
             } else {
               window.location.href = '/#/login'
-              showToast({
-                title: '登录过期,请重新登录',
-                color: 'danger',
+              notify({
+                message: t('core/login:request.loginExpired'),
+                type: 'error',
               })
             }
           } else {
-            showToast({
-              title: errorData.message || '请求错误',
-              color: 'danger',
+            notify({
+              message: errorData.message || t('core/login:request.requestFailed'),
+              type: 'error',
             })
           }
           break
 
         case 401:
           window.location.href = '/#/login'
-          showToast({
-            title: '认证失败，请重新登录',
-            color: 'danger',
+          notify({
+            message: t('core/login:request.notLoggedIn'),
+            type: 'error',
           })
           break
 
         case 403:
-          showToast({
-            title: '拒绝访问',
-            color: 'danger',
+          notify({
+            message: t('core/login:request.accessDenied'),
+            type: 'error',
           })
           break
 
         default:
-          showToast({
-            title: '请求失败',
-            message: errorData.message || '未知错误',
-            color: 'danger',
+          notify({
+            message: errorData.message || t('core/login:request.requestFailed'),
+            type: 'error',
           })
           break
       }
-
-      // throw new Error(`请求失败，状态码：${status}`)
     }
 
-    // 处理成功响应
     return response
   } catch (error) {
     console.error('Fetch 请求出错:', error?.message || error)

@@ -95,5 +95,7 @@
     "alertDetail": "Alert Detail",
     "alertListFor": "Alert List for {{service}} ({{endpoint}})",
     "close": "Close"
-  }
+  },
+  "expand": "Detail",
+  "collapse": "Collapse"
 }

@@ -4,7 +4,6 @@
 package clickhouse
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -104,7 +104,7 @@ const (
 )
 
 // GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
-func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
+func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -129,12 +129,12 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(startTime time.Time, endTime
 	sql := fmt.Sprintf(SQL_GET_GROUP_COUNTS_ALERT_EVENT, groupByInstance, groupByInstance, builder.String())
 
 	var events []model.AlertEventCount
-	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
 // Obtain all alarm events of the instance GetAlarmsEvents
-func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
+func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error) {
 	// Combined generation:
 	//  1. group = 'app' AND svc = svc_name
 	//  2. group = 'container' AND ((namespace,pod) in (...))
@@ -159,11 +159,11 @@ func (ch *chRepo) GetAlertEventsSample(sampleCount int, startTime time.Time, end
 	sql := fmt.Sprintf(SQL_GET_SAMPLE_ALERT_EVENT, builder.String(), sampleCount, byBuilder.String())
 
 	var events []AlertEventSample
-	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
-func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
 	if len(filter.Services) > 0 ||
 		len(filter.Endpoint) > 0 ||
@@ -171,22 +171,22 @@ func (ch *chRepo) GetAlertEvents(startTime time.Time, endTime time.Time, filter 
 		whereInstance = extractFilter(filter, instances)
 	}
 
-	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
+	return ch.getAlertEventsByWhere(ctx, startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
 // GetAlertEvents 取出时间范围内的输入实例的所有告警事件
 // instances为空时,不返回任何告警
-func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) GetAlertEventsByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error) {
 	whereInstance := extractFilter(filter, instances)
-	return ch.getAlertEventsByWhere(startTime, endTime, filter, whereInstance, sortBy, pageParam)
+	return ch.getAlertEventsByWhere(ctx, startTime, endTime, filter, whereInstance, sortBy, pageParam)
 }
 
-func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error) {
+func (ch *chRepo) GetAlertEventsWithKeyByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error) {
 	whereInstance := extractFilter(filter, instances)
-	return ch.getGroupAlertEvents(startTime, endTime, filter, whereInstance)
+	return ch.getGroupAlertEvents(ctx, startTime, endTime, filter, whereInstance)
 }
 
-func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL) ([]AlertEventWithKey, error) {
+func (ch *chRepo) getGroupAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL) ([]AlertEventWithKey, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		EqualsNotEmpty("source", filter.Source).
@@ -206,11 +206,11 @@ func (ch *chRepo) getGroupAlertEvents(startTime time.Time, endTime time.Time, fi
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_WITH_LABEL_KEY, builder.String(), orderBuilder.String())
 	var events []AlertEventWithKey
-	err := ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
 }
 
-func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
+func (ch *chRepo) getAlertEventsByWhere(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, whereInstance *whereSQL, sortBy string, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	builder := NewQueryBuilder().
 		Between("update_time", startTime.Unix(), endTime.Unix()).
 		NotGreaterThan("end_time", endTime.Unix()).
@@ -224,7 +224,7 @@ func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, 
 
 	var count uint64
 	countSql := buildAlertEventsCountQuery(GET_ALERT_EVENTS_COUNT, builder)
-	err := ch.conn.QueryRow(context.Background(), countSql, builder.values...).Scan(&count)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, builder.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -238,7 +238,7 @@ func (ch *chRepo) getAlertEventsByWhere(startTime time.Time, endTime time.Time, 
 
 	sql := buildGetPagedAlertEventQuery(SQL_GET_PAGED_ALERT_EVENT, builder, orderBuilder)
 	var events []alert.AlertEvent
-	err = ch.conn.Select(context.Background(), &events, sql, builder.values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -256,8 +256,8 @@ func buildAlertEventsCountQuery(baseQuery string, builder *QueryBuilder) string 
 	return countSql
 }
 
-func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.AlertEvent) error {
-	batch, err := ch.conn.PrepareBatch(ctx, `
+func (ch *chRepo) InsertBatchAlertEvents(ctx core.Context, events []*model.AlertEvent) error {
+	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
 		INSERT INTO alert_event (source, id, alert_id, create_time, update_time, end_time, received_time, severity, group,
 		                         name, detail, tags, status)
 		VALUES
@@ -281,7 +281,7 @@ func (ch *chRepo) InsertBatchAlertEvents(ctx context.Context, events []*model.Al
 }
 
 // ReadAlertEvent implement the Read method of the AlertEventDAO interface
-func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.AlertEvent, error) {
+func (ch *chRepo) ReadAlertEvent(ctx core.Context, id uuid.UUID) (*model.AlertEvent, error) {
 	var event model.AlertEvent
 	query := `
 		SELECT source, id, create_time, update_time, end_time, received_time, severity
@@ -289,7 +289,7 @@ func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.Aler
 		FROM alert_event
 		WHERE id = ?
 	`
-	err := ch.conn.QueryRow(ctx, query, id).Scan(
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), query, id).Scan(
 		&event.Source, &event.ID, &event.CreateTime, &event.UpdateTime, &event.EndTime,
 		&event.ReceivedTime, &event.Severity, &event.Group, &event.Name, &event.Detail, &event.Tags, &event.Status,
 	)
@@ -302,7 +302,7 @@ func (ch *chRepo) ReadAlertEvent(ctx context.Context, id uuid.UUID) (*model.Aler
 	return &event, nil
 }
 
-func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
+func (ch *chRepo) GetAlertEventById(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
 	builder := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		Equals("id", eventId)
@@ -311,7 +311,7 @@ func (ch *chRepo) GetAlertEventById(eventId string, startTime, endTime time.Time
 
 	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT, builder.String(), byLimit.String())
 	var event []model.AlertEvent
-	err := ch.conn.Select(context.Background(), &event, sql, builder.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &event, sql, builder.values...)
 	if err != nil {
 		return nil, err
 	} else if len(event) == 0 {

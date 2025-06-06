@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -39,31 +38,31 @@ func (h *handler) GetAlertEventsSample() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertEventsSampleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 		if len(req.Service) > 0 {
 			req.Services = append(req.Services, req.Service)
 		}
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetAlertEventsSampleResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetAlertEventsSampleResponse{
 				EventMap: map[string]map[string][]clickhouse.AlertEventSample{},
 				Status:   model.STATUS_NORMAL,
 			})
 			return
 		}
-		resp, err := h.serviceInfoService.GetAlertEventsSample(req)
+		resp, err := h.serviceInfoService.GetAlertEventsSample(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertEventsError,
-				c.ErrMessage(code.GetAlertEventsError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -33,7 +34,7 @@ func getRouteRule(routeMap map[string]string) string {
 
 var fieldsRegexp = regexp.MustCompile(`\?P<(?P<name>\w+)>`)
 
-func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
+func (s *service) AddLogParseRule(ctx core.Context, req *request.AddLogParseRequest) (*response.LogParseResponse, error) {
 	// build the table first
 	logReq := &request.LogTableRequest{
 		TableName: "logs_" + req.ParseName,
@@ -68,7 +69,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 	logReq.Buffer = req.LogTable.Buffer
 	logReq.IsStructured = req.IsStructured
 	logReq.FillerValue()
-	_, err := s.chRepo.CreateLogTable(logReq)
+	_, err := s.chRepo.CreateLogTable(ctx, logReq)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (s *service) AddLogParseRule(req *request.AddLogParseRequest) (*response.Lo
 		ParseRule:    req.ParseRule,
 	}
 
-	err = s.dbRepo.OperateLogTableInfo(&log, database.INSERT)
+	err = s.dbRepo.OperateLogTableInfo(ctx, &log, database.INSERT)
 	if err != nil {
 		return nil, err
 	}

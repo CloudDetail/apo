@@ -8,7 +8,7 @@ import (
 
 // DetectDefectsOptions 提供快速指标模版
 func (s *service) DetectDefectsOptions(ctx core.Context) (*response.GetPredefinedDetectExprResponse, error) {
-	quickMutationMetric, err := s.dbRepo.ListQuickMutationMetric(ctx.LANG())
+	quickMutationMetric, err := s.dbRepo.ListQuickMutationMetric(ctx, ctx.LANG())
 	if err != nil {
 		return nil, err
 	}

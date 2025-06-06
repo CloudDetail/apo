@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import AlertEventTable from './AlertEvent'
-import { Button, Card, Splitter } from 'antd'
+import { Button, Card, Splitter, theme } from 'antd'
 import { PlusCircleFilled, UnorderedListOutlined } from '@ant-design/icons'
 import { useAlertAnalyzeContext } from 'src/pro/contexts/AlertAnalyzeContext'
 import LoadingSpinner from 'src/core/components/Spinner'
@@ -32,6 +32,8 @@ function AlertAnalyzeCom() {
   const onResize = (sizes) => {
     setAlertEventTableHeight(sizes[0])
   }
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <Card
       style={{ position: 'relative' }}
@@ -46,25 +48,20 @@ function AlertAnalyzeCom() {
           {' '}
           <Button
             className="anomaly-button"
-            icon={<UnorderedListOutlined style={{ color: '#5286E8' }} />}
-            color="default"
+            icon={<UnorderedListOutlined />}
+            color="primary"
+            variant="outlined"
             onClick={openRecordModal}
-            style={{
-              color: '#5286E8',
-              borderColor: '#5286E8',
-            }}
             size="small"
           >
             {t('anomalyRecord')}
           </Button>
           <Button
             className="anomaly-button ml-2"
-            icon={<PlusCircleFilled style={{ color: '#5286E8' }} />}
+            icon={<PlusCircleFilled />}
+            color="primary"
+            variant="outlined"
             onClick={openModal}
-            style={{
-              color: '#5286E8',
-              borderColor: '#5286E8',
-            }}
             size="small"
           >
             {t('anomalyConfig')}
@@ -93,7 +90,7 @@ function AlertAnalyzeCom() {
             </ChartsProvider>
           ) : (
             <div className="text-center flex flex-col items-center justify-center w-full h-full">
-              <AiOutlineFundView size={120} color="#1677ff" />
+              <AiOutlineFundView size={120} color={token.colorPrimary} />
               <Button type="primary" size="large" onClick={() => setIsAnalyze(true)}>
                 {t('oneClickAnalyze')}
               </Button>

@@ -1,12 +1,10 @@
 package alertanalyze
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -25,32 +23,22 @@ func (h *handler) AddDefectsDetect() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DetectMutationRequest)
 		if err := c.ShouldBindJSON(req); err != nil || len(req.MutationCheck.CustomMetric) == 0 {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.alertanalyzeService.DetectDefects(req)
+		err := h.alertanalyzeService.DetectDefects(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code)).WithError(err),
-				)
-				return
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.DetectDefectsError,
-					c.ErrMessage(code.DetectDefectsError)).WithError(err),
-				)
-				return
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.DetectDefectsError,
+				err,
+			)
+			return
 		}
 		c.Payload("ok")
 	}

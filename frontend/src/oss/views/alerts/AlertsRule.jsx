@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Input, Popconfirm, Select, Space } from 'antd'
+import { Button, Input, Popconfirm, Select, Space, Tag, theme } from 'antd'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
 import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
-import Tag from 'src/core/components/Tag/Tag'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import CustomCard from 'src/core/components/Card/CustomCard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
+  const { useToken } = theme
+  const { token } = useToken()
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [pageIndex, setPageIndex] = useState(1)
@@ -65,9 +66,9 @@ export default function AlertsRule() {
       alert: rule.alert,
     })
       .then((res) => {
-        showToast({
-          title: t('rule.deleteSuccess'),
-          color: 'success',
+        notify({
+          message: t('rule.deleteSuccess'),
+          type: 'success',
         })
         refreshTable()
       })
@@ -99,7 +100,7 @@ export default function AlertsRule() {
       accessor: 'expr',
       justifyContent: 'left',
       Cell: ({ value }) => {
-        return <span className="text-gray-400">{value}</span>
+        return <span className="text-[var(--ant-color-text)]">{value}</span>
       },
     },
 
@@ -114,7 +115,7 @@ export default function AlertsRule() {
           state = alertStateMap[row.group + '-' + row.alert]
         }
         const tagConfig = getStateTagItem(state)
-        return <Tag type={tagConfig.type}>{tagConfig.context}</Tag>
+        return <Tag color={tagConfig.type}>{tagConfig.context}</Tag>
       },
     },
     {
@@ -128,9 +129,9 @@ export default function AlertsRule() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('rule.edit')}</span>
+              <span style={{ color: token.colorPrimary }}>{t('rule.edit')}</span>
             </Button>
             <Popconfirm
               title={<>{t('rule.confirmDelete', { name: row.alert })}</>}
@@ -260,10 +261,11 @@ export default function AlertsRule() {
     }
   }, [column, data, pageIndex, pageSize, searchAlert, searchGroup])
   return (
-    <CustomCard styleType="alerts">
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center justify-betweeen text-sm ">
-        <Space className="flex-grow">
+
+      <BasicCard.Header>
+        <Space className="flex-grow mb-2">
           <Space className="flex-1">
             <span className="text-nowrap">{t('rule.groupName')}：</span>
             <Select
@@ -294,22 +296,22 @@ export default function AlertsRule() {
           type="primary"
           icon={<MdAdd />}
           onClick={clickAddRule}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 mb-2"
         >
           <span className="text-xs">{t('rule.addAlertRule')}</span>
         </Button>
-      </div>
-      <div className="text-sm flex-1 overflow-auto">
-        <div className="h-full text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-      </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
       <ModifyAlertRuleModal
         modalVisible={modalVisible}
         ruleInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </CustomCard>
+    </BasicCard>
   )
 }

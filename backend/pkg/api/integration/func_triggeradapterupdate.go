@@ -24,14 +24,14 @@ func (h *handler) TriggerAdapterUpdate() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.TriggerAdapterUpdateRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
-		h.integrationService.TriggerAdapterUpdate(req)
+		h.integrationService.TriggerAdapterUpdate(c, req)
 		c.Payload("ok")
 	}
 }

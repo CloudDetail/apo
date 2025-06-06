@@ -8,7 +8,6 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -31,20 +30,20 @@ func (h *handler) GetProcessFlameGraph() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetProcessFlameGraphRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.traceService.GetProcessFlameGraphData(req)
+		resp, err := h.traceService.GetProcessFlameGraphData(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetFlameGraphError,
-				c.ErrMessage(code.GetFlameGraphError)).WithError(err),
+				err,
 			)
 			return
 		}

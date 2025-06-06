@@ -1,71 +1,94 @@
 stages:
-  - triggers
+- triggers
+- buildartifact
 
-variables: 
+variables:
   DOCKER_BUILD_ARGS: ""
   BUILD_ARCH: "amd64"
-  
+
 trigger_backend:
   stage: triggers
   trigger:
     include: backend/.gitlab-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH == "enterprise"'
-      changes:
-      - backend/**/*
+  - if: $CI_COMMIT_BRANCH == "enterprise" && $CI_PIPELINE_SOURCE != "trigger"
+    changes:
+    - backend/**/*
 
 trigger_frontend:
   stage: triggers
-  variables: 
+  variables:
     DOCKER_BUILD_ARGS: $DOCKER_BUILD_ARGS
   trigger:
     include: frontend/.gitlab-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH == "enterprise"'
-      changes:
-      - frontend/**/*
+  - if: $CI_COMMIT_BRANCH == "enterprise" && $CI_PIPELINE_SOURCE != "trigger"
+    changes:
+    - frontend/**/*
 
 manual_trigger_backend:
   stage: triggers
   trigger:
     include: backend/.gitlab-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH != "enterprise" && $BUILD_ARCH == "amd64"'
-      when: manual
-      changes:
-      - backend/**/*
+  - if: '$CI_COMMIT_BRANCH != "enterprise" && $BUILD_ARCH == "amd64"'
+    when: manual
+    changes:
+    - backend/**/*
 
 manual_trigger_frontend:
   stage: triggers
-  variables: 
+  variables:
     DOCKER_BUILD_ARGS: $DOCKER_BUILD_ARGS
   trigger:
     include: frontend/.gitlab-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH != "enterprise" && $BUILD_ARCH == "amd64"'
-      when: manual
-      changes:
-      - frontend/**/*
+  - if: '$CI_COMMIT_BRANCH != "enterprise" && $BUILD_ARCH == "amd64"'
+    when: manual
+    changes:
+    - frontend/**/*
 
 manual_trigger_backend_arm:
   stage: triggers
   trigger:
     include: backend/.gitlab-arm-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH && $BUILD_ARCH == "arm"'
-      when: manual
-      changes:
-      - backend/**/*
-
+  - if: '$CI_COMMIT_BRANCH && $BUILD_ARCH == "arm"'
+    when: manual
+    changes:
+    - backend/**/*
 
 manual_trigger_frontend_arm:
   stage: triggers
-  variables: 
+  variables:
     DOCKER_BUILD_ARGS: $DOCKER_BUILD_ARGS
   trigger:
     include: frontend/.gitlab-arm-ci.yml
   rules:
-    - if: '$CI_COMMIT_BRANCH && $BUILD_ARCH == "arm"'
-      when: manual
-      changes:
-      - frontend/**/*
+  - if: '$CI_COMMIT_BRANCH && $BUILD_ARCH == "arm"'
+    when: manual
+    changes:
+    - frontend/**/*
+
+trigger_release:
+  stage: triggers
+  # 触发规则改成外部触发器触发，并接收"TAG"变量
+  trigger:
+    include:
+    - local: backend/.gitlab-ci.yml
+    - local: frontend/.gitlab-ci.yml
+    strategy: depend
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG
+
+build_artifact:
+  stage: buildartifact
+  rules:
+  - if: $CI_PIPELINE_SOURCE == "trigger" && $TAG
+    when: on_success
+  script:
+  - echo "开始构建版本 $TAG"
+  release:
+    name: "$TAG"
+    tag_name: "$TAG"
+    description: "test"

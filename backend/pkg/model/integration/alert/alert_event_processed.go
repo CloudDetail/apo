@@ -11,6 +11,13 @@ import (
 type AEventWithWRecord struct {
 	AlertEvent
 
+	LastStatus string `json:"lastStatus,omitempty" ch:"last_status"`
+
+	WorkflowDetail
+	NotifyDetail
+}
+
+type WorkflowDetail struct {
 	WorkflowRunID string `json:"workflowRunId" ch:"workflow_run_id"`
 
 	WorkflowID   string `json:"workflowId" ch:"workflow_id"`
@@ -20,11 +27,20 @@ type AEventWithWRecord struct {
 	Output      string    `json:"output" ch:"output"`
 	RoundedTime time.Time `json:"-" ch:"rounded_time"`
 	Importance  uint8     `json:"-" ch:"importance"`
+	LastCheckAt time.Time `json:"lastCheckAt" ch:"last_check_at"`
+
+	Duration string `json:"duration" ch:"-"`
 
 	WorkflowParams WorkflowParams `json:"workflowParams"`
 
 	// Deprecated: use [Validity] instead, will remove after 1.7.x
 	IsValid string `json:"isValid" ch:"is_valid"`
+}
+
+type NotifyDetail struct {
+	SendSuccess string    `json:"notifySuccess" ch:"notify_success"`
+	SendFailed  string    `json:"notifyFailed" ch:"notify_failed"`
+	NotifyAt    time.Time `json:"notifyAt" ch:"notify_at"`
 }
 
 type WorkflowParams struct {
@@ -45,4 +61,10 @@ type AlertAnalyzeWorkflowParams struct {
 	Endpoint  string `json:"endpoint,omitempty"`
 	Pid       string `json:"pid,omitempty"`
 	AlertName string `json:"alertName,omitempty"`
+
+	Detail      string `json:"detail,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
+
+	Tags    map[string]string `json:"tags,omitempty"`
+	RawTags map[string]any    `json:"raw_tags,omitempty"`
 }

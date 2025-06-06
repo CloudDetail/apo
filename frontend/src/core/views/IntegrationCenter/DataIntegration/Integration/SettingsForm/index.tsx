@@ -3,34 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  Button,
-  Card,
-  ConfigProvider,
-  Divider,
-  Form,
-  Input,
-  Segmented,
-  Space,
-  Typography,
-} from 'antd'
-import { t } from 'i18next'
+import { Button, Card, Form, Input, Segmented, Space } from 'antd'
 import { useTranslation } from 'react-i18next'
 import TraceFormItem from './TraceFormItem'
 import { useEffect } from 'react'
-import {
-  createDataIntegrationApi,
-  getClusterIntegrationInfoApi,
-  getIntegrationConfigApi,
-  updateDataIntegrationApi,
-} from 'src/core/api/integration'
+import { createDataIntegrationApi, updateDataIntegrationApi } from 'src/core/api/integration'
 import MetricsFormItem from './MetricsFormItem'
 import LogsFormItem from './LogsFormItem'
 import styles from './index.module.scss'
-import { showToast } from 'src/core/utils/toast'
 import APOCollectorFormItem from './APOCollectorFormItem'
 import { useSearchParams } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
+import { notify } from 'src/core/utils/notify'
 
 const SettingsForm = ({ formInitValues }) => {
   const { t } = useTranslation('core/dataIntegration')
@@ -52,9 +36,9 @@ const SettingsForm = ({ formInitValues }) => {
     delete params?.traceAPI
     let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
     api(params).then((res) => {
-      showToast({
-        color: 'success',
-        title: t('saveSettingsSuccess'),
+      notify({
+        type: 'success',
+        message: t('saveSettingsSuccess'),
       })
       const newParams = new URLSearchParams(searchParams)
       newParams.set('clusterId', params.id || res?.id)
@@ -132,7 +116,9 @@ const SettingsForm = ({ formInitValues }) => {
             title={
               <Space>
                 {t('metricsIntegration')}
-                <span className="text-xs text-gray-400">{t('metricsHint')}</span>
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('metricsHint')}
+                </span>
               </Space>
             }
             size="small"
@@ -145,7 +131,9 @@ const SettingsForm = ({ formInitValues }) => {
             title={
               <Space>
                 {t('logsIntegration')}
-                <span className="text-xs text-gray-400">{t('logHint')}</span>
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('logHint')}
+                </span>
               </Space>
             }
             size="small"

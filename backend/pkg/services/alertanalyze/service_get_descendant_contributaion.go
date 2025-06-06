@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -12,9 +13,9 @@ import (
 )
 
 // GetDescendantContribution 基于入口获取下游的故障贡献度排序
-func (s *service) GetDescendantContribution(req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error) {
+func (s *service) GetDescendantContribution(ctx core.Context, req *request.GetDescendantAlertContributaionRequest) (resp *response.GetDescendantAlertContributationResponse, err error) {
 	// 查询所有子孙节点
-	nodes, err := s.chRepo.ListDescendantNodes(&req.GetDescendantMetricsRequest)
+	nodes, err := s.chRepo.ListDescendantNodes(ctx, &req.GetDescendantMetricsRequest)
 	if err != nil {
 		return nil, err
 	}

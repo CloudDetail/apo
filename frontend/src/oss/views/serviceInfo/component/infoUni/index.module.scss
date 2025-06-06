@@ -7,13 +7,16 @@
   background: transparent;
   :global {
     .ant-collapse-item-active .ant-collapse-header {
-      background-color: #285587;
+      background-color: var(--active-collapse-bg);
       // background-color: #28334e;
       //   background-color: #3A5A89;
       border-radius: 8px 8px 0 0;
+      span {
+        color: var(--ant-color-text-light-solid);
+      }
     }
     .ant-collapse-item {
-      background-color: #1a1d22;
+      background-color: var(--collapse-bg);
       border-radius: 8px !important;
       //   background-color: #3A5A89;
       .ant-collapse-item-active {
@@ -21,7 +24,7 @@
         box-shadow: none;
       }
       .ant-collapse-header {
-        border-left: 10px solid #285587;
+        border-left: 10px solid var(--active-collapse-bg);
         border-radius: 8px !important;
         display: flex;
         align-items: center;

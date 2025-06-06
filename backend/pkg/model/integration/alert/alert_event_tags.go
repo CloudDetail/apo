@@ -104,6 +104,13 @@ func (a *Alert) GetContainerTag() string {
 	return a.GetStringTagWithRaw("container")
 }
 
+func (a *Alert) GetContainerIDTag() string {
+	if containerID, find := a.EnrichTags["container_id"]; find && len(containerID) > 0 {
+		return containerID
+	}
+	return a.GetStringTagWithRaw("container_id")
+}
+
 func (a *Alert) GetInfraNodeTag() string {
 	//Compatible with older versions
 	if node, find := a.EnrichTags["instance_name"]; find && len(node) > 0 {

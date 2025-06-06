@@ -251,6 +251,13 @@ const (
 	LicenseCheckError             = "B1606"
 	LicenseExpired                = "B1607"
 	NoLicenseError                = "B1608"
+
+	// alert notify
+	GetAlertSlienceError    = "B1701"
+	ListAlertSlienceError   = "B1702"
+	SetAlertSlienceError    = "B1703"
+	RemoveAlertSlienceError = "B1704"
+	MarkAlertResolvedError  = "B1705"
 )
 
 func Text(lang string, code string) string {

@@ -1,4 +1,4 @@
-import { Image } from 'antd'
+import { Image, theme } from 'antd'
 import i18next, { t } from 'i18next'
 import mock1Png from 'src/pro/assets/1.png'
 import mock2Png from 'src/pro/assets/2.png'
@@ -57,15 +57,17 @@ const pngLagnguageMap = {
   },
 }
 const language = i18next.language
-const wrapperClassName = 'w-full overflow-hidden border p-2 rounded bg-[#151920] mb-3 text-xs'
+const wrapperClassName =
+  'w-full overflow-hidden border p-2 rounded  mb-3 text-xs bg-[var(--ant-color-bg-layout)]'
 const ServiceAnalyze = () => {
-  const { loading,selectedNodeInfo } = useServiceAnalyzeContext()
+  const { loading, selectedNodeInfo } = useServiceAnalyzeContext()
   const { t } = useTranslation('pro/serviceAnalyze')
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <div className="relative">
       <LoadingSpinner loading={loading} />
-      <div className={wrapperClassName}>
+      <div className={wrapperClassName} style={{ background: token.colorBgLayout }}>
         <div className="flex flex-row h-[200px]">
           <div className="flex-grow flex-shrink w-2/3">
             <TimeLineChart />
@@ -90,7 +92,7 @@ const ServiceAnalyze = () => {
         <TopologyCom />
       </div>
       <div className={`h-[400px] ${wrapperClassName}`}>
-        <div className='text-sm mb-1'>
+        <div className="text-sm mb-1">
           {t(`node.alertList`)} (
           {selectedNodeInfo?.endpoint ? (
             <span>{t(`node.selected`)}</span>

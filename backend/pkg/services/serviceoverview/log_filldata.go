@@ -9,13 +9,14 @@ import (
 
 	"github.com/pkg/errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByPod(ctx core.Context, Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogPromql(duration, prometheus.AvgLog, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
+	LogRateRes, err := s.promRepo.QueryData(ctx, endTime, queryLog)
 	for _, result := range LogRateRes {
 		podName := result.Metric.POD
 		if podName == "" {
@@ -32,14 +33,14 @@ func (s *service) AvgLogByPod(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByPod(ctx core.Context, Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLogNow := prometheus.QueryLogPromql(duration, prometheus.LogNow, pods)
-	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	logNow, err := s.promRepo.QueryData(ctx, endTime, queryLogNow)
 	if err != nil {
 		return Instances, err
 	}
 	queryLogYesterday := prometheus.QueryLogPromql(duration, prometheus.LogYesterday, pods)
-	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	logYesterday, err := s.promRepo.QueryData(ctx, endTime, queryLogYesterday)
 	if err != nil {
 		return Instances, err
 	}
@@ -76,9 +77,9 @@ func (s *service) LogDODByPod(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByPod(ctx core.Context, Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLogLastWeek := prometheus.QueryLogPromql(duration, prometheus.LogLastWeek, pods)
-	logLastWeek, err := s.promRepo.QueryData(endTime, queryLogLastWeek)
+	logLastWeek, err := s.promRepo.QueryData(ctx, endTime, queryLogLastWeek)
 	if err != nil {
 		return Instances, err
 	}
@@ -102,7 +103,7 @@ func (s *service) LogWOWByPod(Instances *[]Instance, pods []string, endTime time
 }
 
 // Query the graph
-func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByPod(ctx core.Context, Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -116,7 +117,7 @@ func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startT
 	}
 	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		podName := result.Metric.POD
 		if podName == "" {
@@ -133,10 +134,10 @@ func (s *service) LogRangeDataByPod(Instances *[]Instance, pods []string, startT
 	return Instances, err
 }
 
-func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByContainerId(ctx core.Context, Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
 	var LogRateRes []prometheus.MetricResult
 	queryLog := prometheus.QueryLogByContainerIdPromql(duration, prometheus.AvgLog, containerIds)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
+	LogRateRes, err := s.promRepo.QueryData(ctx, endTime, queryLog)
 	for _, result := range LogRateRes {
 		containerId := result.Metric.ContainerID
 		if containerId == "" {
@@ -153,14 +154,14 @@ func (s *service) AvgLogByContainerId(Instances *[]Instance, containerIds []stri
 	return Instances, err
 }
 
-func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByContainerId(ctx core.Context, Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLogNow := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogNow, containerIds)
-	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	logNow, err := s.promRepo.QueryData(ctx, endTime, queryLogNow)
 	if err != nil {
 		return Instances, err
 	}
 	queryLogYesterday := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogYesterday, containerIds)
-	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	logYesterday, err := s.promRepo.QueryData(ctx, endTime, queryLogYesterday)
 	if err != nil {
 		return Instances, err
 	}
@@ -200,9 +201,9 @@ func (s *service) LogDODByContainerId(Instances *[]Instance, containerIds []stri
 	return Instances, err
 }
 
-func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByContainerId(ctx core.Context, Instances *[]Instance, containerIds []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLastWeek := prometheus.QueryLogByContainerIdPromql(duration, prometheus.LogLastWeek, containerIds)
-	logLastWeek, err := s.promRepo.QueryData(endTime, queryLastWeek)
+	logLastWeek, err := s.promRepo.QueryData(ctx, endTime, queryLastWeek)
 	if err != nil {
 		return Instances, err
 	}
@@ -225,7 +226,7 @@ func (s *service) LogWOWByContainerId(Instances *[]Instance, containerIds []stri
 
 // Query the graph
 
-func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByContainerId(ctx core.Context, Instances *[]Instance, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -239,7 +240,7 @@ func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds 
 	}
 	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	LogDataQuery := prometheus.QueryLogByContainerIdPromql(stepToStr, prometheus.AvgLog, containerIds)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		containerId := result.Metric.ContainerID
 		if containerId == "" {
@@ -256,9 +257,9 @@ func (s *service) LogRangeDataByContainerId(Instances *[]Instance, containerIds 
 	return Instances, err
 }
 
-func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) AvgLogByPid(ctx core.Context, Instances *[]Instance, pods []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLog := prometheus.QueryLogByPidPromql(duration, prometheus.AvgLog, pods)
-	LogRateRes, err := s.promRepo.QueryData(endTime, queryLog)
+	LogRateRes, err := s.promRepo.QueryData(ctx, endTime, queryLog)
 	for _, result := range LogRateRes {
 		pid := result.Metric.PID
 		if pid == "" {
@@ -275,14 +276,14 @@ func (s *service) AvgLogByPid(Instances *[]Instance, pods []string, endTime time
 	return Instances, err
 }
 
-func (s *service) LogDODByPid(Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogDODByPid(ctx core.Context, Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLogNow := prometheus.QueryLogByPidPromql(duration, prometheus.LogNow, pids)
-	logNow, err := s.promRepo.QueryData(endTime, queryLogNow)
+	logNow, err := s.promRepo.QueryData(ctx, endTime, queryLogNow)
 	if err != nil {
 		return Instances, err
 	}
 	queryLogYesterday := prometheus.QueryLogByPidPromql(duration, prometheus.LogYesterday, pids)
-	logYesterday, err := s.promRepo.QueryData(endTime, queryLogYesterday)
+	logYesterday, err := s.promRepo.QueryData(ctx, endTime, queryLogYesterday)
 	if err != nil {
 		return Instances, err
 	}
@@ -321,9 +322,9 @@ func (s *service) LogDODByPid(Instances *[]Instance, pids []string, endTime time
 	}
 	return Instances, err
 }
-func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
+func (s *service) LogWOWByPid(ctx core.Context, Instances *[]Instance, pids []string, endTime time.Time, duration string) (*[]Instance, error) {
 	queryLogLastWeek := prometheus.QueryLogByPidPromql(duration, prometheus.LogLastWeek, pids)
-	logLastWeek, err := s.promRepo.QueryData(endTime, queryLogLastWeek)
+	logLastWeek, err := s.promRepo.QueryData(ctx, endTime, queryLogLastWeek)
 	if err != nil {
 		return Instances, err
 	}
@@ -348,7 +349,7 @@ func (s *service) LogWOWByPid(Instances *[]Instance, pids []string, endTime time
 }
 
 // Query the graph
-func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
+func (s *service) LogRangeDataByPid(ctx core.Context, Instances *[]Instance, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*[]Instance, error) {
 	if Instances == nil {
 		return nil, errors.New("instances is nil")
 	}
@@ -362,7 +363,7 @@ func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startT
 	}
 	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	LogDataQuery := prometheus.QueryLogByPidPromql(stepToStr, prometheus.AvgLog, pods)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		pid := result.Metric.PID
 		if pid == "" {
@@ -379,7 +380,7 @@ func (s *service) LogRangeDataByPid(Instances *[]Instance, pods []string, startT
 	return Instances, err
 }
 
-func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByPod(ctx core.Context, Service *ServiceDetail, pods []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -396,7 +397,7 @@ func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string
 	}
 
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pods)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		if len(Service.LogData) < len(result.Values) {
 			Service.LogData = append(Service.LogData, make([]prometheus.Points, len(result.Values)-len(Service.LogData))...)
@@ -411,7 +412,7 @@ func (s *service) ServiceLogRangeDataByPod(Service *ServiceDetail, pods []string
 	return Service, err
 }
 
-func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByContainerId(ctx core.Context, Service *ServiceDetail, containerIds []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -428,7 +429,7 @@ func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, conta
 	}
 	//LogDataRes, err = s.promRepo.QueryRangePrometheusErrorLast30min(searchTime)
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, containerIds)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		if len(Service.LogData) < len(result.Values) {
 			Service.LogData = make([]prometheus.Points, len(result.Values))
@@ -444,7 +445,7 @@ func (s *service) ServiceLogRangeDataByContainerId(Service *ServiceDetail, conta
 	return Service, err
 }
 
-func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
+func (s *service) ServiceLogRangeDataByPid(ctx core.Context, Service *ServiceDetail, pids []string, startTime time.Time, endTime time.Time, duration string, step time.Duration) (*ServiceDetail, error) {
 	if Service == nil {
 		return nil, errors.New("service is nil")
 	}
@@ -460,7 +461,7 @@ func (s *service) ServiceLogRangeDataByPid(Service *ServiceDetail, pids []string
 		stepToStr = strconv.FormatInt(int64(step/time.Second), 10) + "s"
 	}
 	LogDataQuery := prometheus.QueryLogPromql(stepToStr, prometheus.AvgLog, pids)
-	LogDataRes, err := s.promRepo.QueryRangeData(startTime, endTime, LogDataQuery, step)
+	LogDataRes, err := s.promRepo.QueryRangeData(ctx, startTime, endTime, LogDataQuery, step)
 	for _, result := range LogDataRes {
 		if len(Service.LogData) < len(result.Values) {
 			Service.LogData = make([]prometheus.Points, len(result.Values))

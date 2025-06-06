@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Card, Form, Input, Modal, Select, Tag, Tooltip, message } from 'antd'
-import _, { reject } from 'lodash'
+import { Card, Form, Input, Modal, Select, message } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { addAlertNotifyApi, updateAlertNotifyApi } from 'core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import EmailConfigsFormList from './compontents/EmailConfigsFormList'
 import WebhookConfigsFormList from './compontents/WebhookConfigsFormList'
 import DingTalkConfigsFormList from './compontents/DingTalkConfigsFormList'
@@ -36,9 +34,9 @@ export default function ModifyAlertNotifyModal({
     }
 
     api(params).then(() => {
-      showToast({
-        title: t('modifyAlertNotifyModal.saveSuccess'),
-        color: 'success',
+      notify({
+        message: t('modifyAlertNotifyModal.saveSuccess'),
+        type: 'success',
       })
       closeModal()
       refresh()

@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Divider, Flex, Image, message, Radio } from 'antd'
+import { Divider, Radio } from 'antd'
 import DatasourceItem from 'src/core/views/IntegrationCenter/components/DatasourceItem'
-import { logsItems, metricsItems, traceItems } from 'src/core/views/IntegrationCenter/constant'
+import { logsItems } from 'src/core/views/IntegrationCenter/constant'
 import apo from 'src/core/assets/images/logo.svg'
 import { useTranslation } from 'react-i18next'
 import { useMessageContext } from 'src/core/contexts/MessageContext'
@@ -28,7 +28,7 @@ const DbTypeRadio = ({ id, value, onChange }: DbTypeRadioProps) => {
   return (
     <div id={id} className="flex overflow-hidden">
       <div className="flex-shrink-0 flex-grow-0">
-        <div className="text-gray-400">{t('datasourceApo')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceApo')}</div>
         <div className="relative w-[100px]" onClick={() => clickRadio('self-collector')}>
           <DatasourceItem
             size="small"
@@ -42,7 +42,7 @@ const DbTypeRadio = ({ id, value, onChange }: DbTypeRadioProps) => {
       </div>
       <Divider type="vertical" className="h-[60px] mt-4" />
       <div className="flex-1">
-        <div className="text-gray-400 ">{t('datasourceExisted')}</div>
+        <div className="text-[var(--ant-color-text-secondary)]">{t('datasourceExisted')}</div>
         <div className="flex flex-wrap ">
           {logsItems.map((item) => (
             <div className="relative mx-1 mb-2" onClick={() => clickRadio(item.key)}>

@@ -4,15 +4,15 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"log"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTableTTLMap) error {
+func (ch *chRepo) ModifyTableTTL(ctx core.Context, mapResult []model.ModifyTableTTLMap) error {
 	if len(mapResult) == 0 {
 		return nil
 	}
@@ -35,7 +35,7 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 					escapedTableName, table.TTLExpression)
 			}
 
-			if err := ch.conn.Exec(ctx, finalQuery); err != nil {
+			if err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), finalQuery); err != nil {
 				log.Printf("failed to modify TTL for table %s: %v\n\n", table.Name, err)
 			}
 		}(table)
@@ -44,7 +44,7 @@ func (ch *chRepo) ModifyTableTTL(ctx context.Context, mapResult []model.ModifyTa
 	return nil
 }
 
-func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
+func (ch *chRepo) GetTables(ctx core.Context, tables []model.Table) ([]model.TablesQuery, error) {
 	result := make([]model.TablesQuery, 0)
 	query := "SELECT name, create_table_query FROM system.tables WHERE database=(SELECT currentDatabase()) AND name NOT LIKE '.%'"
 	var args []interface{}
@@ -61,7 +61,7 @@ func (ch *chRepo) GetTables(tables []model.Table) ([]model.TablesQuery, error) {
 		argIndex++
 	}
 
-	rows, err := ch.conn.Query(context.Background(), query, args...)
+	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), query, args...)
 	if err != nil {
 		log.Println("Query failed:", err)
 		return nil, err

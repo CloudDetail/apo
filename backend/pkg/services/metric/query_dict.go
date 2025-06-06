@@ -3,7 +3,11 @@
 
 package metric
 
-import "fmt"
+import (
+	"fmt"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+)
 
 type QueryDict struct {
 	querys   []Query
@@ -31,7 +35,7 @@ func (q *QueryDict) ListMetrics() []QueryInfo {
 	return q.listQuerys
 }
 
-func (q *QueryDict) ListQuerys() []Query {
+func (q *QueryDict) ListQuerys(ctx core.Context) []Query {
 	return q.querys
 }
 

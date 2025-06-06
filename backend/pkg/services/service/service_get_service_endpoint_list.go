@@ -3,9 +3,12 @@
 
 package service
 
-import "github.com/CloudDetail/apo/backend/pkg/model/request"
+import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+)
 
-func (s *service) GetServiceEndPointList(req *request.GetServiceEndPointListRequest) ([]string, error) {
+func (s *service) GetServiceEndPointList(ctx core.Context, req *request.GetServiceEndPointListRequest) ([]string, error) {
 	// Get the list of service Endpoint
-	return s.promRepo.GetServiceEndPointList(req.StartTime, req.EndTime, req.ServiceName)
+	return s.promRepo.GetServiceEndPointList(ctx, req.StartTime, req.EndTime, req.ServiceName)
 }

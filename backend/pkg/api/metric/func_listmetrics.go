@@ -18,7 +18,7 @@ import (
 // @Router /api/metric/list [get]
 func (h *handler) ListMetrics() core.HandlerFunc {
 	return func(c core.Context) {
-		resp := h.metricService.ListPreDefinedMetrics()
+		resp := h.metricService.ListPreDefinedMetrics(c)
 		c.Payload(resp)
 	}
 }

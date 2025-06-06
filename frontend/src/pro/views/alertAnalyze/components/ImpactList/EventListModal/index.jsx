@@ -1,10 +1,9 @@
-import { Button, Modal, Pagination } from 'antd'
+import { Modal, Pagination } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import ReactJson from 'react-json-view'
 import { useSelector } from 'react-redux'
 import { getAlertDescendantEventApi } from 'src/pro/api/alertAnalyze'
 import BasicTable from 'src/core/components/Table/basicTable'
-import TempCell from 'src/core/components/Table/TempCell'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +27,8 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
   })
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
+
   useEffect(() => {
     if (endpointInfo && modalVisible && startTime && endTime) {
       setLoading(true)
@@ -93,7 +94,7 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
         isJSONString(value) ? (
           <ReactJson
             src={JSON.parse(value || '')}
-            theme="brewer"
+            theme={reactJsonTheme}
             collapsed={true}
             displayDataTypes={false}
             style={{ width: '100%' }}

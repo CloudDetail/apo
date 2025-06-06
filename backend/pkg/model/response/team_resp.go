@@ -5,12 +5,12 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 )
 
 type GetTeamResponse struct {
-	TeamList         []database.Team `json:"teamList"`
+	TeamList         []profile.Team `json:"teamList"`
 	model.Pagination `json:",inline"`
 }
 
-type GetTeamUserResponse []database.User
+type GetTeamUserResponse []profile.User

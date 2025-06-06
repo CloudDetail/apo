@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
 import { addRuleApi, updateRuleApi } from 'core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import ALertConditionCom from './ALertConditionCom'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import TranslationCom from 'src/oss/components/TranslationCom'
@@ -152,9 +152,9 @@ export default function ModifyAlertRuleModal({
       params.oldAlert = ruleInfo.alert
     }
     api(params).then(() => {
-      showToast({
-        title: t('modifyAlertRuleModal.saveSuccess'),
-        color: 'success',
+      notify({
+        message: t('modifyAlertRuleModal.saveSuccess'),
+        type: 'success',
       })
       closeModal()
       refresh()

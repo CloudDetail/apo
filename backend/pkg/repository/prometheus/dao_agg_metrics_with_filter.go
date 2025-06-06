@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
 
 const DefaultDepLatency int64 = -1
 
-func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error {
+func (repo *promRepo) FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error {
 	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
 		return apf
 	}
@@ -31,7 +33,7 @@ func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGro
 	stepMicro := step.Microseconds()
 
 	var errs []error
-	latency, err := repo.QueryRangeAggMetricsWithFilter(
+	latency, err := repo.QueryRangeAggMetricsWithFilter(ctx,
 		decorator(PQLAvgLatencyWithFilters),
 		startTS, endTS, stepMicro,
 		granularity,
@@ -43,7 +45,7 @@ func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGro
 		res.MergeRangeMetricResults(metricGroup, LATENCY, latency)
 	}
 
-	errorRate, err := repo.QueryRangeAggMetricsWithFilter(
+	errorRate, err := repo.QueryRangeAggMetricsWithFilter(ctx,
 		decorator(PQLAvgErrorRateWithFilters),
 		startTS, endTS, stepMicro,
 		granularity,
@@ -58,7 +60,7 @@ func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGro
 	if metricGroup == REALTIME {
 		return errors.Join(err)
 	}
-	tps, err := repo.QueryRangeAggMetricsWithFilter(
+	tps, err := repo.QueryRangeAggMetricsWithFilter(ctx,
 		decorator(PQLAvgTPSWithFilters),
 		startTS, endTS, stepMicro,
 		granularity,
@@ -74,7 +76,7 @@ func (repo *promRepo) FillRangeMetric(res MetricGroupInterface, metricGroup MGro
 }
 
 // FillMetric query and populate RED metric
-func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error {
+func (repo *promRepo) FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error {
 	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
 		return apf
 	}
@@ -92,7 +94,7 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 	endTS := endTime.UnixMicro()
 
 	var errs []error
-	latency, err := repo.QueryAggMetricsWithFilter(
+	latency, err := repo.QueryAggMetricsWithFilter(ctx,
 		decorator(PQLAvgLatencyWithFilters),
 		startTS, endTS,
 		granularity,
@@ -104,7 +106,7 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 		res.MergeMetricResults(metricGroup, LATENCY, latency)
 	}
 
-	errorRate, err := repo.QueryAggMetricsWithFilter(
+	errorRate, err := repo.QueryAggMetricsWithFilter(ctx,
 		decorator(PQLAvgErrorRateWithFilters),
 		startTS, endTS,
 		granularity,
@@ -119,7 +121,7 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 	if metricGroup == REALTIME {
 		return errors.Join(err)
 	}
-	tps, err := repo.QueryAggMetricsWithFilter(
+	tps, err := repo.QueryAggMetricsWithFilter(ctx,
 		decorator(PQLAvgTPSWithFilters),
 		startTS, endTS,
 		granularity,
@@ -134,7 +136,7 @@ func (repo *promRepo) FillMetric(res MetricGroupInterface, metricGroup MGroupNam
 	return errors.Join(errs...)
 }
 
-func (repo *promRepo) QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
+func (repo *promRepo) QueryAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
 	if len(filterKVs)%2 != 0 {
 		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
 	}
@@ -144,7 +146,7 @@ func (repo *promRepo) QueryAggMetricsWithFilter(pqlTemplate AggPQLWithFilters, s
 	}
 	vector := VecFromS2E(startTime, endTime)
 	pql := pqlTemplate(vector, string(granularity), filters)
-	return repo.QueryData(time.UnixMicro(endTime), pql)
+	return repo.QueryData(ctx, time.UnixMicro(endTime), pql)
 }
 
 // Calculate the Day-over-Day Growth Rate rate of the metric.

@@ -5,15 +5,17 @@ package trace
 
 import (
 	"encoding/json"
+	"math"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"go.uber.org/zap"
-	"math"
 )
 
-func (s *service) GetProcessFlameGraphData(req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
-	data, err := s.chRepo.GetFlameGraphData(req.StartTime, req.EndTime, req.NodeName,
+func (s *service) GetProcessFlameGraphData(ctx core.Context, req *request.GetProcessFlameGraphRequest) (response.GetProcessFlameGraphResponse, error) {
+	data, err := s.chRepo.GetFlameGraphData(ctx, req.StartTime, req.EndTime, req.NodeName,
 		req.PID, -1, req.SampleType, "", "")
 	if err != nil {
 		return response.GetProcessFlameGraphResponse{}, err

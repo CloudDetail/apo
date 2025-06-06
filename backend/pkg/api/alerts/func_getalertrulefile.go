@@ -27,20 +27,20 @@ func (h *handler) GetAlertRuleFile() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleConfigRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertService.GetAlertRuleFile(req)
+		resp, err := h.alertService.GetAlertRuleFile(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetAlertRuleError,
-				c.ErrMessage(code.GetAlertRuleError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -57,10 +57,10 @@ func (h *handler) %s() core.HandlerFunc {
 		req := new(%sRequest)
  // TODO Adjust the API based on the request parameter type
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}

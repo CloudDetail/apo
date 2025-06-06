@@ -29,21 +29,21 @@ func (h *handler) GetDescendantContribution() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAlertContributaionRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.alertanalyzeService.GetDescendantContribution(req)
+		resp, err := h.alertanalyzeService.GetDescendantContribution(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AlertAnalyzeDescendantAnormalContribution,
-				c.ErrMessage(code.AlertAnalyzeDescendantAnormalContribution),
-			).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

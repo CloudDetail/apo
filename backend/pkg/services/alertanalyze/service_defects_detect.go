@@ -1,13 +1,12 @@
 package alertanalyze
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
@@ -15,7 +14,7 @@ import (
 )
 
 // DetectDefects 缺陷检测 查询当前输入时间段内的缺陷,
-func (s *service) DetectDefects(req *request.DetectMutationRequest) error {
+func (s *service) DetectDefects(ctx core.Context, req *request.DetectMutationRequest) error {
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step * int64(time.Microsecond))
@@ -62,15 +61,11 @@ func (s *service) DetectDefects(req *request.DetectMutationRequest) error {
 		})
 
 		if err != nil {
-			// 创建告警规则失败
-			return model.ErrWithMessage{
-				Err:  err,
-				Code: code.DetectDefectsCreatAlertError,
-			}
+			return core.Error(code.DetectDefectsCreatAlertError, "").WithStack(err)
 		}
 	}
 
-	metricResults, err := s.promRepo.ExecutedMutationCheck(mutationPQLCheck, startTime, endTime, step)
+	metricResults, err := s.promRepo.ExecutedMutationCheck(ctx, mutationPQLCheck, startTime, endTime, step)
 	if err != nil {
 		return err
 	}
@@ -103,7 +98,7 @@ func (s *service) DetectDefects(req *request.DetectMutationRequest) error {
 	}
 
 	// 将时间周期内生成的告警事件存入Clickhouse
-	err = s.chRepo.InsertBatchAlertEvents(context.Background(), totalAlertEvents)
+	err = s.chRepo.InsertBatchAlertEvents(ctx, totalAlertEvents)
 	if err != nil {
 		return err
 	}
@@ -118,8 +113,8 @@ func (s *service) DetectDefects(req *request.DetectMutationRequest) error {
 		Timestamp:     time.Now().UnixMicro(),
 		Group:         req.MutationCheck.Group,
 	}
-	if err = s.chRepo.AddDetectMutation(detectMutation); err != nil {
-		return model.NewErrWithMessage(errors.New("failed to add record"), code.AddExecRecordError)
+	if err = s.chRepo.AddDetectMutation(ctx, detectMutation); err != nil {
+		return core.Error(code.AddExecRecordError, "").WithStack(err)
 	}
 	return nil
 }

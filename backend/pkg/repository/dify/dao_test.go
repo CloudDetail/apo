@@ -53,7 +53,7 @@ func TestRunWorkflows(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create difyRepo: %v", err)
 	}
-	req := &DifyWorkflowRequest{
+	req := &WorkflowRequest{
 		Inputs:       json.RawMessage(`{"input": "test"}`),
 		ResponseMode: "stream",
 		User:         "test",

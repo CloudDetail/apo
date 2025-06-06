@@ -4,9 +4,9 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -54,7 +54,7 @@ const (
 )
 
 // Query the list of upstream nodes
-func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListParentNodes(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
@@ -66,7 +66,7 @@ func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest
 
 	results := []ParentNode{}
 	sql := fmt.Sprintf(SQL_GET_PARENT_NODES, queryBuilder.String())
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
@@ -74,7 +74,7 @@ func (ch *chRepo) ListParentNodes(req *request.GetServiceEndpointTopologyRequest
 }
 
 // Query the downstream outbound call list
-func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListChildNodes(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*model.TopologyNodes, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("parent_service", req.Service).
@@ -84,7 +84,7 @@ func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest)
 
 	results := []ChildNode{}
 	sql := fmt.Sprintf(SQL_GET_CHILD_NODES, queryBuilder.String())
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 
@@ -92,7 +92,7 @@ func (ch *chRepo) ListChildNodes(req *request.GetServiceEndpointTopologyRequest)
 }
 
 // Query the list of all descendant nodes
-func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
+func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -103,14 +103,14 @@ func (ch *chRepo) ListDescendantNodes(req *request.GetDescendantMetricsRequest) 
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantNodes(results), nil
 }
 
 // Query the topological relationships of all descendants
-func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -121,14 +121,14 @@ func (ch *chRepo) ListDescendantRelations(req *request.GetServiceEndpointTopolog
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
 	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
 	results := []ChildRelation{}
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return getDescendantRelations(results), nil
 }
 
 // Query the list of related entry nodes
-func (ch *chRepo) ListEntryEndpoints(req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error) {
+func (ch *chRepo) ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -140,7 +140,7 @@ func (ch *chRepo) ListEntryEndpoints(req *request.GetServiceEntryEndpointsReques
 	}
 	results := []EntryNode{}
 	sql := fmt.Sprintf(SQL_GET_ENTRY_NODES, queryBuilder.String())
-	if err := ch.conn.Select(context.Background(), &results, sql, queryBuilder.values...); err != nil {
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
 	return results, nil

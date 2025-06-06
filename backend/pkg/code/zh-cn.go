@@ -217,4 +217,10 @@ var zhCnText = map[string]string{
 	LicenseCheckError:             "检查license时失败",
 	LicenseExpired:                "license已过期",
 	NoLicenseError:                "无本地license，请先上传license",
+
+	GetAlertSlienceError:    "获取告警抑制配置失败",
+	ListAlertSlienceError:   "列出所有抑制告警失败",
+	SetAlertSlienceError:    "设置告警抑制失败",
+	RemoveAlertSlienceError: "移除告警抑制失败",
+	MarkAlertResolvedError:  "手动标记告警已解决失败",
 }
