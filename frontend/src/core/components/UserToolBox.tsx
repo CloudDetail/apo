@@ -3,35 +3,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button, theme } from 'antd'
+import { Flex, Popover, Button, Divider, Segmented, Drawer, Space } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
 import { HiUserCircle } from 'react-icons/hi'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { notify } from '../utils/notify'
 import { redirectToLogin } from '../utils/redirectToLogin'
 
 const UserToolBox = () => {
-  const { user, dispatch } = useUserContext()
+  const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
   const { t } = useTranslation('core/userToolBox')
 
-  const { useToken } = theme
-  const { token } = useToken()
 
-  const content = (
+
+  const content = () => (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
+        <Divider className='p-0 my-2' />
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={() => navigate('/user')}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
@@ -40,11 +37,8 @@ const UserToolBox = () => {
         </Flex>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 mt-2 transition-colors"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={logout}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
@@ -68,7 +62,7 @@ const UserToolBox = () => {
       localStorage.removeItem('difyToken')
       localStorage.removeItem('difyRefreshToken')
       // @ts-ignore
-      dispatch({
+      userDispatch({
         type: 'removeUser',
       })
       redirectToLogin(false)
@@ -84,9 +78,8 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
-        console.log('res', res)
         // @ts-ignore
-        dispatch({
+        userDispatch({
           type: 'setUser',
           payload: res,
         })
