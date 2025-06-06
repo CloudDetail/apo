@@ -43,7 +43,12 @@ const PreferencesDrawer = ({ open, onClose }) => {
 
   return (
     <Drawer
-      title={t('preferences')}
+      title={
+        <div className="flex justify-start items-center gap-2">
+          <SettingOutlined />
+          {t('preferences')}
+        </div>
+      }
       placement='right'
       size='default'
       closable={false}

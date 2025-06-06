@@ -18,8 +18,10 @@ import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
 import { Button, theme } from 'antd'
 import PreferencesDrawer from './Drawer/PreferencesDrawer'
+import { useTranslation } from 'react-i18next'
 
 const AppHeader = ({ type = 'default' }) => {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
@@ -110,7 +112,7 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <Button type="text" icon={<SettingOutlined />} onClick={() => setDrawerOpen(true)}></Button>
+          <Button type="text" icon={<SettingOutlined />} onClick={() => setDrawerOpen(true)} title={t('preferences')} />
           <UserToolBox />
           <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
