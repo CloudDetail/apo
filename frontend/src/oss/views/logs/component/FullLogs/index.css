@@ -17,13 +17,14 @@
 }
 
 .openButton {
-  left: 290px;
+  /* left: 290px; */
+  left: 0;
   transition: left 0.2s ease;
   /* 添加 transition */
 }
 
 .closeButton {
-  left: -1px;
+  right: 0;
   transition: left 0.2s ease;
   /* 添加 transition */
 }
