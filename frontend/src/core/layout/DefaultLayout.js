@@ -48,8 +48,8 @@ const DefaultLayout = () => {
       </Sider>
       <Layout
         style={{
-          transform: collapsed ? 'translateX(70px)' : 'translateX(250px)',
-          transition: 'transform 0.3s'
+          marginLeft: collapsed ? '70px' : '250px',
+          transition: 'margin-left 0.3s ease-in-out'
         }}
       >
         <AppHeader />
