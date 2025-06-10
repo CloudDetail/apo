@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import { AiFillCaretDown, AiFillCaretRight } from 'react-icons/ai'
 import LogItemFold from './component/LogItemFold'
 import LogItemDetail from './component/LogItemDetail'
-import { Button } from 'antd'
+import { Button, Tag } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { convertTime } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next' // 引入i18n
@@ -24,7 +24,8 @@ const LogItem = (props) => {
       <div className="flex-grow-0 flex-shrink-0 w-full">
         <div className="flex items-center gap-2 pl-2 pb-2 j">
           <div className="flex-shrink-0 flex-grow-0 flex items-center">
-            <span>{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</span>
+            <Tag bordered={false} color="blue">{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</Tag>
+            {/* <span>{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</span> */}
           </div>
           {openContextModal && !tableInfo.timeField && (
             <Button
