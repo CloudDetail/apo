@@ -62,28 +62,28 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 // M d h m s
 func parseDuration(duration string) time.Duration {
 	durationParts := strings.Split(duration, " ")
-	var durationSeconds = 0
+	var durationSeconds int64
 	for _, part := range durationParts {
 		switch part[len(part)-1] {
 		case 'M':
 			if month, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += month * int(time.Hour) * 30 * 24
+				durationSeconds += int64(month) * int64(time.Hour) * 30 * 24
 			}
 		case 'd':
 			if day, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += day * int(time.Hour) * 24
+				durationSeconds += int64(day) * int64(time.Hour.Nanoseconds()) * 24
 			}
 		case 'h':
 			if hour, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += hour * int(time.Hour)
+				durationSeconds += int64(hour) * int64(time.Hour)
 			}
 		case 'm':
 			if minute, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += minute * int(time.Minute)
+				durationSeconds += int64(minute) * int64(time.Minute)
 			}
 		case 's':
 			if second, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += second * int(time.Second)
+				durationSeconds += int64(second) * int64(time.Second)
 			}
 		}
 	}
