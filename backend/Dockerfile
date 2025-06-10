@@ -2,14 +2,15 @@ FROM golang:1.23.8-bookworm AS builder
 LABEL authors="apo"
 WORKDIR /build
 
+ARG PMODULE_HOST=''
+ARG ACCESS=''
+
 ENV GOPROXY https://goproxy.cn
-ENV GOPRIVATE 192.168.1.22
-ENV GONOPROXY 192.168.1.22
-ENV GOINSECURE 192.168.1.22/*
+ENV GOPRIVATE $PMODULE_HOST
+ENV GONOPROXY $PMODULE_HOST
+ENV GOINSECURE $PMODULE_HOST
 
-ARG GITLAB_TOKEN
-
-RUN git config --global url."http://oauth2:${GITLAB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22"
+RUN if [ "$ACCESS" != "" ]; then git config --global url."http://$ACCESS@$PMODULE_HOST".insteadOf "http://$PMODULE_HOST" ; fi
 
 
 COPY go.mod go.sum ./
