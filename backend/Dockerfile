@@ -7,6 +7,8 @@ ENV GOPRIVATE 192.168.1.22
 ENV GONOPROXY 192.168.1.22
 ENV GOINSECURE 192.168.1.22/*
 
+ARG GITLAB_TOKEN
+
 RUN git config --global url."http://oauth2:${GITLAB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22"
 
 
