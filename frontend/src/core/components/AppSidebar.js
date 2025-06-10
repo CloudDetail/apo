@@ -40,6 +40,8 @@ const AppSidebar = () => {
       icon: AppSidebarMenuIcon(menu),
       to: menu.router?.to,
       children: menu.children?.map((child) => prepareMenu(child)),
+      popupClassName: `submenu-with-parent-${menu.key}`,
+      className: `menu-item-${menu.key}`
     }
   }
 
@@ -76,7 +78,7 @@ const AppSidebar = () => {
       theme={{
         components: {
           Menu: {
-            itemHeight: 55,
+            itemHeight: 50,
             itemBg: 'var(--color-sider)',
             itemSelectedBg: 'var(--ant-color-primary)',
             itemSelectedColor: 'var(--menu-selected-text-color)',
@@ -85,6 +87,19 @@ const AppSidebar = () => {
         },
       }}
     >
+      <style>
+        {menuList.map((item) => `
+          .submenu-with-parent-${item.key} .ant-menu-sub::before {
+            content: '${item.label}';
+            display: block;
+            margin: 4px;
+            padding: 20px 40px 20px 20px;
+            font-weight: 500;
+            border-bottom: 1px solid var(--ant-color-split);
+            background-color: var(--ant-color-fill-tertiary);
+          }
+        `).join('')}
+      </style>
       <Menu
         mode="inline"
         theme={theme}
@@ -94,7 +109,7 @@ const AppSidebar = () => {
         selectedKeys={selectedKeys}
         openKeys={openKeys}
         onOpenChange={onOpenChange}
-        className="sidebarMenu pb-20 custom-scrollbar"
+        className="sidebarMenu *:custom-scrollbar"
       ></Menu>
     </ConfigProvider>
   )

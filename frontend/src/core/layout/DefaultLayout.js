@@ -5,7 +5,8 @@
 
 import React, { useState } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
-import { Layout } from 'antd'
+import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
+import { Button, Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
@@ -21,6 +22,7 @@ const DefaultLayout = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         collapsible
+        trigger={null}
         collapsed={collapsed}
         collapsedWidth={70}
         onCollapse={(value) => setCollapsed(value)}
@@ -33,22 +35,35 @@ const DefaultLayout = () => {
           height: '100vh',
           borderRight: '1px solid var(--ant-color-border-secondary)'
         }}
-        className='custom-scrollbar'
-        width={250}
+        className={`custom-scrollbar ${collapsed ? 'siderCollapsed' : ''}`}
+        width={200}
       >
-        <div className="h-[60px] flex w-full overflow-hidden items-center">
+        <div className="h-[60px] flex w-full overflow-hidden items-center justify-center gap-1">
           <CImage
             src={logo}
-            className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
+            className="w-[32px] sidebar-brand-narrow flex-shrink-0"
             alt="CoreuiVue"
           />
-          <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
+          {!collapsed && <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>}
         </div>
         <AppSidebar />
+        {/* <Button
+          type="text"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => setCollapsed(!collapsed)}
+          style={{
+            fontSize: '16px',
+            width: 45,
+            height: 45,
+            position: 'absolute',
+            margin: '4px',
+            bottom: 0
+          }}
+        ></Button> */}
       </Sider>
       <Layout
         style={{
-          marginLeft: collapsed ? '70px' : '250px',
+          marginLeft: collapsed ? '70px' : '200px',
           transition: 'margin-left 0.3s ease-in-out'
         }}
       >
