@@ -10,7 +10,6 @@ variables:
   DEPLOYMENT_NAME: apo-backend-ee
   CONTAINER_NAME: apo-backend-ee
   DIR_NAME: backend
-  BUILD_ARGS: "--build-arg GITLAB_TOKEN=${GITLAB_TOKEN}"
 
 build:
   # This job runs in the build stage, which runs first.
@@ -26,7 +25,7 @@ build:
       TAG_NAME=$TAG
     fi
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build ${BUILD_ARGS} -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
       dotenv: build.env
@@ -40,7 +39,7 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build ${BUILD_ARGS} -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   artifacts:
     reports:
       dotenv: build.env
