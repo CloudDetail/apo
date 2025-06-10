@@ -14,9 +14,9 @@ import (
 )
 
 var apiFeatureBlackList = map[string]string{
-	"/api/license":         "license管理",
-	"/api/license/current": "license管理",
-	"/api/license/upload":  "license管理",
+	"/api/license":         "平台管理",
+	"/api/license/current": "平台管理",
+	"/api/license/upload":  "平台管理",
 }
 
 // LicMiddleware 访问对应功能时检查license是否过期以及是否可以访问对应功能

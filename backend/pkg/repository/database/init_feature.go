@@ -25,6 +25,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
 	{FeatureName: "MySQL大盘"},
 	{FeatureName: "服务健康状态"},
+	{FeatureName: "平台管理"},
 }
 
 func (repo *daoRepo) initFeature(ctx core.Context) error {
