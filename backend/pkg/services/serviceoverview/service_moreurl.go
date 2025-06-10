@@ -9,20 +9,22 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule SortType) (res []response.ServiceDetail, err error) {
+func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
 	filter := EndpointsFilter{
 		ServiceName: serviceNames,
 	}
 
 	filters := filter.ExtractFilterStr()
-	endpointsMap := s.EndpointsREDMetric(startTime, endTime, filters)
+	endpointsMap := s.EndpointsREDMetric(ctx, startTime, endTime, filters)
 	endpoints := endpointsMap.MetricGroupList
 
 	// step2 fill delay dependency
-	err = s.EndpointsDelaySource(endpointsMap, startTime, endTime, filters)
+	err = s.EndpointsDelaySource(ctx, endpointsMap, startTime, endTime, filters)
 	if err != nil {
 		// TODO output error log, DelaySource query failed
 	}
@@ -33,7 +35,7 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 		return nil, nil
 	}
 
-	threshold, err := s.dbRepo.GetOrCreateThreshold("", "", database.GLOBAL)
+	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return nil, err
 	}
@@ -75,12 +77,12 @@ func (s *service) GetServiceMoreUrl(startTime time.Time, endTime time.Time, step
 	}
 	// Sort all URLs
 	switch sortRule {
-	case DODThreshold: //Sort by Day-to-Year Threshold
+	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		sortByDODThreshold(endpoints)
 	}
 
 	// Save all URLs to the corresponding service
-	services := fillOneService(endpoints)
+	services := groupEndpointsByService(endpoints, -1)
 
 	//(searchTime.Add(-30*time.Minute), searchTime, errorDataQuery, time.Minute)
 

@@ -46,7 +46,7 @@ jobs:
         echo "BACKEND_IMAGE_FULL_TAG=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER }}:${IMAGE_TAG_NAME}-arm64" >> $GITHUB_ENV
 
     - name: Build and push Frontend ARM64 image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
       with:
         context: ./frontend
         platforms: linux/arm64
@@ -54,7 +54,7 @@ jobs:
         tags: ${{ env.FRONTEND_IMAGE_FULL_TAG }}
 
     - name: Build and push Backend ARM64 image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
       with:
         context: ./backend
         platforms: linux/arm64

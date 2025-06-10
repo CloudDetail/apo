@@ -4,36 +4,42 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
-// initRouterData TODO Add mapping of router to feature when permission control is required
-func (repo *daoRepo) initRouterData() error {
-	routers := []Router{
-		{RouterTo: "/service", HideTimeSelector: false},
-		{RouterTo: "/logs/fault-site", HideTimeSelector: true},
-		{RouterTo: "/logs/full", HideTimeSelector: false},
-		{RouterTo: "/system-dashboard", HideTimeSelector: false},
-		{RouterTo: "/basic-dashboard", HideTimeSelector: false},
-		{RouterTo: "/application-dashboard", HideTimeSelector: false},
-		{RouterTo: "/middleware-dashboard", HideTimeSelector: false},
-		{RouterTo: "/alerts/rule", HideTimeSelector: true},
-		{RouterTo: "/alerts/notify", HideTimeSelector: true},
-		{RouterTo: "/integration/data", HideTimeSelector: true},
-		{RouterTo: "/integration/alerts", HideTimeSelector: true},
-		{RouterTo: "/config", HideTimeSelector: true},
-		{RouterTo: "/system/user-manage", HideTimeSelector: true},
-		{RouterTo: "/system/menu-manage", HideTimeSelector: true},
-		{RouterTo: "/trace/fault-site", HideTimeSelector: true},
-		{RouterTo: "/trace/full", HideTimeSelector: true},
-		{RouterTo: "/system/data-group", HideTimeSelector: true},
-		{RouterTo: "/system/config", HideTimeSelector: true},
-		{RouterTo: "/system/team", HideTimeSelector: true},
-		{RouterTo: "/alerts/events", HideTimeSelector: false},
-		{RouterTo: "/workflows", HideTimeSelector: true},
-	}
+var validRouters = []Router{
+	{RouterTo: "/service", HideTimeSelector: false},
+	{RouterTo: "/logs/fault-site", HideTimeSelector: true},
+	{RouterTo: "/logs/full", HideTimeSelector: false},
+	{RouterTo: "/system-dashboard", HideTimeSelector: false},
+	{RouterTo: "/basic-dashboard", HideTimeSelector: false},
+	{RouterTo: "/application-dashboard", HideTimeSelector: false},
+	{RouterTo: "/middleware-dashboard", HideTimeSelector: false},
+	{RouterTo: "/alerts/rule", HideTimeSelector: true},
+	{RouterTo: "/alerts/notify", HideTimeSelector: true},
+	{RouterTo: "/integration/data", HideTimeSelector: true},
+	{RouterTo: "/integration/alerts", HideTimeSelector: true},
+	{RouterTo: "/config", HideTimeSelector: true},
+	{RouterTo: "/system/user-manage", HideTimeSelector: true},
+	{RouterTo: "/system/menu-manage", HideTimeSelector: true},
+	{RouterTo: "/trace/fault-site", HideTimeSelector: true},
+	{RouterTo: "/trace/full", HideTimeSelector: true},
+	{RouterTo: "/system/data-group", HideTimeSelector: true},
+	{RouterTo: "/system/config", HideTimeSelector: true},
+	{RouterTo: "/system/team", HideTimeSelector: true},
+	{RouterTo: "/alerts/events", HideTimeSelector: false},
+	{RouterTo: "/alerts/events/detail/:alertID/:eventID", HideTimeSelector: false},
+	{RouterTo: "/workflows", HideTimeSelector: true},
+	{RouterTo: "/system/role-manage", HideTimeSelector: true},
+	{RouterTo: "/service/info", HideTimeSelector: false},
+	{RouterTo: "/integration/data/settings", HideTimeSelector: true},
+	{RouterTo: "/user", HideTimeSelector: true},
+}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+// initRouterData TODO Add mapping of router to feature when permission control is required
+func (repo *daoRepo) initRouterData(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.AutoMigrate(&Router{}); err != nil {
 			return err
 		}
@@ -52,7 +58,7 @@ func (repo *daoRepo) initRouterData() error {
 		var toUpdate []Router
 		toDelete := make([]int, 0)
 
-		for _, router := range routers {
+		for _, router := range validRouters {
 			if existing, exists := existingMap[router.RouterTo]; exists {
 				if existing.HideTimeSelector != router.HideTimeSelector {
 					existing.HideTimeSelector = router.HideTimeSelector

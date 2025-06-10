@@ -38,7 +38,7 @@
     "tps": "Throughput"
   },
   "units": {
-    "unit": "unit",
+    "unit": "Entry",
     "timesPerMinute": "tpm"
   },
   "ruleGroupMap": {
@@ -62,8 +62,12 @@
   "delete": "Delete",
   "add": "Add",
   "edit": "Edit",
+  "reset": "Reset",
+  "selectAll": "Select All",
   "saveSuccess": "Saved Successfully",
   "deleteSuccess": "Deleted Successfully",
   "addSuccess": "Added Successfully",
-  "operation": "Operation"
+  "operation": "Operation",
+  "error": "An unexpected error occurred on this page.",
+  "routeError": "Having no permission to access this route."
 }

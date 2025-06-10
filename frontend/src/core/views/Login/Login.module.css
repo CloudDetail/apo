@@ -8,7 +8,7 @@
   height: 100vh;
   justify-content: center;
   align-items: center;
-  background-image: url('src/core/assets/brand/bg.jpg');
+  /* background-image: url('src/core/assets/brand/bg.jpg'); */
   background-position-x: 50%;
   background-position-y: 50%;
   background-repeat: no-repeat;

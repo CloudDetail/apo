@@ -4,10 +4,10 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
@@ -28,7 +28,7 @@ FROM alert a LEFT JOIN event_count ec on a.alert_id = ec.alert_id
 ORDER BY received_time DESC LIMIT 5000;
 `
 
-func (ch *chRepo) GetAlertsWithEventCount(
+func (ch *chRepo) GetAlertsWithEventCount(ctx core.Context,
 	startTime, endTime time.Time,
 	filter *alert.AlertEventFilter, maxSize int,
 ) ([]alert.AlertWithEventCount, uint64, error) {
@@ -38,8 +38,8 @@ func (ch *chRepo) GetAlertsWithEventCount(
 		And(whereSQL)
 
 	var count uint64
-	countSql := fmt.Sprintf(GET_ALERT_EVENTS_COUNT, alertFilter.String())
-	err := ch.conn.QueryRow(context.Background(), countSql, alertFilter.values...).Scan(&count)
+	countSql := buildAlertQuery(GET_ALERT_EVENTS_COUNT, alertFilter)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, alertFilter.values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -49,8 +49,11 @@ func (ch *chRepo) GetAlertsWithEventCount(
 	values = append(values, alertFilter.values...)
 
 	sql := fmt.Sprintf(GET_ALERTS_WITH_EVENT_COUNT, alertFilter.String(), alertFilter.String())
-
 	result := make([]alert.AlertWithEventCount, 0)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
 	return result, count, err
+}
+
+func buildAlertQuery(baseQuery string, queryBuilder *QueryBuilder) string {
+	return fmt.Sprintf(baseQuery, queryBuilder.String())
 }

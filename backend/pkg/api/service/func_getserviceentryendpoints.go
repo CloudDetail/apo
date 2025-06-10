@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -39,10 +37,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEntryEndpointsRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -53,10 +51,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			alertResps    []response.ServiceAlertRes
 		)
 
-		userID := middleware.GetContextUserID(c)
-		err = h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err = h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
+			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
 				Status: model.STATUS_NORMAL,
 				Data:   []*response.EntryInstanceData{},
 			})
@@ -68,15 +66,14 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			Status: model.STATUS_NORMAL,
 			Data:   make([]*response.EntryInstanceData, 0),
 		}
-		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(req)
+		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(c, req)
 		if err == nil {
 			// TODO defaults to global Threshold first, and then adjusts to the Threshold of specific services.
-			threshold, err = h.serviceoverviewService.GetThreshold(database.GLOBAL, "", "")
+			threshold, err = h.serviceoverviewService.GetThreshold(c, database.GLOBAL, "", "")
 		}
 		if err == nil {
 			startTime := time.UnixMicro(req.StartTime)
 			endTime := time.UnixMicro(req.EndTime)
-			sortRule := serviceoverview.DODThreshold
 			step := time.Duration(req.Step * 1000)
 
 			for _, entryNode := range entryNodes {
@@ -85,7 +82,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
 				}
-				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(startTime, endTime, step, filter, sortRule)
+				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(c, startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {
 					for _, endpointResp := range endpointResps {
 						if serviceResp, found := result[endpointResp.ServiceName]; found {
@@ -130,7 +127,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			for serviceName := range result {
 				serviceNames = append(serviceNames, serviceName)
 			}
-			alertResps, err = h.serviceoverviewService.GetServicesAlert(startTime, endTime, step, serviceNames, nil)
+			alertResps, err = h.serviceoverviewService.GetServicesAlert(c, startTime, endTime, step, serviceNames, nil)
 			if err == nil {
 				for _, alertResp := range alertResps {
 					if serviceResp, found := result[alertResp.ServiceName]; found {
@@ -156,10 +153,10 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 		}
 
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceEntryEndpointsError,
-				c.ErrMessage(code.GetServiceEntryEndpointsError)).WithError(err),
+				err,
 			)
 			return
 		}

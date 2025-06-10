@@ -4,7 +4,7 @@
 package request
 
 type GetTracePageListRequest struct {
-	GroupID     int64    `form:"groupId,omitempty"`                            // Data group id
+	GroupID     int64    `json:"groupId,omitempty"`                            // Data group id
 	StartTime   int64    `json:"startTime" binding:"min=0"`                    // query start time
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	Service     []string `json:"service"`                                      // query service name
@@ -18,7 +18,7 @@ type GetTracePageListRequest struct {
 	PageNum     int      `json:"pageNum"`     // page
 	PageSize    int      `json:"pageSize"`
 
-	Filters []*SpanTraceFilter `json:"filters"` // filter
+	Filters []*ComplexSpanTraceFilter `json:"filters"` // filter
 }
 
 type GetOnOffCPURequest struct {

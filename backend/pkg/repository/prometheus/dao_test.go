@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
@@ -32,7 +33,7 @@ func TestRepo(t *testing.T) {
 }
 
 func testGetActiveInstanceList(t *testing.T, repo Repo) {
-	instances, err := repo.GetActiveInstanceList(1722914086000000, 1722935686000000, []string{"ts-travel-plan-service"})
+	instances, err := repo.GetActiveInstanceList(core.EmptyCtx(), 1722914086000000, 1722935686000000, []string{"ts-travel-plan-service"})
 	if err != nil {
 		t.Errorf("Error to get active instance list: %v", err)
 	}
@@ -53,7 +54,7 @@ func testGetMultiServicesInstanceList(t *testing.T, repo Repo) {
 	endTime := time.Now()
 	startTime := endTime.Add(-time.Minute * 30)
 	services := []string{"ts-basic-service", "ts-route-service", "${SPRING_APP_NAME:spring-reqtemplate-demo}"}
-	ret, err := repo.GetMultiServicesInstanceList(startTime.UnixMicro(), endTime.UnixMicro(), services)
+	ret, err := repo.GetMultiServicesInstanceList(core.EmptyCtx(), startTime.UnixMicro(), endTime.UnixMicro(), services)
 	if err != nil {
 		t.Fatalf("GetMultiServicesInstanceList failed, err: %v", err)
 	}

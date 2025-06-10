@@ -15,7 +15,32 @@ type AlertEventSearchRequest struct {
 	Filter AlertEventSearchFilter `json:"filter" form:"filter"`
 }
 
+type GetAlertDetailRequest struct {
+	AlertID string `json:"alertId"`
+	EventID string `json:"eventId"`
+
+	StartTime  int64             `json:"startTime" form:"startTime"`
+	EndTime    int64             `json:"endTime" form:"endTime"`
+	Pagination *model.Pagination `json:"pagination"`
+
+	LocateEvent bool `json:"locateEvent"`
+}
+
 type AlertEventSearchFilter struct {
 	Nodes      []string `json:"nodes" form:"nodes"`
 	Namespaces []string `json:"namespaces" form:"namespaces"`
+
+	// firing or resolved
+	Status []string `json:"status" form:"status"`
+	// valid or invalid or skipped or unknown
+	Validity []string `json:"validity" form:"validity"`
+}
+
+type AlertEventClassifyRequest struct {
+	AlertName  string `form:"alertName"`
+	AlertGroup string `form:"alertGroup"`
+}
+
+type MarkAlertResolvedManuallyRequest struct {
+	AlertID string `json:"alertId" form:"alertId"`
 }

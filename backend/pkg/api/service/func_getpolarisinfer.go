@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/middleware"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -33,26 +32,26 @@ func (h *handler) GetPolarisInfer() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetPolarisInferRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		userID := middleware.GetContextUserID(c)
-		err := h.dataService.CheckDatasourcePermission(userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
+		userID := c.UserID()
+		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {
-			c.HandleError(err, code.AuthError, nil)
+			c.AbortWithPermissionError(err, code.AuthError, nil)
 			return
 		}
-		res, err := h.serviceInfoService.GetPolarisInfer(req)
+		res, err := h.serviceInfoService.GetPolarisInfer(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetPolarisInferError,
-				c.ErrMessage(code.GetPolarisInferError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -5,13 +5,14 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
 type LoginResponse struct {
 	AccessToken  string `json:"accessToken"`  // accessToken is used to call the interface get resources
 	RefreshToken string `json:"refreshToken"` // refreshToken for refreshing accessToken
-	database.User
+	profile.User
 }
 
 type RefreshTokenResponse struct {
@@ -19,23 +20,25 @@ type RefreshTokenResponse struct {
 }
 
 type GetUserInfoResponse struct {
-	database.User
+	profile.User
 }
 
 type GetUserListResponse struct {
-	Users []database.User `json:"users"`
+	Users []profile.User `json:"users"`
 	model.Pagination
 }
 
-type GetRoleResponse []database.Role
+type GetRoleResponse []profile.Role
 
 type GetUserConfigResponse struct {
 	MenuItem []*database.MenuItem `json:"menuItem"`
 	Routes   []string             `json:"routes"`
 }
 
-type GetFeatureResponse []*database.Feature
-type GetSubjectFeatureResponse []database.Feature
-type GetUserRoleResponse []database.Role
+type GetFeatureResponse []*profile.Feature
+type GetSubjectFeatureResponse []profile.Feature
+type GetUserRoleResponse []profile.Role
 
-type GetUserTeamResponse []database.Team
+type GetUserTeamResponse []profile.Team
+
+type CheckRouterPermissionResponse bool

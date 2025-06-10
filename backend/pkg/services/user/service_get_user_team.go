@@ -4,22 +4,21 @@
 package user
 
 import (
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetUserTeam(req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error) {
-	exists, err := s.dbRepo.UserExists(req.UserID)
+func (s *service) GetUserTeam(ctx core.Context, req *request.GetUserTeamRequest) (response.GetUserTeamResponse, error) {
+	exists, err := s.dbRepo.UserExists(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
 
 	if !exists {
-		return nil, model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return nil, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	return s.dbRepo.GetAssignedTeam(req.UserID)
+	return s.dbRepo.GetAssignedTeam(ctx, req.UserID)
 }

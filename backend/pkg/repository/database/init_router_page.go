@@ -6,11 +6,32 @@ package database
 import (
 	"errors"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
 
+func isValidRouter(routerTo string) bool {
+	for _, router := range validRouters {
+		if router.RouterTo == routerTo {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidPageURL(url string) bool {
+	for _, page := range validPages {
+		if page.Url == url {
+			return true
+		}
+	}
+
+	return false
+}
+
 // initRouterPage init router-insertPage mapping records.
-func (repo *daoRepo) initRouterPage() error {
+func (repo *daoRepo) initRouterPage(ctx core.Context) error {
 	type page struct {
 		url      string
 		language string
@@ -39,7 +60,7 @@ func (repo *daoRepo) initRouterPage() error {
 			{url: "jaeger/search", language: "en"},
 		},
 	}
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var routerIDs, pageIDs []int
 		if err := tx.Model(&Router{}).Select("router_id").Find(&routerIDs).Error; err != nil {
 			return err
@@ -55,6 +76,10 @@ func (repo *daoRepo) initRouterPage() error {
 			return err
 		}
 		for router, pages := range routerPageMap {
+			if !isValidRouter(router) {
+				continue
+			}
+
 			var routerID int
 			err := tx.Model(&Router{}).Select("router_id").Where("router_to = ?", router).First(&routerID).Error
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -64,7 +89,18 @@ func (repo *daoRepo) initRouterPage() error {
 				return err
 			}
 
+			if routerID <= 0 {
+				continue
+			}
+
+			validPages := make([]page, 0, len(pages))
 			for _, page := range pages {
+				if isValidPageURL(page.url) {
+					validPages = append(validPages, page)
+				}
+			}
+
+			for _, page := range validPages {
 				var pageID int
 				err = tx.Model(&InsertPage{}).Select("page_id").Where("url = ?", page.url).First(&pageID).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -74,6 +110,10 @@ func (repo *daoRepo) initRouterPage() error {
 					return err
 				}
 
+				if pageID <= 0 {
+					continue
+				}
+
 				routerPage := RouterInsertPage{
 					PageID:   pageID,
 					RouterID: routerID,
@@ -81,7 +121,7 @@ func (repo *daoRepo) initRouterPage() error {
 				}
 
 				var count int64
-				err := tx.Model(&RouterInsertPage{}).Where("router_id = ? AND page_id = ? AND language = ?", routerID, pageID, page.language).Count(&count).Error
+				err := tx.Model(&RouterInsertPage{}).Where(`router_id = ? AND page_id = ? AND "language" = ?`, routerID, pageID, page.language).Count(&count).Error
 				if err != nil {
 					return err
 				}
@@ -89,7 +129,7 @@ func (repo *daoRepo) initRouterPage() error {
 				if count > 0 {
 					continue
 				}
-				
+
 				err = tx.Create(&routerPage).Error
 				if err != nil {
 					return err

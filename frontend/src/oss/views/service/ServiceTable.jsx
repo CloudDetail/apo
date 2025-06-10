@@ -5,12 +5,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { CButton, CCard, CToast, CToastBody } from '@coreui/react'
+import { CButton } from '@coreui/react'
 import { useNavigate } from 'react-router-dom'
 import TempCell from 'src/core/components/Table/TempCell'
 import StatusInfo from 'src/core/components/StatusInfo'
-import { IoMdInformationCircleOutline } from 'react-icons/io'
-import { getServiceChartsApi, getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
+import { getServicesAlertApi, getServicesEndpointsApi } from 'core/api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getStep } from 'src/core/utils/step'
@@ -18,15 +17,16 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Card, Tooltip } from 'antd'
+import { Card, Space, Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import TableFilter  from 'src/core/components/Filter/TableFilter'
+import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
-const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) => {
+import { BasicCard } from 'src/core/components/Card/BasicCard'
+const ServiceTable = React.memo(({ groupId, height }) => {
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -45,7 +45,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
   const [pageSize, setPageSize] = useState(10)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
-
+  const [sortBy, setSortBy] = useState()
   const column = [
     {
       title: t('index.serviceTableColumns.serviceName'),
@@ -132,6 +132,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
           title: t('index.serviceTableColumns.serviceDetails.latency'),
           minWidth: 140,
           accessor: (idx) => `latency`,
+          sortType: ['desc'],
 
           Cell: (props) => {
             const { value, cell, trs } = props
@@ -151,7 +152,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         {
           title: t('index.serviceTableColumns.serviceDetails.errorRate'),
           accessor: (idx) => `errorRate`,
-
+          sortType: ['desc'],
           minWidth: 140,
           Cell: (props) => {
             const { value, cell, trs } = props
@@ -172,7 +173,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
           title: t('index.serviceTableColumns.serviceDetails.tps'),
           accessor: (idx) => `tps`,
           minWidth: 140,
-
+          sortType: ['desc'],
           Cell: (props) => {
             const { value, cell, trs } = props
             const { serviceName } = cell.row.original
@@ -210,6 +211,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         {
           title: t('index.serviceTableColumns.serviceInfo.logs'),
           accessor: `logs`,
+          sortType: ['desc'],
           minWidth: 160,
           Cell: (props) => {
             // eslint-disable-next-line react/prop-types
@@ -287,6 +289,8 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         startTime: startTime,
         endTime: endTime,
       })
+      const sortRule = getSortRule(sortBy?.length > 0 ? sortBy[0].id : null)
+
       getServicesEndpointsApi({
         startTime: startTime,
         endTime: endTime,
@@ -294,7 +298,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         serviceName: serviceName ?? undefined,
         endpointName: endpoint ?? undefined,
         namespace: namespace ?? undefined,
-        sortRule: 1,
+        sortRule: sortRule,
         groupId: groupId,
       })
         .then((res) => {
@@ -319,7 +323,7 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
       getTableData()
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint, namespace, groupId],
+    [startTime, endTime, serviceName, endpoint, namespace, groupId, sortBy],
   )
   const getServicesAlert = (serviceNames, returnData) => {
     return getServicesAlertApi({
@@ -357,22 +361,36 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
     })
     getChartsData(serviceList, endpointList)
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
+    }
+  }
+  const getSortRule = (sortById) => {
+    switch (sortById) {
+      case 'latency':
+        return 3
+      case 'errorRate':
+        return 4
+      case 'tps':
+        return 5
+      case 'logs':
+        return 6
+      default:
+        return 1
     }
   }
   const tableProps = useMemo(() => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
+
     return {
       columns: column,
       data: paginatedData,
-      // data: [],
       onChange: handleTableChange,
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(data.length / pageSize),
+        total: data.length,
       },
       emptyContent: (
         <div className="text-center">
@@ -410,40 +428,37 @@ const ServiceTable = React.memo(({ groupId, height = 'calc(100vh - 150px)' }) =>
         </div>
       ),
       showLoading: false,
+      sortBy: sortBy,
+      setSortBy: setSortBy,
     }
   }, [data, pageIndex, pageSize])
   return (
-    <div style={{ width: '100%', overflow: 'hidden' }} className="h-full flex flex-col">
+    <BasicCard bodyStyle={height && { height: height }}>
       <LoadingSpinner loading={loading} />
-      {/* <CToast autohide={false} visible={true} className="align-items-center w-full my-2">
-        <div className="d-flex">
-          <CToastBody className=" flex flex-row items-center text-xs">
-            <IoMdInformationCircleOutline size={20} color="#f7c01a" className="mr-1" />
-            {t('index.serviceTableToast')}
-          </CToastBody>
-        </div>
-      </CToast> */}
-      <TableFilter
-        groupId={groupId}
-        setServiceName={setServiceName}
-        setEndpoint={setEndpoint}
-        setNamespace={setNamespace}
-        className="mb-2"
-      />
-      <Card className="flex-1 overflow-hidden" styles={{ body: { height: height, padding: 0 } }}>
-        <div className="mb-4 h-full p-2 text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-        <ChartsProvider>
-          <EndpointTableModal
-            visible={modalVisible}
-            serviceName={modalServiceName}
-            timeRange={requestTimeRange}
-            closeModal={() => setModalVisible(false)}
-          />
-        </ChartsProvider>
-      </Card>
-    </div>
+
+      <BasicCard.Header>
+        <TableFilter
+          groupId={groupId}
+          setServiceName={setServiceName}
+          setEndpoint={setEndpoint}
+          setNamespace={setNamespace}
+          className="mb-2"
+        />
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
+      <ChartsProvider>
+        <EndpointTableModal
+          visible={modalVisible}
+          serviceName={modalServiceName}
+          timeRange={requestTimeRange}
+          closeModal={() => setModalVisible(false)}
+        />
+      </ChartsProvider>
+    </BasicCard>
   )
 })
 export default ServiceTable

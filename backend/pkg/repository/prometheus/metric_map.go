@@ -36,6 +36,8 @@ type MetricGroupMap[K interface {
 
 type MetricGroupInterface interface {
 	MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult)
+
+	MergeRangeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult)
 }
 
 func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult) {
@@ -67,6 +69,35 @@ func (m *MetricGroupMap[K, V]) MergeMetricResults(metricGroup MGroupName, metric
 	}
 }
 
+func (m *MetricGroupMap[K, V]) MergeRangeMetricResults(metricGroup MGroupName, metricName MName, metricResults []MetricResult) {
+	for _, metric := range metricResults {
+		if len(metric.Values) <= 0 {
+			continue
+		}
+		var kType K
+		key, ok := kType.ConvertFromLabels(metric.Metric).(K)
+		if !ok {
+			continue
+		}
+		mg, find := m.MetricGroupMap[key]
+		var pMG = new(V)
+		if !find {
+			if !(*pMG).AppendGroupIfNotExist(metricGroup, metricName) {
+				continue
+			}
+			mg, ok = mg.InitEmptyGroup(key).(V)
+			if !ok {
+				continue
+			}
+			m.MetricGroupList = append(m.MetricGroupList, mg)
+			m.MetricGroupMap[key] = mg
+		}
+		// All consolidated values contain only the results at the latest time point, directly take the metricResult.Values[0]
+		// value := metric.Values[0].Value
+		mg.SetValues(metricGroup, metricName, metric.Values)
+	}
+}
+
 type ConvertFromLabels interface {
 	ConvertFromLabels(labels Labels) ConvertFromLabels
 }
@@ -75,4 +106,5 @@ type MetricGroup interface {
 	InitEmptyGroup(key ConvertFromLabels) MetricGroup
 	AppendGroupIfNotExist(metricGroup MGroupName, metricName MName) bool
 	SetValue(metricGroup MGroupName, metricName MName, value float64)
+	SetValues(metricGroup MGroupName, metricName MName, points []Points)
 }

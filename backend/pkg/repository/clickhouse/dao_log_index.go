@@ -6,12 +6,15 @@ package clickhouse
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func groupBySQL(req *request.LogIndexRequest) string {
+const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10"
+
+func groupBySQL(baseQuery string, req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10",
+	sql := fmt.Sprintf(baseQuery,
 		req.Column,
 		req.DataBase,
 		req.TableName,
@@ -21,9 +24,11 @@ func groupBySQL(req *request.LogIndexRequest) string {
 	return sql
 }
 
-func countSQL(req *request.LogIndexRequest) string {
+const countLogIndexQuery = "SELECT count(*) as count FROM `%s`.`%s` WHERE %s"
+
+func countSQL(baseQuery string, req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(*) as count FROM `%s`.`%s` WHERE %s",
+	sql := fmt.Sprintf(baseQuery,
 		req.DataBase,
 		req.TableName,
 		condition,
@@ -31,9 +36,9 @@ func countSQL(req *request.LogIndexRequest) string {
 	return sql
 }
 
-func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
-	groupSQL := groupBySQL(req)
-	groupRows, err := ch.queryRowsData(groupSQL)
+func (ch *chRepo) GetLogIndex(ctx core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error) {
+	groupSQL := groupBySQL(groupLogIndexQuery, req)
+	groupRows, err := ch.queryRowsData(ctx, groupSQL)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -73,8 +78,8 @@ func (ch *chRepo) GetLogIndex(req *request.LogIndexRequest) (map[string]uint64, 
 			res[key] = v["count"].(uint64)
 		}
 	}
-	countSQL := countSQL(req)
-	countRows, err := ch.queryRowsData(countSQL)
+	countSQL := countSQL(countLogIndexQuery, req)
+	countRows, err := ch.queryRowsData(ctx, countSQL)
 	if err != nil {
 		return nil, 0, err
 	}

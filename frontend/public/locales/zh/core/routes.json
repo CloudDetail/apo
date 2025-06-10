@@ -15,12 +15,15 @@
   "systemSettingsName": "系统管理",
   "userManageName": "用户管理",
   "userCenterName": "个人中心",
-  "memuManageName": "菜单管理",
+  "menuManageName": "菜单管理",
+  "roleManageName": "角色管理",
   "systemConfigName": "系统配置",
   "alertsIntegration": "告警接入",
   "dataGroup": "数据组管理",
   "team": "团队管理",
   "dataIntegration": "数据接入",
+  "dataIntegrationSettings": "集群接入",
   "alertEvents": "告警事件",
-  "workflows": "工作流"
+  "workflows": "工作流",
+  "eventDetail": "告警事件详情"
 }

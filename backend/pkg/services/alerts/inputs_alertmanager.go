@@ -4,11 +4,11 @@
 package alerts
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -26,6 +26,8 @@ func transferAlertManager(data *request.InputAlertManagerRequest) []*model.Alert
 			log.Println("[AlertManager] Error marshaling annotations: ", err)
 			continue
 		}
+
+		now := time.Now()
 		alertEvent := &model.AlertEvent{
 			ID:           model.GenUUID(),
 			Source:       model.AlertManagerSource,
@@ -34,8 +36,8 @@ func transferAlertManager(data *request.InputAlertManagerRequest) []*model.Alert
 			Status:       convertStatus(a.Status),
 			Group:        a.Labels["group"],
 			CreateTime:   startsAt,
-			UpdateTime:   startsAt,
-			ReceivedTime: time.Now(),
+			UpdateTime:   now,
+			ReceivedTime: now,
 			EndTime:      endsAt,
 			Detail:       string(annotationsJson),
 			Tags:         a.Labels,
@@ -71,9 +73,9 @@ func convertStatus(status string) model.Status {
 	}
 }
 
-func (s *service) InputAlertManager(req *request.InputAlertManagerRequest) error {
+func (s *service) InputAlertManager(ctx core.Context, req *request.InputAlertManagerRequest) error {
 	events := transferAlertManager(req)
-	err := s.chRepo.InsertBatchAlertEvents(context.Background(), events)
+	err := s.chRepo.InsertBatchAlertEvents(ctx, events)
 	if err != nil {
 		log.Println("[AlertManager] Error inserting data: ", err)
 		return err

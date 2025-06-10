@@ -4,16 +4,15 @@
 package user
 
 import (
-	"context"
 	"errors"
 	"unicode"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
+func (s *service) UpdateUserInfo(ctx core.Context, req *request.UpdateUserInfoRequest) error {
 	//userRoles, err := s.dbRepo.GetUserRole(req.UserID)
 	//if err != nil {
 	//	return err
@@ -29,56 +28,56 @@ func (s *service) UpdateUserInfo(req *request.UpdateUserInfoRequest) error {
 	//	return err
 	//}
 	//
-	//var grantFunc = func(ctx context.Context) error {
+	//var grantFunc = func(ctx core.Context) error {
 	//	return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRole)
 	//}
 	//
-	//var revokeFunc = func(ctx context.Context) error {
+	//var revokeFunc = func(ctx core.Context) error {
 	//	return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRole)
 	//}
 
-	var updateInfoFunc = func(ctx context.Context) error {
+	var updateInfoFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), updateInfoFunc)
+	return s.dbRepo.Transaction(ctx, updateInfoFunc)
 }
 
-func (s *service) UpdateUserPhone(req *request.UpdateUserPhoneRequest) error {
-	return s.dbRepo.UpdateUserPhone(req.UserID, req.Phone)
+func (s *service) UpdateUserPhone(ctx core.Context, req *request.UpdateUserPhoneRequest) error {
+	return s.dbRepo.UpdateUserPhone(ctx, req.UserID, req.Phone)
 }
 
-func (s *service) UpdateUserEmail(req *request.UpdateUserEmailRequest) error {
-	return s.dbRepo.UpdateUserEmail(req.UserID, req.Email)
+func (s *service) UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error {
+	return s.dbRepo.UpdateUserEmail(ctx, req.UserID, req.Email)
 }
 
-func (s *service) UpdateUserPassword(req *request.UpdateUserPasswordRequest) error {
+func (s *service) UpdateUserPassword(ctx core.Context, req *request.UpdateUserPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	var updatePasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.UpdateUserPassword(req.UserID, req.OldPassword, req.NewPassword)
+	var updatePasswordFunc = func(ctx core.Context) error {
+		return s.dbRepo.UpdateUserPassword(ctx, req.UserID, req.OldPassword, req.NewPassword)
 	}
 
-	var updateDifyPasswordFunc = func(ctx context.Context) error {
+	var updateDifyPasswordFunc = func(ctx core.Context) error {
 		resp, err := s.difyRepo.UpdatePassword(user.Username, req.OldPassword, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to update password in dify")
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), updatePasswordFunc, updateDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx, updatePasswordFunc, updateDifyPasswordFunc)
 }
 
 func checkPasswordComplexity(password string) error {
 	if len(password) < 8 {
-		return model.NewErrWithMessage(errors.New("length less than 8"), code.UserPasswordSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "length less than 8")
 	}
 	var (
 		hasUpper     bool
@@ -102,16 +101,16 @@ func checkPasswordComplexity(password string) error {
 	}
 
 	if !hasUpper {
-		return model.NewErrWithMessage(errors.New("must contain at least one upper character"), code.UserPasswordSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one upper character")
 	}
 	if !hasLower {
-		return model.NewErrWithMessage(errors.New("must contain at least one lower character"), code.UserPasswordSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one lower character")
 	}
 	if !hasDigit {
-		return model.NewErrWithMessage(errors.New("must contain at least one digit"), code.UserPasswordSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one digit")
 	}
 	if !hasSpecial {
-		return model.NewErrWithMessage(errors.New("must contain at least one special character"), code.UserPasswordSimpleError)
+		return core.Error(code.UserPasswdSimpleError, "must contain at least one special character")
 	}
 
 	return nil
@@ -126,30 +125,30 @@ func containsRune(set string, char rune) bool {
 	return false
 }
 
-func (s *service) RestPassword(req *request.ResetPasswordRequest) error {
+func (s *service) RestPassword(ctx core.Context, req *request.ResetPasswordRequest) error {
 	if err := checkPasswordComplexity(req.NewPassword); err != nil {
 		return err
 	}
 
-	user, err := s.dbRepo.GetUserInfo(req.UserID)
+	user, err := s.dbRepo.GetUserInfo(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
-	var resetPasswordFunc = func(ctx context.Context) error {
-		return s.dbRepo.RestPassword(req.UserID, req.NewPassword)
+	var resetPasswordFunc = func(ctx core.Context) error {
+		return s.dbRepo.RestPassword(ctx, req.UserID, req.NewPassword)
 	}
 
-	var resetDifyPasswordFunc = func(ctx context.Context) error {
+	var resetDifyPasswordFunc = func(ctx core.Context) error {
 		resp, err := s.difyRepo.ResetPassword(user.Username, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to reset password in dify")
 		}
 		return nil
 	}
-	return s.dbRepo.Transaction(context.Background(), resetPasswordFunc, resetDifyPasswordFunc)
+	return s.dbRepo.Transaction(ctx, resetPasswordFunc, resetDifyPasswordFunc)
 }
 
-func (s *service) UpdateSelfInfo(req *request.UpdateSelfInfoRequest) error {
-	return s.dbRepo.UpdateUserInfo(context.Background(), req.UserID, req.Phone, req.Email, req.Corporation)
+func (s *service) UpdateSelfInfo(ctx core.Context, req *request.UpdateSelfInfoRequest) error {
+	return s.dbRepo.UpdateUserInfo(ctx, req.UserID, req.Phone, req.Email, req.Corporation)
 }

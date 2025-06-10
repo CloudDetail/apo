@@ -6,11 +6,13 @@
 import React, { useMemo } from 'react'
 import ReactJson from 'react-json-view'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { convertUTCToBeijing } from 'src/core/utils/time'
+import { convertUTCToLocal } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 
 export default function AlertInfoTable({ data }) {
   const { t } = useTranslation('oss/serviceInfo')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
   const columns = useMemo(
     () => [
       {
@@ -29,7 +31,7 @@ export default function AlertInfoTable({ data }) {
             accessor: 'receivedTime',
             customWidth: 180,
             Cell: ({ value }) => {
-              return convertUTCToBeijing(value)
+              return convertUTCToLocal(value)
             },
           },
           {
@@ -38,7 +40,7 @@ export default function AlertInfoTable({ data }) {
             Cell: ({ value }) => (
               <ReactJson
                 src={JSON.parse(value)}
-                theme="brewer"
+                theme={reactJsonTheme}
                 collapsed={false}
                 displayDataTypes={false}
                 style={{ width: '100%' }}
@@ -49,7 +51,7 @@ export default function AlertInfoTable({ data }) {
         ],
       },
     ],
-    [t],
+    [t, reactJsonTheme],
   )
 
   const tableProps = useMemo(() => {
@@ -57,8 +59,14 @@ export default function AlertInfoTable({ data }) {
       columns: columns,
       data: data,
       loading: false,
+      pagination: {
+        pageSize: 5,
+        pageIndex: 1,
+        total: data?.length || 0,
+      },
+      scrollY: 300,
     }
   }, [columns, data])
 
-  return <>{data && <BasicTable {...tableProps} />}</>
+  return <div>{data && <BasicTable {...tableProps} />}</div>
 }

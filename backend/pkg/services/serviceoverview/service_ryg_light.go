@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -14,7 +15,7 @@ import (
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
+func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
 	var servicesMap = &servicesRYGLightMap{
 		MetricGroupList: []*RYGLightStatus{},
 		MetricGroupMap:  map[prom.ServiceKey]*RYGLightStatus{},
@@ -26,7 +27,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 	filters := filter.ExtractFilterStr()
 
 	// FIX for showing services without LatencyDay-over-Day Growth Rate
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.PQLAvgLatencyWithFilters,
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -34,7 +35,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		servicesMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
 	}
 
-	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -42,7 +43,7 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		servicesMap.MergeMetricResults(prom.DOD, prom.LATENCY, avgLatencyDoD)
 	}
 
-	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(
+	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
 		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
@@ -50,8 +51,8 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		servicesMap.MergeMetricResults(prom.DOD, prom.ERROR_RATE, avgErrorRateDoD)
 	}
 
-	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(
-		prom.DayOnDay(prom.PQLAvgLogErrorCountWithFilters),
+	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
+		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
 		startMicroTS, endMicroTs,
 		prom.SVCGranularity, filters...)
 	if err == nil {
@@ -62,14 +63,13 @@ func (s *service) GetServicesRYGLightStatus(startTime time.Time, endTime time.Ti
 		ServiceList: []*response.ServiceRYGResult{},
 	}
 
-	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(
-		startTime,
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx, startTime,
 		endTime,
 		request.AlertFilter{Status: "firing"},
 		nil,
 	)
 	for svcKey, status := range servicesMap.MetricGroupMap {
-		instances, err := s.promRepo.GetInstanceList(startMicroTS, endMicroTs, svcKey.SvcName, "")
+		instances, err := s.promRepo.GetInstanceList(ctx, startMicroTS, endMicroTs, svcKey.SvcName, "")
 		if err != nil {
 			continue
 		}
@@ -280,6 +280,10 @@ func (s *RYGLightStatus) AppendGroupIfNotExist(metricGroup prom.MGroupName, metr
 
 func (s *RYGLightStatus) InitEmptyGroup(key prom.ConvertFromLabels) prom.MetricGroup {
 	return &RYGLightStatus{}
+}
+
+func (s *RYGLightStatus) SetValues(roupName prom.MGroupName, metricName prom.MName, points []prom.Points) {
+	// Do Nothing
 }
 
 func (s *RYGLightStatus) SetValue(groupName prom.MGroupName, metricName prom.MName, value float64) {

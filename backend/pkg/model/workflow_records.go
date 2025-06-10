@@ -13,5 +13,16 @@ type WorkflowRecord struct {
 	Input  string `json:"input" ch:"input"`
 	Output string `json:"output" ch:"output"`
 
-	CreatedAt int64 `json:"createdAt" ch:"created_at"`
+	CreatedAt   int64 `json:"createdAt" ch:"created_at"`
+	RoundedTime int64 `json:"-" ch:"rounded_time"`
+
+	InputRef any `json:"-" ch:"-"`
+}
+
+type AlertNotifyRecord struct {
+	AlertID   string `json:"alertId" ch:"alert_id"`
+	CreatedAt int64  `json:"createdAt" ch:"created_at"`
+	EventID   string `json:"eventId" ch:"event_id"`
+	Success   string `json:"success" ch:"success"`
+	Failed    string `json:"failed" ch:"failed"`
 }

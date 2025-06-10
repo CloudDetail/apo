@@ -9,8 +9,8 @@ import (
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	prommodel "github.com/prometheus/common/model"
@@ -108,12 +108,12 @@ func (m *Metadata) AddAMConfigReceiver(configFile string, receiver amconfig.Rece
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
+		return core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	for i := range amConfig.Receivers {
 		if amConfig.Receivers[i].Name == receiver.Name {
-			return model.NewErrWithMessage(fmt.Errorf("add receiver failed,receiver '%s' already exists", receiver.Name), code.AlertManagerReceiverAlreadyExistsError)
+			return core.Error(code.AlertManagerReceiverAlreadyExistsError, fmt.Sprintf("add receiver failed,receiver '%s' already exists", receiver.Name))
 		}
 	}
 
@@ -142,7 +142,7 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
+		return core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	// Update Exist receiver
@@ -183,7 +183,7 @@ func (m *Metadata) UpdateAMConfigReceiver(configFile string, receiver amconfig.R
 		}
 	}
 	if !receiverIsExist {
-		return model.NewErrWithMessage(fmt.Errorf("update receiver failed, '%s' not found", oldName), code.AlertManagerReceiverNotExistsError)
+		return core.Error(code.AlertManagerReceiverNotExistsError, fmt.Sprintf("update receiver failed, '%s' not found", oldName))
 	}
 
 	return nil
@@ -195,11 +195,11 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) (bool,
 
 	amConfig, find := m.AMConfigMap[configFile]
 	if !find {
-		return false, model.NewErrWithMessage(fmt.Errorf("configfile %s is not found", configFile), code.AlertConfigFileNotExistError)
+		return false, core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	if name == amConfig.Route.Receiver {
-		return false, model.NewErrWithMessage(fmt.Errorf("delete receiver failed, '%s' is the default receiver", name), code.AlertManagerDefaultReceiverCannotDelete)
+		return false, core.Error(code.AlertManagerDefaultReceiverCannotDelete, fmt.Sprintf("delete receiver failed, '%s' is the default receiver", name))
 	}
 
 	for i := 0; i < len(amConfig.Receivers); i++ {
@@ -217,7 +217,7 @@ func (m *Metadata) DeleteAMConfigReceiver(configFile string, name string) (bool,
 		}
 	}
 
-	return false, model.NewErrWithMessage(fmt.Errorf("delete receiver failed, '%s' not found", name), code.AlertManagerReceiverNotExistsError)
+	return false, core.Error(code.AlertManagerReceiverNotExistsError, fmt.Sprintf("delete receiver failed, '%s' not found", name))
 }
 
 func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) error {
@@ -226,22 +226,18 @@ func (m *Metadata) AddAlertRule(configFile string, alertRule request.AlertRule) 
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return model.NewErrWithMessage(
-			fmt.Errorf("can not find specific config: %s", configFile),
-			code.AlertConfigFileNotExistError)
+		return core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	// Check whether the group exists
 	if checkGroupExists(alertRule.Group, *alertRules) {
 		// group exists, check whether alert is available
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
-			return model.NewErrWithMessage(
-				fmt.Errorf("alert already exists: %s", alertRule.Alert),
-				code.AlertAlertAlreadyExistError)
+			return core.Error(code.AlertAlertAlreadyExistError, fmt.Sprintf("alert already exists: %s", alertRule.Alert))
 		}
 	} else {
-		name, _ := GetLabel(alertRule.Group)
-		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: name})
+		// name, _ := GetLabel(alertRule.Group)
+		alertRules.Groups = append(alertRules.Groups, AlertGroup{Name: alertRule.Group})
 	}
 
 	alertRules.Rules = append(alertRules.Rules, &alertRule)
@@ -255,31 +251,23 @@ func (m *Metadata) UpdateAlertRule(configFile string, alertRule request.AlertRul
 
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		return model.NewErrWithMessage(
-			fmt.Errorf("can not find specific config: %s", configFile),
-			code.AlertConfigFileNotExistError)
+		return core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	// Check the existence of old alarms first
 	if !checkGroupExists(oldGroup, *alertRules) {
-		return model.NewErrWithMessage(
-			fmt.Errorf("old group not exists: %s", oldGroup),
-			code.AlertOldGroupNotExistError)
+		return core.Error(code.AlertOldGroupNotExistError, fmt.Sprintf("old group not exists: %s", oldGroup))
 	}
 
 	if !checkAlertExists(oldGroup, oldAlert, *alertRules) {
-		return model.NewErrWithMessage(
-			fmt.Errorf("old alert not exists: %s", oldAlert),
-			code.AlertAlertNotExistError)
+		return core.Error(code.AlertAlertNotExistError, fmt.Sprintf("old alert not exists: %s", oldAlert))
 	}
 
 	// If it is a move operation, you need to check the existence of new alarms.
 	if oldGroup != alertRule.Group || oldAlert != alertRule.Alert {
 		// This alarm exists in the group
 		if checkAlertExists(alertRule.Group, alertRule.Alert, *alertRules) {
-			return model.NewErrWithMessage(
-				fmt.Errorf("alert already exists: %s", alertRule.Alert),
-				code.AlertAlertAlreadyExistError)
+			return core.Error(code.AlertAlertAlreadyExistError, fmt.Sprintf("alert already exists: %s", alertRule.Alert))
 		} else if !checkGroupExists(alertRule.Group, *alertRules) {
 			// Add a new group
 			name, _ := GetLabel(alertRule.Group)
@@ -316,12 +304,9 @@ func (m *Metadata) CheckAlertRuleExists(configFile, group, alert string) (bool, 
 	m.alertRulesLock.RLock()
 	defer m.alertRulesLock.RUnlock()
 
-	var err model.ErrWithMessage
 	alertRules, find := m.AlertRulesMap[configFile]
 	if !find {
-		err.Err = fmt.Errorf("configfile %s is not found", configFile)
-		err.Code = code.AlertConfigFileNotExistError
-		return false, err
+		return false, core.Error(code.AlertConfigFileNotExistError, "configfile not found")
 	}
 
 	if checkGroupExists(group, *alertRules) && checkAlertExists(group, alert, *alertRules) {
@@ -426,8 +411,8 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 		}
 	}
 
-	if len(filter.Group) > 0 {
-		if !strings.Contains(rule.Group, filter.Group) {
+	if len(filter.Groups) > 0 {
+		if !ContainsLike(filter.Groups, rule.Group) {
 			return false
 		}
 	}
@@ -467,6 +452,15 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 func ContainsIn(slices []string, expected string) bool {
 	for _, item := range slices {
 		if item == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsLike(slices []string, expected string) bool {
+	for _, item := range slices {
+		if strings.Contains(item, expected) {
 			return true
 		}
 	}

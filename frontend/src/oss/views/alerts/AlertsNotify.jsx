@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Input, Popconfirm, Select, Space } from 'antd'
+import { Button, Input, Popconfirm, Space } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
-import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { MdAdd, MdOutlineEdit } from 'react-icons/md'
-import { useSelector } from 'react-redux'
 import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
+import { RiDeleteBin5Line } from 'react-icons/ri'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -37,9 +37,9 @@ export default function AlertsNotify() {
             name: row.name,
           },
     ).then((res) => {
-      showToast({
-        title: t('notify.deleteSuccess'),
-        color: 'success',
+      notify({
+        message: t('notify.deleteSuccess'),
+        type: 'success',
       })
       refreshTable()
     })
@@ -115,9 +115,9 @@ export default function AlertsNotify() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('notify.edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{t('notify.edit')}</span>
             </Button>
             <Popconfirm
               title={<>{t('notify.confirmDelete', { name: row.name })}</>}
@@ -164,9 +164,9 @@ export default function AlertsNotify() {
         setLoading(false)
       })
   }
-  const handleTableChange = (props) => {
-    if (props.pageSize && props.pageIndex) {
-      setPageSize(props.pageSize), setPageIndex(props.pageIndex)
+  const handleTableChange = (pageIndex, pageSize) => {
+    if (pageSize && pageIndex) {
+      setPageSize(pageSize), setPageIndex(pageIndex)
     }
   }
   const refreshTable = () => {
@@ -181,27 +181,17 @@ export default function AlertsNotify() {
       pagination: {
         pageSize: pageSize,
         pageIndex: pageIndex,
-        pageCount: Math.ceil(total / pageSize),
+        total: total,
       },
       loading: false,
     }
   }, [column, data, pageIndex, pageSize])
   return (
-    <Card
-      style={{ height: 'calc(100vh - 60px)' }}
-      styles={{
-        body: {
-          height: '100%',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '12px 24px',
-        },
-      }}
-    >
+    <BasicCard>
       <LoadingSpinner loading={loading} />
-      <div className="flex items-center justify-betweeen text-sm ">
-        <Space className="flex-grow">
+
+      <BasicCard.Header>
+        <Space className="flex-grow my-2">
           <Space className="flex-1">
             <span className="text-nowrap">{t('notify.alertNotifyName')}：</span>
             <Input
@@ -217,24 +207,24 @@ export default function AlertsNotify() {
 
         <Button
           type="primary"
-          icon={<MdAdd size={20} />}
+          icon={<MdAdd />}
           onClick={clickAddRule}
-          className="flex-grow-0 flex-shrink-0"
+          className="flex-grow-0 flex-shrink-0 my-2"
         >
           <span className="text-xs">{t('notify.addAlertNotify')}</span>
         </Button>
-      </div>
-      <div className="text-sm flex-1 overflow-auto">
-        <div className="h-full text-xs justify-between">
-          <BasicTable {...tableProps} />
-        </div>
-      </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
+        <BasicTable {...tableProps} />
+      </BasicCard.Table>
+
       <ModifyAlertNotifyModal
         modalVisible={modalVisible}
         notifyInfo={modalInfo}
         closeModal={() => setModalVisible(false)}
         refresh={refreshTable}
       />
-    </Card>
+    </BasicCard>
   )
 }

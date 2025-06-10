@@ -28,20 +28,20 @@ func (h *handler) GetServiceList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceListRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.serviceInfoService.GetServiceList(req)
+		resp, err := h.serviceInfoService.GetServiceList(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetServiceListError,
-				c.ErrMessage(code.GetServiceListError)).WithError(err),
+				err,
 			)
 			return
 		}

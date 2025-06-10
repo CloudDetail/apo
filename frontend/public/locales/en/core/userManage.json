@@ -14,7 +14,10 @@
     "cancel": "Cancel",
     "addUser": "Add User",
     "deleteSuccess": "Successfully deleted user",
-    "dataGroup": "Data Permissions"
+    "dataGroup": "Data Permissions",
+    "revokeSuccess": "Successfully revoked user",
+    "updateSuccess": "Successfully updated user",
+    "addSuccess": "Successfully added user"
   },
   "addModal": {
     "title": "Add User",
@@ -39,7 +42,9 @@
     "phoneInvalid": "Please enter a valid phone number",
     "corporation": "Organization",
     "corporationPlaceholder": "Please enter organization",
-    "addSuccess": "User added successfully"
+    "addSuccess": "User added successfully",
+    "selectRole": "Role",
+    "roleRequired": "Please select a role"
   },
   "editModal": {
     "title": "Edit User",
@@ -57,7 +62,7 @@
     "newPasswordPlaceholder": "Please enter password",
     "newPasswordRequired": "Please enter password",
     "newPasswordPattern": "Password must contain uppercase letters, lowercase letters, special characters, and be longer than 8 characters",
-    "confirmPassword": "Confirm New Password",
+    "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Please re-enter password",
     "confirmPasswordRequired": "Please re-enter password",
     "confirmPasswordMismatch": "The two passwords do not match",
@@ -65,7 +70,8 @@
     "getUserInfoFail": "Failed to get user info",
     "saveSuccess": "Save successful",
     "resetPasswordSuccess": "Password reset successful",
-    "resetPasswordFail": "Unknown error"
+    "resetPasswordFail": "Unknown error",
+    "selectRole": "Please select role"
   },
 
   "save": "Save",

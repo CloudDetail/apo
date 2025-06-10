@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -27,10 +28,12 @@ func calculateInterval(interval int64, timeField string) (string, int64) {
 	return fmt.Sprintf("toStartOfInterval(`%s`, INTERVAL 1 day)", timeField), 86400
 }
 
-func chartSQL(req *request.LogQueryRequest) (string, int64) {
+const queryLogChart = "SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC"
+
+func chartSQL(baseQuery string, req *request.LogQueryRequest) (string, int64) {
 	group, interval := calculateInterval((req.EndTime-req.StartTime)/1000000, req.TimeField)
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
-	sql := fmt.Sprintf("SELECT count(`%s`) as count, %s as timeline FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY %s ASC",
+	sql := fmt.Sprintf(baseQuery,
 		req.TimeField,
 		group,
 		req.DataBase,
@@ -41,9 +44,9 @@ func chartSQL(req *request.LogQueryRequest) (string, int64) {
 	return sql, interval
 }
 
-func (ch *chRepo) GetLogChart(req *request.LogQueryRequest) ([]map[string]any, int64, error) {
-	sql, interval := chartSQL(req)
-	results, err := ch.queryRowsData(sql)
+func (ch *chRepo) GetLogChart(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error) {
+	sql, interval := chartSQL(queryLogChart, req)
+	results, err := ch.queryRowsData(ctx, sql)
 	if err != nil {
 		return nil, interval, err
 	}

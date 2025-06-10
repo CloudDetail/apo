@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/google/uuid"
@@ -29,7 +30,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 	receivedTime := time.Now()
 	for _, event := range events {
 		rawMap := event.(map[string]any)
-		alertEvent, err := d.convertAlertEvent(rawMap)
+		alertEvent, err := d.convertAlertEvent(rawMap, receivedTime)
 		if err != nil {
 			decodeErrs = multierr.Append(decodeErrs, err)
 			continue
@@ -48,7 +49,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 	return alertEvents, decodeErrs
 }
 
-func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.AlertEvent, error) {
+func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any, receivedTime time.Time) (*alert.AlertEvent, error) {
 	var promAlert request.Alert
 	err := DecodeEvent(rawMap, &promAlert)
 	if err != nil {
@@ -71,6 +72,13 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 	for k, v := range promAlert.Labels {
 		tags[k] = v
 	}
+
+	var updateTime time.Time
+	if promAlert.Status == model.StatusResolved.ToString() {
+		updateTime = endsAt
+	} else {
+		updateTime = receivedTime
+	}
 	var alertEvent = alert.AlertEvent{
 		Alert: alert.Alert{
 			Name:       promAlert.Labels["alertname"],
@@ -80,7 +88,7 @@ func (d PrometheusDecoder) convertAlertEvent(rawMap map[string]any) (*alert.Aler
 		},
 		Detail:     string(annotationsJson),
 		CreateTime: startsAt,
-		UpdateTime: startsAt,
+		UpdateTime: updateTime,
 		EndTime:    endsAt,
 		Status:     promAlert.Status,
 		Severity:   promAlert.Labels["severity"],

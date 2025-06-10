@@ -1,4 +1,4 @@
-FROM golang:1.21.5-bullseye AS builder
+FROM golang:1.23.8-bookworm AS builder
 LABEL authors="apo"
 WORKDIR /build
 
@@ -8,7 +8,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o apo-backend
 
-FROM debian:bullseye-slim AS runner
+FROM debian:bookworm-slim AS runner
 WORKDIR /app
 
 RUN apt-get update && \
@@ -16,7 +16,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 COPY config/apo.yml /app/config/apo.yml
 COPY --from=builder /build/apo-backend /app/
-COPY pkg/services/alerts/notification/default.tmpl /app/notification/default.tmpl
+COPY pkg/receiver/dingtalk/notification/default.tmpl /app/notification/default.tmpl
 COPY sqlscripts /app/sqlscripts
 COPY static /app/static
 

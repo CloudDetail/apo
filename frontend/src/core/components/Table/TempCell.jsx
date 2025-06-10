@@ -83,21 +83,20 @@ const TempCell = (props) => {
   }, [type, data])
   return (
     data && (
-      <div className="flex items-center flex-row flex-wrap justify-center pr-5">
+      <div className="flex items-center flex-row flex-wrap justify-center">
         <div className="flex mr-1 flex-1 justify-end">
-          {/* eslint-disable-next-line react/prop-types */}
           <span className={displayValue === 'N/A' && 'text-slate-400'}>{displayValue}</span>
         </div>
 
         <div className="felx h-[30px] w-[60px] items-center flex-1 relative">
           {chartsLoading ? (
-            <LoadingSpinner loading={chartsLoading} size="sm"></LoadingSpinner>
+            <LoadingSpinner loading={chartsLoading} size="small"></LoadingSpinner>
           ) : (
             <AreaChart type={type} data={data.chartData} timeRange={timeRange} />
           )}
         </div>
 
-        <div className="h-full text-[10px] text-neutral-400 w-full">
+        <div className="h-full text-[10px] w-full text-[var(--ant-color-text-secondary)]">
           <div className="flex p-1 justify-center items-center">
             <span className="flex-1 text-right">{t('tempCell.DailyYoYText')} </span>
             <span className="flex-1 inline-flex  justify-center items-center">
@@ -124,4 +123,4 @@ const TempCell = (props) => {
   )
 }
 
-export default TempCell
+export default React.memo(TempCell)

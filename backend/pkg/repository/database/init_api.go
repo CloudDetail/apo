@@ -4,11 +4,12 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/spf13/viper"
 	"gorm.io/gorm/clause"
 )
 
-func (repo *daoRepo) initApi() error {
+func (repo *daoRepo) initApi(ctx core.Context) error {
 	var apis []API
 	viper.SetConfigType("yaml")
 	viper.SetConfigFile("./sqlscripts/api.yml")
@@ -19,7 +20,7 @@ func (repo *daoRepo) initApi() error {
 		return err
 	}
 
-	return repo.db.Clauses(clause.OnConflict{
+	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "path"}, {Name: "method"}},
 		UpdateAll: true,
 	}).Create(&apis).Error

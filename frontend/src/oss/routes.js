@@ -8,24 +8,28 @@ import React from 'react'
 import TranslationCom from './components/TranslationCom.jsx'
 import { Tooltip } from 'antd'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
+import AuthRouter from 'src/core/components/AuthRouter'
 
-const BasicDashboard = React.lazy(() => import('src/oss/views/dashboard/BasicDashboard'))
-const SystemDashboard = React.lazy(() => import('src/oss/views/dashboard/SystemDashboard'))
-const ApplicationDashboard = React.lazy(
+const BasicDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/BasicDashboard')))
+const SystemDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/SystemDashboard')))
+const ApplicationDashboard = AuthRouter(React.lazy(
   () => import('src/oss/views/dashboard/ApplicationDashboard'),
+))
+const MiddlewareDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/MiddlewareDashboard')))
+const Service = AuthRouter(React.lazy(() => import('src/oss/views/service/index.js')))
+const ServiceInfo = AuthRouter(React.lazy(() => import('src/oss/views/serviceInfo/index.js')))
+const FaultSiteLogsPage = AuthRouter(React.lazy(() => import('src/oss/views/logs/FaultSiteLogs')))
+const FullLogsPage = AuthRouter(React.lazy(() => import('src/oss/views/logs/FullLogsPage')))
+const FaultSiteTrace = AuthRouter(React.lazy(() => import('src/oss/views/trace/FaultSiteTrace.jsx')))
+const FullTrace = AuthRouter(React.lazy(() => import('src/oss/views/trace/FullTrace.jsx')))
+const AlertsRule = AuthRouter(React.lazy(() => import('src/oss/views/alerts/AlertsRule')))
+const AlertsNotify = AuthRouter(React.lazy(() => import('src/oss/views/alerts/AlertsNotify')))
+const ConfigPage = AuthRouter(React.lazy(() => import('src/oss/views/config/index')))
+const AlertEventsPage = AuthRouter(React.lazy(() => import('src/oss/views/alertEvents/index')))
+const WorkflowsPage = AuthRouter(React.lazy(() => import('src/oss/views/workflows/index')))
+const AlertEventDetailPage = AuthRouter(
+  React.lazy(() => import('src/oss/views/alertEvents/detail/index')),
 )
-const MiddlewareDashboard = React.lazy(() => import('src/oss/views/dashboard/MiddlewareDashboard'))
-const Service = React.lazy(() => import('src/oss/views/service/index.js'))
-const ServiceInfo = React.lazy(() => import('src/oss/views/serviceInfo/index.js'))
-const FaultSiteLogsPage = React.lazy(() => import('src/oss/views/logs/FaultSiteLogs'))
-const FullLogsPage = React.lazy(() => import('src/oss/views/logs/FullLogsPage'))
-const FaultSiteTrace = React.lazy(() => import('src/oss/views/trace/FaultSiteTrace.jsx'))
-const FullTrace = React.lazy(() => import('src/oss/views/trace/FullTrace.jsx'))
-const AlertsRule = React.lazy(() => import('src/oss/views/alerts/AlertsRule'))
-const AlertsNotify = React.lazy(() => import('src/oss/views/alerts/AlertsNotify'))
-const ConfigPage = React.lazy(() => import('src/oss/views/config/index'))
-const AlertEventsPage = React.lazy(() => import('src/oss/views/alertEvents/index'))
-const WorkflowsPage = React.lazy(() => import('src/oss/views/workflows/index'))
 
 const namespace = 'core/routes'
 
@@ -119,6 +123,12 @@ const ossRoutes = [
     path: '/workflows',
     name: <TranslationCom text="workflows" space={namespace} />,
     element: WorkflowsPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/alerts/events/detail/:alertId/:eventId',
+    name: <TranslationCom text="eventDetail" space={namespace} />,
+    element: AlertEventDetailPage,
     hideSystemTimeRangePicker: true,
   },
 ]

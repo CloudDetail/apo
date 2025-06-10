@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Flex, Popconfirm, Table, Typography } from 'antd'
+import { Button, Flex, Popconfirm, Table } from 'antd'
 import { useEffect, useState } from 'react'
 import { deleteDataGroupApi, getDataGroupsApi } from 'src/core/api/dataGroup'
-import DataGroupFilter from './DataGroupFilter'
 import InfoModal from './InfoModal'
 import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { LuShieldCheck } from 'react-icons/lu'
 import PermissionModal from './PermissionModal'
 import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 export default function DataGroupPage() {
   const { t } = useTranslation('core/dataGroup')
@@ -60,9 +60,9 @@ export default function DataGroupPage() {
   }
   const deleteDataGroup = (groupId: string) => {
     deleteDataGroupApi(groupId).then((res) => {
-      showToast({
-        color: 'success',
-        title: ct('deleteSuccess'),
+      notify({
+        type: 'success',
+        message: ct('deleteSuccess'),
       })
       getDataGroups()
     })
@@ -119,9 +119,11 @@ export default function DataGroupPage() {
                 setInfoModalVisible(true)
                 setGroupInfo(record)
               }}
-              icon={<MdOutlineEdit className="text-blue-400 hover:text-blue-400" />}
+              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
             >
-              <span className="text-blue-400 hover:text-blue-400">{t('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {t('edit')}
+              </span>
             </Button>
             <Popconfirm
               title={t('confirmDelete', {
@@ -152,27 +154,33 @@ export default function DataGroupPage() {
     },
   ]
   return (
-    <>
-      <Card
-        style={{ height: 'calc(100vh - 60px)', overflow: 'hidden' }}
-        classNames={{ body: 'h-full' }}
-      >
-        <div className="flex justify-between mb-2">
+    <BasicCard>
+      <BasicCard.Header>
+        <div className="w-full flex justify-between mt-2">
           {/* <DataGroupFilter /> */}
           <div></div>
           <Button type="primary" onClick={() => setInfoModalVisible(true)}>
             {t('add')}
           </Button>
         </div>
+      </BasicCard.Header>
+
+      <BasicCard.Table>
         <Table
           dataSource={data}
           columns={columns}
-          pagination={{ current: currentPage, pageSize: pageSize, total: total }}
+          pagination={{
+            current: currentPage,
+            pageSize: pageSize,
+            total: total,
+            hideOnSinglePage: true,
+          }}
           onChange={changePagination}
           scroll={{ y: 'calc(100vh - 240px)' }}
           className="overflow-auto"
         ></Table>
-      </Card>
+      </BasicCard.Table>
+
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}
@@ -185,6 +193,6 @@ export default function DataGroupPage() {
         groupInfo={groupInfo}
         refresh={refresh}
       />
-    </>
+    </BasicCard>
   )
 }

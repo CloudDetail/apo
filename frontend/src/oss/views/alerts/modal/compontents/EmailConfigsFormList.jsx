@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Card, Col, Form, Input, InputNumber, Row, Segmented, Switch } from 'antd'
+import { Card, Col, Form, Input, InputNumber, Row, Segmented, Switch, theme } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import React, { useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
@@ -12,6 +12,8 @@ import { useTranslation } from 'react-i18next'
 
 export default function EmailConfigsFormList() {
   const { t } = useTranslation('oss/alert')
+  const { useToken } = theme
+  const { token } = useToken()
   const labelCol = { span: 8 }
   const tlsConfigItemsList = [
     {
@@ -84,7 +86,7 @@ export default function EmailConfigsFormList() {
             }
           >
             {fields.map((field, index) => (
-              <div className="bg-[#323545] px-3 pt-3 pb-0 rounded relative  mb-2 mt-1">
+              <div className="px-3 pt-3 pb-0 rounded relative  mb-2 mt-1" style={{ backgroundColor: token.colorFillQuaternary }}>
                 {index > 0 && (
                   <IoIosRemoveCircleOutline
                     size={20}

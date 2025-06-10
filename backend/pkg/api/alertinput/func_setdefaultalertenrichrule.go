@@ -25,20 +25,20 @@ func (h *handler) SetDefaultAlertEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.SetDefaultAlertEnrichRuleRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		err := h.inputService.SetDefaultAlertEnrichRule(req.SourceType, req.EnrichRuleConfigs)
+		err := h.inputService.SetDefaultAlertEnrichRule(c, req.SourceType, req.EnrichRuleConfigs)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.SetDefaultAlertEnrichRuleFailed,
-				c.ErrMessage(code.SetDefaultAlertEnrichRuleFailed)).WithError(err),
+				err,
 			)
 		}
 		c.Payload("ok")

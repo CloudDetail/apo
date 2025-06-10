@@ -6,10 +6,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ReactECharts from 'echarts-for-react'
 import { getStep } from 'src/core/utils/step'
-import { convertTime } from 'src/core/utils/time'
-import { format } from 'date-fns'
+import { convertTime, timeUtils } from 'src/core/utils/time'
 import { DelayLineChartTitleMap, MetricsLineChartColor, YValueMinInterval } from 'src/constants'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
 export const adjustAlpha = (color, alpha) => {
@@ -24,6 +23,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
+  const { theme } = useSelector((state) => state.settingReducer)
   const convertYValue = (value) => {
     switch (type) {
       case 'logs':
@@ -55,34 +55,26 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   const [option, setOption] = useState({
     title: {},
     tooltip: {
-      trigger: 'item',
+      trigger: 'axis',
       confine: true,
       enterable: true,
       // alwaysShowContent: true,
       axisPointer: {
-        type: 'cross',
+        type: 'line',
+        snap: true,
         label: {
-          formatter: function (params) {
-            // 自定义格式化函数，params.value 是轴上指示的值
-            const { axisDimension, value } = params
-            if (axisDimension === 'y') {
-              return convertYValue(value)
-            } else {
-              return convertTime(value * 1000, 'yyyy-mm-dd hh:mm:ss')
-            }
-            // return `自定义格式: ${params.value}`;
-          },
+          show: false,
         },
       },
       formatter: (params) => {
-        let result = `<div class="rgb(102, 102, 102)">${convertTime(params.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
+        let result = `<div class="rgb(102, 102, 102)">${convertTime(params[0]?.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')}<br/></div>
         <div class="overflow-hidden w-full " >`
         result += `<div class="flex flex-row items-center justify-between">
                       <div class="flex flex-row items-center flex-nowrap flex-shrink flex-1 whitespace-normal break-words">
-                        <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params.color}"></div>
-                        <div class="flex-1">${params.seriesName}</div>
+                        <div class=" my-2 mr-2 rounded-full w-3 h-3 flex-grow-0 flex-shrink-0" style="background:${params[0]?.color}"></div>
+                        <div class="flex-1">${params[0]?.seriesName}</div>
                       </div>
-                      <span class="font-bold flex-shrink-0 ml-2">${convertYValue(params.data[1])}</span>
+                      <span class="font-bold flex-shrink-0 ml-2">${convertYValue(params[0]?.data[1])}</span>
                       </div>`
         // params.forEach((param) => {
         //   result += `<div class="flex flex-row items-center justify-between">
@@ -125,7 +117,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       axisLabel: {
         hideOverlap: true,
         formatter: function (value) {
-          return format(value, 'HH:mm')
+          return timeUtils.format(value, 'HH:mm')
         },
       },
       // axisLine: {
@@ -213,7 +205,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           },
           axisLabel: {
             formatter: function (value) {
-              return format(value, 'HH:mm')
+              return timeUtils.format(value, 'HH:mm')
             },
             hideOverlap: true,
           },
@@ -238,7 +230,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
       const chartInstance = chartRef.current.getEchartsInstance()
       onChartReady(chartInstance)
     }
-  }, [data])
+  }, [data, theme])
   const onChartReady = (chart) => {
     setTimeout(() => {
       console.log('test', chart)
@@ -250,6 +242,7 @@ const DelayLineChart = ({ data, timeRange, type }) => {
           brushMode: 'single',
         },
       })
+      chartRef.current?.getEchartsInstance().resize()
     }, 100)
     chart.on('brushEnd', function (params) {
       if (params.areas && params.areas.length > 0) {
@@ -273,9 +266,9 @@ const DelayLineChart = ({ data, timeRange, type }) => {
   return (
     <ReactECharts
       ref={chartRef}
-      theme="dark"
+      theme={theme}
       option={option}
-      style={{ height: '200px', width: '250px' }}
+      style={{ height: '100%', width: '100%' }}
     />
   )
 }

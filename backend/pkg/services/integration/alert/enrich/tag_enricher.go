@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/itchyny/gojq"
@@ -69,21 +70,30 @@ func NewTagEnricher(
 		}
 	}
 
-	targetTags, err := dbRepo.ListAlertTargetTags("")
+	targetTags, err := dbRepo.ListAlertTargetTags(core.EmptyCtx())
 	if err != nil {
 		return nil, err
 	}
 	if enrichRule.RType == "tagMapping" {
 		if enrichRule.TargetTagId == 0 {
 			tagEnricher.targetTag = enrichRule.CustomTag
-		} else if len(targetTags) > enrichRule.TargetTagId {
-			tagEnricher.targetTag = targetTags[enrichRule.TargetTagId].Field
+		} else {
+			tagEnricher.targetTag = getTargetTag(targetTags, enrichRule.TargetTagId)
 		}
 	} else if enrichRule.RType == "schemaMapping" {
 		tagEnricher.TargetTags = targetTags
 	}
 
 	return tagEnricher, nil
+}
+
+func getTargetTag(tags []alert.TargetTag, id int) string {
+	for _, tag := range tags {
+		if tag.ID == uint(id) {
+			return tag.Field
+		}
+	}
+	return "undefined"
 }
 
 func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
@@ -103,14 +113,21 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 	}
 
 	if e.fromPattern != nil {
-		value = e.fromPattern.FindString(value)
-	}
+		vs := e.fromPattern.FindStringSubmatch(value)
+		if len(vs) > 1 {
+			value = vs[1] // Extract first capture group
+		} else if len(vs) == 1 {
+			value = vs[0] // Extract entire match (no capture group)
+		} else {
+			value = "" // No match found
+		}
+	} // else: retain original value if e.fromPattern is nil
 
 	switch e.RType {
 	case "tagMapping":
 		alertEvent.EnrichTags[e.targetTag] = value
 	case "schemaMapping":
-		targets, err := e.DBRepo.SearchSchemaTarget(e.Schema, e.SchemaSource, value, e.SchemaTarget)
+		targets, err := e.DBRepo.SearchSchemaTarget(core.EmptyCtx(), e.Schema, e.SchemaSource, value, e.SchemaTarget)
 		if err != nil {
 			return
 		}
@@ -119,7 +136,8 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 			if schemaTarget.TargetTagID == 0 {
 				alertEvent.EnrichTags[schemaTarget.CustomTag] = targets[idx]
 			} else if len(e.TargetTags) > schemaTarget.TargetTagID {
-				alertEvent.EnrichTags[e.TargetTags[schemaTarget.TargetTagID].Field] = targets[idx]
+				field := getTargetTag(e.TargetTags, schemaTarget.TargetTagID)
+				alertEvent.EnrichTags[field] = targets[idx]
 			}
 		}
 	}

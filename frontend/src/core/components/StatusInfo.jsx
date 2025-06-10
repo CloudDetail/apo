@@ -3,14 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CButton } from '@coreui/react'
-import { Divider, Popover } from 'antd'
+import { Divider, Popover, Spin } from 'antd'
 import React from 'react'
 import { FaCircle } from 'react-icons/fa'
 import ReactJson from 'react-json-view'
 import { StatusColorMap } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
+import { LoadingOutlined } from '@ant-design/icons'
+import { useSelector } from 'react-redux'
 
 function isJSONString(str) {
   try {
@@ -21,8 +22,9 @@ function isJSONString(str) {
   }
 }
 
-function StatusInfo({ status, alertReason = [], title = null }) {
+function StatusInfo({ status = 'unknown', alertReason = [], title = null }) {
   const { t } = useTranslation('oss/service')
+  const { reactJsonTheme } = useSelector((state) => state.settingReducer)
 
   return (
     <Popover
@@ -50,7 +52,7 @@ function StatusInfo({ status, alertReason = [], title = null }) {
                     {isJSONString(item.alertMessage) ? (
                       <ReactJson
                         src={JSON.parse(item.alertMessage)}
-                        theme="brewer"
+                        theme={reactJsonTheme}
                         collapsed={false}
                         displayDataTypes={false}
                         style={{ width: '100%' }}
@@ -80,7 +82,11 @@ function StatusInfo({ status, alertReason = [], title = null }) {
     >
       <div className="p-2 w-full justify-center flex items-center h-full">
         <div>
-          <FaCircle color={StatusColorMap[status]} />
+          {status === 'loading' ? (
+            <Spin indicator={<LoadingOutlined spin />} size="small" />
+          ) : (
+            <FaCircle color={StatusColorMap[status]} />
+          )}
         </div>
       </div>
     </Popover>

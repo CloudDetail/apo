@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -39,7 +40,7 @@ func reverseSlice(s []map[string]any) {
 		s[i], s[j] = s[j], s[i]
 	}
 }
-func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
+func (ch *chRepo) QueryLogContext(ctx core.Context, req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
 	//condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	logtime := req.Time / 1000000
 	timefront := fmt.Sprintf("toUnixTimestamp(timestamp) < %d AND  toUnixTimestamp(timestamp) > %d ", logtime, logtime-60)
@@ -49,8 +50,8 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", false).
 		Limit(50).
 		String()
-	frontSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timefront+tags, bySqlfront)
-	front, err := ch.queryRowsData(frontSql)
+	frontSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timefront+tags, bySqlfront)
+	front, err := ch.queryRowsData(ctx, frontSql)
 	if err != nil {
 		front = []map[string]any{}
 	}
@@ -60,8 +61,8 @@ func (ch *chRepo) QueryLogContext(req *request.LogQueryContextRequest) ([]map[st
 		OrderBy("timestamp", true).
 		Limit(50).
 		String()
-	endSql := fmt.Sprintf(querySQl, req.DataBase, req.TableName, timeend+tags, bySqlend)
-	end, err := ch.queryRowsData(endSql)
+	endSql := fmt.Sprintf(logsBaseQuery, req.DataBase, req.TableName, timeend+tags, bySqlend)
+	end, err := ch.queryRowsData(ctx, endSql)
 	if err != nil {
 		end = []map[string]any{}
 	}

@@ -8,6 +8,8 @@ definitions:
         type: string
       detail:
         type: string
+      duration:
+        type: string
       endTime:
         type: string
       group:
@@ -15,8 +17,21 @@ definitions:
       id:
         type: string
       isValid:
+        description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
+        type: string
+      lastCheckAt:
+        type: string
+      lastStatus:
         type: string
       name:
+        type: string
+      notifyAt:
+        type: string
+      notifyFailed:
+        type: string
+      notifySuccess:
+        type: string
+      output:
         type: string
       rawTags:
         allOf:
@@ -39,6 +54,8 @@ definitions:
           type: string
         type: object
       updateTime:
+        type: string
+      validity:
         type: string
       workflowId:
         type: string
@@ -111,6 +128,45 @@ definitions:
         type: string
       targetTagId:
         type: integer
+    type: object
+  alert.AlertEvent:
+    properties:
+      alertId:
+        type: string
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      sourceId:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      updateTime:
+        type: string
     type: object
   alert.AlertSchemaRequest:
     properties:
@@ -299,6 +355,8 @@ definitions:
     properties:
       secret:
         type: string
+      sendResolved:
+        type: boolean
       url:
         type: string
     type: object
@@ -495,45 +553,6 @@ definitions:
           $ref: '#/definitions/clickhouse.LogContent'
         type: array
       source:
-        type: string
-    type: object
-  clickhouse.PagedAlertEvent:
-    properties:
-      alertId:
-        type: string
-      createTime:
-        type: string
-      detail:
-        type: string
-      endTime:
-        type: string
-      group:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-      rawTags:
-        allOf:
-        - $ref: '#/definitions/alert.RawTags'
-        description: |-
-          HACK the existing clickhouse query uses `tags` as the filter field
-          so enrichTags in ch is named as 'tags' to filter new alertInput
-      receivedTime:
-        type: string
-      severity:
-        type: string
-      source:
-        type: string
-      sourceId:
-        type: string
-      status:
-        type: string
-      tags:
-        additionalProperties:
-          type: string
-        type: object
-      updateTime:
         type: string
     type: object
   clickhouse.ProfilingEvent:
@@ -1538,6 +1557,13 @@ definitions:
       status:
         type: string
     type: object
+  request.AlertEventClassifyRequest:
+    properties:
+      alertGroup:
+        type: string
+      alertName:
+        type: string
+    type: object
   request.AlertEventSearchFilter:
     properties:
       namespaces:
@@ -1545,6 +1571,16 @@ definitions:
           type: string
         type: array
       nodes:
+        items:
+          type: string
+        type: array
+      status:
+        description: firing or resolved
+        items:
+          type: string
+        type: array
+      validity:
+        description: valid or invalid or skipped or unknown
         items:
           type: string
         type: array
@@ -1612,6 +1648,27 @@ definitions:
         type: integer
       numLayers:
         type: integer
+    type: object
+  request.ComplexSpanTraceFilter:
+    properties:
+      dataType:
+        $ref: '#/definitions/request.DataType'
+      key:
+        type: string
+      mergeSep:
+        type: string
+      operation:
+        $ref: '#/definitions/request.Operation'
+      parentField:
+        $ref: '#/definitions/request.ParentField'
+      subFilters:
+        items:
+          $ref: '#/definitions/request.ComplexSpanTraceFilter'
+        type: array
+      value:
+        items:
+          type: string
+        type: array
     type: object
   request.CreateDataGroupRequest:
     properties:
@@ -1754,6 +1811,21 @@ definitions:
       truncatedAlerts:
         type: integer
     type: object
+  request.GetAlertDetailRequest:
+    properties:
+      alertId:
+        type: string
+      endTime:
+        type: integer
+      eventId:
+        type: string
+      locateEvent:
+        type: boolean
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+      startTime:
+        type: integer
+    type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
       amConfigFile:
@@ -1779,6 +1851,10 @@ definitions:
         type: integer
       group:
         type: string
+      groups:
+        items:
+          type: string
+        type: array
       keyword:
         type: string
       pageSize:
@@ -1790,6 +1866,11 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  request.GetAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
     type: object
   request.GetDataGroupRequest:
     properties:
@@ -1840,7 +1921,7 @@ definitions:
         description: query end time
         type: integer
       groupId:
-        description: Data group id
+        description: Data group
         type: integer
       instance:
         description: instance name
@@ -1861,6 +1942,8 @@ definitions:
       pid:
         description: process number
         type: integer
+      pod:
+        type: string
       service:
         description: query service name
         items:
@@ -1931,7 +2014,7 @@ definitions:
       filters:
         description: filter
         items:
-          $ref: '#/definitions/request.SpanTraceFilter'
+          $ref: '#/definitions/request.ComplexSpanTraceFilter'
         type: array
       groupId:
         description: Data group id
@@ -2083,6 +2166,11 @@ definitions:
     type: object
   request.LogTableInfoRequest:
     type: object
+  request.MarkAlertResolvedManuallyRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
   request.Operation:
     enum:
     - EQUAL
@@ -2128,6 +2216,18 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.RemoveAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+    type: object
+  request.SetAlertSlienceConfigRequest:
+    properties:
+      alertId:
+        type: string
+      forDuration:
+        type: string
+    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -2271,12 +2371,21 @@ definitions:
       error:
         type: string
     type: object
+  response.AlertEventClassifyResponse:
+    properties:
+      workflowId:
+        type: string
+    type: object
   response.AlertEventSearchResponse:
     properties:
       alertCheckId:
         type: string
       alertEventAnalyzeWorkflowId:
         type: string
+      counts:
+        additionalProperties:
+          type: integer
+        type: object
       events:
         items:
           $ref: '#/definitions/alert.AEventWithWRecord'
@@ -2296,12 +2405,6 @@ definitions:
       type:
         type: string
     type: object
-  response.CreateResponse:
-    properties:
-      id:
-        description: primary key ID
-        type: integer
-    type: object
   response.DBInfo:
     properties:
       dataBase:
@@ -2314,19 +2417,6 @@ definitions:
   response.DeleteOtherTableResponse:
     properties:
       error:
-        type: string
-    type: object
-  response.DeleteResponse:
-    properties:
-      id:
-        description: primary key ID
-        type: integer
-    type: object
-  response.DetailResponse:
-    properties:
-      id:
-        type: integer
-      name:
         type: string
     type: object
   response.Duration:
@@ -2443,11 +2533,28 @@ definitions:
         description: TraceId
         type: string
     type: object
+  response.GetAlertDetailResponse:
+    properties:
+      alertCheckId:
+        type: string
+      alertEventAnalyzeWorkflowId:
+        type: string
+      currentEvent:
+        $ref: '#/definitions/alert.AEventWithWRecord'
+      events:
+        items:
+          $ref: '#/definitions/alert.AEventWithWRecord'
+        type: array
+      locateIndex:
+        type: integer
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
   response.GetAlertEventsResponse:
     properties:
       events:
         items:
-          $ref: '#/definitions/clickhouse.PagedAlertEvent'
+          $ref: '#/definitions/alert.AlertEvent'
         type: array
       totalCount:
         type: integer
@@ -2489,6 +2596,11 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetAlertSlienceConfigResponse:
+    properties:
+      slience:
+        $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
     type: object
   response.GetDataGroupResponse:
     properties:
@@ -3061,23 +3173,12 @@ definitions:
         description: Normal or Warning
         type: string
     type: object
-  response.ListData:
+  response.ListAlertSlienceConfigResponse:
     properties:
-      id:
-        description: ID
-        type: integer
-      name:
-        description: username
-        type: string
-    type: object
-  response.ListResponse:
-    properties:
-      list:
+      sliences:
         items:
-          $ref: '#/definitions/response.ListData'
+          $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
         type: array
-      pagination:
-        $ref: '#/definitions/response.Pagination'
     type: object
   response.LogChartResponse:
     properties:
@@ -3270,18 +3371,6 @@ definitions:
         items:
           $ref: '#/definitions/response.OtherDB'
         type: array
-    type: object
-  response.Pagination:
-    properties:
-      current_page:
-        description: current page number
-        type: integer
-      per_page_count:
-        description: number of pieces per page
-        type: integer
-      total:
-        description: total number of records
-        type: integer
     type: object
   response.Parse:
     properties:
@@ -3523,6 +3612,29 @@ definitions:
       value:
         description: Value metric average
         type: number
+    type: object
+  slienceconfig.AlertSlienceConfig:
+    properties:
+      alertId:
+        type: string
+      alertName:
+        type: string
+      endAt:
+        type: string
+      for:
+        type: string
+      group:
+        type: string
+      id:
+        type: integer
+      startAt:
+        type: string
+      tags:
+        $ref: '#/definitions/slienceconfig.TagsStr'
+    type: object
+  slienceconfig.TagsStr:
+    additionalProperties:
+      type: string
     type: object
 info:
   contact: {}
@@ -4233,6 +4345,54 @@ paths:
       summary: list alarm notification objects
       tags:
       - API.alerts
+  /api/alerts/event/detail:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertDetailResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/events/classify:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AlertEventClassifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventClassifyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
   /api/alerts/events/list:
     post:
       consumes:
@@ -4310,6 +4470,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: the received alarm is forwarded to the DingTalk
+      tags:
+      - API.alerts
+  /api/alerts/resolve:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.MarkAlertResolvedManuallyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alerts/rule:
@@ -4571,6 +4755,93 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: update basic alarm rules
+      tags:
+      - API.alerts
+  /api/alerts/slient:
+    delete:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.RemoveAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetAlertSlienceConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/slient/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListAlertSlienceConfigResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
   /api/alertsinput/enrich/tags/list:
@@ -5846,114 +6117,6 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.metric
-  /api/mock:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: xx list
-      parameters:
-      - default: 1
-        description: which page
-        in: query
-        name: page_num
-        required: true
-        type: integer
-      - default: 10
-        description: Number of displays per page
-        in: query
-        name: page_size
-        type: integer
-      - description: username
-        in: query
-        name: name
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.ListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: xx list
-      tags:
-      - API.mock
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: create/edit xx
-      parameters:
-      - description: name
-        in: formData
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.CreateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: create/edit xx
-      tags:
-      - API.mock
-  /api/mock/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: delete xx
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.DeleteResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: delete xx
-      tags:
-      - API.mock
-    get:
-      consumes:
-      - application/json
-      description: xx details
-      parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.DetailResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: xx details
-      tags:
-      - API.mock
   /api/network/podmap:
     get:
       consumes:
@@ -6153,6 +6316,35 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Grant or revoke user's permission(feature).
+      tags:
+      - API.permission
+  /api/permission/router:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Check a router is authorized to view.
+      parameters:
+      - description: Router
+        in: query
+        name: router
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Check a router is authorized to view.
       tags:
       - API.permission
   /api/permission/sub/feature:

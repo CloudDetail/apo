@@ -4,23 +4,24 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-func (repo *daoRepo) initRole() error {
-	roles := []Role{
-		{RoleName: model.ROLE_ADMIN},
-		{RoleName: model.ROLE_MANAGER},
-		{RoleName: model.ROLE_VIEWER},
-		{RoleName: model.ROLE_ANONYMOS},
-	}
+var validRoles = []profile.Role{
+	{RoleName: model.ROLE_ADMIN},
+	{RoleName: model.ROLE_VIEWER},
+	{RoleName: model.ROLE_ANONYMOS},
+}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+func (repo *daoRepo) initRole(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		return tx.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "role_name"}},
 			DoNothing: true,
-		}).Create(roles).Error
+		}).Create(validRoles).Error
 	})
 }

@@ -374,6 +374,18 @@ teamManage:
       field_name: "label"
       entity_type: "menu"
 
+roleManage:
+  key: "role"
+  i18n:
+    - language: "en"
+      translation: "Role"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "角色管理"
+      field_name: "label"
+      entity_type: "menu"
+
 服务概览:
   key: "服务概览"
   i18n:
@@ -703,5 +715,17 @@ teamManage:
       entity_type: "feature"
     - language: "zh"
       translation: "团队管理"
+      field_name: "featureName"
+      entity_type: "feature"
+
+角色管理:
+  key: "角色管理"
+  i18n:
+    - language: "en"
+      translation: "Role Management"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "角色管理"
       field_name: "featureName"
       entity_type: "feature"

@@ -110,7 +110,7 @@
         "description": "使用在APO上创建数据信源时,提供的sourceId"
       },
       "name": { "meaning": "告警事件名称", "description": "告警事件的名称, 比如Zabbix的触发器名" },
-      "status": { "meaning": "告警事件状态", "description": "表示告警当前是触发还是解决" },
+      "status": { "meaning": "告警事件状态", "description": "表示告警当前是触发还是已恢复" },
       "severity": { "meaning": "告警事件严重程度", "description": "告警的严重程度" },
       "detail": { "meaning": "告警事件内容", "description": "告警的详细内容" },
       "alertId": { "meaning": "告警事件编号", "description": "告警的编号" },
@@ -119,7 +119,7 @@
       "updateTime": { "meaning": "告警事件更新时间", "description": "告警再次发生的时间" },
       "endTime": {
         "meaning": "告警事件结束时间",
-        "description": "通常只有解决的事件会包含告警事件的结束时间"
+        "description": "通常只有已恢复的事件会包含告警事件的结束时间"
       }
     },
     "example": { "title": "请求示例" },

@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	go_context "context"
 
@@ -70,9 +69,18 @@ type Context interface {
 	getPayload() interface{}
 
 	// AbortWithError error return
-	HandleError(err error, expectCode string, emptyResp any)
+	AbortWithPermissionError(err error, expectCode string, emptyResp any)
 	// AbortWithError 错误返回
-	AbortWithError(err BusinessError)
+
+	// c.AbortWithError(
+	// 			http.StatusBadRequest,
+	// 			code.ParamBindError,
+	// 			err,
+	// 		)
+	// AbortWithError(err BusinessError)
+	// If err is BusinessError, param businessCode will be ignored
+	AbortWithError(statusCode int, businessCode string, err error)
+
 	abortError() BusinessError
 
 	// Header Gets the Header object
@@ -94,7 +102,7 @@ type Context interface {
 	ClientIP() string
 
 	LANG() string
-	LANGFromParam(param string) string
+	UserID() int64
 
 	ErrMessage(errCode string) string
 }
@@ -169,36 +177,39 @@ func (c *context) SetHeader(key, value string) {
 	c.ctx.Header(key, value)
 }
 
-func (c *context) HandleError(err error, expectCode string, emptyResp any) {
-	var vErr model.ErrWithMessage
-	var errCode string = expectCode
-	if errors.As(err, &vErr) {
-		errCode = vErr.Code
+func (c *context) AbortWithPermissionError(err error, expectCode string, emptyResp any) {
+	if emptyResp == nil {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
 	}
 
-	if errCode == code.GroupNoDataError {
-		if emptyResp != nil {
-			c.Payload(emptyResp)
-			return
-		}
+	var vErr *businessError
+	if !errors.As(err, &vErr) {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
 	}
-
-	c.AbortWithError(Error(
-		http.StatusBadRequest,
-		errCode,
-		c.ErrMessage(errCode),
-	).WithError(err))
+	if vErr.businessCode != code.GroupNoDataError {
+		c.AbortWithError(http.StatusBadRequest, expectCode, err)
+		return
+	}
+	c.Payload(emptyResp)
 }
 
-func (c *context) AbortWithError(err BusinessError) {
-	if err != nil {
-		httpCode := err.HTTPCode()
-		if httpCode == 0 {
-			httpCode = http.StatusInternalServerError
-		}
+func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
+	if statusCode == 0 {
+		statusCode = http.StatusInternalServerError
+	}
+	c.ctx.AbortWithStatus(statusCode)
 
-		c.ctx.AbortWithStatus(httpCode)
-		c.ctx.Set(_AbortErrorName, err)
+	var vErr *businessError
+	if errors.As(err, &vErr) {
+		vErr.httpCode = statusCode
+		if len(vErr.message) == 0 {
+			vErr.message = c.ErrMessage(vErr.BusinessCode())
+		}
+		c.ctx.Set(_AbortErrorName, vErr.WithStack(err))
+	} else {
+		c.ctx.Set(_AbortErrorName, Error(commonCode, c.ErrMessage(commonCode)).WithStack(err))
 	}
 }
 
@@ -208,6 +219,9 @@ func (c *context) abortError() BusinessError {
 }
 
 func (c *context) GetContext() go_context.Context {
+	if c == nil {
+		return go_context.Background()
+	}
 	return c.ctx
 }
 
@@ -233,24 +247,30 @@ func (c *context) LANG() string {
 	if c == nil {
 		return code.LANG_ZH
 	}
-	lang := c.GetHeader("APO-Language")
+	lang := code.LANG_EN
+
+	if c.ctx.Request != nil {
+		lang = c.GetHeader("APO-Language")
+	}
+
 	if strings.HasPrefix(strings.ToLower(lang), code.LANG_EN) {
 		return code.LANG_EN
 	}
 	return code.LANG_ZH
 }
 
-func (c *context) LANGFromParam(param string) string {
-	if len(param) > 0 {
-		if strings.HasPrefix(strings.ToLower(param), code.LANG_EN) {
-			return code.LANG_EN
-		}
-		return code.LANG_ZH
-	}
-
-	return c.LANG()
-}
-
 func (c *context) ErrMessage(errCode string) string {
 	return code.Text(c.LANG(), errCode)
+}
+
+func (c *context) UserID() int64 {
+	userID, ok := c.Get(UserIDKey)
+	if !ok {
+		return 0
+	}
+	id, ok := userID.(int64)
+	if !ok {
+		return 0
+	}
+	return id
 }

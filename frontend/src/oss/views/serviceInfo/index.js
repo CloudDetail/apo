@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CCard, CCardHeader } from '@coreui/react'
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import { useLocation } from 'react-router-dom'
 import InfoUni from './component/infoUni'
@@ -17,6 +16,8 @@ import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReduc
 import TopologyModal from './component/dependent/TopologyModal'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { ServiceInfoProvider } from 'src/oss/contexts/ServiceInfoContext'
+import { Card } from 'antd'
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
 }
@@ -131,27 +132,43 @@ const ServiceInfo = () => {
   return (
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />
-      <PropsProvider value={{ serviceName, endpoint }}>
-        <>
-          <div className="flex flex-row">
-            <CCard className="mb-4 mr-1 h-[350px] p-2 w-2/5">
-              <CCardHeader className="py-0 flex flex-row justify-between">
-                <div>
-                  {serviceName}
-                  {t('index.directDependencies')}
-                  <div className="text-xs">
-                    {t('index.serviceEndpoint')}: {endpoint}
+      <ServiceInfoProvider>
+        <PropsProvider value={{ serviceName, endpoint }}>
+          <>
+            <div className="flex flex-row">
+              <Card
+                size="small"
+                title={
+                  <div>
+                    {serviceName}
+                    {t('index.directDependencies')}
+                    <div className="text-xs">
+                      {t('index.serviceEndpoint')}: {endpoint}
+                    </div>
                   </div>
+                }
+                className="mb-4 mr-1 h-[350px] w-2/5 whitespace-normal flex flex-col"
+                classNames={{
+                  body: 'h-0 flex-1',
+                  title: 'whitespace-normal',
+                }}
+                styles={{
+                  title: {
+                    whiteSpace: 'normal',
+                  },
+                }}
+                extra={<TopologyModal startTime={startTime} endTime={endTime} />}
+              >
+                <div className="h-full w-full">
+                  <Topology canZoom={false} data={topologyData} />
                 </div>
-                <TopologyModal startTime={startTime} endTime={endTime} />
-              </CCardHeader>
-              <Topology canZoom={false} data={topologyData} />
-            </CCard>
-            <DependentTabs />
-          </div>
-          <InfoUni />
-        </>
-      </PropsProvider>
+              </Card>
+              <DependentTabs />
+            </div>
+            <InfoUni />
+          </>
+        </PropsProvider>
+      </ServiceInfoProvider>
     </div>
   )
 }

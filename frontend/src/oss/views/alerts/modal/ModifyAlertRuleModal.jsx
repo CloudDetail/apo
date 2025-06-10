@@ -10,7 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
 import { useSelector } from 'react-redux'
 import { addRuleApi, updateRuleApi } from 'core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import ALertConditionCom from './ALertConditionCom'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import TranslationCom from 'src/oss/components/TranslationCom'
@@ -152,9 +152,9 @@ export default function ModifyAlertRuleModal({
       params.oldAlert = ruleInfo.alert
     }
     api(params).then(() => {
-      showToast({
-        title: t('modifyAlertRuleModal.saveSuccess'),
-        color: 'success',
+      notify({
+        message: t('modifyAlertRuleModal.saveSuccess'),
+        type: 'success',
       })
       closeModal()
       refresh()
@@ -162,7 +162,7 @@ export default function ModifyAlertRuleModal({
   }
   const saveRule = () => {
     form
-      .validateFields({ validateOnly: true })
+      .validateFields()
       .then(() => {
         const formState = form.getFieldsValue(true)
         const alertRule = {
@@ -288,7 +288,16 @@ export default function ModifyAlertRuleModal({
               onChange={(value) => changeGroupLabel('group', value?.key)}
             />
           </Form.Item>
-          <Form.Item label={t('modifyAlertRuleModal.alertRuleName')} name="alert" required>
+          <Form.Item
+            label={t('modifyAlertRuleModal.alertRuleName')}
+            name="alert"
+            required
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
             <Input placeholder={t('modifyAlertRuleModal.alertRuleName')} />
           </Form.Item>
           <Form.Item label={t('modifyAlertRuleModal.alertCondition')} name="condition">
@@ -310,7 +319,16 @@ export default function ModifyAlertRuleModal({
               <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
             </div>
           </Form.Item> */}
-          <Form.Item label={t('modifyAlertRuleModal.duration')} name="for" required>
+          <Form.Item
+            label={t('modifyAlertRuleModal.duration')}
+            name="for"
+            required
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+          >
             <InputNumber
               addonAfter={
                 <Select

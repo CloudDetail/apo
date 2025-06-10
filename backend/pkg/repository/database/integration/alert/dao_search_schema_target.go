@@ -3,16 +3,31 @@
 
 package alert
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	"fmt"
+	"regexp"
 
-func (repo *subRepo) SearchSchemaTarget(
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+)
+
+var AllowField = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{0,63}$`)
+
+func (repo *subRepo) SearchSchemaTarget(ctx core.Context,
 	schema string,
 	sourceField string, sourceValue string,
 	targets []alert.AlertEnrichSchemaTarget,
 ) ([]string, error) {
+	if !AllowSchema.MatchString(schema) {
+		return nil, alert.ErrNotAllowSchema{Table: schema}
+	}
 	schema = SchemaPrefix + schema
 
-	rows, err := repo.db.Raw("SELECT * FROM "+schema+" WHERE "+sourceField+" = ? LIMIT 1", sourceValue).Rows()
+	if !AllowField.MatchString(sourceField) {
+		return nil, fmt.Errorf("invalid source field: %s", sourceField)
+	}
+
+	rows, err := repo.GetContextDB(ctx).Table(schema).Where(fmt.Sprintf("%s = ?", sourceField), sourceValue).Limit(1).Rows()
 	if err != nil {
 		return nil, err
 	}

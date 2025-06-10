@@ -4,12 +4,13 @@
 package alerts
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse {
+func (s *service) GetAlertRules(ctx core.Context, req *request.GetAlertRuleRequest) response.GetAlertRulesResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
 			CurrentPage: 1,
@@ -29,7 +30,7 @@ func (s *service) GetAlertRules(req *request.GetAlertRuleRequest) response.GetAl
 }
 
 // GetAlertRuleFile get alarm rules
-func (s *service) GetAlertRuleFile(req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error) {
+func (s *service) GetAlertRuleFile(ctx core.Context, req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error) {
 	rules, err := s.k8sApi.GetAlertRuleConfigFile(req.AlertRuleFile)
 	if err != nil {
 		return &response.GetAlertRuleFileResponse{AlertRules: map[string]string{}}, err

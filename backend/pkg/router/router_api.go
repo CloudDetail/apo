@@ -4,7 +4,6 @@
 package router
 
 import (
-	"github.com/CloudDetail/apo/backend/internal/api/mock"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
@@ -23,20 +22,10 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
 	"github.com/CloudDetail/apo/backend/pkg/api/user"
 	"github.com/CloudDetail/apo/backend/pkg/middleware"
-	"github.com/CloudDetail/apo/backend/pkg/util"
-	"github.com/CloudDetail/metadata/source"
 )
 
 func setApiRouter(r *resource) {
 	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
-	api := r.mux.Group("/api")
-	{
-		mockHandler := mock.New(r.logger, r.internal_db)
-		api.POST("/mock", mockHandler.Create())
-		api.GET("/mock", mockHandler.List())
-		api.GET("/mock/:id", mockHandler.Detail())
-		api.DELETE("/mock/:id", mockHandler.Delete())
-	}
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
@@ -109,11 +98,13 @@ func setApiRouter(r *resource) {
 	traceApi := r.mux.Group("/api/trace")
 	{
 		traceHandler := trace.New(r.logger, r.pkg_db, r.ch, r.jaegerRepo, r.prom, r.k8sApi)
+		// These APIs are used by another project. DO NOT Auth.
 		traceApi.GET("/onoffcpu", traceHandler.GetOnOffCPU())
 		traceApi.GET("/flame", traceHandler.GetFlameGraphData())
 		traceApi.GET("/flame/process", traceHandler.GetProcessFlameGraph())
-		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.POST("/pagelist", traceHandler.GetTracePageList())
+
+		traceApi.Use(middlewares.AuthMiddleware())
 		traceApi.GET("/pagelist/filters", traceHandler.GetTraceFilters())
 		traceApi.POST("/pagelist/filter/value", traceHandler.GetTraceFilterValue())
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
@@ -121,10 +112,13 @@ func setApiRouter(r *resource) {
 
 	alertApi := r.mux.Group("/api/alerts")
 	{
-		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.alertWorkflow)
+		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.receivers)
 		alertApi.POST("/event/list", alertHandler.AlertEventList())
+		alertApi.POST("/event/detail", alertHandler.AlertEventDetail())
+		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
+
 		alertApi.Use(middlewares.AuthMiddleware())
 		alertApi.GET("/rules/file", alertHandler.GetAlertRuleFile())
 		alertApi.POST("/rules/file", alertHandler.UpdateAlertRuleFile())
@@ -142,6 +136,13 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/alertmanager/receiver/add", alertHandler.AddAlertManagerConfigReceiver())
 		alertApi.POST("/alertmanager/receiver", alertHandler.UpdateAlertManagerConfigReceiver())
 		alertApi.DELETE("/alertmanager/receiver", alertHandler.DeleteAlertManagerConfigReceiver())
+
+		alertApi.GET("/slient", alertHandler.GetAlertSlienceConfig())
+		alertApi.GET("/slient/list", alertHandler.ListAlertSlienceConfig())
+		alertApi.DELETE("/slient", alertHandler.RemoveAlertSlienceConfig())
+		alertApi.POST("/slient", alertHandler.SetAlertSlienceConfig())
+
+		alertApi.POST("/resolve", alertHandler.MarkAlertResolvedManually())
 	}
 
 	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
@@ -180,6 +181,7 @@ func setApiRouter(r *resource) {
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
 		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
 		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
+		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 	}
 
 	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
@@ -224,6 +226,7 @@ func setApiRouter(r *resource) {
 	k8sApi := r.mux.Group("/api/k8s")
 	{
 		k8sHandler := k8s.New(r.k8sApi)
+		// These APIs are used by another project. DO NOT Auth.
 		k8sApi.GET("/namespaces", k8sHandler.GetNamespaceList())
 		k8sApi.GET("/namespace/info", k8sHandler.GetNamespaceInfo())
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
@@ -244,7 +247,7 @@ func setApiRouter(r *resource) {
 
 	alertInputApi := r.mux.Group("/api/alertinput")
 	{
-		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.alertWorkflow)
+		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.dify)
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
@@ -296,14 +299,5 @@ func setApiRouter(r *resource) {
 		handler := metric.New(r.logger, r.prom)
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
-	}
-}
-
-func SetMetaServerRouter(srv *Server, meta source.MetaSource) {
-	api := srv.Mux.Group("/metadata")
-	for path, handler := range meta.Handlers() {
-		// This set of APIs supports both GET and POST
-		api.POST_Gin(path, util.WrapHandlerFunctions(handler))
-		api.GET_Gin(path, util.WrapHandlerFunctions(handler))
 	}
 }

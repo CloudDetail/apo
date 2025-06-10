@@ -4,61 +4,71 @@
 package alert
 
 import (
+	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"gorm.io/gorm"
 )
 
 type AlertInput interface {
 	// Manage AlertSource
-	CreateAlertSource(*alert.AlertSource) error
-	GetAlertSource(sourceId string) (*alert.AlertSource, error)
-	UpdateAlertSource(alertSource *alert.AlertSource) error
-	DeleteAlertSource(alertSource alert.SourceFrom) (*alert.AlertSource, error)
-	ListAlertSource() ([]alert.AlertSource, error)
+	CreateAlertSource(ctx core.Context, source *alert.AlertSource) error
+	GetAlertSource(ctx core.Context, sourceId string) (*alert.AlertSource, error)
+	UpdateAlertSource(ctx core.Context, alertSource *alert.AlertSource) error
+	DeleteAlertSource(ctx core.Context, alertSource alert.SourceFrom) (*alert.AlertSource, error)
+	ListAlertSource(ctx core.Context) ([]alert.AlertSource, error)
 
 	// Manage AlertEnrichRule
-	AddAlertEnrichRule(enrichRule []alert.AlertEnrichRule) error
-	AddAlertEnrichConditions(enrichConditions []alert.AlertEnrichCondition) error
-	AddAlertEnrichSchemaTarget(enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error
-	GetAlertEnrichRule(sourceId string) ([]alert.AlertEnrichRule, error)
-	GetAlertEnrichConditions(sourceId string) ([]alert.AlertEnrichCondition, error)
-	GetAlertEnrichSchemaTarget(sourceId string) ([]alert.AlertEnrichSchemaTarget, error)
-	DeleteAlertEnrichRule(ruleIds []string) error
-	DeleteAlertEnrichRuleBySourceId(sourceId string) error
-	DeleteAlertEnrichConditions(ruleIds []string) error
-	DeleteAlertEnrichConditionsBySourceId(sourceId string) error
-	DeleteAlertEnrichSchemaTarget(ruleIds []string) error
-	DeleteAlertEnrichSchemaTargetBySourceId(sourceId string) error
+	AddAlertEnrichRule(ctx core.Context, enrichRule []alert.AlertEnrichRule) error
+	AddAlertEnrichConditions(ctx core.Context, enrichConditions []alert.AlertEnrichCondition) error
+	AddAlertEnrichSchemaTarget(ctx core.Context, enrichSchemaTarget []alert.AlertEnrichSchemaTarget) error
+	GetAlertEnrichRule(ctx core.Context, sourceId string) ([]alert.AlertEnrichRule, error)
+	GetAlertEnrichConditions(ctx core.Context, sourceId string) ([]alert.AlertEnrichCondition, error)
+	GetAlertEnrichSchemaTarget(ctx core.Context, sourceId string) ([]alert.AlertEnrichSchemaTarget, error)
+	DeleteAlertEnrichRule(ctx core.Context, ruleIds []string) error
+	DeleteAlertEnrichRuleBySourceId(ctx core.Context, sourceId string) error
+	DeleteAlertEnrichConditions(ctx core.Context, ruleIds []string) error
+	DeleteAlertEnrichConditionsBySourceId(ctx core.Context, sourceId string) error
+	DeleteAlertEnrichSchemaTarget(ctx core.Context, ruleIds []string) error
+	DeleteAlertEnrichSchemaTargetBySourceId(ctx core.Context, sourceId string) error
 
 	// Manage schema
-	CreateSchema(schema string, columns []string) error
-	DeleteSchema(string) error
-	CheckSchemaIsUsed(schema string) ([]string, error)
-	ListSchema() ([]string, error)
-	ListSchemaColumns(schema string) ([]string, error)
-	InsertSchemaData(schema string, columns []string, fullRows [][]string) error
-	GetSchemaData(schema string) ([]string, map[int64][]string, error)
-	UpdateSchemaData(schema string, columns []string, rows map[int][]string) error
-	ClearSchemaData(schema string) error
-	SearchSchemaTarget(schema string, sourceField string, sourceValue string, targets []alert.AlertEnrichSchemaTarget) ([]string, error)
+	CreateSchema(ctx core.Context, schema string, columns []string) error
+	DeleteSchema(ctx core.Context, schema string) error
+	CheckSchemaIsUsed(ctx core.Context, schema string) ([]string, error)
+	ListSchema(ctx core.Context) ([]string, error)
+	ListSchemaColumns(ctx core.Context, schema string) ([]string, error)
+	InsertSchemaData(ctx core.Context, schema string, columns []string, fullRows [][]string) error
+	GetSchemaData(ctx core.Context, schema string) ([]string, map[int64][]string, error)
+	UpdateSchemaData(ctx core.Context, schema string, columns []string, rows map[int][]string) error
+	ClearSchemaData(ctx core.Context, schema string) error
+	SearchSchemaTarget(ctx core.Context, schema string, sourceField string, sourceValue string, targets []alert.AlertEnrichSchemaTarget) ([]string, error)
 
-	ListAlertTargetTags(lang string) ([]alert.TargetTag, error)
+	ListAlertTargetTags(ctx core.Context) ([]alert.TargetTag, error)
 
 	// Load complate alertEnrichRule
-	LoadAlertEnrichRule() ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error)
+	LoadAlertEnrichRule(ctx core.Context) ([]alert.AlertSource, map[alert.SourceFrom][]alert.AlertEnrichRuleVO, error)
+
+	GetAlertSlience(ctx core.Context) ([]sc.AlertSlienceConfig, error)
+	AddAlertSlience(ctx core.Context, slience *sc.AlertSlienceConfig) error
+	UpdateAlertSlience(ctx core.Context, slience *sc.AlertSlienceConfig) error
+	DeleteAlertSlience(ctx core.Context, id int) error
 }
 
 type subRepo struct {
-	db *gorm.DB
+	*driver.DB
 }
 
 func NewAlertInputRepo(db *gorm.DB, cfg *config.Config) (*subRepo, error) {
-	repo := &subRepo{db}
+	repo := &subRepo{
+		DB: &driver.DB{DB: db},
+	}
 
-	if err := repo.db.AutoMigrate(
+	if err := repo.GetContextDB(nil).AutoMigrate(
 		&alert.AlertSource{},
 		&alert.TargetTag{},
 		&alert.AlertEnrichRule{},

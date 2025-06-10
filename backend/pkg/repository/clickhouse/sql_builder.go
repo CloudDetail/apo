@@ -5,9 +5,6 @@ package clickhouse
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/ClickHouse/clickhouse-go/v2"
 )
 
 type FieldBuilder struct {
@@ -94,8 +91,20 @@ func (builder *QueryBuilder) GreaterThan(key string, value any) *QueryBuilder {
 	return builder
 }
 
+func (builder *QueryBuilder) NotGreaterThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s <= ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
 func (builder *QueryBuilder) LessThan(key string, value any) *QueryBuilder {
 	builder.where = append(builder.where, fmt.Sprintf("%s < ?", key))
+	builder.values = append(builder.values, value)
+	return builder
+}
+
+func (builder *QueryBuilder) NotLessThan(key string, value any) *QueryBuilder {
+	builder.where = append(builder.where, fmt.Sprintf("%s >= ?", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
@@ -136,13 +145,13 @@ func (builder *QueryBuilder) NotExists(key string) *QueryBuilder {
 }
 
 func (builder *QueryBuilder) Contains(key string, value any) *QueryBuilder {
-	builder.where = append(builder.where, fmt.Sprintf("%s contains ?", key))
+	builder.where = append(builder.where, fmt.Sprintf("POSITION(%s, ?) > 0", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
 
 func (builder *QueryBuilder) NotContains(key string, value any) *QueryBuilder {
-	builder.where = append(builder.where, fmt.Sprintf("%s not contains ?", key))
+	builder.where = append(builder.where, fmt.Sprintf("POSITION(%s, ?) = 0", key))
 	builder.values = append(builder.values, value)
 	return builder
 }
@@ -153,153 +162,8 @@ func (builder *QueryBuilder) InStrings(key string, values []string) *QueryBuilde
 	return builder
 }
 
-// ValueInGroups is used to pass in multiple sets of InGroups parameters in the OrInGroups and make OR connections.
-// Each ValueInGroups generates the following SQL, where x is each value in the EqualIfNotEmpty
-// (keys) IN (ValueGroups)
-type ValueInGroups struct {
-	Keys        []string
-	ValueGroups []clickhouse.GroupSet
-}
-
-// whereSQL SQL snippet
-// !!! Nil has a special meaning, and when subsequent And or OR merges, nil is equivalent to ALWAYS_TRUE
-type whereSQL struct {
-	Wheres string
-	Values []any
-}
-
-var (
-	ALWAYS_TRUE = &whereSQL{
-		Wheres: "TRUE",
-	}
-
-	ALWAYS_FALSE = &whereSQL{
-		Wheres: "FALSE",
-	}
-)
-
-func NotLike(key string, value string) *whereSQL {
-	return &whereSQL{
-		Wheres: fmt.Sprintf("%s NOT LIKE ?", key),
-		Values: []any{value},
-	}
-}
-
-func In(key string, values clickhouse.ArraySet) *whereSQL {
-	if len(key) <= 0 {
-		return ALWAYS_TRUE
-	}
-	if len(values) <= 0 {
-		return ALWAYS_FALSE
-	}
-	if len(values) > 0 {
-		return &whereSQL{
-			Wheres: fmt.Sprintf("%s IN ?", key),
-			Values: []any{values},
-		}
-	}
-	return ALWAYS_FALSE
-}
-
-func InGroup(vgs ValueInGroups) *whereSQL {
-	if len(vgs.Keys) <= 0 {
-		return ALWAYS_TRUE
-	}
-	if len(vgs.ValueGroups) <= 0 {
-		return ALWAYS_FALSE
-	}
-	return &whereSQL{
-		Wheres: fmt.Sprintf("(%s) IN ?", strings.Join(vgs.Keys, ",")),
-		Values: []any{clickhouse.GroupSet{
-			Value: []any{vgs.ValueGroups},
-		}},
-	}
-}
-
-// When the EqualsIfNotEmpty value length is 0, always true is returned
-func EqualsIfNotEmpty(key string, value string) *whereSQL {
-	if len(key) <= 0 {
-		return ALWAYS_TRUE
-	}
-	if len(value) > 0 {
-		return &whereSQL{
-			Wheres: fmt.Sprintf("%s = ?", key),
-			Values: []any{value},
-		}
-	}
-	return ALWAYS_TRUE
-}
-
-func Equals(key string, value string) *whereSQL {
-	if len(key) <= 0 {
-		return ALWAYS_TRUE
-	}
-	return &whereSQL{
-		Wheres: fmt.Sprintf("%s = ?", key),
-		Values: []any{value},
-	}
-}
-
-type MergeSep string
-
-const (
-	AndSep MergeSep = " AND "
-	OrSep  MergeSep = " OR "
-)
-
-// MergeWheres merge multiple conditions
-func MergeWheres(sep MergeSep, whereSQLs ...*whereSQL) *whereSQL {
-	var wheres []string
-	var values []any
-
-	var allFalse = true
-	var allTrue = true
-
-	if len(whereSQLs) <= 0 {
-		// No conditions added
-		return ALWAYS_TRUE
-	}
-
-	for _, where := range whereSQLs {
-		if where == nil || where == ALWAYS_FALSE {
-			if sep == AndSep {
-				return ALWAYS_FALSE
-			} else {
-				allTrue = false
-				continue
-			}
-		} else if where == ALWAYS_TRUE {
-			if sep == AndSep {
-				allFalse = false
-				continue
-			} else {
-				return ALWAYS_TRUE
-			}
-		}
-
-		allFalse = false
-		allTrue = false
-
-		wheres = append(wheres, where.Wheres)
-		values = append(values, where.Values...)
-	}
-
-	if allTrue {
-		return ALWAYS_TRUE
-	} else if allFalse {
-		return ALWAYS_FALSE
-	} else if len(wheres) <= 0 {
-		// No conditions added
-		return ALWAYS_TRUE
-	}
-
-	return &whereSQL{
-		Wheres: fmt.Sprintf("(%s)", strings.Join(wheres, string(sep))),
-		Values: values,
-	}
-}
-
 // And Add a series of conditional whereSQL to the QueryBuilder as And
+// Nil is treated as ALWAYS_FALSE
 func (builder *QueryBuilder) And(where *whereSQL) *QueryBuilder {
 	if where == nil || where == ALWAYS_FALSE {
 		builder.where = append(builder.where, "FALSE")

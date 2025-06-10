@@ -5,12 +5,18 @@
 
 // src/api/request.js
 import axios from 'axios'
-import { showToast } from './toast'
 import qs from 'qs'
 import TranslationCom from 'src/oss/components/TranslationCom'
 import i18next from 'i18next'
+import { notify } from './notify'
+import { redirectToLogin } from './redirectToLogin'
 
 const namespace = 'core/login'
+const MAX_RETRY_ATTEMPTS = 3
+const RETRY_DELAY_BASE = 300 // 300ms
+let isTokenRefreshing = false
+let pendingRequests = []
+let lastTokenRefreshTime = 0
 
 // 创建axios实例
 const instance = axios.create({
@@ -32,6 +38,11 @@ instance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     config.headers['APO-Language'] = i18next.language
+    config.metadata = {
+      ...config.metadata,
+      requestTimestamp: Date.now(),
+      retryCount: config.metadata?.retryCount || 0
+    }
     return config
   },
   (error) => {
@@ -61,26 +72,68 @@ instance.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response
       const originalRequest = error.config
+
+      if (status === 400 && data.code === 'A0005') {
+        const isStaleRequest = originalRequest.metadata?.requestTimestamp < lastTokenRefreshTime
+        if (isStaleRequest) {
+          if (originalRequest.metadata.retryCount >= MAX_RETRY_ATTEMPTS) {
+            return Promise.reject(new Error('Max retry attempts reached'))
+          }
+          const delay = RETRY_DELAY_BASE * Math.pow(2, error.config.metadata.retryCount)
+          error.config.metadata.retryCount += 1
+
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              console.log(`Retry attempt ${error.config.metadata.retryCount} for ${error.status} ${error.config.url}`)
+              resolve(instance(error.config))
+            }, delay)
+          })
+        }
+
+        if (!isTokenRefreshing) {
+          isTokenRefreshing = true
+          try {
+            const newToken = await refreshAccessToken()
+            if (!newToken) {
+              throw new Error('Refresh token failed') // <-- 手动抛错
+            }
+            lastTokenRefreshTime = Date.now()
+            instance.defaults.headers.common.Authorization = `Bearer ${newToken}`
+            pendingRequests.forEach(callback => callback(newToken))
+            return instance(originalRequest)
+          } catch (refreshError) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('refresh_token')
+            delete instance.defaults.headers.common.Authorization
+
+            redirectToLogin(true)
+            return Promise.reject(refreshError)
+          } finally {
+            isTokenRefreshing = false
+            pendingRequests = []
+          }
+        }
+
+        return new Promise((resolve) => {
+          pendingRequests.push((newToken) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            resolve(instance(originalRequest))
+          })
+        })
+      }
+
       switch (status) {
         case 400:
           if (data.code === 'A0004') {
-            window.location.href = '/#/login'
-            showToast({
-              title: <TranslationCom text="request.notLoggedIn" space={namespace} />,
-              color: 'danger',
+            redirectToLogin(true)
+            notify({
+              type: 'error',
+              message: <TranslationCom text="request.notLoggedIn" space={namespace} />,
             })
-          } else if (data.code === 'A0005') {
-            const newToken = await refreshAccessToken()
-            if (newToken) {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`
-              return instance(originalRequest)
-            } else {
-              window.location.href = '/#/login'
-            }
           } else {
-            showToast({
-              title: data.message,
-              color: 'danger',
+            notify({
+              type: 'error',
+              message: data.message,
             })
           }
           break
@@ -89,23 +142,23 @@ instance.interceptors.response.use(
           break
 
         case 403:
-          showToast({
-            title: <TranslationCom text="request.accessDenied" space={namespace} />,
-            color: 'danger',
+          notify({
+            type: 'error',
+            message: <TranslationCom text="request.accessDenied" space={namespace} />,
           })
           break
 
         default:
-          showToast({
-            title: <TranslationCom text="request.requestFailed" space={namespace} />,
-            message: data.message,
-            color: 'danger',
+          notify({
+            type: 'error',
+            message: <TranslationCom text="request.requestFailed" space={namespace} />,
+            description: data.message,
           })
       }
     } else {
-      showToast({
-        title: error.message,
-        color: 'danger',
+      notify({
+        type: 'error',
+        message: error.message,
       })
     }
     return Promise.reject(error)

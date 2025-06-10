@@ -22,12 +22,12 @@ import (
 // @Router /api/integration/cluster/list [get]
 func (h *handler) ListCluster() core.HandlerFunc {
 	return func(c core.Context) {
-		clusters, err := h.integrationService.ListCluster()
+		clusters, err := h.integrationService.ListCluster(c)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ListClusterFailed,
-				c.ErrMessage(code.ListClusterFailed)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -29,20 +29,21 @@ func (h *handler) GetOnOffCPU() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetOnOffCPURequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.traceService.GetOnOffCPU(req)
+		resp, err := h.traceService.GetOnOffCPU(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetOnOffCPUError,
-				c.ErrMessage(code.GetOnOffCPUError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

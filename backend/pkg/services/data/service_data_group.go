@@ -4,9 +4,8 @@
 package data
 
 import (
-	"context"
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -14,17 +13,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
-func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
+func (s *service) CreateDataGroup(ctx core.Context, req *request.CreateDataGroupRequest) error {
 	filter := model.DataGroupFilter{
 		Name: req.GroupName,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	exists, err := s.dbRepo.DataGroupExist(ctx, filter)
 	if err != nil {
 		return err
 	}
 
 	if exists {
-		return model.NewErrWithMessage(errors.New("data group already exists"), code.DataGroupExistError)
+		return core.Error(code.DataGroupExistError, "data group already exists")
 	}
 	group := database.DataGroup{
 		Description: req.Description,
@@ -32,52 +31,52 @@ func (s *service) CreateDataGroup(req *request.CreateDataGroupRequest) error {
 		GroupID:     util.Generator.GenerateID(),
 	}
 
-	var createGroupFunc = func(ctx context.Context) error {
+	var createGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.CreateDataGroup(ctx, &group)
 	}
 
-	var createDSGroupFunc = func(ctx context.Context) error {
+	var createDSGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.CreateDatasourceGroup(ctx, req.DatasourceList, group.GroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), createGroupFunc, createDSGroupFunc)
+	return s.dbRepo.Transaction(ctx, createGroupFunc, createDSGroupFunc)
 }
 
-func (s *service) DeleteDataGroup(req *request.DeleteDataGroupRequest) error {
+func (s *service) DeleteDataGroup(ctx core.Context, req *request.DeleteDataGroupRequest) error {
 	filter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	exists, err := s.dbRepo.DataGroupExist(ctx, filter)
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group does not exist")
 	}
 
-	var deleteGroupFunc = func(ctx context.Context) error {
+	var deleteGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteDataGroup(ctx, req.GroupID)
 	}
 
-	var deleteDSGroupFunc = func(ctx context.Context) error {
+	var deleteDSGroupFunc = func(ctx core.Context) error {
 		return s.dbRepo.DeleteDSGroup(ctx, req.GroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), deleteGroupFunc, deleteDSGroupFunc)
+	return s.dbRepo.Transaction(ctx, deleteDSGroupFunc, deleteGroupFunc)
 }
 
-func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
+func (s *service) UpdateDataGroup(ctx core.Context, req *request.UpdateDataGroupRequest) error {
 	idFilter := model.DataGroupFilter{
 		ID: req.GroupID,
 	}
-	groups, _, err := s.dbRepo.GetDataGroup(idFilter)
+	groups, _, err := s.dbRepo.GetDataGroup(ctx, idFilter)
 	if err != nil {
 		return err
 	}
 
 	if len(groups) == 0 {
-		return model.NewErrWithMessage(errors.New("data group does not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group does not exist")
 	}
 
 	group := groups[0]
@@ -86,24 +85,24 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 	}
 
 	if group.GroupName != req.GroupName {
-		exists, err := s.dbRepo.DataGroupExist(nameFilter)
+		exists, err := s.dbRepo.DataGroupExist(ctx, nameFilter)
 		if err != nil {
 			return err
 		}
 
 		if exists {
-			return model.NewErrWithMessage(errors.New("data group already exist"), code.DataGroupExistError)
+			return core.Error(code.DataGroupExistError, "data group already exist")
 		}
 	}
 
 	// 1. Get data group's datasource
-	dsGroups, err := s.dbRepo.GetGroupDatasource(req.GroupID)
+	dsGroups, err := s.dbRepo.GetGroupDatasource(ctx, req.GroupID)
 	if err != nil {
 		return err
 	}
 
 	// 2. Get all datasource
-	datasource, err := s.GetDataSource()
+	datasource, err := s.GetDataSource(ctx)
 	if err != nil {
 		return err
 	}
@@ -140,22 +139,22 @@ func (s *service) UpdateDataGroup(req *request.UpdateDataGroupRequest) error {
 		deleteData = append(deleteData, ds)
 	}
 
-	var updateNameFunc = func(ctx context.Context) error {
+	var updateNameFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateDataGroup(ctx, req.GroupID, req.GroupName, req.Description)
 	}
 
-	var assignFunc = func(ctx context.Context) error {
+	var assignFunc = func(ctx core.Context) error {
 		return s.dbRepo.CreateDatasourceGroup(ctx, addData, req.GroupID)
 	}
 
-	var retrieveFunc = func(ctx context.Context) error {
+	var retrieveFunc = func(ctx core.Context) error {
 		return s.dbRepo.RetrieveDataFromGroup(ctx, req.GroupID, deleteData)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), updateNameFunc, assignFunc, retrieveFunc)
+	return s.dbRepo.Transaction(ctx, updateNameFunc, assignFunc, retrieveFunc)
 }
 
-func (s *service) GetDataGroup(req *request.GetDataGroupRequest) (resp response.GetDataGroupResponse, err error) {
+func (s *service) GetDataGroup(ctx core.Context, req *request.GetDataGroupRequest) (resp response.GetDataGroupResponse, err error) {
 	filter := model.DataGroupFilter{
 		Name:           req.GroupName,
 		PageSize:       &req.PageSize,
@@ -163,7 +162,7 @@ func (s *service) GetDataGroup(req *request.GetDataGroupRequest) (resp response.
 		DatasourceList: req.DataSourceList,
 	}
 
-	dataGroups, count, err := s.dbRepo.GetDataGroup(filter)
+	dataGroups, count, err := s.dbRepo.GetDataGroup(ctx, filter)
 	if err != nil {
 		return
 	}

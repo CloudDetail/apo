@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -15,7 +16,26 @@ import (
 	uuid2 "github.com/google/uuid"
 )
 
-func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+func (s *service) GetAMConfigReceivers(ctx core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
+	if !s.enableInnerReceiver {
+		s.GetAMReceiversFromExternalAM(ctx, req)
+	}
+
+	receivers, total := s.receivers.GetAMConfigReceiver(ctx, req.AMConfigReceiverFilter, req.PageParam)
+	if receivers == nil {
+		receivers = make([]amconfig.Receiver, 0)
+	}
+	return response.GetAlertManagerConfigReceiverResponse{
+		AMConfigReceivers: receivers,
+		Pagination: &model.Pagination{
+			Total:       int64(total),
+			CurrentPage: req.CurrentPage,
+			PageSize:    req.PageSize,
+		},
+	}
+}
+
+func (s *service) GetAMReceiversFromExternalAM(ctx core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse {
 	if req.PageParam == nil {
 		req.PageParam = &request.PageParam{
 			CurrentPage: 1,
@@ -43,7 +63,7 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	if req.AMConfigReceiverFilter != nil {
 		name = req.AMConfigReceiverFilter.Name
 	}
-	dingTalkReceivers, dingTalkCount, err := s.dbRepo.GetDingTalkReceiverByAlertName(req.AMConfigFile, name, page, pageSize)
+	dingTalkReceivers, dingTalkCount, err := s.dbRepo.GetDingTalkReceiverByAlertName(ctx, req.AMConfigFile, name, page, pageSize)
 	if err != nil {
 		return resp
 	}
@@ -59,13 +79,21 @@ func (s *service) GetAMConfigReceivers(req *request.GetAlertManagerConfigRecever
 	return resp
 }
 
-func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error {
+func (s *service) AddAMConfigReceiver(ctx core.Context, req *request.AddAlertManagerConfigReceiver) error {
+	if !s.enableInnerReceiver {
+		return s.AddAMReceiversForExternalAM(ctx, req)
+	}
+
+	return s.receivers.AddAMConfigReceiver(ctx, req.AMConfigReceiver)
+}
+
+func (s *service) AddAMReceiversForExternalAM(ctx core.Context, req *request.AddAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.AddAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver)
 	}
 
 	if req.AMConfigReceiver.DingTalkConfigs == nil || len(req.AMConfigReceiver.DingTalkConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver is empty"), code.AlertManagerEmptyReceiver)
+		return core.Error(code.AlertManagerEmptyReceiver, "receiver is empty")
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {
@@ -76,7 +104,7 @@ func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver
 		req.AMConfigReceiver.DingTalkConfigs[i].UUID = uuid
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
-		err = s.dbRepo.CreateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i])
+		err = s.dbRepo.CreateDingTalkReceiver(ctx, req.AMConfigReceiver.DingTalkConfigs[i])
 		if err != nil {
 			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
 			return err
@@ -85,13 +113,21 @@ func (s *service) AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver
 	return nil
 }
 
-func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error {
+func (s *service) UpdateAMConfigReceiver(ctx core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
+	if !s.enableInnerReceiver {
+		return s.UpdateAMReceiverForExternalAM(ctx, req)
+	}
+
+	return s.receivers.UpdateAMConfigReceiver(ctx, req.AMConfigReceiver, req.OldName)
+}
+
+func (s *service) UpdateAMReceiverForExternalAM(ctx core.Context, req *request.UpdateAlertManagerConfigReceiver) error {
 	if req.Type != "dingtalk" {
 		return s.k8sApi.UpdateAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver, req.OldName)
 	}
 
 	if req.AMConfigReceiver.DingTalkConfigs == nil || len(req.AMConfigReceiver.DingTalkConfigs) == 0 {
-		return model.NewErrWithMessage(fmt.Errorf("receiver is empty"), code.AlertManagerEmptyReceiver)
+		return core.Error(code.AlertManagerEmptyReceiver, "receiver is empty")
 	}
 
 	for i := range req.AMConfigReceiver.DingTalkConfigs {
@@ -101,7 +137,7 @@ func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigRe
 		req.AMConfigReceiver.DingTalkConfigs[i].AlertName = req.AMConfigReceiver.Name
 		req.AMConfigReceiver.DingTalkConfigs[i].ConfigFile = req.AMConfigFile
 
-		err = s.dbRepo.UpdateDingTalkReceiver(req.AMConfigReceiver.DingTalkConfigs[i], req.OldName)
+		err = s.dbRepo.UpdateDingTalkReceiver(ctx, req.AMConfigReceiver.DingTalkConfigs[i], req.OldName)
 		if err != nil {
 			// redo
 			s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.AMConfigReceiver.Name)
@@ -113,7 +149,15 @@ func (s *service) UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigRe
 	return nil
 }
 
-func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error {
+func (s *service) DeleteAMConfigReceiver(ctx core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
+	if !s.enableInnerReceiver {
+		return s.DeleteAMReceiverForExternalAM(ctx, req)
+	}
+
+	return s.receivers.DeleteAMConfigReceiver(ctx, req.Name)
+}
+
+func (s *service) DeleteAMReceiverForExternalAM(ctx core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error {
 	err := s.k8sApi.DeleteAMConfigReceiver(req.AMConfigFile, req.Name)
 	if err != nil {
 		return err
@@ -121,7 +165,7 @@ func (s *service) DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigRe
 	if req.Type != "dingtalk" {
 		return nil
 	}
-	return s.dbRepo.DeleteDingTalkReceiver(req.AMConfigFile, req.Name)
+	return s.dbRepo.DeleteDingTalkReceiver(ctx, req.AMConfigFile, req.Name)
 }
 
 func (s *service) addDingTalkWebhook(name string) (string, error) {

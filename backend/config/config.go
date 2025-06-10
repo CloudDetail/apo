@@ -42,6 +42,15 @@ type Config struct {
 		Sqllite struct {
 			Database string `mapstructure:"database"`
 		} `mapstructure:"sqllite"`
+		Postgres struct {
+			Host     string `mapstructure:"host"`
+			Port     int    `mapstructure:"port"`
+			Database string `mapstructure:"database"`
+			UserName string `mapstructure:"username"`
+			Password string `mapstructure:"password"`
+			SSLMode  string `mapstructure:"sslmode"`
+			Timezone string `mapstructure:"timezone"`
+		}
 	} `mapstructure:"database"`
 	ClickHouse struct {
 		Address  string `mapstructure:"address"`
@@ -77,22 +86,30 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
-
 	Dify struct {
 		User    string `mapstructure:"user"`
 		URL     string `mapstructure:"url"`
 		APIKeys struct {
-			AlertCheck string `mapstructure:"alert_check"`
+			AlertCheck    string `mapstructure:"alert_check"`
+			AlertClassify string `mapstructure:"alert_classify"`
 		} `mapstructure:"api_keys"`
 		FlowIDs struct {
 			AlertCheck        string `mapstructure:"alert_check"`
 			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
 		} `mapstructure:"flow_ids"`
+		MaxConcurrency int    `mapstructure:"max_concurrency"`
+		CacheMinutes   int    `mapstructure:"cache_minutes"`
+		TimeoutSecond  int    `mapstructure:"timeout_second"`
+		Sampling       string `mapstructure:"sampling"`
 	} `mapstructure:"dify"`
+	AlertReceiver struct {
+		Enabled     bool   `mapstructure:"enabled"`
+		ExternalURL string `mapstructure:"external_url"`
+	} `mapstructure:"alert_receiver"`
 }
 
 type AnonymousUser struct {
-	Username string `mapstructure:"username"`
+	Username string `mapstructure:"username"` // TODO deprecated
 	Enable   bool   `mapstructure:"enable"`
 	Role     string `mapstructure:"role"`
 }

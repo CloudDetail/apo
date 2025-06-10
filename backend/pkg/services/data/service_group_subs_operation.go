@@ -4,15 +4,14 @@
 package data
 
 import (
-	"context"
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) error {
+func (s *service) GroupSubsOperation(ctx core.Context, req *request.GroupSubsOperationRequest) error {
 	var (
 		toDelete []int64
 		toAdd    []database.AuthDataGroup
@@ -22,16 +21,16 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 	filter := model.DataGroupFilter{
 		ID: req.DataGroupID,
 	}
-	exists, err := s.dbRepo.DataGroupExist(filter)
+	exists, err := s.dbRepo.DataGroupExist(ctx, filter)
 	if err != nil {
 		return err
 	}
 	if !exists {
-		return model.NewErrWithMessage(errors.New("data group not exist"), code.DataGroupNotExistError)
+		return core.Error(code.DataGroupNotExistError, "data group not exist")
 	}
 
 	getAuthDataGroups := func(subjectType string) error {
-		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(req.DataGroupID, subjectType)
+		authGroups, err := s.dbRepo.GetGroupAuthDataGroupByGroup(ctx, req.DataGroupID, subjectType)
 		if err != nil {
 			return err
 		}
@@ -53,12 +52,12 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 		for _, sub := range subjects {
 			switch subjectType {
 			case model.DATA_GROUP_SUB_TYP_USER:
-				exists, err = s.dbRepo.UserExists(sub.SubjectID)
+				exists, err = s.dbRepo.UserExists(ctx, sub.SubjectID)
 			case model.DATA_GROUP_SUB_TYP_TEAM:
 				filter := model.TeamFilter{
 					ID: sub.SubjectID,
 				}
-				exists, err = s.dbRepo.TeamExist(filter)
+				exists, err = s.dbRepo.TeamExist(ctx, filter)
 			}
 			if err != nil {
 				return err
@@ -98,13 +97,13 @@ func (s *service) GroupSubsOperation(req *request.GroupSubsOperationRequest) err
 		toDelete = append(toDelete, subID)
 	}
 
-	assignFunc := func(ctx context.Context) error {
+	assignFunc := func(ctx core.Context) error {
 		return s.dbRepo.AssignDataGroup(ctx, toAdd)
 	}
 
-	revokeFunc := func(ctx context.Context) error {
+	revokeFunc := func(ctx core.Context) error {
 		return s.dbRepo.RevokeDataGroupBySub(ctx, toDelete, req.DataGroupID)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), assignFunc, revokeFunc)
+	return s.dbRepo.Transaction(ctx, assignFunc, revokeFunc)
 }

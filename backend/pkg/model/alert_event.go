@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Deprecated: use alert.AlertEvent instead
 // AlertEvent indicates an event in the alert_event table
 type AlertEvent struct {
 	Source string    `ch:"source" json:"source,omitempty"`
@@ -95,7 +94,7 @@ func Str2SeverityLevel(levelText string) SeverityLevel {
 	}
 }
 
-func (s SeverityLevel) toString() string {
+func (s SeverityLevel) ToString() string {
 	switch s {
 	case SeverityLevelUnknown:
 		return "unknown"

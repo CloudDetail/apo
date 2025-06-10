@@ -4,14 +4,10 @@
 package user
 
 import (
-	"errors"
 	"net/http"
-
-	"github.com/CloudDetail/apo/backend/pkg/model"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
@@ -33,39 +29,30 @@ func (h *handler) UpdateUserPassword() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UpdateUserPasswordRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		if req.ConfirmPassword != req.NewPassword {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
-				code.UserConfirmPasswordError,
-				c.ErrMessage(code.UserConfirmPasswordError)),
+				code.UserConfirmPasswdError,
+				nil,
 			)
 			return
 		}
 
-		err := h.userService.UpdateUserPassword(req)
+		err := h.userService.UpdateUserPassword(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UserUpdateError,
-					c.ErrMessage(code.UserUpdateError),
-				).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UserUpdateError,
+				err,
+			)
 			return
 		}
 		c.Payload("ok")

@@ -4,108 +4,137 @@
 package clickhouse
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `SELECT COUNT(DISTINCT alert_id) as count FROM alert_event %s`
-
-const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH paged_alerts AS (
-	SELECT *
-	FROM (
-		SELECT *
-		FROM alert_event
-		%s
-		ORDER BY received_time DESC
-		LIMIT 1 BY alert_id
-	)
-	%s
+const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
+  SELECT alert_id,status
+  FROM alert_event ae
+  %s
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
-    SELECT *
-    FROM workflow_records
-    %s
+  SELECT ref,output,
+  CASE
+    WHEN output = 'false' THEN 2
+    WHEN output = 'true' THEN 1
+    ELSE 0
+  END as importance
+  FROM workflow_records
+  %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
 )
-SELECT
-	ae.id,
-	ae.group,
-    ae.name,
-    ae.alert_id,
-	ae.create_time,
-	ae.update_time,
-	ae.end_time,
-    ae.received_time,
-    ae.detail,
-    ae.status,
-    ae.tags,
-	ae.source,
-    toStartOfFiveMinutes(ae.received_time) + INTERVAL 5 MINUTE AS rounded_time,
-    wr.workflow_run_id,
-    wr.workflow_id,
-    wr.workflow_name,
-    CASE
-      WHEN output = 'false' THEN 'true'
-      WHEN output = 'true' THEN 'false'
-      ELSE 'unknown'
-    END as is_valid
-FROM paged_alerts AS ae
-LEFT JOIN filtered_workflows AS wr
-ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
-%s`
+SELECT count(1) FROM
+  (
+    SELECT ae.alert_id,ae.status,
+      CASE
+        WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+        WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
+        WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
+        WHEN fw.importance = 1 THEN 'invalid'
+        WHEN fw.importance = 2 THEN 'valid'
+      END as validity
+    FROM lastEvent ae
+    LEFT JOIN filtered_workflows fw on ae.alert_id = fw.ref
+   )
+%s
+`
 
-const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST = `WITH paged_alerts AS (
-	SELECT *
-	FROM alert_event
-	%s
-	ORDER BY received_time DESC
-	LIMIT 1 BY alert_id
+const SQL_GET_ALERTEVENT_COUNTS = `WITH lastEvent AS (
+  SELECT *
+  FROM alert_event ae
+  %s
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
-    SELECT *,
-	CASE
-      WHEN output = 'false' THEN 2
-      WHEN output = 'true' THEN 1
-      ELSE 0
-    END as importance
-    FROM workflow_records
-    %s
+  SELECT *,
+  CASE
+    WHEN output = 'false' THEN 2
+    WHEN output = 'true' THEN 1
+    ELSE 0
+  END as importance
+  FROM workflow_records
+  %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
+)
+SELECT count(1) as count,validity,status FROM(
+  SELECT status,alert_id,
+    CASE
+      WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+      WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
+      WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
+      WHEN fw.importance = 1 THEN 'invalid'
+      WHEN fw.importance = 2 THEN 'valid'
+    END as validity
+  FROM lastEvent ae
+  LEFT JOIN filtered_workflows fw on ae.alert_id = fw.ref
+) GROUP BY validity,status
+`
+
+const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
+  SELECT *
+  FROM alert_event ae
+  %s
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
+),
+filtered_workflows AS (
+  SELECT *,
+  CASE
+    WHEN output = 'false' THEN 2
+    WHEN output = 'true' THEN 1
+    ELSE 0
+  END as importance
+  FROM workflow_records
+  %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
 )
 SELECT
-	ae.id,
-	ae.group,
-    ae.name,
-    ae.alert_id,
-	ae.create_time,
-	ae.update_time,
-	ae.end_time,
-    ae.received_time,
-    ae.detail,
-    ae.status,
-    ae.tags,
-	ae.source,
-    toStartOfFiveMinutes(ae.received_time) + INTERVAL 5 MINUTE AS rounded_time,
-    wr.workflow_run_id,
-    wr.workflow_id,
-    wr.workflow_name,
-	wr.importance,
-    CASE
-      WHEN output = 'false' THEN 'true'
-      WHEN output = 'true' THEN 'false'
-      ELSE 'unknown'
-    END as is_valid
-FROM paged_alerts AS ae
-LEFT JOIN filtered_workflows AS wr
-ON ae.alert_id = wr.ref AND rounded_time = toStartOfFiveMinutes(wr.created_at)
-%s`
+  ae.id,
+  ae.group,
+  ae.name,
+  ae.alert_id,
+  ae.create_time,
+  ae.update_time,
+  ae.end_time,
+  ae.received_time,
+  ae.severity,
+  ae.detail,
+  ae.status,
+  ae.tags,
+  ae.raw_tags,
+  ae.source,
+  fw.workflow_run_id,
+  fw.workflow_id,
+  fw.workflow_name,
+  fw.importance,
+  fw.created_at as last_check_at,
+  fw.output,
+  CASE
+    WHEN output = 'false' THEN 'true'
+    WHEN output = 'true' THEN 'false'
+    ELSE 'unknown'
+  END as is_valid,
+  CASE
+    WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+    WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
+    WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
+    WHEN fw.importance = 1 THEN 'invalid'
+    WHEN fw.importance = 2 THEN 'valid'
+  END as validity
+FROM lastEvent ae
+LEFT JOIN filtered_workflows fw
+ON ae.alert_id = fw.ref
+%s %s`
 
 func sortbyParam(sortBy string) ([]string, []bool) {
 	if len(sortBy) == 0 {
-		return []string{"importance", "received_time"}, []bool{false, true}
+		return []string{"importance", "update_time"}, []bool{false, true}
 	}
 
 	sortBys := strings.Split(sortBy, ",")
@@ -120,14 +149,14 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 		}
 
 		if parts[0] == "receivedTime" {
-			fields = append(fields, "received_time")
+			fields = append(fields, "update_time")
 			ascs = append(ascs, order == "asc")
 		} else if parts[0] == "isValid" {
 			fields = append(fields, "importance")
 			ascs = append(ascs, order == "asc")
 
 			if len(sortBys) == 1 {
-				fields = append(fields, "received_time")
+				fields = append(fields, "update_time")
 				ascs = append(ascs, order == "asc")
 			}
 		}
@@ -136,9 +165,10 @@ func sortbyParam(sortBy string) ([]string, []bool) {
 	return fields, ascs
 }
 
-func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchRequest) ([]alert.AEventWithWRecord, int64, error) {
+func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) ([]alert.AEventWithWRecord, int64, error) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
+		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -148,22 +178,46 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(req *request.AlertEventSearchR
 	}
 
 	var count uint64
-	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT, alertFilter.String())
-	err := ch.conn.QueryRow(context.Background(), countSql, alertFilter.values...).Scan(&count)
+	intervalMicro := int64(5*time.Minute) / 1e3
+	recordFilter := NewQueryBuilder().
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+
+	resultFilter := NewQueryBuilder()
+	if len(req.Filter.Validity) > 0 {
+		resultFilter.InStrings("validity", req.Filter.Validity)
+	}
+	if len(req.Filter.Status) > 0 {
+		resultFilter.InStrings("status", req.Filter.Status)
+	}
+
+	countSql := buildCountQuery(alertFilter, recordFilter, resultFilter, cacheMinutes)
+
+	values := append(alertFilter.values, recordFilter.values...)
+	values = append(values, resultFilter.values...)
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	sql, values := getSqlAndValueForSortedAlertEvent(req)
+	sql, values := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
 
 	result := make([]alert.AEventWithWRecord, 0)
-	err = ch.conn.Select(context.Background(), &result, sql, values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
 	return result, int64(count), err
 }
 
-func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (string, []any) {
+func buildCountQuery(alertFilter *QueryBuilder, recordFilter *QueryBuilder, resultFilter *QueryBuilder, cacheMinutes int) string {
+	return fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT,
+		alertFilter.String(),
+		recordFilter.String(),
+		resultFilter.String(),
+	)
+}
+
+func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {
 	alertFilter := NewQueryBuilder().
-		Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
+		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if len(req.Filter.Namespaces) > 0 {
 		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
@@ -172,18 +226,15 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (st
 		alertFilter.InStrings("tags['node']", req.Filter.Nodes)
 	}
 
-	alertOrder := NewByLimitBuilder()
+	resultOrder := NewByLimitBuilder()
 	fields, ascs := sortbyParam(req.SortBy)
 
-	var hasInValid bool
 	for idx, field := range fields {
-		if field == "importance" {
-			hasInValid = true
-		}
-		alertOrder.OrderBy(field, ascs[idx])
+		resultOrder.OrderBy(field, ascs[idx])
 	}
+
 	if req.Pagination != nil {
-		alertOrder.Offset((req.Pagination.CurrentPage - 1) * req.Pagination.PageSize).
+		resultOrder.Offset((req.Pagination.CurrentPage - 1) * req.Pagination.PageSize).
 			Limit(req.Pagination.PageSize)
 	}
 
@@ -191,28 +242,80 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest) (st
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
-	var sql string
-	if hasInValid {
-		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_VALID_FIRST,
-			alertFilter.String(),
-			recordFilter.String(),
-			alertOrder.String(),
-		)
-	} else {
-		var finalOrder = NewByLimitBuilder()
-		for idx, field := range fields {
-			finalOrder.OrderBy(field, ascs[idx])
-		}
-		sql = fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
-			alertFilter.String(), alertOrder.String(),
-			recordFilter.String(),
-			finalOrder.String(),
-		)
+	resultFilter := NewQueryBuilder()
+	if len(req.Filter.Validity) > 0 {
+		resultFilter.InStrings("validity", req.Filter.Validity)
 	}
+	if len(req.Filter.Status) > 0 {
+		resultFilter.InStrings("status", req.Filter.Status)
+	}
+
+	sql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
+		alertFilter.String(),
+		recordFilter.String(),
+		resultFilter.String(),
+		resultOrder.String(),
+	)
 
 	values := make([]any, 0)
 	values = append(values, alertFilter.values...)
 	values = append(values, recordFilter.values...)
+	values = append(values, resultFilter.values...)
 
 	return sql, values
+}
+
+func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
+	alertFilter := NewQueryBuilder().
+		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
+		NotGreaterThan("end_time", req.EndTime/1e6)
+
+	var counts []_alertEventCount
+	intervalMicro := int64(5*time.Minute) / 1e3
+	recordFilter := NewQueryBuilder().
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_COUNTS,
+		alertFilter.String(),
+		recordFilter.String(),
+	)
+	values := append(alertFilter.values, recordFilter.values...)
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &counts, countSql, values...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]int64{
+		"firing":         0,
+		"resolved":       0,
+		"valid":          0,
+		"invalid":        0,
+		"skipped":        0,
+		"failed":         0,
+		"unknown":        0,
+		"firing-valid":   0,
+		"firing-invalid": 0,
+		"firing-other":   0,
+	}
+
+	for _, count := range counts {
+		result[count.Status] += int64(count.Count)
+		result[count.Validity] += int64(count.Count)
+
+		if count.Status == alert.StatusFiring {
+			if count.Validity == "valid" {
+				result["firing-valid"] += int64(count.Count)
+			} else if count.Validity == "invalid" {
+				result["firing-invalid"] += int64(count.Count)
+			} else {
+				result["firing-other"] += int64(count.Count)
+			}
+		}
+	}
+	return result, nil
+}
+
+type _alertEventCount struct {
+	Validity string `ch:"validity"`
+	Status   string `ch:"status"`
+	Count    uint64 `ch:"count"`
 }

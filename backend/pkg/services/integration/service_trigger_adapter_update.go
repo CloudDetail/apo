@@ -11,6 +11,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/CloudDetail/apo/backend/pkg/util"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
@@ -27,8 +30,8 @@ const adapterUpdateAPI = "/trace/api/update"
 
 var adapterServiceAddress = "http://apo-apm-adapter-svc:8079"
 
-func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequest) {
-	traceAPI, err := s.dbRepo.GetLatestTraceAPIs(req.LastUpdateTS)
+func (s *service) TriggerAdapterUpdate(ctx core.Context, req *integration.TriggerAdapterUpdateRequest) {
+	traceAPI, err := s.dbRepo.GetLatestTraceAPIs(ctx, req.LastUpdateTS)
 	if err != nil {
 		log.Println("get latest trace api error: ", err)
 	}
@@ -50,7 +53,11 @@ func (s *service) TriggerAdapterUpdate(req *integration.TriggerAdapterUpdateRequ
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		log.Println("trigger adapter update error: ", resp.StatusCode)
+		if util.IsValidStatusCode(resp.StatusCode) {
+			log.Printf("trigger adapter update error: %d\n", resp.StatusCode)
+		} else {
+			log.Println("trigger adapter update error: invalid status code")
+		}
 		return
 	} else {
 		log.Println("trigger adapter update success")

@@ -1095,6 +1095,82 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/event/detail": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertDetailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/events/classify": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/events/list": {
             "post": {
                 "consumes": [
@@ -1207,6 +1283,44 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/resolve": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MarkAlertResolvedManuallyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1605,6 +1719,143 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/slient": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertSlienceConfigResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RemoveAlertSlienceConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/slient/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListAlertSlienceConfigResponse"
                         }
                     },
                     "400": {
@@ -3569,168 +3820,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/mock": {
-            "get": {
-                "description": "xx list",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "xx list",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "which page",
-                        "name": "page_num",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Number of displays per page",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "username",
-                        "name": "name",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ListResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "create/edit xx",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "create/edit xx",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "name",
-                        "name": "name",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.CreateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/mock/{id}": {
-            "get": {
-                "description": "xx details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "xx details",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.DetailResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "delete xx",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.mock"
-                ],
-                "summary": "delete xx",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.DeleteResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/network/podmap": {
             "get": {
                 "description": "query pod network call topology and call metrics",
@@ -4022,6 +4111,50 @@ const docTemplate = `{
                         "description": "ok",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/permission/router": {
+            "get": {
+                "description": "Check a router is authorized to view.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.permission"
+                ],
+                "summary": "Check a router is authorized to view.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Router",
+                        "name": "router",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
                         }
                     },
                     "400": {
@@ -8321,6 +8454,9 @@ const docTemplate = `{
                 "detail": {
                     "type": "string"
                 },
+                "duration": {
+                    "type": "string"
+                },
                 "endTime": {
                     "type": "string"
                 },
@@ -8331,9 +8467,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "isValid": {
+                    "description": "Deprecated: use [Validity] instead, will remove after 1.7.x",
+                    "type": "string"
+                },
+                "lastCheckAt": {
+                    "type": "string"
+                },
+                "lastStatus": {
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "notifyAt": {
+                    "type": "string"
+                },
+                "notifyFailed": {
+                    "type": "string"
+                },
+                "notifySuccess": {
+                    "type": "string"
+                },
+                "output": {
                     "type": "string"
                 },
                 "rawTags": {
@@ -8366,6 +8521,9 @@ const docTemplate = `{
                     }
                 },
                 "updateTime": {
+                    "type": "string"
+                },
+                "validity": {
                     "type": "string"
                 },
                 "workflowId": {
@@ -8473,6 +8631,64 @@ const docTemplate = `{
                 },
                 "targetTagId": {
                     "type": "integer"
+                }
+            }
+        },
+        "alert.AlertEvent": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updateTime": {
+                    "type": "string"
                 }
             }
         },
@@ -8765,6 +8981,9 @@ const docTemplate = `{
                 "secret": {
                     "type": "string"
                 },
+                "sendResolved": {
+                    "type": "boolean"
+                },
                 "url": {
                     "type": "string"
                 }
@@ -9055,64 +9274,6 @@ const docTemplate = `{
                     }
                 },
                 "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "clickhouse.PagedAlertEvent": {
-            "type": "object",
-            "properties": {
-                "alertId": {
-                    "type": "string"
-                },
-                "createTime": {
-                    "type": "string"
-                },
-                "detail": {
-                    "type": "string"
-                },
-                "endTime": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "rawTags": {
-                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/alert.RawTags"
-                        }
-                    ]
-                },
-                "receivedTime": {
-                    "type": "string"
-                },
-                "severity": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                },
-                "sourceId": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "tags": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "updateTime": {
                     "type": "string"
                 }
             }
@@ -10587,6 +10748,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AlertEventClassifyRequest": {
+            "type": "object",
+            "properties": {
+                "alertGroup": {
+                    "type": "string"
+                },
+                "alertName": {
+                    "type": "string"
+                }
+            }
+        },
         "request.AlertEventSearchFilter": {
             "type": "object",
             "properties": {
@@ -10597,6 +10769,20 @@ const docTemplate = `{
                     }
                 },
                 "nodes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "description": "firing or resolved",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "validity": {
+                    "description": "valid or invalid or skipped or unknown",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -10698,6 +10884,38 @@ const docTemplate = `{
                 },
                 "numLayers": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.ComplexSpanTraceFilter": {
+            "type": "object",
+            "properties": {
+                "dataType": {
+                    "$ref": "#/definitions/request.DataType"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "mergeSep": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/request.Operation"
+                },
+                "parentField": {
+                    "$ref": "#/definitions/request.ParentField"
+                },
+                "subFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
+                    }
+                },
+                "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -10912,6 +11130,29 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetAlertDetailRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "eventId": {
+                    "type": "string"
+                },
+                "locateEvent": {
+                    "type": "boolean"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
@@ -10950,6 +11191,12 @@ const docTemplate = `{
                 "group": {
                     "type": "string"
                 },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "keyword": {
                     "type": "string"
                 },
@@ -10965,6 +11212,14 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "request.GetAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
                 }
             }
         },
@@ -11043,7 +11298,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "groupId": {
-                    "description": "Data group id",
+                    "description": "Data group",
                     "type": "integer"
                 },
                 "instance": {
@@ -11071,6 +11326,9 @@ const docTemplate = `{
                 "pid": {
                     "description": "process number",
                     "type": "integer"
+                },
+                "pod": {
+                    "type": "string"
                 },
                 "service": {
                     "description": "query service name",
@@ -11173,7 +11431,7 @@ const docTemplate = `{
                     "description": "filter",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/request.SpanTraceFilter"
+                        "$ref": "#/definitions/request.ComplexSpanTraceFilter"
                     }
                 },
                 "groupId": {
@@ -11396,6 +11654,14 @@ const docTemplate = `{
         "request.LogTableInfoRequest": {
             "type": "object"
         },
+        "request.MarkAlertResolvedManuallyRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Operation": {
             "type": "string",
             "enum": [
@@ -11451,6 +11717,25 @@ const docTemplate = `{
                 "PF_Labels",
                 "PF_Flags"
             ]
+        },
+        "request.RemoveAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SetAlertSlienceConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "forDuration": {
+                    "type": "string"
+                }
+            }
         },
         "request.SetSingleTTLRequest": {
             "type": "object",
@@ -11664,6 +11949,14 @@ const docTemplate = `{
                 }
             }
         },
+        "response.AlertEventClassifyResponse": {
+            "type": "object",
+            "properties": {
+                "workflowId": {
+                    "type": "string"
+                }
+            }
+        },
         "response.AlertEventSearchResponse": {
             "type": "object",
             "properties": {
@@ -11672,6 +11965,12 @@ const docTemplate = `{
                 },
                 "alertEventAnalyzeWorkflowId": {
                     "type": "string"
+                },
+                "counts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
                 },
                 "events": {
                     "type": "array",
@@ -11703,15 +12002,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.CreateResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "primary key ID",
-                    "type": "integer"
-                }
-            }
-        },
         "response.DBInfo": {
             "type": "object",
             "properties": {
@@ -11730,26 +12020,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.DeleteResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "description": "primary key ID",
-                    "type": "integer"
-                }
-            }
-        },
-        "response.DetailResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
                     "type": "string"
                 }
             }
@@ -11918,13 +12188,39 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetAlertDetailResponse": {
+            "type": "object",
+            "properties": {
+                "alertCheckId": {
+                    "type": "string"
+                },
+                "alertEventAnalyzeWorkflowId": {
+                    "type": "string"
+                },
+                "currentEvent": {
+                    "$ref": "#/definitions/alert.AEventWithWRecord"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AEventWithWRecord"
+                    }
+                },
+                "locateIndex": {
+                    "type": "integer"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
         "response.GetAlertEventsResponse": {
             "type": "object",
             "properties": {
                 "events": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/clickhouse.PagedAlertEvent"
+                        "$ref": "#/definitions/alert.AlertEvent"
                     }
                 },
                 "totalCount": {
@@ -11988,6 +12284,14 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "slience": {
+                    "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
                 }
             }
         },
@@ -12841,30 +13145,14 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ListData": {
+        "response.ListAlertSlienceConfigResponse": {
             "type": "object",
             "properties": {
-                "id": {
-                    "description": "ID",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "username",
-                    "type": "string"
-                }
-            }
-        },
-        "response.ListResponse": {
-            "type": "object",
-            "properties": {
-                "list": {
+                "sliences": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.ListData"
+                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
                     }
-                },
-                "pagination": {
-                    "$ref": "#/definitions/response.Pagination"
                 }
             }
         },
@@ -13157,23 +13445,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/response.OtherDB"
                     }
-                }
-            }
-        },
-        "response.Pagination": {
-            "type": "object",
-            "properties": {
-                "current_page": {
-                    "description": "current page number",
-                    "type": "integer"
-                },
-                "per_page_count": {
-                    "description": "number of pieces per page",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "total number of records",
-                    "type": "integer"
                 }
             }
         },
@@ -13551,6 +13822,41 @@ const docTemplate = `{
                     "description": "Value metric average",
                     "type": "number"
                 }
+            }
+        },
+        "slienceconfig.AlertSlienceConfig": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "alertName": {
+                    "type": "string"
+                },
+                "endAt": {
+                    "type": "string"
+                },
+                "for": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "startAt": {
+                    "type": "string"
+                },
+                "tags": {
+                    "$ref": "#/definitions/slienceconfig.TagsStr"
+                }
+            }
+        },
+        "slienceconfig.TagsStr": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
             }
         }
     }

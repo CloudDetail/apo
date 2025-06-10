@@ -30,8 +30,8 @@ const (
 type TraceIntegration struct {
 	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode    string `json:"mode" gorm:"type:varchar(100);column:mode"`
-	ApmType string `json:"apmType" gorm:"type:varchar(100);column:apm_type"`
+	Mode    string `json:"mode" gorm:"type:varchar(255);column:mode"`
+	ApmType string `json:"apmType" gorm:"type:varchar(255);column:apm_type"`
 
 	TraceAPI          JSONField[TraceAPI]               `json:"traceAPI,omitempty" gorm:"type:json;column:trace_api"`
 	SelfCollectConfig JSONField[TraceSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`
@@ -114,7 +114,7 @@ type CollectorGatewayPorts map[string]string
 type MetricIntegration struct {
 	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode   string `json:"mode" gorm:"type:varchar(100);column:mode"`
+	Mode   string `json:"mode" gorm:"type:varchar(255);column:mode"`
 	Name   string `json:"name"`
 	DSType string `json:"dsType"`
 
@@ -139,10 +139,10 @@ type VictoriaMetricConfig PrometheusConfig
 type LogIntegration struct {
 	ClusterID string `json:"clusterId,omitempty" gorm:"primaryKey;column:cluster_id"`
 
-	Mode string `json:"mode" gorm:"type:varchar(100);column:mode"`
+	Mode string `json:"mode" gorm:"type:varchar(255);column:mode"`
 
-	Name   string `json:"name" gorm:"type:json;column:name"`
-	DBType string `json:"dbType" gorm:"type:json;column:db_type"`
+	Name   string `json:"name" gorm:"type:varchar(255);column:name"`
+	DBType string `json:"dbType" gorm:"type:varchar(255);column:db_type"`
 
 	LogAPI               *JSONField[LogAPI]               `json:"logAPI,omitempty" gorm:"type:json;column:log_api"`
 	LogSelfCollectConfig *JSONField[LogSelfCollectConfig] `json:"selfCollectConfig" gorm:"type:json;column:self_collect_config"`

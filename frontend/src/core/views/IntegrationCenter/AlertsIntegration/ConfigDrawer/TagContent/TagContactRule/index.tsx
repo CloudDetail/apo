@@ -5,7 +5,6 @@
 
 import { Button, Form } from 'antd'
 import { getAlertEnrichApi, saveAlertEnrichApi } from 'src/core/api/alertInput'
-import { showToast } from 'src/core/utils/toast'
 import { useAlertIntegrationContext } from 'src/core/contexts/AlertIntegrationContext'
 import { useEffect, useState } from 'react'
 import TagRuleFormListCom from './TagRuleFormListCom'
@@ -16,6 +15,7 @@ import {
   SchemaTargetItem,
 } from 'src/core/types/alertIntegration'
 import { useTranslation } from 'react-i18next'
+import { notify } from 'src/core/utils/notify'
 interface TagContactRuleProps {
   sourceId: string
 }
@@ -32,9 +32,9 @@ const TagContactRule = ({ sourceId }: TagContactRuleProps) => {
     setLoading(true)
     saveAlertEnrichApi(params)
       .then((res) => {
-        showToast({
-          title: t('savedSuccess'),
-          color: 'success',
+        notify({
+          message: t('savedSuccess'),
+          type: 'success',
         })
         refreshReadOnly()
       })

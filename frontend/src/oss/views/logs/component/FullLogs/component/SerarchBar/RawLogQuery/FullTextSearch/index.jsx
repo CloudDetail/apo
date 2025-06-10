@@ -30,7 +30,7 @@ const FullTextSearch = () => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
-      <Button type="primary" size="small" onClick={clickSubmit}>
+      <Button type="primary" size="small" onClick={clickSubmit} className='flex justify-center items-center'>
         {t('indexList.fullTextSearch.fullTextSearchText')}
       </Button>
     </Space>

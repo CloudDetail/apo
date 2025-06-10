@@ -4,12 +4,30 @@
 package database
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) initFeature() error {
-	return repo.db.Transaction(func(tx *gorm.DB) error {
-		var existingFeatures []Feature
+var validFeatures = []profile.Feature{
+	{FeatureName: "服务概览"},
+	{FeatureName: "工作流"},
+	{FeatureName: "日志检索"}, {FeatureName: "故障现场日志"}, {FeatureName: "全量日志"},
+	{FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"}, {FeatureName: "全量链路"},
+	{FeatureName: "全局资源大盘"},
+	{FeatureName: "应用基础设施大盘"},
+	{FeatureName: "应用指标大盘"},
+	{FeatureName: "中间件大盘"},
+	{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
+	{FeatureName: "接入中心"}, {FeatureName: "数据接入"}, {FeatureName: "告警接入"},
+	{FeatureName: "配置中心"},
+	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"}, {FeatureName: "系统配置"},
+	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
+}
+
+func (repo *daoRepo) initFeature(ctx core.Context) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		var existingFeatures []profile.Feature
 		if err := tx.Where("custom = ?", false).Find(&existingFeatures).Error; err != nil {
 			return err
 		}
@@ -19,27 +37,12 @@ func (repo *daoRepo) initFeature() error {
 			existingFeatureMap[feature.FeatureName] = feature.FeatureID
 		}
 
-		newFeatures := []Feature{
-			{FeatureName: "服务概览"},
-			{FeatureName: "工作流"},
-			{FeatureName: "日志检索"}, {FeatureName: "故障现场日志"}, {FeatureName: "全量日志"},
-			{FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"}, {FeatureName: "全量链路"},
-			{FeatureName: "全局资源大盘"},
-			{FeatureName: "应用基础设施大盘"},
-			{FeatureName: "应用指标大盘"},
-			{FeatureName: "中间件大盘"},
-			{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
-			{FeatureName: "接入中心"}, {FeatureName: "数据接入"}, {FeatureName: "告警接入"},
-			{FeatureName: "配置中心"},
-			{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"}, {FeatureName: "系统配置"}, {FeatureName: "数据组管理"}, {FeatureName: "团队管理"},
-		}
-
 		newFeatureMap := make(map[string]struct{})
-		for _, feature := range newFeatures {
+		for _, feature := range validFeatures {
 			newFeatureMap[feature.FeatureName] = struct{}{}
 		}
 
-		for _, feature := range newFeatures {
+		for _, feature := range validFeatures {
 			// Add new feature.
 			if _, exists := existingFeatureMap[feature.FeatureName]; exists {
 				continue
@@ -52,7 +55,7 @@ func (repo *daoRepo) initFeature() error {
 		// remove feature which not support to exist
 		for featureName, featureID := range existingFeatureMap {
 			if _, exists := newFeatureMap[featureName]; !exists {
-				if err := tx.Where("feature_id = ?", featureID).Delete(&Feature{}).Error; err != nil {
+				if err := tx.Where("feature_id = ?", featureID).Delete(&profile.Feature{}).Error; err != nil {
 					return err
 				}
 			}
@@ -62,17 +65,17 @@ func (repo *daoRepo) initFeature() error {
 		parentChildMapping := map[string][]string{
 			"日志检索": {"故障现场日志", "全量日志"},
 			"链路追踪": {"故障现场链路", "全量链路"},
-			"系统管理": {"用户管理", "菜单管理", "数据组管理", "系统配置", "团队管理"},
-			"告警管理": {"告警规则", "告警通知", "告警事件"},
+			"系统管理": {"用户管理", "菜单管理", "数据组管理", "系统配置", "团队管理", "角色管理"},
+			"告警管理": {"告警规则", "告警通知", "告警事件", "告警事件详情"},
 			"接入中心": {"数据接入", "告警接入"},
 		}
 		for parentName, childNames := range parentChildMapping {
-			var parent Feature
+			var parent profile.Feature
 			if err := tx.Where("feature_name = ?", parentName).First(&parent).Error; err != nil {
 				return err
 			}
 			for _, childName := range childNames {
-				if err := tx.Model(&Feature{}).Where("feature_name = ?", childName).Update("parent_id", parent.FeatureID).Error; err != nil {
+				if err := tx.Model(&profile.Feature{}).Where("feature_name = ?", childName).Update("parent_id", parent.FeatureID).Error; err != nil {
 					return err
 				}
 			}

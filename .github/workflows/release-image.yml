@@ -1,0 +1,97 @@
+name: Release Image
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy to dev environment'
+        required: true
+        type: boolean
+        default: false
+      tag:
+        description: 'The tag to release'
+        required: true
+
+env:
+  REGISTRY_HOST: registry.cn-hangzhou.aliyuncs.com
+  BACKEND_CONTAINER_NAME: apo-backend
+  BACKEND_DEPLOYMENT_NAME: apo-backend
+  FRONTEND_CONTAINER_NAME: apo-front
+  FRONTEND_DEPLOYMENT_NAME: apo-front
+  NAMESPACE: apo
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    outputs:
+      IMAGE_TAG_NAME: ${{ steps.build-image.outputs.IMAGE_TAG_NAME }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@4574d27a4764455b42196d70a065bc6853246a25
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca
+
+    - name: Log in to container registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        registry: ${{ env.REGISTRY_HOST }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Generate image metadata
+      id: build-image
+      env:
+        BRANCH_NAME: ${{ github.ref_name }}
+        COMMIT_HASH: ${{ github.sha }}
+      run: |
+        echo "IMAGE_TAG_NAME=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+        echo "BACKEND_IMAGE_FULL_TAG_AMD64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "BACKEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}-arm64" >> $GITHUB_ENV
+        echo "FRONTEND_IMAGE_FULL_TAG_AMD64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+        echo "FRONTEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}-arm64" >> $GITHUB_ENV
+
+    - name: Backend Build and push AMD64 image
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
+      with:
+        context: ./backend
+        platforms: linux/amd64
+        push: true
+        tags: ${{ env.BACKEND_IMAGE_FULL_TAG_AMD64 }}
+
+    - name: Frontend Build and push AMD64 image
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
+      with:
+        context: ./frontend
+        platforms: linux/amd64
+        push: true
+        tags: ${{ env.FRONTEND_IMAGE_FULL_TAG_AMD64 }}
+
+    - name: push tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CUSTOM_TAG: ${{ github.event.inputs.tag }}
+
+  deploy-dev:
+    runs-on: [self-hosted, dev]
+    needs: [build-images]
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.deploy == true)
+    steps:
+    - name: Deploy to dev
+      env:
+        IMAGE_TAG_NAME: ${{ needs.build-images.outputs.IMAGE_TAG_NAME }}
+      run: |
+        export KUBECONFIG="/root/.kube/config"
+        BACKEND_IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER_NAME }}:$IMAGE_TAG_NAME"
+        echo "BACKEND_IMAGE_FULL_NAME=$BACKEND_IMAGE_FULL_NAME"
+        kubectl set image deployment ${{ env.BACKEND_DEPLOYMENT_NAME }} ${{ env.BACKEND_CONTAINER_NAME }}=$BACKEND_IMAGE_FULL_NAME -n ${{ env.NAMESPACE }}
+        FRONTEND_IMAGE_FULL_NAME="${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER_NAME }}:$IMAGE_TAG_NAME"
+        echo "FRONTEND_IMAGE_FULL_NAME=$FRONTEND_IMAGE_FULL_NAME"
+        kubectl set image deployment ${{ env.FRONTEND_DEPLOYMENT_NAME }} ${{ env.FRONTEND_CONTAINER_NAME }}=$FRONTEND_IMAGE_FULL_NAME -n ${{ env.NAMESPACE }}

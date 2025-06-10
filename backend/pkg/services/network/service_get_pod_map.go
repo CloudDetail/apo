@@ -10,7 +10,10 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/CloudDetail/apo/backend/pkg/util"
+
 	"github.com/CloudDetail/apo/backend/config"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -27,21 +30,9 @@ const (
 	sqlTemplate = "SELECT %s FROM vtap_app_edge_port %s %s"
 )
 
-func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapResponse, error) {
+func (s *service) GetPodMap(ctx core.Context, req *request.PodMapRequest) (*response.PodMapResponse, error) {
 	deepflowServer := config.Get().DeepFlow.ServerAddress
-	queryFields := "PerSecond(Avg(`request`)) AS `PerSecond(Avg(request))`, Avg(`server_error_ratio`) AS `Avg(server_error_ratio)`, Avg(`rrt`) AS `Avg(rrt)`, node_type(pod_0) AS `client_node_type`, icon_id(pod_0) AS `client_icon_id`, pod_id_0, pod_0, node_type(pod_1) AS `server_node_type`, icon_id(pod_1) AS `server_icon_id`, pod_id_1, pod_1, Enum(tap_side), tap_side"
-	queryWheres := fmt.Sprintf("WHERE time >= %d AND time <= %d", req.StartTime/1e6, req.EndTime/1e6)
-	if req.Namespace != "" {
-		queryWheres += fmt.Sprintf(" AND pod_ns_1 = '%s'", req.Namespace)
-	}
-	if req.Workload != "" {
-		queryWheres += fmt.Sprintf(" AND pod_group_1 = '%s'", req.Workload)
-	}
-
-	queryBys := clickhouse.NewByLimitBuilder().
-		GroupBy("pod_0, pod_1, tap_side, pod_id_0, pod_id_1, `client_node_type`, `server_node_type`").
-		Limit(500)
-	sql := fmt.Sprintf(sqlTemplate, queryFields, queryWheres, queryBys.String())
+	sql := buildPodMapQuery(req)
 	db := "flow_metrics"
 	dataPrecision := "1m"
 
@@ -68,12 +59,33 @@ func (s *service) GetPodMap(req *request.PodMapRequest) (*response.PodMapRespons
 	podMapResp := &podMap{
 		Result: new(response.PodMapResponse),
 	}
-	err = json.Unmarshal(body, &podMapResp)
+	validateBody, ok := util.ValidateResponseBytes(body)
+	if !ok {
+		return nil, fmt.Errorf("reponse body is invalid")
+	}
+	err = json.Unmarshal(validateBody, &podMapResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
 
 	return podMapResp.Result, nil
+}
+
+func buildPodMapQuery(req *request.PodMapRequest) string {
+	queryFields := "PerSecond(Avg(`request`)) AS `PerSecond(Avg(request))`, Avg(`server_error_ratio`) AS `Avg(server_error_ratio)`, Avg(`rrt`) AS `Avg(rrt)`, node_type(pod_0) AS `client_node_type`, icon_id(pod_0) AS `client_icon_id`, pod_id_0, pod_0, node_type(pod_1) AS `server_node_type`, icon_id(pod_1) AS `server_icon_id`, pod_id_1, pod_1, Enum(tap_side), tap_side"
+	queryWheres := fmt.Sprintf("WHERE time >= %d AND time <= %d", req.StartTime/1e6, req.EndTime/1e6)
+	if req.Namespace != "" {
+		queryWheres += fmt.Sprintf(" AND pod_ns_1 = '%s'", req.Namespace)
+	}
+	if req.Workload != "" {
+		queryWheres += fmt.Sprintf(" AND pod_group_1 = '%s'", req.Workload)
+	}
+
+	queryBys := clickhouse.NewByLimitBuilder().
+		GroupBy("pod_0, pod_1, tap_side, pod_id_0, pod_id_1, `client_node_type`, `server_node_type`").
+		Limit(500)
+	sql := fmt.Sprintf(sqlTemplate, queryFields, queryWheres, queryBys.String())
+	return sql
 }
 
 func getProtocolNum(protocol string) int {
