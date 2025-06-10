@@ -31,7 +31,7 @@ const DefaultLayout = () => {
           transition: 'all 0.3s',
           zIndex: 999,
           height: '100vh',
-          borderRight: '1px solid #424242'
+          borderRight: '1px solid var(--ant-color-border-secondary)'
         }}
         className='custom-scrollbar'
         width={250}
