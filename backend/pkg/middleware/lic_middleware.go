@@ -32,7 +32,7 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 		if err != nil {
 			if !errors.Is(err, licenseservice.ErrNoLicense) {
 				c.AbortWithError(
-					core.Error(http.StatusInternalServerError, code.LicenseCheckError, c.ErrMessage(code.LicenseCheckError)),
+					http.StatusBadRequest, code.LicenseCheckError, err,
 				)
 				return
 			} else {
@@ -41,7 +41,7 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 					return
 				} else {
 					c.AbortWithError(
-						core.Error(http.StatusInternalServerError, code.LicenseCheckError, c.ErrMessage(code.LicenseCheckError)),
+						http.StatusInternalServerError, code.LicenseCheckError, err,
 					)
 				}
 			}
@@ -51,14 +51,14 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 			has, err := m.checkFeature(path)
 			if err != nil {
 				c.AbortWithError(
-					core.Error(http.StatusInternalServerError, code.LicenseCheckError, c.ErrMessage(code.LicenseCheckError)),
+					http.StatusInternalServerError, code.LicenseCheckError, err,
 				)
 				return
 			}
 
 			if !has {
 				c.AbortWithError(
-					core.Error(http.StatusInternalServerError, code.LicenseFeatureValidationError, c.ErrMessage(code.LicenseFeatureValidationError)),
+					http.StatusInternalServerError, code.LicenseFeatureValidationError, err,
 				)
 				return
 			}
@@ -69,7 +69,7 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 		activation, err := m.licenseService.GetActivation()
 		if activation.Mode == "private" {
 			c.AbortWithError(
-				core.Error(http.StatusBadRequest, code.LicenseExpired, c.ErrMessage(code.LicenseExpired)),
+				http.StatusBadRequest, code.LicenseExpired, err,
 			)
 			return
 		}
@@ -77,14 +77,14 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 		has, err := m.checkFeature(path)
 		if err != nil {
 			c.AbortWithError(
-				core.Error(http.StatusInternalServerError, code.LicenseCheckError, c.ErrMessage(code.LicenseCheckError)),
+				http.StatusInternalServerError, code.LicenseCheckError, err,
 			)
 			return
 		}
 
 		if !has {
 			c.AbortWithError(
-				core.Error(http.StatusInternalServerError, code.LicenseFeatureValidationError, c.ErrMessage(code.LicenseFeatureValidationError)),
+				http.StatusInternalServerError, code.LicenseFeatureValidationError, err,
 			)
 			return
 		}

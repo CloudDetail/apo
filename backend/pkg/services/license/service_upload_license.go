@@ -5,12 +5,11 @@ package license
 
 import (
 	"encoding/json"
-	"errors"
 
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	mylicense "github.com/CloudDetail/apo/backend/pkg/model/license"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -29,7 +28,7 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 
 	newToken, err := license.Activate([]byte(output.License), encryptor, nil)
 	if err != nil {
-		return model.NewErrWithMessage(errors.New("activate license failed"), code.ActivateLicenseFailed)
+		return core.Error(code.ActivateLicenseFailed, "activate license failed")
 	}
 
 	lic := mylicense.License{

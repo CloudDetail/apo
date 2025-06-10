@@ -35,7 +35,7 @@ func (c *cache) refreshLoop() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		c.refreshTokenCache()
+		c.refreshCache()
 	}
 }
 

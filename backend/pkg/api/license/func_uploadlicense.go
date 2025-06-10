@@ -25,17 +25,13 @@ func (h *handler) UploadLicense() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.UploadLicenseRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest,
-				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
-			)
+			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
 			return
 		}
 
 		err := h.service.UploadLicense(req)
 		if err != nil {
-			c.HandleError(err, code.UploadLicenseError, nil)
+			c.AbortWithError(http.StatusBadRequest, code.UploadLicenseError, err)
 			return
 		}
 		c.Payload("ok")

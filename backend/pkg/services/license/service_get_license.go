@@ -9,7 +9,7 @@ import (
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	mylicense "github.com/CloudDetail/apo/backend/pkg/model/license"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -68,7 +68,7 @@ func (s *service) GetCurrentLicense() (response.GetCurrentLicenseResp, error) {
 		return response.GetCurrentLicenseResp{}, err
 	}
 	if lic.ID == 0 {
-		return response.GetCurrentLicenseResp{}, model.NewErrWithMessage(errors.New("can not found local activated license"), code.ActivatedLicenseNotFound)
+		return response.GetCurrentLicenseResp{}, core.Error(code.ActivatedLicenseNotFound, "can not found local activated license")
 	}
 
 	licResp := response.LicenseResp{}

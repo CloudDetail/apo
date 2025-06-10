@@ -258,7 +258,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 		return nil, err
 	}
 
-	if daoRepo.LicenseRepo, err = license.NewLicenseRepo(daoRepo.db); err != nil {
+	if daoRepo.LicenseRepo, err = license.NewLicenseRepo(database); err != nil {
 		return nil, err
 	}
 

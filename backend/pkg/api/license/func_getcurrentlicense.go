@@ -3,9 +3,10 @@
 package license
 
 import (
+	"net/http"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetCurrentLicense get current license.
@@ -22,7 +23,7 @@ func (h *handler) GetCurrentLicense() core.HandlerFunc {
 	return func(c core.Context) {
 		resp, err := h.service.GetCurrentLicense()
 		if err != nil {
-			c.HandleError(err, code.GetLicenseError, response.GetCurrentLicenseResp{})
+			c.AbortWithError(http.StatusBadRequest, code.GetLicenseError, err)
 			return
 		}
 
