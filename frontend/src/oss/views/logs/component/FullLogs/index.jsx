@@ -90,19 +90,20 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
       <Splitter onResize={handleResize}>
         <Splitter.Panel
           // collapsible
+          // resizable={false}
           defaultSize={
             sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
           }
-          className='relative text-[var(--ant-color-primary)] siderPanel'
+          className='relative text-[var(--ant-color-primary)] overflow-x-hidden'
           {...((siderSize === 0 || siderSize === 300) && { size: siderSize })}
           // size={siderSize}
         >
           <FullLogSider />
           {siderSize && <div
             onClick={() => {setSiderSize(0); sessionStorage.setItem('fullLogs:siderCollapse', "true");}}
-            className='logSiderButton closeButton'
+            className='logSiderButton closeButton relative p-2'
           >
-            <AiOutlineCaretLeft />
+            <AiOutlineCaretLeft className='scale-150 absolute right-0' />
           </div>}
         </Splitter.Panel>
         {/* <Content className="h-full relative flex overflow-hidden px-2"> */}
@@ -113,7 +114,7 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
             onClick={() => {setSiderSize(300); sessionStorage.setItem('fullLogs:siderCollapse', "false");}}
             className={`relative text-[var(--ant-color-primary)] logSiderButton openButton`}
           >
-            <AiOutlineCaretRight />
+            <AiOutlineCaretRight className='scale-150' />
           </div>}
           <div className="h-full px-2">
             <IndexList />

@@ -11,21 +11,25 @@ import { Button, Tag } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { convertTime } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next' // 引入i18n
+import { useSelector } from 'react-redux'
 
 const LogItem = (props) => {
   const { log, openContextModal } = props
   const { tableInfo } = useLogsContext()
   const [nullFieldVisibility, setNullFieldVisibility] = useState(false)
   const { t } = useTranslation('oss/fullLogs')
+  const { theme } = useSelector((state) => state.settingReducer)
 
   return (
     <div className="flex flex-col overflow-hidden px-2 w-full">
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0 w-full">
-        <div className="flex items-center gap-2 pl-2 pb-2 j">
-          <div className="flex-shrink-0 flex-grow-0 flex items-center">
-            <Tag bordered={false} color="blue">{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</Tag>
-            {/* <span>{convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}</span> */}
+        <div className="flex items-center gap-2 pb-2 j">
+          <div className="flex-shrink-0 flex-grow-0 flex items-center rounded-md bg-[var(--ant-color-primary-bg)]">
+            <span className='w-1 h-8 bg-[var(--ant-color-primary-text)] rounded-md'></span>
+            <span className={`${theme === 'dark' ? 'text-white' : 'text-[var(--ant-color-primary-text)]'} font-semibold tracking-wide px-2 py-1.5`}>
+              {convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}
+            </span>
           </div>
           {openContextModal && !tableInfo.timeField && (
             <Button

@@ -10,7 +10,6 @@
   z-index: 100;
   background: #ffffff1a;
   height: 40px;
-  border-radius: 0px 100% 100% 0px / 50%;
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -20,11 +19,13 @@
   /* left: 290px; */
   left: 0;
   transition: left 0.2s ease;
+  border-radius: 0px 100% 100% 0px / 50%;
   /* 添加 transition */
 }
 
 .closeButton {
   right: 0;
   transition: left 0.2s ease;
+  border-radius: 100% 0px 0px 100% / 50%;
   /* 添加 transition */
 }
