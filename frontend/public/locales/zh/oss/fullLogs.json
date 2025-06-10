@@ -30,8 +30,8 @@
   },
   "logQueryResult": {
     "totalText": "日志总条数：",
-    "hideNull": "隐藏空白标签",
-    "displayNull": "显示空白标签"
+    "hideNull": "隐藏空白字段",
+    "displayNull": "显示空白字段"
   },
   "queryList": {
     "noDataText": "暂无日志数据",

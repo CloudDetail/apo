@@ -30,8 +30,8 @@
   },
   "logQueryResult": {
     "totalText": "Total number of log entries：",
-    "hideNull": "Hide null tags",
-    "displayNull": "Display null tags"
+    "hideNull": "Hide null fields",
+    "displayNull": "Display null fields"
   },
   "queryList": {
     "noDataText": "No log data available",
