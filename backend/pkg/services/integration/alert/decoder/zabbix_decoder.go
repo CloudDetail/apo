@@ -71,7 +71,7 @@ func parseDuration(duration string) time.Duration {
 			}
 		case 'd':
 			if day, err := strconv.Atoi(part[:len(part)-1]); err == nil {
-				durationSeconds += int64(day) * int64(time.Hour.Nanoseconds()) * 24
+				durationSeconds += int64(day) * int64(time.Hour) * 24
 			}
 		case 'h':
 			if hour, err := strconv.Atoi(part[:len(part)-1]); err == nil {
