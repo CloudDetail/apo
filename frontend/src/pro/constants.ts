@@ -1,4 +1,4 @@
-import { t } from "i18next"
+import { t } from 'i18next'
 
 export const anormalTypesOptions = [
   {
@@ -37,6 +37,19 @@ export const anormalTypesOptions = [
     key: 6,
     label: t('pro/constant:appInstance'),
   },
+  {
+    value: 'middleware',
+    key: 7,
+    label: t('pro/constant:middleware'),
+  },
 ]
 
-export const anormalTypes = ['app', 'container', 'infra', 'network', 'error', 'appInstance']
+export const anormalTypes = [
+  'app',
+  'container',
+  'infra',
+  'network',
+  'error',
+  'appInstance',
+  'middleware',
+]

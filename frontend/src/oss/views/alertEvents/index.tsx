@@ -15,7 +15,13 @@ import PieChart from './PieChart'
 import CountUp from 'react-countup'
 import filterSvg from 'core/assets/images/filter.svg'
 import { useDebounce } from 'react-use'
-import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from './components/AlertInfoCom'
+import {
+  AlertDeration,
+  ALertIsValid,
+  AlertLevel,
+  AlertStatus,
+  AlertTags,
+} from './components/AlertInfoCom'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
 function isJSONString(str) {
@@ -85,8 +91,8 @@ const StatusPanel = ({ firingCounts, resolvedCounts }) => {
         style={{ backgroundColor: token.colorBgContainer }}
       >
         <div className="h-full shrink-0 pl-4 flex">
-          {chartData.map((item) => (
-            <div className="w-[100px] h-full block items-center">
+          {chartData.map((item, index) => (
+            <div className="w-[100px] h-full block items-center" key={index}>
               <Statistic
                 className="h-full flex flex-col justify-center"
                 title={<Tag color={item.type}>{item.name}</Tag>}
@@ -153,8 +159,8 @@ const ExtraPanel = ({ firingCounts, invalidCounts, alertCheck }) => {
         )}
         {!alertCheck && (
           <div className="flex flex-col h-full justify-center gap-4">
-            <span className="text-white">{t('rate')}</span>
-            <span className="text-white">{t('noAlertCheckId')}</span>
+            <span className="text-[var(--ant-color-text)]">{t('rate')}</span>
+            <span className="text-[var(--ant-color-text)]">{t('noAlertCheckId')}</span>
           </div>
         )}
       </div>
@@ -292,6 +298,17 @@ const AlertEventsPage = () => {
       accessor: 'name',
       justifyContent: 'left',
       minWidth: 150,
+      Cell: ({ value, row }) => {
+        const level = row.original.severity
+        return (
+          <span className="text-sm break-words">
+            <span className="align-middle inline-block">
+              <AlertLevel level={level} />
+            </span>
+            {value}
+          </span>
+        )
+      },
     },
     {
       title: t('alertDetail'),
@@ -336,7 +353,7 @@ const AlertEventsPage = () => {
     },
     {
       title: t('isValid'),
-      accessor: 'isValid',
+      accessor: 'validity',
       customWidth: 210,
       Cell: (props) => {
         const { value, row } = props

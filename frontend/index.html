@@ -14,7 +14,37 @@
     <meta name="description" content="CoreUI for React - Open Source Bootstrap Admin Template">
     <meta name="author" content="Łukasz Holeczek">
     <meta name="keyword" content="Bootstrap,Admin,Template,Open,Source,CSS,SCSS,HTML,RWD,Dashboard,React">
-    <title>向导式可观测平台</title>
+    <script>
+      (function () {
+        function getLangFromQuery() {
+          const params = new URLSearchParams(window.location.search);
+          return params.get('lng');
+        }
+
+        function getLangFromCookie() {
+          const match = document.cookie.match(/(?:^|;\s*)i18next=([^;]+)/);
+          return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        function getLangFromLocalStorage() {
+          return localStorage.getItem('i18nextLng');
+        }
+
+        const lang =
+          getLangFromQuery() ||
+          getLangFromCookie() ||
+          getLangFromLocalStorage() ||
+          navigator.language;
+
+        let title = '向导式可观测平台';
+        if (lang.startsWith('en')) {
+          title = 'APO';
+        }
+
+        document.title = title;
+      })();
+    </script>
+    <title>...</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="shortcut icon" href="/favicon.ico">
   </head>

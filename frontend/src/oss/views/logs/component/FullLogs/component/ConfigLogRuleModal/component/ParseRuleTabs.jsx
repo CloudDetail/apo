@@ -87,7 +87,7 @@ const ParseRuleTabs = () => {
             ]}
           >
             <TextArea
-              placeholder={t('ConfigLogRuleModal.parseRuleTabs.structuredRulePlaceholder')}
+              placeholder={t('configLogRuleModal.parseRuleTabs.structuredRulePlaceholder')}
               rows={3}
               onChange={(e) => {
                 changeStructuredRule(e.target.value)

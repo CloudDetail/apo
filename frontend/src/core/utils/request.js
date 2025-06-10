@@ -9,6 +9,7 @@ import qs from 'qs'
 import TranslationCom from 'src/oss/components/TranslationCom'
 import i18next from 'i18next'
 import { notify } from './notify'
+import { redirectToLogin } from './redirectToLogin'
 
 const namespace = 'core/login'
 const MAX_RETRY_ATTEMPTS = 3
@@ -104,7 +105,8 @@ instance.interceptors.response.use(
             localStorage.removeItem('token')
             localStorage.removeItem('refresh_token')
             delete instance.defaults.headers.common.Authorization
-            window.location.href = '/#/login'
+
+            redirectToLogin(true)
             return Promise.reject(refreshError)
           } finally {
             isTokenRefreshing = false
@@ -123,7 +125,7 @@ instance.interceptors.response.use(
       switch (status) {
         case 400:
           if (data.code === 'A0004') {
-            window.location.href = '/#/login'
+            redirectToLogin(true)
             notify({
               type: 'error',
               message: <TranslationCom text="request.notLoggedIn" space={namespace} />,
