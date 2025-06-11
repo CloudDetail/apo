@@ -221,4 +221,9 @@ var enText = map[string]string{
 	SetAlertSlienceError:    "Failed to set alertSlience",
 	RemoveAlertSlienceError: "Failed to remove alertSlience",
 	MarkAlertResolvedError:  "Failed to mark alertResourved",
+
+	UploadLogoError:     "Failed to upload logo",
+	GetLogoError:        "Failed to get logo",
+	LogoSizeExceedError: "Logo file size exceed 2M",
+	LogoTypeError:       "Unsupported logo type, please upload png/jpeg",
 }

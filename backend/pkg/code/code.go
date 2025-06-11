@@ -258,6 +258,11 @@ const (
 	SetAlertSlienceError    = "B1703"
 	RemoveAlertSlienceError = "B1704"
 	MarkAlertResolvedError  = "B1705"
+
+	UploadLogoError     = "B1801"
+	GetLogoError        = "B1802"
+	LogoSizeExceedError = "B1803"
+	LogoTypeError       = "B1804"
 )
 
 func Text(lang string, code string) string {

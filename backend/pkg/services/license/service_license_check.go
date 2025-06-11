@@ -9,6 +9,8 @@ import (
 
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +48,7 @@ func (s *service) CheckLicenseDate() (expire bool, err error) {
 
 	if bLic == nil {
 		s.logger.Error("", zap.Error(err))
-		return false, ErrNoLicense
+		return false, core.Error(code.NoLicenseError, "no license dectected")
 	}
 
 	if expire, err := bLic.CheckExpireDate(); err != nil {

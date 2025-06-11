@@ -223,4 +223,9 @@ var zhCnText = map[string]string{
 	SetAlertSlienceError:    "设置告警抑制失败",
 	RemoveAlertSlienceError: "移除告警抑制失败",
 	MarkAlertResolvedError:  "手动标记告警已解决失败",
+
+	UploadLogoError:     "上传logo失败",
+	GetLogoError:        "获取logo失败",
+	LogoSizeExceedError: "logo大小超出2M",
+	LogoTypeError:       "不支持的logo类型，请上传png/jpeg",
 }

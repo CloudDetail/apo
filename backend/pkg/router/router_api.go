@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
+	"github.com/CloudDetail/apo/backend/pkg/api/app"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
@@ -323,11 +324,19 @@ func setApiRouter(r *resource) {
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
 	}
-	licenseApi := r.mux.Group("/api/license").Use(middlewares.LicMiddleware())
+	licenseApi := r.mux.Group("/api/license")
 	{
 		licenseHandler := license.New(r.logger, r.prom, r.pkg_db)
 		licenseApi.POST("/upload", licenseHandler.UploadLicense())
+		licenseApi.Use(middlewares.LicMiddleware())
 		licenseApi.GET("", licenseHandler.GetLicenses())
 		licenseApi.GET("/current", licenseHandler.GetCurrentLicense())
+	}
+
+	appApi := r.mux.Group("/api/app").Use(middlewares.AuthMiddleware())
+	{
+		appHandler := app.New(r.pkg_db)
+		appApi.POST("/upload", middlewares.LicMiddleware(), appHandler.UploadLogo())
+		appApi.GET("/logo", appHandler.GetLogo())
 	}
 }

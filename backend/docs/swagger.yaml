@@ -3209,6 +3209,15 @@ definitions:
         description: process number
         type: integer
     type: object
+  response.GetLogoResp:
+    properties:
+      logoImage:
+        items:
+          type: integer
+        type: array
+      logoText:
+        type: string
+    type: object
   response.GetMetricPQLResponse:
     properties:
       alertMetricsData:
@@ -5741,6 +5750,64 @@ paths:
       summary: GetTargetTags
       tags:
       - API.alertinput
+  /api/app/logo:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: gets logo
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetLogoResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: gets logo
+      tags:
+      - API.app
+  /api/app/upload:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: uploads logo
+      parameters:
+      - description: logoText
+        in: formData
+        name: logoText
+        required: true
+        type: string
+      - description: logoImage
+        in: formData
+        name: logoImage
+        required: true
+        type: file
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: uploads logo
+      tags:
+      - API.app
   /api/config/getTTL:
     get:
       consumes:

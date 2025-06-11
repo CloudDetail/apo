@@ -4,19 +4,19 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/license"
-	licenseservice "github.com/CloudDetail/apo/backend/pkg/services/license"
 )
 
 var apiFeatureBlackList = map[string]string{
 	"/api/license":         "平台管理",
 	"/api/license/current": "平台管理",
 	"/api/license/upload":  "平台管理",
+	"/api/app/upload":      "平台管理",
+	"/api/app/logo":        "平台管理",
 }
 
 // LicMiddleware 访问对应功能时检查license是否过期以及是否可以访问对应功能
@@ -30,21 +30,8 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 		_, path := c.GetMethodPath()
 		expire, err := m.licenseService.CheckLicenseDate()
 		if err != nil {
-			if !errors.Is(err, licenseservice.ErrNoLicense) {
-				c.AbortWithError(
-					http.StatusBadRequest, code.LicenseCheckError, err,
-				)
-				return
-			} else {
-				if path == "/api/license/upload" {
-					c.Next()
-					return
-				} else {
-					c.AbortWithError(
-						http.StatusInternalServerError, code.LicenseCheckError, err,
-					)
-				}
-			}
+			c.AbortWithError(http.StatusBadRequest, code.LicenseCheckError, err)
+			return
 		}
 
 		if !expire {
