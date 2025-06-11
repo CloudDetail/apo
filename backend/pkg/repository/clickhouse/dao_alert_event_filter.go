@@ -132,6 +132,7 @@ func (ch *chRepo) GetAlertEventFilterLabelKeys(
 		}
 		if filter.Key == "validity" {
 			resultFilter.InStrings("validity", filter.Selected)
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {
@@ -195,6 +196,7 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 		}
 		if filter.Key == "validity" {
 			resultFilter.InStrings("validity", filter.Selected)
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {

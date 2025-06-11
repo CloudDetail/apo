@@ -202,6 +202,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		}
 		if filter.Key == "validity" {
 			resultFilter.InStrings("validity", filter.Selected)
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {
@@ -285,6 +286,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		}
 		if filter.Key == "validity" {
 			resultFilter.InStrings("validity", filter.Selected)
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {
