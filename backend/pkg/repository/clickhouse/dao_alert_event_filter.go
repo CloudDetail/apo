@@ -102,7 +102,8 @@ func init() {
 		filter_en.Options = make([]request.AlertEventFilterOption, 0)
 		for _, option := range filter.Options {
 			filter_en.Options = append(filter_en.Options, request.AlertEventFilterOption{
-				Value: option.Value,
+				Value:   option.Value,
+				Display: option.Value,
 			})
 		}
 		alertFilters_en = append(alertFilters_en, filter_en)
@@ -241,7 +242,8 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 
 	for _, filterValue := range filterValues {
 		res.Options = append(res.Options, request.AlertEventFilterOption{
-			Value: filterValue.Value,
+			Value:   filterValue.Value,
+			Display: filterValue.Value,
 		})
 	}
 	return &res, nil
@@ -313,6 +315,19 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 		},
 		Name_EN: "Status",
 	},
+	"validity": {
+		AlertEventFilter: request.AlertEventFilter{
+			Name: "告警有效性",
+			Options: []request.AlertEventFilterOption{
+				{Value: "valid", Display: "有效"},
+				{Value: "invalid", Display: "无效"},
+				{Value: "unknown", Display: "未知"},
+				{Value: "failed", Display: "失败"},
+				{Value: "skipped", Display: "跳过检查"},
+			},
+		},
+		Name_EN: "Validity",
+	},
 	"source": {
 		AlertEventFilter: request.AlertEventFilter{Name: "告警源"},
 		Name_EN:          "Alert Source",
@@ -340,19 +355,6 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 	"tags.pid": {
 		AlertEventFilter: request.AlertEventFilter{Name: "进程ID"},
 		Name_EN:          "PID",
-	},
-	"validity": {
-		AlertEventFilter: request.AlertEventFilter{
-			Name: "告警有效性",
-			Options: []request.AlertEventFilterOption{
-				{Value: "valid", Display: "有效"},
-				{Value: "invalid", Display: "无效"},
-				{Value: "unknown", Display: "未知"},
-				{Value: "failed", Display: "失败"},
-				{Value: "skipped", Display: "跳过检查"},
-			},
-		},
-		Name_EN: "Validity",
 	},
 }
 
