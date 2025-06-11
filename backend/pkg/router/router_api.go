@@ -143,6 +143,10 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/slient", alertHandler.SetAlertSlienceConfig())
 
 		alertApi.POST("/resolve", alertHandler.MarkAlertResolvedManually())
+
+		alertApi.GET("/filter/keys", alertHandler.GetAlertEventStaticFilters())
+		alertApi.POST("/filter/labelkeys", alertHandler.GetAlertEventLabelFilterKeys())
+		alertApi.POST("/filter/values", alertHandler.SearchAlertEventFilterValues())
 	}
 
 	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
