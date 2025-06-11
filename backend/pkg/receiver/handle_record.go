@@ -21,7 +21,8 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 	if record.WorkflowName != "AlertCheck" {
 		return nil
 	}
-	if record.Output != "false" {
+
+	if record.Output == "true" {
 		return nil
 	}
 
@@ -30,6 +31,10 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx context.Context, record *mod
 		return fmt.Errorf("unexpect inputRef, should be alert.AlertEvent, got %T", record.InputRef)
 	}
 
+	return r.sendAlert(ctx, alert)
+}
+
+func (r *InnerReceivers) sendAlert(ctx context.Context, alert *alert.AlertEvent) error {
 	if _, find := r.slientCFGMap.Load(alert.AlertID); find {
 		return nil
 	}
