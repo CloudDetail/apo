@@ -170,24 +170,44 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
-	if len(req.Filter.Namespaces) > 0 {
-		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
-	}
-	if len(req.Filter.Nodes) > 0 {
-		alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+	// TODO remove in v1.9.x
+	{
+		if len(req.Filter.Namespaces) > 0 {
+			alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
+		}
+		if len(req.Filter.Nodes) > 0 {
+			alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+		}
 	}
 
 	var count uint64
 	intervalMicro := int64(5*time.Minute) / 1e3
-	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
 	resultFilter := NewQueryBuilder()
-	if len(req.Filter.Validity) > 0 {
-		resultFilter.InStrings("validity", req.Filter.Validity)
+
+	// TODO remove in v1.9.x
+	{
+		if len(req.Filter.Validity) > 0 {
+			resultFilter.InStrings("validity", req.Filter.Validity)
+		}
+		if len(req.Filter.Status) > 0 {
+			resultFilter.InStrings("status", req.Filter.Status)
+		}
 	}
-	if len(req.Filter.Status) > 0 {
-		resultFilter.InStrings("status", req.Filter.Status)
+
+	for _, filter := range req.Filters {
+		if filter.Key == "" {
+			continue
+		}
+		if filter.Key == "validity" {
+			resultFilter.InStrings("validity", filter.Selected)
+		}
+		subSql, err := extractAlertEventFilter(&filter)
+		if err != nil {
+			return nil, 0, fmt.Errorf("illegal filter: %s", filter.Key)
+		}
+		alertFilter.And(subSql)
 	}
 
 	countSql := buildCountQuery(alertFilter, recordFilter, resultFilter, cacheMinutes)
@@ -199,7 +219,10 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		return nil, 0, err
 	}
 
-	sql, values := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
+	sql, values, err := getSqlAndValueForSortedAlertEvent(req, cacheMinutes)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	result := make([]alert.AEventWithWRecord, 0)
 	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
@@ -214,16 +237,19 @@ func buildCountQuery(alertFilter *QueryBuilder, recordFilter *QueryBuilder, resu
 	)
 }
 
-func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any) {
+func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cacheMinutes int) (string, []any, error) {
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
-	if len(req.Filter.Namespaces) > 0 {
-		alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
-	}
-	if len(req.Filter.Nodes) > 0 {
-		alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+	// TODO remove in v1.9.x
+	{
+		if len(req.Filter.Namespaces) > 0 {
+			alertFilter.InStrings("tags['namespace']", req.Filter.Namespaces)
+		}
+		if len(req.Filter.Nodes) > 0 {
+			alertFilter.InStrings("tags['node']", req.Filter.Nodes)
+		}
 	}
 
 	resultOrder := NewByLimitBuilder()
@@ -243,11 +269,29 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
 	resultFilter := NewQueryBuilder()
-	if len(req.Filter.Validity) > 0 {
-		resultFilter.InStrings("validity", req.Filter.Validity)
+	// TODO remove in v1.9.x
+	{
+		if len(req.Filter.Validity) > 0 {
+			resultFilter.InStrings("validity", req.Filter.Validity)
+		}
+		if len(req.Filter.Status) > 0 {
+			resultFilter.InStrings("status", req.Filter.Status)
+		}
 	}
-	if len(req.Filter.Status) > 0 {
-		resultFilter.InStrings("status", req.Filter.Status)
+
+	for _, filter := range req.Filters {
+		if filter.Key == "" {
+			continue
+		}
+		if filter.Key == "validity" {
+			resultFilter.InStrings("validity", filter.Selected)
+		}
+		subSql, err := extractAlertEventFilter(&filter)
+		if err != nil {
+			// Unexpected batch, should return err before
+			return "", nil, err
+		}
+		alertFilter.And(subSql)
 	}
 
 	sql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
@@ -262,7 +306,7 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 	values = append(values, recordFilter.values...)
 	values = append(values, resultFilter.values...)
 
-	return sql, values
+	return sql, values, nil
 }
 
 func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventSearchRequest, cacheMinutes int) (map[string]int64, error) {
