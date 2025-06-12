@@ -1,3 +1,7 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import CheckboxFilter from './CheckboxFilter'
 import InputFilter from './InputFilter'
 import LabelKeyFilter from './LabelKeyFilter'

@@ -1,3 +1,7 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { Select, Segmented, Input, Button } from 'antd'
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'

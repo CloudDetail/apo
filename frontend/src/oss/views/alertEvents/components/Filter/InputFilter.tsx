@@ -1,3 +1,7 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { Input } from 'antd'
 import { useState, useEffect } from 'react'
 import { FilterRenderProps } from './type'
