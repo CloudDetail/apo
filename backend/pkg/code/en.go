@@ -225,5 +225,5 @@ var enText = map[string]string{
 	UploadLogoError:     "Failed to upload logo",
 	GetLogoError:        "Failed to get logo",
 	LogoSizeExceedError: "Logo file size exceed 2M",
-	LogoTypeError:       "Unsupported logo type, please upload png/jpeg",
+	LogoTypeError:       "Unsupported logo type, please upload png/jpeg/svg/ico",
 }

@@ -227,5 +227,5 @@ var zhCnText = map[string]string{
 	UploadLogoError:     "上传logo失败",
 	GetLogoError:        "获取logo失败",
 	LogoSizeExceedError: "logo大小超出2M",
-	LogoTypeError:       "不支持的logo类型，请上传png/jpeg",
+	LogoTypeError:       "不支持的logo类型，请上传png/jpeg/svg/ico",
 }
