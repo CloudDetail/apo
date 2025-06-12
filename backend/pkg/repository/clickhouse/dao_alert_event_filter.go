@@ -269,7 +269,7 @@ func extractAlertEventFilter(filter *request.AlertEventFilter) (*whereSQL, error
 	if strings.HasPrefix(filter.Key, "labels.") {
 		rawTagKey := filter.Key[7:]
 		if allowFilterKey.MatchString(rawTagKey) {
-			return inStrings(fmt.Sprintf("tags['%s']", rawTagKey), filter.Selected), nil
+			return inStrings(fmt.Sprintf("raw_tags['%s']", rawTagKey), filter.Selected), nil
 		}
 		return nil, fmt.Errorf("filter key %s not allowed", filter.Key)
 	}
