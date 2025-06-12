@@ -59,7 +59,6 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
           <Checkbox.Group
             value={value}
             options={options}
-            defaultValue={['firing']}
             className="w-full flex flex-col m-2 items-center"
             onChange={setValue}
           ></Checkbox.Group>

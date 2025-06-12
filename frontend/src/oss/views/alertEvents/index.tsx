@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tooltip, Statistic, Image, Card, Tag, theme, Result } from 'antd'
+import { Button, Modal, Statistic, Image, Card, Tag, theme, Result } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -191,8 +191,6 @@ const AlertEventsPage = () => {
   const [invalidCounts, setInvalidCounts] = useState(0)
   const [firingCounts, setFiringCounts] = useState(0)
   const [resolvedCounts, setResolvedCounts] = useState(0)
-  const [statusFilter, setStatusFilter] = useState(['firing'])
-  const [validFilter, setValidFilter] = useState(['valid', 'other'])
   const timerRef = useRef(null)
 
   const [keys, setKeys] = useState([])
@@ -209,13 +207,6 @@ const AlertEventsPage = () => {
       name: '告警有效性',
     },
   ])
-  const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
-    return (
-      <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
-        <span className="text-[var(--ant-color-text-secondary)] text-xs">{t('workflowMiss')}</span>
-      </Tooltip>
-    )
-  }
   const getAlertEventsRef = useRef<() => void>(() => {})
   const [loading, setLoading] = useState(true)
   const getAlertEvents = () => {
@@ -223,9 +214,6 @@ const AlertEventsPage = () => {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
-    const validFilterReady = validFilter.includes('other')
-      ? [...validFilter.filter((f) => f !== 'other'), 'skipped', 'failed', 'unknown']
-      : validFilter
     getAlertEventsApi({
       startTime,
       endTime,
@@ -275,15 +263,7 @@ const AlertEventsPage = () => {
       }
     },
     300,
-    [
-      pagination.pageIndex,
-      pagination.pageSize,
-      startTime,
-      endTime,
-      statusFilter,
-      validFilter,
-      filters,
-    ],
+    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters],
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
