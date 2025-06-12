@@ -126,19 +126,10 @@ func (ch *chRepo) GetAlertEventFilterLabelKeys(
 	alertFilter := NewQueryBuilder().Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
 	recordFilter := NewQueryBuilder().Between("created_at", req.StartTime/1e6, req.EndTime/1e6)
 	resultFilter := NewQueryBuilder()
-	for _, filter := range req.Filters {
-		if filter.Key == "" {
-			continue
-		}
-		if filter.Key == "validity" {
-			resultFilter.InStrings("validity", filter.Selected)
-			continue
-		}
-		subSql, err := extractAlertEventFilter(&filter)
-		if err != nil {
-			return nil, fmt.Errorf("illegal filter: %s", filter.Key)
-		}
-		alertFilter.And(subSql)
+
+	err := applyFilter(req.Filters, resultFilter, alertFilter)
+	if err != nil {
+		return nil, err
 	}
 
 	sql := fmt.Sprintf(SQL_SEARCH_ALERT_FILTER_KEYS,
@@ -190,19 +181,10 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 	alertFilter := NewQueryBuilder().Between("received_time", req.StartTime/1e6, req.EndTime/1e6)
 	recordFilter := NewQueryBuilder().Between("created_at", req.StartTime/1e6, req.EndTime/1e6)
 	resultFilter := NewQueryBuilder()
-	for _, filter := range req.Filters {
-		if filter.Key == "" {
-			continue
-		}
-		if filter.Key == "validity" {
-			resultFilter.InStrings("validity", filter.Selected)
-			continue
-		}
-		subSql, err := extractAlertEventFilter(&filter)
-		if err != nil {
-			return nil, fmt.Errorf("illegal filter: %s", filter.Key)
-		}
-		alertFilter.And(subSql)
+
+	err := applyFilter(req.Filters, resultFilter, alertFilter)
+	if err != nil {
+		return nil, err
 	}
 
 	var targetKey string = req.SearchKey
@@ -233,7 +215,7 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 	values = append(values, resultFilter.values...)
 
 	var filterValues []filterValue
-	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &filterValues, sql, values...)
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &filterValues, sql, values...)
 	if err != nil {
 		return nil, err
 	}
@@ -249,6 +231,31 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 		})
 	}
 	return &res, nil
+}
+
+func applyFilter(filters []request.AlertEventFilter, resultFilter *QueryBuilder, alertFilter *QueryBuilder) error {
+	for _, filter := range filters {
+		if filter.Key == "" {
+			continue
+		}
+		if filter.Key == "validity" {
+			for _, v := range filter.Selected {
+				if v == "other" {
+					filter.Selected = append(filter.Selected, "unknown", "failed", "skipped")
+					break
+				}
+			}
+
+			resultFilter.InStrings("validity", filter.Selected)
+			continue
+		}
+		subSql, err := extractAlertEventFilter(&filter)
+		if err != nil {
+			return fmt.Errorf("illegal filter: %s", filter.Key)
+		}
+		alertFilter.And(subSql)
+	}
+	return nil
 }
 
 type filterValue struct {
@@ -323,9 +330,10 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 			Options: []request.AlertEventFilterOption{
 				{Value: "valid", Display: "有效"},
 				{Value: "invalid", Display: "无效"},
-				{Value: "unknown", Display: "未知"},
-				{Value: "failed", Display: "失败"},
-				{Value: "skipped", Display: "跳过检查"},
+				{Value: "other", Display: "其他"},
+				// {Value: "unknown", Display: "未知"},
+				// {Value: "failed", Display: "失败"},
+				// {Value: "skipped", Display: "跳过检查"},
 			},
 		},
 		Name_EN: "Validity",

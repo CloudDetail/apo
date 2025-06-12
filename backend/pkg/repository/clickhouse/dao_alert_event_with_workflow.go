@@ -196,26 +196,16 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		}
 	}
 
-	for _, filter := range req.Filters {
-		if filter.Key == "" {
-			continue
-		}
-		if filter.Key == "validity" {
-			resultFilter.InStrings("validity", filter.Selected)
-			continue
-		}
-		subSql, err := extractAlertEventFilter(&filter)
-		if err != nil {
-			return nil, 0, fmt.Errorf("illegal filter: %s", filter.Key)
-		}
-		alertFilter.And(subSql)
+	err := applyFilter(req.Filters, resultFilter, alertFilter)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	countSql := buildCountQuery(alertFilter, recordFilter, resultFilter, cacheMinutes)
 
 	values := append(alertFilter.values, recordFilter.values...)
 	values = append(values, resultFilter.values...)
-	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, values...).Scan(&count)
+	err = ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), countSql, values...).Scan(&count)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -280,20 +270,9 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		}
 	}
 
-	for _, filter := range req.Filters {
-		if filter.Key == "" {
-			continue
-		}
-		if filter.Key == "validity" {
-			resultFilter.InStrings("validity", filter.Selected)
-			continue
-		}
-		subSql, err := extractAlertEventFilter(&filter)
-		if err != nil {
-			// Unexpected batch, should return err before
-			return "", nil, err
-		}
-		alertFilter.And(subSql)
+	err := applyFilter(req.Filters, resultFilter, alertFilter)
+	if err != nil {
+		return "", nil, err
 	}
 
 	sql := fmt.Sprintf(SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD,
