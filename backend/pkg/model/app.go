@@ -5,7 +5,7 @@ package model
 
 type Logo struct {
 	Id        int    `gorm:"column:id;primary_key" json:"-"`
-	LogoImage []byte `gorm:"column:logo_image;type:blob;" json:"logoImage"`
+	LogoImage []byte `gorm:"column:logo_image;" json:"logoImage"`
 	LogoText  string `gorm:"column:logo_text;type:varchar(15)" json:"logoText"`
 }
 
