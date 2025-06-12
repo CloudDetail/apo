@@ -225,6 +225,9 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 	res.Options = make([]request.AlertEventFilterOption, 0)
 
 	for _, filterValue := range filterValues {
+		if filterValue.Value == "" {
+			continue
+		}
 		res.Options = append(res.Options, request.AlertEventFilterOption{
 			Value:   filterValue.Value,
 			Display: filterValue.Value,
