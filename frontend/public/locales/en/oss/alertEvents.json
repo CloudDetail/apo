@@ -66,5 +66,6 @@
   "silent": "Alarm Silenced",
   "onSilent": "Silence Subsequent Alarms",
   "firingTip": "Continuously meets the alert rules, the current alert is ongoing",
-  "resolvedTip": "No longer triggers the alert rules, the system automatically closes the alert"
+  "resolvedTip": "No longer triggers the alert rules, the system automatically closes the alert",
+  "error": "error"
 }
