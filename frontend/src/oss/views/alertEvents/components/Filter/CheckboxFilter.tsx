@@ -9,8 +9,10 @@ import { getAlertsFilterValuesApi } from 'src/core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import ValueTag from './ValueTag'
 import { FilterRenderProps } from './type'
+import { useTranslation } from 'react-i18next'
 
 const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
+  const { t } = useTranslation('oss/alertEvents')
   const [options, setOptions] = useState([])
   const [value, setValue] = useState([])
   const [loading, setLoading] = useState(false)
@@ -71,7 +73,7 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
               })
             }
           >
-            确定
+            {t('confirm')}
           </Button>
         </>
       )}

@@ -10,7 +10,9 @@ import FilterTagItem from './FilterTagItem'
 import { LuTrash } from 'react-icons/lu'
 import { RiAddLargeFill } from 'react-icons/ri'
 import _ from 'lodash'
+import { useTranslation } from 'react-i18next'
 const AddFilter = ({ filters, keys, onAddFilter, labelKeys }) => {
+  const { t } = useTranslation('oss/alertEvents')
   const [selectedItem, setSelectedItem] = useState(null)
   const existingKeys = filters.map((f) => f.key)
   const filteredKeys = keys.filter((item) => !existingKeys.includes(item.key))
@@ -33,10 +35,10 @@ const AddFilter = ({ filters, keys, onAddFilter, labelKeys }) => {
           <div
             className="mx-2  cursor-pointer"
             onClick={() =>
-              setSelectedItem({ key: 'label', name: '告警详情', labelKeys: labelKeys })
+              setSelectedItem({ key: 'label', name: t('alertDetail'), labelKeys: labelKeys })
             }
           >
-            告警详情
+            {t('alertDetail')}
           </div>
         </>
       )}
@@ -45,6 +47,7 @@ const AddFilter = ({ filters, keys, onAddFilter, labelKeys }) => {
 }
 
 const Filter = ({ keys, labelKeys, filters, setFilters }: FilterProps) => {
+  const { t } = useTranslation('oss/alertEvents')
   const [open, setOpen] = useState(false)
   const onClear = () => {
     setFilters([])
@@ -101,7 +104,7 @@ const Filter = ({ keys, labelKeys, filters, setFilters }: FilterProps) => {
           size="small"
           icon={<RiAddLargeFill />}
         >
-          筛选条件
+          {t('addFilter')}
         </Button>
       </Popover>
       <Button
@@ -112,7 +115,7 @@ const Filter = ({ keys, labelKeys, filters, setFilters }: FilterProps) => {
         size="small"
         icon={<LuTrash />}
       >
-        清空
+        {t('clearAll')}
       </Button>
     </div>
   )

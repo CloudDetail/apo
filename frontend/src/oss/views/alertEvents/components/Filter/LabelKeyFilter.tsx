@@ -7,8 +7,10 @@ import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { getAlertsFilterValuesApi } from 'src/core/api/alerts'
 import { FilterRenderProps } from './type'
+import { useTranslation } from 'react-i18next'
 
 const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
+  const { t } = useTranslation('oss/alertEvents')
   const [options, setOptions] = useState([])
   const [key, setKey] = useState()
   const [mode, setMode] = useState('selected')
@@ -18,11 +20,11 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
   const { startTime, endTime } = useSelector((state) => state.timeRange)
   const modeOptions = [
     {
-      label: '精准筛选',
+      label: t('selected'),
       value: 'selected',
     },
     {
-      label: '模糊匹配',
+      label: t('matchExpr'),
       value: 'matchExpr',
     },
   ]
@@ -69,9 +71,9 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
   const filteredKeys = item.labelKeys.filter((item) => !existingKeys.includes(item))
   return (
     <div>
-      过滤字段
+      {t('filterKey')}
       <Select
-        placeholder="请选择需要过滤的字段"
+        placeholder={t('selectPlaceholder')}
         options={filteredKeys.map((item) => ({
           label: item,
           value: item,
@@ -85,7 +87,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
         showSearch
       />
       <div>
-        筛选方式
+        {t('filterMode')}
         <Segmented options={modeOptions} value={mode} onChange={setMode} className="m-1" />
       </div>
       <div className="m-1">
@@ -93,7 +95,6 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
           <Input
             value={matchExpr}
             onChange={(e) => setMatchExpr(e.target.value)}
-            placeholder="请输入"
             // onPressEnter={() =>
             //   addFilter({
             //     key: item.key,
@@ -108,7 +109,6 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
               allowClear
               className="min-w-[220px] max-w-[400px]"
               mode="multiple"
-              placeholder="请选择"
               options={options}
               showSearch
               value={selected}
@@ -127,7 +127,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     matchExpr: matchExpr,
-                    name: '告警详情',
+                    name: t('alertDetail'),
                     isLabelKey: true,
                     labelKeys: item.labelKeys,
                     oldKey: item.key,
@@ -136,7 +136,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     selected: selected,
-                    name: '告警详情',
+                    name: t('alertDetail'),
                     isLabelKey: true,
                     labelKeys: item.labelKeys,
                     selectedOptions: getSelectedItems(),
@@ -146,7 +146,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
               }
             }}
           >
-            确定
+            {t('confirm')}
           </Button>
         </div>
       </div>
