@@ -131,7 +131,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     matchExpr: matchExpr,
-                    name: t('alertDetail'),
+                    name: item.wildcard ? item.name : t('alertDetail'),
                     isLabelKey: !item.wildcard,
                     wildcard: item.wildcard,
                     labelKeys: item.labelKeys,
@@ -141,7 +141,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     selected: selected,
-                    name: t('alertDetail'),
+                    name: item.wildcard ? item.name : t('alertDetail'),
                     isLabelKey: !item.wildcard,
                     labelKeys: item.labelKeys,
                     selectedOptions: getSelectedItems(),
