@@ -111,7 +111,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
           <>
             <Select
               allowClear
-              className="min-w-[220px] max-w-[400px]"
+              className="min-w-[220px] max-w-[400px] w-full"
               mode="multiple"
               options={options}
               showSearch
