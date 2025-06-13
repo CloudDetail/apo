@@ -78,7 +78,7 @@ const AppSidebar = () => {
       theme={{
         components: {
           Menu: {
-            itemHeight: 50,
+            itemHeight: 55,
             itemBg: 'var(--color-sider)',
             itemSelectedBg: 'var(--ant-color-primary)',
             itemSelectedColor: 'var(--menu-selected-text-color)',
@@ -93,7 +93,7 @@ const AppSidebar = () => {
             content: '${item.label}';
             display: block;
             margin: 4px;
-            padding: 20px 40px 20px 20px;
+            padding: 20px 40px 20px 25px;
             font-weight: 500;
             border-bottom: 1px solid var(--ant-color-split);
             background-color: var(--ant-color-fill-tertiary);

@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
-import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons';
+import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons'
 import { Button, Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { Header } from 'antd/es/layout/layout'
@@ -33,15 +33,23 @@ const DefaultLayout = () => {
           transition: 'all 0.3s',
           zIndex: 999,
           height: '100vh',
-          borderRight: '1px solid var(--ant-color-border-secondary)'
+          borderRight: '1px solid var(--ant-color-border-secondary)',
         }}
         className={`custom-scrollbar ${collapsed ? 'siderCollapsed' : ''}`}
         width={200}
       >
-        <div className="h-[60px] flex w-full overflow-hidden items-center justify-center gap-1">
+        <div
+          className="h-[55px] flex w-full overflow-hidden items-center justify-center p-2"
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
+            backgroundColor: 'var(--color-sider)',
+          }}
+        >
           <CImage
             src={logo}
-            className="w-[32px] sidebar-brand-narrow flex-shrink-0"
+            className="w-[36px] sidebar-brand-narrow flex-shrink-0"
             alt="CoreuiVue"
           />
           {!collapsed && <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>}
@@ -64,7 +72,7 @@ const DefaultLayout = () => {
       <Layout
         style={{
           marginLeft: collapsed ? '70px' : '200px',
-          transition: 'margin-left 0.3s ease-in-out'
+          transition: 'margin-left 0.3s ease-in-out',
         }}
       >
         <AppHeader />
