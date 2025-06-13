@@ -18,11 +18,22 @@ import (
 	pmodel "github.com/prometheus/common/model"
 )
 
+func (r *InnerReceivers) HandleAlertEvent(ctx core.Context, alerts []alert.AlertEvent) error {
+	var errs []error
+	for _, alert := range alerts {
+		if err := r.sendAlert(ctx, &alert); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
+}
+
 func (r *InnerReceivers) HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error {
 	if record.WorkflowName != "AlertCheck" {
 		return nil
 	}
-	if record.Output != "false" {
+
+	if record.Output == "true" {
 		return nil
 	}
 
@@ -31,6 +42,10 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx core.Context, record *model.
 		return fmt.Errorf("unexpect inputRef, should be alert.AlertEvent, got %T", record.InputRef)
 	}
 
+	return r.sendAlert(ctx, alert)
+}
+
+func (r *InnerReceivers) sendAlert(ctx core.Context, alert *alert.AlertEvent) error {
 	if _, find := r.slientCFGMap.Load(alert.AlertID); find {
 		return nil
 	}
