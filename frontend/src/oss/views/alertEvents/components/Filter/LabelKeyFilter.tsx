@@ -30,7 +30,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
   ]
   const getAlertsFilterValues = () => {
     setLoading(true)
-    getAlertsFilterValuesApi({ searchKey: key, startTime, endTime, filters })
+    getAlertsFilterValuesApi({ searchKey: key, startTime, endTime })
       .then((res) => {
         setOptions(
           res.options?.map((option) => ({

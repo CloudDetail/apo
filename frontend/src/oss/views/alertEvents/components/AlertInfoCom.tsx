@@ -114,7 +114,7 @@ const AlertTags = ({ tags, detail, defaultVisible = false }: AlertTagsProps) => 
 
   return (
     <div className="overflow-hidden text-xs">
-      {tags.map((item) => (
+      {tags?.map((item) => (
         <Tag className="text-pretty mb-1 break-all" key={item.key}>
           <span>
             {item.name} = {item.value}
