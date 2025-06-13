@@ -43,7 +43,7 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   }
   useEffect(() => {
     getAlertsFilterValues()
-  }, [item.key])
+  }, [item.key, startTime, endTime])
   useEffect(() => {
     const oldValue = filters.find((filterItem) => filterItem.key === item.key)
     if (oldValue) setValue(oldValue.selected)

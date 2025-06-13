@@ -199,12 +199,12 @@ const AlertEventsPage = () => {
     {
       key: 'status',
       selected: ['firing'],
-      name: '告警状态',
+      name: t('status'),
     },
     {
       key: 'validity',
       selected: ['valid', 'other'],
-      name: '告警有效性',
+      name: t('alertValidity'),
     },
   ])
   const getAlertEventsRef = useRef<() => void>(() => {})
