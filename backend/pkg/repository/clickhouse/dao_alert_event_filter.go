@@ -251,6 +251,9 @@ func applyFilter(filters []request.AlertEventFilter, resultFilter *QueryBuilder,
 
 			resultFilter.InStrings("validity", filter.Selected)
 			continue
+		} else if filter.Key == "status" {
+			resultFilter.InStrings("status", filter.Selected)
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {
