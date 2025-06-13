@@ -76,5 +76,6 @@
   "matchExpr": "Fuzzy Match",
   "selectPlaceholder": "Please select a field to filter",
   "filterKey": "Filter Field",
-  "filterMode": "Filter Mode"
+  "filterMode": "Filter Mode",
+  "exprHint": "Use * as a wildcard character"
 }

@@ -76,5 +76,6 @@
   "matchExpr": "模糊匹配",
   "selectPlaceholder": "请选择需要过滤的字段",
   "filterKey": "筛选字段",
-  "filterMode": "筛选方式"
+  "filterMode": "筛选方式",
+  "exprHint": "使用 * 通配符"
 }

@@ -67,42 +67,46 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
       }
     }
   }, [filters])
+  useEffect(() => {
+    if (item.wildcard) setKey(item.key)
+  }, [item])
   const existingKeys = filters.map((f) => f.key)
-  const filteredKeys = item.labelKeys.filter((item) => !existingKeys.includes(item))
+  const filteredKeys = item.labelKeys?.filter((item) => !existingKeys.includes(item))
   return (
     <div>
-      {t('filterKey')}
-      <Select
-        placeholder={t('selectPlaceholder')}
-        options={filteredKeys.map((item) => ({
-          label: item,
-          value: item,
-        }))}
-        value={key}
-        onChange={(key) => {
-          setKey(key)
-          setSelected([])
-        }}
-        className="min-w-[100px] m-1"
-        showSearch
-      />
+      {filteredKeys?.length > 0 ? (
+        <>
+          {t('filterKey')}
+          <Select
+            placeholder={t('selectPlaceholder')}
+            options={filteredKeys.map((item) => ({
+              label: item,
+              value: item,
+            }))}
+            value={key}
+            onChange={(key) => {
+              setKey(key)
+              setSelected([])
+            }}
+            className="min-w-[100px] m-1"
+            showSearch
+          />
+        </>
+      ) : (
+        item.name
+      )}
       <div>
         {t('filterMode')}
         <Segmented options={modeOptions} value={mode} onChange={setMode} className="m-1" />
       </div>
       <div className="m-1">
         {mode === 'matchExpr' ? (
-          <Input
-            value={matchExpr}
-            onChange={(e) => setMatchExpr(e.target.value)}
-            // onPressEnter={() =>
-            //   addFilter({
-            //     key: item.key,
-            //     matchExpr: value,
-            //     name: item.name,
-            //   })
-            // }
-          />
+          <>
+            <Input value={matchExpr} onChange={(e) => setMatchExpr(e.target.value)} />
+            <div className=" py-1 text-xs text-[var(--ant-color-text-secondary)]">
+              {t('exprHint')}
+            </div>
+          </>
         ) : (
           <>
             <Select
@@ -128,7 +132,8 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                     key: key,
                     matchExpr: matchExpr,
                     name: t('alertDetail'),
-                    isLabelKey: true,
+                    isLabelKey: !item.wildcard,
+                    wildcard: item.wildcard,
                     labelKeys: item.labelKeys,
                     oldKey: item.key,
                   })
@@ -137,10 +142,11 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                     key: key,
                     selected: selected,
                     name: t('alertDetail'),
-                    isLabelKey: true,
+                    isLabelKey: !item.wildcard,
                     labelKeys: item.labelKeys,
                     selectedOptions: getSelectedItems(),
                     oldKey: item.key,
+                    wildcard: item.wildcard,
                   })
                 }
               }
