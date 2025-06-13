@@ -14,7 +14,7 @@ type Alert struct {
 
 	EnrichTags map[string]string `json:"tags" ch:"tags" mapstructure:"enrich_tags"`
 
-	EnrichTagsDisplay []TagDisplay `json:"tags_display" ch:"-" mapstructure:"-"`
+	EnrichTagsDisplay []TagDisplay `json:"tagsDisplay" ch:"-" mapstructure:"-"`
 	// HACK the existing clickhouse query uses `tags` as the filter field
 	// so enrichTags in ch is named as 'tags' to filter new alertInput
 	Tags RawTags `json:"rawTags" ch:"raw_tags" mapstructure:"tags"`

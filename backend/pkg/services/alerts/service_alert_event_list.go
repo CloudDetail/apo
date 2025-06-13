@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -56,23 +57,42 @@ func (s *service) fillDisplay(ctx core.Context, records []alert.AEventWithWRecor
 		return err
 	}
 
+	lang := ctx.LANG()
 	for i := 0; i < len(records); i++ {
 		tagDisplays := make([]alert.TagDisplay, 0)
 		for key, value := range records[i].EnrichTags {
-			for _, tag := range tags {
-				if key == tag.Field {
-					tagDisplays = append(tagDisplays, alert.TagDisplay{
-						Key:   key,
-						Name:  tag.TagName,
-						Value: value,
-					})
-					break
-				}
-			}
+			tagName := getTagName(tags, key, lang)
+			tagDisplays = append(tagDisplays, alert.TagDisplay{
+				Key:   key,
+				Name:  tagName,
+				Value: value,
+			})
 		}
 		records[i].EnrichTagsDisplay = tagDisplays
 	}
 	return nil
+}
+
+func getTagName(tags []alert.TargetTag, key string, lang string) string {
+	if key == "source" {
+		if lang == code.LANG_EN {
+			return "Alert Source"
+		} else {
+			return "告警源"
+		}
+	} else if key == "status" {
+		if lang == code.LANG_EN {
+			return "Status"
+		} else {
+			return "告警状态"
+		}
+	}
+	for _, tag := range tags {
+		if key == tag.Field {
+			return tag.TagName
+		}
+	}
+	return key
 }
 
 func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithWRecord) {
