@@ -6,6 +6,7 @@ package alerts
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -68,6 +69,9 @@ func (s *service) fillDisplays(ctx core.Context, records []alert.AEventWithWReco
 				Value: value,
 			})
 		}
+		sort.Slice(tagDisplays, func(i, j int) bool {
+			return tagDisplays[i].Key < tagDisplays[j].Key
+		})
 		records[i].EnrichTagsDisplay = tagDisplays
 	}
 	return nil
@@ -89,6 +93,9 @@ func (s *service) fillDisplay(ctx core.Context, record *alert.AEventWithWRecord)
 			Value: value,
 		})
 	}
+	sort.Slice(tagDisplays, func(i, j int) bool {
+		return tagDisplays[i].Key < tagDisplays[j].Key
+	})
 	record.EnrichTagsDisplay = tagDisplays
 	return nil
 }
