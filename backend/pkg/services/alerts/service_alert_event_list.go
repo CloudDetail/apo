@@ -23,9 +23,6 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 		return nil, err
 	}
 
-	// TODO show display log
-	_ = s.fillDisplay(ctx, events)
-
 	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
@@ -40,6 +37,9 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 			events[i].IsValid = "skipped"
 		}
 	}
+
+	// TODO show display error log
+	_ = s.fillDisplay(ctx, events)
 
 	req.Pagination.Total = count
 	return &response.AlertEventSearchResponse{
