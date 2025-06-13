@@ -13,6 +13,8 @@ type Alert struct {
 	Name    string `ch:"name" json:"name,omitempty"`
 
 	EnrichTags map[string]string `json:"tags" ch:"tags" mapstructure:"enrich_tags"`
+
+	EnrichTagsDisplay []TagDisplay `json:"tags_display" ch:"-" mapstructure:"-"`
 	// HACK the existing clickhouse query uses `tags` as the filter field
 	// so enrichTags in ch is named as 'tags' to filter new alertInput
 	Tags RawTags `json:"rawTags" ch:"raw_tags" mapstructure:"tags"`
@@ -65,4 +67,10 @@ type AlertWithEventCount struct {
 	Alert
 
 	Count uint64 `json:"count" ch:"count"`
+}
+
+type TagDisplay struct {
+	Key   string `json:"key"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }

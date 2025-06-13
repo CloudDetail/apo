@@ -307,7 +307,7 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 		Name_EN:          "Alert Name",
 	},
 	"group": {
-		AlertEventFilter: request.AlertEventFilter{Name: "告警事件类型"},
+		AlertEventFilter: request.AlertEventFilter{Name: "告警类型"},
 		Name_EN:          "Alert Type",
 	},
 	"severity": {
@@ -364,16 +364,16 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 		Name_EN:          "Namespace",
 	},
 	"tags.pod": {
-		AlertEventFilter: request.AlertEventFilter{Name: "Pod"},
-		Name_EN:          "Pod",
+		AlertEventFilter: request.AlertEventFilter{Name: "POD名"},
+		Name_EN:          "POD Name",
 	},
 	"tags.node": {
-		AlertEventFilter: request.AlertEventFilter{Name: "节点"},
-		Name_EN:          "Node",
+		AlertEventFilter: request.AlertEventFilter{Name: "主机名"},
+		Name_EN:          "Hostname",
 	},
 	"tags.pid": {
-		AlertEventFilter: request.AlertEventFilter{Name: "进程ID"},
-		Name_EN:          "PID",
+		AlertEventFilter: request.AlertEventFilter{Name: "进程PID"},
+		Name_EN:          "Process PID",
 	},
 }
 

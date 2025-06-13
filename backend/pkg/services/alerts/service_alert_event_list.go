@@ -22,6 +22,9 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 		return nil, err
 	}
 
+	// TODO show display log
+	_ = s.fillDisplay(ctx, events)
+
 	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
@@ -45,6 +48,31 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 		AlertCheckID:                s.difyRepo.GetAlertCheckFlowID(),
 		Counts:                      counts,
 	}, nil
+}
+
+func (s *service) fillDisplay(ctx core.Context, records []alert.AEventWithWRecord) error {
+	tags, err := s.dbRepo.ListAlertTargetTags(ctx)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(records); i++ {
+		tagDisplays := make([]alert.TagDisplay, 0)
+		for key, value := range records[i].EnrichTags {
+			for _, tag := range tags {
+				if key == tag.Field {
+					tagDisplays = append(tagDisplays, alert.TagDisplay{
+						Key:   key,
+						Name:  tag.TagName,
+						Value: value,
+					})
+					break
+				}
+			}
+		}
+		records[i].EnrichTagsDisplay = tagDisplays
+	}
+	return nil
 }
 
 func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithWRecord) {

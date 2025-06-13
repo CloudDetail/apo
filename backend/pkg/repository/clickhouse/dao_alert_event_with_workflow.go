@@ -219,6 +219,10 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 
 	result := make([]alert.AEventWithWRecord, 0)
 	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, sql, values...)
+
+	for i := 0; i < len(result); i++ {
+		// result[i].EnrichTagsDisplay =
+	}
 	return result, int64(count), err
 }
 
