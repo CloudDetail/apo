@@ -43,7 +43,7 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   }
   useEffect(() => {
     getAlertsFilterValues()
-  }, [item.key, startTime, endTime])
+  }, [item.key])
   useEffect(() => {
     const oldValue = filters.find((filterItem) => filterItem.key === item.key)
     if (oldValue) setValue(oldValue.selected)
@@ -59,7 +59,7 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
           <Checkbox.Group
             value={value}
             options={options}
-            className="w-full flex flex-col m-2 items-center"
+            className="w-full flex flex-col m-2"
             onChange={setValue}
           ></Checkbox.Group>
           <Button
