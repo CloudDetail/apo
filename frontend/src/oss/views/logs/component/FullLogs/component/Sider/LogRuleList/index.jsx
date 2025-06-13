@@ -43,7 +43,7 @@ const LogRuleList = () => {
       <div className="logRuleItem">
         <div className="flex flex-col">
           <div>{nodeData.title}</div>
-          <div className="text-xs text-gray-400">{nodeData.parseInfo}</div>
+          <div className="text-xs">{nodeData.parseInfo}</div>
         </div>
         {!nodeData.isDefault && (
           <div className="action">
@@ -116,7 +116,7 @@ const LogRuleList = () => {
 
   return (
     <Card
-      className="overflow-y-auto h-1/2 w-full overflow-x-hidden"
+      className="overflow-y-auto h-1/2 w-full overflow-x-hidden border-t-0 border-l-0 border-r-0"
       title={
         <>
           <span>{t('fullLogSider.logRuleList.RepositoryText')}</span>
@@ -127,7 +127,7 @@ const LogRuleList = () => {
         </>
       }
       classNames={{
-        body: 'p-0 pr-2',
+        body: 'p-0',
       }}
       style={{ display: 'flex', flexDirection: 'column' }} // 设置 Card 的高度，使用 flexbox
       bodyStyle={{ flexGrow: 1, overflow: 'auto' }}
