@@ -118,6 +118,10 @@ type Repo interface {
 
 	ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error
 
+	GetStaticFilterKeys(ctx core.Context) []request.AlertEventFilter
+	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) ([]string, error)
+	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
+
 	integration.Input
 }
 

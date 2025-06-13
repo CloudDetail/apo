@@ -1209,6 +1209,109 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/filter/keys": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventFiltersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/filter/labelkeys": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SearchAlertEventFilterValuesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventFilterLabelKeysResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/filter/values": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SearchAlertEventFilterValuesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventFilter"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/inputs/alertmanager": {
             "post": {
                 "description": "get AlertManager alarm events",
@@ -3999,7 +4102,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Feature"
+                                "$ref": "#/definitions/profile.Feature"
                             }
                         }
                     },
@@ -4207,7 +4310,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Feature"
+                                "$ref": "#/definitions/profile.Feature"
                             }
                         }
                     },
@@ -4416,7 +4519,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Role"
+                                "$ref": "#/definitions/profile.Role"
                             }
                         }
                     },
@@ -4524,7 +4627,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Role"
+                                "$ref": "#/definitions/profile.Role"
                             }
                         }
                     },
@@ -7176,7 +7279,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.User"
+                                "$ref": "#/definitions/profile.User"
                             }
                         }
                     },
@@ -8121,7 +8224,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.Team"
+                                "$ref": "#/definitions/profile.Team"
                             }
                         }
                     },
@@ -9459,14 +9562,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "team": {
-                    "$ref": "#/definitions/database.Team"
+                    "$ref": "#/definitions/profile.Team"
                 },
                 "type": {
                     "description": "view, edit",
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/database.User"
+                    "$ref": "#/definitions/profile.User"
                 }
             }
         },
@@ -9509,20 +9612,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "service or namespace",
-                    "type": "string"
-                }
-            }
-        },
-        "database.Feature": {
-            "type": "object",
-            "properties": {
-                "featureId": {
-                    "type": "integer"
-                },
-                "featureName": {
-                    "type": "string"
-                },
-                "source": {
                     "type": "string"
                 }
             }
@@ -9571,20 +9660,6 @@ const docTemplate = `{
                 }
             }
         },
-        "database.Role": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "roleId": {
-                    "type": "integer"
-                },
-                "roleName": {
-                    "type": "string"
-                }
-            }
-        },
         "database.Router": {
             "type": "object",
             "properties": {
@@ -9598,70 +9673,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
-                    "type": "string"
-                }
-            }
-        },
-        "database.Team": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "featureList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Feature"
-                    }
-                },
-                "teamId": {
-                    "type": "integer"
-                },
-                "teamName": {
-                    "type": "string"
-                },
-                "userList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.User"
-                    }
-                }
-            }
-        },
-        "database.User": {
-            "type": "object",
-            "properties": {
-                "corporation": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "featureList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Feature"
-                    }
-                },
-                "phone": {
-                    "type": "string"
-                },
-                "roleList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Role"
-                    }
-                },
-                "teamList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.Team"
-                    }
-                },
-                "userId": {
-                    "type": "integer"
-                },
-                "username": {
                     "type": "string"
                 }
             }
@@ -10618,6 +10629,98 @@ const docTemplate = `{
                 }
             }
         },
+        "profile.Feature": {
+            "type": "object",
+            "properties": {
+                "featureId": {
+                    "type": "integer"
+                },
+                "featureName": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.Role": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "roleId": {
+                    "type": "integer"
+                },
+                "roleName": {
+                    "type": "string"
+                }
+            }
+        },
+        "profile.Team": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "teamId": {
+                    "type": "integer"
+                },
+                "teamName": {
+                    "type": "string"
+                },
+                "userList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.User"
+                    }
+                }
+            }
+        },
+        "profile.User": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Team"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "prometheus.MetricsPoint": {
             "type": "object",
             "properties": {
@@ -10759,6 +10862,46 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AlertEventFilter": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "matchExpr": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AlertEventFilterOption"
+                    }
+                },
+                "selected": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "wildcard": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.AlertEventFilterOption": {
+            "type": "object",
+            "properties": {
+                "display": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "request.AlertEventSearchFilter": {
             "type": "object",
             "properties": {
@@ -10797,7 +10940,18 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "filter": {
-                    "$ref": "#/definitions/request.AlertEventSearchFilter"
+                    "description": "Deprecated",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.AlertEventSearchFilter"
+                        }
+                    ]
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AlertEventFilter"
+                    }
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
@@ -11726,6 +11880,26 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SearchAlertEventFilterValuesRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AlertEventFilter"
+                    }
+                },
+                "searchKey": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.SetAlertSlienceConfigRequest": {
             "type": "object",
             "properties": {
@@ -11954,6 +12128,28 @@ const docTemplate = `{
             "properties": {
                 "workflowId": {
                     "type": "string"
+                }
+            }
+        },
+        "response.AlertEventFilterLabelKeysResponse": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.AlertEventFiltersResponse": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AlertEventFilter"
+                    }
                 }
             }
         },
@@ -12835,7 +13031,7 @@ const docTemplate = `{
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "total": {
@@ -12948,7 +13144,7 @@ const docTemplate = `{
                 "featureList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Feature"
+                        "$ref": "#/definitions/profile.Feature"
                     }
                 },
                 "phone": {
@@ -12957,13 +13153,13 @@ const docTemplate = `{
                 "roleList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Role"
+                        "$ref": "#/definitions/profile.Role"
                     }
                 },
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "userId": {
@@ -12992,7 +13188,7 @@ const docTemplate = `{
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.User"
+                        "$ref": "#/definitions/profile.User"
                     }
                 }
             }
@@ -13360,7 +13556,7 @@ const docTemplate = `{
                 "featureList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Feature"
+                        "$ref": "#/definitions/profile.Feature"
                     }
                 },
                 "phone": {
@@ -13373,13 +13569,13 @@ const docTemplate = `{
                 "roleList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Role"
+                        "$ref": "#/definitions/profile.Role"
                     }
                 },
                 "teamList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.Team"
+                        "$ref": "#/definitions/profile.Team"
                     }
                 },
                 "userId": {
