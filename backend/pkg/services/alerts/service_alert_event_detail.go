@@ -26,6 +26,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 	}
 
 	s.fillWorkflowParams(ctx, eventDetail)
+	s.fillDisplay(ctx, eventDetail)
 
 	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
@@ -42,7 +43,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 
 	s.fillSimilarEventWorkflowParams(ctx, releatedEvents)
 
-	s.fillDisplay(ctx, releatedEvents)
+	s.fillDisplays(ctx, releatedEvents)
 
 	return &response.GetAlertDetailResponse{
 		CurrentEvent:                eventDetail,

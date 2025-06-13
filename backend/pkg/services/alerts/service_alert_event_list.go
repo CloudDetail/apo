@@ -39,7 +39,7 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 	}
 
 	// TODO show display error log
-	_ = s.fillDisplay(ctx, events)
+	_ = s.fillDisplays(ctx, events)
 
 	req.Pagination.Total = count
 	return &response.AlertEventSearchResponse{
@@ -51,7 +51,7 @@ func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearch
 	}, nil
 }
 
-func (s *service) fillDisplay(ctx core.Context, records []alert.AEventWithWRecord) error {
+func (s *service) fillDisplays(ctx core.Context, records []alert.AEventWithWRecord) error {
 	tags, err := s.dbRepo.ListAlertTargetTags(ctx)
 	if err != nil {
 		return err
@@ -70,6 +70,26 @@ func (s *service) fillDisplay(ctx core.Context, records []alert.AEventWithWRecor
 		}
 		records[i].EnrichTagsDisplay = tagDisplays
 	}
+	return nil
+}
+
+func (s *service) fillDisplay(ctx core.Context, record *alert.AEventWithWRecord) error {
+	tags, err := s.dbRepo.ListAlertTargetTags(ctx)
+	if err != nil {
+		return err
+	}
+
+	lang := ctx.LANG()
+	tagDisplays := make([]alert.TagDisplay, 0)
+	for key, value := range record.EnrichTags {
+		tagName := getTagName(tags, key, lang)
+		tagDisplays = append(tagDisplays, alert.TagDisplay{
+			Key:   key,
+			Name:  tagName,
+			Value: value,
+		})
+	}
+	record.EnrichTagsDisplay = tagDisplays
 	return nil
 }
 
