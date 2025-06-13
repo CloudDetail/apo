@@ -55,7 +55,8 @@ const SQL_GET_ALERTEVENT_COUNTS = `WITH lastEvent AS (
 filtered_workflows AS (
   SELECT *,
   CASE
-    WHEN output = 'false' THEN 2
+    WHEN output = 'false' THEN 3
+	WHEN output != '' and output != 'true' THEN 2
     WHEN output = 'true' THEN 1
     ELSE 0
   END as importance
@@ -66,11 +67,11 @@ filtered_workflows AS (
 SELECT count(1) as count,validity,status FROM(
   SELECT status,alert_id,
     CASE
-      WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+      WHEN fw.importance = 3 THEN 'valid'
+      WHEN fw.importance = 2 and fw.output != '' THEN 'failed'
+      WHEN fw.importance = 1 THEN 'invalid'
       WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
       WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
-      WHEN fw.importance = 1 THEN 'invalid'
-      WHEN fw.importance = 2 THEN 'valid'
     END as validity
   FROM lastEvent ae
   LEFT JOIN filtered_workflows fw on ae.alert_id = fw.ref
@@ -86,7 +87,8 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD = `WITH lastEvent AS (
 filtered_workflows AS (
   SELECT *,
   CASE
-    WHEN output = 'false' THEN 2
+    WHEN output = 'false' THEN 3
+	WHEN output != '' and output != 'true' THEN 2
     WHEN output = 'true' THEN 1
     ELSE 0
   END as importance
@@ -121,11 +123,11 @@ SELECT
     ELSE 'unknown'
   END as is_valid,
   CASE
-    WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+    WHEN fw.importance = 3 THEN 'valid'
+    WHEN fw.importance = 2 and fw.output != '' THEN 'failed'
+    WHEN fw.importance = 1 THEN 'invalid'
     WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
     WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
-    WHEN fw.importance = 1 THEN 'invalid'
-    WHEN fw.importance = 2 THEN 'valid'
   END as validity
 FROM lastEvent ae
 LEFT JOIN filtered_workflows fw
