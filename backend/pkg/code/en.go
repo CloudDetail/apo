@@ -212,4 +212,7 @@ var enText = map[string]string{
 	SetAlertSlienceError:    "Failed to set alertSlience",
 	RemoveAlertSlienceError: "Failed to remove alertSlience",
 	MarkAlertResolvedError:  "Failed to mark alertResourved",
+
+	SearchAlertLabelFilterError: "Failed to search alert label filter",
+	SearchAlertFilterValueError: "Failed to search alert filter value",
 }

@@ -119,7 +119,7 @@ const Events = ({
     },
     {
       title: t('alertDetail'),
-      accessor: 'tags',
+      accessor: 'tagsDisplay',
       style: tdStyle,
 
       justifyContent: 'left',

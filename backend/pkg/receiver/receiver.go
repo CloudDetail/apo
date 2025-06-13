@@ -20,6 +20,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/receiver/dingtalk"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -35,6 +36,7 @@ import (
 )
 
 type Receivers interface {
+	HandleAlertEvent(ctx core.Context, alerts []alert.AlertEvent) error
 	HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error
 
 	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)

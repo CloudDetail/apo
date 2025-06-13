@@ -84,3 +84,13 @@ export const saveAlertSilentConfigApi = (params) => {
 export const resolveAlertApi = (params) => {
   return post('/api/alerts/resolve', params)
 }
+
+export const getAlertsFilterKeysApi = (params) => {
+  return get('/api/alerts/filter/keys', params)
+}
+export const getAlertsFilterLabelKeysApi = (params) => {
+  return post('/api/alerts/filter/labelkeys', params)
+}
+export const getAlertsFilterValuesApi = (params) => {
+  return post('/api/alerts/filter/values', params)
+}

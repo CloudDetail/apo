@@ -66,5 +66,16 @@
   "silent": "Alarm Silenced",
   "onSilent": "Silence Subsequent Alarms",
   "firingTip": "Continuously meets the alert rules, the current alert is ongoing",
-  "resolvedTip": "No longer triggers the alert rules, the system automatically closes the alert"
+  "resolvedTip": "No longer triggers the alert rules, the system automatically closes the alert",
+  "error": "error",
+  "confirm": "Confirm",
+  "addFilter": "Add Filter",
+  "clearAll": "Clear All",
+  "enterAndPress": "Enter text and press Enter to search",
+  "selected": "Exact Match",
+  "matchExpr": "Fuzzy Match",
+  "selectPlaceholder": "Please select a field to filter",
+  "filterKey": "Filter Field",
+  "filterMode": "Filter Mode",
+  "exprHint": "Use * as a wildcard character"
 }

@@ -91,6 +91,16 @@ type ValueInGroups struct {
 	ValueGroups []clickhouse.GroupSet
 }
 
+func inStrings(key string, values []string) *whereSQL {
+	if len(values) == 0 {
+		return ALWAYS_FALSE
+	}
+	return &whereSQL{
+		Wheres: fmt.Sprintf(`%s IN ?`, key),
+		Values: []any{values},
+	}
+}
+
 func inGroup(vgs ValueInGroups) *whereSQL {
 	if len(vgs.Keys) <= 0 {
 		return ALWAYS_TRUE

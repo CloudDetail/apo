@@ -32,7 +32,7 @@ func (ch *chRepo) GetAlertsWithEventCount(ctx core.Context,
 	startTime, endTime time.Time,
 	filter *alert.AlertEventFilter, maxSize int,
 ) ([]alert.AlertWithEventCount, uint64, error) {
-	whereSQL := extractAlertEventFilter(filter)
+	whereSQL := _extractAlertEventFilter(filter)
 	alertFilter := NewQueryBuilder().
 		Between("received_time", startTime.Unix(), endTime.Unix()).
 		And(whereSQL)

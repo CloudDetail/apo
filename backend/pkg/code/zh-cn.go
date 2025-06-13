@@ -214,4 +214,7 @@ var zhCnText = map[string]string{
 	SetAlertSlienceError:    "设置告警抑制失败",
 	RemoveAlertSlienceError: "移除告警抑制失败",
 	MarkAlertResolvedError:  "手动标记告警已解决失败",
+
+	SearchAlertLabelFilterError: "查询告警标签过滤器失败",
+	SearchAlertFilterValueError: "查询告警过滤值失败",
 }
