@@ -42,6 +42,8 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 
 	s.fillSimilarEventWorkflowParams(ctx, releatedEvents)
 
+	s.fillDisplay(ctx, releatedEvents)
+
 	return &response.GetAlertDetailResponse{
 		CurrentEvent:                eventDetail,
 		EventList:                   releatedEvents,
