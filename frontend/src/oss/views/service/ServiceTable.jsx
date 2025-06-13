@@ -431,7 +431,7 @@ const ServiceTable = React.memo(({ groupId, height }) => {
       sortBy: sortBy,
       setSortBy: setSortBy,
     }
-  }, [data, pageIndex, pageSize])
+  }, [data, pageIndex, pageSize, i18n.language])
   return (
     <BasicCard bodyStyle={height && { height: height }}>
       <LoadingSpinner loading={loading} />
