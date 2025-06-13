@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react'
 
 // sidebar nav config
 import { navIcon } from 'src/_nav'
@@ -31,6 +31,7 @@ const AppSidebar = ({ collapsed }) => {
   const [openKeys, setOpenKeys] = useState([])
   const [memoOpenKeys, setMemoOpenKeys] = useState(['logs', 'trace', 'alerts'])
   const [menuList, setMenuList] = useState([])
+  const siderRef = useRef(null)
 
   function prepareMenu(menu) {
     return {
@@ -80,6 +81,38 @@ const AppSidebar = ({ collapsed }) => {
       setOpenKeys([])
     }
   }, [collapsed])
+  const [menuVisible, setMenuVisible] = useState(false)
+
+  const scrollSelectedIntoView = useCallback(() => {
+    const selectedItem = siderRef.current?.menu?.list?.querySelector('.ant-menu-item-selected')
+    if (selectedItem) {
+      selectedItem.scrollIntoView({ behavior: 'auto', block: 'center' })
+      setMenuVisible(true)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    if (collapsed) {
+      setMenuVisible(false)
+      return
+    }
+
+    // Use ResizeObserver to detect when menu finishes expanding
+    const resizeObserver = new ResizeObserver((entries) => {
+      // Only scroll when width increases (menu expanding)
+      const entry = entries[0]
+      if (entry.contentRect.width > 70) { // 70 is collapsedWidth
+        scrollSelectedIntoView()
+      }
+    })
+
+    const menuElement = siderRef.current?.menu?.list
+    if (menuElement) {
+      resizeObserver.observe(menuElement)
+    }
+
+    return () => resizeObserver.disconnect()
+  }, [collapsed, scrollSelectedIntoView])
   return (
     <ConfigProvider
       theme={{
@@ -95,6 +128,7 @@ const AppSidebar = ({ collapsed }) => {
       }}
     >
       <Menu
+        ref={siderRef}
         mode="inline"
         theme={theme}
         inlineCollapsed={collapsed}
@@ -103,7 +137,8 @@ const AppSidebar = ({ collapsed }) => {
         selectedKeys={selectedKeys}
         openKeys={openKeys}
         onOpenChange={onOpenChange}
-        className="sidebarMenu pb-20"
+        className={`sidebarMenu pb-20 ${!menuVisible && !collapsed ? 'opacity-0' : 'opacity-100'}`}
+        style={{ transition: 'opacity 0.1s ease-in-out' }}
       ></Menu>
     </ConfigProvider>
   )
