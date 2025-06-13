@@ -38,7 +38,7 @@ const AddFilter = ({ filters, keys, onAddFilter, labelKeys }) => {
               setSelectedItem({ key: 'label', name: t('alertDetail'), labelKeys: labelKeys })
             }
           >
-            {t('alertDetail')}
+            {t('expand')}
           </div>
         </>
       )}

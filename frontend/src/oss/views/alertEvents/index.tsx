@@ -324,7 +324,7 @@ const AlertEventsPage = () => {
     },
     {
       title: t('alertDetail'),
-      accessor: 'tags',
+      accessor: 'tagsDisplay',
       justifyContent: 'left',
       Cell: ({ value, row }) => {
         return <AlertTags tags={value} detail={row.original.detail} />

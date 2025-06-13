@@ -30,7 +30,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
   ]
   const getAlertsFilterValues = () => {
     setLoading(true)
-    getAlertsFilterValuesApi({ searchKey: key, startTime, endTime })
+    getAlertsFilterValuesApi({ searchKey: key, startTime, endTime, filters })
       .then((res) => {
         setOptions(
           res.options?.map((option) => ({
@@ -131,7 +131,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     matchExpr: matchExpr,
-                    name: item.wildcard ? item.name : t('alertDetail'),
+                    name: item.wildcard ? item.name : t('expand'),
                     isLabelKey: !item.wildcard,
                     wildcard: item.wildcard,
                     labelKeys: item.labelKeys,
@@ -141,7 +141,7 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
                   addFilter({
                     key: key,
                     selected: selected,
-                    name: item.wildcard ? item.name : t('alertDetail'),
+                    name: item.wildcard ? item.name : t('expand'),
                     isLabelKey: !item.wildcard,
                     labelKeys: item.labelKeys,
                     selectedOptions: getSelectedItems(),
