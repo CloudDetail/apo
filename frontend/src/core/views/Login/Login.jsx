@@ -42,14 +42,9 @@ export default function Login() {
           if (accessToken && refreshToken) {
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
-
+            localStorage.removeItem('difyToken')
+            localStorage.removeItem('difyRefreshToken')
             const redirectUrl = sessionStorage.getItem('urlBeforeLogin')
-            if (redirectUrl !== null) {
-              window.location.href = redirectUrl
-              sessionStorage.removeItem('urlBeforeLogin')
-            } else {
-              navigate('/')
-            }
 
             notify({ message: t('index.loginSuccess'), type: 'success' })
             remeberMe
@@ -58,6 +53,12 @@ export default function Login() {
             localStorage.setItem('remeberMe', String(remeberMe))
 
             await loginDify(values)
+            if (redirectUrl !== null) {
+              window.location.href = redirectUrl
+              sessionStorage.removeItem('urlBeforeLogin')
+            } else {
+              navigate('/')
+            }
           }
         } catch (error) {
           console.error(error)
