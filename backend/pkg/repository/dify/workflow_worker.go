@@ -73,7 +73,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 					record.AnalyzeErr = err.Error()
 					record.AlertDirection = "序列化告警分析参数失败"
 				} else {
-					resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.Authorization, w.User)
+					resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.AnalyzeAuth, w.User)
 					if err != nil {
 						record.AnalyzeRunID = resp.WorkflowRunID()
 						record.AnalyzeErr = err.Error()

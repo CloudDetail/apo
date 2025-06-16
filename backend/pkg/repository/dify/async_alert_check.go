@@ -32,7 +32,9 @@ type AlertCheckConfig struct {
 	FlowName      string
 	APIKey        string
 	Authorization string
-	User          string
+	AnalyzeAuth   string
+
+	User string
 
 	Sampling       string
 	CacheMinutes   int
