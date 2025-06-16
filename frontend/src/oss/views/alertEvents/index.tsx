@@ -24,6 +24,8 @@ import {
 } from './components/AlertInfoCom'
 import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from 'src/core/components/Spinner'
+import IframeDashboard from 'src/core/components/Dashboard/IframeDashboard'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 function isJSONString(str) {
   try {
     JSON.parse(str)
@@ -379,6 +381,7 @@ const AlertEventsPage = () => {
         const { workflowParams, group, name, alertId, id } = props.row.original
         return (
           <div className="flex flex-col">
+            <span> 故障方向: 网络故障，存储故障</span>
             <Button
               color="primary"
               variant="outlined"
@@ -444,45 +447,59 @@ const AlertEventsPage = () => {
   }, [])
 
   return (
-    <>
-      <div className="overflow-hidden h-full flex flex-col">
-        <div style={{ height: chartHeight }} className="flex">
-          <ExtraPanel
-            invalidCounts={invalidCounts}
-            firingCounts={firingCounts}
-            alertCheck={alertCheckId}
-          />
-          <StatusPanel firingCounts={firingCounts} resolvedCounts={resolvedCounts} />
+    <div>
+      {/* This div becomes the main scrollable container for the page content.
+          height: '100%' assumes BasicCard provides a constrained height context (e.g., fills viewport or a portion of it).
+          overflowY: 'auto' enables vertical scrolling if content exceeds this height.
+      */}
+      <div style={{ height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {/* Section 1: IframeDashboard - its height will be determined by IframeDashboard component */}
+        <div className="text-xs" style={{ flexShrink: 0 }}> {/* Prevents this div from shrinking */}
+          <IframeDashboard dashboardKey="system"  />
         </div>
-        <Card
-          style={{
-            height: `calc(100vh - ${headHeight})`,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-          styles={{
-            body: {
-              flex: 1,
-              overflow: 'auto',
-              padding: '16px',
+
+        {/* Section 2: Panels and Table - its height will be determined by its content */}
+        <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column' }}> {/* Prevents shrinking, lays out children vertically */}
+          {/* Part 2a: ExtraPanel and StatusPanel */}
+          <div style={{ height: chartHeight, flexShrink: 0 }} className="flex">
+            <ExtraPanel
+              invalidCounts={invalidCounts}
+              firingCounts={firingCounts}
+              alertCheck={alertCheckId}
+            />
+            <StatusPanel firingCounts={firingCounts} resolvedCounts={resolvedCounts} />
+          </div>
+          <Card
+            style={{
+              flexShrink: 0,
               display: 'flex',
               flexDirection: 'column',
-            },
-          }}
-        >
-          <Filter
-            onStatusFilterChange={(checkedValues) => {
-              setStatusFilter(checkedValues)
             }}
-            onValidFilterChange={(checkedValues) => {
-              setValidFilter(checkedValues)
+            styles={{
+              body: {
+                flex: 1,
+                overflow: 'auto',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+              },
             }}
-          />
-          <div className="flex-1 overflow-hidden">
-            <LoadingSpinner loading={loading} />
-            <BasicTable {...tableProps} />
-          </div>
-        </Card>
+          >
+            <Filter
+              onStatusFilterChange={(checkedValues) => {
+                setStatusFilter(checkedValues)
+              }}
+              onValidFilterChange={(checkedValues) => {
+                setValidFilter(checkedValues)
+              }}
+            />
+            <div className="flex-1 overflow-hidden">
+              <LoadingSpinner loading={loading} />
+              <BasicTable {...tableProps} />
+            </div>
+          </Card>
+        </div> {/* End of Section 2 wrapper */}
+
         <Modal
           open={modalOpen}
           title={t('workflowsModal')}
@@ -505,7 +522,7 @@ const AlertEventsPage = () => {
           {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
         </Modal>
       </div>
-    </>
+    </div>
   )
 }
 export default AlertEventsPage

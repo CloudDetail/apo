@@ -208,6 +208,7 @@ const ALertIsValid = ({
   checkTime?: string | null
   openResultModal: any
 }) => {
+  isValid = 'valid'
   const { useToken } = theme
   const { token } = useToken()
 

@@ -10,6 +10,7 @@ import { selectProcessedTimeRange, timeRangeList } from 'src/core/store/reducers
 //receiving 'dashboardKey' as a prop ..
 function IframeDashboard({ dashboardKey, srcProp }) {
   const [src, setSrc] = useState(srcProp)
+  const [iframeHeight, setIframeHeight] = useState('500px'); // Initial or fallback height
   const storeTimeRange = useSelector((state) => state.timeRange)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const menuItems = useSelector((state) => state.userReducer.menuItems)
@@ -163,11 +164,11 @@ function IframeDashboard({ dashboardKey, srcProp }) {
     <iframe
       id="iframe"
       ref={iframeRef}
-      src={src}
+      src={"http://192.168.1.6:30364/" + src + "&kiosk=true"}
       width="100%"
-      height="100%"
-      frameBorder={0}
-      onLoad={handleLoad}
+      style={{ height: iframeHeight, border: 'none' }} // Use dynamic height, remove border
+      frameBorder="0" // Redundant due to style.border but good for older browsers
+      scrolling="no" // Attempt to disable iframe scrollbars
       key={src}
     ></iframe>
   )
