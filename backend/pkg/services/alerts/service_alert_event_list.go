@@ -131,11 +131,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
-			if record.LastCheckAt.Before(record.UpdateTime) {
-				endTime = record.UpdateTime
-			} else {
-				endTime = record.LastCheckAt
-			}
+			endTime = record.LastCheckAt
 		} else {
 			startTime = record.UpdateTime.Add(-15 * time.Minute)
 			endTime = record.UpdateTime
