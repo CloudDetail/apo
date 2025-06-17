@@ -149,7 +149,7 @@ func (s *sampleWithFirstRecord) cleanCache() {
 	defer s.mutex.Unlock()
 	s.checkedAlert = make(map[string]struct{})
 	now := time.Now()
-	expiredTS := now.Truncate(time.Duration(s.CacheMinutes) * time.Minute).UnixMicro()
+	expiredTS := now.Truncate(time.Duration(s.CacheMinutes)*time.Minute).UnixMicro() + int64(s.CacheMinutes)*60*1e6 // Keep 1~2 cycles
 
 	for _, worker := range s.workers {
 		worker.expiredTS = expiredTS
