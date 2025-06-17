@@ -38,6 +38,8 @@ type Repo interface {
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 	// 根据Endpoint查询入口节点
 	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
+	// Query Service Topology
+	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
 	ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
