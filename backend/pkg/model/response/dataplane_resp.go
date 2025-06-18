@@ -31,8 +31,8 @@ type QueryTopologyResponse struct {
 }
 
 type QueryChartResult struct {
-	Title      string       `json:"title"`
-	Unit       string       `json:"unit"`
+	Title      string        `json:"title"`
+	Unit       string        `json:"unit"`
 	Timeseries []*Timeseries `json:"timeseries"`
 }
 
