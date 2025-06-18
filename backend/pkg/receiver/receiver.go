@@ -6,6 +6,7 @@ package receiver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/url"
 	"sync"
@@ -76,19 +77,16 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	amReceiver, err := buildInnerReceivers(
-		receivers,
-		tmpl,
+	amReceiver, err := buildInnerReceivers(receivers, tmpl,
 		util.NewZapSlogHandler(logger),
 	)
 
-	if err != nil {
-		return nil, err
+	if err != nil || amReceiver == nil {
+		return nil, fmt.Errorf("buildInnerReceivers failed: %v", err)
 	}
-	if amReceiver != nil {
-		amReceiver.database = dbRepo
-		amReceiver.ch = chRepo
-	}
+
+	amReceiver.database = dbRepo
+	amReceiver.ch = chRepo
 
 	slienceCfgs, err := dbRepo.GetAlertSlience()
 	if err != nil {
