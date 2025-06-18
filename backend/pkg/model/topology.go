@@ -123,11 +123,11 @@ func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category stri
 }
 
 type ServiceToplogyNode struct {
-	Id       string
-	Name     string
-	Category string
-	Parents  []string
-	Children []string
+	Id       string   `json:"id"`
+	Name     string   `json:"name"`
+	Category string   `json:"category"`
+	Parents  []string `json:"parents"`
+	Children []string `json:"children"`
 }
 
 func NewServiceToplogyNode(service string, category string) *ServiceToplogyNode {
