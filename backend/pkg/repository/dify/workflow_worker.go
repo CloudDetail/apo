@@ -104,7 +104,6 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 				} else {
 					resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.AnalyzeAuth, w.User)
 					if err != nil {
-						record.AnalyzeRunID = resp.WorkflowRunID()
 						record.AnalyzeErr = err.Error()
 						record.AlertDirection = "执行告警分析工作流失败"
 					} else {
