@@ -43,7 +43,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 		endTime := event.UpdateTime.UnixMicro()
 		var record model.WorkflowRecord
 		if w.expiredTS > 0 && endTime < w.expiredTS {
-			record = w.createExpiredRecord(event)
+			record = w.createExpiredRecord(event, endTime)
 		} else {
 			record = w.doAlertCheck(c, event, endTime)
 		}
@@ -64,8 +64,13 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 	}
 }
 
-func (w *worker) createExpiredRecord(event *alert.AlertEvent) model.WorkflowRecord {
-	w.logger.Debug("alert event is expired, skip alert check", zap.String("event_id", event.ID.String()))
+func (w *worker) createExpiredRecord(event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
+	w.logger.Error("alert event is expired, skip alert check",
+		zap.String("event_id", event.ID.String()),
+		zap.Int64("expired_ts", w.expiredTS),
+		zap.Int64("event_ts", endTime),
+	)
+
 	tw := time.Duration(w.CacheMinutes) * time.Minute
 	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
 
@@ -75,7 +80,7 @@ func (w *worker) createExpiredRecord(event *alert.AlertEvent) model.WorkflowReco
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(),
-		Output:        "failed: alert check too late, could be too many event too check or last check cost too much time, skipped",
+		Output:        "failed: alert check too late, could be too many event to check or last check cost too much time, skipped",
 		CreatedAt:     roundedTime.UnixMicro(),
 		RoundedTime:   roundedTime.UnixMicro(),
 
@@ -92,16 +97,11 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"endTime":   endTime,
 	})
 	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
-	if err != nil {
+	if err != nil || resp == nil {
 		w.logger.Error("failed to to alert check", zap.Error(err))
-	}
-
-	tw := time.Duration(w.CacheMinutes) * time.Minute
-	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
-
-	var record model.WorkflowRecord
-	if resp == nil {
-		record = model.WorkflowRecord{
+		tw := time.Duration(w.CacheMinutes) * time.Minute
+		roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
+		return model.WorkflowRecord{
 			WorkflowRunID: "",
 			WorkflowID:    w.FlowId,
 			WorkflowName:  w.FlowName,
@@ -113,42 +113,46 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 
 			InputRef: event,
 		}
-	} else {
-		output := resp.getOutput("failed: not find expected output")
-		record = model.WorkflowRecord{
-			WorkflowRunID: resp.WorkflowRunID(),
-			WorkflowID:    w.FlowId,
-			WorkflowName:  w.FlowName,
-			Ref:           event.AlertID,
-			Input:         event.ID.String(), // TODO record input param
-			Output:        output,            // 'false' means valid alert
-			CreatedAt:     resp.CreatedAt(),
-			RoundedTime:   roundedTime.UnixMicro(),
+	}
 
-			InputRef: event,
+	tw := time.Duration(w.CacheMinutes) * time.Minute
+	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
+
+	var record model.WorkflowRecord
+	output := resp.getOutput("failed: not find expected output")
+	record = model.WorkflowRecord{
+		WorkflowRunID: resp.WorkflowRunID(),
+		WorkflowID:    w.FlowId,
+		WorkflowName:  w.FlowName,
+		Ref:           event.AlertID,
+		Input:         event.ID.String(), // TODO record input param
+		Output:        output,            // 'false' means valid alert
+		CreatedAt:     resp.CreatedAt(),
+		RoundedTime:   roundedTime.UnixMicro(),
+
+		InputRef: event,
+	}
+
+	if output == "false" {
+		param := w.getWorkflowParams(event)
+		if param == nil {
+			// unexpected err
+			record.AnalyzeErr = "failed to get analyze workflow params"
+			record.AlertDirection = "生成告警分析参数失败"
 		}
-
-		if output == "false" {
-			param := w.getWorkflowParams(event)
-			if param == nil {
-				// unexpected err
-				record.AnalyzeErr = "failed to get analyze workflow params"
-				record.AlertDirection = "生成告警分析参数失败"
-			}
-			inputStr, err := json.Marshal(param)
+		inputStr, err := json.Marshal(param)
+		if err != nil {
+			w.logger.Info("failed to marshal workflow params", zap.Error(err))
+			record.AnalyzeErr = err.Error()
+			record.AlertDirection = "序列化告警分析参数失败"
+		} else {
+			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.AnalyzeAuth, w.User)
 			if err != nil {
-				w.logger.Info("failed to marshal workflow params", zap.Error(err))
 				record.AnalyzeErr = err.Error()
-				record.AlertDirection = "序列化告警分析参数失败"
+				record.AlertDirection = "执行告警分析工作流失败"
 			} else {
-				resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.AnalyzeAuth, w.User)
-				if err != nil {
-					record.AnalyzeErr = err.Error()
-					record.AlertDirection = "执行告警分析工作流失败"
-				} else {
-					record.AnalyzeRunID = resp.WorkflowRunID()
-					record.AlertDirection = resp.getOutput("failed: not find expected output: alertDirection")
-				}
+				record.AnalyzeRunID = resp.WorkflowRunID()
+				record.AlertDirection = resp.getOutput("failed: not find expected output: alertDirection")
 			}
 		}
 	}
