@@ -54,6 +54,7 @@
     "diskIoTime": "程序写文件时间",
     "scheduleTime": "由于CPU争抢而产生的等待时间"
   },
+  "preferences": "偏好设置",
   "nameSpaceLabel": "命名空间",
   "applicationLabel": "应用名",
 

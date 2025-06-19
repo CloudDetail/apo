@@ -54,6 +54,7 @@
     "diskIoTime": "Program write file time",
     "scheduleTime": "Waiting time due to CPU contention"
   },
+  "preferences": "Preferences",
   "nameSpaceLabel": "Namespace",
   "applicationLabel": "Application",
   "save": "Save",
