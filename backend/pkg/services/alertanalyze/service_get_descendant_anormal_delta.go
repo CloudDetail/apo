@@ -67,7 +67,7 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		endpoints = append(endpoints, endpoint)
 
 		// 查询服务下游的数据库服务
-		if isSelect(selectedEvents, "database") {
+		if isSelect(selectedEvents, "middleware") {
 			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 			if err != nil {
 				continue

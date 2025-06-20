@@ -119,7 +119,7 @@ func (a *AlertEvent) GetDatabaseURL() string {
 		return dbURL
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbURLRegex.FindString(instance)
 	}
@@ -131,7 +131,7 @@ func (a *AlertEvent) GetDatabaseIP() string {
 		return dbIP
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbIPRegex.FindString(instance)
 	}
@@ -143,7 +143,7 @@ func (a *AlertEvent) GetDatabasePort() string {
 		return dbPort
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbPortRegex.FindString(instance)
 	}
