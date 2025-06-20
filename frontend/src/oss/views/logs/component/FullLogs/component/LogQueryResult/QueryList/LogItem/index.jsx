@@ -25,9 +25,9 @@ const LogItem = (props) => {
       {/* icon 和 时间 */}
       <div className="flex-grow-0 flex-shrink-0 w-full">
         <div className="flex items-center gap-2 pb-2 j">
-          <div className="flex-shrink-0 flex-grow-0 flex items-center rounded-md bg-[var(--ant-color-primary-bg)]">
-            <span className='w-1 h-8 bg-[var(--ant-color-primary-text)] rounded-md'></span>
-            <span className={`${theme === 'dark' ? 'text-white' : 'text-[var(--ant-color-primary-text)]'} font-semibold tracking-wide px-2 py-1.5`}>
+          <div className="flex-shrink-0 flex-grow-0 flex items-center">
+            {/* <span className='w-1 h-5 bg-[var(--ant-color-primary)] rounded-md'></span> */}
+            <span className={`${theme === 'dark' ? 'text-[var(--ant-color-text)] font-semibold bg-[var(--ant-color-primary-bg-hover)]' : 'text-[var(--ant-color-text)]'} tracking-wide border-l-4 px-2 border-[var(--ant-color-primary)] bg-[var(--ant-color-primary-bg)]`}>
               {convertTime(log?.timestamp, 'yyyy-mm-dd hh:mm:ss.SSS')}
             </span>
           </div>
