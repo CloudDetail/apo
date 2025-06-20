@@ -61,7 +61,7 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 		endpoints = append(endpoints, endpoint)
 
 		// 查询服务下游的数据库服务
-		if isSelect(selectedEvents, "database") {
+		if isSelect(selectedEvents, "middleware") {
 			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 			if err != nil {
 				continue

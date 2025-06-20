@@ -67,7 +67,7 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		endpoints = append(endpoints, endpoint)
 
 		// 查询服务下游的数据库服务
-		if isSelect(selectedEvents, "database") {
+		if isSelect(selectedEvents, "middleware") {
 			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
 			if err != nil {
 				continue
@@ -539,6 +539,9 @@ func newInstanceMap() *instanceMap {
 		InstanceMap:         map[model.ServiceInstance]map[model.EndpointKey]struct{}{},
 		Service2EndpointMap: map[string]map[model.EndpointKey]struct{}{},
 		EndpointMap:         map[model.EndpointKey]struct{}{},
+
+		DBURL2EndpointsMap:    map[string]map[model.EndpointKey]struct{}{},
+		DBIPPort2EndpointsMap: map[string]map[model.EndpointKey]struct{}{},
 	}
 }
 
