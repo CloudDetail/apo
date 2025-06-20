@@ -3,11 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Tooltip, Statistic, Checkbox, Image, Card, Tag, theme, Result } from 'antd'
+import { Button, Modal, Statistic, Image, Card, Tag, theme, Result } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
-import { getAlertEventsApi, getAlertWorkflowIdApi } from 'src/core/api/alerts'
+import {
+  getAlertEventsApi,
+  getAlertsFilterKeysApi,
+  getAlertsFilterLabelKeysApi,
+  getAlertWorkflowIdApi,
+} from 'src/core/api/alerts'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../workflows/workflowsIframe'
@@ -32,46 +37,47 @@ function isJSONString(str) {
     return false
   }
 }
+import Filter from './components/Filter'
 
-const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
-  const { t } = useTranslation('oss/alertEvents')
+// const Filter = ({ onStatusFilterChange, onValidFilterChange }) => {
+//   const { t } = useTranslation('oss/alertEvents')
 
-  const statusOptions = [
-    {
-      label: <Tag color={'error'}>{t('firing')}</Tag>,
-      value: 'firing',
-    },
-    {
-      label: <Tag color={'success'}>{t('resolved')}</Tag>,
-      value: 'resolved',
-    },
-  ]
-  const validOptions = [
-    { label: t('valid'), value: 'valid' },
-    { label: t('invalid'), value: 'invalid' },
-    { label: t('other'), value: 'other' },
-  ]
-  return (
-    <div className="flex pb-2 ">
-      <div>
-        {t('alertStatus')}:{' '}
-        <Checkbox.Group
-          onChange={onStatusFilterChange}
-          options={statusOptions}
-          defaultValue={['firing']}
-        ></Checkbox.Group>
-      </div>
-      <div>
-        {t('alertValidity')}:{' '}
-        <Checkbox.Group
-          onChange={onValidFilterChange}
-          options={validOptions}
-          defaultValue={['valid', 'other']}
-        ></Checkbox.Group>
-      </div>
-    </div>
-  )
-}
+//   const statusOptions = [
+//     {
+//       label: <Tag color={'error'}>{t('firing')}</Tag>,
+//       value: 'firing',
+//     },
+//     {
+//       label: <Tag color={'success'}>{t('resolved')}</Tag>,
+//       value: 'resolved',
+//     },
+//   ]
+//   const validOptions = [
+//     { label: t('valid'), value: 'valid' },
+//     { label: t('invalid'), value: 'invalid' },
+//     { label: t('other'), value: 'other' },
+//   ]
+//   return (
+//     <div className="flex pb-2 ">
+//       <div>
+//         {t('alertStatus')}:{' '}
+//         <Checkbox.Group
+//           onChange={onStatusFilterChange}
+//           options={statusOptions}
+//           defaultValue={['firing']}
+//         ></Checkbox.Group>
+//       </div>
+//       <div>
+//         {t('alertValidity')}:{' '}
+//         <Checkbox.Group
+//           onChange={onValidFilterChange}
+//           options={validOptions}
+//           defaultValue={['valid', 'other']}
+//         ></Checkbox.Group>
+//       </div>
+//     </div>
+//   )
+// }
 const formatter = (value) => <CountUp end={value as number} separator="," />
 
 // Current info right panel
@@ -178,7 +184,6 @@ const AlertEventsPage = () => {
     total: 0,
   })
   const [alertEvents, setAlertEvents] = useState([])
-  const { groupLabel } = useSelector((state) => state.groupLabelReducer)
   const { startTime, endTime } = useSelector((state) => state.timeRange)
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
@@ -186,16 +191,22 @@ const AlertEventsPage = () => {
   const [invalidCounts, setInvalidCounts] = useState(0)
   const [firingCounts, setFiringCounts] = useState(0)
   const [resolvedCounts, setResolvedCounts] = useState(0)
-  const [statusFilter, setStatusFilter] = useState(['firing'])
-  const [validFilter, setValidFilter] = useState(['valid', 'other'])
   const timerRef = useRef(null)
-  const workflowMissToast = (type: 'alertCheckId' | 'workflowId') => {
-    return (
-      <Tooltip title={type === 'alertCheckId' ? t('missToast1') : t('missToast2')}>
-        <span className="text-[var(--ant-color-text-secondary)] text-xs">{t('workflowMiss')}</span>
-      </Tooltip>
-    )
-  }
+
+  const [keys, setKeys] = useState([])
+  const [labelKeys, setLabelKeys] = useState([])
+  const [filters, setFilters] = useState([
+    {
+      key: 'status',
+      selected: ['firing'],
+      name: t('status'),
+    },
+    {
+      key: 'validity',
+      selected: ['valid', 'other'],
+      name: t('alertValidity'),
+    },
+  ])
   const getAlertEventsRef = useRef<() => void>(() => {})
   const [loading, setLoading] = useState(true)
   const getAlertEvents = () => {
@@ -203,10 +214,6 @@ const AlertEventsPage = () => {
       clearTimeout(timerRef.current)
       timerRef.current = null
     }
-    const validFilterReady = validFilter.includes('other')
-      ? [...validFilter.filter((f) => f !== 'other'), 'skipped', 'failed', 'unknown']
-      : validFilter
-
     getAlertEventsApi({
       startTime,
       endTime,
@@ -214,33 +221,38 @@ const AlertEventsPage = () => {
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
       },
-      filter: {
-        status: statusFilter,
-        validity: validFilterReady,
-      },
-    }).then((res) => {
-      const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
-      if (pagination.pageIndex > totalPages && totalPages > 0) {
-        setPagination({ ...pagination, pageIndex: totalPages })
-        return
-      }
-
-      setAlertEvents(res?.events || [])
-      setPagination({ ...pagination, total: res?.pagination.total || 0 })
-      // setWorkflowId(res.alertEventAnalyzeWorkflowId)
-      setAlertCheckId(res.alertCheckId)
-
-      setInvalidCounts(res?.counts['firing-invalid'])
-      setFiringCounts(res?.counts?.firing)
-      setResolvedCounts(res?.counts?.resolved)
-      setLoading(false)
-      timerRef.current = setTimeout(
-        () => {
-          getAlertEventsRef.current()
-        },
-        5 * 60 * 1000,
-      )
+      filters: filters.map((item) => ({
+        key: item.key,
+        matchExpr: item?.matchExpr,
+        selected: item?.selected,
+      })),
     })
+      .then((res) => {
+        const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
+        if (pagination.pageIndex > totalPages && totalPages > 0) {
+          setPagination({ ...pagination, pageIndex: totalPages })
+          return
+        }
+
+        setAlertEvents(res?.events || [])
+        setPagination({ ...pagination, total: res?.pagination.total || 0 })
+        // setWorkflowId(res.alertEventAnalyzeWorkflowId)
+        setAlertCheckId(res.alertCheckId)
+
+        setInvalidCounts(res?.counts['firing-invalid'])
+        setFiringCounts(res?.counts?.firing)
+        setResolvedCounts(res?.counts?.resolved)
+        setLoading(false)
+        timerRef.current = setTimeout(
+          () => {
+            getAlertEventsRef.current()
+          },
+          5 * 60 * 1000,
+        )
+      })
+      .catch(() => {
+        setLoading(false)
+      })
   }
   useDebounce(
     () => {
@@ -251,7 +263,7 @@ const AlertEventsPage = () => {
       }
     },
     300,
-    [pagination.pageIndex, pagination.pageSize, startTime, endTime, statusFilter, validFilter],
+    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters],
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
@@ -297,11 +309,11 @@ const AlertEventsPage = () => {
       title: t('alertName'),
       accessor: 'name',
       justifyContent: 'left',
-      minWidth: 150,
+      customWidth: 250,
       Cell: ({ value, row }) => {
         const level = row.original.severity
         return (
-          <span className="text-sm break-words">
+          <span className="text-xs break-words">
             <span className="align-middle inline-block">
               <AlertLevel level={level} />
             </span>
@@ -312,7 +324,7 @@ const AlertEventsPage = () => {
     },
     {
       title: t('alertDetail'),
-      accessor: 'tags',
+      accessor: 'tagsDisplay',
       justifyContent: 'left',
       Cell: ({ value, row }) => {
         return <AlertTags tags={value} detail={row.original.detail} />
@@ -355,7 +367,7 @@ const AlertEventsPage = () => {
     {
       title: t('isValid'),
       accessor: 'validity',
-      customWidth: 210,
+      customWidth: 190,
       Cell: (props) => {
         const { value, row } = props
         const checkTime = convertUTCToLocal(row.original.lastCheckAt)
@@ -442,7 +454,20 @@ const AlertEventsPage = () => {
       }
     }
   }, [])
-
+  const getKeys = () => {
+    getAlertsFilterKeysApi().then((res) => {
+      setKeys(res?.filters)
+    })
+  }
+  const getLabelKeys = () => {
+    getAlertsFilterLabelKeysApi({ startTime, endTime }).then((res) => {
+      setLabelKeys(res?.labels)
+    })
+  }
+  useEffect(() => {
+    getKeys()
+    getLabelKeys()
+  }, [])
   return (
     <>
       <div className="overflow-hidden h-full flex flex-col">
@@ -464,21 +489,22 @@ const AlertEventsPage = () => {
             body: {
               flex: 1,
               overflow: 'auto',
-              padding: '16px',
+              padding: '4px',
               display: 'flex',
               flexDirection: 'column',
             },
           }}
         >
-          <Filter
+          {/* <Filter
             onStatusFilterChange={(checkedValues) => {
               setStatusFilter(checkedValues)
             }}
             onValidFilterChange={(checkedValues) => {
               setValidFilter(checkedValues)
             }}
-          />
-          <div className="flex-1 overflow-hidden">
+          /> */}
+          <Filter keys={keys} labelKeys={labelKeys} filters={filters} setFilters={setFilters} />
+          <div className="flex-1 overflow-hidden text-xs">
             <LoadingSpinner loading={loading} />
             <BasicTable {...tableProps} />
           </div>

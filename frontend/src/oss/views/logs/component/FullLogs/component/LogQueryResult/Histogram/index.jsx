@@ -76,7 +76,7 @@ const BarChart = () => {
           formatter: (value) => {
             const time = new Date(value)
             const now = new Date()
-            
+
             // 根据时间差判断是否需要显示年份，月份等
             if (timeUtils.getDiff(time, now, 'years') !== 0) {
               return timeUtils.format(time, 'yyyy/MM/dd HH:mm')
@@ -182,12 +182,12 @@ const BarChart = () => {
   }
 
   return (
-    <div className="h-[100px]">
+    <div className="h-[80px]">
       {logsChartData?.length > 0 ? (
         <ReactECharts
           ref={chartRef}
           option={option}
-          style={{ height: 100, width: '100%' }}
+          style={{ height: 80, width: '100%' }}
           onChartReady={onChartReady}
         />
       ) : (
