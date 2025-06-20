@@ -23,7 +23,7 @@ func (repo *promRepo) GetDescendantDatabase(ctx core.Context, startTime int64, e
 
 	pql := fmt.Sprintf(
 		TEMPLATE_GET_DESCENDANT_DATABASE_BY_SERVICE,
-		fmt.Sprintf("svc_name=\"%s\",content_key=\"%s\"", serviceName, endpoint),
+		fmt.Sprintf("svc_name=\"%s\"", serviceName),
 		vec, vec,
 	)
 
