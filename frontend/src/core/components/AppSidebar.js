@@ -94,10 +94,10 @@ const AppSidebar = () => {
             display: block;
             margin: 4px;
             padding: 20px 40px 20px 25px;
-            font-size: 12px ;
+            color: var(--ant-color-text-tertiary);
+            font-size: 14px ;
             font-weight: 500;
-            border-bottom: 1px solid var(--ant-color-split);
-            background-color: var(--ant-color-fill-tertiary);
+            border-bottom: 1px solid var(--ant-color-border);
           }
           /* 覆盖 Tooltip 主体样式 */
           .ant-tooltip-inner {
