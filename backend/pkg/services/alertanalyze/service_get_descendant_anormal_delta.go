@@ -539,6 +539,9 @@ func newInstanceMap() *instanceMap {
 		InstanceMap:         map[model.ServiceInstance]map[model.EndpointKey]struct{}{},
 		Service2EndpointMap: map[string]map[model.EndpointKey]struct{}{},
 		EndpointMap:         map[model.EndpointKey]struct{}{},
+
+		DBURL2EndpointsMap:    map[string]map[model.EndpointKey]struct{}{},
+		DBIPPort2EndpointsMap: map[string]map[model.EndpointKey]struct{}{},
 	}
 }
 

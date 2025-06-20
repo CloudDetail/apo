@@ -134,6 +134,10 @@ var dbIPRegex = regexp.MustCompile(`tcp\((\d+\.\d+\.\d+\.\d+):.*\)`)
 var dbPortRegex = regexp.MustCompile(`tcp\(.*:(\d+)\)`)
 
 func (a *Alert) GetDatabaseURL() string {
+	if dbURL, find := a.EnrichTags["dbURL"]; find && len(dbURL) > 0 {
+		return dbURL
+	}
+
 	if dbURL, find := a.EnrichTags["dbHost"]; find && len(dbURL) > 0 {
 		return dbURL
 	}
