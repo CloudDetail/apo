@@ -17,7 +17,7 @@ const LogKeyTag = (props) => {
   // 判断 title 和 description 是否为对象或数组，若是则转换为字符串
   const formatValue = (value) => (typeof value === 'object' ? JSON.stringify(value) : value)
   return (
-    <div className="flex mb-1">
+    <div className="flex">
       <div>
         <Tag className="cursor-pointer" style={{ color: token.colorText }}>{formatValue(title)} :</Tag>
       </div>

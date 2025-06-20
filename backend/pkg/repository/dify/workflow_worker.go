@@ -5,6 +5,7 @@ package dify
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -40,52 +41,11 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 	defer timeout.Stop()
 	for event := range eventInput {
 		endTime := event.UpdateTime.UnixMicro()
-		if w.expiredTS > 0 && endTime < w.expiredTS {
-			continue
-		}
-
-		startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
-		inputs, _ := json.Marshal(map[string]interface{}{
-			"alert":     event.Name,
-			"params":    event.TagsInStr(),
-			"startTime": startTime,
-			"endTime":   endTime,
-		})
-		resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
-		if err != nil {
-			w.logger.Error("failed to to alert check", zap.Error(err))
-		}
-
-		tw := time.Duration(w.CacheMinutes) * time.Minute
-		roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
-
 		var record model.WorkflowRecord
-		if resp == nil {
-			record = model.WorkflowRecord{
-				WorkflowRunID: "",
-				WorkflowID:    w.FlowId,
-				WorkflowName:  w.FlowName,
-				Ref:           event.AlertID,
-				Input:         event.ID.String(),
-				Output:        "failed: workflow execution failed due to API call failure",
-				CreatedAt:     roundedTime.UnixMicro(),
-				RoundedTime:   roundedTime.UnixMicro(),
-
-				InputRef: event,
-			}
+		if w.expiredTS > 0 && endTime < w.expiredTS {
+			record = w.createExpiredRecord(event)
 		} else {
-			record = model.WorkflowRecord{
-				WorkflowRunID: resp.WorkflowRunID(),
-				WorkflowID:    w.FlowId,
-				WorkflowName:  w.FlowName,
-				Ref:           event.AlertID,
-				Input:         event.ID.String(),                                  // TODO record input param
-				Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
-				CreatedAt:     resp.CreatedAt(),
-				RoundedTime:   roundedTime.UnixMicro(),
-
-				InputRef: event,
-			}
+			record = w.doAlertCheck(event, endTime, c)
 		}
 		if !timeout.Stop() {
 			select {
@@ -100,5 +60,68 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 			continue
 		case results <- &record:
 		}
+	}
+}
+
+func (w *worker) createExpiredRecord(event *alert.AlertEvent) model.WorkflowRecord {
+	w.logger.Debug("alert event is expired, skip alert check", zap.String("event_id", event.ID.String()))
+	tw := time.Duration(w.CacheMinutes) * time.Minute
+	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
+
+	return model.WorkflowRecord{
+		WorkflowRunID: "",
+		WorkflowID:    w.FlowId,
+		WorkflowName:  w.FlowName,
+		Ref:           event.AlertID,
+		Input:         event.ID.String(),
+		Output:        "failed: alert check too late, could be too many event too check or last check cost too much time, skipped",
+		CreatedAt:     roundedTime.UnixMicro(),
+		RoundedTime:   roundedTime.UnixMicro(),
+
+		InputRef: event,
+	}
+}
+
+func (w *worker) doAlertCheck(event *alert.AlertEvent, endTime int64, c *DifyClient) model.WorkflowRecord {
+	startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
+	inputs, _ := json.Marshal(map[string]interface{}{
+		"alert":     event.Name,
+		"params":    event.TagsInStr(),
+		"startTime": startTime,
+		"endTime":   endTime,
+	})
+	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
+	if err != nil {
+		w.logger.Error("failed to to alert check", zap.Error(err))
+	}
+
+	tw := time.Duration(w.CacheMinutes) * time.Minute
+	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
+
+	if resp == nil {
+		return model.WorkflowRecord{
+			WorkflowRunID: "",
+			WorkflowID:    w.FlowId,
+			WorkflowName:  w.FlowName,
+			Ref:           event.AlertID,
+			Input:         event.ID.String(),
+			Output:        fmt.Sprintf("failed: workflow execution failed due to API call failure: %s", err.Error()),
+			CreatedAt:     roundedTime.UnixMicro(),
+			RoundedTime:   roundedTime.UnixMicro(),
+			InputRef:      event,
+		}
+	}
+
+	return model.WorkflowRecord{
+		WorkflowRunID: resp.WorkflowRunID(),
+		WorkflowID:    w.FlowId,
+		WorkflowName:  w.FlowName,
+		Ref:           event.AlertID,
+		Input:         event.ID.String(),
+		Output:        resp.getOutput("failed: not find expected output"), // 'false' means valid alert
+		CreatedAt:     resp.CreatedAt(),
+		RoundedTime:   roundedTime.UnixMicro(),
+
+		InputRef: event,
 	}
 }

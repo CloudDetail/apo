@@ -16,7 +16,7 @@
 
 **Description:** {{ .Annotations.description }}
 
-**Graph:** [📈]({{ .GeneratorURL }})
+**View On APO:** {{ .GeneratorURL }}
 
 **Details:**
 {{ range .Labels.SortedPairs }}{{ if and (ne (.Name) "severity") (ne (.Name) "summary") }}> - {{ .Name }}: {{ .Value | markdown | html }}
