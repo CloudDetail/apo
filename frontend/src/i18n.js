@@ -25,14 +25,8 @@ i18n
   .use(LanguageDetector) // 自动检测用户语言
   .use(initReactI18next) // 绑定 React
   .init({
-    fallbackLng: {
-      'zh-HK': ['zh-TW'],
-      'zh-TW': ['zh-TW'],
-      'zh-CN': ['zh'],
-      zh: ['zh'],
-      default: ['en'],
-    },
-    supportedLngs: ['en', 'zh', 'zh-CN', 'zh-TW', 'zh-HK'],
+    fallbackLng: 'en',
+    supportedLngs: ['en', 'zh'],
     nonExplicitSupportedLngs: true,
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // 翻译文件路径
@@ -46,6 +40,11 @@ i18n
       order: ['querystring', 'cookie', 'localStorage', 'navigator'], // 检测语言顺序
       caches: ['localStorage', 'cookie'], // 缓存语言到 localStorage 和 cookie
     },
+  })
+  .then(() => {
+    if (i18n.language.startsWith('zh') && i18n.language !== 'zh') {
+      i18n.changeLanguage('zh')
+    }
   })
 
 export default i18n
