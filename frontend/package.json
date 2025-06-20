@@ -66,8 +66,10 @@
     "react-json-view": "^1.21.3",
     "react-markdown": "^9.0.3",
     "react-redux": "^9.1.2",
+    "react-resizable": "^3.0.5",
     "react-router-dom": "^6.23.1",
     "react-select": "^5.8.0",
+    "react-svg": "^16.3.0",
     "react-table": "^7.8.0",
     "react-use": "^17.5.1",
     "react-virtuoso": "^4.12.0",
@@ -84,6 +86,7 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "devDependencies": {
+    "@rollup/plugin-strip": "^3.0.4",
     "@types/node": "^22.8.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",

@@ -28,17 +28,17 @@ func (h *handler) ForwardToDingTalk() core.HandlerFunc {
 		req := new(request.ForwardToDingTalkRequest)
 		uuid := c.Param("uuid")
 		if err := c.ShouldBindJSON(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		if err := h.alertService.ForwardToDingTalk(req, uuid); err != nil {
-			c.AbortWithError(core.Error(
-				http.StatusBadRequest, "", ""))
+		if err := h.alertService.ForwardToDingTalk(c, req, uuid); err != nil {
+			// TODO Error code
+			c.AbortWithError(http.StatusBadRequest, "", nil)
 		}
 		c.Payload("OK")
 	}

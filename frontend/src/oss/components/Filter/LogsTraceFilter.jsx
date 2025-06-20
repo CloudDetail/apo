@@ -371,7 +371,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
   }
   return (
     <>
-      <div className="flex flex-row my-2 justify-between">
+      <div className="flex flex-row mb-2 justify-between">
         <div className="flex flex-row  flex-wrap">
           <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
             <span className="text-nowrap">{t('logsTraceFilter.nameSpaceLabel')}：</span>

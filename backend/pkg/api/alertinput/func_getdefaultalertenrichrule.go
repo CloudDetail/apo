@@ -25,15 +25,15 @@ func (h *handler) GetDefaultAlertEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.DefaultAlertEnrichRuleRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		sourceType, rules := h.inputService.GetDefaultAlertEnrichRule(req.SourceType)
+		sourceType, rules := h.inputService.GetDefaultAlertEnrichRule(c, req.SourceType)
 		c.Payload(alert.DefaultAlertEnrichRuleResponse{
 			SourceType:        sourceType,
 			EnrichRuleConfigs: rules,

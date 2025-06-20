@@ -5,6 +5,9 @@ package dify
 
 import (
 	"fmt"
+	"net"
+	"net/http"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -63,9 +66,23 @@ type difyRepo struct {
 func New() (DifyRepo, error) {
 	// client := &http.Client{}
 	difyConf := config.Get().Dify
+	if difyConf.TimeoutSecond <= 0 {
+		difyConf.TimeoutSecond = 180
+	}
+
 	return &difyRepo{
 		cli: &DifyClient{
-			Client:  DefaultDifyFastHttpClient,
+			Client: &http.Client{
+				Transport: &http.Transport{
+					MaxIdleConns:        10,
+					MaxIdleConnsPerHost: 10,
+					DialContext: (&net.Dialer{
+						Timeout:   1 * time.Second,
+						KeepAlive: 30 * time.Second,
+					}).DialContext,
+				},
+				Timeout: time.Duration(difyConf.TimeoutSecond) * time.Second,
+			},
 			BaseURL: difyConf.URL,
 		},
 		AlertCheckCFG: DefaultAlertCheckConfig(),
@@ -87,6 +104,9 @@ func (r *difyRepo) GetAlertAnalyzeFlowID() string {
 
 func (r *difyRepo) WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error) {
 	resp, err := r.cli.WorkflowsRun(req, authorization)
+	if err != nil {
+		return nil, err
+	}
 	if completResp, ok := resp.(*CompletionResponse); ok {
 		return completResp, err
 	}

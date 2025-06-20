@@ -4,17 +4,16 @@
 package role
 
 import (
-	"context"
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetRoles() (response.GetRoleResponse, error) {
-	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+func (s *service) GetRoles(ctx core.Context) (response.GetRoleResponse, error) {
+	roles, err := s.dbRepo.GetRoles(ctx, model.RoleFilter{})
 	var resp response.GetRoleResponse
 	if err != nil {
 		return resp, err
@@ -24,8 +23,8 @@ func (s *service) GetRoles() (response.GetRoleResponse, error) {
 	return resp, nil
 }
 
-func (s *service) GetUserRole(req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error) {
-	userRole, err := s.dbRepo.GetUserRole(req.UserID)
+func (s *service) GetUserRole(ctx core.Context, req *request.GetUserRoleRequest) (response.GetUserRoleResponse, error) {
+	userRole, err := s.dbRepo.GetUserRole(ctx, req.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,22 +34,22 @@ func (s *service) GetUserRole(req *request.GetUserRoleRequest) (response.GetUser
 		roleIDs[i] = roleID.RoleID
 	}
 	filter := model.RoleFilter{IDs: roleIDs}
-	roles, err := s.dbRepo.GetRoles(filter)
+	roles, err := s.dbRepo.GetRoles(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 	return roles, nil
 }
 
-func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
+func (s *service) RoleOperation(ctx core.Context, req *request.RoleOperationRequest) error {
 	// 1. get user's role
-	userRole, err := s.dbRepo.GetUserRole(req.UserID)
+	userRole, err := s.dbRepo.GetUserRole(ctx, req.UserID)
 	if err != nil {
 		return err
 	}
 
 	// 2. get all roles
-	roles, err := s.dbRepo.GetRoles(model.RoleFilter{})
+	roles, err := s.dbRepo.GetRoles(ctx, model.RoleFilter{})
 	if err != nil {
 		return err
 	}
@@ -65,19 +64,19 @@ func (s *service) RoleOperation(req *request.RoleOperationRequest) error {
 		return err
 	}
 
-	var grantFunc = func(txCtx context.Context) error {
-		return s.dbRepo.GrantRoleWithUser(txCtx, req.UserID, addRoles)
+	var grantFunc = func(txCtx core.Context) error {
+		return s.dbRepo.GrantRoleWithUser(ctx, req.UserID, addRoles)
 	}
 
-	var revokeFunc = func(txCtx context.Context) error {
-		return s.dbRepo.RevokeRole(txCtx, req.UserID, deleteRoles)
+	var revokeFunc = func(txCtx core.Context) error {
+		return s.dbRepo.RevokeRole(ctx, req.UserID, deleteRoles)
 	}
 
-	return s.dbRepo.Transaction(context.Background(), grantFunc, revokeFunc)
+	return s.dbRepo.Transaction(ctx, grantFunc, revokeFunc)
 }
 
 // GetAddDeleteRoles Determine grant and revoke roles.
-func GetAddDeleteRoles(userRoles []database.UserRole, want []int, all []database.Role) (addRoles []int, deleteRoles []int, err error) {
+func GetAddDeleteRoles(userRoles []profile.UserRole, want []int, all []profile.Role) (addRoles []int, deleteRoles []int, err error) {
 	roleMap := make(map[int]struct{})
 	for _, role := range all {
 		roleMap[role.RoleID] = struct{}{}
@@ -90,7 +89,7 @@ func GetAddDeleteRoles(userRoles []database.UserRole, want []int, all []database
 
 	for _, role := range want {
 		if _, exists := roleMap[role]; !exists {
-			return nil, nil, model.NewErrWithMessage(errors.New("role does not exist"), code.RoleNotExistsError)
+			return nil, nil, core.Error(code.RoleNotExistsError, "role does not exist")
 		}
 		if _, hasRole := userRoleMap[role]; !hasRole {
 			addRoles = append(addRoles, role)

@@ -28,7 +28,7 @@
   "status": "Status",
   "workflowMiss": "Workflow not configured.",
   "missToast1": "The alert validity check workflow has not been set up, hence the alarm validity check is suspended.",
-  "missToast2": "The alert root cause analysis workflow has not been configured, therefore the alarm root cause analysis is currently non-navigable.",
+  "missToast2": "The alert root cause analysis workflow has not been configured or the large language model API access permission has not been configured yet, therefore the alarm root cause analysis is currently non-navigable.",
   "other": "Other",
   "alertStatus": "Alert Status",
   "alertValidity": "Alert Validity",
@@ -64,5 +64,18 @@
   "silentTimerange": "Silence Time Range",
   "silentNotify": "No Notifications During Silence",
   "silent": "Alarm Silenced",
-  "onSilent": "Silence Subsequent Alarms"
+  "onSilent": "Silence Subsequent Alarms",
+  "firingTip": "Continuously meets the alert rules, the current alert is ongoing",
+  "resolvedTip": "No longer triggers the alert rules, the system automatically closes the alert",
+  "error": "error",
+  "confirm": "Confirm",
+  "addFilter": "Add Filter",
+  "clearAll": "Clear All",
+  "enterAndPress": "Enter text and press Enter to search",
+  "selected": "Exact Match",
+  "matchExpr": "Fuzzy Match",
+  "selectPlaceholder": "Please select a field to filter",
+  "filterKey": "Filter Field",
+  "filterMode": "Filter Mode",
+  "exprHint": "Use * as a wildcard character"
 }

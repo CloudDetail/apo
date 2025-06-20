@@ -2,15 +2,21 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Button, Descriptions, DescriptionsProps, Modal } from 'antd'
+import { Button, Descriptions, DescriptionsProps, Modal, Result, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
-import { AlertDeration, ALertIsValid, AlertStatus, AlertTags } from '../components/AlertInfoCom'
+import {
+  AlertDeration,
+  ALertIsValid,
+  AlertLevel,
+  AlertStatus,
+  AlertTags,
+} from '../components/AlertInfoCom'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../../workflows/workflowsIframe'
 import { useState } from 'react'
 import { FaEye } from 'react-icons/fa'
 import { getAlertWorkflowIdApi } from 'src/core/api/alerts'
-import { showToast } from 'src/core/utils/toast'
+import LoadingSpinner from 'src/core/components/Spinner'
 const CurrentEventDetail = ({
   detail,
   alertCheckId,
@@ -21,6 +27,9 @@ const CurrentEventDetail = ({
   const { t } = useTranslation('oss/alertEvents')
   const [modalOpen, setModalOpen] = useState(false)
   const [workflowUrl, setWorkflowUrl] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const { useToken } = theme
+  const { token } = useToken()
   const closeModal = () => {
     setModalOpen(false)
   }
@@ -63,7 +72,7 @@ const CurrentEventDetail = ({
     {
       key: '2',
       label: t('severity'),
-      children: t(detail?.severity),
+      children: <AlertLevel level={detail?.severity} />,
     },
     {
       key: '5',
@@ -72,7 +81,7 @@ const CurrentEventDetail = ({
       children: detail && (
         <ALertIsValid
           alertCheckId={alertCheckId}
-          isValid={detail?.isValid}
+          isValid={detail?.validity}
           // checkTime={convertUTCToLocal(detail?.lastCheckAt)}
           openResultModal={() => openResultModal(detail.workflowRunId)}
           workflowRunId={detail.workflowRunId}
@@ -83,12 +92,16 @@ const CurrentEventDetail = ({
       key: 'detail',
       label: t('alertDetail'),
       span: 4,
-      children: <AlertTags tags={detail?.tags} detail={detail?.detail} defaultVisible />,
+      children: <AlertTags tags={detail?.tagsDisplay} detail={detail?.detail} defaultVisible />,
     },
   ]
   async function getWorkflowId(alertGroup, alertName) {
-    const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
-    return res?.workflowId
+    try {
+      const res = await getAlertWorkflowIdApi({ alertGroup, alertName })
+      return res?.workflowId
+    } catch (error) {
+      return null
+    }
   }
   function openResultModal(workflowRunId) {
     let result = '/dify/app/' + alertCheckId + '/logs/' + workflowRunId
@@ -96,23 +109,31 @@ const CurrentEventDetail = ({
     setModalOpen(true)
   }
   async function openWorkflowModal() {
-    const workflowId = await getWorkflowId(detail.group, detail.name)
-    if (!workflowId) {
-      showToast({
-        color: 'danger',
-        title: t('missToast2'),
-      })
+    try {
+      setLoading(true)
+      setModalOpen(true)
+
+      const workflowId = await getWorkflowId(detail.group, detail.name)
+      if (!workflowId) {
+        throw new Error()
+      }
+      let result = '/dify/app/' + workflowId + '/run-once?'
+      const params = Object.entries(detail.workflowParams)
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join('&')
+      setWorkflowUrl(result + params)
+    } catch {
+      setLoading(false)
       return
+    } finally {
+      setLoading(false)
     }
-    let result = '/dify/app/' + workflowId + '/run-once?'
-    const params = Object.entries(detail.workflowParams)
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
-    setWorkflowUrl(result + params)
-    setModalOpen(true)
   }
   return (
-    <div className="w-full rounded-xl  h-full text-sm  bg-[#141414] p-2">
+    <div
+      className="w-full rounded-xl  h-full text-sm p-2"
+      style={{ backgroundColor: token.colorBgContainer }}
+    >
       <div className="flex flex-col h-full justify-between">
         <div className="flex-1 h-0 flex flex-col">
           <div className="text-base font-bold ">{t('alertEventDetail')}</div>
@@ -126,7 +147,7 @@ const CurrentEventDetail = ({
         <div className="w-full text-right grow-0 flex items-center justify-end overflow-auto">
           <Button
             color="primary"
-            variant="filled"
+            variant="outlined"
             className="ml-2"
             classNames={{ icon: 'flex items-center' }}
             icon={<FaEye />}
@@ -150,6 +171,14 @@ const CurrentEventDetail = ({
         width={'80vw'}
         styles={{ body: { height: '80vh', overflowY: 'hidden', overflowX: 'hidden' } }}
       >
+        {!loading && !workflowUrl && (
+          <Result
+            status="error"
+            title={t('missToast2')}
+            className="h-full flex flex-col items-center justify-center w-full"
+          />
+        )}
+        <LoadingSpinner loading={loading} />
         {workflowUrl && <WorkflowsIframe src={workflowUrl} />}
       </Modal>
     </div>

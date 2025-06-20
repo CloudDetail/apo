@@ -4,15 +4,15 @@
 package prometheus
 
 import (
-	"context"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // Query the P90 curve based on the service list, URL list, time period and step size.
-func (repo *promRepo) QueryExternalRangePercentile(startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
+func (repo *promRepo) QueryExternalRangePercentile(ctx core.Context, startTime int64, endTime int64, step int64, nodes *model.TopologyNodes) ([]DescendantMetrics, error) {
 	svcs, endpoints, systems := nodes.GetLabels(model.GROUP_EXTERNAL)
 	if len(svcs) == 0 {
 		return nil, nil
@@ -24,7 +24,7 @@ func (repo *promRepo) QueryExternalRangePercentile(startTime int64, endTime int6
 	}
 
 	query := getExternalP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
-	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
 	if err != nil {
 		return nil, err
 	}

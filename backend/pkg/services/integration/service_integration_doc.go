@@ -7,17 +7,18 @@ import (
 	"bytes"
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
 // Deprecated
-func (s *service) GetIntegrationInstallDoc(req *integration.GetCInstallRequest) ([]byte, error) {
-	cluster, err := s.dbRepo.GetCluster(req.ClusterID)
+func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) ([]byte, error) {
+	cluster, err := s.dbRepo.GetCluster(ctx, req.ClusterID)
 	if err != nil {
 		return nil, err
 	}
 
-	clusterConfig, err := s.dbRepo.GetIntegrationConfig(req.ClusterID)
+	clusterConfig, err := s.dbRepo.GetIntegrationConfig(ctx, req.ClusterID)
 	if err != nil {
 		return nil, err
 	}

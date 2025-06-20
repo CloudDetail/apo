@@ -4,7 +4,6 @@
  */
 
 import { Button, Card, Divider, Form, Input, Space, Typography } from 'antd'
-import { t } from 'i18next'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { portsDefault } from 'src/core/views/IntegrationCenter/constant'
@@ -21,7 +20,9 @@ const APOCollectorFormItem = () => {
           label={
             <Space>
               {t('collectorGatewayAddr')}
-              <span className=" text-gray-400 text-xs">{t('collectorGatewayAddrHint')}</span>
+              <span className=" text-[var(--ant-color-text-secondary)] text-xs">
+                {t('collectorGatewayAddrHint')}
+              </span>
             </Space>
           }
           name={['apoCollector', 'collectorGatewayAddr']}
@@ -45,7 +46,9 @@ const APOCollectorFormItem = () => {
                 label={
                   <Space>
                     {item.key}
-                    <span className="text-xs text-gray-400">{item.descriptions}</span>
+                    <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                      {item.descriptions}
+                    </span>
                   </Space>
                 }
                 rules={[{ required: true }]}

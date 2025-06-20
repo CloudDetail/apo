@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Form, Input, Modal, Select, Tabs, Tooltip } from 'antd'
+import { Form, Input, Modal, Select } from 'antd'
 import React, { useEffect, useState } from 'react'
 import LogRouteRuleFormList from './component/LogRouteRuleFormList'
 import {
@@ -12,11 +12,9 @@ import {
   getLogRuleServiceRouteRuleApi,
   updateLogRuleApi,
 } from 'core/api/logs'
-import { showToast } from 'src/core/utils/toast'
+import { notify } from 'src/core/utils/notify'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { getServiceListApi } from 'core/api/service'
-import TextArea from 'antd/es/input/TextArea'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
 import ParseRuleTabs from './component/ParseRuleTabs'
 import { useTranslation } from 'react-i18next' // 引入i18n
 
@@ -89,9 +87,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
 
   function addLogRule(logRuleParams) {
     addLogRuleApi(logRuleParams).then((res) => {
-      showToast({
-        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('configLogRuleModal.repositoryConfigSuccessToast'),
+        type: 'success',
       })
 
       getLogTableInfo()
@@ -104,9 +102,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
       dataBase: logRuleInfo.dataBase,
       tableName: logRuleInfo.tableName,
     }).then((res) => {
-      showToast({
-        title: t('configLogRuleModal.repositoryConfigSuccessToast'),
-        color: 'success',
+      notify({
+        message: t('configLogRuleModal.repositoryConfigSuccessToast'),
+        type: 'success',
       })
       closeModal()
       getLogTableInfo()
@@ -141,9 +139,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         })
         logRuleParams.routeRule = routeRule
         if (Object.keys(routeRule).length === 0) {
-          showToast({
-            title: t('configLogRuleModal.matchRuleErrorToast'),
-            color: 'danger',
+          notify({
+            message: t('configLogRuleModal.matchRuleErrorToast'),
+            type: 'error',
           })
           return
         }
@@ -164,9 +162,9 @@ const ConfigLogRuleModal = ({ modalVisible, closeModal, logRuleInfo }) => {
         if (formState.isStructured) {
           delete logRuleParams.parseRule
           if (logRuleParams.tableFields.length === 0) {
-            showToast({
-              title: t('configLogRuleModal.structureErrorToast'),
-              color: 'danger',
+            notify({
+              message: t('configLogRuleModal.structureErrorToast'),
+              type: 'error',
             })
             return
           }

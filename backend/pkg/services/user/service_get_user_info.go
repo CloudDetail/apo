@@ -4,37 +4,36 @@
 package user
 
 import (
-	"errors"
 	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error) {
+func (s *service) GetUserInfo(ctx core.Context, userID int64) (response.GetUserInfoResponse, error) {
 	var (
-		user database.User
+		user profile.User
 		err  error
 		resp response.GetUserInfoResponse
 	)
 
 	if userID == 0 {
-		user, err = s.dbRepo.GetAnonymousUser()
+		user, err = s.dbRepo.GetAnonymousUser(ctx)
 		resp.User = user
 		return resp, err
 	}
 
-	exists, err := s.dbRepo.UserExists(userID)
+	exists, err := s.dbRepo.UserExists(ctx, userID)
 	if err != nil {
 		return resp, err
 	}
 
 	if !exists {
-		return resp, model.NewErrWithMessage(errors.New("user does not exist"), code.UserNotExistsError)
+		return resp, core.Error(code.UserNotExistsError, "user does not exist")
 	}
 
-	user, err = s.dbRepo.GetUserInfo(userID)
+	user, err = s.dbRepo.GetUserInfo(ctx, userID)
 	if err != nil {
 		return resp, err
 	}
@@ -43,8 +42,8 @@ func (s *service) GetUserInfo(userID int64) (response.GetUserInfoResponse, error
 	return resp, nil
 }
 
-func (s *service) GetUserList(req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
-	users, count, err := s.dbRepo.GetUserList(req)
+func (s *service) GetUserList(ctx core.Context, req *request.GetUserListRequest) (resp response.GetUserListResponse, err error) {
+	users, count, err := s.dbRepo.GetUserList(ctx, req)
 	resp.Users = users
 	resp.PageSize = req.PageSize
 	resp.CurrentPage = req.CurrentPage

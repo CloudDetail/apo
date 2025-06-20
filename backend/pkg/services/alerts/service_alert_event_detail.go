@@ -7,13 +7,14 @@ import (
 	"encoding/json"
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
-	eventDetail, err := s.chRepo.GetAlertDetail(req, s.difyRepo.GetCacheMinutes())
+func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error) {
+	eventDetail, err := s.chRepo.GetAlertDetail(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -24,9 +25,10 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 		req.EndTime = time.Now().UnixMicro()
 	}
 
-	s.fillWorkflowParams(eventDetail)
+	s.fillWorkflowParams(ctx, eventDetail)
+	s.fillDisplay(ctx, eventDetail)
 
-	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(req, s.difyRepo.GetCacheMinutes())
+	releatedEvents, total, err := s.chRepo.GetRelatedAlertEvents(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +41,9 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 		}
 	}
 
-	s.fillSimilarEventWorkflowParams(releatedEvents)
+	s.fillSimilarEventWorkflowParams(ctx, releatedEvents)
+
+	s.fillDisplays(ctx, releatedEvents)
 
 	return &response.GetAlertDetailResponse{
 		CurrentEvent:                eventDetail,
@@ -51,7 +55,7 @@ func (s *service) AlertDetail(req *request.GetAlertDetailRequest) (*response.Get
 	}, nil
 }
 
-func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWRecord) {
+func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []alert.AEventWithWRecord) {
 	if len(records) == 0 {
 		return
 	}
@@ -65,7 +69,7 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		startTime = record.UpdateTime.Add(-15 * time.Minute)
 		endTime = record.UpdateTime
 	}
-	alertServices, _ := tryGetAlertService(s.promRepo, &record.AlertEvent, startTime, endTime)
+	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
 
 	for i := 0; i < len(records); i++ {
 		records[i].Alert.EnrichTags["source"] = records[i].Alert.Source
@@ -99,11 +103,15 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 		}
 
 		parmas := alert.AlertAnalyzeWorkflowParams{
-			Node:      records[i].AlertEvent.GetInfraNodeTag(),
-			Namespace: records[i].AlertEvent.GetK8sNamespaceTag(),
-			Pod:       records[i].AlertEvent.GetK8sPodTag(),
-			Pid:       records[i].AlertEvent.GetPidTag(),
-			AlertName: records[i].AlertEvent.Name,
+			AlertName:   records[i].AlertEvent.Name,
+			Node:        records[i].AlertEvent.GetInfraNodeTag(),
+			Namespace:   records[i].AlertEvent.GetK8sNamespaceTag(),
+			Pod:         records[i].AlertEvent.GetK8sPodTag(),
+			Pid:         records[i].AlertEvent.GetPidTag(),
+			Detail:      records[i].AlertEvent.Detail,
+			ContainerID: records[i].AlertEvent.GetContainerIDTag(),
+			Tags:        records[i].AlertEvent.EnrichTags,
+			RawTags:     records[i].AlertEvent.Tags,
 		}
 
 		if len(services) == 1 {
@@ -120,7 +128,7 @@ func (s *service) fillSimilarEventWorkflowParams(records []alert.AEventWithWReco
 	}
 }
 
-func (s *service) ManualResolveLatestAlertEventByAlertID(alertID string) error {
+func (s *service) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error {
 	// TODO valid alertID
-	return s.chRepo.ManualResolveLatestAlertEventByAlertID(alertID)
+	return s.chRepo.ManualResolveLatestAlertEventByAlertID(ctx, alertID)
 }

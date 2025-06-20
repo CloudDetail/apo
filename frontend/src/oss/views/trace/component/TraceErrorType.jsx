@@ -44,7 +44,7 @@ export default function TraceErrorType({ type }) {
       >
         <span>{ErrorTypeMap[type].name}</span>
       </div> */}
-      <div className="px-2 rounded-xl py-1 text-xs border text-[#9ca3af] border-[#9ca3af]">
+      <div className="px-2 rounded-xl py-1 text-xs border text-[var(--ant-color-text-secondary)] border-[var(--ant-colorBorderSecondary)]">
         {' '}
         {type !== 'slowAndError'
         ? (<>

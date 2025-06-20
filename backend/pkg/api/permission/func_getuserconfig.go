@@ -29,10 +29,10 @@ func (h *handler) GetUserConfig() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetUserConfigRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -41,12 +41,13 @@ func (h *handler) GetUserConfig() core.HandlerFunc {
 			req.Language = model.TRANSLATION_ZH
 		}
 
-		resp, err := h.permissionService.GetUserConfig(req)
+		resp, err := h.permissionService.GetUserConfig(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetMenuConfigError,
-				c.ErrMessage(code.GetMenuConfigError)).WithError(err))
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

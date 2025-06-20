@@ -3,43 +3,46 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button } from 'antd'
+import { Flex, Popover, Button, Divider, Segmented, Drawer, Space } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
-import { showToast } from 'core/utils/toast'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
 import { HiUserCircle } from 'react-icons/hi'
-import { useEffect, useState, useReducer } from 'react'
-import userReducer, { initialState } from '../store/reducers/userReducer'
+import { useEffect, useState } from 'react'
 import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
+import { notify } from '../utils/notify'
+import { redirectToLogin } from '../utils/redirectToLogin'
 
 const UserToolBox = () => {
-  const { user, dispatch } = useUserContext()
+  const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
   const { t } = useTranslation('core/userToolBox')
 
-  const content = (
+
+
+  const content = () => (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
+        <Divider className='p-0 my-2' />
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 hover:bg-[#292E3B]"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={() => navigate('/user')}
         >
-          <Flex className="w-2/3 justify-around p-2">
+          <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
-            <p className="text-md select-none">{t('personalCenter')}</p>
+            <p className="text-md select-none my-2">{t('personalCenter')}</p>
           </Flex>
         </Flex>
         <Flex
           vertical
-          className="justify-center items-center w-full h-9 mt-2 hover:bg-[#292E3B]"
+          className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
           onClick={logout}
         >
-          <Flex className="w-2/3 justify-around p-2">
+          <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
-            <p className="text-md select-none">{t('logout')}</p>
+            <p className="text-md select-none my-2">{t('logout')}</p>
           </Flex>
         </Flex>
       </Flex>
@@ -59,13 +62,13 @@ const UserToolBox = () => {
       localStorage.removeItem('difyToken')
       localStorage.removeItem('difyRefreshToken')
       // @ts-ignore
-      dispatch({
+      userDispatch({
         type: 'removeUser',
       })
-      navigate('/login')
-      showToast({
-        title: t('logoutSuccess'),
-        color: 'success',
+      redirectToLogin(false)
+      notify({
+        message: t('logoutSuccess'),
+        type: 'success',
       })
     } catch (error) {
       console.error(error)
@@ -75,15 +78,14 @@ const UserToolBox = () => {
   function getUserInfo() {
     getUserInfoApi()
       .then((res) => {
-        console.log('res', res)
         // @ts-ignore
-        dispatch({
+        userDispatch({
           type: 'setUser',
           payload: res,
         })
       })
       .catch((error) => {
-        navigate('/login')
+        redirectToLogin(true)
         console.error(error)
       })
   }
@@ -96,17 +98,17 @@ const UserToolBox = () => {
     <>
       {user?.username !== 'anonymous' ? (
         <Popover content={content}>
-          <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md hover:bg-[#30333C] cursor-pointer">
+          <div className="relative flex items-center select-none w-auto pl-2 pr-2 rounded-md cursor-pointer">
             <div>
               <HiUserCircle className="w-8 h-8" />
             </div>
             <div className="h-1/2 flex flex-col justify-center">
-              <p className="text-base relative -top-0.5">{user?.username}</p>
+              <p className="text-base relative -top-0.5 m-2">{user?.username}</p>
             </div>
           </div>
         </Popover>
       ) : (
-        <Button type="link" onClick={() => navigate('/login')}>
+        <Button type="link" onClick={() => redirectToLogin(true)}>
           {t('login')}
         </Button>
       )}

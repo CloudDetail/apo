@@ -26,29 +26,29 @@ func (h *handler) SourceHandler() core.HandlerFunc {
 		var sourceFrom input.SourceFrom
 		err := c.ShouldBindQuery(&sourceFrom)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
 		data, err := io.ReadAll(c.Request().Body)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.AcceptAlertEventFailed,
-				c.ErrMessage(code.AcceptAlertEventFailed)).WithError(err),
+				err,
 			)
 			return
 		}
-		err = h.inputService.ProcessAlertEvents(sourceFrom, data)
+		err = h.inputService.ProcessAlertEvents(c, sourceFrom, data)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ProcessAlertEventFailed,
-				c.ErrMessage(code.ProcessAlertEventFailed)).WithError(err),
+				err,
 			)
 			return
 		}

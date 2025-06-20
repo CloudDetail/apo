@@ -5,7 +5,7 @@ package alerts
 
 import (
 	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/core"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -21,46 +21,50 @@ var _ Service = (*service)(nil)
 
 type Service interface {
 	// ========================告警检索========================
-	AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
-	AlertDetail(req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error)
+	AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error)
+	AlertDetail(ctx core.Context, req *request.GetAlertDetailRequest) (*response.GetAlertDetailResponse, error)
 
-	AlertEventClassify(req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
+	AlertEventClassify(ctx core.Context, req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
 
 	// ========================告警配置========================
 
 	// InputAlertManager receive AlertManager alarm events
 	// Deprecated: use alertinput.ProcessAlertEvents instead
-	InputAlertManager(req *request.InputAlertManagerRequest) error
-	ForwardToDingTalk(req *request.ForwardToDingTalkRequest, uuid string) error
+	InputAlertManager(ctx core.Context, req *request.InputAlertManagerRequest) error
+	ForwardToDingTalk(ctx core.Context, req *request.ForwardToDingTalkRequest, uuid string) error
 
 	// GetAlertRuleFile get basic alarm rules
-	GetAlertRuleFile(req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error)
+	GetAlertRuleFile(ctx core.Context, req *request.GetAlertRuleConfigRequest) (*response.GetAlertRuleFileResponse, error)
 	// UpdateAlertRuleFile update basic alarm rules
-	UpdateAlertRuleFile(req *request.UpdateAlertRuleConfigRequest) error
+	UpdateAlertRuleFile(ctx core.Context, req *request.UpdateAlertRuleConfigRequest) error
 
 	// AlertRule Options
 	GetGroupList(ctx core.Context) response.GetGroupListResponse
 	GetMetricPQL(ctx core.Context) (*response.GetMetricPQLResponse, error)
 
 	// AlertRule CRUD
-	GetAlertRules(req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
-	UpdateAlertRule(req *request.UpdateAlertRuleRequest) error
-	DeleteAlertRule(req *request.DeleteAlertRuleRequest) error
-	AddAlertRule(req *request.AddAlertRuleRequest) error
-	CheckAlertRule(req *request.CheckAlertRuleRequest) (response.CheckAlertRuleResponse, error)
+	GetAlertRules(ctx core.Context, req *request.GetAlertRuleRequest) response.GetAlertRulesResponse
+	UpdateAlertRule(ctx core.Context, req *request.UpdateAlertRuleRequest) error
+	DeleteAlertRule(ctx core.Context, req *request.DeleteAlertRuleRequest) error
+	AddAlertRule(ctx core.Context, req *request.AddAlertRuleRequest) error
+	CheckAlertRule(ctx core.Context, req *request.CheckAlertRuleRequest) (response.CheckAlertRuleResponse, error)
 
 	// AlertManager Receiver CRUD
-	GetAMConfigReceivers(req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse
-	AddAMConfigReceiver(req *request.AddAlertManagerConfigReceiver) error
-	UpdateAMConfigReceiver(req *request.UpdateAlertManagerConfigReceiver) error
-	DeleteAMConfigReceiver(req *request.DeleteAlertManagerConfigReceiverRequest) error
+	GetAMConfigReceivers(ctx core.Context, req *request.GetAlertManagerConfigReceverRequest) response.GetAlertManagerConfigReceiverResponse
+	AddAMConfigReceiver(ctx core.Context, req *request.AddAlertManagerConfigReceiver) error
+	UpdateAMConfigReceiver(ctx core.Context, req *request.UpdateAlertManagerConfigReceiver) error
+	DeleteAMConfigReceiver(ctx core.Context, req *request.DeleteAlertManagerConfigReceiverRequest) error
 
-	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
-	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfigByAlertID(req *request.SetAlertSlienceConfigRequest) error
-	RemoveSlienceConfigByAlertID(alertID string) error
+	GetSlienceConfigByAlertID(ctx core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	ListSlienceConfig(ctx core.Context) ([]slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(ctx core.Context, req *request.SetAlertSlienceConfigRequest) error
+	RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error
 
-	ManualResolveLatestAlertEventByAlertID(alertID string) error
+	ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error
+
+	GetStaticFilterKeys(ctx core.Context) *response.AlertEventFiltersResponse
+	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*response.AlertEventFilterLabelKeysResponse, error)
+	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 }
 
 type service struct {

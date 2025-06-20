@@ -4,7 +4,6 @@
 package prometheus
 
 import (
-	"context"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -14,6 +13,7 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prometheus_model "github.com/prometheus/common/model"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
@@ -43,13 +43,13 @@ const (
 )
 
 // GetServiceList to query the service name list
-func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace []string) ([]string, error) {
+func (repo *promRepo) GetServiceList(ctx core.Context, startTime int64, endTime int64, namespace []string) ([]string, error) {
 	var namespaceFilter string
 	if len(namespace) > 0 {
 		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, RegexMultipleValue(namespace...))
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICES, namespaceFilter, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
 		return nil, err
@@ -66,13 +66,13 @@ func (repo *promRepo) GetServiceList(startTime int64, endTime int64, namespace [
 }
 
 // GetServiceWithNamespace Get service list and namespace that belong to.
-func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespaces []string) (map[string][]string, error) {
+func (repo *promRepo) GetServiceWithNamespace(ctx core.Context, startTime, endTime int64, namespaces []string) (map[string][]string, error) {
 	var namespaceFilter string
 	if len(namespaces) > 0 {
 		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, RegexMultipleValue(namespaces...))
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICES_WITH_NAMESPACE, namespaceFilter, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
 		return nil, err
@@ -99,13 +99,13 @@ func (repo *promRepo) GetServiceWithNamespace(startTime, endTime int64, namespac
 	return result, nil
 }
 
-func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service string) ([]string, error) {
+func (repo *promRepo) GetServiceNamespace(ctx core.Context, startTime, endTime int64, service string) ([]string, error) {
 	var serviceFilter string
 	if len(service) > 0 {
 		serviceFilter = fmt.Sprintf(`%s"%s"`, ServicePQLFilter, service)
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_NAMESPACES_BY_SERVICE, serviceFilter, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
 		return nil, err
@@ -126,11 +126,11 @@ func (repo *promRepo) GetServiceNamespace(startTime, endTime int64, service stri
 }
 
 // GetNamespaceWithService Get namespace list and service that under it.
-func (repo *promRepo) GetNamespaceWithService(startTime, endTime int64) (map[string][]string, error) {
+func (repo *promRepo) GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error) {
 	var namespaceFilter string
 
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICES_WITH_NAMESPACE, namespaceFilter, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func cutServiceSuffixFromURL(url string) string {
 }
 
 // GetServiceListByDBInfo 基于数据库信息获取关联的服务列表
-func (repo *promRepo) GetServiceListByDatabase(
+func (repo *promRepo) GetServiceListByDatabase(ctx core.Context,
 	startTime, endTime time.Time,
 	dbURL, dbIP, dbPort string,
 ) ([]string, error) {
@@ -188,7 +188,7 @@ func (repo *promRepo) GetServiceListByDatabase(
 		fmt.Sprintf(`db_ip="%s",db_port="%s",db_ip!="",db_port!=""`, dbIP, dbPort),
 		vector,
 	)
-	ress, err := repo.QueryData(endTime, pql)
+	ress, err := repo.QueryData(ctx, endTime, pql)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func (repo *promRepo) GetServiceListByDatabase(
 	return services, nil
 }
 
-func (repo *promRepo) GetServiceListByFilter(startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error) {
+func (repo *promRepo) GetServiceListByFilter(ctx core.Context, startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error) {
 	if len(filterKVs)%2 != 0 {
 		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
 	}
@@ -219,7 +219,7 @@ func (repo *promRepo) GetServiceListByFilter(startTime time.Time, endTime time.T
 		strings.Join(filters, ","),
 		vectorStr,
 	)
-	ress, err := repo.QueryData(endTime, pql)
+	ress, err := repo.QueryData(ctx, endTime, pql)
 	if err != nil {
 		return nil, err
 	}
@@ -231,13 +231,13 @@ func (repo *promRepo) GetServiceListByFilter(startTime time.Time, endTime time.T
 }
 
 // GetServiceEndPointList to query the service Endpoint list. The service name can be empty.
-func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, serviceName string) ([]string, error) {
+func (repo *promRepo) GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error) {
 	queryCondition := ""
 	if serviceName != "" {
 		queryCondition = fmt.Sprintf("svc_name='%s'", serviceName)
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_ENDPOINTS, queryCondition, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
 		return nil, err
@@ -254,49 +254,11 @@ func (repo *promRepo) GetServiceEndPointList(startTime int64, endTime int64, ser
 }
 
 // Query the list of active instances
-func (repo *promRepo) GetActiveInstanceList(startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
+func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
 	queryCondition := fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
 
 	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
-	if err != nil {
-		return nil, err
-	}
-	result := model.NewServiceInstances()
-	vector, ok := res.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
-	instances := make([]*model.ServiceInstance, 0)
-	for _, sample := range vector {
-		if float64(sample.Value) > 0 {
-			pidStr := sample.Metric["pid"]
-			pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
-
-			instances = append(instances, &model.ServiceInstance{
-				ServiceName: string(sample.Metric["svc_name"]),
-				ContainerId: string(sample.Metric["container_id"]),
-				PodName:     string(sample.Metric["pod"]),
-				Namespace:   string(sample.Metric["namespace"]),
-				NodeName:    string(sample.Metric["node_name"]),
-				Pid:         pid,
-			})
-		}
-	}
-	result.AddInstances(instances)
-	return result, nil
-}
-
-// 查询活跃实例列表
-func (repo *promRepo) GetActiveRequestInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
-	queryCondition := fmt.Sprintf("svc_name='%s'", serviceName)
-
-	var vectorStr string = "1h"
-	if endTime-startTime > 3600*1e6 {
-		vectorStr = VecFromS2E(startTime, endTime)
-	}
-	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_INSTANCE, queryCondition, vectorStr)
-	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +288,7 @@ func (repo *promRepo) GetActiveRequestInstanceList(startTime int64, endTime int6
 }
 
 // GetInstanceList to query the service instance list. The URL can be empty.
-func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
+func (repo *promRepo) GetInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
 	var queryCondition string
 	if url == "" {
 		queryCondition = fmt.Sprintf("svc_name='%s'", serviceName)
@@ -334,7 +296,7 @@ func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceNam
 		queryCondition = fmt.Sprintf("svc_name='%s',content_key='%s'", serviceName, url)
 	}
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err
 	}
@@ -364,10 +326,10 @@ func (repo *promRepo) GetInstanceList(startTime int64, endTime int64, serviceNam
 	return result, nil
 }
 
-func (repo *promRepo) GetMultiServicesInstanceList(startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error) {
+func (repo *promRepo) GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error) {
 	var queryCondition = fmt.Sprintf("svc_name=~'%s'", RegexMultipleValue(services...))
 	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(context.Background(), query, time.UnixMicro(endTime))
+	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err
 	}
@@ -403,7 +365,7 @@ func (repo *promRepo) GetMultiServicesInstanceList(startTime int64, endTime int6
 	return result, nil
 }
 
-func (repo *promRepo) QueryInstanceErrorRate(startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
+func (repo *promRepo) QueryInstanceErrorRate(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
 	tRange := v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
@@ -442,7 +404,7 @@ func (repo *promRepo) QueryInstanceErrorRate(startTime int64, endTime int64, ste
 		queryGroup, queryCondition, queryStep,
 		queryGroup, queryCondition, queryStep,
 	)
-	res, _, err := repo.GetApi().QueryRange(context.Background(), query, tRange)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
 	if err != nil {
 		return nil, err
 	}

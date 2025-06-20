@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/decoder"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
@@ -77,7 +78,7 @@ func (d *Dispatcher) AddAlertSource(
 	}
 }
 
-func (d *Dispatcher) DeleteAlertSource(
+func (d *Dispatcher) DeleteAlertSource(ctx core.Context,
 	source *alert.AlertSource,
 ) {
 	enricher, loaded := d.EnricherMap.LoadAndDelete(source.SourceID)

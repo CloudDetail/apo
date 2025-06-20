@@ -4,16 +4,17 @@
 package service
 
 import (
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // CountK8sEvents get K8s events
-func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
+func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error) {
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first
-	instanceList, err := s.promRepo.GetInstanceList(startTime, endTime, req.ServiceName, "")
+	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime, endTime, req.ServiceName, "")
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func (s *service) CountK8sEvents(req *request.GetK8sEventsRequest) (*response.Ge
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances)
 	if err != nil {
 		return resp, err
 	}

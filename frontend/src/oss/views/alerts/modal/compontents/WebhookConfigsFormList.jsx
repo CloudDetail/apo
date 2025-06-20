@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Col, Form, Input, Row, Segmented, Select, Space, Switch } from 'antd'
+import { Button, Card, Col, Form, Input, Row, Segmented, Select, Space, Switch, theme } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import React, { useEffect, useState } from 'react'
 import { IoIosRemoveCircleOutline, IoMdAddCircleOutline } from 'react-icons/io'
@@ -15,6 +15,8 @@ export default function WebhookConfigsFormList() {
   const form = Form.useFormInstance()
   const formAuthType = Form.useWatch(['webhookConfigs'], form)
   const { t } = useTranslation('oss/alert')
+  const { useToken } = theme
+  const { token } = useToken()
 
   useEffect(() => {
     if (formAuthType?.length > 0) setAuthType(formAuthType[0].authType)
@@ -46,7 +48,8 @@ export default function WebhookConfigsFormList() {
             {fields.map((field, index) => (
               <div
                 key={field.key}
-                className="bg-[#323545] px-3 pt-3 pb-0 rounded relative mb-2 mt-1"
+                className="px-3 pt-3 pb-0 rounded relative mb-2 mt-1"
+                style={{ backgroundColor: token.colorFillQuaternary }}
               >
                 {index > 0 && (
                   <IoIosRemoveCircleOutline

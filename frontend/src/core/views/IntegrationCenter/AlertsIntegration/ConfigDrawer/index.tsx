@@ -82,11 +82,11 @@ const IntegrationDrawer = () => {
       open={configDrawerVisible}
       width={'80%'}
       classNames={{
-        content: 'bg-[#101215]',
+        // content: 'bg-[#101215]',
         body: 'pt-0',
       }}
       styles={{
-        content: { background: '#101215', border: '1px solid #343a46' },
+        content: { background: 'var(--ant-color-bg-container)', border: '1px solid #343a46' },
       }}
     >
       {sourceId ? (

@@ -214,7 +214,7 @@ const TraceFormItem = () => {
         />
       </Form.Item>
       {modeValue && modeValue !== 'self-collector' && (
-        <span className="text-xs text-gray-400 flex">
+        <span className="text-xs text-[var(--ant-color-text-secondary)] flex">
           <AiOutlineInfoCircle size={16} className="mr-1 " color="#1668dc" />
           {t(modeValue)}
         </span>
@@ -229,7 +229,9 @@ const TraceFormItem = () => {
               label={
                 <Space>
                   {t('timeout')}
-                  <span className=" text-gray-400 text-xs">{t('timeoutHint')}</span>
+                  <span className=" text-[var(--ant-color-text-secondary)] text-xs">
+                    {t('timeoutHint')}
+                  </span>
                 </Space>
               }
               name={['trace', 'traceApi', 'timeout']}
@@ -256,7 +258,7 @@ const TraceFormItem = () => {
         </>
       )}
 
-      {modeValue === 'self-collector' && clusterType!=='vm' && (
+      {modeValue === 'self-collector' && clusterType !== 'vm' && (
         <>
           <Divider></Divider>
           <Typography.Title level={5}>{t('selfConfig')}</Typography.Title>
@@ -296,7 +298,9 @@ const TraceFormItem = () => {
                 label={
                   <Space>
                     {t('instrumentDisabledNS')}
-                    <span className="text-gray-400 text-xs">{t('balckList')}</span>
+                    <span className="text-[var(--ant-color-text-secondary)] text-xs">
+                      {t('balckList')}
+                    </span>
                   </Space>
                 }
                 name={['trace', 'selfCollectConfig', 'instrumentDisabledNS']}

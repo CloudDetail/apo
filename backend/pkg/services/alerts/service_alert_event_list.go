@@ -6,8 +6,11 @@ package alerts
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -15,26 +18,29 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
-	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(req, s.difyRepo.GetCacheMinutes())
+func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
+	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 
-	counts, err := s.chRepo.GetAlertEventCounts(req, s.difyRepo.GetCacheMinutes())
+	counts, err := s.chRepo.GetAlertEventCounts(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(events); i++ {
 		events[i].Alert.EnrichTags["source"] = events[i].Alert.Source
 
-		s.fillWorkflowParams(&events[i])
+		s.fillWorkflowParams(ctx, &events[i])
 		if events[i].IsValid == "unknown" && len(events[i].Output) > 0 {
 			events[i].IsValid = "failed"
 		} else if events[i].IsValid == "unknown" && events[i].Status == alert.StatusResolved {
 			events[i].IsValid = "skipped"
 		}
 	}
+
+	// TODO show display error log
+	_ = s.fillDisplays(ctx, events)
 
 	req.Pagination.Total = count
 	return &response.AlertEventSearchResponse{
@@ -46,7 +52,77 @@ func (s *service) AlertEventList(req *request.AlertEventSearchRequest) (*respons
 	}, nil
 }
 
-func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
+func (s *service) fillDisplays(ctx core.Context, records []alert.AEventWithWRecord) error {
+	tags, err := s.dbRepo.ListAlertTargetTags(ctx)
+	if err != nil {
+		return err
+	}
+
+	lang := ctx.LANG()
+	for i := 0; i < len(records); i++ {
+		tagDisplays := make([]alert.TagDisplay, 0)
+		for key, value := range records[i].EnrichTags {
+			tagName := getTagName(tags, key, lang)
+			tagDisplays = append(tagDisplays, alert.TagDisplay{
+				Key:   key,
+				Name:  tagName,
+				Value: value,
+			})
+		}
+		sort.Slice(tagDisplays, func(i, j int) bool {
+			return tagDisplays[i].Key < tagDisplays[j].Key
+		})
+		records[i].EnrichTagsDisplay = tagDisplays
+	}
+	return nil
+}
+
+func (s *service) fillDisplay(ctx core.Context, record *alert.AEventWithWRecord) error {
+	tags, err := s.dbRepo.ListAlertTargetTags(ctx)
+	if err != nil {
+		return err
+	}
+
+	lang := ctx.LANG()
+	tagDisplays := make([]alert.TagDisplay, 0)
+	for key, value := range record.EnrichTags {
+		tagName := getTagName(tags, key, lang)
+		tagDisplays = append(tagDisplays, alert.TagDisplay{
+			Key:   key,
+			Name:  tagName,
+			Value: value,
+		})
+	}
+	sort.Slice(tagDisplays, func(i, j int) bool {
+		return tagDisplays[i].Key < tagDisplays[j].Key
+	})
+	record.EnrichTagsDisplay = tagDisplays
+	return nil
+}
+
+func getTagName(tags []alert.TargetTag, key string, lang string) string {
+	if key == "source" {
+		if lang == code.LANG_EN {
+			return "Alert Source"
+		} else {
+			return "告警源"
+		}
+	} else if key == "status" {
+		if lang == code.LANG_EN {
+			return "Status"
+		} else {
+			return "告警状态"
+		}
+	}
+	for _, tag := range tags {
+		if key == tag.Field {
+			return tag.TagName
+		}
+	}
+	return key
+}
+
+func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithWRecord) {
 	var startTime, endTime time.Time
 	if record.Status == alert.StatusResolved {
 		startTime = record.EndTime.Add(-15 * time.Minute)
@@ -55,10 +131,11 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
+			endTime = record.LastCheckAt
 		} else {
 			startTime = record.UpdateTime.Add(-15 * time.Minute)
+			endTime = record.UpdateTime
 		}
-		endTime = record.UpdateTime
 		record.Duration = formatDuration(time.Since(record.CreateTime))
 	}
 
@@ -68,7 +145,7 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 		NodeName:  record.AlertEvent.GetInfraNodeTag(),
 	}
 
-	alertServices, _ := tryGetAlertService(s.promRepo, &record.AlertEvent, startTime, endTime)
+	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
 
 	var services, endpoints []string
 	for _, alertService := range alertServices {
@@ -81,11 +158,15 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		Node:      record.AlertEvent.GetInfraNodeTag(),
-		Namespace: record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:       record.AlertEvent.GetK8sPodTag(),
-		Pid:       record.AlertEvent.GetPidTag(),
-		AlertName: record.AlertEvent.Name,
+		AlertName:   record.AlertEvent.Name,
+		Node:        record.AlertEvent.GetInfraNodeTag(),
+		Namespace:   record.AlertEvent.GetK8sNamespaceTag(),
+		Pod:         record.AlertEvent.GetK8sPodTag(),
+		Pid:         record.AlertEvent.GetPidTag(),
+		Detail:      record.Detail,
+		ContainerID: record.AlertEvent.GetContainerIDTag(),
+		Tags:        record.Alert.EnrichTags,
+		RawTags:     record.Alert.Tags,
 	}
 
 	if len(services) == 1 {
@@ -101,8 +182,8 @@ func (s *service) fillWorkflowParams(record *alert.AEventWithWRecord) {
 	}
 }
 
-func tryGetAlertService(repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
-	var tryMethods = []func(prometheus.Repo, *alert.AlertEvent, time.Time, time.Time) ([]clickhouse.AlertService, error){
+func tryGetAlertService(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+	var tryMethods = []func(core.Context, prometheus.Repo, *alert.AlertEvent, time.Time, time.Time) ([]clickhouse.AlertService, error){
 		tryGetAlertServiceByService,
 		tryGetAlertServiceByDB,
 		tryGetAlertServiceByK8sPod,
@@ -112,7 +193,7 @@ func tryGetAlertService(repo prometheus.Repo, event *alert.AlertEvent, startTime
 	var endpoints []clickhouse.AlertService
 	for _, tryGetService := range tryMethods {
 		var err error
-		endpoints, err = tryGetService(repo, event, startTime, endTime)
+		endpoints, err = tryGetService(ctx, repo, event, startTime, endTime)
 		if err == nil && len(endpoints) > 0 {
 			return endpoints, nil
 		}
@@ -121,7 +202,7 @@ func tryGetAlertService(repo prometheus.Repo, event *alert.AlertEvent, startTime
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByService(_ prometheus.Repo, event *alert.AlertEvent, _ time.Time, _ time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByService(ctx core.Context, _ prometheus.Repo, event *alert.AlertEvent, _ time.Time, _ time.Time) ([]clickhouse.AlertService, error) {
 	serviceName := event.GetServiceNameTag()
 	if len(serviceName) == 0 {
 		return nil, nil
@@ -137,7 +218,7 @@ func tryGetAlertServiceByService(_ prometheus.Repo, event *alert.AlertEvent, _ t
 	return alertServices, nil
 }
 
-func tryGetAlertServiceByK8sPod(repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByK8sPod(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	podName := event.GetNetSrcPodTag()
 	namespace := event.GetK8sNamespaceTag()
 	if len(podName) == 0 || len(namespace) == 0 {
@@ -146,6 +227,7 @@ func tryGetAlertServiceByK8sPod(repo prometheus.Repo, event *alert.AlertEvent, s
 
 	// 通常也只会有一个Service
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NamespacePQLFilter, namespace,
 		prometheus.PodPQLFilter, podName,
@@ -165,7 +247,7 @@ func tryGetAlertServiceByK8sPod(repo prometheus.Repo, event *alert.AlertEvent, s
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByVMProcess(repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByVMProcess(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	nodeName := event.GetNetSrcNodeTag()
 	pid := event.GetNetSrcPidTag()
 	if len(nodeName) == 0 || len(pid) == 0 {
@@ -173,6 +255,7 @@ func tryGetAlertServiceByVMProcess(repo prometheus.Repo, event *alert.AlertEvent
 	}
 
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NodeNamePQLFilter, nodeName,
 		prometheus.PidPQLFilter, pid,
@@ -192,7 +275,7 @@ func tryGetAlertServiceByVMProcess(repo prometheus.Repo, event *alert.AlertEvent
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByInfraNode(repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByInfraNode(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	if event.Group != string(clickhouse.INFRA_GROUP) {
 		return nil, nil
 	}
@@ -203,6 +286,7 @@ func tryGetAlertServiceByInfraNode(repo prometheus.Repo, event *alert.AlertEvent
 	}
 
 	services, err := repo.GetServiceListByFilter(
+		ctx,
 		startTime, endTime,
 		prometheus.NodeNamePQLFilter, nodeName,
 	)
@@ -221,7 +305,7 @@ func tryGetAlertServiceByInfraNode(repo prometheus.Repo, event *alert.AlertEvent
 	return endpoints, nil
 }
 
-func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertServiceByDB(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	// 尝试获取数据库URL
 	dbURL := event.GetDatabaseURL()
 	dbIP := event.GetDatabaseIP()
@@ -232,6 +316,7 @@ func tryGetAlertServiceByDB(repo prometheus.Repo, event *alert.AlertEvent, start
 
 	// 查询受此数据库影响的服务
 	services, err := repo.GetServiceListByDatabase(
+		ctx,
 		startTime, endTime, dbURL, dbIP, dbPort)
 
 	if err != nil {

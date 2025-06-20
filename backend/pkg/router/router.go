@@ -118,10 +118,10 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	if config.Get().AlertReceiver.Enabled {
 		// migrate AMReceiver from ConfigMap to database
-		if r.pkg_db.CheckAMReceiverCount() <= 0 {
+		if r.pkg_db.CheckAMReceiverCount(nil) <= 0 {
 			receivers, total := r.k8sApi.GetAMConfigReceiver("", nil, nil, true)
 			if total > 0 {
-				migratedReceivers, err := r.pkg_db.MigrateAMReceiver(receivers)
+				migratedReceivers, err := r.pkg_db.MigrateAMReceiver(core.EmptyCtx(), receivers)
 				if err != nil {
 					logger.Fatal("failed to migrate amconfig ", zap.Error(err))
 				}
@@ -174,6 +174,12 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 
 	// Set API routing
 	setApiRouter(r)
+
+	for apiName, extraRoute := range extraRouters {
+		if err := extraRoute(mux, r); err != nil {
+			logger.Error("extraRoute create failed", zap.String("api", apiName))
+		}
+	}
 
 	s := new(Server)
 	s.Mux = mux

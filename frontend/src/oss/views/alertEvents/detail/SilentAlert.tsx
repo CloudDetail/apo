@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Popover, Select } from 'antd'
+import { Button, Popover, Select, theme } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MdNotificationsPaused } from 'react-icons/md'
@@ -52,6 +52,8 @@ const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
 
   const [slience, setSlience] = useState(null)
   const [forDuration, setForDuration] = useState(null)
+  const { useToken } = theme
+  const { token } = useToken()
 
   const getAlertSilentConfig = () => {
     getAlertSilentConfigApi({ alertId }).then((res) => {
@@ -80,12 +82,12 @@ const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
         ></Select>
         <div className="text-xs mt-1">
           {slience ? (
-            <span className="text-gray-400">
+            <span className="text-[var(--ant-color-text-secondary)]">
               {t('silentTimerange')}：{convertUTCToLocal(slience.startAt)} to{' '}
               {convertUTCToLocal(slience.endAt)}
             </span>
           ) : (
-            <span className="text-gray-400">{t('silentNotify')}</span>
+            <span className="text-[var(--ant-color-text-secondary)]">{t('silentNotify')}</span>
           )}
         </div>
       </>
@@ -95,11 +97,23 @@ const SilentAlert = ({ alertId }: { alertId?: string | null }) => {
     <>
       <Popover content={<ConfigCom />}>
         <Button
-          color="gold"
-          variant="filled"
+          // color="gold"
+          variant="outlined"
           className="ml-2"
           classNames={{ icon: 'flex items-center' }}
           icon={<MdNotificationsPaused size={20} />}
+          style={{
+            color: token.colorWarningText,
+            backgroundColor: token.colorWarningBg,
+            borderColor: token.colorWarningBorder,
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorWarningBgHover
+            e.currentTarget.style.color = token.colorWarningTextActive
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorWarningBg
+          }}
         >
           {forDuration ? t('silent') : t('onSilent')}
         </Button>

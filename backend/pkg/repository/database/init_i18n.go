@@ -6,12 +6,14 @@ package database
 import (
 	"fmt"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-func (repo *daoRepo) initI18nTranslation() error {
+func (repo *daoRepo) initI18nTranslation(ctx core.Context) error {
 	type transConfig struct {
 		Key  string            `mapstructure:"key"`
 		I18n []I18nTranslation `mapstructure:"i18n"`
@@ -26,7 +28,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 		return err
 	}
 
-	return repo.db.Transaction(func(tx *gorm.DB) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingTranslations []I18nTranslation
 		var toInsert, toDelete, toUpdate []I18nTranslation
 		if err := tx.Find(&existingTranslations).Error; err != nil {
@@ -45,7 +47,7 @@ func (repo *daoRepo) initI18nTranslation() error {
 			targetName := translations.Key
 
 			if typ == model.TRANSLATION_TYP_FEATURE {
-				if err := tx.Model(&Feature{}).Select("feature_id").Where("feature_name = ?", targetName).Find(&targetID).Error; err != nil {
+				if err := tx.Model(&profile.Feature{}).Select("feature_id").Where("feature_name = ?", targetName).Find(&targetID).Error; err != nil {
 					return err
 				}
 			} else if typ == model.TRANSLATION_TYP_MENU {

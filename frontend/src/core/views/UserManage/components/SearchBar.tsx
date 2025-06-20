@@ -24,11 +24,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const { t } = useTranslation('core/userManage');
 
   return (
-    <Flex className="mb-3 h-[40px]">
+    <Flex className="h-[40px] w-full">
       <Flex className="w-full justify-between">
         <Flex className="w-full">
-          <Flex className="w-auto items-center justify-start mr-5">
-            <p className="text-md mr-2">{t('index.userName')}：</p>
+          <Flex className="w-auto flex items-center justify-start mr-5">
+            <p className="text-md mr-2 mb-0">{t('index.userName')}：</p>
             <Input
               placeholder={t('index.search')}
               className="w-2/3"
@@ -36,8 +36,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               onChange={(e) => onSearch('username', e.target.value)}
             />
           </Flex>
-          <Flex className="w-auto items-center justify-start">
-            <p className="text-md mr-2">{t('index.corporation')}：</p>
+          <Flex className="w-auto flex items-center justify-start">
+            <p className="text-md mr-2 mb-0">{t('index.corporation')}：</p>
             <Input
               placeholder={t('index.search')}
               className="w-2/3"

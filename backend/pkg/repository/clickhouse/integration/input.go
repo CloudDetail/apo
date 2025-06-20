@@ -4,26 +4,27 @@
 package integration
 
 import (
-	"context"
-
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/factory"
 )
 
 type Input interface {
-	InsertAlertEvent(ctx context.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
+	InsertAlertEvent(ctx core.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
 }
 
 var _ Input = &chRepo{}
 
 type chRepo struct {
-	conn     driver.Conn
+	factory.Conn
 	database string
 }
 
 func NewInputRepo(conn driver.Conn, database string) (*chRepo, error) {
+	c := factory.Conn{Conn: conn}
 	return &chRepo{
-		conn:     conn,
+		Conn:     c,
 		database: database,
 	}, nil
 }

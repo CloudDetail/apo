@@ -31,10 +31,10 @@ func (h *handler) GetTeam() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTeamRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
@@ -46,12 +46,12 @@ func (h *handler) GetTeam() core.HandlerFunc {
 			}
 		}
 
-		resp, err := h.teamService.GetTeamList(req)
+		resp, err := h.teamService.GetTeamList(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetTeamError,
-				c.ErrMessage(code.GetTeamError)).WithError(err),
+				err,
 			)
 			return
 		}

@@ -26,20 +26,20 @@ func (h *handler) GetIntegrationInstallConfigFile() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(integration.GetCInstallRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		configFile, err := h.integrationService.GetIntegrationInstallConfigFile(req)
+		configFile, err := h.integrationService.GetIntegrationInstallConfigFile(c, req)
 		if err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.GetIntegrationInstallConfigFileFailed,
-				c.ErrMessage(code.GetIntegrationInstallConfigFileFailed)).WithError(err),
+				err,
 			)
 			return
 		}

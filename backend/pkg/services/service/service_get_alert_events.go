@@ -6,15 +6,16 @@ package service
 import (
 	"time"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
-func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
+func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
+	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, req.Services)
 	if err != nil || instances == nil {
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 
 	var dbInstances []model.MiddlewareInstance
 	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
-		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
 		if err != nil {
 			return nil, err
 		}
@@ -35,6 +36,7 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 
 	// Query the AlertEvent of the instance
 	events, err := s.chRepo.GetAlertEventsSample(
+		ctx,
 		req.SampleCount,
 		startTime, endTime,
 		req.AlertFilter,
@@ -59,9 +61,9 @@ func (s *service) GetAlertEventsSample(req *request.GetAlertEventsSampleRequest)
 	}, nil
 }
 
-func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
+func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(req.StartTime, req.EndTime, req.Services)
+	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, req.Services)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +73,7 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 
 	var dbInstances []model.MiddlewareInstance
 	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
-		dbInstances, err = s.promRepo.GetDescendantDatabase(req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
 		if err != nil {
 			return nil, err
 		}
@@ -79,6 +81,7 @@ func (s *service) GetAlertEvents(req *request.GetAlertEventsRequest) (*response.
 
 	// Query the AlertEvent of the instance
 	events, totalCount, err := s.chRepo.GetAlertEvents(
+		ctx,
 		startTime, endTime,
 		req.AlertFilter,
 		&model.RelatedInstances{

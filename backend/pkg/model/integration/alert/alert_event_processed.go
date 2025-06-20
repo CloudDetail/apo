@@ -17,6 +17,7 @@ type AEventWithWRecord struct {
 	NotifyDetail
 }
 
+// FIXME add importance field
 type WorkflowDetail struct {
 	WorkflowRunID string `json:"workflowRunId" ch:"workflow_run_id"`
 
@@ -61,4 +62,10 @@ type AlertAnalyzeWorkflowParams struct {
 	Endpoint  string `json:"endpoint,omitempty"`
 	Pid       string `json:"pid,omitempty"`
 	AlertName string `json:"alertName,omitempty"`
+
+	Detail      string `json:"detail,omitempty"`
+	ContainerID string `json:"containerId,omitempty"`
+
+	Tags    map[string]string `json:"tags,omitempty"`
+	RawTags map[string]any    `json:"raw_tags,omitempty"`
 }

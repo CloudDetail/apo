@@ -4,10 +4,8 @@
 package user
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -29,30 +27,21 @@ func (h *handler) Login() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.LoginRequest)
 		if err := c.ShouldBindPostForm(req); err != nil {
-			c.AbortWithError(core.Error(
+			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
-				c.ErrMessage(code.ParamBindError)).WithError(err),
+				err,
 			)
 			return
 		}
 
-		resp, err := h.userService.Login(req)
+		resp, err := h.userService.Login(c, req)
 		if err != nil {
-			var vErr model.ErrWithMessage
-			if errors.As(err, &vErr) {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					vErr.Code,
-					c.ErrMessage(vErr.Code),
-				).WithError(err))
-			} else {
-				c.AbortWithError(core.Error(
-					http.StatusBadRequest,
-					code.UserLoginError,
-					c.ErrMessage(code.UserLoginError),
-				).WithError(err))
-			}
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UserLoginError,
+				err,
+			)
 			return
 		}
 		c.Payload(resp)

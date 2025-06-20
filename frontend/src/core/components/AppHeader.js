@@ -4,20 +4,24 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
-import { CContainer, CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { SettingOutlined } from '@ant-design/icons'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
-import { Menu } from 'antd'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
+import { Button, theme } from 'antd'
+import PreferencesDrawer from './Drawer/PreferencesDrawer'
+import { useTranslation } from 'react-i18next'
 
 const AppHeader = ({ type = 'default' }) => {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
@@ -27,6 +31,7 @@ const AppHeader = ({ type = 'default' }) => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const onClick = (to) => {
     navigate(to)
@@ -70,7 +75,8 @@ const AppHeader = ({ type = 'default' }) => {
     borderBottom: 0,
     zIndex: 998,
   }
-
+  const { useToken } = theme
+  const { token } = useToken()
   return (
     <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
       <div className="flex justify-between items-center w-full">
@@ -85,7 +91,13 @@ const AppHeader = ({ type = 'default' }) => {
                 onClick={() => onClick(item.to)}
                 className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
                 style={{
-                  backgroundColor: selectedKeys.includes(item.key) ? 'rgb(22, 104, 220)' : 'black',
+                  backgroundColor: selectedKeys.includes(item.key)
+                    ? token.colorPrimary
+                    : 'var(--header-menu-color)',
+                  color: selectedKeys.includes(item.key)
+                    ? 'var(--menu-selected-text-color)'
+                    : token.colorText,
+                  borderBottom: '1px solid var(--cui-body-bg)',
                 }}
               >
                 <span className="pr-2">{item.icon}</span> {item.label}
@@ -97,10 +109,12 @@ const AppHeader = ({ type = 'default' }) => {
             <AppBreadcrumb />
           </CHeaderNav>
         )}
-        <CHeaderNav className="pr-4">
+        <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
+          <Button type="text" icon={<SettingOutlined />} onClick={() => setDrawerOpen(true)} title={t('preferences')} />
           <UserToolBox />
+          <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
       </div>
     </CHeader>

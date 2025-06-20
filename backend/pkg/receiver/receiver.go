@@ -16,9 +16,11 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/receiver/dingtalk"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -34,17 +36,18 @@ import (
 )
 
 type Receivers interface {
-	HandleAlertCheckRecord(ctx context.Context, record *model.WorkflowRecord) error
+	HandleAlertEvent(ctx core.Context, alerts []alert.AlertEvent) error
+	HandleAlertCheckRecord(ctx core.Context, record *model.WorkflowRecord) error
 
-	GetAMConfigReceiver(filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
-	AddAMConfigReceiver(receiver amconfig.Receiver) error
-	UpdateAMConfigReceiver(receiver amconfig.Receiver, oldName string) error
-	DeleteAMConfigReceiver(name string) error
+	GetAMConfigReceiver(ctx core.Context, filter *request.AMConfigReceiverFilter, pageParam *request.PageParam) ([]amconfig.Receiver, int)
+	AddAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver) error
+	UpdateAMConfigReceiver(ctx core.Context, receiver amconfig.Receiver, oldName string) error
+	DeleteAMConfigReceiver(ctx core.Context, name string) error
 
-	ListSlienceConfig() ([]slienceconfig.AlertSlienceConfig, error)
-	GetSlienceConfigByAlertID(alertID string) (*slienceconfig.AlertSlienceConfig, error)
-	SetSlienceConfigByAlertID(alertID string, forDuration string) error
-	RemoveSlienceConfigByAlertID(alertID string) error
+	ListSlienceConfig(ctx core.Context) ([]slienceconfig.AlertSlienceConfig, error)
+	GetSlienceConfigByAlertID(ctx core.Context, alertID string) (*slienceconfig.AlertSlienceConfig, error)
+	SetSlienceConfigByAlertID(ctx core.Context, alertID string, forDuration string) error
+	RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error
 }
 
 type InnerReceivers struct {
@@ -71,7 +74,7 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		return nil, err
 	}
 
-	receivers, _, err := dbRepo.GetAMConfigReceiver(nil, nil)
+	receivers, _, err := dbRepo.GetAMConfigReceiver(core.EmptyCtx(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +93,8 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 		amReceiver.ch = chRepo
 	}
 
-	slienceCfgs, err := dbRepo.GetAlertSlience()
+	// ctx
+	slienceCfgs, err := dbRepo.GetAlertSlience(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +218,8 @@ func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Durat
 			r.slientCFGMap.Range(func(key, value any) bool {
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
-					if err := r.database.DeleteAlertSlience(val.ID); err == nil {
+					// ctx
+					if err := r.database.DeleteAlertSlience(core.EmptyCtx(), val.ID); err == nil {
 						r.slientCFGMap.Delete(key)
 					}
 				}

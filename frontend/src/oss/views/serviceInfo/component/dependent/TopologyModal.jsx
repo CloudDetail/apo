@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CButton, CCard, CCardBody, CCardHeader } from '@coreui/react'
+import { CCard, CCardBody, CCardHeader } from '@coreui/react'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -12,7 +12,7 @@ import Topology from 'src/core/components/ReactFlow/Topology'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import TimelapseLineChart from './TimelapseLineChart'
 import DependentTable from './DependentTable'
-import { Modal } from 'antd'
+import { Button, Modal } from 'antd'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
 
@@ -99,7 +99,7 @@ export default function TopologyModal(props) {
           id: edgeId,
           source: nodeId,
           target: targetId,
-          type: nodeId === targetId ? 'loop' : 'smart',
+          type: nodeId === targetId ? 'loop' : 'default',
           markerEnd: 'url(#arrowhead)',
         })
         edgeSet.add(edgeId)
@@ -130,7 +130,7 @@ export default function TopologyModal(props) {
           id: edgeId,
           source: sourceId,
           target: nodeId,
-          type: nodeId === sourceId ? 'loop' : 'smart',
+          type: nodeId === sourceId ? 'loop' : 'default',
         })
         edgeSet.add(edgeId)
       }
@@ -222,7 +222,7 @@ export default function TopologyModal(props) {
           id: node.id + '-' + node.id + '-child',
           source: node.id,
           target: node.id + '-child',
-          type: 'smart',
+          type: 'default',
           markerEnd: 'url(#arrowhead)',
           // style:{
           //   stroke: '#6293FF'
@@ -321,9 +321,14 @@ export default function TopologyModal(props) {
   }, [modalService, modalEndpoint, startTime, endTime])
   return (
     <>
-      <CButton color="primary" variant="ghost" size="sm" className="text-xs" onClick={openModal}>
+      <Button
+        color="primary"
+        variant="outlined"
+        className="text-xs w-[100px] flex-wrap whitespace-normal h-full"
+        onClick={openModal}
+      >
         {t('dependent.topologyModal.viewMoreDependencies')}
-      </CButton>
+      </Button>
       {visible && (
         <>
           {/* <div className=" fixed bg-black h-full w-full top-0" style={{ zIndex: 999999 }}>
@@ -333,15 +338,17 @@ export default function TopologyModal(props) {
             open={visible}
             footer={null} // 如果你不需要默认的底部按钮
             style={{ top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh' }}
-            bodyStyle={{ height: 'calc(100vh - 75px)', overflowY: 'auto' }}
+            bodyStyle={{ height: 'calc(100vh - 75px)', overflowY: 'auto', width: '100%' }}
             width="100vw"
             onCancel={closeModal}
             destroyOnClose
           >
-            <CCard className="h-1/2">
+            {/* <CCard className="h-1/2"> */}
+            <div className="h-1/2 w-full relative border-solid border-2 border-[var(--ant-color-border)]">
               <LoadingSpinner loading={loading} />
               <Topology canZoom={false} data={topologyData} />
-            </CCard>
+            </div>
+            {/* </CCard> */}
             <div className="flex flex-row h-1/2 pt-2">
               <CCard className="w-1/2 mr-2 h-full">
                 <CCardHeader>{t('dependent.topologyModal.timelapseComparison')}</CCardHeader>
