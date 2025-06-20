@@ -115,11 +115,6 @@ const _nav = [
         to: '/system/user-manage',
       },
       {
-        key: 'systemConfig',
-        label: '系统配置',
-        to: '/system/config',
-      },
-      {
         key: 'dataGroup',
         label: '数据组管理',
         to: '/system/data-group',
