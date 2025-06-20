@@ -17,7 +17,7 @@ global:
     - {{ . }}
 {{- end }}
   apoProxyUrl: {{ default .apoCollector.collectorAddr "apo-nginx-proxy-svc" }}
-  apoProxyPort: {{ default .apoCollector.ports.apoProxy 29090 }}
+  apoProxyPort: {{ default .apoCollector.ports.apoProxy 30044 }}
 
   apoServerIP: {{ .apoCollector.collectorGatewayAddr }}
   apoBackendPort: {{ default .apoCollector.ports.apoBackend 31363 }}

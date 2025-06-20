@@ -125,7 +125,7 @@ func init() {
 }
 
 var (
-	apoChartVersion         = "1.8"
+	apoChartVersion         = "1.9"
 	apoComposeDeployVersion = "v1.3.000"
 )
 
@@ -168,14 +168,6 @@ func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, e
 		modes["log"] = logMode
 	}
 	jsonObj["_modes"] = modes
-
-	if ci.ClusterType == integration.ClusterTypeK8s {
-		jsonObj["_deploy_version"] = "v1.2.000"
-		jsonObj["_app_version"] = "v1.2.0"
-	} else {
-		jsonObj["_deploy_version"] = "v1.3.000"
-		jsonObj["_app_version"] = "v1.3.0"
-	}
 
 	jsonObj["_deploy_version"] = apoComposeDeployVersion
 	jsonObj["_chart_version"] = apoChartVersion
