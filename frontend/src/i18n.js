@@ -41,5 +41,10 @@ i18n
       caches: ['localStorage', 'cookie'], // 缓存语言到 localStorage 和 cookie
     },
   })
+  .then(() => {
+    if (i18n.language.startsWith('zh') && i18n.language !== 'zh') {
+      i18n.changeLanguage('zh')
+    }
+  })
 
 export default i18n
