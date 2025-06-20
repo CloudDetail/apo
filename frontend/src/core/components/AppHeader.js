@@ -116,6 +116,7 @@ const AppHeader = ({ type = 'default' }) => {
           <Button type="text" icon={<SkinOutlined />} onClick={() => setDrawerOpen(true)} title={t('preferences')} />
           <UserToolBox />
           <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+          <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
       </div>
     </CHeader>

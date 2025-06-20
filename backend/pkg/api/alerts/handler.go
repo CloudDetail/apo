@@ -136,6 +136,21 @@ type Handler interface {
 	// @Tags API.alerts
 	// @Router /api/alerts/resolve [post]
 	MarkAlertResolvedManually() core.HandlerFunc
+
+	// SearchAlertEventFilterValues
+	// @Tags API.alerts
+	// @Router /api/alerts/filter/values [post]
+	SearchAlertEventFilterValues() core.HandlerFunc
+
+	// GetAlertEventStaticFilters
+	// @Tags API.alerts
+	// @Router /api/alerts/filter/keys [get]
+	GetAlertEventStaticFilters() core.HandlerFunc
+
+	// GetAlertEventLabelFilterKeys
+	// @Tags API.alerts
+	// @Router /api/alerts/filter/labelkeys [post]
+	GetAlertEventLabelFilterKeys() core.HandlerFunc
 }
 
 type handler struct {

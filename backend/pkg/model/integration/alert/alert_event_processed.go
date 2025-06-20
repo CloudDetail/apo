@@ -17,6 +17,7 @@ type AEventWithWRecord struct {
 	NotifyDetail
 }
 
+// FIXME add importance field
 type WorkflowDetail struct {
 	WorkflowRunID string `json:"workflowRunId" ch:"workflow_run_id"`
 

@@ -61,6 +61,10 @@ type Service interface {
 	RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error
 
 	ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error
+
+	GetStaticFilterKeys(ctx core.Context) *response.AlertEventFiltersResponse
+	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*response.AlertEventFilterLabelKeysResponse, error)
+	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 }
 
 type service struct {

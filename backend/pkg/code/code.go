@@ -243,6 +243,9 @@ const (
 	SetAlertSlienceError    = "B1703"
 	RemoveAlertSlienceError = "B1704"
 	MarkAlertResolvedError  = "B1705"
+
+	SearchAlertLabelFilterError = "B1706"
+	SearchAlertFilterValueError = "B1707"
 )
 
 func Text(lang string, code string) string {
