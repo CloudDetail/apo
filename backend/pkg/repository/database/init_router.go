@@ -26,7 +26,6 @@ var validRouters = []Router{
 	{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 	{RouterTo: "/trace/full", HideTimeSelector: true},
 	{RouterTo: "/system/data-group", HideTimeSelector: true},
-	{RouterTo: "/system/config", HideTimeSelector: true},
 	{RouterTo: "/system/team", HideTimeSelector: true},
 	{RouterTo: "/alerts/events", HideTimeSelector: false},
 	{RouterTo: "/alerts/events/detail/:alertID/:eventID", HideTimeSelector: false},

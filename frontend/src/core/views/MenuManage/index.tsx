@@ -70,7 +70,7 @@ function MenuManagePage() {
               items={menuItems}
               // className="border-none"
               onSelect={onSelect}
-              style={{ height: 'calc(100vh - 200px)', border: 'none', overflowY: 'auto' }}
+              style={{ height: 'calc(100vh - 200px)', border: 'none', overflowY: 'auto', backgroundColor: 'var(--ant-color-bg-container)' }}
             />
           </Card>
 

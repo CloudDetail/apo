@@ -16,7 +16,6 @@ const RoleManage = AuthRouter(React.lazy(() => import('src/core/views/RoleManage
 const AlertsIntegrationPage = AuthRouter(React.lazy(
   () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
 ))
-const SystemConfiguration = AuthRouter(React.lazy(() => import('src/core/views/SystemConfiguration/index.jsx')))
 const DataGroupPage = AuthRouter(React.lazy(() => import('src/core/views/DataGroup/index')))
 const TeamPage = AuthRouter(React.lazy(() => import('src/core/views/Team/index')))
 const DataIntegrationPage = AuthRouter(React.lazy(
@@ -67,12 +66,6 @@ const baseRoutes = [
     path: '/integration/data/settings',
     name: <TranslationCom text="dataIntegrationSettings" space={namespace} />,
     element: IntegrationSettings,
-  },
-  {
-    path: '/system/config',
-    name: <TranslationCom text="systemConfigName" space={namespace} />,
-    element: SystemConfiguration,
-    hideSystemTimeRangePicker: true,
   },
   {
     path: '/system/data-group',

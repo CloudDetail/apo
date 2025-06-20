@@ -6,7 +6,7 @@
 import { Button, Drawer, Segmented } from "antd"
 import { IoLanguageOutline } from "react-icons/io5"
 import { VscColorMode } from "react-icons/vsc"
-import { SunFilled, MoonFilled, CloseOutlined, SettingOutlined } from '@ant-design/icons'
+import { SunFilled, MoonFilled, CloseOutlined, SettingOutlined, SkinOutlined } from '@ant-design/icons'
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useColorModes } from "@coreui/react";
@@ -48,7 +48,7 @@ const PreferencesDrawer = ({ open, onClose }) => {
     <Drawer
       title={
         <div className="flex justify-start items-center gap-2">
-          <SettingOutlined />
+          <SkinOutlined />
           <p className="p-1">{t('preferences')}</p>
         </div>
       }
