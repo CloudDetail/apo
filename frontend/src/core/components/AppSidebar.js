@@ -93,13 +93,19 @@ const AppSidebar = () => {
             content: '${item.label}';
             display: block;
             margin: 4px;
-            padding: 20px 40px 20px 25px;
+            padding: 20px 40px 20px 20px;
             color: var(--ant-color-text-tertiary);
-            font-size: 14px ;
-            font-weight: 500;
-            border-bottom: 1px solid var(--ant-color-border);
+            font-size: 13px ;
+            font-weight: 400;
+            // border-bottom: 1px solid var(--ant-color-border);
           }
-          /* 覆盖 Tooltip 主体样式 */
+
+          .ant-menu-sub .ant-menu-item {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+          }
+
           .ant-tooltip-inner {
             background-color: var(--ant-color-bg-elevated) !important;
             color: var(--ant-color-text) !important;
@@ -108,13 +114,12 @@ const AppSidebar = () => {
             left: -6px;
           }
 
-          /* 隐藏 Tooltip 箭头 */
+          /* Hide Tooltip arrow */
           .ant-tooltip-arrow,
           .ant-tooltip-arrow-content {
             display: none !important;
           }
 
-          /* 可选：调整 padding / 圆角 */
           .ant-tooltip-inner {
             padding: 6px 10px !important;
             border-radius: 4px !important;
