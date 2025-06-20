@@ -94,16 +94,37 @@ const AppSidebar = () => {
             display: block;
             margin: 4px;
             padding: 20px 40px 20px 25px;
+            font-size: 12px ;
             font-weight: 500;
             border-bottom: 1px solid var(--ant-color-split);
             background-color: var(--ant-color-fill-tertiary);
+          }
+          /* 覆盖 Tooltip 主体样式 */
+          .ant-tooltip-inner {
+            background-color: var(--ant-color-bg-elevated) !important;
+            color: var(--ant-color-text) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            position: relative !important;
+            left: -6px;
+          }
+
+          /* 隐藏 Tooltip 箭头 */
+          .ant-tooltip-arrow,
+          .ant-tooltip-arrow-content {
+            display: none !important;
+          }
+
+          /* 可选：调整 padding / 圆角 */
+          .ant-tooltip-inner {
+            padding: 6px 10px !important;
+            border-radius: 4px !important;
           }
         `).join('')}
       </style>
       <Menu
         mode="inline"
         theme={theme}
-        // inlineCollapsed={collapsed}
+        inlineCollapsed={true}
         items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}
