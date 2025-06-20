@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
+import { SkinOutlined } from '@ant-design/icons';
 import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
 import { SettingOutlined } from '@ant-design/icons'
 import { AppBreadcrumb } from './index'
@@ -112,7 +113,7 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <Button type="text" icon={<SettingOutlined />} onClick={() => setDrawerOpen(true)} title={t('preferences')} />
+          <Button type="text" icon={<SkinOutlined />} onClick={() => setDrawerOpen(true)} title={t('preferences')} />
           <UserToolBox />
           <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
