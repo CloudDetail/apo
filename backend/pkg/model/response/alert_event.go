@@ -6,6 +6,7 @@ package response
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 type AlertEventSearchResponse struct {
@@ -31,4 +32,12 @@ type GetAlertDetailResponse struct {
 
 type AlertEventClassifyResponse struct {
 	WorkflowId string `json:"workflowId"`
+}
+
+type AlertEventFiltersResponse struct {
+	Filters []request.AlertEventFilter `json:"filters"`
+}
+
+type AlertEventFilterLabelKeysResponse struct {
+	Labels []string `json:"labels"`
 }

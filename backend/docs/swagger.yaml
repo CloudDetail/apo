@@ -676,12 +676,12 @@ definitions:
   database.AuthDataGroup:
     properties:
       team:
-        $ref: '#/definitions/database.Team'
+        $ref: '#/definitions/profile.Team'
       type:
         description: view, edit
         type: string
       user:
-        $ref: '#/definitions/database.User'
+        $ref: '#/definitions/profile.User'
     type: object
   database.DataGroup:
     properties:
@@ -712,15 +712,6 @@ definitions:
         description: service or namespace
         type: string
     type: object
-  database.Feature:
-    properties:
-      featureId:
-        type: integer
-      featureName:
-        type: string
-      source:
-        type: string
-    type: object
   database.InsertPage:
     properties:
       pageId:
@@ -749,15 +740,6 @@ definitions:
         - $ref: '#/definitions/database.Router'
         description: Frontend router.
     type: object
-  database.Role:
-    properties:
-      description:
-        type: string
-      roleId:
-        type: integer
-      roleName:
-        type: string
-    type: object
   database.Router:
     properties:
       hideTimeSelector:
@@ -767,48 +749,6 @@ definitions:
       routerId:
         type: integer
       to:
-        type: string
-    type: object
-  database.Team:
-    properties:
-      description:
-        type: string
-      featureList:
-        items:
-          $ref: '#/definitions/database.Feature'
-        type: array
-      teamId:
-        type: integer
-      teamName:
-        type: string
-      userList:
-        items:
-          $ref: '#/definitions/database.User'
-        type: array
-    type: object
-  database.User:
-    properties:
-      corporation:
-        type: string
-      email:
-        type: string
-      featureList:
-        items:
-          $ref: '#/definitions/database.Feature'
-        type: array
-      phone:
-        type: string
-      roleList:
-        items:
-          $ref: '#/definitions/database.Role'
-        type: array
-      teamList:
-        items:
-          $ref: '#/definitions/database.Team'
-        type: array
-      userId:
-        type: integer
-      username:
         type: string
     type: object
   httpconfig.Authorization:
@@ -1471,6 +1411,66 @@ definitions:
       system:
         type: string
     type: object
+  profile.Feature:
+    properties:
+      featureId:
+        type: integer
+      featureName:
+        type: string
+      source:
+        type: string
+    type: object
+  profile.Role:
+    properties:
+      description:
+        type: string
+      roleId:
+        type: integer
+      roleName:
+        type: string
+    type: object
+  profile.Team:
+    properties:
+      description:
+        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/profile.Feature'
+        type: array
+      teamId:
+        type: integer
+      teamName:
+        type: string
+      userList:
+        items:
+          $ref: '#/definitions/profile.User'
+        type: array
+    type: object
+  profile.User:
+    properties:
+      corporation:
+        type: string
+      email:
+        type: string
+      featureList:
+        items:
+          $ref: '#/definitions/profile.Feature'
+        type: array
+      phone:
+        type: string
+      roleList:
+        items:
+          $ref: '#/definitions/profile.Role'
+        type: array
+      teamList:
+        items:
+          $ref: '#/definitions/profile.Team'
+        type: array
+      userId:
+        type: integer
+      username:
+        type: string
+    type: object
   prometheus.MetricsPoint:
     properties:
       timestamp:
@@ -1564,6 +1564,32 @@ definitions:
       alertName:
         type: string
     type: object
+  request.AlertEventFilter:
+    properties:
+      key:
+        type: string
+      matchExpr:
+        type: string
+      name:
+        type: string
+      options:
+        items:
+          $ref: '#/definitions/request.AlertEventFilterOption'
+        type: array
+      selected:
+        items:
+          type: string
+        type: array
+      wildcard:
+        type: boolean
+    type: object
+  request.AlertEventFilterOption:
+    properties:
+      display:
+        type: string
+      value:
+        type: string
+    type: object
   request.AlertEventSearchFilter:
     properties:
       namespaces:
@@ -1590,7 +1616,13 @@ definitions:
       endTime:
         type: integer
       filter:
-        $ref: '#/definitions/request.AlertEventSearchFilter'
+        allOf:
+        - $ref: '#/definitions/request.AlertEventSearchFilter'
+        description: Deprecated
+      filters:
+        items:
+          $ref: '#/definitions/request.AlertEventFilter'
+        type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
       sortBy:
@@ -2221,6 +2253,19 @@ definitions:
       alertId:
         type: string
     type: object
+  request.SearchAlertEventFilterValuesRequest:
+    properties:
+      endTime:
+        type: integer
+      filters:
+        items:
+          $ref: '#/definitions/request.AlertEventFilter'
+        type: array
+      searchKey:
+        type: string
+      startTime:
+        type: integer
+    type: object
   request.SetAlertSlienceConfigRequest:
     properties:
       alertId:
@@ -2375,6 +2420,20 @@ definitions:
     properties:
       workflowId:
         type: string
+    type: object
+  response.AlertEventFilterLabelKeysResponse:
+    properties:
+      labels:
+        items:
+          type: string
+        type: array
+    type: object
+  response.AlertEventFiltersResponse:
+    properties:
+      filters:
+        items:
+          $ref: '#/definitions/request.AlertEventFilter'
+        type: array
     type: object
   response.AlertEventSearchResponse:
     properties:
@@ -2965,7 +3024,7 @@ definitions:
         type: integer
       teamList:
         items:
-          $ref: '#/definitions/database.Team'
+          $ref: '#/definitions/profile.Team'
         type: array
       total:
         description: total number of records
@@ -3041,17 +3100,17 @@ definitions:
         type: string
       featureList:
         items:
-          $ref: '#/definitions/database.Feature'
+          $ref: '#/definitions/profile.Feature'
         type: array
       phone:
         type: string
       roleList:
         items:
-          $ref: '#/definitions/database.Role'
+          $ref: '#/definitions/profile.Role'
         type: array
       teamList:
         items:
-          $ref: '#/definitions/database.Team'
+          $ref: '#/definitions/profile.Team'
         type: array
       userId:
         type: integer
@@ -3071,7 +3130,7 @@ definitions:
         type: integer
       users:
         items:
-          $ref: '#/definitions/database.User'
+          $ref: '#/definitions/profile.User'
         type: array
     type: object
   response.IndexItem:
@@ -3315,7 +3374,7 @@ definitions:
         type: string
       featureList:
         items:
-          $ref: '#/definitions/database.Feature'
+          $ref: '#/definitions/profile.Feature'
         type: array
       phone:
         type: string
@@ -3324,11 +3383,11 @@ definitions:
         type: string
       roleList:
         items:
-          $ref: '#/definitions/database.Role'
+          $ref: '#/definitions/profile.Role'
         type: array
       teamList:
         items:
-          $ref: '#/definitions/database.Team'
+          $ref: '#/definitions/profile.Team'
         type: array
       userId:
         type: integer
@@ -4411,6 +4470,71 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.AlertEventSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/filter/keys:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventFiltersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/filter/labelkeys:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SearchAlertEventFilterValuesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventFilterLabelKeysResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/filter/values:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SearchAlertEventFilterValuesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/request.AlertEventFilter'
         "400":
           description: Bad Request
           schema:
@@ -6235,7 +6359,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Feature'
+              $ref: '#/definitions/profile.Feature'
             type: array
         "400":
           description: Bad Request
@@ -6374,7 +6498,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Feature'
+              $ref: '#/definitions/profile.Feature'
             type: array
         "400":
           description: Bad Request
@@ -6513,7 +6637,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Role'
+              $ref: '#/definitions/profile.Role'
             type: array
         "400":
           description: Bad Request
@@ -6585,7 +6709,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Role'
+              $ref: '#/definitions/profile.Role'
             type: array
         "400":
           description: Bad Request
@@ -8370,7 +8494,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.User'
+              $ref: '#/definitions/profile.User'
             type: array
         "400":
           description: Bad Request
@@ -9004,7 +9128,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.Team'
+              $ref: '#/definitions/profile.Team'
             type: array
         "400":
           description: Bad Request

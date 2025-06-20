@@ -24,8 +24,9 @@ const FullTextSearch = () => {
     updateQuery(newQuery)
   }
   return (
-    <Space>
+    <Space className='w-full'>
       <Input
+        className='flex-grow'
         placeholder={t('indexList.fullTextSearch.fullTextSearchPlaceholderText')}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}

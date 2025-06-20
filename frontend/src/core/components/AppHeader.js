@@ -7,7 +7,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
+import { SkinOutlined } from '@ant-design/icons'
 import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { SettingOutlined } from '@ant-design/icons'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
@@ -15,10 +17,12 @@ import DateTimeCombine from './DateTime/DateTimeCombine'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
 import { t } from 'i18next'
-import ThemeSwitcher from './ThemeSwitcher'
-import { theme } from 'antd'
+import { Button, theme } from 'antd'
+import PreferencesDrawer from './Drawer/PreferencesDrawer'
+import { useTranslation } from 'react-i18next'
 
 const AppHeader = ({ type = 'default' }) => {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
@@ -28,6 +32,7 @@ const AppHeader = ({ type = 'default' }) => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const onClick = (to) => {
     navigate(to)
@@ -108,8 +113,14 @@ const AppHeader = ({ type = 'default' }) => {
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <ThemeSwitcher />
+          <Button
+            type="text"
+            icon={<SkinOutlined />}
+            onClick={() => setDrawerOpen(true)}
+            title={t('preferences')}
+          />
           <UserToolBox />
+          <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
       </div>
     </CHeader>

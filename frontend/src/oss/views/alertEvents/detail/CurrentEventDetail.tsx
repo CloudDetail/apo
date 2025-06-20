@@ -4,7 +4,13 @@
  */
 import { Button, Descriptions, DescriptionsProps, Modal, Result, theme } from 'antd'
 import { useTranslation } from 'react-i18next'
-import { AlertDeration, ALertIsValid, AlertLevel, AlertStatus, AlertTags } from '../components/AlertInfoCom'
+import {
+  AlertDeration,
+  ALertIsValid,
+  AlertLevel,
+  AlertStatus,
+  AlertTags,
+} from '../components/AlertInfoCom'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import WorkflowsIframe from '../../workflows/workflowsIframe'
 import { useState } from 'react'
@@ -66,7 +72,7 @@ const CurrentEventDetail = ({
     {
       key: '2',
       label: t('severity'),
-      children: <AlertLevel level={detail?.severity} />
+      children: <AlertLevel level={detail?.severity} />,
     },
     {
       key: '5',
@@ -86,7 +92,7 @@ const CurrentEventDetail = ({
       key: 'detail',
       label: t('alertDetail'),
       span: 4,
-      children: <AlertTags tags={detail?.tags} detail={detail?.detail} defaultVisible />,
+      children: <AlertTags tags={detail?.tagsDisplay} detail={detail?.detail} defaultVisible />,
     },
   ]
   async function getWorkflowId(alertGroup, alertName) {

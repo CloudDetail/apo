@@ -25,8 +25,15 @@ i18n
   .use(LanguageDetector) // 自动检测用户语言
   .use(initReactI18next) // 绑定 React
   .init({
-    fallbackLng: 'en', // 默认语言
-    supportedLngs: ['en', 'zh'], // 支持的语言列表
+    fallbackLng: {
+      'zh-HK': ['zh-TW'],
+      'zh-TW': ['zh-TW'],
+      'zh-CN': ['zh'],
+      zh: ['zh'],
+      default: ['en'],
+    },
+    supportedLngs: ['en', 'zh', 'zh-CN', 'zh-TW', 'zh-HK'],
+    nonExplicitSupportedLngs: true,
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // 翻译文件路径
     },

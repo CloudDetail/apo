@@ -8,7 +8,7 @@ import LogValueTag from './LogValueTag'
 import LogKeyTag from './LogKeyTag'
 import { useMemo } from 'react'
 
-const LogItemFold = ({ tags }) => {
+const LogItemFold = ({ tags, hideNull = true }) => {
   const { tableInfo, displayFields } = useLogsContext()
   //由tableName和type组成的唯一标识
   const tableId = `${tableInfo.tableName}_${tableInfo.type}`
@@ -30,7 +30,7 @@ const LogItemFold = ({ tags }) => {
       {/* 渲染 tags */}
       <div className="text-ellipsis text-wrap flex" style={{ display: '-webkit-box' }}>
         {filteredTags?.map(([key, value]) => (
-          <LogValueTag key={key} objKey={key} value={String(value)} />
+          (!hideNull || value) && <LogValueTag key={key} objKey={key} value={String(value)} />
         ))}
       </div>
     </>
