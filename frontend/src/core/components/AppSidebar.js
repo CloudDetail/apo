@@ -21,7 +21,7 @@ const AppSidebarMenuIcon = (menuItem) => {
     </div>
   )
 }
-const AppSidebar = ({ collapsed }) => {
+const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
   const { theme } = useSelector((state) => state.settingReducer)
 
@@ -40,6 +40,8 @@ const AppSidebar = ({ collapsed }) => {
       icon: AppSidebarMenuIcon(menu),
       to: menu.router?.to,
       children: menu.children?.map((child) => prepareMenu(child)),
+      popupClassName: `submenu-with-parent-${menu.key}`,
+      className: `menu-item-${menu.key}`
     }
   }
 
@@ -64,22 +66,13 @@ const AppSidebar = ({ collapsed }) => {
     return result
   }
   const onOpenChange = (openKeys) => {
-    if (!collapsed) {
-      setOpenKeys(openKeys)
-      setMemoOpenKeys(openKeys)
-    }
+    setOpenKeys(openKeys)
   }
   useEffect(() => {
     const result = getItemKey(menuList)
     setSelectedKeys(result)
   }, [location.pathname, menuList])
-  useEffect(() => {
-    if (!collapsed) {
-      setOpenKeys(memoOpenKeys)
-    } else {
-      setOpenKeys([])
-    }
-  }, [collapsed])
+
   return (
     <ConfigProvider
       theme={{
@@ -94,16 +87,55 @@ const AppSidebar = ({ collapsed }) => {
         },
       }}
     >
+      <style>
+        {menuList.map((item) => `
+          .submenu-with-parent-${item.key} .ant-menu-sub::before {
+            content: '${item.label}';
+            display: block;
+            margin: 4px;
+            padding: 20px 40px 20px 20px;
+            color: var(--ant-color-text-tertiary);
+            font-size: 13px ;
+            font-weight: 400;
+            // border-bottom: 1px solid var(--ant-color-border);
+          }
+
+          .ant-menu-sub .ant-menu-item {
+            white-space: nowrap !important;
+            overflow: visible !important;
+            text-overflow: unset !important;
+          }
+
+          .ant-tooltip-inner {
+            background-color: var(--ant-color-bg-elevated) !important;
+            color: var(--ant-color-text) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            position: relative !important;
+            left: -6px;
+          }
+
+          /* Hide Tooltip arrow */
+          .ant-tooltip-arrow,
+          .ant-tooltip-arrow-content {
+            display: none !important;
+          }
+
+          .ant-tooltip-inner {
+            padding: 6px 10px !important;
+            border-radius: 4px !important;
+          }
+        `).join('')}
+      </style>
       <Menu
         mode="inline"
         theme={theme}
-        inlineCollapsed={collapsed}
+        inlineCollapsed={true}
         items={menuList}
         onClick={onClick}
         selectedKeys={selectedKeys}
         openKeys={openKeys}
         onOpenChange={onOpenChange}
-        className="sidebarMenu pb-20"
+        className="sidebarMenu *:custom-scrollbar"
       ></Menu>
     </ConfigProvider>
   )
