@@ -79,7 +79,6 @@ func (repo *daoRepo) initMenuItems(ctx core.Context) error {
 			"menuManage":        "manage",
 			"alertsRule":        "alerts",
 			"alertsNotify":      "alerts",
-			"systemConfig":      "manage",
 			"dataIntegration":   "integration",
 			"alertsIntegration": "integration",
 			"dataGroup":         "manage",

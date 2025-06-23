@@ -338,18 +338,6 @@ menuManage:
     field_name: "label"
     entity_type: "menu"
 
-systemConfig:
-  key: "systemConfig"
-  i18n:
-    - language: "en"
-      translation: "System Settings"
-      field_name: "label"
-      entity_type: "menu"
-    - language: "zh"
-      translation: "系统配置"
-      field_name: "label"
-      entity_type: "menu"
-
 groupManage:
   key: "dataGroup"
   i18n:
@@ -680,18 +668,6 @@ roleManage:
     entity_type: "feature"
     field_name: "featureName"
 
-系统配置:
-  key: "系统配置"
-  i18n:
-  - language: "en"
-    translation: "System Settings"
-    entity_type: "feature"
-    filed_name: "featureName"
-
-  - language: "zh"
-    translation: "系统配置"
-    entity_type: "feature"
-    field_name: "featureName"
 
 数据组管理:
   key: "数据组管理"

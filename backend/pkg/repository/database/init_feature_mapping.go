@@ -48,7 +48,6 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},
 		{"菜单管理", "menuManage"},
-		{"系统配置", "systemConfig"},
 		{"数据组管理", "dataGroup"},
 		{"团队管理", "team"},
 		{"角色管理", "role"},
