@@ -59,9 +59,9 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 		return nil
 	}
 
-	allDatasource, err := s.GetDataSource()
+	allDatasource, err := s.GetDataSource(ctx)
 	if err != nil {
-		return model.NewErrWithMessage(err, code.GetDatasourceError)
+		return core.Error(code.GetDatasourceError, err.Error())
 	}
 
 	for _, group := range groups {
