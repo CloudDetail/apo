@@ -115,11 +115,15 @@ var dbIPRegex = regexp.MustCompile(`tcp\((\d+\.\d+\.\d+\.\d+):.*\)`)
 var dbPortRegex = regexp.MustCompile(`tcp\(.*:(\d+)\)`)
 
 func (a *AlertEvent) GetDatabaseURL() string {
+	if dbURL, find := a.Tags["dbURL"]; find && len(dbURL) > 0 {
+		return dbURL
+	}
+
 	if dbURL, find := a.Tags["dbHost"]; find && len(dbURL) > 0 {
 		return dbURL
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbURLRegex.FindString(instance)
 	}
@@ -131,7 +135,7 @@ func (a *AlertEvent) GetDatabaseIP() string {
 		return dbIP
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbIPRegex.FindString(instance)
 	}
@@ -143,7 +147,7 @@ func (a *AlertEvent) GetDatabasePort() string {
 		return dbPort
 	}
 
-	if a.Group == "database" {
+	if a.Group == "middleware" {
 		instance := a.RawTags["instance"]
 		return dbPortRegex.FindString(instance)
 	}
