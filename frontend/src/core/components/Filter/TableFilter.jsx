@@ -86,7 +86,7 @@ const TableFilter = (props) => {
       groupId: groupId,
       category: 'apm',
     }).then((res) => {
-      //todo null
+
       const namespaceOptions = Object.entries(res.namespaceMap).map(([namespace, service]) => ({
         label: namespace,
         value: namespace,
