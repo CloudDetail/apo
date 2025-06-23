@@ -16,16 +16,14 @@ import { useTranslation } from 'react-i18next'
 
 const DefaultLayout = () => {
   const { t } = useTranslation()
-  const [collapsed, setCollapsed] = useState(true)
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         collapsible
         trigger={null}
-        collapsed={collapsed}
+        collapsed={true}
         collapsedWidth={70}
-        onCollapse={(value) => setCollapsed(value)}
         style={{
           position: 'fixed',
           overflowX: 'hidden',
@@ -35,7 +33,7 @@ const DefaultLayout = () => {
           height: '100vh',
           borderRight: '1px solid var(--ant-color-border-secondary)',
         }}
-        className={`custom-scrollbar ${collapsed ? 'siderCollapsed' : ''}`}
+        className={'custom-scrollbar siderCollapsed'}
         width={200}
       >
         <div
@@ -52,26 +50,13 @@ const DefaultLayout = () => {
             className="w-[36px] sidebar-brand-narrow flex-shrink-0"
             alt="CoreuiVue"
           />
-          {!collapsed && <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>}
+          {/* <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span> */}
         </div>
         <AppSidebar />
-        {/* <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            fontSize: '16px',
-            width: 45,
-            height: 45,
-            position: 'absolute',
-            margin: '4px',
-            bottom: 0
-          }}
-        ></Button> */}
       </Sider>
       <Layout
         style={{
-          marginLeft: collapsed ? '70px' : '200px',
+          marginLeft: '70px',
           transition: 'margin-left 0.3s ease-in-out',
         }}
       >
