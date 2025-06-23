@@ -4,7 +4,6 @@ import { Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import 'src/core/layout/index.css'
 const UnitedLayout = () => {
-  const [collapsed, setCollapsed] = useState(true)
   return (
     <Layout style={{ minHeight: '100vh' }}>
       {/* <Header className="w-full p-0">
@@ -17,9 +16,7 @@ const UnitedLayout = () => {
         <Sider
           trigger={null}
           collapsible
-          collapsed={collapsed}
-          onMouseEnter={() => setCollapsed(false)}
-          onMouseLeave={() => setCollapsed(true)}
+          collapsed={true}
           collapsedWidth={70}
           style={{
             overflow: 'auto',
@@ -29,7 +26,7 @@ const UnitedLayout = () => {
             height: '100vh',
           }}
           width={250}
-          className={collapsed ? 'siderCollapsed border-end' : 'border-end'}
+          className={'siderCollapsed'}
         >
           {/* <div className="h-[60px] flex w-full overflow-hidden items-center">
             <CImage
@@ -39,7 +36,7 @@ const UnitedLayout = () => {
             />
             <span className="flex-shrink-0 text-lg">向导式可观测平台</span>
           </div> */}
-          <AppSidebar collapsed={collapsed} />
+          <AppSidebar />
         </Sider>
         <Layout>
           <div className="body flex-grow-1">
