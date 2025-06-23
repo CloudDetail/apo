@@ -32,7 +32,7 @@ const edgeTypes = {
   loop: CustomSelfLoopEdge,
 }
 const LayoutFlow = (props) => {
-  const { data, nodeHeight = 60, nodeTypes = {} } = props
+  const { data, nodeHeight = 60, nodeTypes = {}, active = true } = props
   // 所有链路
   const reactFlowInstance = useRef(null)
   // const [initialNodes, setInitialNodes] = useState([])
@@ -160,6 +160,11 @@ const LayoutFlow = (props) => {
       maxZoom={2} // 设置最大缩放
       onNodeClick={clickNode}
       onLoad={onLoad}
+      nodesDraggable={active}
+      elementsSelectable={active}
+      panOnDrag={active}
+      zoomOnScroll={active}
+      zoomOnPinch={active}
     />
   )
 }
