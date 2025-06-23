@@ -1,0 +1,22 @@
+{
+  "error": "错误报告",
+  "slow": "慢故障报告",
+  "infra": "基础设施异常报告",
+  "serviceName": "服务名",
+  "pod": "Pod信息",
+  "containerId": "容器ID",
+  "nodeName": "节点名称",
+  "pid": "进程id",
+  "rootCauseType": {
+    "cpu": "CPU资源争用",
+    "code": "代码性能",
+    "net": "网络质量",
+    "storage": "存储问题",
+    "downstream": "依赖慢"
+  },
+  "level": {
+    "major": "主要故障",
+    "minor": "次要故障",
+    "normal": "正常"
+  }
+}

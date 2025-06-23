@@ -1,0 +1,5 @@
+{
+  "error": "Error Type Report",
+  "slow": "Slow Type Report",
+  "infra": "Infra Type Report"
+}

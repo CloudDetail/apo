@@ -9,6 +9,7 @@ const CauseReportPage = React.lazy(() => import('src/pro/views/causeReport/index
 const ServiceHealthy = React.lazy(() => import('src/pro/views/serviceHealthy/index'))
 const MysqlDashboard = React.lazy(() => import('src/pro/views/MysqlDashboard/index'))
 const ChatAIPage = React.lazy(() => import('src/pro/views/chatAI/index'))
+const SlowReportPage = React.lazy(() => import('src/pro/views/report/index'))
 
 let proRoutes = [
   {
@@ -45,5 +46,17 @@ let proRoutes = [
     name: t('pro/routes:aiRootCauseAnalysis'),
     element: ChatAIPage,
   },
+  {
+    path: '/report',
+    name: t('pro/routes:report'),
+    element: SlowReportPage,
+    hideSystemTimeRangePicker: true,
+  },
+  // {
+  //   path: '/report/error',
+  //   name: <TranslationCom text="errorReport" space={namespace} />,
+  //   element: ErrorReportPage,
+  //   hideSystemTimeRangePicker: true,
+  // },
 ]
 export default proRoutes
