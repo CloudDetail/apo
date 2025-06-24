@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
@@ -54,12 +55,13 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 	}
 
 	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(ctx, fillCategory)
-		if err != nil {
-			return err
-		}
+		// default datagroup, skip check.
+		return nil
+	}
 
-		groups = append(groups, defaultGroup)
+	allDatasource, err := s.GetDataSource(ctx)
+	if err != nil {
+		return core.Error(code.GetDatasourceError, err.Error())
 	}
 
 	for _, group := range groups {
@@ -141,9 +143,13 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 	for _, srv := range servicesSlice {
 		_, exists := serviceMap[srv]
 		if !exists {
-			continue
+			in := inAllDatasource(allDatasource, srv, model.DATASOURCE_TYP_SERVICE)
+			if in {
+				continue
+			}
 		}
 
+		// has permisison or datasource not monitored
 		if _, ok := filteredSrvMap[srv]; !ok {
 			filteredSrv = append(filteredSrv, srv)
 		}
@@ -153,7 +159,10 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 	for _, ns := range namespacesSlice {
 		has, exists := namespaceMap[ns]
 		if !exists {
-			continue
+			in := inAllDatasource(allDatasource, ns, model.DATASOURCE_TYP_SERVICE)
+			if in {
+				continue
+			}
 		}
 
 		if has {
@@ -221,4 +230,23 @@ func setInterface(dest interface{}, value []string) {
 	case *[]string:
 		*v = value
 	}
+}
+
+func inAllDatasource(all response.GetDatasourceResponse, datasource string, typ string) bool {
+	switch typ {
+	case model.DATASOURCE_TYP_NAMESPACE:
+		for _, namespace := range all.NamespaceList {
+			if datasource == namespace.Datasource {
+				return true
+			}
+		}
+	case model.DATASOURCE_TYP_SERVICE:
+		for _, service := range all.ServiceList {
+			if datasource == service.Datasource {
+				return true
+			}
+		}
+	}
+
+	return false
 }
