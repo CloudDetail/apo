@@ -36,7 +36,7 @@ const RecommendedAction = ({ suggest }: { suggest: SuggestItem[] }) => {
           return (
             <div
               key={index}
-              className={`border rounded-md p-4 transition-colors ${
+              className={`border rounded-md px-3 py-2 transition-colors ${
                 isChecked
                   ? isDark
                     ? 'border-emerald-800 bg-emerald-900/30'
@@ -47,8 +47,7 @@ const RecommendedAction = ({ suggest }: { suggest: SuggestItem[] }) => {
               }`}
             >
               <div className="flex items-start">
-                {/* 复选框 */}
-                <div
+                {/* <div
                   className="flex-shrink-0 mr-3 mt-1 cursor-pointer"
                   onClick={() => toggleAction(index)}
                 >
@@ -73,7 +72,7 @@ const RecommendedAction = ({ suggest }: { suggest: SuggestItem[] }) => {
                       </svg>
                     )}
                   </div>
-                </div>
+                </div> */}
 
                 {/* 等级标签 */}
                 {action.level && (
