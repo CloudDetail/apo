@@ -45,7 +45,9 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 		if w.expiredTS > 0 && endTime < w.expiredTS {
 			record = w.createExpiredRecord(event, endTime)
 		} else {
+			runner.Add(1)
 			record = w.doAlertCheck(c, event, endTime)
+			runner.Add(-1)
 		}
 
 		if !timeout.Stop() {
