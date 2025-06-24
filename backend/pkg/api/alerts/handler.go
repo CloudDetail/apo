@@ -36,6 +36,16 @@ type Handler interface {
 	// @Router /api/alerts/events/classify [get]
 	AlertEventClassify() core.HandlerFunc
 
+	// GetAlertEventReport
+	// @Tags API.alerts
+	// @Router /api/alerts/events/report/get [get]
+	GetAlertEventReport() core.HandlerFunc
+
+	// AddAlertEventReport
+	// @Tags API.alerts
+	// @Router /api/alerts/events/report/add [post]
+	AddAlertEventReport() core.HandlerFunc
+
 	// ========================告警配置========================
 
 	// InputAlertManager get AlertManager alarm events

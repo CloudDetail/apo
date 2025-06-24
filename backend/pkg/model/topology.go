@@ -102,3 +102,57 @@ func NewServerRelation(parentService, parentEndPoint, service, endpoint string, 
 		System:         "",
 	}
 }
+
+type ServiceTopologyNodes struct {
+	Nodes map[string]*ServiceToplogyNode
+}
+
+func NewServiceTopologyNodes() *ServiceTopologyNodes {
+	return &ServiceTopologyNodes{
+		Nodes: make(map[string]*ServiceToplogyNode),
+	}
+}
+
+func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category string) *ServiceToplogyNode {
+	if node, exist := nodes.Nodes[service]; exist {
+		return node
+	}
+	node := NewServiceToplogyNode(service, category)
+	nodes.Nodes[service] = node
+	return node
+}
+
+type ServiceToplogyNode struct {
+	Id       string   `json:"id"`
+	Name     string   `json:"name"`
+	Category string   `json:"category"`
+	Parents  []string `json:"parents"`
+	Children []string `json:"children"`
+}
+
+func NewServiceToplogyNode(service string, category string) *ServiceToplogyNode {
+	return &ServiceToplogyNode{
+		Id: service,
+		Name:  service,
+		Category: category,
+		Parents:  []string{},
+		Children: []string{},
+	}
+}
+
+func (node *ServiceToplogyNode) AddChild(childNode *ServiceToplogyNode) {
+	if node.hasChild(childNode) {
+		return
+	}
+	node.Children = append(node.Children, childNode.Name)
+	childNode.Parents = append(childNode.Parents, node.Name)
+}
+
+func (node *ServiceToplogyNode) hasChild(childNode *ServiceToplogyNode) bool {
+	for _, child := range node.Children {
+		if child == childNode.Name {
+			return true
+		}
+	}
+	return false
+}

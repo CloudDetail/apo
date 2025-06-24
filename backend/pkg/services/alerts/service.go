@@ -26,6 +26,9 @@ type Service interface {
 
 	AlertEventClassify(ctx core.Context, req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
 
+	GetAlertEventReport(ctx core.Context, req *request.GetAlertEventReportRequest) (*response.GetAlertEventReportResponse, error)
+	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
+
 	// ========================告警配置========================
 
 	// InputAlertManager receive AlertManager alarm events

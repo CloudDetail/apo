@@ -3455,6 +3455,284 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/endpoints": {
+            "get": {
+                "description": "Get service's endpoints.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get service's endpoints.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query service name",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query cluster name",
+                        "name": "cluster",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryServiceEndpointsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/instances": {
+            "get": {
+                "description": "Get service's instances.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get service's instances.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query service name",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query cluster name",
+                        "name": "cluster",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryServiceInstancesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/redcharts": {
+            "get": {
+                "description": "Get service's redcharts.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get service's redcharts.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query service name",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query cluster name",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query endpoint",
+                        "name": "endpoint",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryServiceRedChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename": {
+            "post": {
+                "description": "Get service name by instance.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get service name by instance.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryServiceNameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryServiceNameResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/topology": {
+            "get": {
+                "description": "Get service's topology.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get service's topology.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query service name",
+                        "name": "service",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query cluster name",
+                        "name": "cluster",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryTopologyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "description": "for k8s to check backend health status",
@@ -9443,6 +9721,12 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "tagsDisplay": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.TagDisplay"
+                    }
+                },
                 "updateTime": {
                     "type": "string"
                 },
@@ -9608,6 +9892,12 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    }
+                },
+                "tagsDisplay": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.TagDisplay"
                     }
                 },
                 "updateTime": {
@@ -9822,6 +10112,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "alert.TagDisplay": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "value": {
                     "type": "string"
                 }
             }
@@ -11540,6 +11844,32 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ServiceToplogyNode": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parents": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "model.SeverityLevel": {
             "type": "integer",
             "enum": [
@@ -13014,6 +13344,47 @@ const docTemplate = `{
                 "PF_Labels",
                 "PF_Flags"
             ]
+        },
+        "request.QueryServiceNameRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "cluster": {
+                    "description": "query Cluster",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                },
+                "tags": {
+                    "$ref": "#/definitions/request.QueryServiceNameTag"
+                }
+            }
+        },
+        "request.QueryServiceNameTag": {
+            "type": "object",
+            "properties": {
+                "containerId": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "pid": {
+                    "type": "string"
+                },
+                "pod": {
+                    "type": "string"
+                }
+            }
         },
         "request.RemoveAlertSlienceConfigRequest": {
             "type": "object",
@@ -15087,6 +15458,90 @@ const docTemplate = `{
                 }
             }
         },
+        "response.QueryChartResult": {
+            "type": "object",
+            "properties": {
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Timeseries"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QueryServiceEndpointsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceInstancesResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceInstance"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceNameResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QueryServiceRedChartsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QueryChartResult"
+                    }
+                }
+            }
+        },
+        "response.QueryTopologyResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceToplogyNode"
+                    }
+                }
+            }
+        },
         "response.RYGScoreDetail": {
             "type": "object",
             "properties": {
@@ -15402,6 +15857,26 @@ const docTemplate = `{
                 "value": {
                     "description": "Value metric average",
                     "type": "number"
+                }
+            }
+        },
+        "response.Timeseries": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "legend": {
+                    "type": "string"
+                },
+                "legendFormat": {
+                    "type": "string"
                 }
             }
         },
