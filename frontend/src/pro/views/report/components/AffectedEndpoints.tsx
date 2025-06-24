@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import MetricsNode from './MetricsNode'
+import Empty from 'src/core/components/Empty/Empty'
 
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
@@ -136,13 +137,17 @@ const AffectedEndpoints = (props) => {
         className="w-full h-[500px] z-50 relative"
         onClick={() => setWrapActive(true)}
       >
-        <Topology
-          data={topologyData}
-          nodeHeight={260}
-          nodeWidth={200}
-          nodeTypes={{ metricsNode: MetricsNode }}
-          active={wrapActive}
-        />
+        {topologyData?.nodes === 0 ? (
+          <Empty />
+        ) : (
+          <Topology
+            data={topologyData}
+            nodeHeight={260}
+            nodeWidth={200}
+            nodeTypes={{ metricsNode: MetricsNode }}
+            active={wrapActive}
+          />
+        )}
       </div>
     </div>
   )
