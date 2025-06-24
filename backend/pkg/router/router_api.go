@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
+	"github.com/CloudDetail/apo/backend/pkg/api/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
@@ -118,6 +119,8 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/event/list", alertHandler.AlertEventList())
 		alertApi.POST("/event/detail", alertHandler.AlertEventDetail())
 		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
+		alertApi.POST("/events/report/get", alertHandler.GetAlertEventReport())
+		alertApi.POST("/events/report/add", alertHandler.AddAlertEventReport())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())
 
@@ -325,5 +328,15 @@ func setApiRouter(r *resource) {
 		handler := metric.New(r.logger, r.prom)
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
+	}
+
+	dataplaneAPI := r.mux.Group("/api/dataplane")
+	{
+		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db)
+		dataplaneAPI.GET("/redcharts", handler.QueryServiceRedCharts())
+		dataplaneAPI.GET("/endpoints", handler.QueryServiceEndpoints())
+		dataplaneAPI.GET("/instances", handler.QueryServiceInstances())
+		dataplaneAPI.POST("/servicename", handler.QueryServiceName())
+		dataplaneAPI.GET("/topology", handler.QueryTopology())
 	}
 }

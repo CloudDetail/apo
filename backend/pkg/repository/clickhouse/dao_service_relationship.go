@@ -39,7 +39,8 @@ const (
 		labels['client_group'] as clientGroup, labels['client_type'] as clientType, labels['client_peer'] as clientPeer, labels['client_key'] as clientKey
 		FROM service_relationship
 		GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
-		WHERE startsWith(service_relationship.path, found_trace_ids.path)
+		WHERE service_relationship.timestamp BETWEEN %d AND %d
+		AND startsWith(service_relationship.path, found_trace_ids.path)
 		AND service_relationship.path != found_trace_ids.path
 		AND service_relationship.parent_service != found_trace_ids.empty_path
 		GROUP BY parentService, parentUrl, service, url, clientGroup, clientType, clientPeer, clientKey
@@ -50,6 +51,22 @@ const (
 		FROM service_relationship
 		%s
 		GROUP BY entry_service, entry_url
+	`
+
+	SQL_GET_SERVICE_TOPOLOGY = `
+		WITH found_trace_ids AS
+		(
+			SELECT trace_id
+			FROM %s.service_relationship
+			%s
+			LIMIT 10000
+		)
+		SELECT parent_service as parentService, service,
+		labels['client_group'] as clientGroup, labels['client_peer'] as clientPeer
+		FROM service_relationship
+		GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
+		WHERE service_relationship.timestamp BETWEEN %d AND %d
+		GROUP BY parentService, service, clientGroup, clientPeer
 	`
 )
 
@@ -101,7 +118,7 @@ func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescenda
 		Equals("url", req.Endpoint).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
-	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
 	results := []ChildRelation{}
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
@@ -119,7 +136,7 @@ func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServ
 		Equals("url", req.Endpoint).
 		EqualsNotEmpty("entry_service", req.EntryService).
 		EqualsNotEmpty("entry_url", req.EntryEndpoint)
-	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String())
+	sql := fmt.Sprintf(SQL_GET_DESCENDANT_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
 	results := []ChildRelation{}
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
@@ -144,6 +161,21 @@ func (ch *chRepo) ListEntryEndpoints(ctx core.Context, req *request.GetServiceEn
 		return nil, err
 	}
 	return results, nil
+}
+
+// Query Service Topology
+func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error) {
+	startTime := req.StartTime / 1000000
+	endTime := req.EndTime / 1000000
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime, endTime).
+		Equals("service", req.ServiceName)
+	results := []ServiceRelation{}
+	sql := fmt.Sprintf(SQL_GET_SERVICE_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return getServiceTopologyNodes(results), nil
 }
 
 type ParentNode struct {
@@ -433,4 +465,62 @@ type ServiceNode struct {
 type EntryNode struct {
 	Service  string `ch:"entry_service" json:"service"`
 	Endpoint string `ch:"entry_url" json:"endpoint"`
+}
+
+type ServiceRelation struct {
+	ParentService string `ch:"parentService"`
+	Service       string `ch:"service"`
+	ClientGroup   string `ch:"clientGroup"`
+	ClientPeer    string `ch:"clientPeer"`
+}
+
+func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopologyNodes {
+	result := model.NewServiceTopologyNodes()
+	if len(relations) == 0 {
+		return result
+	}
+
+	externalMap := make(map[string]string)
+
+	for _, relation := range relations {
+		var parentNode *model.ServiceToplogyNode
+		var childNode *model.ServiceToplogyNode
+		if relation.ParentService != "" {
+			parentNode = result.AddTopologyNode(relation.ParentService, "application")
+		}
+		if relation.Service != "" {
+			childNode = result.AddTopologyNode(relation.Service, "application")
+		}
+		if relation.ClientGroup == model.GROUP_MQ {
+			// MQ data A -> MQ -> B, two nodes MQ and B need to be generated
+			if relation.ClientPeer != "" {
+				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq")
+				if parentNode != nil {
+					parentNode.AddChild(mqNode)
+				}
+				if childNode != nil {
+					mqNode.AddChild(childNode)
+				}
+			}
+		} else if childNode != nil {
+			if parentNode != nil {
+				parentNode.AddChild(childNode)
+			}
+			if relation.ClientPeer != "" {
+				// Record ExternalPeer and Service map
+				externalMap[relation.ClientPeer] = childNode.Name
+			}
+		}
+	}
+	
+	for _, relation := range relations {
+		if relation.ParentService != "" && relation.ClientPeer != "" {
+			if _, found := externalMap[relation.ClientPeer]; !found {
+				parentNode := result.Nodes[relation.ParentService]
+				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup)
+				parentNode.AddChild(externalNode)
+			}
+		}
+	}
+	return result
 }

@@ -242,6 +242,8 @@ const (
 
 	GetAlertEventListError     = "B1501"
 	GetAlertEventClassifyError = "B1502"
+	GetAlertEventReportError   = "B1503"
+	AddAlertEventReportError   = "B1504"
 
 	// alert notify
 	GetAlertSlienceError    = "B1701"

@@ -45,6 +45,22 @@ type AlertEventClassifyRequest struct {
 	AlertGroup string `form:"alertGroup"`
 }
 
+type GetAlertEventReportRequest struct {
+	StartTime int64             `json:"startTime"`
+	EndTime   int64             `json:"endTime"`
+	Tags      map[string]string `json:"tags"`
+}
+
+type AddAlertEventReportRequest struct {
+	Type      string                `json:"reportType"`
+	Overview  model.ReportOverView  `json:"overview"`
+	Topology  map[string]any        `json:"topology"`
+	RootCause model.ReportRootCause `json:"rootCauseAnalysis"`
+	Tags      map[string]string     `json:"tags"`
+	Suggest   []map[string]any      `json:"suggest"`
+	Data      []map[string]any      `json:"evidence"`
+}
+
 type MarkAlertResolvedManuallyRequest struct {
 	AlertID string `json:"alertId" form:"alertId"`
 }
