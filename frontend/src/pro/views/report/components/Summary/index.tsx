@@ -85,7 +85,7 @@ const Summary = ({
         </div>
       </div>
       <ApplicationInfo tags={overview.tags} />
-      <div>{overview.detail}</div>
+      {/* <div>{overview.detail}</div> */}
       <div className="p-4 pb-0">
         <div className="items-start p-3 bg-[var(--ant-color-bg-layout)] rounded-lg transition-colors">
           {/* {result.map((metric) => (
