@@ -186,7 +186,7 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 	}
 
 	var count uint64
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
 	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 
 	resultFilter := NewQueryBuilder()
@@ -305,7 +305,7 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	var counts []_alertEventCount
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
 	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_COUNTS,
