@@ -43,13 +43,11 @@ interface RootCauseAnalysisData {
   other: RootCauseAnalysisItem[]
 }
 const RootCauseAnalysis = ({ cause, other }: RootCauseAnalysisData) => {
-  console.log(cause)
   const { t } = useTranslation('pro/report')
   const { theme } = useSelector((state) => state.settingReducer)
-  const summary = ['网络质量异常：连接到下游服务 payment-service 的网络链路延迟显著增加。']
   const columns = [
     {
-      title: '故障等级',
+      title: t('errorLevel'),
       dataIndex: 'level',
       key: 'level',
       width: 120,
@@ -62,7 +60,7 @@ const RootCauseAnalysis = ({ cause, other }: RootCauseAnalysisData) => {
       ),
     },
     {
-      title: '故障类别',
+      title: t('type'),
       dataIndex: 'type',
       key: 'type',
       width: 200,
@@ -80,7 +78,7 @@ const RootCauseAnalysis = ({ cause, other }: RootCauseAnalysisData) => {
       },
     },
     {
-      title: '描述',
+      title: t('reason'),
       dataIndex: 'reason',
       key: 'reason',
       render: (value) => <>{value}</>,
@@ -93,7 +91,7 @@ const RootCauseAnalysis = ({ cause, other }: RootCauseAnalysisData) => {
         <div className="border-l-4 border-red-500 pl-4 py-2 bg-[var(--custom-alert-error-bg)] rounded-r-md">
           <div className="flex items-start space-x-2 mb-2">
             <LuCircleAlert className="h-5 w-5 text-red-500 mt-0.5" />
-            <h3 className="text-base text-[var(--ant-text-color)]">主要故障</h3>
+            <h3 className="text-base text-[var(--ant-text-color)]">{t('main')}</h3>
           </div>
           <ul className="list-disc pl-6 space-y-1">
             <li className="text-[var(--ant-color-text)] text-sm">{cause}</li>

@@ -15,6 +15,7 @@ import Empty from 'src/core/components/Empty/Empty'
 import { useDebounce } from 'react-use'
 import { useSearchParams } from 'react-router-dom'
 import NoTraceHint from './components/NoTraceHint'
+import { useTranslation } from 'react-i18next'
 const CollapseLabel = ({ icon, title }) => {
   return (
     <div className="flex items-center ">
@@ -24,6 +25,7 @@ const CollapseLabel = ({ icon, title }) => {
   )
 }
 function Report() {
+  const { t } = useTranslation('pro/report')
   const [activeTabKey, setActiveTabKey] = useState(['rootCauseAnalysis', 'recommendedAction'])
   const [searchParams] = useSearchParams()
   const [reportData, setReportData] = useState()
@@ -48,7 +50,7 @@ function Report() {
     () => {
       getReportInfo()
     },
-    300, // 延迟时间 300ms
+    300,
     [searchParams],
   )
   const applicationItems = useCallback(
@@ -58,7 +60,7 @@ function Report() {
         label: (
           <CollapseLabel
             icon={<LuWebhook className="w-full h-full" />}
-            title={'受影响的直接上下游服务'}
+            title={t('affectedEndpoints')}
           />
         ),
         children: reportData?.topology ? (
@@ -70,21 +72,30 @@ function Report() {
       {
         key: 'rootCauseAnalysis',
         label: (
-          <CollapseLabel icon={<BiAnalyse className="w-full h-full" />} title={'问题初步归因'} />
+          <CollapseLabel
+            icon={<BiAnalyse className="w-full h-full" />}
+            title={t('rootCauseAnalysis')}
+          />
         ),
         children: <RootCauseAnalysis {...reportData.rootCauseAnalysis} />,
       },
       {
         key: 'recommendedAction',
         label: (
-          <CollapseLabel icon={<LuSquareCheckBig className="w-full h-full" />} title={'建议行动'} />
+          <CollapseLabel
+            icon={<LuSquareCheckBig className="w-full h-full" />}
+            title={t('recommendedAction')}
+          />
         ),
         children: <RecommendedAction suggest={reportData.suggest} />,
       },
       {
         key: 'supportingEvidence',
         label: (
-          <CollapseLabel icon={<SlMagnifier className="w-full h-full" />} title={'证据链条'} />
+          <CollapseLabel
+            icon={<SlMagnifier className="w-full h-full" />}
+            title={t('supportingEvidence')}
+          />
         ),
         children: (
           <SupportingEvidence

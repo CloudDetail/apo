@@ -8,38 +8,7 @@ import { ReportType, TagsParams } from '../../type'
 import ApplicationInfo from './ApplicationInfo'
 import { marked } from 'marked'
 import './github-markdown.css'
-const result = [
-  {
-    icon: '🕒',
-    label: '异常时间',
-    value: '2025-05-15 12:03~12:07',
-  },
-  {
-    icon: '📊',
-    label: '异常概况',
-    value: (
-      <ul>
-        <li>- 网络方向异常线程占比从 15% 快速增长至 70%，已持续 5 分钟</li>
-        <li>- 总线程数 128，异常线程数峰值达 90</li>
-      </ul>
-    ),
-  },
-  {
-    icon: '🧭',
-    label: '初步结论',
-    value: '系统性网络阻塞，可能访问下游超时',
-  },
-  {
-    icon: '📎',
-    label: '日志支持',
-    value: '发现相关异常日志 12 条',
-  },
-  {
-    icon: '🌐',
-    label: '网络探测',
-    value: 'auth-service RTT 从 25ms 升高到 850ms',
-  },
-]
+
 function getReportIcon(type: ReportType) {
   return type === 'error' ? Error : type === 'slow' ? Slow : Infra
 }

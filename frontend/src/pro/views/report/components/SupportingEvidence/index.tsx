@@ -5,23 +5,6 @@ import Metrics from './Metrics'
 import AffectedEndpoints from '../AffectedEndpoints'
 
 const SupportingEvidence = ({ evidence, startTime, endTime }) => {
-  const evidenceItems = [
-    {
-      key: 'log',
-      label: '日志',
-      children: <Logs logs={undefined} />,
-    },
-    {
-      key: 'chain',
-      label: '调用链',
-      children: '调用链证据结论',
-    },
-    {
-      key: 'data',
-      label: 'eBPF数据',
-      children: 'eBPF数据分析结论',
-    },
-  ]
   const getChildren = (type, data) => {
     return type === 'log' ? (
       <Logs logs={data} />

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { SuggestLevel } from '../type'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 interface SuggestItem {
   action: string
@@ -18,7 +19,7 @@ const RecommendedAction = ({ suggest }: { suggest: SuggestItem[] }) => {
 
   const { theme } = useSelector((state) => state.settingReducer)
   const isDark = theme === 'dark'
-
+  const { t } = useTranslation('pro/report')
   return (
     <div className="mt-6 space-y-4">
       {suggest.length === 0 ? (
@@ -27,7 +28,7 @@ const RecommendedAction = ({ suggest }: { suggest: SuggestItem[] }) => {
             isDark ? 'border-slate-600 text-slate-400' : 'border-slate-300 text-slate-500'
           }`}
         >
-          No action items specified
+          {t('noSuggest')}
         </div>
       ) : (
         suggest.map((action, index) => {

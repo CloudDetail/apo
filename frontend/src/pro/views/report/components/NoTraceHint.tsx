@@ -1,15 +1,8 @@
 import { Result } from 'antd'
+import { useTranslation } from 'react-i18next'
 
 const NoTraceHint = () => {
-  return (
-    <Result
-      title="未对接链路追踪数据，无法分析影响范围"
-      // extra={
-      //   <Button type="primary" key="console">
-      //     Go Console
-      //   </Button>
-      // }
-    />
-  )
+  const { t } = useTranslation('pro/report')
+  return <Result title={t('noTrace')} />
 }
 export default NoTraceHint
