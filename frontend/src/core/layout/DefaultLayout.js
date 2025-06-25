@@ -4,12 +4,9 @@
  */
 
 import React, { useState } from 'react'
-import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import { AppContent, AppSidebar, AppHeader } from '../components/index'
 import { Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
-import { Header } from 'antd/es/layout/layout'
-import { CImage } from '@coreui/react'
-import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
 import { useTranslation } from 'react-i18next'
 
@@ -38,12 +35,16 @@ const DefaultLayout = () => {
       >
         <div className="flex h-full flex-col">
           <div className="h-[60px] flex w-full overflow-hidden items-center">
-            <CImage
+            {/* <CImage
               src={logo}
               className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"
               alt="CoreuiVue"
-            />
-            <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span>
+            /> */}
+            {collapsed ? (
+              <div className="w-[42px] sidebar-brand-narrow flex-shrink-0 m-3"></div>
+            ) : (
+              <span className="flex-shrink-0 text-lg m-3">{t('apoTitle')}</span>
+            )}
           </div>
           <AppSidebar collapsed={collapsed} />
         </div>

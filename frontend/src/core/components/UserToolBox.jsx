@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Flex, Popover, Button, theme } from 'antd'
+import { Flex, Popover, theme } from 'antd'
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { logoutApi, getUserInfoApi } from 'core/api/user'
@@ -29,9 +29,15 @@ const UserToolBox = () => {
           vertical
           className="justify-center items-center w-full h-9 transition-colors"
           onClick={() => navigate('/user')}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorFillSecondary
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorFillTertiary
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'
+          }}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <UserOutlined className="text-md" />
@@ -42,9 +48,15 @@ const UserToolBox = () => {
           vertical
           className="justify-center items-center w-full h-9 mt-2 transition-colors"
           onClick={logout}
-          onMouseEnter={(e) => {e.currentTarget.style.backgroundColor = token.colorFillSecondary}}
-          onMouseOver={(e) => {e.currentTarget.style.backgroundColor = token.colorFillTertiary}}
-          onMouseLeave={(e) => {e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'}}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorFillSecondary
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = token.colorFillTertiary
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--ant-layout-color-bg-body)'
+          }}
         >
           <Flex className="w-2/3 justify-around p-2 cursor-pointer">
             <LogoutOutlined className="text-md" />
@@ -115,9 +127,10 @@ const UserToolBox = () => {
           </div>
         </Popover>
       ) : (
-        <Button type="link" onClick={() => redirectToLogin(true)}>
-          {t('login')}
-        </Button>
+        <></>
+        // <Button type="link" onClick={() => redirectToLogin(true)}>
+        //   {t('login')}
+        // </Button>
       )}
     </>
   )

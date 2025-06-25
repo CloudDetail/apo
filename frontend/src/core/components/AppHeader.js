@@ -6,8 +6,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
-import logo from 'src/core/assets/brand/logo.svg'
-import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+// import logo from 'src/core/assets/brand/logo.svg'
+import { CHeader, CHeaderNav, useColorModes } from '@coreui/react'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
@@ -79,7 +79,7 @@ const AppHeader = ({ type = 'default' }) => {
         {type === 'united' ? (
           <div className="flex items-center">
             <div className="h-[50px] flex overflow-hidden items-center mr-5">
-              <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
+              {/* <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" /> */}
               <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
             </div>
             {commercialNav.map((item) => (
