@@ -60,7 +60,7 @@ const SupportingEvidence = ({ evidence, startTime, endTime }) => {
                 children: getChildren(item.type, item.data, item.unit),
               },
             ]}
-            defaultActiveKey={item.key}
+            defaultActiveKey={index}
             //   className={styles.collapse}
             // bordered={false}
             expandIconPosition={'end'}

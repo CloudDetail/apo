@@ -16,6 +16,7 @@ import { useDebounce } from 'react-use'
 import { useSearchParams } from 'react-router-dom'
 import NoTraceHint from './components/NoTraceHint'
 import { useTranslation } from 'react-i18next'
+import LoadingSpinner from 'src/core/components/Spinner'
 const CollapseLabel = ({ icon, title }) => {
   return (
     <div className="flex items-center ">
@@ -30,10 +31,11 @@ function Report() {
   const [searchParams] = useSearchParams()
   const [reportData, setReportData] = useState()
   const [reportType, setReportType] = useState()
-
+  const [loading, setLoading] = useState(true)
   const startTime = Number(searchParams.get('startTime'))
   const endTime = Number(searchParams.get('endTime'))
   const getReportInfo = () => {
+    setLoading(true)
     const alertEventId = searchParams.get('alertEventId')
     const agentChatId = searchParams.get('agentChatId')
     const tags = alertEventId ? { alertEventId } : { agentChatId }
@@ -41,9 +43,13 @@ function Report() {
       .then((res) => {
         setReportData(res.reportData)
         setReportType(res.reportType)
-        console.log(res.reportData.rootCauseAnalysis)
       })
-      .catch((error) => {})
+      .catch((error) => {
+        setLoading(false)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   useDebounce(
@@ -110,7 +116,9 @@ function Report() {
   )
   return (
     <div className="w-full">
-      {reportType && reportData ? (
+      {loading ? (
+        <LoadingSpinner loading={loading} />
+      ) : reportType && reportData ? (
         <ConfigProvider
           theme={{
             components: {
