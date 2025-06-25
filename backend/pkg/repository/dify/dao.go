@@ -59,7 +59,7 @@ type difyRepo struct {
 
 	asyncAlertCheck
 
-	AlertCheckCFG      AlertCheckConfig
+	AlertCheckCFG      *AlertCheckConfig
 	AlertAnalyzeFlowId string
 }
 
