@@ -187,7 +187,8 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 
 	var count uint64
 	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
-	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
+	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 
 	resultFilter := NewQueryBuilder()
 
@@ -265,8 +266,9 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 	}
 
 	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 
 	resultFilter := NewQueryBuilder()
 	// TODO remove in v1.9.x
@@ -306,8 +308,9 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 
 	var counts []_alertEventCount
 	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_COUNTS,
 		alertFilter.String(),
 		recordFilter.String(),
