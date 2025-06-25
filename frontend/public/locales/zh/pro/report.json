@@ -23,7 +23,7 @@
   "rootCauseAnalysis": "问题初步归因",
   "recommendedAction": "建议行动",
   "supportingEvidence": "证据链条",
-  "noTrace": "未对接链路追踪数据，无法分析影响范围",
+  "noTrace": "未对接链路追踪数据，无法分析受影响的直接上下游服务",
   "noSuggest": "无建议行动",
   "errorLevel": "故障等级",
   "type": "故障类别",
