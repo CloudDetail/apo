@@ -280,7 +280,6 @@ func waitForShutDown(
 	for {
 		select {
 		case <-ctx.Done():
-			<-ctx.Done()
 			eventInput.IsShutDown = true
 			close(eventInput.Ch)
 			wg.Wait()

@@ -216,7 +216,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		req.Pagination.CurrentPage = int(index)/req.Pagination.PageSize + 1
 	}
 
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
 	recordFilter := NewQueryBuilder().
 		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
 		Equals("ref", req.AlertID)
