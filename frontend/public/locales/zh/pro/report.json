@@ -29,5 +29,8 @@
   "errorLevel": "故障等级",
   "type": "故障类别",
   "reason": "描述",
-  "main": "主要故障"
+  "main": "主要故障",
+  "showMore": "显示节点具体信息",
+  "collapse": "收起",
+  "configBusinessName": "配置业务名"
 }

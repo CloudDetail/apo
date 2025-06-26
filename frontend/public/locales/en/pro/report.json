@@ -29,5 +29,8 @@
   "errorLevel": "Incident Severity",
   "type": "Incident Type",
   "reason": "Description",
-  "main": "Major Incident"
+  "main": "Major Incident",
+  "showMore": "Show Node Details",
+  "collapse": "Collapse",
+  "configBusinessName": "Config Business Name"
 }
