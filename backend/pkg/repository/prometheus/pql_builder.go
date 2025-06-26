@@ -13,15 +13,20 @@ import (
 
 // this file is using @PQLFilter and @PQLTemplate to build more complex PQL statements
 
+type QueryWithPQLFilter interface {
+	QueryMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, gran Granularity, filter PQLFilter) ([]MetricResult, error)
+	QueryRangeMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, stepMicroS int64, gran Granularity, filter PQLFilter) ([]MetricResult, error)
+}
+
 type PQLTemplate func(vector string, gran string, filter PQLFilter, offset string) string
 
-func (repo *promRepo) QueryAggMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, gran Granularity, filter PQLFilter) ([]MetricResult, error) {
+func (repo *promRepo) QueryMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, gran Granularity, filter PQLFilter) ([]MetricResult, error) {
 	rng := VecFromS2E(startTime, endTime)
 	pql := pqlTpl(rng, string(gran), filter, "")
 	return repo.QueryData(ctx, time.UnixMicro(endTime), pql)
 }
 
-func (repo *promRepo) QueryRangeAggMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, stepMicroS int64, gran Granularity, filter PQLFilter) ([]MetricResult, error) {
+func (repo *promRepo) QueryRangeMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, stepMicroS int64, gran Granularity, filter PQLFilter) ([]MetricResult, error) {
 	step := time.Duration(stepMicroS) * time.Microsecond
 	vector := VecFromDuration(step)
 	pql := pqlTpl(vector, string(gran), filter, "")
