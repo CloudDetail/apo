@@ -207,9 +207,14 @@ func (c *context) AbortWithError(statusCode int, commonCode string, err error) {
 		if len(vErr.message) == 0 {
 			vErr.message = c.ErrMessage(vErr.BusinessCode())
 		}
-		c.ctx.Set(_AbortErrorName, vErr.WithStack(err))
+		c.ctx.Set(_AbortErrorName, vErr)
 	} else {
-		c.ctx.Set(_AbortErrorName, Error(commonCode, c.ErrMessage(commonCode)).WithStack(err))
+		c.ctx.Set(_AbortErrorName, businessError{
+			httpCode:     statusCode,
+			businessCode: commonCode,
+			message:      c.ErrMessage(commonCode),
+			stackError:   err,
+		})
 	}
 }
 

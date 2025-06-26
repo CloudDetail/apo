@@ -3,7 +3,9 @@
 
 package core
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 var _ BusinessError = (*businessError)(nil)
 
