@@ -32,6 +32,19 @@ func (c *DifyClient) alertCheck(req *WorkflowRequest, authorization string, user
 	return nil, fmt.Errorf("alertCheck must be run in blocking mode")
 }
 
+func (c *DifyClient) alertAnalyze(req *WorkflowRequest, authorization string, user string) (*AlertAnalyzeResponse, error) {
+	req.ResponseMode = "blocking"
+	req.User = user
+	resp, err := c.WorkflowsRun(req, authorization)
+	if err != nil {
+		return nil, err
+	}
+	if resp, ok := resp.(*CompletionResponse); ok {
+		return &AlertAnalyzeResponse{resp}, err
+	}
+	return nil, fmt.Errorf("alertAnalyze must be run in blocking mode")
+}
+
 func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string) (WorkflowResponse, error) {
 	jsonBytes, _ := json.Marshal(req)
 	fullReq, _ := http.NewRequest("POST", c.BaseURL+"/v1/workflows/run", bytes.NewReader(jsonBytes))
@@ -65,8 +78,6 @@ func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string) (W
 	}
 	return nil, nil
 }
-
-
 
 var DefaultDifyFastHttpClient = &http.Client{
 	Transport: &http.Transport{

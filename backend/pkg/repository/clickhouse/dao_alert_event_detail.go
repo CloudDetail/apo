@@ -60,6 +60,9 @@ SELECT ae.id as id,
   fw.importance as importance,
   fw.output as output,
   fw.created_at as last_check_at,
+  fw.alert_direction as alert_direction,
+  fw.analyze_run_id as analyze_run_id,
+  fw.analyze_err as analyze_err,
   le.status as last_status,
   CASE
     WHEN output = 'false' THEN 'true'
@@ -117,6 +120,9 @@ SELECT ae.id as id,
   fw.created_at as last_check_at,
   fw.importance as importance,
   fw.output as output,
+  fw.alert_direction as alert_direction,
+  fw.analyze_run_id as analyze_run_id,
+  fw.analyze_err as analyze_err,
   CASE
     WHEN output = 'false' THEN 'true'
     WHEN output = 'true' THEN 'false'
@@ -210,9 +216,10 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		req.Pagination.CurrentPage = int(index)/req.Pagination.PageSize + 1
 	}
 
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime).
 		Equals("ref", req.AlertID)
 
 	resultLimit := NewByLimitBuilder().
@@ -220,7 +227,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		Limit(req.Pagination.PageSize).Offset(offSet)
 
 	notifyFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime).
 		Equals("alert_id", req.AlertID)
 
 	sql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT,

@@ -12,7 +12,7 @@ import (
 
 func (ch *chRepo) AddWorkflowRecord(ctx core.Context, record *model.WorkflowRecord) error {
 	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
-		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time)
+		INSERT INTO workflow_records (workflow_run_id, workflow_id, workflow_name, ref, input, output, created_at, rounded_time, alert_direction,analyze_run_id,analyze_err)
 		VALUES
 	`)
 	if err != nil {
@@ -27,6 +27,9 @@ func (ch *chRepo) AddWorkflowRecord(ctx core.Context, record *model.WorkflowReco
 		record.Output,
 		time.UnixMicro(record.CreatedAt),
 		time.UnixMicro(record.RoundedTime),
+		record.AlertDirection,
+		record.AnalyzeRunID,
+		record.AnalyzeErr,
 	); err != nil {
 		return err
 	}
