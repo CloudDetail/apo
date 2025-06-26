@@ -2,12 +2,13 @@ import { Collapse, ConfigProvider } from 'antd'
 import Summary from './components/Summary/index'
 import SupportingEvidence from './components/SupportingEvidence'
 import IconWrapper from './components/IconWrapper'
-import { LuSquareCheckBig, LuWebhook } from 'react-icons/lu'
+import { LuSquareCheckBig, LuWebhook, LuWorkflow } from 'react-icons/lu'
 import { BiAnalyse } from 'react-icons/bi'
 import { SlMagnifier, SlArrowDown } from 'react-icons/sl'
 import AffectedEndpoints from './components/AffectedEndpoints'
 import RecommendedAction from './components/RecommendedAction'
 import RootCauseAnalysis from './components/RootCauseAnalysis'
+import AnalysisProcess from './components/AnalysisProcess'
 import { useCallback, useState } from 'react'
 import styles from './index.module.scss'
 import { getReportApi } from 'src/pro/api/report'
@@ -83,7 +84,7 @@ function Report() {
             title={t('rootCauseAnalysis')}
           />
         ),
-        children: <RootCauseAnalysis {...reportData.rootCauseAnalysis} />,
+        children: <RootCauseAnalysis {...reportData?.rootCauseAnalysis} />,
       },
       {
         key: 'recommendedAction',
@@ -93,7 +94,17 @@ function Report() {
             title={t('recommendedAction')}
           />
         ),
-        children: <RecommendedAction suggest={reportData.suggest} />,
+        children: <RecommendedAction suggest={reportData?.suggest} />,
+      },
+      {
+        key: 'analysisProcess',
+        label: (
+          <CollapseLabel
+            icon={<LuWorkflow className="w-full h-full" />}
+            title={t('analysisProcess')}
+          />
+        ),
+        children: <AnalysisProcess analyzeProcess={reportData?.analyzeProcess} />,
       },
       {
         key: 'supportingEvidence',
@@ -105,7 +116,7 @@ function Report() {
         ),
         children: (
           <SupportingEvidence
-            evidence={reportData.evidence}
+            evidence={reportData?.evidence}
             startTime={startTime}
             endTime={endTime}
           />
@@ -131,8 +142,8 @@ function Report() {
         >
           <Summary
             type={reportType}
-            overview={reportData.overview}
-            cause={reportData.rootCauseAnalysis.cause}
+            overview={reportData?.overview}
+            cause={reportData?.rootCauseAnalysis?.cause}
           />
           <>
             {applicationItems()?.map((item) => (

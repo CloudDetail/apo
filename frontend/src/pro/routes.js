@@ -48,7 +48,7 @@ let proRoutes = [
   },
   {
     path: '/report',
-    name: t('pro/routes:report'),
+    name: t('pro/routes:causeReport'),
     element: SlowReportPage,
     hideSystemTimeRangePicker: true,
   },

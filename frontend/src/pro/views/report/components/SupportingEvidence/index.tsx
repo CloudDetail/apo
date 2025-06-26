@@ -1,10 +1,25 @@
 import { Collapse } from 'antd'
 import { SlArrowDown } from 'react-icons/sl'
+import PropTypes from 'prop-types'
 import Logs from './Logs'
 import REDMetrics from './RED'
 import AffectedEndpoints from '../AffectedEndpoints'
 import MultiLineChart from 'src/core/components/Chart/MultiLineChart'
 import { formatMGT } from 'src/core/utils/time'
+
+interface EvidenceItem {
+  name: string
+  type: 'log' | 'red' | 'metrics' | 'endpoints'
+  data: any
+  unit?: string
+}
+
+interface SupportingEvidenceProps {
+  evidence: EvidenceItem[]
+  startTime: number
+  endTime: number
+}
+
 const YFormatter = (value: number, unit) => {
   switch (unit) {
     case 'percent':
@@ -18,6 +33,7 @@ const YFormatter = (value: number, unit) => {
       return `${Number.parseFloat(value.toFixed(2))} ${unit}`
   }
 }
+
 const convertMetricsData = (data) => {
   return data.map((item) => ({
     data: Object.entries(item.chart.chartData)
@@ -26,26 +42,34 @@ const convertMetricsData = (data) => {
     legend: item.legend,
   }))
 }
-const SupportingEvidence = ({ evidence, startTime, endTime }) => {
-  const getChildren = (type, data, unit) => {
-    return type === 'log' ? (
-      <Logs logs={data} />
-    ) : type === 'red' ? (
-      <REDMetrics data={data} startTime={startTime} endTime={endTime} />
-    ) : type === 'metrics' ? (
-      <div className="h-[300px]">
-        {/* <LineChart data={data} unit={unit} /> */}
-        <MultiLineChart
-          chartData={convertMetricsData(data)}
-          unit={unit}
-          startTime={startTime}
-          endTime={endTime}
-          allowTimeBrush={false}
-          YFormatter={(value) => YFormatter(value, unit)}
-        />
-      </div>
-    ) : (
-      <AffectedEndpoints topology={data} />
+
+const SupportingEvidence = ({ evidence, startTime, endTime }: SupportingEvidenceProps) => {
+  const getChildren = (type, data, unit, description) => {
+    return (
+      <>
+        {type === 'log' ? (
+          <Logs logs={data} />
+        ) : type === 'red' ? (
+          <REDMetrics data={data} startTime={startTime} endTime={endTime} />
+        ) : type === 'metrics' ? (
+          <div className="h-[300px]">
+            {/* <LineChart data={data} unit={unit} /> */}
+            <MultiLineChart
+              chartData={convertMetricsData(data)}
+              unit={unit}
+              startTime={startTime}
+              endTime={endTime}
+              allowTimeBrush={false}
+              YFormatter={(value) => YFormatter(value, unit)}
+            />
+          </div>
+        ) : (
+          <AffectedEndpoints topology={data} />
+        )}
+        <div className="mt-3 border-l-4 border-blue-400 pl-4 py-2 bg-[var(--ant-color-info-bg)] rounded-r-md">
+          <div className="text-[var(--ant-color-text)] text-sm">{description}</div>
+        </div>
+      </>
     )
   }
   return (
@@ -57,7 +81,7 @@ const SupportingEvidence = ({ evidence, startTime, endTime }) => {
               {
                 key: index,
                 label: item.name,
-                children: getChildren(item.type, item.data, item.unit),
+                children: getChildren(item.type, item.data, item.unit, item.description),
               },
             ]}
             defaultActiveKey={index}
@@ -77,4 +101,18 @@ const SupportingEvidence = ({ evidence, startTime, endTime }) => {
     </>
   )
 }
+
+SupportingEvidence.propTypes = {
+  evidence: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      type: PropTypes.oneOf(['log', 'red', 'metrics', 'endpoints']).isRequired,
+      data: PropTypes.any.isRequired,
+      unit: PropTypes.string,
+    }),
+  ).isRequired,
+  startTime: PropTypes.number.isRequired,
+  endTime: PropTypes.number.isRequired,
+}
+
 export default SupportingEvidence

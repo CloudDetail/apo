@@ -71,7 +71,7 @@ const AffectedEndpoints = (props) => {
         edgeSet.add(edgeId)
       }
     })
-    data.childRelations?.forEach((child, index) => {
+    data.children?.forEach((child, index) => {
       const childId = contactLevelService('child', child.service)
       if (!nodeSet.has(childId)) {
         nodes.push({
@@ -89,7 +89,7 @@ const AffectedEndpoints = (props) => {
       }
 
       const childEdgeId = currentId + '-' + childId
-      if (!edgeSet.has(edgeId)) {
+      if (!edgeSet.has(childEdgeId)) {
         edges.push({
           id: childEdgeId,
           source: currentId,

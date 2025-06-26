@@ -22,6 +22,7 @@
   "affectedEndpoints": "Impacted Upstream/Downstream Services",
   "rootCauseAnalysis": "Preliminary Root Cause Analysis",
   "recommendedAction": "Recommended Action",
+  "analysisProcess": "Analysis Process",
   "supportingEvidence": "Supporting Evidence Chain",
   "noTrace": "No tracing data connected, unable to analyze impact scope",
   "noSuggest": "No recommended actions",
