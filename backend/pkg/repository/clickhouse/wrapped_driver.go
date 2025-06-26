@@ -22,12 +22,13 @@ func (c *WrappedConn) Select(ctx context.Context, dest any, query string, args .
 	err := c.Conn.Select(ctx, dest, query, args...)
 	endTime := time.Now()
 
-	for i, arg := range args {
+	var escapedArgs []any
+	for _, arg := range args {
 		switch a := arg.(type) {
 		case string:
 			a = strings.ReplaceAll(a, "\n", "\\n")
 			a = strings.ReplaceAll(a, "\r", "\\r")
-			args[i] = a
+			escapedArgs = append(escapedArgs, a)
 		}
 	}
 
@@ -36,7 +37,7 @@ func (c *WrappedConn) Select(ctx context.Context, dest any, query string, args .
 
 	c.logger.Debug("Clickhouse Select",
 		zap.String("query", query),
-		zap.Any("args", args),
+		zap.Any("args", escapedArgs),
 		zap.Int64("cost(ms)", endTime.UnixMilli()-startTime.UnixMilli()))
 	return err
 }
@@ -46,12 +47,15 @@ func (c *WrappedConn) Query(ctx context.Context, query string, args ...any) (dri
 	rows, err := c.Conn.Query(ctx, query, args...)
 	endTime := time.Now()
 
-	for i, arg := range args {
+	var escapedArgs []any
+	for _, arg := range args {
 		switch a := arg.(type) {
 		case string:
 			a = strings.ReplaceAll(a, "\n", "\\n")
 			a = strings.ReplaceAll(a, "\r", "\\r")
-			args[i] = a
+			escapedArgs = append(escapedArgs, a)
+		default:
+			escapedArgs = append(escapedArgs, arg)
 		}
 	}
 
@@ -60,7 +64,7 @@ func (c *WrappedConn) Query(ctx context.Context, query string, args ...any) (dri
 
 	c.logger.Debug("Clickhouse Query",
 		zap.String("query", query),
-		zap.Any("args", args),
+		zap.Any("args", escapedArgs),
 		zap.Int64("cost(ms)", endTime.UnixMilli()-startTime.UnixMilli()))
 	return rows, err
 }
@@ -69,22 +73,27 @@ func (c *WrappedConn) QueryRow(ctx context.Context, query string, args ...any) d
 	startTime := time.Now()
 	rows := c.Conn.QueryRow(ctx, query, args...)
 	endTime := time.Now()
-
-	for i, arg := range args {
+	var escapedArgs []any
+	for _, arg := range args {
 		switch a := arg.(type) {
 		case string:
 			a = strings.ReplaceAll(a, "\n", "\\n")
-			a = strings.ReplaceAll(a, "\r", "\\r")
-			args[i] = a
+			a = strings.ReplaceAll("args", "\r", "\\r")
+			escapedArgs = append(escapedArgs, a)
+		default:
+			escapedArgs = append(escapedArgs, arg)
 		}
 	}
 
 	query = strings.ReplaceAll(query, "\n", "\\n")
 	query = strings.ReplaceAll(query, "\r", "\\r")
 
+	query = strings.ReplaceAll(query, "\n", "\\n")
+	query = strings.ReplaceAll(query, "\r", "\\r")
+
 	c.logger.Debug("Clickhouse QueryRow",
 		zap.String("query", query),
-		zap.Any("args", args),
+		zap.Any("args", escapedArgs),
 		zap.Int64("cost(ms)", endTime.UnixMilli()-startTime.UnixMilli()))
 	return rows
 }
@@ -93,13 +102,15 @@ func (c *WrappedConn) Exec(ctx context.Context, query string, args ...any) error
 	startTime := time.Now()
 	err := c.Conn.Exec(ctx, query, args...)
 	endTime := time.Now()
-
-	for i, arg := range args {
+	var escapedArgs []any
+	for _, arg := range args {
 		switch a := arg.(type) {
 		case string:
 			a = strings.ReplaceAll(a, "\n", "\\n")
 			a = strings.ReplaceAll(a, "\r", "\\r")
-			args[i] = a
+			escapedArgs = append(escapedArgs, a)
+		default:
+			escapedArgs = append(escapedArgs, arg)
 		}
 	}
 
@@ -108,7 +119,7 @@ func (c *WrappedConn) Exec(ctx context.Context, query string, args ...any) error
 
 	c.logger.Debug("Clickhouse Exec: {query=%s, args=%v}, cost: %d ms",
 		zap.String("query", query),
-		zap.Any("args", args),
+		zap.Any("args", escapedArgs),
 		zap.Int64("cost(ms)", endTime.UnixMilli()-startTime.UnixMilli()))
 	return err
 }
