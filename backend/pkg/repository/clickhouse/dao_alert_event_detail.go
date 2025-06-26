@@ -210,9 +210,10 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		req.Pagination.CurrentPage = int(index)/req.Pagination.PageSize + 1
 	}
 
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime).
 		Equals("ref", req.AlertID)
 
 	resultLimit := NewByLimitBuilder().
@@ -220,7 +221,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 		Limit(req.Pagination.PageSize).Offset(offSet)
 
 	notifyFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6).
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime).
 		Equals("alert_id", req.AlertID)
 
 	sql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT,

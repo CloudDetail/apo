@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -82,7 +83,7 @@ func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *mod
 		go worker.run(client, c.eventInput.Ch, rChan, &wg)
 	}
 
-	go waitForShutDown(ctx, c.eventInput, rChan, &wg)
+	go waitForShutDown(ctx, c.eventInput, rChan, &wg, c.logger)
 	return rChan, nil
 }
 
@@ -140,7 +141,7 @@ func (s *sampleWithFirstRecord) Run(
 		return nil, err
 	}
 	cronTab.Start()
-	go waitForShutDown(ctx, s.eventInput, rChan, &wg)
+	go waitForShutDown(ctx, s.eventInput, rChan, &wg, s.logger)
 	return rChan, nil
 }
 
@@ -216,7 +217,7 @@ func (s *sampleWithLastRecord) Run(
 		return nil, err
 	}
 	cronTab.Start()
-	go waitForShutDown(ctx, s.eventInput, rChan, &wg)
+	go waitForShutDown(ctx, s.eventInput, rChan, &wg, s.logger)
 	return rChan, nil
 }
 
@@ -260,15 +261,26 @@ func (s *sampleWithLastRecord) submit() {
 	}()
 }
 
+var runner atomic.Int32
+
 func waitForShutDown(
 	ctx context.Context,
 	eventInput *inputChan,
 	rChan chan *model.WorkflowRecord,
 	wg *sync.WaitGroup,
+	logger *zap.Logger,
 ) {
-	<-ctx.Done()
-	eventInput.IsShutDown = true
-	close(eventInput.Ch)
-	wg.Wait()
-	close(rChan)
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			eventInput.IsShutDown = true
+			close(eventInput.Ch)
+			wg.Wait()
+			close(rChan)
+		case <-ticker.C:
+			logger.Debug("alert waiting for check in dify workflow", zap.Int32("runningWorker", runner.Load()), zap.Int("remainCount", len(eventInput.Ch)))
+		}
+	}
 }

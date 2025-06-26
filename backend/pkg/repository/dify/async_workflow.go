@@ -26,8 +26,8 @@ func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger 
 	if cfg.MaxConcurrency <= 0 {
 		cfg.MaxConcurrency = 1
 	}
-	r.AlertCheckCFG = *cfg
-	r.asyncAlertCheck = newAsyncAlertCheck(&r.AlertCheckCFG, logger)
+	r.AlertCheckCFG = cfg
+	r.asyncAlertCheck = newAsyncAlertCheck(r.AlertCheckCFG, logger)
 	records, err = r.asyncAlertCheck.Run(context.Background(), r.cli)
 	if err != nil {
 		r.asyncAlertCheck = nil
@@ -42,8 +42,8 @@ func (r *difyRepo) SubmitAlertEvents(events []alert.AlertEvent) {
 	r.asyncAlertCheck.AddEvents(events)
 }
 
-func DefaultAlertCheckConfig() AlertCheckConfig {
-	return AlertCheckConfig{
+func DefaultAlertCheckConfig() *AlertCheckConfig {
+	return &AlertCheckConfig{
 		Sampling:       "first",
 		CacheMinutes:   20,
 		MaxConcurrency: 1,
