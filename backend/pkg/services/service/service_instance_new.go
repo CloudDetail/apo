@@ -11,13 +11,14 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
-func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error) {
+func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInstanceRequest) (res response.InstancesRes, err error) {
 	threshold, err := s.dbRepo.GetOrCreateThreshold(ctx, "", "", database.GLOBAL)
 	if err != nil {
 		return res, err
@@ -26,10 +27,15 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 	tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
 
-	filter := InstancesFilter{SrvName: serviceName, ContentKey: endPoint}
-	filters := filter.ExtractFilterStr()
+	filter := prometheus.NewFilter()
+	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.ServiceName)
+	filter.EqualIfNotEmpty(prometheus.ContentKeyKey, req.Endpoint)
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+
 	// Get instance
-	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), serviceName, endPoint)
+	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
 		return res, err
 	}
@@ -47,6 +53,7 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 			Namespace:   instance.Namespace,
 			NodeName:    instance.NodeName,
 			NodeIP:      instance.NodeIP,
+			ClusterID:   instance.ClusterID,
 		}
 		metric := &prometheus.InstanceMetrics{
 			InstanceKey: key,
@@ -57,11 +64,17 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 			instances.MetricGroupList = append(instances.MetricGroupList, metric)
 		}
 	}
+
+	startTime := time.Unix(req.StartTime, 0)
+	endTime := time.Unix(req.EndTime, 0)
+	step := time.Duration(req.Step * 1000)
+	serviceName := req.ServiceName
+
 	// Fill RED metric
-	s.InstanceRED(ctx, startTime, endTime, filters, instances)
+	s.InstanceRED(ctx, startTime, endTime, filter, instances)
 
 	// populate chart data
-	chartErr := s.InstanceRangeData(ctx, instances, startTime, endTime, step, filters)
+	chartErr := s.InstanceRangeData(ctx, instances, startTime, endTime, step, filter)
 	if chartErr.ErrorOrNil() != nil {
 		log.Println("get instance range data error: ", chartErr)
 	}
@@ -219,6 +232,7 @@ func (s *service) GetInstancesNew(ctx core.Context, startTime time.Time, endTime
 				Namespace:   instance.Namespace,
 				NodeName:    instance.NodeName,
 				Pid:         pidI64,
+				ClusterID:   instance.ClusterID,
 			},
 		}
 		// fill alarm status

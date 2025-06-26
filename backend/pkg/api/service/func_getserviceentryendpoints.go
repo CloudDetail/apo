@@ -81,6 +81,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsSvcName:      entryNode.Service,
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
+					ClusterIDs:           req.ClusterIDs,
 				}
 				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(c, startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {

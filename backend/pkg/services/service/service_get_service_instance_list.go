@@ -13,23 +13,31 @@ import (
 
 func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error) {
 	// Get the list of active service instances
-	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, []string{req.ServiceName})
+	filter := prometheus.NewFilter()
+	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
 		return nil, err
 	}
-
 	return instances.GetInstanceIds(), nil
 }
 
 func (s *service) GetServiceInstanceInfoList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]prometheus.InstanceKey, error) {
-	var ins []prometheus.InstanceKey
-	// Get instance
-	instanceList, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, req.ServiceName, "")
+	filter := prometheus.NewFilter()
+	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
-		return ins, err
+		return []prometheus.InstanceKey{}, err
 	}
 
 	// Fill the instance
+	var ins []prometheus.InstanceKey
 	for _, instance := range instanceList.GetInstanceIdMap() {
 		key := prometheus.InstanceKey{
 			PID:         strconv.FormatInt(instance.Pid, 10),

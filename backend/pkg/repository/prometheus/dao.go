@@ -28,7 +28,7 @@ type Repo interface {
 
 	// ========== span_trace_duration_count Start ==========
 	// Query the service list
-	GetServiceList(ctx core.Context, startTime int64, endTime int64, namespace []string) ([]string, error)
+	GetServiceList(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	// 根据过滤规则查询服务列表
 	GetServiceListByFilter(ctx core.Context, startTime time.Time, endTime time.Time, filterKVs ...string) ([]string, error)
 	// 基于DatabaseURL,IP,Port查询上游服务列表
@@ -39,17 +39,13 @@ type Repo interface {
 	GetServiceNamespace(ctx core.Context, startTime, endTime int64, service string) ([]string, error)
 	// GetInstanceList query service instance list. URL can be empty.
 	GetInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
-	// Query the db instance for specified service
-	GetDescendantDatabase(ctx core.Context, startTime int64, endTime int64, serviceName string, endpoint string) ([]model.MiddlewareInstance, error)
 	// Query the list of active instances
 	GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
-	GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error)
+	GetServiceEndPointListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
 	// Query service instance failure rate
 	QueryInstanceErrorRate(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
-	FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error
-	FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error
 	// ========== span_trace_duration_count END ==========
 
 	QueryData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error)
@@ -91,7 +87,7 @@ type Repo interface {
 	LabelValues(ctx core.Context, expr string, label string, startTime, endTime int64) (prommodel.LabelValues, error)
 	QueryResult(ctx core.Context, expr string, regex string, startTime, endTime int64) ([]string, error)
 
-	GetNamespaceList(ctx core.Context, startTime int64, endTime int64) ([]string, error)
+	GetNamespaceList(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error)
 
 	QueryWithPQLFilter
@@ -156,14 +152,17 @@ type Labels struct {
 	PID         string `json:"pid"`
 	PodName     string `json:"pod_name"` // TODO can be deleted after being unified as pod
 	Namespace   string `json:"namespace"`
+	ClusterID   string `json:"cluster_id"`
 	NodeIP      string `json:"node_ip"`
 
 	DBSystem string `json:"db_system"`
 	DBName   string `json:"db_name"`
 	// Name, currently represents the Opertaion section in SQL
 	// e.g: SELECT trip
-	Name  string `json:"name"`
-	DBUrl string `json:"db_url"`
+	Name     string `json:"name"`
+	DBUrl    string `json:"db_url"`
+	PeerIP   string `json:"peer_ip"`
+	PeerPort string `json:"peer_port"`
 
 	MonitorName string `json:"monitor_name"`
 }
@@ -195,6 +194,8 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 			l.PID = string(value)
 		case "namespace":
 			l.Namespace = string(value)
+		case "cluster_id":
+			l.ClusterID = string(value)
 		case "db_system":
 			l.DBSystem = string(value)
 		case "db_name":
@@ -213,6 +214,10 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 			l.NodeName = string(value)
 		case "pod_name":
 			l.POD = string(value)
+		case "peer_ip":
+			l.PeerIP = string(value)
+		case "peer_port":
+			l.PeerPort = string(value)
 		}
 	}
 }

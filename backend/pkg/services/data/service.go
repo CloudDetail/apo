@@ -18,7 +18,7 @@ type Service interface {
 	DeleteDataGroup(ctx core.Context, req *request.DeleteDataGroupRequest) error
 	GetDataGroup(ctx core.Context, req *request.GetDataGroupRequest) (response.GetDataGroupResponse, error)
 	UpdateDataGroup(ctx core.Context, req *request.UpdateDataGroupRequest) error
-	GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error)
+	GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error)
 	DataGroupOperation(ctx core.Context, req *request.DataGroupOperationRequest) error
 	GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error)
 	// CheckDatasourcePermission Filtering and filling data sources that users are not authorised to view. Expected *string or *[]string.

@@ -14,7 +14,10 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first
-	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime, endTime, req.ServiceName, "")
+
+	filter := prometheus.NewFilter()
+	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.ServiceName)
+	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, startTime, endTime, filter)
 	if err != nil {
 		return nil, err
 	}

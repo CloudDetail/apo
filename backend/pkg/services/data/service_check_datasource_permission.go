@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
@@ -48,7 +49,7 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 			return err
 		}
 	} else {
-		groups, err = s.getUserDataGroup(ctx, userID, fillCategory)
+		groups, err = s.dbRepo.GetDataGroupByUserID(ctx, userID, fillCategory)
 		if err != nil {
 			return err
 		}
@@ -108,8 +109,12 @@ func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID in
 	}
 
 	// has rights to view this namespace's services
+	filter := prometheus.NewFilter()
 	if len(namespaceDs) > 0 {
-		serviceList, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), namespaceDs)
+		filter.RegexMatch("namespace", prometheus.RegexMultipleValue(namespaceDs...))
+	}
+	if len(namespaceDs) > 0 {
+		serviceList, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), filter)
 		if err != nil {
 			return err
 		}

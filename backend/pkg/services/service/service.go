@@ -4,8 +4,6 @@
 package service
 
 import (
-	"time"
-
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -47,7 +45,7 @@ type Service interface {
 	GetServiceList(ctx core.Context, req *request.GetServiceListRequest) ([]string, error)
 	// Get the list of service instances
 	// New interface
-	GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	GetInstancesNew(ctx core.Context, req *request.GetServiceInstanceRequest) (res response.InstancesRes, err error)
 	// Get the list of service instances
 	// DEPRECATED
 	GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error)

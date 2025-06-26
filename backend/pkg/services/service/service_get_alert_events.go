@@ -11,11 +11,18 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEventsSampleRequest) (resp *response.GetAlertEventsSampleResponse, err error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, req.Services)
+	filter := prometheus.NewFilter()
+	filter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(req.Services...))
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+
+	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil || instances == nil {
 		return nil, err
 	}
@@ -28,7 +35,7 @@ func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEv
 
 	var dbInstances []model.MiddlewareInstance
 	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
-		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, filter)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +70,13 @@ func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEv
 
 func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRequest) (*response.GetAlertEventsResponse, error) {
 	// Query the instance to which the Service belongs.
-	instances, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, req.Services)
+	filter := prometheus.NewFilter()
+	filter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(req.Services...))
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+
+	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +86,7 @@ func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRe
 
 	var dbInstances []model.MiddlewareInstance
 	if len(req.AlertFilter.Group) == 0 || req.AlertFilter.Group == "middleware" {
-		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
+		dbInstances, err = s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, filter)
 		if err != nil {
 			return nil, err
 		}
