@@ -42,6 +42,14 @@ func TestPQLFilter(t *testing.T) {
 		`test{key1="val1",key2=~"val2",key3="val3" or key1="val1",key2=~"val2",key4=~"val4"}`,
 		vector("test", E).String(),
 	)
+
+	D2 := Or(A, B)
+	F := Or(D, D2)
+
+	assert.Equal(t,
+		`test{key3="val3" or key4=~"val4" or key1="val1" or key2=~"val2"}`,
+		vector("test", F).String(),
+	)
 }
 
 func TestStructPQLFilter(t *testing.T) {
@@ -78,5 +86,12 @@ func TestStructPQLFilter(t *testing.T) {
 	assert.Equal(t,
 		`test{key1="val1",key2=~"val2",key3="val3"} or test{key1="val1",key2=~"val2",key4=~"val4"}`,
 		vector("test", E).String(),
+	)
+
+	D2 := Or(A, B)
+	F := Or(D, D2)
+	assert.Equal(t,
+		`test{key3="val3"} or test{key4=~"val4"} or test{key1="val1"} or test{key2=~"val2"}`,
+		vector("test", F).String(),
 	)
 }

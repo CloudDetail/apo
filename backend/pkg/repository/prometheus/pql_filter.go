@@ -89,14 +89,20 @@ type OrFilter struct {
 	Filters []AndFilter
 }
 
-// TODO Support Or(filter ...PQLFilter)
-func Or(filters ...*AndFilter) *OrFilter {
+func Or(filters ...PQLFilter) *OrFilter {
 	var options []AndFilter
-	for i := 0; i < len(filters); i++ {
-		if filters[i] == nil {
+	for _, f := range filters {
+		if f == nil {
 			continue
 		}
-		options = append(options, *filters[i].Clone().(*AndFilter))
+		switch ft := f.(type) {
+		case *AndFilter:
+			options = append(options, *ft.Clone().(*AndFilter))
+		case *OrFilter:
+			for _, andf := range ft.Filters {
+				options = append(options, *andf.Clone().(*AndFilter))
+			}
+		}
 	}
 	return &OrFilter{Filters: options}
 }
