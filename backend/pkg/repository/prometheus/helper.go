@@ -54,13 +54,6 @@ const (
 	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name, db_url"
 )
 
-// AggPQLWithFilters generate PQL statements
-// Generate PQL using vector and filterKVs
-// @vector: Specify the aggregation time range
-// @granularity: Specify aggregation granularity
-// @filterKVs: filter condition, in the format of key1, value1, key2, and value2
-type AggPQLWithFilters func(vector string, granularity string, filterKVs []string) string
-
 /*
 VecFromS2E 根据起止时间戳获取时间范围
 用于PromQL查询时的内置聚合

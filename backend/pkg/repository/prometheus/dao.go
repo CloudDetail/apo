@@ -93,6 +93,8 @@ type Repo interface {
 
 	GetNamespaceList(ctx core.Context, startTime int64, endTime int64) ([]string, error)
 	GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error)
+
+	QueryWithPQLFilter
 }
 
 type promRepo struct {
