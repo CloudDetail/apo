@@ -1,0 +1,36 @@
+{
+  "error": "Error Report",
+  "slow": "Performance Degradation Report",
+  "infra": "Infrastructure Incident Report",
+  "serviceName": "Service Name",
+  "pod": "Pod Info",
+  "containerId": "Container ID",
+  "nodeName": "Node Name",
+  "pid": "Process ID",
+  "rootCauseType": {
+    "cpu": "CPU Contention",
+    "code": "Code Performance",
+    "net": "Network Quality",
+    "storage": "Storage Issues",
+    "downstream": "Slow Dependency"
+  },
+  "level": {
+    "major": "Major",
+    "minor": "Minor",
+    "normal": "Normal"
+  },
+  "affectedEndpoints": "Impacted Upstream/Downstream Services",
+  "rootCauseAnalysis": "Preliminary Root Cause Analysis",
+  "recommendedAction": "Recommended Action",
+  "analysisProcess": "Analysis Process",
+  "supportingEvidence": "Supporting Evidence Chain",
+  "noTrace": "No tracing data connected, unable to analyze impact scope",
+  "noSuggest": "No recommended actions",
+  "errorLevel": "Incident Severity",
+  "type": "Incident Type",
+  "reason": "Description",
+  "main": "Major Incident",
+  "showMore": "Show Node Details",
+  "collapse": "Collapse",
+  "configBusinessName": "Config Business Name"
+}

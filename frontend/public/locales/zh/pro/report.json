@@ -1,0 +1,36 @@
+{
+  "error": "错误报告",
+  "slow": "慢故障报告",
+  "infra": "基础设施异常报告",
+  "serviceName": "服务名",
+  "pod": "Pod信息",
+  "containerId": "容器ID",
+  "nodeName": "节点名称",
+  "pid": "进程id",
+  "rootCauseType": {
+    "cpu": "CPU资源争用",
+    "code": "代码性能",
+    "net": "网络质量",
+    "storage": "存储问题",
+    "downstream": "依赖慢"
+  },
+  "level": {
+    "major": "主要故障",
+    "minor": "次要故障",
+    "normal": "正常"
+  },
+  "affectedEndpoints": "受影响的直接上下游服务",
+  "rootCauseAnalysis": "问题初步归因",
+  "recommendedAction": "建议行动",
+  "analysisProcess": "分析过程",
+  "supportingEvidence": "证据链条",
+  "noTrace": "未对接链路追踪数据，无法分析受影响的直接上下游服务",
+  "noSuggest": "无建议行动",
+  "errorLevel": "故障等级",
+  "type": "故障类别",
+  "reason": "描述",
+  "main": "主要故障",
+  "showMore": "显示节点具体信息",
+  "collapse": "收起",
+  "configBusinessName": "配置业务名"
+}
