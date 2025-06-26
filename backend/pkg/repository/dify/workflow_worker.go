@@ -8,9 +8,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/hashicorp/golang-lru/v2/expirable"
 	"go.uber.org/zap"
 )
 
@@ -43,7 +45,7 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 		endTime := event.UpdateTime.UnixMicro()
 		var record model.WorkflowRecord
 		if w.expiredTS > 0 && endTime < w.expiredTS {
-			record = w.createExpiredRecord(event, endTime)
+			record = w.createExpiredRecord(c, event, endTime)
 		} else {
 			runner.Add(1)
 			record = w.doAlertCheck(c, event, endTime)
@@ -66,7 +68,54 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 	}
 }
 
-func (w *worker) createExpiredRecord(event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
+var cache = expirable.NewLRU[string, model.AlertEventClassify](10, nil, time.Hour)
+
+func (w *worker) getAlertClassify(c *DifyClient, event *alert.AlertEvent) model.AlertEventClassify {
+	inputs, _ := json.Marshal(map[string]interface{}{
+		"alertGroup": event.Group,
+		"alertName":  event.Name,
+	})
+	r, ok := cache.Get(event.Group + event.Name)
+	if ok {
+		return r
+	}
+
+	request := &WorkflowRequest{
+		Inputs:       inputs,
+		ResponseMode: "blocking",
+		User:         "apo-backend",
+	}
+
+	difyconf := config.Get().Dify
+	resp, err := c.WorkflowsRun(request, "Bearer "+difyconf.APIKeys.AlertClassify)
+
+	classify := model.AlertEventClassify{
+		WorkflowId:     w.FlowId,
+		WorkflowApiKey: w.AnalyzeAuth,
+	}
+	if err != nil {
+		w.logger.Error("failed to alert event classify", zap.Error(err))
+		return classify
+	}
+	completResp, ok := resp.(*CompletionResponse)
+	if !ok {
+		w.logger.Error("failed to alert event classify", zap.Error(err))
+		return classify
+	}
+
+	var res map[string]string
+	err = json.Unmarshal(completResp.Data.Outputs, &res)
+	if err != nil {
+		w.logger.Error("failed to get alert event classify api", zap.Error(err))
+		return classify
+	}
+	classify.WorkflowApiKey = res["workflowApiKey"]
+	classify.WorkflowId = res["workflowId"]
+	cache.Add(event.Group+event.Name, classify)
+	return classify
+}
+
+func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
 	w.logger.Error("alert event is expired, skip alert check",
 		zap.String("event_id", event.ID.String()),
 		zap.Int64("expired_ts", w.expiredTS),
@@ -75,10 +124,11 @@ func (w *worker) createExpiredRecord(event *alert.AlertEvent, endTime int64) mod
 
 	tw := time.Duration(w.CacheMinutes) * time.Minute
 	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
+	classify := w.getAlertClassify(c, event)
 
 	return model.WorkflowRecord{
 		WorkflowRunID: "",
-		WorkflowID:    w.FlowId,
+		WorkflowID:    classify.WorkflowId,
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(),
@@ -98,6 +148,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"startTime": startTime,
 		"endTime":   endTime,
 	})
+	classify := w.getAlertClassify(c, event)
 	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
 	if err != nil || resp == nil {
 		w.logger.Error("failed to to alert check", zap.Error(err))
@@ -105,7 +156,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
 		return model.WorkflowRecord{
 			WorkflowRunID: "",
-			WorkflowID:    w.FlowId,
+			WorkflowID:    classify.WorkflowId,
 			WorkflowName:  w.FlowName,
 			Ref:           event.AlertID,
 			Input:         event.ID.String(),
@@ -124,7 +175,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 	output := resp.getOutput("failed: not find expected output")
 	record = model.WorkflowRecord{
 		WorkflowRunID: resp.WorkflowRunID(),
-		WorkflowID:    w.FlowId,
+		WorkflowID:    classify.WorkflowId,
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(), // TODO record input param
@@ -134,8 +185,8 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 
 		InputRef: event,
 	}
-
-	if output == "false" {
+	difyconf := config.Get().Dify
+	if difyconf.AutoAnalyze && output == "false" {
 		param := w.getWorkflowParams(event)
 		if param == nil {
 			// unexpected err
@@ -148,7 +199,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			record.AnalyzeErr = err.Error()
 			record.AlertDirection = "序列化告警分析参数失败"
 		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, w.AnalyzeAuth, w.User)
+			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, classify.WorkflowApiKey, w.User)
 			if err != nil {
 				record.AnalyzeErr = err.Error()
 				record.AlertDirection = "执行告警分析工作流失败"
@@ -190,15 +241,16 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		AlertName:   event.Name,
-		Node:        event.GetInfraNodeTag(),
-		Namespace:   event.GetK8sNamespaceTag(),
-		Pod:         event.GetK8sPodTag(),
-		Pid:         event.GetPidTag(),
-		Detail:      event.Detail,
-		ContainerID: event.GetContainerIDTag(),
-		Tags:        event.EnrichTags,
-		RawTags:     event.Tags,
+		AlertName:    event.Name,
+		Node:         event.GetInfraNodeTag(),
+		Namespace:    event.GetK8sNamespaceTag(),
+		Pod:          event.GetK8sPodTag(),
+		Pid:          event.GetPidTag(),
+		Detail:       event.Detail,
+		ContainerID:  event.GetContainerIDTag(),
+		Tags:         event.EnrichTags,
+		RawTags:      event.Tags,
+		AlertEventId: event.ID.String(),
 	}
 
 	if len(services) == 1 {

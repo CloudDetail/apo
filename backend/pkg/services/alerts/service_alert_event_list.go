@@ -158,15 +158,16 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		AlertName:   record.AlertEvent.Name,
-		Node:        record.AlertEvent.GetInfraNodeTag(),
-		Namespace:   record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:         record.AlertEvent.GetK8sPodTag(),
-		Pid:         record.AlertEvent.GetPidTag(),
-		Detail:      record.Detail,
-		ContainerID: record.AlertEvent.GetContainerIDTag(),
-		Tags:        record.Alert.EnrichTags,
-		RawTags:     record.Alert.Tags,
+		AlertName:    record.AlertEvent.Name,
+		Node:         record.AlertEvent.GetInfraNodeTag(),
+		Namespace:    record.AlertEvent.GetK8sNamespaceTag(),
+		Pod:          record.AlertEvent.GetK8sPodTag(),
+		Pid:          record.AlertEvent.GetPidTag(),
+		Detail:       record.Detail,
+		ContainerID:  record.AlertEvent.GetContainerIDTag(),
+		Tags:         record.Alert.EnrichTags,
+		RawTags:      record.Alert.Tags,
+		AlertEventId: record.AlertEvent.ID.String(),
 	}
 
 	if len(services) == 1 {
