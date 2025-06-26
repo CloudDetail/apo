@@ -13,6 +13,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -36,6 +37,8 @@ type AlertCheckConfig struct {
 	Sampling       string
 	CacheMinutes   int
 	MaxConcurrency int
+
+	Prom prometheus.Repo
 }
 
 func newAsyncAlertCheck(cfg *AlertCheckConfig, logger *zap.Logger) asyncAlertCheck {

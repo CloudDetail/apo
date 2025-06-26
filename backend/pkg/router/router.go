@@ -155,6 +155,8 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			MaxConcurrency: difyConfig.MaxConcurrency,
 			CacheMinutes:   difyConfig.CacheMinutes,
 			Sampling:       difyConfig.Sampling,
+
+			Prom: r.prom,
 		}, r.logger)
 		if err != nil {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))

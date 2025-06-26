@@ -60,6 +60,9 @@ SELECT ae.id as id,
   fw.importance as importance,
   fw.output as output,
   fw.created_at as last_check_at,
+  fw.alert_direction,
+  fw.analyze_run_id,
+  fw.analyze_err,
   le.status as last_status,
   CASE
     WHEN output = 'false' THEN 'true'
@@ -117,6 +120,9 @@ SELECT ae.id as id,
   fw.created_at as last_check_at,
   fw.importance as importance,
   fw.output as output,
+  fw.alert_direction,
+  fw.analyze_run_id,
+  fw.analyze_err,
   CASE
     WHEN output = 'false' THEN 'true'
     WHEN output = 'true' THEN 'false'

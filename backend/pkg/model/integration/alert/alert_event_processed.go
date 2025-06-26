@@ -36,6 +36,10 @@ type WorkflowDetail struct {
 
 	// Deprecated: use [Validity] instead, will remove after 1.7.x
 	IsValid string `json:"isValid" ch:"is_valid"`
+
+	AlertDirection string `json:"alertDirection" ch:"alert_direction"`
+	AnalyzeRunID   string `json:"analyzeRunId" ch:"analyze_run_id"`
+	AnalyzeErr     string `json:"analyzeErr" ch:"analyze_err"`
 }
 
 type NotifyDetail struct {

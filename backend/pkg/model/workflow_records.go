@@ -17,6 +17,10 @@ type WorkflowRecord struct {
 	RoundedTime int64 `json:"-" ch:"rounded_time"`
 
 	InputRef any `json:"-" ch:"-"`
+
+	AlertDirection string `json:"alertDirection" ch:"alert_direction"`
+	AnalyzeRunID   string `json:"analyzeRunId" ch:"analyze_run_id"`
+	AnalyzeErr     string `json:"analyzeErr" ch:"analyze_err"`
 }
 
 type AlertNotifyRecord struct {
