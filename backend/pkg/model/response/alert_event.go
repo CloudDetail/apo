@@ -80,7 +80,7 @@ func deserializeTopology(jsonStr string) *map[string]any {
 func ToAlertReportResponse(report model.AlertEventReport) GetAlertEventReportResponse {
 	var data ReportData
 
-	data.OverView.Detail = report.OverviewDetail
+	data.OverView.Reason = report.OverviewDetail
 	data.AnalyzeProcess = report.OverviewReason
 	data.OverView.Tags = report.OverviewTags
 	data.OverView.TimeStamp = report.OverviewTimestamp.UnixMicro()
