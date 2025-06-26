@@ -78,15 +78,12 @@ func (c *WrappedConn) QueryRow(ctx context.Context, query string, args ...any) d
 		switch a := arg.(type) {
 		case string:
 			a = strings.ReplaceAll(a, "\n", "\\n")
-			a = strings.ReplaceAll("args", "\r", "\\r")
+			a = strings.ReplaceAll(a, "\r", "\\r")
 			escapedArgs = append(escapedArgs, a)
 		default:
 			escapedArgs = append(escapedArgs, arg)
 		}
 	}
-
-	query = strings.ReplaceAll(query, "\n", "\\n")
-	query = strings.ReplaceAll(query, "\r", "\\r")
 
 	query = strings.ReplaceAll(query, "\n", "\\n")
 	query = strings.ReplaceAll(query, "\r", "\\r")
