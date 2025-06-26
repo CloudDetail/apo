@@ -18,7 +18,7 @@ import (
 // @Summary get the error instance
 // @Description get the error instance
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -30,11 +30,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetErrorInstanceResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/error/instance [get]
+// @Router /api/service/error/instance [post]
 func (h *handler) GetErrorInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetErrorInstanceRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

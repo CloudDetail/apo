@@ -18,7 +18,7 @@ import (
 // @Summary get trace fault site log
 // @Description get trace fault site log
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -31,11 +31,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []clickhouse.FaultLogResult
 // @Failure 400 {object} code.Failure
-// @Router /api/service/trace/logs [get]
+// @Router /api/service/trace/logs [post]
 func (h *handler) GetTraceLogs() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceLogsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

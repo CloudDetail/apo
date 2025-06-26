@@ -18,7 +18,7 @@ import (
 // @Summary get the error instance failure site log
 // @Description get the error instance failure site log
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -31,11 +31,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []clickhouse.FaultLogResult
 // @Failure 400 {object} code.Failure
-// @Router /api/service/errorinstance/logs [get]
+// @Router /api/service/errorinstance/logs [post]
 func (h *handler) GetErrorInstanceLogs() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetErrorInstanceLogsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

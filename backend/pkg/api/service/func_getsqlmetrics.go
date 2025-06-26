@@ -18,7 +18,7 @@ import (
 // @Summary get SQL metrics
 // @Description get SQL metrics
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -30,11 +30,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/sql/metrics [get]
+// @Router /api/service/sql/metrics [post]
 func (h *handler) GetSQLMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetSQLMetricsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

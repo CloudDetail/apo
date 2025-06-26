@@ -21,7 +21,7 @@ import (
 // @Summary get the service entry Endpoint list
 // @Description get the service entry Endpoint list
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -32,11 +32,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/entry/endpoints [get]
+// @Router /api/service/entry/endpoints [post]
 func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEntryEndpointsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

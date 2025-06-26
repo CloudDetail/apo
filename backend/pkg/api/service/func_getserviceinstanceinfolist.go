@@ -18,7 +18,7 @@ import (
 // @Summary get the list of service instances
 // @Description get the list of service instances
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -27,11 +27,11 @@ import (
 // @Success 200 {object} []string
 // @Failure 400 {object} code.Failure
 // @Deprecated
-// @Router /api/service/instanceinfo/list [get]
+// @Router /api/service/instanceinfo/list [post]
 func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceListRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

@@ -18,7 +18,7 @@ import (
 // @Summary get the upstream and downstream topology of the service
 // @Description get the upstream and downstream topology of the service
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -29,11 +29,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceEndpointTopologyResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/topology [get]
+// @Router /api/service/topology [post]
 func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEndpointTopologyRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -52,6 +52,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetServiceEndpointTopology(c, req)
 		if err != nil {
 			c.AbortWithError(
