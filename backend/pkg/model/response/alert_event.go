@@ -81,7 +81,7 @@ func ToAlertReportResponse(report model.AlertEventReport) GetAlertEventReportRes
 	var data ReportData
 
 	data.OverView.Detail = report.OverviewDetail
-	data.OverView.Reason = report.OverviewReason
+	data.AnalyzeProcess = report.OverviewReason
 	data.OverView.Tags = report.OverviewTags
 	data.OverView.TimeStamp = report.OverviewTimestamp.UnixMicro()
 
@@ -100,9 +100,10 @@ func ToAlertReportResponse(report model.AlertEventReport) GetAlertEventReportRes
 }
 
 type ReportData struct {
-	OverView  model.ReportOverView  `json:"overview"`
-	Topology  *map[string]any       `json:"topology"`
-	RootCause model.ReportRootCause `json:"rootCauseAnalysis"`
-	Suggest   []map[string]any      `json:"suggest"`
-	Data      []map[string]any      `json:"evidence"`
+	OverView       model.ReportOverView  `json:"overview"`
+	Topology       *map[string]any       `json:"topology"`
+	RootCause      model.ReportRootCause `json:"rootCauseAnalysis"`
+	Suggest        []map[string]any      `json:"suggest"`
+	AnalyzeProcess string                `json:"analyzeProcess"`
+	Data           []map[string]any      `json:"evidence"`
 }
