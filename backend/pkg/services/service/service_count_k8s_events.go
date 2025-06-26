@@ -7,6 +7,7 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 // CountK8sEvents get K8s events
@@ -32,7 +33,7 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances, req.ClusterIDs)
 	if err != nil {
 		return resp, err
 	}

@@ -131,6 +131,10 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
 
+	if len(filter.ClusterIDs) > 0 {
+		builder.InStrings("cluster_id", filter.ClusterIDs)
+	}
+
 	byBuilder := NewByLimitBuilder().
 		OrderBy("group", true).
 		OrderBy("name", true)
@@ -145,7 +149,7 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
 	if len(filter.Services) > 0 ||
-		len(filter.Endpoint) > 0 ||
+		len(filter.Endpoints) > 0 ||
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
 		whereInstance = extractFilter(filter, instances)
 	}
@@ -160,6 +164,10 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
+
+	if len(filter.ClusterIDs) > 0 {
+		builder.InStrings("cluster_id", filter.ClusterIDs)
+	}
 
 	var count uint64
 	countSql := buildAlertEventsCountQuery(GET_ALERT_EVENTS_COUNT, builder)
@@ -254,19 +262,17 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 			for _, s := range filter.Services {
 				arr = append(arr, s)
 			}
+
+			endpoints := make(clickhouse.ArraySet, 0, len(filter.Endpoints))
+			for _, e := range filter.Endpoints {
+				endpoints = append(endpoints, e)
+			}
+
 			serviceCondition = append(serviceCondition,
 				mergeWheres(
-					OrSep,
-					mergeWheres(
-						AndSep,
-						in("tags['svc_name']", arr),
-						equalsIfNotEmpty("tags['content_key']", filter.Endpoint),
-					), // Compatible with older versions
-					mergeWheres(
-						AndSep,
-						in("tags['serviceName']", arr),
-						equalsIfNotEmpty("tags['endpoint']", filter.Endpoint),
-					),
+					AndSep,
+					in("tags['serviceName']", arr),
+					in("tags['endpoint']", endpoints),
 				),
 			)
 		}
