@@ -406,15 +406,46 @@ healthy:
       field_name: "abbreviation"
       entity_type: "menu"
 
-服务概览:
-  key: "服务概览"
+report:
+  key: "report"
+  i18n:
+    - language: "en"
+      translation: "Report"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "故障报告"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Report"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
+serviceConfig:
+  key: "serviceConfig"
+  i18n:
+    - language: "en"
+      translation: "Config Business Name"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "服务别名配置"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Config"
+      field_name: "abbreviation"
+      entity_type: "menu"
+故障报告:
+  key: "故障报告"
   i18n:
   - language: "en"
-    translation: "Services Overview"
+    translation: "Report"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
-    translation: "服务概览"
+    translation: "故障报告"
     entity_type: "feature"
     field_name: "featureName"
 
@@ -761,3 +792,26 @@ MySQL大盘:
       translation: "服务健康状态"
       field_name: "featureName"
       entity_type: "feature"
+
+服务别名配置:
+  key: "服务别名配置"
+  i18n:
+  - language: "en"
+    translation: "Service "
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "服务别名配置"
+    entity_type: "feature"
+    field_name: "featureName"
+服务概览:
+  key: "服务概览"
+  i18n:
+  - language: "en"
+    translation: "Config Business Name"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "服务概览"
+    entity_type: "feature"
+    field_name: "featureName"

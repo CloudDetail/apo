@@ -42,6 +42,8 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "dataGroup", Order: 49}, RouterKey: "/system/data-group"},
 	{MenuItem: MenuItem{Key: "team", Order: 51}, RouterKey: "/system/team"},
 	{MenuItem: MenuItem{Key: "role", Order: 52}, RouterKey: "/system/role-manage"},
+	{MenuItem: MenuItem{Key: "report", Order: 53}, RouterKey: "/report"},
+	{MenuItem: MenuItem{Key: "serviceConfig", Order: 53}, RouterKey: "/demo/service-config"},
 }
 
 func (repo *daoRepo) initMenuItems(ctx core.Context) error {
