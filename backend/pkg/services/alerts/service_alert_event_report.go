@@ -13,7 +13,7 @@ import (
 
 func (s *service) GetAlertEventReport(ctx core.Context, req *request.GetAlertEventReportRequest) (*response.GetAlertEventReportResponse, error) {
 
-	report, err := s.chRepo.GetAlertEventReport(ctx, time.UnixMicro(req.StartTime), time.UnixMicro(req.EndTime+1000000), req.Tags)
+	report, err := s.chRepo.GetAlertEventReport(ctx, time.UnixMicro(req.StartTime-600000000), time.UnixMicro(req.EndTime+600000000), req.Tags)
 	if err != nil {
 		return nil, err
 	}
