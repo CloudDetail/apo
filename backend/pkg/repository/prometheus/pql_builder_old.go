@@ -1,12 +1,86 @@
-// Copyright 2024 CloudDetail
+// Copyright 2025 CloudDetail
 // SPDX-License-Identifier: Apache-2.0
 
 package prometheus
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
+
+	core "github.com/CloudDetail/apo/backend/pkg/core"
 )
+
+// AggPQLWithFilters generate PQL statements
+// Generate PQL using vector and filterKVs
+// @vector: Specify the aggregation time range
+// @granularity: Specify aggregation granularity
+// @filterKVs: filter condition, in the format of key1, value1, key2, and value2
+type AggPQLWithFilters func(vector string, granularity string, filterKVs []string) string
+
+func (repo *promRepo) QueryAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
+	if len(filterKVs)%2 != 0 {
+		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
+	}
+	var filters []string
+	for i := 0; i+1 < len(filterKVs); i += 2 {
+		filters = append(filters, fmt.Sprintf("%s\"%s\"", filterKVs[i], filterKVs[i+1]))
+	}
+	vector := VecFromS2E(startTime, endTime)
+	pql := pqlTemplate(vector, string(granularity), filters)
+	return repo.QueryData(ctx, time.UnixMicro(endTime), pql)
+}
+
+func (repo *promRepo) QueryRangeAggMetricsWithFilter(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, filterKVs ...string) ([]MetricResult, error) {
+	if len(filterKVs)%2 != 0 {
+		return nil, fmt.Errorf("size of filterKVs is not even: %d", len(filterKVs))
+	}
+	var filters []string
+	for i := 0; i+1 < len(filterKVs); i += 2 {
+		filters = append(filters, fmt.Sprintf("%s\"%s\"", filterKVs[i], filterKVs[i+1]))
+	}
+
+	step := time.Duration(stepMicroS) * time.Microsecond
+	vector := VecFromDuration(step)
+	pql := pqlTemplate(vector, string(granularity), filters)
+	return repo.QueryRangeData(
+		ctx,
+		time.UnixMicro(startTime), time.UnixMicro(endTime),
+		pql,
+		step)
+}
+
+// #################### Decorator ######################
+
+// Calculate the Day-over-Day Growth Rate rate of the metric.
+func DayOnDay(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
+	return func(vector string, granularity string, filterKVs []string) string {
+		nowPql := pqlTemplate(vector, granularity, filterKVs)
+
+		return `(` + nowPql + `) / ((` + nowPql + `) offset 24h )`
+	}
+}
+
+// Calculate Week-over-Week Growth Rate of the metric.
+func WeekOnWeek(pqlTemplate AggPQLWithFilters) AggPQLWithFilters {
+	return func(vector string, granularity string, filterKVs []string) string {
+		nowPql := pqlTemplate(vector, granularity, filterKVs)
+
+		return `(` + nowPql + `) / ((` + nowPql + `) offset 7d )`
+	}
+}
+
+func WithDefaultIFPolarisMetricExits(pqlTemplate AggPQLWithFilters, defaultValue int64) AggPQLWithFilters {
+	return func(vector string, granularity string, filterKVs []string) string {
+		pql := pqlTemplate(vector, granularity, filterKVs)
+		checkPql := PQLIsPolarisMetricExitsWithFilters(vector, granularity, filterKVs)
+		defaultV := strconv.FormatInt(defaultValue, 10)
+		return `(` + pql + `) or ( ` + checkPql + ` * 0 + ` + defaultV + `)`
+	}
+}
+
+// #################### PQL Templates #####################
 
 // Average time spent on PQLAvgDepLatencyWithFilters queries from external dependencies
 // Average time taken to return results for external dependencies
@@ -186,29 +260,4 @@ func PQLNormalLogCountWithFilters(vector string, granularity string, filters []s
 func PQLMonitorStatus(vector string, granularity string, filters []string) string {
 	filtersStr := strings.Join(filters, ",")
 	return `last_over_time(monitor_status{` + filtersStr + `}[` + vector + `])`
-}
-
-// PQLInstanceLog get the pql pod or vm of the instance-level log metric
-func PQLInstanceLog(pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) (string, error) {
-	if len(podFilterKVs)%2 != 0 {
-		return "", fmt.Errorf("size of podFilterKVs is not even: %d", len(podFilterKVs))
-	}
-
-	if len(vmFilterKVs)%2 != 0 {
-		return "", fmt.Errorf("size of vmFilterKVs is not even: %d", len(vmFilterKVs))
-	}
-	var podFilters []string
-	for i := 0; i+1 < len(podFilterKVs); i += 2 {
-		podFilters = append(podFilters, fmt.Sprintf("%s\"%s\"", podFilterKVs[i], podFilterKVs[i+1]))
-	}
-
-	var vmFilters []string
-	for i := 0; i+1 < len(vmFilterKVs); i += 2 {
-		vmFilters = append(vmFilters, fmt.Sprintf("%s\"%s\"", vmFilterKVs[i], vmFilterKVs[i+1]))
-	}
-
-	vector := VecFromS2E(startTime, endTime)
-	podPql := pqlTemplate(vector, string(granularity), podFilters)
-	vmPql := pqlTemplate(vector, string(granularity), vmFilters)
-	return `(` + podPql + `) or (` + vmPql + `)`, nil
 }

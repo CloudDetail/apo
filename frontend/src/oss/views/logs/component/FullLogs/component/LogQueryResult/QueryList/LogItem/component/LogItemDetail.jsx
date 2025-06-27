@@ -37,12 +37,12 @@ const LogItemDetail = ({ log, contentVisibility, nullFieldVisibility = false }) 
   }, [log])
   return (<>
     {/* 渲染 fields */}
-    <div className="text-ellipsis text-wrap flex flex-col overflow-hidden">
+    <div className="text-ellipsis text-wrap flex flex-col overflow-hidden gap-1">
       {filteredFields.map(([key, value]) => (
         (nullFieldVisibility || value) && <LogKeyTag key={key} title={key} description={value} />
       ))}
     </div>
-    <div>
+    <div className='mt-1'>
       {contentVisibility && Object.entries(contentInfo).map(([key, value]) => (
         <LogKeyTag key={key} title={key} description={value} />
       ))}

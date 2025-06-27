@@ -196,3 +196,127 @@ func ReverseSortWithMetrics(sortType request.SortType) func(i, j *EndpointMetric
 		}
 	}
 }
+
+const DefaultDepLatency int64 = -1
+
+func (repo *promRepo) FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filters []string, granularity Granularity) error {
+	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
+		return apf
+	}
+
+	switch metricGroup {
+	case REALTIME:
+		startTime = endTime.Add(-3 * time.Minute)
+	case DOD:
+		decorator = DayOnDay
+	case WOW:
+		decorator = WeekOnWeek
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+	stepMicro := step.Microseconds()
+
+	var errs []error
+	latency, err := repo.QueryRangeAggMetricsWithFilter(ctx,
+		decorator(PQLAvgLatencyWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, LATENCY, latency)
+	}
+
+	errorRate, err := repo.QueryRangeAggMetricsWithFilter(ctx,
+		decorator(PQLAvgErrorRateWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, ERROR_RATE, errorRate)
+	}
+
+	if metricGroup == REALTIME {
+		return errors.Join(err)
+	}
+	tps, err := repo.QueryRangeAggMetricsWithFilter(ctx,
+		decorator(PQLAvgTPSWithFilters),
+		startTS, endTS, stepMicro,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, THROUGHPUT, tps)
+	}
+
+	return errors.Join(errs...)
+}
+
+// FillMetric query and populate RED metric
+func (repo *promRepo) FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filters []string, granularity Granularity) error {
+	var decorator = func(apf AggPQLWithFilters) AggPQLWithFilters {
+		return apf
+	}
+
+	switch metricGroup {
+	case REALTIME:
+		startTime = endTime.Add(-3 * time.Minute)
+	case DOD:
+		decorator = DayOnDay
+	case WOW:
+		decorator = WeekOnWeek
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	var errs []error
+	latency, err := repo.QueryAggMetricsWithFilter(ctx,
+		decorator(PQLAvgLatencyWithFilters),
+		startTS, endTS,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, LATENCY, latency)
+	}
+
+	errorRate, err := repo.QueryAggMetricsWithFilter(ctx,
+		decorator(PQLAvgErrorRateWithFilters),
+		startTS, endTS,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, ERROR_RATE, errorRate)
+	}
+
+	if metricGroup == REALTIME {
+		return errors.Join(err)
+	}
+	tps, err := repo.QueryAggMetricsWithFilter(ctx,
+		decorator(PQLAvgTPSWithFilters),
+		startTS, endTS,
+		granularity,
+		filters...,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, THROUGHPUT, tps)
+	}
+
+	return errors.Join(errs...)
+}
