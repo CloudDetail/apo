@@ -2,10 +2,5 @@
   "personalCenter": "Profile",
   "logout": "Logout",
   "logoutSuccess": "Logout successfully",
-  "login": "Login",
-  "colorMode": "ColorMode",
-  "language": "Language",
-  "preferences": "Preferences",
-  "lightMode": "Light",
-  "darkMode": "Dark"
+  "login": "Login"
 }

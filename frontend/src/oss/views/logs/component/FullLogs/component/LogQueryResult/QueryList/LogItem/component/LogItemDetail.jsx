@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import LogKeyTag from './LogKeyTag'
-const LogItemDetail = ({ log, contentVisibility, nullFieldVisibility = false }) => {
+const LogItemDetail = ({ log, contentVisibility }) => {
   const { content, logFields: fields } = log
   const [contentInfo, setContentInfo] = useState({})
   const { tableInfo, displayFields } = useLogsContext()
@@ -39,7 +39,7 @@ const LogItemDetail = ({ log, contentVisibility, nullFieldVisibility = false }) 
     {/* 渲染 fields */}
     <div className="text-ellipsis text-wrap flex flex-col overflow-hidden">
       {filteredFields.map(([key, value]) => (
-        (nullFieldVisibility || value) && <LogKeyTag key={key} title={key} description={value} />
+        <LogKeyTag key={key} title={key} description={value} />
       ))}
     </div>
     <div>

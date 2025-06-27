@@ -29,9 +29,7 @@
     "placeholder": "Please enter a query statement"
   },
   "logQueryResult": {
-    "totalText": "Total number of log entries：",
-    "hideNull": "Hide null fields",
-    "displayNull": "Display null fields"
+    "totalText": "Total number of log entries："
   },
   "queryList": {
     "noDataText": "No log data available",

@@ -118,9 +118,6 @@ const AntdWrapper = memo(() => {
           Spin: {
             dotSizeLG: 48,
           },
-          Splitter: {
-            splitTriggerSize: 12,
-          }
         },
       }}
     >
