@@ -70,6 +70,7 @@ type AlertAnalyzeWorkflowParams struct {
 	Detail      string `json:"detail,omitempty"`
 	ContainerID string `json:"containerId,omitempty"`
 
-	Tags    map[string]string `json:"tags,omitempty"`
-	RawTags map[string]any    `json:"raw_tags,omitempty"`
+	Tags         map[string]string `json:"tags,omitempty"`
+	RawTags      map[string]any    `json:"raw_tags,omitempty"`
+	AlertEventId string            `json:"alertEventId,omitempty"`
 }

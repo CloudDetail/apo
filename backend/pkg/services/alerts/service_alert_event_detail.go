@@ -103,15 +103,16 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 		}
 
 		parmas := alert.AlertAnalyzeWorkflowParams{
-			AlertName:   records[i].AlertEvent.Name,
-			Node:        records[i].AlertEvent.GetInfraNodeTag(),
-			Namespace:   records[i].AlertEvent.GetK8sNamespaceTag(),
-			Pod:         records[i].AlertEvent.GetK8sPodTag(),
-			Pid:         records[i].AlertEvent.GetPidTag(),
-			Detail:      records[i].AlertEvent.Detail,
-			ContainerID: records[i].AlertEvent.GetContainerIDTag(),
-			Tags:        records[i].AlertEvent.EnrichTags,
-			RawTags:     records[i].AlertEvent.Tags,
+			AlertName:    records[i].AlertEvent.Name,
+			Node:         records[i].AlertEvent.GetInfraNodeTag(),
+			Namespace:    records[i].AlertEvent.GetK8sNamespaceTag(),
+			Pod:          records[i].AlertEvent.GetK8sPodTag(),
+			Pid:          records[i].AlertEvent.GetPidTag(),
+			Detail:       records[i].AlertEvent.Detail,
+			ContainerID:  records[i].AlertEvent.GetContainerIDTag(),
+			Tags:         records[i].AlertEvent.EnrichTags,
+			RawTags:      records[i].AlertEvent.Tags,
+			AlertEventId: records[i].AlertEvent.ID.String(),
 		}
 
 		if len(services) == 1 {

@@ -102,6 +102,8 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`
+		AutoCheck      bool   `mapstructure:"auto_check"`
+		AutoAnalyze    bool   `mapstructure:"auto_analyze"`
 	} `mapstructure:"dify"`
 	AlertReceiver struct {
 		Enabled     bool   `mapstructure:"enabled"`

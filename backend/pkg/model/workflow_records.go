@@ -30,3 +30,8 @@ type AlertNotifyRecord struct {
 	Success   string `json:"success" ch:"success"`
 	Failed    string `json:"failed" ch:"failed"`
 }
+
+type AlertEventClassify struct {
+	WorkflowId     string `json:"workflowId"`
+	WorkflowApiKey string `json:"workflowApiKey"`
+}
