@@ -200,7 +200,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			record.AnalyzeErr = err.Error()
 			record.AlertDirection = "序列化告警分析参数失败"
 		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, classify.WorkflowApiKey, w.User)
+			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
 			if err != nil {
 				record.AnalyzeErr = err.Error()
 				record.AlertDirection = "执行告警分析工作流失败"
