@@ -65,7 +65,7 @@ func convertJSONStringsToJSON(jsonStrings []string) []map[string]any {
 }
 
 func deserializeTopology(jsonStr string) *map[string]any {
-	if jsonStr == "" {
+	if jsonStr == "" || jsonStr == "{}" {
 		return nil
 	}
 
