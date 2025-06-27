@@ -17,7 +17,7 @@ import (
 type Handler interface {
 	// GetEndPointsData get the list of endpoints services
 	// @Tags API.service
-	// @Router /api/service/endpoints [get]
+	// @Router /api/service/endpoints [post]
 	GetEndPointsData() core.HandlerFunc
 	// GetServicesAlert get the log alarm and status light information of the Service
 	// @Tags API.service

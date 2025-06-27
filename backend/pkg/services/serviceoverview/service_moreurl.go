@@ -19,12 +19,12 @@ func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTi
 		ServiceName: serviceNames,
 	}
 
-	filters := filter.ExtractFilterStr()
-	endpointsMap := s.EndpointsREDMetric(ctx, startTime, endTime, filters)
+	pqlFilter := filter.ExtractPQLFilterStr()
+	endpointsMap := s.EndpointsREDMetric(ctx, startTime, endTime, pqlFilter)
 	endpoints := endpointsMap.MetricGroupList
 
 	// step2 fill delay dependency
-	err = s.EndpointsDelaySource(ctx, endpointsMap, startTime, endTime, filters)
+	err = s.EndpointsDelaySource(ctx, endpointsMap, startTime, endTime, pqlFilter)
 	if err != nil {
 		// TODO output error log, DelaySource query failed
 	}

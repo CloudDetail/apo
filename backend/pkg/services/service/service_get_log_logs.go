@@ -23,6 +23,7 @@ func (s *service) GetLogLogs(ctx core.Context, req *request.GetLogLogsRequest) (
 		Type:        0, // Slow && Error & Profiled
 		PageNum:     1,
 		PageSize:    5,
+		ClusterIDs:  req.ClusterIDs,
 	}
 	list, _, err := s.chRepo.GetFaultLogPageList(ctx, query)
 	if err != nil {

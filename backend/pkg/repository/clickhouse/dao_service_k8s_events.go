@@ -20,6 +20,7 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($1) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
+		  AND ResourceAttributes['cluster.id'] = IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)
 		UNION ALL
@@ -32,6 +33,7 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($2) - toIntervalDay(7) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
+		  AND ResourceAttributes['cluster.id'] = IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)
 		UNION ALL
@@ -44,16 +46,17 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($2) - toIntervalDay(30) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
+		  AND ResourceAttributes['cluster.id'] = IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)`
 )
 
 // CountK8sEvents count the number of K8s events
 // Time in microseconds
-func (ch *chRepo) CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error) {
+func (ch *chRepo) CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string, clusterIDs []string) ([]K8sEventsCount, error) {
 	result := make([]K8sEventsCount, 0)
 	// Execute query
-	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods)
+	rows, err := ch.GetContextDB(ctx).Query(ctx.GetContext(), countK8sEventsSQL, startTime/1e6, endTim/1e6, pods, clusterIDs)
 	if err != nil {
 		return result, err
 	}

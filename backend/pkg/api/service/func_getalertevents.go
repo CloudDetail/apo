@@ -19,7 +19,7 @@ import (
 // @Summary get alarm events
 // @Description get alarm events
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -35,11 +35,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/alert/events [get]
+// @Router /api/service/alert/events [post]
 func (h *handler) GetAlertEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertEventsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -48,9 +48,16 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			return
 		}
 
-		if len(req.Service) > 0 {
-			req.Services = append(req.Services, req.Service)
+		// TODO Compatible with old APIs
+		{
+			if len(req.Service) > 0 {
+				req.Services = append(req.Services, req.Service)
+			}
+			if len(req.Endpoint) > 0 {
+				req.Endpoints = append(req.Endpoints, req.Endpoint)
+			}
 		}
+
 		userID := c.UserID()
 		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
 		if err != nil {

@@ -15,7 +15,7 @@ import (
 // @Summary get the list of services
 // @Description get the list of services
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -23,7 +23,7 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []string
 // @Failure 400 {object} code.Failure
-// @Router /api/service/list [get]
+// @Router /api/service/list [post]
 func (h *handler) GetServiceList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceListRequest)

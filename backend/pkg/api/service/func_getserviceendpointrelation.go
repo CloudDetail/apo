@@ -18,7 +18,7 @@ import (
 // @Summary get the call relationship between the upstream and downstream services
 // @Description the call relationship between the upstream and downstream service
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -29,11 +29,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceEndpointRelationResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/relation [get]
+// @Router /api/service/relation [post]
 func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEndpointRelationRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

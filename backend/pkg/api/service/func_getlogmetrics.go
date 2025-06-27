@@ -18,7 +18,7 @@ import (
 // @Summary get log related metrics
 // @Description get log related metrics
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -30,7 +30,7 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetLogMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/log/metrics [get]
+// @Router /api/service/log/metrics [post]
 func (h *handler) GetLogMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetLogMetricsRequest)

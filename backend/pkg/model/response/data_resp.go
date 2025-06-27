@@ -19,6 +19,19 @@ type GetDataGroupResponse struct {
 }
 
 type GetGroupDatasourceResponse struct {
+	GroupDatasource
+
+	ClusterScopedDatasource []ClusterScopedDatasource `json:"clusterScoped"`
+}
+
+type ClusterScopedDatasource struct {
+	ClusterID   string `json:"clusterId"`
+	ClusterName string `json:"clusterName"`
+
+	GroupDatasource
+}
+
+type GroupDatasource struct {
 	NamespaceMap map[string][]string `json:"namespaceMap"` // namespace: services
 	ServiceMap   map[string][]string `json:"serviceMap"`   // service: endpoints
 }

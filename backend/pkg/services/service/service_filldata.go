@@ -86,60 +86,58 @@ type InstancesFilter struct {
 	ContentKey string
 }
 
-func (f InstancesFilter) ExtractFilterStr() []string {
-	var filters []string
+func (f InstancesFilter) ExtractPQLFilter() prometheus.PQLFilter {
+	var filter = prometheus.NewFilter()
 	if len(f.SrvName) > 0 {
-		filters = append(filters, prometheus.ServicePQLFilter, f.SrvName)
+		filter.AddPatternFilter(prometheus.ServicePQLFilter, f.SrvName)
 	}
 	if len(f.ContentKey) > 0 {
-		filters = append(filters, prometheus.ContentKeyPQLFilter, f.ContentKey)
+		filter.AddPatternFilter(prometheus.ContentKeyPQLFilter, f.ContentKey)
 	}
 
-	filters = append(filters, prometheus.PodRegexPQLFilter, prometheus.LabelExistPQLValueFilter)
-	filters = append(filters, prometheus.ContainerIdRegexPQLFilter, prometheus.LabelExistPQLValueFilter)
-	return filters
+	filter.AddPatternFilter(prometheus.ContainerIdRegexPQLFilter, prometheus.LabelExistPQLValueFilter)
+	return filter
 }
 
 // InstanceRED get the RED metric of instance granularity
-func (s *service) InstanceRED(ctx core.Context, startTime, endTime time.Time, filters []string, res *InstanceMap) {
-	s.promRepo.FillMetric(ctx, res, prometheus.AVG, startTime, endTime, filters, prometheus.InstanceGranularity)
-	s.promRepo.FillMetric(ctx, res, prometheus.DOD, startTime, endTime, filters, prometheus.InstanceGranularity)
-	s.promRepo.FillMetric(ctx, res, prometheus.WOW, startTime, endTime, filters, prometheus.InstanceGranularity)
-
+func (s *service) InstanceRED(ctx core.Context, startTime, endTime time.Time, filter prometheus.PQLFilter, res *InstanceMap) {
+	s.promRepo.FillMetric(ctx, res, prometheus.AVG, startTime, endTime, filter, prometheus.InstanceEndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prometheus.DOD, startTime, endTime, filter, prometheus.InstanceEndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prometheus.WOW, startTime, endTime, filter, prometheus.InstanceEndpointGranularity)
 }
 
 // InstanceRangeData get chart data for the RED metric with instance granularity
-func (s *service) InstanceRangeData(ctx core.Context, instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filters []string) *multierror.Error {
+func (s *service) InstanceRangeData(ctx core.Context, instances *InstanceMap, startTime, endTime time.Time, step time.Duration, filter prometheus.PQLFilter) *multierror.Error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgLatencyWithFilters,
+	latencyRes, latencyErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgLatencyWithPQLFilter,
 		startTS,
 		endTS,
 		step.Microseconds(),
-		prometheus.InstanceGranularity,
-		filters...,
+		prometheus.InstanceEndpointGranularity,
+		filter,
 	)
 	mergeChartMetrics(instances, latencyRes, metricLatencyData)
 
-	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgErrorRateWithFilters,
+	errorRes, rateErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgErrorRateWithPQLFilter,
 		startTS,
 		endTS,
 		step.Microseconds(),
-		prometheus.InstanceGranularity,
-		filters...,
+		prometheus.InstanceEndpointGranularity,
+		filter,
 	)
 	mergeChartMetrics(instances, errorRes, metricErrorData)
 
-	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgTPSWithFilters,
+	tpmRes, tmpErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgTPSWithPQLFilter,
 		startTS,
 		endTS,
 		step.Microseconds(),
-		prometheus.InstanceGranularity,
-		filters...,
+		prometheus.InstanceEndpointGranularity,
+		filter,
 	)
 	mergeChartMetrics(instances, tpmRes, metricTPMData)
 

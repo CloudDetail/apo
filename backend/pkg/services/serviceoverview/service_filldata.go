@@ -14,18 +14,18 @@ import (
 )
 
 // EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
-func (s *service) EndpointsREDMetric(ctx core.Context, startTime, endTime time.Time, filters []string) *EndpointsMap {
+func (s *service) EndpointsREDMetric(ctx core.Context, startTime, endTime time.Time, filter prom.PQLFilter) *EndpointsMap {
 	var res = &EndpointsMap{
 		MetricGroupList: []*prom.EndpointMetrics{},
 		MetricGroupMap:  map[prom.EndpointKey]*prom.EndpointMetrics{},
 	}
 
 	// Average RED metric over the fill time period
-	s.promRepo.FillMetric(ctx, res, prom.AVG, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.AVG, startTime, endTime, filter, prom.EndpointGranularity)
 	// RED metric day-to-day-on-da during the fill period
-	s.promRepo.FillMetric(ctx, res, prom.DOD, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.DOD, startTime, endTime, filter, prom.EndpointGranularity)
 	// RED metric week-on-week in the fill time period
-	s.promRepo.FillMetric(ctx, res, prom.WOW, startTime, endTime, filters, prom.EndpointGranularity)
+	s.promRepo.FillMetric(ctx, res, prom.WOW, startTime, endTime, filter, prom.EndpointGranularity)
 
 	return res
 }
@@ -57,22 +57,51 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	return filters
 }
 
-func (s *service) EndpointsRealtimeREDMetric(ctx core.Context, filters []string, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
-	s.promRepo.FillMetric(ctx, endpointsMap, prom.REALTIME, startTime, endTime, filters, prom.EndpointGranularity)
+func (f EndpointsFilter) ExtractPQLFilterStr() prom.PQLFilter {
+	filter := prom.NewFilter()
+
+	if len(f.ServiceName) > 0 {
+		filter.AddPatternFilter(prom.ServicePQLFilter, f.ServiceName)
+	} else if len(f.ContainsSvcName) > 0 {
+		filter.AddPatternFilter(prom.ServiceRegexPQLFilter, prom.RegexContainsValue(f.ContainsSvcName))
+	}
+	if len(f.ContainsEndpointName) > 0 {
+		filter.AddPatternFilter(prom.ContentKeyRegexPQLFilter, prom.RegexContainsValue(f.ContainsEndpointName))
+	}
+	if len(f.Namespace) > 0 {
+		filter.AddPatternFilter(prom.NamespacePQLFilter, f.Namespace)
+	}
+	if len(f.MultiNamespace) > 0 {
+		filter.AddPatternFilter(prom.NamespaceRegexPQLFilter, prom.RegexMultipleValue(f.MultiNamespace...))
+	}
+	if len(f.MultiService) > 0 {
+		filter.AddPatternFilter(prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(f.MultiService...))
+	}
+	if len(f.MultiEndpoint) > 0 {
+		filter.AddPatternFilter(prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(f.MultiEndpoint...))
+	}
+	if len(f.ClusterIDs) > 0 {
+		filter.RegexMatch(prom.ClusterIDKey, prom.RegexMultipleValue(f.ClusterIDs...))
+	}
+	return filter
+}
+
+func (s *service) EndpointsRealtimeREDMetric(ctx core.Context, filter prom.PQLFilter, endpointsMap *EndpointsMap, startTime time.Time, endTime time.Time) {
+	s.promRepo.FillMetric(ctx, endpointsMap, prom.REALTIME, startTime, endTime, filter, prom.EndpointGranularity)
 }
 
 // EndpointsDelaySource fill delay source
 // Based on the input Endpoints, records that do not exist in the Endpoints are discarded.
-func (s *service) EndpointsDelaySource(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+func (s *service) EndpointsDelaySource(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filter prom.PQLFilter) error {
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	metricResults, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.WithDefaultIFPolarisMetricExits(prom.PQLDepLatencyRadioWithFilters, prom.DefaultDepLatency),
+	metricResults, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.WithDefaultForPolarisActiveSeries(prom.PQLDepLatencyRadioWithPQLFilter, prom.DefaultDepLatency),
 		startTS, endTS,
 		prom.EndpointGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		return err
@@ -95,15 +124,15 @@ func (s *service) EndpointsDelaySource(ctx core.Context, endpoints *EndpointsMap
 	return nil
 }
 
-func (s *service) EndpointsNamespaceInfo(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+func (s *service) EndpointsNamespaceInfo(ctx core.Context, endpoints *EndpointsMap, startTime, endTime time.Time, filter prom.PQLFilter) error {
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	metricResult, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.PQLAvgTPSWithFilters,
+	metricResult, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.PQLAvgTPSWithPQLFilter,
 		startTS, endTS,
 		prom.NSEndpointGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		return err

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
 // this file is using @PQLFilter and @PQLTemplate to build more complex PQL statements
@@ -16,6 +17,13 @@ import (
 type QueryWithPQLFilter interface {
 	QueryMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, gran Granularity, filter PQLFilter) ([]MetricResult, error)
 	QueryRangeMetricsWithPQLFilter(ctx core.Context, pqlTpl PQLTemplate, startTime int64, endTime int64, stepMicroS int64, gran Granularity, filter PQLFilter) ([]MetricResult, error)
+
+	FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filter PQLFilter, granularity Granularity) error
+	FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filter PQLFilter, granularity Granularity) error
+
+	GetInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (*model.ServiceInstances, error)
+	// Query the db instance for specified service
+	GetDescendantDatabase(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]model.MiddlewareInstance, error)
 }
 
 type PQLTemplate func(vector string, gran string, filter PQLFilter, offset string) string

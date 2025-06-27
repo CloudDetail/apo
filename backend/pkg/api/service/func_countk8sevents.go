@@ -18,7 +18,7 @@ import (
 // @Summary get K8s events
 // @Description get K8s events
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -26,11 +26,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetK8sEventsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/k8s/events/count [get]
+// @Router /api/service/k8s/events/count [post]
 func (h *handler) CountK8sEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetK8sEventsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

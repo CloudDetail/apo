@@ -4,6 +4,9 @@
 package database
 
 import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"gorm.io/gorm"
@@ -27,6 +30,8 @@ type DatasourceGroup struct {
 	Datasource string `gorm:"column:datasource;primary_key" json:"datasource"`
 	Type       string `gorm:"column:type" json:"type"`         // service or namespace
 	Category   string `gorm:"column:category" json:"category"` // apm or normal
+
+	ClusterID string `gorm:"column:cluster_id" json:"clusterId"`
 }
 
 func (dg *DataGroup) TableName() string {
@@ -183,4 +188,85 @@ func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, 
 	}
 
 	return dataGroups, nil
+}
+
+func (repo *daoRepo) GetDataGroupByGroupIDOrUserID(ctx core.Context, groupID int64, userID int64, category string) ([]DataGroup, error) {
+	if groupID != 0 {
+		return repo.GetDataGroupByGroupID(ctx, groupID, category)
+	}
+	return repo.GetDataGroupByUserID(ctx, userID, category)
+}
+
+func (repo *daoRepo) GetDataGroupByGroupID(ctx core.Context, groupID int64, category string) ([]DataGroup, error) {
+	if groupID == 0 {
+		return nil, fmt.Errorf("group id is empty")
+	}
+
+	filter := model.DataGroupFilter{
+		ID: groupID,
+	}
+
+	dataGroups, _, err := repo.GetDataGroup(ctx, filter)
+	if err != nil {
+		return dataGroups, err
+	}
+
+	if len(dataGroups) == 0 {
+		return nil, core.Error(code.DataGroupNotExistError, "data group does not exits")
+	}
+
+	for i, group := range dataGroups {
+		filteredDatasource := make([]DatasourceGroup, 0, len(group.DatasourceList))
+		for _, ds := range group.DatasourceList {
+			if len(category) == 0 || category == ds.Category {
+				filteredDatasource = append(filteredDatasource, ds)
+			}
+		}
+		dataGroups[i].DatasourceList = filteredDatasource
+	}
+
+	return dataGroups, nil
+}
+
+func (repo *daoRepo) GetDataGroupByUserID(ctx core.Context, userID int64, category string) ([]DataGroup, error) {
+	teamIDs, err := repo.GetUserTeams(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	seen := make(map[int64]struct{})
+	// Get user's teams.
+	var groups []DataGroup
+	for _, teamID := range teamIDs {
+		gs, err := repo.GetSubjectDataGroupList(ctx, teamID, model.DATA_GROUP_SUB_TYP_TEAM, category)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, g := range gs {
+			if _, ok := seen[g.GroupID]; ok {
+				continue
+			}
+
+			seen[g.GroupID] = struct{}{}
+			groups = append(groups, g)
+		}
+	}
+
+	for i := range groups {
+		groups[i].Source = model.DATA_GROUP_SUB_TYP_TEAM
+	}
+
+	gs, err := repo.GetSubjectDataGroupList(ctx, userID, model.DATA_GROUP_SUB_TYP_USER, category)
+	for i := range gs {
+		gs[i].Source = model.DATA_GROUP_SUB_TYP_USER
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	groups = append(groups, gs...)
+
+	return groups, nil
 }

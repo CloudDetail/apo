@@ -51,7 +51,7 @@ type Repo interface {
 	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
 	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
 
-	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
+	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string, clusterIDs []string) ([]K8sEventsCount, error)
 
 	// ========== application_logs ==========
 	// Query the log content of the fault site. The sourceFrom can be blank. The log in the first source that can be found will be returned.

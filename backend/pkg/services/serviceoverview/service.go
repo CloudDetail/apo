@@ -23,7 +23,7 @@ type Service interface {
 	GetThreshold(ctx core.Context, level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(ctx core.Context, level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)
-	GetServicesEndPointData(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
+	GetServicesEndPointData(ctx core.Context, req *request.GetEndPointsDataRequest) (res []response.ServiceEndPointsRes, err error)
 
 	// TODO move to prometheus package and avoid to repeated again
 	GetServicesEndpointDataWithChart(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
@@ -59,4 +59,6 @@ type EndpointsFilter struct {
 	MultiService         []string // multiple service names, exact match
 	MultiNamespace       []string // multiple namespace, exact match
 	MultiEndpoint        []string // multiple service endpoints, exact match
+
+	ClusterIDs []string
 }

@@ -60,4 +60,3 @@ type GetGroupSubsRequest struct {
 	DataGroupID int64  `form:"groupId" binding:"required"`
 	SubjectType string `form:"subjectType"`
 }
-

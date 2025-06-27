@@ -19,7 +19,7 @@ func (s *service) GetServicesEndpointDataWithChart(ctx core.Context,
 	startTime time.Time, endTime time.Time, step time.Duration,
 	filter EndpointsFilter, sortRule request.SortType,
 ) (res []response.ServiceEndPointsRes, err error) {
-	filtersStr := filter.ExtractFilterStr()
+	pqlFilter := filter.ExtractPQLFilterStr()
 
 	var opts = []prometheus.FetchEMOption{
 		prometheus.WithREDMetric(),
@@ -36,7 +36,7 @@ func (s *service) GetServicesEndpointDataWithChart(ctx core.Context,
 
 	endpointsMap, err := prometheus.FetchEndpointsData(
 		ctx,
-		s.promRepo, filtersStr, startTime, endTime,
+		s.promRepo, pqlFilter, startTime, endTime,
 		opts...,
 	)
 

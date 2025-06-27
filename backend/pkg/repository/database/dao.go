@@ -88,6 +88,9 @@ type Repo interface {
 	DataGroupExist(ctx core.Context, filter model.DataGroupFilter) (bool, error)
 	UpdateDataGroup(ctx core.Context, groupID int64, groupName string, description string) error
 	GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]DataGroup, int64, error)
+	GetDataGroupByGroupIDOrUserID(ctx core.Context, groupID int64, userID int64, category string) ([]DataGroup, error)
+	GetDataGroupByGroupID(ctx core.Context, groupID int64, category string) ([]DataGroup, error)
+	GetDataGroupByUserID(ctx core.Context, userID int64, category string) ([]DataGroup, error)
 	RetrieveDataFromGroup(ctx core.Context, groupID int64, datasource []string) error
 	GetGroupDatasource(ctx core.Context, groupID ...int64) ([]DatasourceGroup, error)
 

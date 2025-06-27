@@ -30,11 +30,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetTraceMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/trace/metrics [get]
+// @Router /api/service/trace/metrics [post]
 func (h *handler) GetTraceMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceMetricsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

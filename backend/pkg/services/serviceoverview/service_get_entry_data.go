@@ -89,10 +89,10 @@ func (s *service) GetAlertRelatedEntryData(ctx core.Context,
 }
 
 // Split the entry for querying data into multiple requests to avoid overly long requests
-func splitEntries(entries []response.AlertRelatedEntry) ([][]string, map[prom.EndpointKey]int) {
+func splitEntries(entries []response.AlertRelatedEntry) ([]prom.PQLFilter, map[prom.EndpointKey]int) {
 	var querySize int = 0
 
-	var filters [][]string = make([][]string, 0)
+	var filters []prom.PQLFilter
 	var services []string
 	var contentKeys []string
 
@@ -107,10 +107,10 @@ func splitEntries(entries []response.AlertRelatedEntry) ([][]string, map[prom.En
 		contentKeys = append(contentKeys, entry.Endpoint)
 
 		if querySize > 8000 || idx+1 == len(entries) {
-			filters = append(filters, []string{
-				prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-				prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(contentKeys...),
-			})
+			filters = append(filters, prom.And(
+				prom.PatternFilter(prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...)),
+				prom.PatternFilter(prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(contentKeys...)),
+			))
 
 			querySize = 0
 			services = []string{}

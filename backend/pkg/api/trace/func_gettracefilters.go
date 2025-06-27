@@ -5,7 +5,6 @@ package trace
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -38,9 +37,7 @@ func (h *handler) GetTraceFilters() core.HandlerFunc {
 			return
 		}
 
-		startTime := time.UnixMicro(req.StartTime)
-		endTime := time.UnixMicro(req.EndTime)
-		resp, err := h.traceService.GetTraceFilters(c, startTime, endTime, req.NeedUpdate)
+		resp, err := h.traceService.GetTraceFilters(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

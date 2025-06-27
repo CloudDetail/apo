@@ -18,7 +18,7 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	GetTraceFilters(ctx core.Context, startTime, endTime time.Time, needUpdate bool) (*response.GetTraceFiltersResponse, error)
+	GetTraceFilters(ctx core.Context, req *request.GetTraceFiltersRequest) (*response.GetTraceFiltersResponse, error)
 	GetTraceFilterValues(ctx core.Context, startTime, endTime time.Time, searchText string, filter request.SpanTraceFilter) (*response.GetTraceFilterValueResponse, error)
 	GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) (*response.GetTracePageListResponse, error)
 	GetOnOffCPU(ctx core.Context, req *request.GetOnOffCPURequest) (*response.GetOnOffCPUResponse, error)
