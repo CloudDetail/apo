@@ -53,8 +53,6 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"数据组管理", "dataGroup"},
 		{"团队管理", "team"},
 		{"角色管理", "role"},
-		{"服务别名配置", "serviceConfig"},
-		{"故障报告", "report"},
 	}
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
