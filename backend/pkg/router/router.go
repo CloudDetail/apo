@@ -146,7 +146,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.dify = difyRepo
 
 	difyConfig := config.Get().Dify
-	if len(difyConfig.APIKeys.AlertCheck) > 0 {
+	if difyConfig.AutoCheck && len(difyConfig.APIKeys.AlertCheck) > 0 {
 		records, err := r.dify.PrepareAsyncAlertCheckWorkflow(&dify.AlertCheckConfig{
 			FlowId:        difyConfig.FlowIDs.AlertCheck,
 			APIKey:        difyConfig.APIKeys.AlertCheck,
