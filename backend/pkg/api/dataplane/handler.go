@@ -13,6 +13,10 @@ import (
 )
 
 type Handler interface {
+	// QueryServices Get all services.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/services [get]
+	QueryServices() core.HandlerFunc
 	// QueryServiceRedCharts Get service's redcharts.
 	// @Tags API.dataplane
 	// @Router /api/dataplane/redcharts [get]
