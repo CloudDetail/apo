@@ -15,6 +15,7 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
+	GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse
 	GetServiceRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse
 	GetServiceEndpointRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse
 	GetServiceEndpoints(ctx core.Context, req *request.QueryServiceEndpointsRequest) *response.QueryServiceEndpointsResponse
@@ -27,7 +28,6 @@ type service struct {
 	chRepo   clickhouse.Repo
 	promRepo prometheus.Repo
 	dbRepo   database.Repo
-	
 }
 
 func New(
