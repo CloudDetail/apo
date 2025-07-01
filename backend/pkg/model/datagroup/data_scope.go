@@ -1,6 +1,8 @@
 package datagroup
 
 const (
+	DATASOURCE_TYP_ALL         = "all"
+	DATASOURCE_TYP_CLUSTER     = "cluster"
 	DATASOURCE_TYP_NAMESPACE   = "namespace"
 	DATASOURCE_TYP_SERVICE     = "service"
 	DATASOURCE_CATEGORY_APM    = "apm"
@@ -21,9 +23,13 @@ type DataScope struct {
 	Type string `gorm:"column:type;" json:"type,omitempty"`
 
 	// Special Labels for this Scope
-	ClusterID string `gorm:"column:clusterId;" json:"clusterId,omitempty"`
-	Namespace string `gorm:"column:namespace;" json:"namespace,omitempty"`
-	Service   string `gorm:"column:service;" json:"service,omitempty"`
+	ScopeLabels
+}
+
+type ScopeLabels struct {
+	ClusterID string `gorm:"column:cluster_id"   json:"clusterId,omitempty" ch:"cluster_id"`
+	Namespace string `gorm:"column:namespace" json:"namespace,omitempty" ch:"namespace"`
+	Service   string `gorm:"column:service" json:"service,omitempty" ch:"service"`
 }
 
 func (DataScope) TableName() string {
@@ -33,7 +39,7 @@ func (DataScope) TableName() string {
 type DataScopeTreeNode struct {
 	DataScope
 
-	Children []DataScopeTreeNode `json:"children,omitempty"`
+	Children []*DataScopeTreeNode `json:"children,omitempty"`
 
 	HasCheckBox bool `json:"hasCheckBox,omitempty"`
 	IsChecked   bool `json:"isChecked,omitempty"`
@@ -41,6 +47,18 @@ type DataScopeTreeNode struct {
 
 func (t *DataScopeTreeNode) GetEditableScopeTree(options []string, selected []string) *DataScopeTreeNode {
 	return t.cloneWithCheckStatus(ignored, options, selected)
+}
+
+func (t *DataScopeTreeNode) AdjustClusterName(clusterNameMap map[string]string) {
+	if t.Type == DATASOURCE_TYP_CLUSTER {
+		if name, find := clusterNameMap[t.ClusterID]; find {
+			t.Name = name
+		}
+	}
+
+	for i := 0; i < len(t.Children); i++ {
+		t.Children[i].AdjustClusterName(clusterNameMap)
+	}
 }
 
 func (t *DataScopeTreeNode) cloneWithCheckStatus(pCheckStatus scopeStatus, options []string, selected []string) *DataScopeTreeNode {
@@ -57,14 +75,14 @@ func (t *DataScopeTreeNode) cloneWithCheckStatus(pCheckStatus scopeStatus, optio
 		}
 	}
 
-	var children []DataScopeTreeNode
+	var children []*DataScopeTreeNode
 	for _, node := range t.Children {
 		child := node.cloneWithCheckStatus(selfStatus, options, selected)
 		if child != nil {
 			if selfStatus == ignored {
 				selfStatus = notAllowed
 			}
-			children = append(children, *child)
+			children = append(children, child)
 		}
 	}
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
@@ -148,6 +149,14 @@ type Repo interface {
 	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
+	TmpInterface
+}
+
+type TmpInterface interface {
+	LoadScopes(ctx core.Context) (*datagroup.DataScopeTreeNode, error)
+	SaveScopes(ctx core.Context, scopes []datagroup.DataScope) error
+
+	GetScopesSelectedByGroupID(ctx core.Context, groupID int64) (options []string, err error)
 }
 
 type daoRepo struct {
@@ -291,5 +300,7 @@ func migrateTable(db *gorm.DB) error {
 		&DatasourceGroup{},
 		&profile.Team{},
 		&profile.UserTeam{},
+		&datagroup.DataScope{},
+		&datagroup.DataGroup2Scope{},
 	)
 }

@@ -15,6 +15,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -62,6 +63,13 @@ const (
 	SELECT *
 	FROM grouped_alarm
 	WHERE rn <= %d %s`
+
+	SQL_GET_ALERT_EVENT_DATA_SCOPE = `SELECT
+		DISTINCT tags['cluster_id'] as cluster_id,
+		tags['namespace'] as namespace,
+		tags['serviceName'] as service
+	FROM alert_event
+	%s`
 
 	SQL_GET_GROUP_COUNTS_ALERT_EVENT = `WITH grouped_alarm AS (
 	SELECT group,severity,tags,
@@ -144,6 +152,35 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 	var events []AlertEventSample
 	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
+}
+
+func (ch *chRepo) GetAlertDataScope(ctx core.Context, startTime time.Time, endTime time.Time) ([]datagroup.DataScope, error) {
+	builder := NewQueryBuilder().
+		Between("update_time", startTime.Unix(), endTime.Unix()).
+		NotGreaterThan("end_time", endTime.Unix())
+
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_DATA_SCOPE, builder.String())
+	var datasources []datagroup.DataScope
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &datasources, sql, builder.values...)
+
+	for i := 0; i < len(datasources); i++ {
+		datasources[i].Category = datagroup.DATASOURCE_CATEGORY_ALERT
+		if len(datasources[i].Service) > 0 {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_SERVICE
+			datasources[i].Name = datasources[i].Service
+		} else if len(datasources[i].Namespace) > 0 {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
+			datasources[i].Name = datasources[i].Namespace
+		} else {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
+			if datasources[i].ClusterID == "" {
+				datasources[i].ClusterID = "unknown"
+			}
+			datasources[i].Name = datasources[i].ClusterID
+		}
+	}
+
+	return datasources, err
 }
 
 func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
