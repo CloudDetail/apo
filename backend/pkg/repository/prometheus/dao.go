@@ -167,58 +167,72 @@ type Labels struct {
 	MonitorName string `json:"monitor_name"`
 }
 
+func (l *Labels) ExtractGran(granularity []string, metric prommodel.LabelSet) {
+	for _, name := range granularity {
+		val, find := metric[prommodel.LabelName(name)]
+		if !find {
+			continue
+		}
+		l.SetValue(name, string(val))
+	}
+}
+
 // Extract extract the required label
 // Changes of Labels field need to be synchronized
 func (l *Labels) Extract(metric prommodel.Metric) {
 	for name, value := range metric {
-		switch string(name) {
-		case "container_id":
-			l.ContainerID = string(value)
-		case "content_key":
-			l.ContentKey = string(value)
-		case "instance":
-			l.Instance = string(value)
-		case "is_error":
-			l.IsError = string(value)
-		case "job":
-			l.Job = string(value)
-		case "node_name":
-			l.NodeName = string(value)
-		case "pod":
-			l.POD = string(value)
-		case "svc_name":
-			l.SvcName = string(value)
-		case "top_span":
-			l.TopSpan = string(value)
-		case "pid":
-			l.PID = string(value)
-		case "namespace":
-			l.Namespace = string(value)
-		case "cluster_id":
-			l.ClusterID = string(value)
-		case "db_system":
-			l.DBSystem = string(value)
-		case "db_name":
-			l.DBName = string(value)
-		case "name":
-			l.Name = string(value)
-		case "db_url":
-			l.DBUrl = string(value)
-		case "monitor_name":
-			l.MonitorName = string(value)
-		case "node_ip":
-			l.NodeIP = string(value)
-		case "host_ip":
-			l.NodeIP = string(value)
-		case "host_name":
-			l.NodeName = string(value)
-		case "pod_name":
-			l.POD = string(value)
-		case "peer_ip":
-			l.PeerIP = string(value)
-		case "peer_port":
-			l.PeerPort = string(value)
-		}
+		l.SetValue(string(name), string(value))
+	}
+}
+
+func (l *Labels) SetValue(name string, value string) {
+	switch name {
+	case "container_id":
+		l.ContainerID = string(value)
+	case "content_key":
+		l.ContentKey = string(value)
+	case "instance":
+		l.Instance = string(value)
+	case "is_error":
+		l.IsError = string(value)
+	case "job":
+		l.Job = string(value)
+	case "node_name":
+		l.NodeName = string(value)
+	case "pod":
+		l.POD = string(value)
+	case "svc_name":
+		l.SvcName = string(value)
+	case "top_span":
+		l.TopSpan = string(value)
+	case "pid":
+		l.PID = string(value)
+	case "namespace":
+		l.Namespace = string(value)
+	case "cluster_id":
+		l.ClusterID = string(value)
+	case "db_system":
+		l.DBSystem = string(value)
+	case "db_name":
+		l.DBName = string(value)
+	case "name":
+		l.Name = string(value)
+	case "db_url":
+		l.DBUrl = string(value)
+	case "monitor_name":
+		l.MonitorName = string(value)
+	case "node_ip":
+		l.NodeIP = string(value)
+	case "host_ip":
+		l.NodeIP = string(value)
+	case "host_name":
+		l.NodeName = string(value)
+	case "pod_name":
+		l.POD = string(value)
+	case "peer_ip":
+		l.PeerIP = string(value)
+	case "peer_port":
+		l.PeerPort = string(value)
 	}
 }
 

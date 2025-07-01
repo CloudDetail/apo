@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// PQLFilter provides fine-grained filtering, primarily used for data group scenarios.
+//
+// All conditions will be expanded into DNF, which may cause combinatorial explosion.
+// It is recommended to use RegexFilter instead of OrFilter to reduce complexity
 type PQLFilter interface {
 	// { $k='$v' }
 	Equal(k, v string) PQLFilter
@@ -20,11 +24,12 @@ type PQLFilter interface {
 	// e.g. { $pattern$v }
 	AddPatternFilter(pattern, v string) PQLFilter
 
-	Clone() PQLFilter
+	// HACK remove related filter directly
+	SplitFilters(keys []string) (remain PQLFilter, removed PQLFilter)
 
 	// return PQL using VM-extended syntax syntax
 	//
-	// e.g. {a=1 or b=2}
+	// e.g. {a=1 or b=2}ss
 	String() string
 
 	// return PQL using strict prometheus syntax
@@ -78,6 +83,10 @@ func (f *AndFilter) String() string {
 }
 
 func (f *AndFilter) Clone() PQLFilter {
+	if f == nil {
+		return nil
+	}
+
 	newFilters := make([]string, len(f.Filters))
 	copy(newFilters, f.Filters)
 	return &AndFilter{
@@ -85,8 +94,40 @@ func (f *AndFilter) Clone() PQLFilter {
 	}
 }
 
+func (f *AndFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
+	var removed []string
+	for _, key := range keys {
+		for i := len(f.Filters) - 1; i >= 0; i-- {
+			if strings.HasPrefix(f.Filters[i], key+"=") || strings.HasPrefix(f.Filters[i], key+"!=") || strings.HasPrefix(f.Filters[i], key+"=~") {
+				removed = append(removed, f.Filters[i])
+				f.Filters = append(f.Filters[:i], f.Filters[i+1:]...)
+			}
+		}
+	}
+
+	if len(removed) == 0 {
+		return f, nil
+	}
+	return f, &AndFilter{
+		Filters: f.Filters,
+	}
+}
+
 type OrFilter struct {
 	Filters []AndFilter
+}
+
+func Clone(filter PQLFilter) PQLFilter {
+	if filter == nil {
+		return &AndFilter{}
+	}
+	switch f := filter.(type) {
+	case *AndFilter:
+		return f.Clone()
+	case *OrFilter:
+		return f.Clone()
+	}
+	return nil
 }
 
 func Or(filters ...PQLFilter) *OrFilter {
@@ -192,11 +233,28 @@ func (f *OrFilter) String() string {
 }
 
 func (o *OrFilter) Clone() PQLFilter {
+	if o == nil {
+		return nil
+	}
+
 	newFilters := make([]AndFilter, len(o.Filters))
 	for i, f := range o.Filters {
 		newFilters[i] = *f.Clone().(*AndFilter)
 	}
 	return &OrFilter{Filters: newFilters}
+}
+
+func (o *OrFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
+	var removed []AndFilter
+	for i := 0; i < len(o.Filters); i++ {
+		_, r := o.Filters[i].SplitFilters(keys)
+		if r != nil {
+			removed = append(removed, *r.(*AndFilter))
+		}
+	}
+	return o, &OrFilter{
+		Filters: removed,
+	}
 }
 
 // ############## Fast Filter ##############
