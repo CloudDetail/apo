@@ -2860,6 +2860,57 @@
                 }
             }
         },
+        "/api/dataplane/services": {
+            "get": {
+                "description": "Get all services.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get all services.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Query cluster name",
+                        "name": "cluster",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryServicesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/topology": {
             "get": {
                 "description": "Get service's topology.",
@@ -14443,6 +14494,34 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.QueryChartResult"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceResult": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QueryServicesResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QueryServiceResult"
                     }
                 }
             }

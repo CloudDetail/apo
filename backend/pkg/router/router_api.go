@@ -309,6 +309,7 @@ func setApiRouter(r *resource) {
 	dataplaneAPI := r.mux.Group("/api/dataplane")
 	{
 		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db)
+		dataplaneAPI.GET("/services", handler.QueryServices())
 		dataplaneAPI.GET("/redcharts", handler.QueryServiceRedCharts())
 		dataplaneAPI.GET("/endpoints", handler.QueryServiceEndpoints())
 		dataplaneAPI.GET("/instances", handler.QueryServiceInstances())

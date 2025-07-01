@@ -5,8 +5,13 @@ package response
 
 import "github.com/CloudDetail/apo/backend/pkg/model"
 
+type QueryServicesResponse struct {
+	Msg     string                `json:"msg"`
+	Results []*QueryServiceResult `json:"results,omitempty"`
+}
+
 type QueryServiceRedChartsResponse struct {
-	Msg     string             `json:"msg"`
+	Msg     string              `json:"msg"`
 	Results []*QueryChartResult `json:"results,omitempty"`
 }
 
@@ -26,8 +31,14 @@ type QueryServiceNameResponse struct {
 }
 
 type QueryTopologyResponse struct {
-	Msg     string                    `json:"msg"`
+	Msg     string                      `json:"msg"`
 	Results []*model.ServiceToplogyNode `json:"results"`
+}
+
+type QueryServiceResult struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Source string `json:"source"`
 }
 
 type QueryChartResult struct {

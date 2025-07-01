@@ -3576,6 +3576,24 @@ definitions:
           $ref: '#/definitions/response.QueryChartResult'
         type: array
     type: object
+  response.QueryServiceResult:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      source:
+        type: string
+    type: object
+  response.QueryServicesResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/response.QueryServiceResult'
+        type: array
+    type: object
   response.QueryTopologyResponse:
     properties:
       msg:
@@ -5708,6 +5726,40 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get service name by instance.
+      tags:
+      - API.dataplane
+  /api/dataplane/services:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get all services.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServicesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get all services.
       tags:
       - API.dataplane
   /api/dataplane/topology:
