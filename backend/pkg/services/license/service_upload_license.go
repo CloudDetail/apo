@@ -28,7 +28,7 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 
 	newToken, err := license.Activate([]byte(output.License), encryptor, nil)
 	if err != nil {
-		return core.Error(code.ActivateLicenseFailed, "activate license failed")
+		return core.Error(code.ActivateLicenseFailed, err.Error())
 	}
 
 	lic := mylicense.License{
