@@ -5,6 +5,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
@@ -14,7 +15,7 @@ type GetDatasourceResponse struct {
 }
 
 type GetDataGroupResponse struct {
-	DataGroupList    []database.DataGroup `json:"dataGroupList"`
+	DataGroupList    []datagroup.DataGroup `json:"dataGroupList"`
 	model.Pagination `json:",inline"`
 }
 
@@ -36,6 +37,6 @@ type GroupDatasource struct {
 	ServiceMap   map[string][]string `json:"serviceMap"`   // service: endpoints
 }
 
-type GetSubjectDataGroupResponse []database.DataGroup
+type GetSubjectDataGroupResponse []datagroup.DataGroup
 
 type GetGroupSubsResponse []database.AuthDataGroup

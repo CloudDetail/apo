@@ -9,20 +9,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
-	"gorm.io/gorm"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"gorm.io/gorm/clause"
 )
-
-// DataGroup is a collection of Datasource.
-type DataGroup struct {
-	GroupID     int64  `gorm:"column:group_id;primary_key;auto_increment" json:"groupId"`
-	GroupName   string `gorm:"column:group_name;type:varchar(20)" json:"groupName"`
-	Description string `gorm:"column:description;type:varchar(50)" json:"description"` // The description of data group.
-
-	DatasourceList []DatasourceGroup `gorm:"foreignKey:GroupID;references:GroupID" json:"datasourceList"`
-	AuthType       string            `json:"authType,omitempty"`
-	Source         string            `gorm:"-" json:"source,omitempty"`
-}
 
 // DatasourceGroup is a mapping table of Datasource and DataGroup.
 type DatasourceGroup struct {
@@ -34,20 +23,16 @@ type DatasourceGroup struct {
 	ClusterID string `gorm:"column:cluster_id" json:"clusterId"`
 }
 
-func (dg *DataGroup) TableName() string {
-	return "data_group"
-}
-
 func (dsg *DatasourceGroup) TableName() string {
 	return "datasource_group"
 }
 
-func (repo *daoRepo) CreateDataGroup(ctx core.Context, group *DataGroup) error {
+func (repo *daoRepo) CreateDataGroup(ctx core.Context, group *datagroup.DataGroup) error {
 	return repo.GetContextDB(ctx).Create(group).Error
 }
 
 func (repo *daoRepo) DeleteDataGroup(ctx core.Context, groupID int64) error {
-	group := DataGroup{
+	group := datagroup.DataGroup{
 		GroupID: groupID,
 	}
 	if err := repo.GetContextDB(ctx).Delete(&group).Error; err != nil {
@@ -85,7 +70,7 @@ func (repo *daoRepo) DeleteDSGroup(ctx core.Context, groupID int64) error {
 
 func (repo *daoRepo) UpdateDataGroup(ctx core.Context, groupID int64, groupName string, description string) error {
 	return repo.GetContextDB(ctx).
-		Model(&DataGroup{}).
+		Model(&datagroup.DataGroup{}).
 		Where("group_id = ?", groupID).
 		Update("group_name", groupName).
 		Update("description", description).
@@ -105,16 +90,16 @@ func (repo *daoRepo) DataGroupExist(ctx core.Context, filter model.DataGroupFilt
 	if len(filter.IDs) > 0 {
 		query = query.Where("group_id IN ?", filter.IDs)
 	}
-	if err := query.Model(&DataGroup{}).Count(&count).Error; err != nil {
+	if err := query.Model(&datagroup.DataGroup{}).Count(&count).Error; err != nil {
 		return false, err
 	}
 
 	return count > 0, nil
 }
 
-func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]DataGroup, int64, error) {
+func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]datagroup.DataGroup, int64, error) {
 	var (
-		dataGroups []DataGroup
+		dataGroups []datagroup.DataGroup
 		count      int64
 	)
 	query := repo.GetContextDB(ctx)
@@ -143,7 +128,7 @@ func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter
 		query.Where("group_id IN (?)", subQuery)
 	}
 
-	if err := query.Model(&DataGroup{}).Count(&count).Error; err != nil {
+	if err := query.Model(&datagroup.DataGroup{}).Count(&count).Error; err != nil {
 		return nil, 0, err
 	}
 
@@ -151,7 +136,7 @@ func (repo *daoRepo) GetDataGroup(ctx core.Context, filter model.DataGroupFilter
 		query = query.Offset((*filter.CurrentPage - 1) * (*filter.PageSize)).Limit(*filter.PageSize)
 	}
 
-	err := query.Preload("DatasourceList").Find(&dataGroups).Error
+	err := query.Find(&dataGroups).Error
 	return dataGroups, count, err
 }
 
@@ -166,18 +151,10 @@ func (repo *daoRepo) GetGroupDatasource(ctx core.Context, groupID ...int64) ([]D
 	return dsGroup, err
 }
 
-func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string, category string) ([]DataGroup, error) {
-	var dataGroups []DataGroup
-
-	preloadQuery := func(db *gorm.DB) *gorm.DB {
-		if len(category) > 0 {
-			return db.Where("category = ?", category)
-		}
-		return db
-	}
+func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string) ([]datagroup.DataGroup, error) {
+	var dataGroups []datagroup.DataGroup
 
 	err := repo.GetContextDB(ctx).Table("data_group").
-		Preload("DatasourceList", preloadQuery).
 		Select("data_group.group_id, data_group.group_name, data_group.description, auth_data_group.type as auth_type").
 		Joins("JOIN auth_data_group ON auth_data_group.data_group_id = data_group.group_id").
 		Where("auth_data_group.subject_id = ? AND auth_data_group.subject_type = ?", subjectID, subjectType).
@@ -190,14 +167,14 @@ func (repo *daoRepo) GetSubjectDataGroupList(ctx core.Context, subjectID int64, 
 	return dataGroups, nil
 }
 
-func (repo *daoRepo) GetDataGroupByGroupIDOrUserID(ctx core.Context, groupID int64, userID int64, category string) ([]DataGroup, error) {
+func (repo *daoRepo) GetDataGroupByGroupIDOrUserID(ctx core.Context, groupID int64, userID int64, category string) ([]datagroup.DataGroup, error) {
 	if groupID != 0 {
 		return repo.GetDataGroupByGroupID(ctx, groupID, category)
 	}
-	return repo.GetDataGroupByUserID(ctx, userID, category)
+	return repo.GetDataGroupByUserID(ctx, userID)
 }
 
-func (repo *daoRepo) GetDataGroupByGroupID(ctx core.Context, groupID int64, category string) ([]DataGroup, error) {
+func (repo *daoRepo) GetDataGroupByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataGroup, error) {
 	if groupID == 0 {
 		return nil, fmt.Errorf("group id is empty")
 	}
@@ -214,21 +191,10 @@ func (repo *daoRepo) GetDataGroupByGroupID(ctx core.Context, groupID int64, cate
 	if len(dataGroups) == 0 {
 		return nil, core.Error(code.DataGroupNotExistError, "data group does not exits")
 	}
-
-	for i, group := range dataGroups {
-		filteredDatasource := make([]DatasourceGroup, 0, len(group.DatasourceList))
-		for _, ds := range group.DatasourceList {
-			if len(category) == 0 || category == ds.Category {
-				filteredDatasource = append(filteredDatasource, ds)
-			}
-		}
-		dataGroups[i].DatasourceList = filteredDatasource
-	}
-
 	return dataGroups, nil
 }
 
-func (repo *daoRepo) GetDataGroupByUserID(ctx core.Context, userID int64, category string) ([]DataGroup, error) {
+func (repo *daoRepo) GetDataGroupByUserID(ctx core.Context, userID int64) ([]datagroup.DataGroup, error) {
 	teamIDs, err := repo.GetUserTeams(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -236,9 +202,9 @@ func (repo *daoRepo) GetDataGroupByUserID(ctx core.Context, userID int64, catego
 
 	seen := make(map[int64]struct{})
 	// Get user's teams.
-	var groups []DataGroup
+	var groups []datagroup.DataGroup
 	for _, teamID := range teamIDs {
-		gs, err := repo.GetSubjectDataGroupList(ctx, teamID, model.DATA_GROUP_SUB_TYP_TEAM, category)
+		gs, err := repo.GetSubjectDataGroupList(ctx, teamID, model.DATA_GROUP_SUB_TYP_TEAM)
 		if err != nil {
 			return nil, err
 		}
@@ -257,7 +223,7 @@ func (repo *daoRepo) GetDataGroupByUserID(ctx core.Context, userID int64, catego
 		groups[i].Source = model.DATA_GROUP_SUB_TYP_TEAM
 	}
 
-	gs, err := repo.GetSubjectDataGroupList(ctx, userID, model.DATA_GROUP_SUB_TYP_USER, category)
+	gs, err := repo.GetSubjectDataGroupList(ctx, userID, model.DATA_GROUP_SUB_TYP_USER)
 	for i := range gs {
 		gs[i].Source = model.DATA_GROUP_SUB_TYP_USER
 	}

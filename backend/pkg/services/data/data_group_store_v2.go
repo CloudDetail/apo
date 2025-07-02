@@ -12,69 +12,89 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-type DataScopeStoreMap struct {
+type DataGroupStore struct {
+	*datagroup.DataGroupTreeNode
+	*datagroup.DataScopeTreeNode
+
 	// ScopesID map[datagroup.ScopeLabels]string // TODO using another scopeID construct
 	ExistedScope map[datagroup.DataScope]struct{}
-
-	prom prometheus.Repo
-	ch   clickhouse.Repo
-	db   database.Repo
-
-	stopCh chan struct{}
+	stopCh       chan struct{}
 }
 
-func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) *DataScopeStoreMap {
-	return &DataScopeStoreMap{
+func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) *DataGroupStore {
+	dgStore := &DataGroupStore{
 		ExistedScope: make(map[datagroup.DataScope]struct{}),
-
-		prom:   prom,
-		ch:     ch,
-		db:     db,
-		stopCh: make(chan struct{}),
+		stopCh:       make(chan struct{}),
 	}
+
+	dgTree, err := db.LoadDataGroupTree(core.EmptyCtx())
+	if err != nil {
+		panic(err)
+	}
+
+	dgStore.DataGroupTreeNode = dgTree
+
+	scopeTree, err := db.LoadScopes(core.EmptyCtx())
+	if err != nil {
+		panic(err)
+	}
+	dgStore.DataScopeTreeNode = scopeTree
+	return dgStore
 }
 
-func (m *DataScopeStoreMap) Run(ctx core.Context, interval time.Duration) {
+func (m *DataGroupStore) KeepWatchScope(
+	ctx core.Context,
+	promRepo prometheus.Repo,
+	chRepo clickhouse.Repo,
+	dbRepo database.Repo,
+	interval time.Duration,
+) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			m.runOnce(ctx, interval)
+			m.scanAndSave(ctx, promRepo, chRepo, dbRepo, interval)
 		case <-m.stopCh:
 			return
 		}
 	}
 }
 
-func (m *DataScopeStoreMap) runOnce(ctx core.Context, interval time.Duration) error {
+func (m *DataGroupStore) scanAndSave(
+	ctx core.Context,
+	promRepo prometheus.Repo,
+	chRepo clickhouse.Repo,
+	dbRepo database.Repo,
+	interval time.Duration,
+) error {
 	now := time.Now()
 	start := now.Add(-2 * interval)
 
 	var errs []error
 
-	scopes, err := m.ScanInProm(ctx, m.prom, start.UnixMicro(), now.UnixMicro())
+	scopes, err := m.scanInProm(ctx, promRepo, start.UnixMicro(), now.UnixMicro())
 	if err != nil {
 		errs = append(errs, err)
 	}
 	promScopes := generateParent(scopes)
 
-	scopes, err = m.ScanInCH(ctx, m.ch, start.UnixMicro(), now.UnixMicro())
+	scopes, err = m.scanInCH(ctx, chRepo, start.UnixMicro(), now.UnixMicro())
 	if err != nil {
 		errs = append(errs, err)
 	}
 	chScopes := generateParent(scopes)
 
 	scopes = append(promScopes, chScopes...)
-	if err := m.db.SaveScopes(ctx, scopes); err != nil {
+	if err := dbRepo.SaveScopes(ctx, scopes); err != nil {
 		errs = append(errs, err)
 	}
 
 	return errors.Join(errs...)
 }
 
-func (m *DataScopeStoreMap) ScanInProm(ctx core.Context, prom prometheus.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
+func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
 	var newScope []datagroup.DataScope
 
 	metricRes, err := prom.QueryMetricsWithPQLFilter(ctx,
@@ -138,7 +158,7 @@ func (m *DataScopeStoreMap) ScanInProm(ctx core.Context, prom prometheus.Repo, s
 	return newScope, nil
 }
 
-func (m *DataScopeStoreMap) ScanInCH(ctx core.Context, ch clickhouse.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
+func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
 	var newScope []datagroup.DataScope
 	scopes, err := ch.GetAlertDataScope(
 		ctx,

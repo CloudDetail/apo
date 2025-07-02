@@ -10,14 +10,44 @@ var DaoDataScopeImpl DaoDataScope = nil
 
 type DaoDataScope interface {
 	SaveScopes(ctx core.Context, scopes []datagroup.DataScope) error
+	LoadScopes(ctx core.Context) (*datagroup.DataScopeTreeNode, error)
 	DeleteScopes(ctx core.Context, scopesID ...string) error
 
 	GetScopesOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error)
 	GetScopesSelectedByGroupID(ctx core.Context, groupID int64) (selected []string, err error)
 
-	GetScopesByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
+	UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error
 
-	SaveGroup2Scope(ctx core.Context, groupID int64, scopesID []string) error
+	GetScopesByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
+}
+
+func (repo *daoRepo) UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error {
+	err := repo.GetContextDB(ctx).Where("group_id = ?", groupID).Delete(&datagroup.DataGroup2Scope{}).Error
+	if err != nil {
+		return err
+	}
+
+	var inputs []datagroup.DataGroup2Scope
+	for _, scopeID := range scopeIDs {
+		inputs = append(inputs, datagroup.DataGroup2Scope{
+			GroupID: groupID,
+			ScopeID: scopeID,
+		})
+	}
+
+	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "group_id"}, {Name: "scope_id"}},
+		DoNothing: true,
+	}).Create(&inputs).Error
+}
+
+func (repo *daoRepo) GetScopesOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error) {
+	err = repo.GetContextDB(ctx).Table("data_group as dg").
+		Joins("RIGHT JOIN data_group_2_scope dgs ON dg.parent_group_id = dgs.group_id").
+		Where("dg.group_id = ?", groupID).
+		Distinct("dgs.scope_id").
+		Pluck("dgs.scope_id", &options).Error
+	return options, err
 }
 
 func (repo *daoRepo) GetScopesSelectedByGroupID(ctx core.Context, groupID int64) (options []string, err error) {
@@ -44,20 +74,16 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTreeNode,
 	}
 
 	// TODO init RootNode
-	var root = &datagroup.DataScopeTreeNode{
-		DataScope: datagroup.DataScope{
-			ScopeID: "all",
-			Name:    "ALL",
-			Type:    datagroup.DATASOURCE_TYP_ALL,
-		},
-		Children: []*datagroup.DataScopeTreeNode{},
-	}
+	var root *datagroup.DataScopeTreeNode
 
 	nodesMap := make(map[datagroup.ScopeLabels]*datagroup.DataScopeTreeNode)
 	for i := 0; i < len(res); i++ {
 		treeNode := datagroup.DataScopeTreeNode{
 			DataScope: res[i],
 			Children:  []*datagroup.DataScopeTreeNode{},
+		}
+		if res[i].Type == datagroup.DATASOURCE_TYP_SYSTEM {
+			root = &treeNode
 		}
 		nodesMap[res[i].ScopeLabels] = &treeNode
 	}
@@ -84,4 +110,29 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTreeNode,
 		}
 	}
 	return root, nil
+}
+
+func (repo *daoRepo) DeleteScopes(ctx core.Context, scopesID ...string) error {
+	// TODO
+	panic("not implemented")
+	return repo.GetContextDB(ctx).Model(&datagroup.DataScope{}).Where("scope_id in ?", scopesID).Delete(nil).Error
+}
+
+func (repo *daoRepo) GetScopesByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error) {
+	var res []datagroup.DataScope
+	qb := repo.GetContextDB(ctx).Table("data_group_2_scope").
+		Where("group_id = ?", groupID).
+		Select("DISTINCT scope_id, name, type, cluster_id, namespace, service")
+
+	if len(category) > 0 {
+		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = data_group_2_scope.scope_id AND ds.category = ?", category)
+	} else {
+		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = data_group_2_scope.scope_id")
+	}
+
+	err := qb.Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

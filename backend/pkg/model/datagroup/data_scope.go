@@ -1,7 +1,7 @@
 package datagroup
 
 const (
-	DATASOURCE_TYP_ALL         = "all"
+	DATASOURCE_TYP_SYSTEM      = "system"
 	DATASOURCE_TYP_CLUSTER     = "cluster"
 	DATASOURCE_TYP_NAMESPACE   = "namespace"
 	DATASOURCE_TYP_SERVICE     = "service"
@@ -45,8 +45,8 @@ type DataScopeTreeNode struct {
 	IsChecked   bool `json:"isChecked,omitempty"`
 }
 
-func (t *DataScopeTreeNode) GetEditableScopeTree(options []string, selected []string) *DataScopeTreeNode {
-	return t.cloneWithCheckStatus(ignored, options, selected)
+func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected []string) *DataScopeTreeNode {
+	return t.cloneWithPermission(ignored, options, selected)
 }
 
 func (t *DataScopeTreeNode) AdjustClusterName(clusterNameMap map[string]string) {
@@ -61,8 +61,8 @@ func (t *DataScopeTreeNode) AdjustClusterName(clusterNameMap map[string]string) 
 	}
 }
 
-func (t *DataScopeTreeNode) cloneWithCheckStatus(pCheckStatus scopeStatus, options []string, selected []string) *DataScopeTreeNode {
-	selfStatus := checkScope(pCheckStatus, options, selected, t.ScopeID)
+func (t *DataScopeTreeNode) cloneWithPermission(pPerm scopeStatus, options []string, selected []string) *DataScopeTreeNode {
+	selfStatus := checkScopePerm(pPerm, options, selected, t.ScopeID)
 	if len(t.Children) == 0 {
 		if selfStatus == ignored {
 			return nil
@@ -77,7 +77,7 @@ func (t *DataScopeTreeNode) cloneWithCheckStatus(pCheckStatus scopeStatus, optio
 
 	var children []*DataScopeTreeNode
 	for _, node := range t.Children {
-		child := node.cloneWithCheckStatus(selfStatus, options, selected)
+		child := node.cloneWithPermission(selfStatus, options, selected)
 		if child != nil {
 			if selfStatus == ignored {
 				selfStatus = notAllowed
@@ -125,14 +125,14 @@ func (s scopeStatus) isChecked() bool {
 	}
 }
 
-func checkScope(pStatus scopeStatus, options []string, selected []string, scopeID string) scopeStatus {
+func checkScopePerm(pPerm scopeStatus, options []string, selected []string, scopeID string) scopeStatus {
 	for _, id := range selected {
 		if id == scopeID {
 			return checked
 		}
 	}
 
-	if pStatus == checked || pStatus == notChecked {
+	if pPerm == checked || pPerm == notChecked {
 		return notChecked
 	}
 

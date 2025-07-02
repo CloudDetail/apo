@@ -6,6 +6,7 @@ package data
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -13,13 +14,13 @@ import (
 
 func (s *service) GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
 	if req.SubjectType == model.DATA_GROUP_SUB_TYP_TEAM {
-		return s.dbRepo.GetSubjectDataGroupList(ctx, req.SubjectID, req.SubjectType, req.Category)
+		return s.dbRepo.GetSubjectDataGroupList(ctx, req.SubjectID, req.SubjectType)
 	}
-	return s.dbRepo.GetDataGroupByUserID(ctx, req.SubjectID, req.Category)
+	return s.dbRepo.GetDataGroupByUserID(ctx, req.SubjectID)
 }
 
-func (s *service) getDefaultDataGroup(ctx core.Context, category string) (database.DataGroup, error) {
-	defaultGroup := database.DataGroup{
+func (s *service) getDefaultDataGroup(ctx core.Context, category string) (datagroup.DataGroup, error) {
+	defaultGroup := datagroup.DataGroup{
 		GroupName: "default",
 		Source:    model.DATA_GROUP_SOURCE_DEFAULT,
 	}
@@ -51,6 +52,5 @@ func (s *service) getDefaultDataGroup(ctx core.Context, category string) (databa
 		})
 	}
 
-	defaultGroup.DatasourceList = items
 	return defaultGroup, nil
 }

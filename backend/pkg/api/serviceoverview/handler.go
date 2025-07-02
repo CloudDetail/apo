@@ -59,6 +59,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, promClient prometheus.Repo,
 		logger:          logger,
 		promClient:      promClient,
 		serviceoverview: serviceoverview.New(logger, chRepo, dbRepo, promClient),
-		dataService:     data.New(dbRepo, promClient, k8sRepo),
+		dataService:     data.New(dbRepo, promClient, chRepo, k8sRepo),
 	}
 }

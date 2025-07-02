@@ -1,17 +1,11 @@
 package datagroup
 
-var RootDataGroup = DataGroup{
-	ParentGroupID: -1,
-	GroupID:       0,
-	GroupName:     "ALL",
-	Description:   "Contains all data",
-}
-
 const (
 	DATA_GROUP_SUB_TYP_USER   = "user"
 	DATA_GROUP_SUB_TYP_TEAM   = "team"
 	DATA_GROUP_SOURCE_DEFAULT = "default"
 
+	DATA_GROUP_PERMISSION_TYPE_KNOWN  = "known"
 	DATA_GROUP_PERMISSION_TYPE_VIEW   = "view"
 	DATA_GROUP_PERMISSION_TYPE_EDIT   = "edit"
 	DATA_GROUP_PERMISSION_TYPE_IGNORE = "ignore"
@@ -29,19 +23,18 @@ type DataGroup struct {
 }
 
 func (DataGroup) TableName() string {
-	return "data_group_v2"
+	return "data_group"
 }
 
 type DataGroupTreeNode struct {
 	DataGroup
 
-	SubGroups []DataGroupTreeNode `json:"subGroups,omitempty"`
-
-	PermissionType string `json:"permissionType"`
+	SubGroups      []*DataGroupTreeNode `json:"subGroups,omitempty"`
+	PermissionType string               `json:"permissionType"`
 }
 
-func (t *DataGroupTreeNode) GetEditableGroups(editableGroupIDs []int64) *DataGroupTreeNode {
-	return t.cloneWithPermission(DATA_GROUP_PERMISSION_TYPE_VIEW, editableGroupIDs)
+func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroupTreeNode {
+	return t.cloneWithPermission(DATA_GROUP_PERMISSION_TYPE_KNOWN, permGroupIDs)
 }
 
 func (t *DataGroupTreeNode) cloneWithPermission(pPerm string, groupsIDs []int64) *DataGroupTreeNode {
@@ -53,17 +46,17 @@ func (t *DataGroupTreeNode) cloneWithPermission(pPerm string, groupsIDs []int64)
 		return &DataGroupTreeNode{
 			DataGroup:      t.DataGroup,
 			PermissionType: selfPerm,
-			SubGroups:      []DataGroupTreeNode{},
+			SubGroups:      []*DataGroupTreeNode{},
 		}
 	}
 
-	subGroups := make([]DataGroupTreeNode, 0, len(t.SubGroups))
+	subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
 	for _, sub := range t.SubGroups {
 		if subNode := sub.cloneWithPermission(selfPerm, groupsIDs); subNode != nil {
-			if selfPerm != DATA_GROUP_PERMISSION_TYPE_EDIT {
-				selfPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
+			if selfPerm == DATA_GROUP_PERMISSION_TYPE_IGNORE {
+				selfPerm = DATA_GROUP_PERMISSION_TYPE_KNOWN
 			}
-			subGroups = append(subGroups, *subNode)
+			subGroups = append(subGroups, subNode)
 		}
 	}
 
@@ -78,13 +71,44 @@ func (t *DataGroupTreeNode) cloneWithPermission(pPerm string, groupsIDs []int64)
 	}
 }
 
+func (t *DataGroupTreeNode) CloneGroupNodeWithSubGroup(groupID int64, groupsIDs []int64) *DataGroupTreeNode {
+	return t.cloneGroupNodeWithSubGroup(groupID, DATA_GROUP_PERMISSION_TYPE_KNOWN, groupsIDs)
+}
+
+func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm string, groupsIDs []int64) *DataGroupTreeNode {
+	selfPerm := checkPermission(pPerm, groupsIDs, t.GroupID)
+	if t.GroupID == groupID {
+		subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
+		for _, sub := range t.SubGroups {
+			subGroups = append(subGroups, &DataGroupTreeNode{
+				DataGroup:      sub.DataGroup,
+				SubGroups:      nil, // Drop sub groups
+				PermissionType: checkPermission(selfPerm, groupsIDs, sub.GroupID),
+			})
+		}
+
+		return &DataGroupTreeNode{
+			DataGroup:      t.DataGroup,
+			PermissionType: selfPerm,
+			SubGroups:      subGroups,
+		}
+	}
+
+	for _, subGroup := range t.SubGroups {
+		if subNode := subGroup.cloneGroupNodeWithSubGroup(groupID, selfPerm, groupsIDs); subNode != nil {
+			return subNode
+		}
+	}
+	return nil
+}
+
 func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
-	if pPerm == DATA_GROUP_PERMISSION_TYPE_EDIT {
+	if pPerm == DATA_GROUP_PERMISSION_TYPE_EDIT || pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW {
 		return DATA_GROUP_PERMISSION_TYPE_EDIT
 	}
 	for _, id := range groupsIDs {
 		if id == groupID {
-			return DATA_GROUP_PERMISSION_TYPE_EDIT
+			return DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
 	}
 	return DATA_GROUP_PERMISSION_TYPE_IGNORE

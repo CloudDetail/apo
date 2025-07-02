@@ -200,14 +200,21 @@ func setApiRouter(r *resource) {
 	}
 
 	dataApi := r.mux.Group("/api/data").Use(middlewares.AuthMiddleware())
+	dataApiV2 := r.mux.Group("/api/v2/data").Use(middlewares.AuthMiddleware())
 	{
-		dataHandler := data.New(r.logger, r.pkg_db, r.prom, r.k8sApi)
+		dataHandler := data.New(r.logger, r.pkg_db, r.prom, r.ch, r.k8sApi)
+		dataApiV2.GET("/group", dataHandler.GetDataGroupV2())
+		dataApiV2.GET("/group/datasource/list", dataHandler.GetDGScopeList())
+		dataApiV2.GET("/group/detail", dataHandler.GetDGDetailV2())
+		dataApiV2.POST("/group/add", dataHandler.CreateDataGroupV2())
+		dataApiV2.POST("/group/update", dataHandler.UpdateDataGroupV2())
+
 		dataApi.GET("/datasource", dataHandler.GetDatasource())
 		dataApi.POST("/group", dataHandler.GetDataGroup())
 		// 旧版本使用GET,新版本使用POST
 		dataApi.Any("/group/data", dataHandler.GetGroupDatasource())
-		dataApi.POST("/group/update", dataHandler.UpdateDataGroup())
-		dataApi.POST("/group/create", dataHandler.CreateDataGroup())
+		//dataApi.POST("/group/update", dataHandler.UpdateDataGroup())
+		//dataApi.POST("/group/create", dataHandler.CreateDataGroup())
 		dataApi.POST("/group/delete", dataHandler.DeleteDataGroup())
 		dataApi.GET("/sub/group", dataHandler.GetSubjectDataGroup())
 		dataApi.GET("/user/group", dataHandler.GetUserDataGroup())

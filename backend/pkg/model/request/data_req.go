@@ -6,10 +6,11 @@ package request
 import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type CreateDataGroupRequest struct {
-	GroupName      string             `json:"groupName" binding:"required"`
-	Description    string             `json:"description"`
-	DatasourceList []model.Datasource `json:"datasourceList"`
-	// AssignedSubjects []AuthDataGroup    `json:"assignedSubjects"`
+	ParentGId   int64  `json:"groupId"`
+	GroupName   string `json:"groupName" binding:"required"`
+	Description string `json:"description"`
+
+	DataScopeIDs []string `json:"datasources"`
 }
 
 type AuthDataGroup struct {
@@ -22,10 +23,11 @@ type DeleteDataGroupRequest struct {
 }
 
 type UpdateDataGroupRequest struct {
-	GroupID        int64              `json:"groupId" form:"groupId" binding:"required"`
-	GroupName      string             `json:"groupName" form:"groupName" binding:"required"`
-	Description    string             `json:"description"`
-	DatasourceList []model.Datasource `json:"datasourceList"`
+	GroupID     int64  `json:"groupId" form:"groupId" binding:"required"`
+	GroupName   string `json:"groupName" form:"groupName" binding:"required"`
+	Description string `json:"description"`
+	// DatasourceList []model.Datasource `json:"datasourceList"`
+	DataScopeIDs []string `json:"datasources"`
 }
 
 type GetDataGroupRequest struct {
