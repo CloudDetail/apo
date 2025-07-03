@@ -17,6 +17,7 @@ type DaoDataScope interface {
 	GetScopesSelectedByGroupID(ctx core.Context, groupID int64) (selected []string, err error)
 
 	UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error
+	DeleteGroup2Scope(ctx core.Context, groupID int64) error
 
 	GetScopesByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
 }
@@ -39,6 +40,10 @@ func (repo *daoRepo) UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs
 		Columns:   []clause.Column{{Name: "group_id"}, {Name: "scope_id"}},
 		DoNothing: true,
 	}).Create(&inputs).Error
+}
+
+func (repo *daoRepo) DeleteGroup2Scope(ctx core.Context, groupID int64) error {
+	return repo.GetContextDB(ctx).Where("group_id = ?", groupID).Delete(&datagroup.DataGroup2Scope{}).Error
 }
 
 func (repo *daoRepo) GetScopesOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error) {

@@ -208,6 +208,7 @@ func setApiRouter(r *resource) {
 		dataApiV2.GET("/group/detail", dataHandler.GetDGDetailV2())
 		dataApiV2.POST("/group/add", dataHandler.CreateDataGroupV2())
 		dataApiV2.POST("/group/update", dataHandler.UpdateDataGroupV2())
+		dataApiV2.DELETE("/group/delete", dataHandler.DeleteDataGroupV2())
 
 		dataApi.GET("/datasource", dataHandler.GetDatasource())
 		dataApi.POST("/group", dataHandler.GetDataGroup())
@@ -215,7 +216,6 @@ func setApiRouter(r *resource) {
 		dataApi.Any("/group/data", dataHandler.GetGroupDatasource())
 		//dataApi.POST("/group/update", dataHandler.UpdateDataGroup())
 		//dataApi.POST("/group/create", dataHandler.CreateDataGroup())
-		dataApi.POST("/group/delete", dataHandler.DeleteDataGroup())
 		dataApi.GET("/sub/group", dataHandler.GetSubjectDataGroup())
 		dataApi.GET("/user/group", dataHandler.GetUserDataGroup())
 		dataApi.POST("/group/operation", dataHandler.DataGroupOperation())

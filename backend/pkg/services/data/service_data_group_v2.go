@@ -3,7 +3,9 @@ package data
 import (
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -135,6 +137,30 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 		return s.dbRepo.UpdateGroup2Scope(ctx, req.GroupID, req.DataScopeIDs)
 	}
 	return s.dbRepo.Transaction(ctx, updateNameFunc, updateG2SFunc)
+}
+
+func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error {
+	filter := model.DataGroupFilter{
+		ID: req.GroupID,
+	}
+	exists, err := s.dbRepo.DataGroupExist(ctx, filter)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return core.Error(code.DataGroupNotExistError, "data group does not exist")
+	}
+
+	var deleteGroupFunc = func(ctx core.Context) error {
+		return s.dbRepo.DeleteDataGroup(ctx, req.GroupID)
+	}
+
+	var deleteGroup2ScopeFunc = func(ctx core.Context) error {
+		return s.dbRepo.DeleteGroup2Scope(ctx, req.GroupID)
+	}
+
+	return s.dbRepo.Transaction(ctx, deleteGroup2ScopeFunc, deleteGroupFunc)
 }
 
 func containsInStr(options []string, input string) bool {

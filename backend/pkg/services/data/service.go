@@ -16,7 +16,6 @@ import (
 
 type Service interface {
 	GetDataSource(ctx core.Context) (response.GetDatasourceResponse, error)
-	DeleteDataGroup(ctx core.Context, req *request.DeleteDataGroupRequest) error
 	GetDataGroup(ctx core.Context, req *request.GetDataGroupRequest) (response.GetDataGroupResponse, error)
 	GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error)
 	DataGroupOperation(ctx core.Context, req *request.DataGroupOperationRequest) error
@@ -35,6 +34,7 @@ type Service interface {
 
 	CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error
 	UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error
+	DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error
 }
 
 type service struct {

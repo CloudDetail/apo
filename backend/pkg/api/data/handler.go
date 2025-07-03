@@ -24,10 +24,10 @@ type Handler interface {
 	// @Router /api/data/group/create [post]
 	// CreateDataGroup() core.HandlerFunc
 
-	// DeleteDataGroup Delete the data group.
+	// DeleteDataGroupV2 Delete the data group.
 	// @Tags API.data
 	// @Router /api/data/group/delete [post]
-	DeleteDataGroup() core.HandlerFunc
+	DeleteDataGroupV2() core.HandlerFunc
 
 	// GetDataGroup Get data group.
 	// @Tags API.data
