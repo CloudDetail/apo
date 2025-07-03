@@ -64,10 +64,10 @@ type GetGroupSubsRequest struct {
 }
 
 type DGScopeListRequest struct {
-	GroupID        int64 `json:"groupId"`
-	SkipNotChecked bool  `json:"skipNotChecked"`
+	GroupID        int64 `form:"groupId" json:"groupId"`
+	SkipNotChecked bool  `form:"skipNotChecked" json:"skipNotChecked"`
 }
 
 type DGDetailRequest struct {
-	GroupID int64 `json:"groupId"`
+	GroupID int64 `form:"groupId" json:"groupId"`
 }

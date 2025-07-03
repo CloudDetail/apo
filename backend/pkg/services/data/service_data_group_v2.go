@@ -43,7 +43,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 		return nil, fmt.Errorf("group %d not found", groupID)
 	}
 
-	var subGroups []DataGroupWithScopes
+	var subGroups []DataGroupWithScopes = make([]DataGroupWithScopes, 0)
 	for _, subGroup := range group.SubGroups {
 		scopes, err := s.dbRepo.GetScopesByGroupID(ctx, subGroup.GroupID, "")
 		if err != nil {
@@ -97,11 +97,12 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error {
 	// Check Scope exist
 	options, err := s.dbRepo.GetScopesOptionByGroupID(ctx, req.GroupID)
+	fullParentOptions := s.DataGroupStore.GetFullPermissionScopeList(options)
 	if err != nil {
 		return err
 	}
 	for _, id := range req.DataScopeIDs {
-		if !containsInStr(options, id) {
+		if !containsInStr(fullParentOptions, id) {
 			return fmt.Errorf("scope %s not in group %d", id, req.GroupID)
 		}
 	}
