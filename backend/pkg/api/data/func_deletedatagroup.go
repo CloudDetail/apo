@@ -26,7 +26,7 @@ import (
 func (h *handler) DeleteDataGroupV2() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteDataGroupRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

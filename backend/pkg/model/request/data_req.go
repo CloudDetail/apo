@@ -6,7 +6,7 @@ package request
 import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type CreateDataGroupRequest struct {
-	ParentGId   int64  `json:"groupId"`
+	ParentGId   int64  `json:"parentGroupId"`
 	GroupName   string `json:"groupName" binding:"required"`
 	Description string `json:"description"`
 
@@ -19,7 +19,7 @@ type AuthDataGroup struct {
 }
 
 type DeleteDataGroupRequest struct {
-	GroupID int64 `form:"groupId" binding:"required"`
+	GroupID int64 `form:"groupId" json:"groupId" binding:"required"`
 }
 
 type UpdateDataGroupRequest struct {

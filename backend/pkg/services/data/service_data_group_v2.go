@@ -64,6 +64,10 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 
 func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error {
 	// TODO Check Group With Same name?
+	parentGroup := s.DataGroupStore.GetGroupNodeRef(req.ParentGId)
+	if parentGroup == nil {
+		return fmt.Errorf("parent group %d not found", req.ParentGId)
+	}
 
 	// Check Scope exist
 	selected, err := s.dbRepo.GetScopesSelectedByGroupID(ctx, req.ParentGId)
@@ -74,7 +78,19 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 	fullPermissionScope := s.DataGroupStore.GetFullPermissionScopeList(selected)
 	for _, id := range req.DataScopeIDs {
 		if !containsInStr(fullPermissionScope, id) {
-			return fmt.Errorf("scope %s not in group %d", id, req.ParentGId)
+			scope := s.DataGroupStore.GetScopeRef(id)
+			if scope == nil {
+				return fmt.Errorf("scope %s not found", id)
+			}
+
+			var msg string
+			switch ctx.LANG() {
+			case code.LANG_EN:
+				msg = fmt.Sprintf("permission denied: please add [%s:%s] into parent group[%s] first", "", "", parentGroup.GroupName)
+			case code.LANG_ZH:
+				msg = fmt.Sprintf("权限不足:请先在上级数据组[%s]中添加[%s:%s]", parentGroup.GroupName, scope.Type, scope.Name)
+			}
+			return core.Error(code.CreateDataGroupError, msg)
 		}
 	}
 
@@ -93,7 +109,18 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 		return s.dbRepo.UpdateGroup2Scope(ctx, group.GroupID, req.DataScopeIDs)
 	}
 
-	return s.dbRepo.Transaction(ctx, createGroupFunc, createG2SFunc)
+	err = s.dbRepo.Transaction(ctx, createGroupFunc, createG2SFunc)
+	if err != nil {
+		return err
+	}
+	newGroupTree, err := s.dbRepo.LoadDataGroupTree(ctx)
+	if err != nil {
+		return err
+	}
+
+	// TODO auto update
+	s.DataGroupStore.DataGroupTreeNode = newGroupTree
+	return nil
 }
 
 func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error {
@@ -177,6 +204,7 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 	if err != nil {
 		return err
 	}
+
 	newGroupTree, err := s.dbRepo.LoadDataGroupTree(ctx)
 	if err != nil {
 		return err

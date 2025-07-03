@@ -49,6 +49,19 @@ func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected 
 	return t.cloneWithPermission(ignored, options, selected)
 }
 
+func (t *DataScopeTreeNode) GetScopeRef(scopeID string) *DataScopeTreeNode {
+	if t.ScopeID == scopeID {
+		return t
+	}
+
+	for _, child := range t.Children {
+		if n := child.GetScopeRef(scopeID); n != nil {
+			return n
+		}
+	}
+	return nil
+}
+
 func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []string {
 	optionsMap := make(map[string]bool)
 	for _, id := range options {

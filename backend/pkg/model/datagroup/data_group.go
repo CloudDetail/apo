@@ -102,6 +102,19 @@ func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm stri
 	return nil
 }
 
+func (t *DataGroupTreeNode) GetGroupNodeRef(groupID int64) *DataGroupTreeNode {
+	if t.GroupID == groupID {
+		return t
+	}
+
+	for _, subGroup := range t.SubGroups {
+		if subNode := subGroup.GetGroupNodeRef(groupID); subNode != nil {
+			return subNode
+		}
+	}
+	return nil
+}
+
 func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
 	if pPerm == DATA_GROUP_PERMISSION_TYPE_EDIT || pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW {
 		return DATA_GROUP_PERMISSION_TYPE_EDIT

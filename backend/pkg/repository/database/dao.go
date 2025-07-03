@@ -135,8 +135,7 @@ type Repo interface {
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx core.Context) *gorm.DB
-	// WithTransaction Puts transaction into ctx.
-	WithTransaction(ctx core.Context, tx *gorm.DB) core.Context
+
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx core.Context, funcs ...func(txCtx core.Context) error) error
 
