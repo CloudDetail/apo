@@ -112,6 +112,26 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 		}
 	}
 
+	// Check childGroup Used
+	groupNode := s.DataGroupStore.CloneGroupNodeWithSubGroup(req.GroupID, nil)
+	if groupNode == nil {
+		return fmt.Errorf("group %d not found", req.GroupID)
+	}
+
+	fullOptions := s.DataGroupStore.GetFullPermissionScopeList(req.DataScopeIDs)
+	for _, subGroup := range groupNode.SubGroups {
+		selected, err := s.dbRepo.GetScopesByGroupID(ctx, subGroup.GroupID, "")
+		if err != nil {
+			return err
+		}
+
+		for _, scope := range selected {
+			if !containsInStr(fullOptions, scope.ScopeID) {
+				return fmt.Errorf("remove datasource [%s:%s] in group [%s] first", scope.Type, scope.Name, subGroup.GroupName)
+			}
+		}
+	}
+
 	var updateNameFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateDataGroup(ctx, req.GroupID, req.GroupName, req.Description)
 	}

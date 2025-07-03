@@ -49,6 +49,35 @@ func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected 
 	return t.cloneWithPermission(ignored, options, selected)
 }
 
+func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []string {
+	optionsMap := make(map[string]bool)
+	for _, id := range options {
+		optionsMap[id] = true
+	}
+
+	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
+	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
+		if pPerm == checked || containsInStr(options, node.ScopeID) {
+			optionsMap[node.ScopeID] = true
+			for _, child := range node.Children {
+				dfs(checked, child)
+			}
+			return
+		}
+		for _, child := range node.Children {
+			dfs(notChecked, child)
+		}
+	}
+
+	dfs(notChecked, t)
+	var result []string
+
+	for id := range optionsMap {
+		result = append(result, id)
+	}
+	return result
+}
+
 func (t *DataScopeTreeNode) AdjustClusterName(clusterNameMap map[string]string) {
 	if t.Type == DATASOURCE_TYP_CLUSTER {
 		if name, find := clusterNameMap[t.ClusterID]; find {
@@ -143,4 +172,13 @@ func checkScopePerm(pPerm scopeStatus, options []string, selected []string, scop
 	}
 
 	return ignored
+}
+
+func containsInStr(options []string, input string) bool {
+	for _, v := range options {
+		if v == input {
+			return true
+		}
+	}
+	return false
 }
