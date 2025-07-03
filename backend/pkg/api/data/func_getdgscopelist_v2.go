@@ -5,11 +5,12 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
 func (h *handler) GetDGScopeList() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(DGDetailReq)
+		req := new(request.DGScopeListRequest)
 		err := c.ShouldBindQuery(req)
 		if err != nil {
 			c.AbortWithError(
@@ -19,7 +20,7 @@ func (h *handler) GetDGScopeList() core.HandlerFunc {
 			)
 			return
 		}
-		resp, err := h.dataService.ListDataScopeByGroupID(c, req.GroupID)
+		resp, err := h.dataService.ListDataScopeByGroupID(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

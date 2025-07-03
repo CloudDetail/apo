@@ -62,3 +62,12 @@ type GetGroupSubsRequest struct {
 	DataGroupID int64  `form:"groupId" binding:"required"`
 	SubjectType string `form:"subjectType"`
 }
+
+type DGScopeListRequest struct {
+	GroupID        int64 `json:"groupId"`
+	SkipNotChecked bool  `json:"skipNotChecked"`
+}
+
+type DGDetailRequest struct {
+	GroupID int64 `json:"groupId"`
+}

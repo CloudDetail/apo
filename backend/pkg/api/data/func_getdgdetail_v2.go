@@ -5,15 +5,12 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
-
-type DGDetailReq struct {
-	GroupID int64 `json:"groupId"`
-}
 
 func (h *handler) GetDGDetailV2() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(DGDetailReq)
+		req := new(request.DGDetailRequest)
 		err := c.ShouldBindQuery(req)
 		if err != nil {
 			c.AbortWithError(

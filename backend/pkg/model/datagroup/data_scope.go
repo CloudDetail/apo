@@ -41,8 +41,8 @@ type DataScopeTreeNode struct {
 
 	Children []*DataScopeTreeNode `json:"children,omitempty"`
 
-	HasCheckBox bool `json:"hasCheckBox,omitempty"`
-	IsChecked   bool `json:"isChecked,omitempty"`
+	HasCheckBox bool `json:"hasCheckBox"`
+	IsChecked   bool `json:"isChecked"`
 }
 
 func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected []string) *DataScopeTreeNode {

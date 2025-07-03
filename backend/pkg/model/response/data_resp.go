@@ -40,3 +40,8 @@ type GroupDatasource struct {
 type GetSubjectDataGroupResponse []datagroup.DataGroup
 
 type GetGroupSubsResponse []database.AuthDataGroup
+
+type ListDataScopesResponse struct {
+	Scopes      *datagroup.DataScopeTreeNode `json:"view"`
+	DataSources []string                     `json:"datasources"`
+}

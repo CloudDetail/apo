@@ -70,7 +70,7 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 	}
 	for _, id := range req.DataScopeIDs {
 		if !containsInStr(selected, id) {
-			return fmt.Errorf("scope %d not in group %d", id, req.ParentGId)
+			return fmt.Errorf("scope %s not in group %d", id, req.ParentGId)
 		}
 	}
 
