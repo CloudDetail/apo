@@ -2,7 +2,6 @@ package data
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -112,7 +111,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		}
 		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
 		ds := datagroup.DataScope{
-			ScopeID:     _createScopeID(scopeLabels),
+			ScopeID:     scopeLabels.ScopeID(),
 			Name:        scopeLabels.Service,
 			Type:        datagroup.DATASOURCE_TYP_SERVICE,
 			Category:    datagroup.DATASOURCE_CATEGORY_APM,
@@ -142,7 +141,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 
 		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_NAMESPACE)
 		ds := datagroup.DataScope{
-			ScopeID:     _createScopeID(scopeLabels),
+			ScopeID:     scopeLabels.ScopeID(),
 			Name:        scopeLabels.Namespace,
 			Type:        datagroup.DATASOURCE_TYP_NAMESPACE,
 			Category:    datagroup.DATASOURCE_CATEGORY_LOG,
@@ -170,24 +169,13 @@ func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTim
 	}
 	for i := 0; i < len(scopes); i++ {
 		fillEmptyLabel(&scopes[i].ScopeLabels, scopes[i].Type)
-		scopes[i].ScopeID = _createScopeID(scopes[i].ScopeLabels)
+		scopes[i].ScopeID = scopes[i].ScopeLabels.ScopeID()
 		if _, find := m.ExistedScope[scopes[i]]; find {
 			continue
 		}
 		newScope = append(newScope, scopes[i])
 	}
 	return newScope, nil
-}
-
-// 暂时的scopeID创建策略，未来可能会变化，不要使用scopeID语义
-func _createScopeID(labels datagroup.ScopeLabels) string {
-	if labels.Namespace == "" {
-		return labels.ClusterID
-	}
-	if labels.Service == "" {
-		return strings.Join([]string{labels.ClusterID, labels.Namespace}, "#")
-	}
-	return strings.Join([]string{labels.ClusterID, labels.Namespace, labels.Service}, "#")
 }
 
 func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
@@ -229,7 +217,7 @@ func addIfNotExists(labels datagroup.ScopeLabels, seen map[datagroup.ScopeLabels
 
 func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
 	return datagroup.DataScope{
-		ScopeID:     _createScopeID(labels),
+		ScopeID:     labels.ScopeID(),
 		Category:    serviceScope.Category,
 		Name:        serviceScope.Namespace,
 		Type:        datagroup.DATASOURCE_TYP_NAMESPACE,
@@ -239,7 +227,7 @@ func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.Sco
 
 func createClusterScope(baseScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
 	return datagroup.DataScope{
-		ScopeID:     _createScopeID(labels),
+		ScopeID:     labels.ScopeID(),
 		Category:    baseScope.Category,
 		Name:        baseScope.ClusterID,
 		Type:        datagroup.DATASOURCE_TYP_CLUSTER,

@@ -150,14 +150,32 @@ func (repo *daoRepo) GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, c
 }
 
 func (repo *daoRepo) GetScopeIDsByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]string, error) {
+	if groupID == 0 {
+		// ALL Group
+		var res []string
+		qb := repo.GetContextDB(ctx).Table("data_scope").
+			Distinct("scope_id").
+			Pluck("scope_id", &res)
+
+		if len(category) > 0 {
+			qb.Where("category = ? or category = 'system'", category)
+		}
+
+		err := qb.Find(&res).Error
+		if err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+
 	var res []string
 	qb := repo.GetContextDB(ctx).Table("data_group_2_scope as dgs").
-		Where("group_id = ?", groupID).
+		Where("group_id = ? ", groupID).
 		Distinct("dgs.scope_id").
 		Pluck("dgs.scope_id", &res)
 
 	if len(category) > 0 {
-		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id AND ds.category = ?", category)
+		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id AND (ds.category = ? or ds.category = 'system')", category)
 	} else {
 		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id")
 	}

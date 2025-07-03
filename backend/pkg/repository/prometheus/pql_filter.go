@@ -131,6 +131,12 @@ func Clone(filter PQLFilter) PQLFilter {
 }
 
 func Or(filters ...PQLFilter) *OrFilter {
+	if len(filters) == 0 {
+		return &OrFilter{
+			Filters: []AndFilter{*AlwaysFalseFilter},
+		}
+	}
+
 	var options []AndFilter
 	for _, f := range filters {
 		if f == nil {
@@ -289,3 +295,5 @@ func RegexMatchIfNotEmptyFilter(k, regexPattern string) *AndFilter {
 func PatternFilter(pattern, v string) *AndFilter {
 	return &AndFilter{Filters: []string{pattern + `"` + v + `"`}}
 }
+
+var AlwaysFalseFilter = &AndFilter{Filters: []string{"apo_filter=\"never_match\""}}

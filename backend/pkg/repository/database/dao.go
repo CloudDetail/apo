@@ -148,10 +148,6 @@ type Repo interface {
 	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
 	integration.ObservabilityInputManage
-	TmpInterface
-}
-
-type TmpInterface interface {
 	DaoDataScope
 	DaoDataGroupNew
 }

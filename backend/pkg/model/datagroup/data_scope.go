@@ -1,11 +1,13 @@
 package datagroup
 
+import "strings"
+
 const (
 	DATASOURCE_TYP_SYSTEM      = "system"
 	DATASOURCE_TYP_CLUSTER     = "cluster"
 	DATASOURCE_TYP_NAMESPACE   = "namespace"
 	DATASOURCE_TYP_SERVICE     = "service"
-	DATASOURCE_TYP_CONTENT_KEY = "content_key"
+	DATASOURCE_TYP_ENDPOINT    = "endpoint"
 	DATASOURCE_TYP_POD         = "pod"
 	DATASOURCE_CATEGORY_APM    = "apm"
 	DATASOURCE_CATEGORY_NORMAL = "normal"
@@ -32,6 +34,17 @@ type ScopeLabels struct {
 	ClusterID string `gorm:"column:cluster_id"   json:"clusterId,omitempty" ch:"cluster_id"`
 	Namespace string `gorm:"column:namespace" json:"namespace,omitempty" ch:"namespace"`
 	Service   string `gorm:"column:service" json:"service,omitempty" ch:"service"`
+}
+
+// This ID is used for identification only and should not be parsed or used for business purposes.
+func (l ScopeLabels) ScopeID() string {
+	if l.Namespace == "" {
+		return l.ClusterID
+	}
+	if l.Service == "" {
+		return strings.Join([]string{l.ClusterID, l.Namespace}, "#")
+	}
+	return strings.Join([]string{l.ClusterID, l.Namespace, l.Service}, "#")
 }
 
 func (DataScope) TableName() string {

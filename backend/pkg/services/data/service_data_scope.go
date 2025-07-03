@@ -6,6 +6,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeListRequest) (*response.ListDataScopesResponse, error) {
@@ -38,7 +39,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 	}
 
 	scopes, leafs := s.DataGroupStore.CloneWithCategory(scopeIDs, req.Category)
-	filter := convertScopeNodeToPQLFilter(scopes)
+	filter := common.ConvertScopeNodeToPQLFilter(scopes)
 
 	switch req.Category {
 	case datagroup.DATASOURCE_CATEGORY_APM:
@@ -64,7 +65,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 				node.Children = append(node.Children, &datagroup.DataScopeTreeNode{
 					DataScope: datagroup.DataScope{
 						Name: metric.Metric.ContentKey,
-						Type: datagroup.DATASOURCE_TYP_CONTENT_KEY,
+						Type: datagroup.DATASOURCE_TYP_ENDPOINT,
 					},
 				})
 			}
@@ -102,41 +103,4 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 	return &response.ListDataScopeFilterResponse{
 		Scopes: scopes,
 	}, nil
-}
-
-func convertScopeNodeToPQLFilter(scopeNode *datagroup.DataScopeTreeNode) prometheus.PQLFilter {
-	var filters []prometheus.PQLFilter
-
-	var dfs func(node *datagroup.DataScopeTreeNode) prometheus.PQLFilter
-	dfs = func(node *datagroup.DataScopeTreeNode) prometheus.PQLFilter {
-		if node.IsChecked || len(node.Children) == 0 {
-			return nil
-		}
-
-		var options []string
-		for _, child := range node.Children {
-			if child.IsChecked {
-				options = append(options, child.Name)
-			}
-			filters = append(filters, dfs(child))
-		}
-
-		switch node.Type {
-		case datagroup.DATASOURCE_TYP_NAMESPACE:
-			return prometheus.NewFilter().
-				Equal("namespace", node.Name).
-				Equal("cluster_id", node.ClusterID).
-				RegexMatch("svc_name", prometheus.RegexMultipleValue(options...))
-		case datagroup.DATASOURCE_TYP_CLUSTER:
-			return prometheus.NewFilter().
-				Equal("cluster_id", node.Name).
-				RegexMatch("namespace", prometheus.RegexMultipleValue(options...))
-		default:
-			return nil
-		}
-	}
-
-	filter := dfs(scopeNode)
-	filters = append(filters, filter)
-	return prometheus.Or(filters...)
 }
