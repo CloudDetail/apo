@@ -136,7 +136,20 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	var updateG2SFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateGroup2Scope(ctx, req.GroupID, req.DataScopeIDs)
 	}
-	return s.dbRepo.Transaction(ctx, updateNameFunc, updateG2SFunc)
+
+	err = s.dbRepo.Transaction(ctx, updateNameFunc, updateG2SFunc)
+	if err != nil {
+		return err
+	}
+
+	newGroupTree, err := s.dbRepo.LoadDataGroupTree(ctx)
+	if err != nil {
+		return err
+	}
+
+	// TODO auto update
+	s.DataGroupStore.DataGroupTreeNode = newGroupTree
+	return nil
 }
 
 func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error {
@@ -160,7 +173,17 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 		return s.dbRepo.DeleteGroup2Scope(ctx, req.GroupID)
 	}
 
-	return s.dbRepo.Transaction(ctx, deleteGroup2ScopeFunc, deleteGroupFunc)
+	err = s.dbRepo.Transaction(ctx, deleteGroup2ScopeFunc, deleteGroupFunc)
+	if err != nil {
+		return err
+	}
+	newGroupTree, err := s.dbRepo.LoadDataGroupTree(ctx)
+	if err != nil {
+		return err
+	}
+	// TODO auto update
+	s.DataGroupStore.DataGroupTreeNode = newGroupTree
+	return nil
 }
 
 func containsInStr(options []string, input string) bool {
