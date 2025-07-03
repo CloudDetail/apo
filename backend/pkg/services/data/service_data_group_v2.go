@@ -68,8 +68,10 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 	if err != nil {
 		return err
 	}
+
+	fullPermissionScope := s.DataGroupStore.GetFullPermissionScopeList(selected)
 	for _, id := range req.DataScopeIDs {
-		if !containsInStr(selected, id) {
+		if !containsInStr(fullPermissionScope, id) {
 			return fmt.Errorf("scope %s not in group %d", id, req.ParentGId)
 		}
 	}
@@ -79,14 +81,6 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 		GroupName:     req.GroupName,
 		Description:   req.Description,
 		ParentGroupID: req.ParentGId,
-	}
-
-	group2Scope := []datagroup.DataGroup2Scope{}
-	for _, scopeID := range req.DataScopeIDs {
-		group2Scope = append(group2Scope, datagroup.DataGroup2Scope{
-			GroupID: group.GroupID,
-			ScopeID: scopeID,
-		})
 	}
 
 	var createGroupFunc = func(ctx core.Context) error {
