@@ -11,6 +11,7 @@ import { ConfigProvider, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
 import { useSelector } from 'react-redux'
+import styles from './AppSidebar.module.scss'
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
@@ -29,9 +30,27 @@ const AppSidebar = () => {
   const navigate = useNavigate()
   const [selectedKeys, setSelectedKeys] = useState([])
   const [openKeys, setOpenKeys] = useState([])
-  const [memoOpenKeys, setMemoOpenKeys] = useState(['logs', 'trace', 'alerts'])
   const [menuList, setMenuList] = useState([])
-
+  function prepareGroup(menu) {
+    return [
+      {
+        type: 'group',
+        key: menu.key + 'group',
+        label: (
+          <span
+            className={`text-[var(${menu.children?.length > 0 ? '--ant-color-text-secondary' : '--ant-color-text'})]`}
+          >
+            {menu.label}
+          </span>
+        ),
+        children: menu.children?.map((child) => ({
+          key: child.key,
+          label: <span className="text-[var(--ant-color-text)]">{child.label}</span>,
+          to: child.router?.to,
+        })),
+      },
+    ]
+  }
   function prepareMenu(menu) {
     return {
       key: menu.key,
@@ -39,9 +58,9 @@ const AppSidebar = () => {
       abbreviation: menu.abbreviation,
       icon: AppSidebarMenuIcon(menu),
       to: menu.router?.to,
-      children: menu.children?.map((child) => prepareMenu(child)),
+      children: menu.children?.length > 0 && prepareGroup(menu),
       popupClassName: `submenu-with-parent-${menu.key}`,
-      className: `menu-item-${menu.key}`
+      className: `menu-item-${menu.key}`,
     }
   }
 
@@ -87,45 +106,6 @@ const AppSidebar = () => {
         },
       }}
     >
-      <style>
-        {menuList.map((item) => `
-          .submenu-with-parent-${item.key} .ant-menu-sub::before {
-            content: '${item.label}';
-            display: block;
-            margin: 4px;
-            padding: 20px 40px 20px 20px;
-            color: var(--ant-color-text-tertiary);
-            font-size: 13px ;
-            font-weight: 400;
-            // border-bottom: 1px solid var(--ant-color-border);
-          }
-
-          .ant-menu-sub .ant-menu-item {
-            white-space: nowrap !important;
-            overflow: visible !important;
-            text-overflow: unset !important;
-          }
-
-          .ant-tooltip-inner {
-            background-color: var(--ant-color-bg-elevated) !important;
-            color: var(--ant-color-text) !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
-            position: relative !important;
-            left: -6px;
-          }
-
-          /* Hide Tooltip arrow */
-          .ant-tooltip-arrow,
-          .ant-tooltip-arrow-content {
-            display: none !important;
-          }
-
-          .ant-tooltip-inner {
-            padding: 6px 10px !important;
-            border-radius: 4px !important;
-          }
-        `).join('')}
-      </style>
       <Menu
         mode="inline"
         theme={theme}
@@ -135,7 +115,7 @@ const AppSidebar = () => {
         selectedKeys={selectedKeys}
         openKeys={openKeys}
         onOpenChange={onOpenChange}
-        className="sidebarMenu *:custom-scrollbar"
+        className={styles.sidebarMenu}
       ></Menu>
     </ConfigProvider>
   )
