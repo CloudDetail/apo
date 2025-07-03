@@ -45,3 +45,7 @@ type ListDataScopesResponse struct {
 	Scopes      *datagroup.DataScopeTreeNode `json:"view"`
 	DataSources []string                     `json:"datasources"`
 }
+
+type ListDataScopeFilterResponse struct {
+	Scopes      *datagroup.DataScopeTreeNode `json:"view"`
+}

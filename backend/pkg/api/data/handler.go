@@ -19,11 +19,6 @@ type Handler interface {
 	// @Router /api/data/datasource [get]
 	GetDatasource() core.HandlerFunc
 
-	// CreateDataGroup Create a data group.
-	// @Tags API.data
-	// @Router /api/data/group/create [post]
-	// CreateDataGroup() core.HandlerFunc
-
 	// DeleteDataGroupV2 Delete the data group.
 	// @Tags API.data
 	// @Router /api/data/group/delete [post]
@@ -78,7 +73,7 @@ type Handler interface {
 
 	UpdateDataGroupV2() core.HandlerFunc
 
-	// DeleteDGroup() core.HandlerFunc
+	GetFilterByGroupIDV2() core.HandlerFunc
 }
 
 type handler struct {

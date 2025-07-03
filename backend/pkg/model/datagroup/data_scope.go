@@ -5,6 +5,8 @@ const (
 	DATASOURCE_TYP_CLUSTER     = "cluster"
 	DATASOURCE_TYP_NAMESPACE   = "namespace"
 	DATASOURCE_TYP_SERVICE     = "service"
+	DATASOURCE_TYP_CONTENT_KEY = "content_key"
+	DATASOURCE_TYP_POD         = "pod"
 	DATASOURCE_CATEGORY_APM    = "apm"
 	DATASOURCE_CATEGORY_NORMAL = "normal"
 	DATASOURCE_CATEGORY_LOG    = "log"
@@ -34,6 +36,12 @@ type ScopeLabels struct {
 
 func (DataScope) TableName() string {
 	return "data_scope"
+}
+
+type DataScopeTree struct {
+	*DataScopeTreeNode
+
+	CategoryIDs map[string][]string
 }
 
 type DataScopeTreeNode struct {
@@ -138,6 +146,63 @@ func (t *DataScopeTreeNode) cloneWithPermission(pPerm scopeStatus, options []str
 		HasCheckBox: selfStatus.hasCheckBox(),
 		IsChecked:   selfStatus.isChecked(),
 	}
+}
+
+func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*DataScopeTreeNode, map[ScopeLabels]*DataScopeTreeNode) {
+	var dfs func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode
+
+	var leafs = make(map[ScopeLabels]*DataScopeTreeNode, 0)
+	categoryIDs, find := t.CategoryIDs[category]
+	if !find {
+		return nil, leafs
+	}
+
+	dfs = func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode {
+		var selfStatus scopeStatus = ignored
+		if containsInStr(selected, node.ScopeID) {
+			selfStatus = checked
+		} else if pStatus == checked && containsInStr(categoryIDs, node.ScopeID) {
+			selfStatus = notChecked
+		}
+
+		var subChildren []*DataScopeTreeNode
+		pStatus = selfStatus
+		for _, child := range node.Children {
+			child := dfs(child, pStatus, selected, category)
+			if child != nil {
+				if selfStatus != checked {
+					selfStatus = notChecked
+				}
+				subChildren = append(subChildren, child)
+			}
+		}
+
+		if selfStatus == ignored {
+			return nil
+		}
+
+		newNode := &DataScopeTreeNode{
+			DataScope: node.DataScope,
+			Children:  subChildren,
+			IsChecked: selfStatus.isChecked(),
+		}
+
+		switch category {
+		case DATASOURCE_CATEGORY_APM:
+			if node.Type == DATASOURCE_TYP_SERVICE {
+				leafs[node.ScopeLabels] = newNode
+			}
+		case DATASOURCE_CATEGORY_LOG:
+			if node.Type == DATASOURCE_TYP_NAMESPACE {
+				leafs[node.ScopeLabels] = newNode
+			}
+		}
+
+		return newNode
+	}
+
+	root := dfs(t.DataScopeTreeNode, ignored, selected, category)
+	return root, leafs
 }
 
 type scopeStatus int

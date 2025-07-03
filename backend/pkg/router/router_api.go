@@ -209,6 +209,7 @@ func setApiRouter(r *resource) {
 		dataApiV2.POST("/group/add", dataHandler.CreateDataGroupV2())
 		dataApiV2.POST("/group/update", dataHandler.UpdateDataGroupV2())
 		dataApiV2.DELETE("/group/delete", dataHandler.DeleteDataGroupV2())
+		dataApiV2.POST("/group/filter", dataHandler.GetFilterByGroupIDV2())
 
 		dataApi.GET("/datasource", dataHandler.GetDatasource())
 		dataApi.POST("/group", dataHandler.GetDataGroup())

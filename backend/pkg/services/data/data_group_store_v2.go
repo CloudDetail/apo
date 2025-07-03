@@ -14,7 +14,7 @@ import (
 
 type DataGroupStore struct {
 	*datagroup.DataGroupTreeNode
-	*datagroup.DataScopeTreeNode
+	*datagroup.DataScopeTree
 
 	// ScopesID map[datagroup.ScopeLabels]string // TODO using another scopeID construct
 	ExistedScope map[datagroup.DataScope]struct{}
@@ -38,7 +38,7 @@ func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database
 	if err != nil {
 		panic(err)
 	}
-	dgStore.DataScopeTreeNode = scopeTree
+	dgStore.DataScopeTree = scopeTree
 	return dgStore
 }
 

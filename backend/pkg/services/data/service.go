@@ -35,6 +35,8 @@ type Service interface {
 	CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error
 	UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error
 	DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error
+
+	GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequest) (*response.ListDataScopeFilterResponse, error)
 }
 
 type service struct {

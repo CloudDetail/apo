@@ -71,3 +71,11 @@ type DGScopeListRequest struct {
 type DGDetailRequest struct {
 	GroupID int64 `form:"groupId" json:"groupId"`
 }
+
+type DGFilterRequest struct {
+	GroupID  int64  `form:"groupId" json:"groupId"`
+	Category string `form:"category" json:"category"`
+
+	StartTime int64 `form:"startTime" json:"startTime"`
+	EndTime   int64 `form:"endTime" json:"endTime"`
+}

@@ -150,7 +150,6 @@ type Labels struct {
 	SvcName     string `json:"svc_name"`
 	TopSpan     string `json:"top_span"`
 	PID         string `json:"pid"`
-	PodName     string `json:"pod_name"` // TODO can be deleted after being unified as pod
 	Namespace   string `json:"namespace"`
 	ClusterID   string `json:"cluster_id"`
 	NodeIP      string `json:"node_ip"`

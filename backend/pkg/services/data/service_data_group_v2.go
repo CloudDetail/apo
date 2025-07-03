@@ -47,7 +47,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 
 	var subGroups []DataGroupWithScopes = make([]DataGroupWithScopes, 0)
 	for _, subGroup := range group.SubGroups {
-		scopes, err := s.dbRepo.GetScopesByGroupID(ctx, subGroup.GroupID, "")
+		scopes, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 	}
 
 	// Check Scope exist
-	selected, err := s.dbRepo.GetScopesSelectedByGroupID(ctx, req.ParentGId)
+	selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.ParentGId)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 
 func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error {
 	// Check Scope exist
-	options, err := s.dbRepo.GetScopesOptionByGroupID(ctx, req.GroupID)
+	options, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, req.GroupID)
 	fullParentOptions := s.DataGroupStore.GetFullPermissionScopeList(options)
 	if err != nil {
 		return err
@@ -144,7 +144,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 
 	fullOptions := s.DataGroupStore.GetFullPermissionScopeList(req.DataScopeIDs)
 	for _, subGroup := range groupNode.SubGroups {
-		selected, err := s.dbRepo.GetScopesByGroupID(ctx, subGroup.GroupID, "")
+		selected, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
 			return err
 		}
