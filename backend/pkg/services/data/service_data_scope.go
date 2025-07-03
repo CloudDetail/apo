@@ -19,9 +19,9 @@ func (s *service) ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeL
 
 	var scopes *datagroup.DataScopeTreeNode
 	if req.SkipNotChecked {
-		scopes = s.DataGroupStore.CloneScopeWithPermission(options, selected)
-	} else {
 		scopes = s.DataGroupStore.CloneScopeWithPermission(selected, nil)
+	} else {
+		scopes = s.DataGroupStore.CloneScopeWithPermission(options, selected)
 	}
 
 	return &response.ListDataScopesResponse{
