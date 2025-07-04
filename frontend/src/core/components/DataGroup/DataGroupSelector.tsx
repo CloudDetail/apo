@@ -62,7 +62,6 @@ const DataGroupSelector = ({ readonly = false }) => {
               type: 'setSelectedDataGroupId',
               payload: newGroupId,
             })
-            // 👇 把默认 groupId 写入 URL
             urlParams.set('groupId', newGroupId.toString())
             navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
           }

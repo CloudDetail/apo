@@ -30,5 +30,6 @@
     "cluster": "集群",
     "namespace": "命名空间",
     "service": "服务"
-  }
+  },
+  "clearAll": "清空"
 }

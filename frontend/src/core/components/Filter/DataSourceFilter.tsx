@@ -384,7 +384,6 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
   useEffect(() => {
     const { infos } = getUniqueLabelsByValues(instanceOptions, searchInstances)
     setInstance?.(infos)
-    console.log(infos)
   }, [searchInstances])
 
   useEffect(() => {
@@ -439,7 +438,6 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
           placeholder={t('tableFilter.clusterPlaceholder')}
           value={searchCluster}
           onChange={(e) => {
-            console.log(e)
             updateFilteredOptions(
               e,
               searchNamespace,

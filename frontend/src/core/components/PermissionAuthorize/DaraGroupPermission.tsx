@@ -64,7 +64,7 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
     onChange(result)
   }
   return (
-    <div style={{ maxHeight: '60vh' }} className="flex flex-col" id={id}>
+    <div style={{ maxHeight: '40vh' }} className="flex flex-col overflow-auto" id={id}>
       <Search
         style={{ marginBottom: 8 }}
         className="h-[42px]"

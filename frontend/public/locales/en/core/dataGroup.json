@@ -30,5 +30,6 @@
     "cluster": "Cluster",
     "namespace": "Namespace",
     "service": "Service"
-  }
+  },
+  "clearAll": "Clear All"
 }

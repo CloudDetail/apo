@@ -15,7 +15,7 @@ const FilterSelector = ({
   id,
   mode = 'multiple',
 }) => (
-  <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]">
+  <div className="flex flex-row items-center mr-5 text-sm min-w-[280px]  mb-1">
     <span className="text-nowrap">{label}：</span>
     <Select
       mode={mode}

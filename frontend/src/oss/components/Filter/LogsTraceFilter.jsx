@@ -92,7 +92,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
           />
 
           {type === 'logs' && (
-            <div className="flex flex-row items-center mr-5 mt-2 min-w-[200px]">
+            <div className="flex flex-row items-center  min-w-[200px]">
               <span className="text-nowrap ">{t('oss/trace:trace.traceId')}：</span>
               <Input
                 placeholder={t('logsTraceFilter.search')}
@@ -108,10 +108,10 @@ const LogsTraceFilter = React.memo(({ type }) => {
       </div>
       {type === 'trace' && (
         <>
-          <div className="text-xs flex flex-row  flex-wrap w-full mb-2">
-            <div className="flex flex-row items-center mr-5 mt-2">
+          <div className="text-xs flex flex-row  flex-wrap w-full mb-2 items-center">
+            <div className="flex flex-row items-center  ">
               <span className="text-nowrap">{t('logsTraceFilter.durationLabel')}：</span>
-              <div className="flex-1 flex flex-row items-center">
+              <div className="flex-1 flex flex-row items-center mr-2">
                 <div className="pr-2">
                   <InputNumber
                     addonBefore="MIN"
@@ -136,7 +136,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
               </div>
             </div>
             {type === 'trace' && (
-              <div className="flex flex-row items-center mr-5 mt-2 w-[150px]">
+              <div className="flex flex-row items-center  w-[150px]">
                 <span className="text-nowrap ">{t('logsTraceFilter.endpointLabel')}：</span>
                 <Input
                   placeholder={t('logsTraceFilter.search')}
@@ -147,7 +147,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
             )}
           </div>
           <div className="flex">
-            <div className="flex flex-row items-center mr-5 mt-2 w-[300px] text-sm">
+            <div className="flex flex-row items-center mr-2 w-[300px] text-sm">
               {type === 'trace' ? (
                 <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
               ) : (
@@ -176,7 +176,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
                 </Tooltip>
               )}
             </div>
-            <div className="flex flex-row items-center mr-5 mt-2">
+            <div className="flex flex-row items-center text-xs  mr-2">
               <span className="text-nowrap">{t('logsTraceFilter.status')}</span>
               <Checkbox.Group
                 onChange={(value) => setFaultTypeList(value)}
