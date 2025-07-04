@@ -191,21 +191,21 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		if param == nil {
 			// unexpected err
 			record.AnalyzeErr = "failed to get analyze workflow params"
-			record.AlertDirection = "生成告警分析参数失败"
+			record.AlertDirection = ""
 		}
 		inputStr, err := json.Marshal(param)
 		if err != nil {
 			w.logger.Info("failed to marshal workflow params", zap.Error(err))
 			record.AnalyzeErr = err.Error()
-			record.AlertDirection = "序列化告警分析参数失败"
+			record.AlertDirection = ""
 		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, classify.WorkflowApiKey, w.User)
+			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
 			if err != nil {
 				record.AnalyzeErr = err.Error()
-				record.AlertDirection = "执行告警分析工作流失败"
+				record.AlertDirection = ""
 			} else {
 				record.AnalyzeRunID = resp.WorkflowRunID()
-				record.AlertDirection = resp.getOutput("failed: not find expected output: alertDirection")
+				record.AlertDirection = resp.getOutput("")
 			}
 		}
 	}
