@@ -39,7 +39,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		filter.Equal(prometheus.ContentKeyKey, req.Endpoint)
 	}
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 
 	// Get instance
