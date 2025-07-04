@@ -4,11 +4,50 @@
 package common
 
 import (
+	"sync"
+
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
+
+var (
+	DataGroupStorage *DataGroupStore
+	once             sync.Once
+)
+
+func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
+	once.Do(func() {
+		DataGroupStorage = NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+	})
+}
+
+func CutTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyNode *model.TopologyNodes) (*model.TopologyNodes, error) {
+	if groupID == 0 {
+		return topologyNode, nil
+	}
+
+	selected, err := dbRepo.GetScopeIDsSelectedByGroupID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	svcList := DataGroupStorage.GetFullPermissionScopeList(selected)
+
+	cutNode := &model.TopologyNodes{}
+	for k, node := range topologyNode.Nodes {
+		if node.Group != model.GROUP_SERVICE {
+			continue
+		}
+		if containsInStr(svcList, node.Service) {
+			cutNode.Nodes[k] = node
+		}
+	}
+	return cutNode, nil
+}
 
 func GetPQLFilterByGroupID(ctx core.Context, dbRepo database.Repo, category string, groupID int64) (prometheus.PQLFilter, error) {
 	if groupID == 0 {
@@ -70,4 +109,13 @@ func ConvertScopeNodeToPQLFilter(scopeNode *datagroup.DataScopeTreeNode) prometh
 	}
 
 	return prometheus.Or(filters...)
+}
+
+func containsInStr(options []string, input string) bool {
+	for _, v := range options {
+		if v == input {
+			return true
+		}
+	}
+	return false
 }

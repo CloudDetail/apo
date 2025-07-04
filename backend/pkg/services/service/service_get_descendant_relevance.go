@@ -14,17 +14,23 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
+	// TODO groupFilter
 	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
+	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	if err != nil {
+		return nil, err
+	}
 	if len(nodes.Nodes) == 0 {
 		return make([]response.GetDescendantRelevanceResponse, 0), nil
 	}
@@ -32,7 +38,8 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	unsortedDescendant := make([]polarisanalyzer.Relevance, 0, len(nodes.Nodes))
 	descendants := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
 	var isTracedMap = make(map[polarisanalyzer.ServiceNode]bool)
-	var services, endpoints []string
+
+	var svcFilter []prom.PQLFilter
 	for _, node := range nodes.Nodes {
 		svcNode := polarisanalyzer.ServiceNode{
 			Service:  node.Service,
@@ -46,14 +53,13 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		})
 		descendants = append(descendants, svcNode)
 		isTracedMap[svcNode] = node.IsTraced
-		services = append(services, node.Service)
-		endpoints = append(endpoints, node.Endpoint)
+		svcFilter = append(svcFilter, prom.EqualFilter(prom.ServiceNameKey, node.Service).Equal(prom.ContentKeyKey, node.Endpoint))
 	}
 
 	// Sort by Delay Similarity
 	sortResp, err := s.polRepo.SortDescendantByRelevance(
 		req.StartTime, req.EndTime, prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
-		req.Service, req.Endpoint,
+		req.ClusterIDs, req.Service, req.Endpoint,
 		descendants, "",
 	)
 	var sortResult []polarisanalyzer.Relevance
@@ -69,7 +75,14 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	}
 
 	var resp []response.GetDescendantRelevanceResponse
-	descendantStatus, err := s.queryDescendantStatus(ctx, services, endpoints, req.StartTime, req.EndTime)
+
+	groupFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	pqlFilter := prom.And(groupFilter, prom.Or(svcFilter...))
+
+	descendantStatus, err := s.queryDescendantStatus(ctx, pqlFilter, req.StartTime, req.EndTime)
 	if err != nil {
 		// Failed to query RED metric when adding log to TODO
 	}
@@ -96,7 +109,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
 
 		// Get all instances under each endpoint
-		instances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, pqlFilter)
 		if err != nil {
 			// TODO deal error
 			continue
@@ -127,52 +140,47 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	return resp, nil
 }
 
-func (s *service) queryDescendantStatus(ctx core.Context, services []string, endpoints []string, startTime, endTime int64) (*DescendantStatusMap, error) {
-	avgDepLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.WithDefaultIFPolarisMetricExits(prom.PQLAvgDepLatencyWithFilters, prom.DefaultDepLatency),
+func (s *service) queryDescendantStatus(ctx core.Context, filter prom.PQLFilter, startTime, endTime int64) (*DescendantStatusMap, error) {
+	avgDepLatency, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.WithDefaultForPolarisActiveSeries(prom.PQLAvgDepLatencyWithPQLFilter, prom.DefaultDepLatency),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
+		filter)
 	if err != nil {
 		return nil, err
 	}
 
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.PQLAvgLatencyWithFilters,
+	avgLatency, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.PQLAvgLatencyWithPQLFilter,
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
+		filter)
 	if err != nil {
 		return nil, err
 	}
 
-	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
+	avgLatencyDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgLatencyWithPQLFilter),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
+		filter)
 	if err != nil {
 		return nil, err
 	}
 
-	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
+	avgErrorRateDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgErrorRateWithPQLFilter),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
+		filter)
 	if err != nil {
 		return nil, err
 	}
-	avgRequestPerSecondDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgTPSWithFilters),
+	avgRequestPerSecondDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgTPSWithPQLFilter),
 		startTime, endTime,
 		prom.EndpointGranularity,
-		prom.ServiceRegexPQLFilter, prom.RegexMultipleValue(services...),
-		prom.ContentKeyRegexPQLFilter, prom.RegexMultipleValue(endpoints...))
+		filter)
 
 	if err != nil {
 		return nil, err

@@ -42,9 +42,7 @@ func (h *handler) GetServiceEndpointTopology() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointTopologyResponse{
 				Parents:  []*model.TopologyNode{},
 				Current:  &model.TopologyNode{},

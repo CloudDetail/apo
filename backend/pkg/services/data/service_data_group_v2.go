@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
@@ -18,7 +19,7 @@ func (s *service) ListDataGroupV2(ctx core.Context) (*datagroup.DataGroupTreeNod
 		return nil, err
 	}
 
-	userGroups := DataGroupStorage.CloneWithPermission(permGroupIDs)
+	userGroups := common.DataGroupStorage.CloneWithPermission(permGroupIDs)
 	return userGroups, nil
 }
 
@@ -40,7 +41,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 		return nil, err
 	}
 
-	group := DataGroupStorage.CloneGroupNodeWithSubGroup(groupID, permGroupIDs)
+	group := common.DataGroupStorage.CloneGroupNodeWithSubGroup(groupID, permGroupIDs)
 	if group == nil {
 		return nil, fmt.Errorf("group %d not found", groupID)
 	}
@@ -64,7 +65,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 
 func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error {
 	// TODO Check Group With Same name?
-	parentGroup := DataGroupStorage.GetGroupNodeRef(req.ParentGId)
+	parentGroup := common.DataGroupStorage.GetGroupNodeRef(req.ParentGId)
 	if parentGroup == nil {
 		return fmt.Errorf("parent group %d not found", req.ParentGId)
 	}
@@ -75,10 +76,10 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 		return err
 	}
 
-	fullPermissionScope := DataGroupStorage.GetFullPermissionScopeList(selected)
+	fullPermissionScope := common.DataGroupStorage.GetFullPermissionScopeList(selected)
 	for _, id := range req.DataScopeIDs {
 		if !containsInStr(fullPermissionScope, id) {
-			scope := DataGroupStorage.GetScopeRef(id)
+			scope := common.DataGroupStorage.GetScopeRef(id)
 			if scope == nil {
 				return fmt.Errorf("scope %s not found", id)
 			}
@@ -119,14 +120,14 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 	}
 
 	// TODO auto update
-	DataGroupStorage.DataGroupTreeNode = newGroupTree
+	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
 
 func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error {
 	// Check Scope exist
 	options, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, req.GroupID)
-	fullParentOptions := DataGroupStorage.GetFullPermissionScopeList(options)
+	fullParentOptions := common.DataGroupStorage.GetFullPermissionScopeList(options)
 	if err != nil {
 		return err
 	}
@@ -137,12 +138,12 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	}
 
 	// Check childGroup Used
-	groupNode := DataGroupStorage.CloneGroupNodeWithSubGroup(req.GroupID, nil)
+	groupNode := common.DataGroupStorage.CloneGroupNodeWithSubGroup(req.GroupID, nil)
 	if groupNode == nil {
 		return fmt.Errorf("group %d not found", req.GroupID)
 	}
 
-	fullOptions := DataGroupStorage.GetFullPermissionScopeList(req.DataScopeIDs)
+	fullOptions := common.DataGroupStorage.GetFullPermissionScopeList(req.DataScopeIDs)
 	for _, subGroup := range groupNode.SubGroups {
 		selected, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
@@ -175,7 +176,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	}
 
 	// TODO auto update
-	DataGroupStorage.DataGroupTreeNode = newGroupTree
+	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
 
@@ -210,7 +211,7 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 		return err
 	}
 	// TODO auto update
-	DataGroupStorage.DataGroupTreeNode = newGroupTree
+	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
 

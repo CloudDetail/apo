@@ -12,6 +12,7 @@ type GetServiceEndpointTopologyRequest struct {
 	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                           // entry Endpoint
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEndpointRelationRequest = GetServiceEndpointTopologyRequest
@@ -26,6 +27,7 @@ type GetDescendantMetricsRequest struct {
 	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                          // entry Endpoint
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetPolarisInferRequest struct {

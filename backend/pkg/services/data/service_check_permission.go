@@ -5,6 +5,7 @@ package data
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) CheckDatasourcePermission(ctx core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error) {
@@ -38,5 +39,5 @@ func (s *service) CheckGroupPermission(ctx core.Context, groupID int64) (bool, e
 	if err != nil {
 		return false, err
 	}
-	return DataGroupStorage.CheckGroupPermission(groupID, premGroups), nil
+	return common.DataGroupStorage.CheckGroupPermission(groupID, premGroups), nil
 }
