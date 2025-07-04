@@ -128,7 +128,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			for serviceName := range result {
 				serviceNames = append(serviceNames, serviceName)
 			}
-			alertResps, err = h.serviceoverviewService.GetServicesAlert(c, startTime, endTime, step, serviceNames, nil)
+			alertResps, err = h.serviceoverviewService.GetServicesAlert(c, 0, nil, startTime, endTime, step, serviceNames, nil)
 			if err == nil {
 				for _, alertResp := range alertResps {
 					if serviceResp, found := result[alertResp.ServiceName]; found {

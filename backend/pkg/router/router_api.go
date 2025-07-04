@@ -31,7 +31,7 @@ func setApiRouter(r *resource) {
 	{
 		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db, r.k8sApi)
 		serviceApi.Any("/endpoints", serviceOverviewHandler.GetEndPointsData())
-		serviceApi.GET("/servicesAlert", serviceOverviewHandler.GetServicesAlert())
+		serviceApi.Any("/servicesAlert", serviceOverviewHandler.GetServicesAlert())
 		serviceApi.Any("/moreUrl", serviceOverviewHandler.GetServiceMoreUrlList())
 		serviceApi.GET("/getThreshold", serviceOverviewHandler.GetThreshold())
 		serviceApi.POST("/setThreshold", serviceOverviewHandler.SetThreshold())

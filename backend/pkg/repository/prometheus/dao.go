@@ -43,7 +43,6 @@ type Repo interface {
 	GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
-	GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error)
 	// Query service instance failure rate
 	QueryInstanceErrorRate(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
 	// ========== span_trace_duration_count END ==========

@@ -21,7 +21,7 @@ type Handler interface {
 	GetEndPointsData() core.HandlerFunc
 	// GetServicesAlert get the log alarm and status light information of the Service
 	// @Tags API.service
-	// @Router /api/service/servicesAlert [get]
+	// @Router /api/service/servicesAlert [post]
 	GetServicesAlert() core.HandlerFunc
 	// GetServiceMoreUrlList get more url list of services
 	// @Tags API.service

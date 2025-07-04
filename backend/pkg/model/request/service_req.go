@@ -145,11 +145,15 @@ type GetServiceInstanceOptionsRequest struct {
 }
 
 type GetServiceAlertRequest struct {
-	StartTime    int64    `form:"startTime" binding:"required"`                 // query start time
-	EndTime      int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step         int64    `form:"step" binding:"required"`                      // step size
-	ServiceNames []string `form:"serviceNames" binding:"required"`              // application name
-	ReturnData   []string `form:"returnData"`
+	StartTime    int64    `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime      int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step         int64    `form:"step" json:"step"  binding:"required"`                        // step size
+	ServiceName  string   `form:"serviceName" json:"serviceName"`
+	ServiceNames []string `form:"serviceNames" json:"serviceNames"`
+	ReturnData   []string `form:"returnData" json:"returnData"`
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEndPointListRequest struct {

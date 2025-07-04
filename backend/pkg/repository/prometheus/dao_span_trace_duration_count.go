@@ -22,7 +22,6 @@ const (
 	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICES_WITH_NAMESPACE = `sum by(svc_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
-	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
@@ -323,30 +322,29 @@ func (repo *promRepo) GetInstanceListByPQLFilter(ctx core.Context, startTime int
 	return result, nil
 }
 
-func (repo *promRepo) GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error) {
-	var queryCondition = fmt.Sprintf("svc_name=~'%s'", RegexMultipleValue(services...))
-	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
+func (repo *promRepo) GetMultiSVCInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (map[string]*model.ServiceInstances, error) {
+	res, err := repo.QueryData(ctx,
+		time.UnixMicro(endTime),
+		sumBy(string(InstanceGranularity), increase(rangeVec(SPAN_TRACE_COUNT, filter, VecFromS2E(startTime, endTime), ""))),
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
 	result := make(map[string]*model.ServiceInstances)
-	vector, ok := res.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
+
 	serviceMapList := make(map[string][]*model.ServiceInstance)
-	for _, sample := range vector {
-		pidStr := sample.Metric["pid"]
+	for _, sample := range res {
+		pidStr := sample.Metric.PID
 		pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
 
 		instance := &model.ServiceInstance{
-			ServiceName: string(sample.Metric["svc_name"]),
-			ContainerId: string(sample.Metric["container_id"]),
-			PodName:     string(sample.Metric["pod"]),
-			Namespace:   string(sample.Metric["namespace"]),
-			NodeName:    string(sample.Metric["node_name"]),
+			ServiceName: string(sample.Metric.SvcName),
+			ContainerId: string(sample.Metric.ContainerID),
+			PodName:     string(sample.Metric.POD),
+			Namespace:   string(sample.Metric.Namespace),
+			NodeName:    string(sample.Metric.NodeName),
 			Pid:         pid,
 		}
 		if list, ok := serviceMapList[instance.ServiceName]; ok {

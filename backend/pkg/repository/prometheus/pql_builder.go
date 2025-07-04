@@ -25,6 +25,8 @@ type QueryWithPQLFilter interface {
 	FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filter PQLFilter, granularity Granularity) error
 
 	GetInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (*model.ServiceInstances, error)
+	GetMultiSVCInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (map[string]*model.ServiceInstances, error)
+
 	// Query the db instance for specified service
 	GetDescendantDatabase(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]model.MiddlewareInstance, error)
 }

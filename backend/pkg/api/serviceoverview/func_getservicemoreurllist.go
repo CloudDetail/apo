@@ -40,6 +40,15 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 			return
 		}
 
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.AuthError,
+				err,
+			)
+			return
+		}
+
 		var res []response.ServiceDetail
 		data, err := h.serviceoverview.GetServiceMoreUrl(c, req)
 		if err != nil {

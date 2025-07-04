@@ -307,3 +307,4 @@ func PatternFilter(pattern, v string) *AndFilter {
 }
 
 var AlwaysFalseFilter = &AndFilter{Filters: []string{"apo_filter=\"never_match\""}}
+var AlwaysTrueFilter = &AndFilter{Filters: []string{}}
