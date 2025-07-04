@@ -43,7 +43,6 @@ func (s *service) GetServicesAlert(
 	}
 	pqlFilter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
 
-	// TODO groupFilter
 	svcInstances, err := s.promRepo.GetMultiSVCInstanceListByPQLFilter(ctx, startTime.UnixMicro(), endTime.UnixMicro(), nil)
 	if err != nil {
 		return nil, err

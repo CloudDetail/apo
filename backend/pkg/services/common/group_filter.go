@@ -12,11 +12,11 @@ import (
 
 func GetPQLFilterByGroupID(ctx core.Context, dbRepo database.Repo, category string, groupID int64) (prometheus.PQLFilter, error) {
 	if groupID == 0 {
-		return prometheus.AlwaysTrueFilter, nil
+		return prometheus.NewFilter(), nil
 	}
 	scopes, err := dbRepo.GetScopesByGroupIDAndCat(ctx, groupID, category)
 	if err != nil {
-		return prometheus.AlwaysTrueFilter, err
+		return prometheus.NewFilter(), err
 	}
 	scopeTree := convertScopesToScopeTree(scopes)
 	return ConvertScopeNodeToPQLFilter(scopeTree), nil
