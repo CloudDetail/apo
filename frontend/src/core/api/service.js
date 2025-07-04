@@ -56,7 +56,7 @@ export const getServiceInstancOptionsListApi = (params) => {
  * @returns {Promise<Object>} - 返回结果
  */
 export const getServicesEndpointsApi = (params) => {
-  return get(`/api/service/endpoints`, params)
+  return post(`/api/service/endpoints`, params)
 }
 /**
  * 获取日志告警或指示灯接口
@@ -69,7 +69,7 @@ export const getServicesEndpointsApi = (params) => {
  * @returns {Promise<Object>} - 返回结果
  */
 export const getServicesAlertApi = (params) => {
-  return get(`/api/service/servicesAlert`, params)
+  return post(`/api/service/servicesAlert`, params)
 }
 
 /**
@@ -115,7 +115,7 @@ export const getServiceRelationApi = (params) => {
  * @returns {Promise<Object>}
  */
 export const getServiceEndpointNameApi = (params) => {
-  return get(`/api/service/moreUrl`, params)
+  return post(`/api/service/moreUrl`, params)
 }
 
 /**

@@ -19,7 +19,8 @@ export default function SqlMetrics() {
   const { t } = useTranslation('oss/serviceInfo')
   const [data, setData] = useState()
   const [status, setStatus] = useState()
-  const { serviceName } = usePropsContext()
+  const { serviceName, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [pageIndex, setPageIndex] = useState(1)
@@ -94,6 +95,8 @@ export default function SqlMetrics() {
         step: getStep(startTime, endTime),
         currentPage: pageIndex,
         pageSize: pageSize,
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setTotal(res?.pagination.total)
@@ -126,7 +129,7 @@ export default function SqlMetrics() {
       }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName],
+    [startTime, endTime, serviceName, dataGroupId, clusterIds],
   )
   useUpdateEffect(() => {
     getData()

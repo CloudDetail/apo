@@ -24,7 +24,8 @@ function InstanceInfo() {
   const openTab = useServiceInfoContext((ctx) => ctx.openTab)
 
   const [data, setData] = useState()
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = useMemo(
@@ -161,6 +162,8 @@ function InstanceInfo() {
         serviceName: serviceName,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setData(res.data ?? [])
@@ -185,7 +188,7 @@ function InstanceInfo() {
       getData()
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint],
+    [startTime, endTime, serviceName, endpoint, dataGroupId, clusterIds],
   )
   useEffect(() => {
     const namespaceList = [

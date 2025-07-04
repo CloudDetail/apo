@@ -30,6 +30,11 @@ const ServiceInfo = () => {
 
   const serviceName = searchParams.get('service-name')
   const endpoint = searchParams.get('endpoint')
+  const stringToArray = (value) => {
+    if (!value) return null
+    return value.split(',').filter(Boolean)
+  }
+  const clusterIds = stringToArray(searchParams.get('clusterIds')) || null
   const [topologyData, setTopologyData] = useState({
     nodes: [],
     edges: [],
@@ -133,7 +138,7 @@ const ServiceInfo = () => {
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />
       <ServiceInfoProvider>
-        <PropsProvider value={{ serviceName, endpoint }}>
+        <PropsProvider value={{ serviceName, endpoint, clusterIds }}>
           <>
             <div className="flex flex-row">
               <Card

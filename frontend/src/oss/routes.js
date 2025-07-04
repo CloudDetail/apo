@@ -3,24 +3,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { element } from 'prop-types'
 import React from 'react'
 import TranslationCom from './components/TranslationCom.jsx'
 import { Tooltip } from 'antd'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import AuthRouter from 'src/core/components/AuthRouter'
 
-const BasicDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/BasicDashboard')))
-const SystemDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/SystemDashboard')))
-const ApplicationDashboard = AuthRouter(React.lazy(
-  () => import('src/oss/views/dashboard/ApplicationDashboard'),
-))
-const MiddlewareDashboard = AuthRouter(React.lazy(() => import('src/oss/views/dashboard/MiddlewareDashboard')))
+const BasicDashboard = AuthRouter(
+  React.lazy(() => import('src/oss/views/dashboard/BasicDashboard')),
+)
+const SystemDashboard = AuthRouter(
+  React.lazy(() => import('src/oss/views/dashboard/SystemDashboard')),
+)
+const ApplicationDashboard = AuthRouter(
+  React.lazy(() => import('src/oss/views/dashboard/ApplicationDashboard')),
+)
+const MiddlewareDashboard = AuthRouter(
+  React.lazy(() => import('src/oss/views/dashboard/MiddlewareDashboard')),
+)
 const Service = AuthRouter(React.lazy(() => import('src/oss/views/service/index.js')))
 const ServiceInfo = AuthRouter(React.lazy(() => import('src/oss/views/serviceInfo/index.js')))
-const FaultSiteLogsPage = AuthRouter(React.lazy(() => import('src/oss/views/logs/FaultSiteLogs')))
+const FaultSiteLogsPage = AuthRouter(
+  React.lazy(() => import('src/oss/views/logs/FaultSiteLogsPage')),
+)
 const FullLogsPage = AuthRouter(React.lazy(() => import('src/oss/views/logs/FullLogsPage')))
-const FaultSiteTrace = AuthRouter(React.lazy(() => import('src/oss/views/trace/FaultSiteTrace.jsx')))
+const FaultSiteTrace = AuthRouter(
+  React.lazy(() => import('src/oss/views/trace/FaultSiteTracePage.tsx')),
+)
 const FullTrace = AuthRouter(React.lazy(() => import('src/oss/views/trace/FullTrace.jsx')))
 const AlertsRule = AuthRouter(React.lazy(() => import('src/oss/views/alerts/AlertsRule')))
 const AlertsNotify = AuthRouter(React.lazy(() => import('src/oss/views/alerts/AlertsNotify')))
@@ -46,17 +55,20 @@ const ossRoutes = [
       </Tooltip>
     ),
     element: Service,
+    showDataGroup: true,
   },
   {
     path: '/service/info',
     name: <TranslationCom text="serviceDetailName" space={namespace} />,
     element: ServiceInfo,
+    showDataGroup: true,
   },
   {
     path: '/logs/fault-site',
     name: <TranslationCom text="faultLogsName" space={namespace} />,
     element: FaultSiteLogsPage,
     hideSystemTimeRangePicker: true,
+    showDataGroup: true,
   },
   {
     path: '/logs/full',
@@ -68,6 +80,7 @@ const ossRoutes = [
     name: <TranslationCom text="faultSiteTraces" space={namespace} />,
     element: FaultSiteTrace,
     hideSystemTimeRangePicker: true,
+    showDataGroup: true,
   },
   {
     path: '/trace/full',

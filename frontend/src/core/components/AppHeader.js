@@ -9,15 +9,14 @@ import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
 import { SkinOutlined } from '@ant-design/icons'
 import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
-import { SettingOutlined } from '@ant-design/icons'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
-import { t } from 'i18next'
 import { Button, theme } from 'antd'
+import DataGroupSelector from './DataGroup/DataGroupSelector'
 import PreferencesDrawer from './Drawer/PreferencesDrawer'
 import { useTranslation } from 'react-i18next'
 
@@ -50,13 +49,12 @@ const AppHeader = ({ type = 'default' }) => {
     })
     return result
   }
-
+  const currentRoute = routes.find((route) => {
+    const routePattern = route.path.replace(/:\w+/g, '[^/]+')
+    const regex = new RegExp(`^${routePattern}$`)
+    return regex.test(location.pathname)
+  })
   const checkRoute = () => {
-    const currentRoute = routes.find((route) => {
-      const routePattern = route.path.replace(/:\w+/g, '[^/]+')
-      const regex = new RegExp(`^${routePattern}$`)
-      return regex.test(location.pathname)
-    })
     return !currentRoute?.hideSystemTimeRangePicker
   }
 
@@ -108,6 +106,7 @@ const AppHeader = ({ type = 'default' }) => {
         ) : (
           <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
             <AppBreadcrumb />
+            {currentRoute?.showDataGroup && <DataGroupSelector />}
           </CHeaderNav>
         )}
         <CHeaderNav className="pr-4 flex items-center">

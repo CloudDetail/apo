@@ -8,7 +8,7 @@ export interface GetDataGroupsParams {
   currentPage: number
   pageSize: number
 }
-export type DatasourceType = 'service' | 'namespace'
+export type DatasourceType = 'system' | 'cluster' | 'namespace' | 'service'
 export type DatasourceCategory = 'normal' | 'apm'
 interface DatasourceItem {
   datasource: string
@@ -16,7 +16,7 @@ interface DatasourceItem {
   category?: DatasourceCategory
 }
 export interface SaveDataGroupParams {
-  groupId?: string
+  groupId?: number
   groupName: string
   description?: string
   datasourceList: DatasourceItem[]
@@ -27,7 +27,7 @@ export interface PermissionSub {
   type: PermissionType
 }
 export interface DataGroupSubsParams {
-  groupId: string
+  groupId: number
   userList: PermissionSub[]
   teamList: PermissionSub[]
 }
@@ -46,3 +46,11 @@ export interface SubsDataGroupParams {
   subjectType: subjectType
   dataGroupPermission: DataGroupPermission[]
 }
+export interface DataGroupItem {
+  groupId: number
+  groupName: string
+  subGroups: DataGroupItem[]
+  description: string
+  disabled?: boolean
+}
+export const DatasourceTypes: DatasourceType[] = ['system', 'cluster', 'namespace', 'service']

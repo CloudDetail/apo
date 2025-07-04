@@ -10,11 +10,13 @@ import './timeline.css'
 import { TimeLineTypeApiMap } from 'src/constants'
 import { useTranslation } from 'react-i18next'
 import { Button, ConfigProvider, List, Slider, Tooltip } from 'antd'
+import { useSelector } from 'react-redux'
 
 const Timeline = (props) => {
   const { t } = useTranslation('oss/serviceInfo')
   const { type, startTime, endTime, instance, pid, nodeName, containerId } = props
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [chronoList, setChronoList] = useState([])
   const [loading, setLoading] = useState(false)
   const [sliderValue, setSliderValue] = useState([startTime, endTime])
@@ -49,6 +51,8 @@ const Timeline = (props) => {
         endTime: sliderValue[1],
         service: serviceName,
         endpoint: endpoint,
+        groupId: dataGroupId,
+        clusterIds,
         ...params,
       })
         .then((res) => {
@@ -61,7 +65,7 @@ const Timeline = (props) => {
           // setChronoList([])
         })
     }
-  }, [sliderValue, type, serviceName, endpoint, instance])
+  }, [sliderValue, type, serviceName, endpoint, instance, dataGroupId, clusterIds])
 
   const scrollTimeline = (direction) => {
     const scrollAmount = 100

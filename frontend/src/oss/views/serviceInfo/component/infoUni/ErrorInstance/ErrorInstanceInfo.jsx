@@ -20,11 +20,11 @@ import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 export default function ErrorInstanceInfo() {
   const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
   const openTab = useServiceInfoContext((ctx) => ctx.openTab)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [status, setStatus] = useState()
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const tableRef = useRef(null)
   const { t } = useTranslation('oss/serviceInfo')
@@ -144,6 +144,8 @@ export default function ErrorInstanceInfo() {
         service: serviceName,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setStatus(res.status)
@@ -164,7 +166,7 @@ export default function ErrorInstanceInfo() {
       getData()
     },
     300,
-    [serviceName, startTime, endTime, endpoint],
+    [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
   const tableProps = useMemo(() => {
     return {

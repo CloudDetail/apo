@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { get } from 'src/core/utils/request'
+import { get, post } from 'src/core/utils/request'
 
 // 服务直接上下游拓扑
 
@@ -21,11 +21,11 @@ export const getServiceDsecendantMetricsApi = (params) => {
 }
 //获取service对应url实例
 export const getServiceInstancesApi = (params) => {
-  return get(`/api/service/instances`, params)
+  return post(`/api/service/instances`, params)
 }
 //获取service对应url错误实例
 export const getServiceErrorInstancesApi = (params) => {
-  return get(`/api/service/error/instance`, params)
+  return post(`/api/service/error/instance`, params)
 }
 //获取service对应url错误实例日志切片
 export const getServiceErrorInstancesLogsApi = (params) => {
@@ -38,7 +38,7 @@ export const getServiceDsecendantRelevanceApi = (params) => {
 }
 //获取北极星指标分析情况
 export const getPolarisInferApi = (params) => {
-  return get(`/api/service/polaris/infer`, params)
+  return post(`/api/service/polaris/infer`, params)
 }
 //获取日志tab table数据
 export const getLogMetricsApi = (params) => {
@@ -46,16 +46,16 @@ export const getLogMetricsApi = (params) => {
 }
 //获取Trace tab table数据
 export const getTraceMetricsApi = (params) => {
-  return get(`/api/service/trace/metrics`, params)
+  return post(`/api/service/trace/metrics`, params)
 }
 //获取K8s事件
 export const getK8sEventApi = (params) => {
-  return get(`/api/service/k8s/events/count`, params)
+  return post(`/api/service/k8s/events/count`, params)
 }
 
 //日志TAB故障现场日志列表切片
 export const getServiceLogLogsApi = (params) => {
-  return get(`/api/service/log/logs`, params)
+  return post(`/api/service/log/logs`, params)
 }
 
 //获取Trace TAB故障现场获取Trace列表切片
@@ -65,12 +65,12 @@ export const getServiceTraceLogsApi = (params) => {
 
 //告警列表
 export const getServiceAlertEventApi = (params) => {
-  return get(`/api/service/alert/sample/events`, params)
+  return post(`/api/service/alert/sample/events`, params)
 }
 
 //获取SQL指标Tab
 export const getServiceSqlMetrics = (params) => {
-  return get(`/api/service/sql/metrics`, params)
+  return post(`/api/service/sql/metrics`, params)
 }
 //获取获取当前service endpoint的入口影响
 export const getServiceEntryEndpoints = (params) => {

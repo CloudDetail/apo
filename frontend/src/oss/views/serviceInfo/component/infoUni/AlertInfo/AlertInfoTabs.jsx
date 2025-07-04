@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody, CTab, CTabContent, CTabList, CTabPanel, CTabs } from '@coreui/react'
-import React, { useEffect, useMemo, useState } from 'react'
+import { CTab, CTabContent, CTabList, CTabPanel, CTabs } from '@coreui/react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getServiceAlertEventApi } from 'core/api/serviceInfo'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
@@ -19,7 +19,8 @@ import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 export default function AlertInfoTabs() {
   const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
   const openTab = useServiceInfoContext((ctx) => ctx.openTab)
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [loading, setLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   const { t, i18n } = useTranslation('oss/serviceInfo')
@@ -62,6 +63,8 @@ export default function AlertInfoTabs() {
         service: serviceName,
         endpoint: endpoint,
         status: 'firing',
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setLoading(false)
@@ -82,7 +85,7 @@ export default function AlertInfoTabs() {
       getAlertEvents()
     },
     300,
-    [serviceName, startTime, endTime, endpoint],
+    [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
 
   useEffect(() => {

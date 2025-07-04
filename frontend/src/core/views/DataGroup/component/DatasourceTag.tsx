@@ -3,26 +3,95 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Tag } from 'antd'
+import { Button } from 'antd'
+import { LuChevronRight, LuX } from 'react-icons/lu'
+import { useSelector } from 'react-redux'
 import { DatasourceType } from 'src/core/types/dataGroup'
+import DatasourceIcon from './DatasourceIcon'
 
 interface DatasourceTagProps {
   type: DatasourceType
-  datasource: string
+  name: string
+  id: string
+  cluster?: string
+  namespace?: string
   closable?: boolean
-  onClose?: any
+  onRemoveSelection?: any
+  block?: boolean
+  path: string[]
 }
-const DatasourceTag = ({ type, datasource, closable = false, onClose }: DatasourceTagProps) => {
+const getSelectionColor = (type: string, theme: string) => {
+  if (theme === 'dark') {
+    switch (type) {
+      case 'cluster':
+        return 'bg-blue-900/30 text-blue-200 hover:bg-blue-900/40'
+      case 'namespace':
+        return 'bg-amber-900/30 text-amber-200 hover:bg-amber-900/40'
+      case 'service':
+        return 'bg-emerald-900/30 text-emerald-200 hover:bg-emerald-900/40'
+      default:
+        return 'bg-gray-800/30 text-gray-300 border-gray-600/50 hover:bg-gray-800/40'
+    }
+  } else {
+    switch (type) {
+      case 'cluster':
+        return 'border bg-blue-100 text-blue-800 border-blue-200'
+      case 'namespace':
+        return 'border bg-amber-100 text-amber-800 border-amber-200'
+      case 'service':
+        return 'border bg-green-100 text-green-800 border-green-200'
+      default:
+        return 'border bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+}
+const DatasourceTag = ({
+  type,
+  id,
+  name,
+  cluster,
+  namespace,
+  path,
+  closable = false,
+  onRemoveSelection,
+  block = true,
+}: DatasourceTagProps) => {
+  const theme = useSelector((state: any) => state.settingReducer.theme)
   return (
-    <Tag
-      color={type === 'service' ? 'cyan' : 'geekblue'}
-      closable={closable}
-      onClose={(e) => {
-        onClose(e, datasource, type)
-      }}
+    <div
+      className={`group flex items-center justify-between px-2 py-1 m-1 rounded-lg text-xs transition-all duration-200 hover:shadow-sm ${
+        block ? 'w-full' : 'inline-flex'
+      } ${getSelectionColor(type, theme)}`}
     >
-      {datasource}
-    </Tag>
+      <div className="flex items-center gap-1 flex-1 min-w-0">
+        <div className="flex items-center gap-1 truncate">
+          {!block && <DatasourceIcon type={type} />}
+          {path?.slice(1).map((item, index) => {
+            return (
+              <div className={`truncate opacity-75 flex items-center gap-1`}>
+                {item} <LuChevronRight />
+              </div>
+            )
+          })}
+          <div className={`truncate font-semibold`}>{name}</div>
+        </div>
+
+        {/* Type badge */}
+        {/* <span className="text-xs px-1.5 py-0.5 rounded bg-white/40 capitalize flex-shrink-0 ml-2">
+          {type}
+        </span> */}
+      </div>
+      {closable && (
+        <Button
+          type="text"
+          onClick={() => onRemoveSelection(id)}
+          className="p-0.5 rounded flex-shrink-0 ml-2"
+          title="Remove"
+        >
+          <LuX />
+        </Button>
+      )}
+    </div>
   )
 }
 export default DatasourceTag
