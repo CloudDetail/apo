@@ -50,7 +50,7 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 	}
 	// Send http request
 
-	// request.Header.Add("Accept-Language", req.Lanaguage)
+	request.Header.Add("Content-Type", "application/json")
 	// request.Header.Add("X-Timezone", req.Timezone)
 
 	res, err := http.DefaultClient.Do(request)

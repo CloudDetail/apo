@@ -135,6 +135,7 @@ type GetServiceInstanceRequest struct {
 	Endpoint    string `form:"endpoint" json:"endpoint"`
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceInstanceOptionsRequest struct {

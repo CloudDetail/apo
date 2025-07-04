@@ -15,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
@@ -27,9 +28,16 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 	tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
 
-	filter := prometheus.NewFilter()
-	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.ServiceName)
-	filter.EqualIfNotEmpty(prometheus.ContentKeyKey, req.Endpoint)
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
+	if err != nil {
+		return res, err
+	}
+	if len(req.ServiceName) > 0 {
+		filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
+	}
+	if len(req.Endpoint) > 0 {
+		filter.Equal(prometheus.ContentKeyKey, req.Endpoint)
+	}
 	if len(req.ClusterIDs) > 0 {
 		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
