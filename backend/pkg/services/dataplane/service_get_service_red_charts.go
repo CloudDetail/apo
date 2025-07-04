@@ -219,16 +219,16 @@ func mergeServiceChartMetrics(serviceMap *ServiceMap, results []prometheus.Metri
 
 func getStepMs(duration int64) int64 {
 	var stepMs int64
-	if duration <= 3600_000_000 {
+	if duration <= 3_600_000_000 {
 		stepMs = 60_000_000 // 1m
 	} else if duration <= 18_000_000_000 {
 		stepMs = 300_000_000 // 5m
 	} else if duration <= 36_000_000_000 {
 		stepMs = 600_000_000 // 10m
 	} else if duration <= 108_000_000_000 {
-		stepMs = 18_000_000_000 // 30m
+		stepMs = 1800_000_000 // 30m
 	} else if duration <= 216_000_000_000 {
-		stepMs = 36_000_000_000 // 2h
+		stepMs = 3600_000_000 // 1h
 	} else {
 		stepMs = 86_400_000_000 // 1d
 	}
