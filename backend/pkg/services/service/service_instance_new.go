@@ -73,8 +73,8 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		}
 	}
 
-	startTime := time.Unix(req.StartTime, 0)
-	endTime := time.Unix(req.EndTime, 0)
+	startTime := time.UnixMicro(req.StartTime)
+	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step * 1000)
 	serviceName := req.ServiceName
 
