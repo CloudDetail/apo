@@ -57,6 +57,7 @@ func (f EndpointsFilter) ExtractFilterStr() []string {
 	return filters
 }
 
+// HACK replace unknown to ""
 func (f EndpointsFilter) ExtractPQLFilterStr() prom.PQLFilter {
 	filter := prom.NewFilter()
 
