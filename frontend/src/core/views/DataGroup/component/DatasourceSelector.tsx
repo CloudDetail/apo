@@ -29,7 +29,21 @@ type DatasourceGroup = {
 type DatasourceKey = {
   id: string
 }
-
+const TypeExample = () => {
+  const { t } = useTranslation('core/dataGroup')
+  return (
+    <div className="flex items-center gap-1 ml-4">
+      {DatasourceTypes.map((type) => {
+        return (
+          <div key={type} className="flex items-center gap-1 text-[10px] mr-1">
+            <DatasourceIcon type={type} />
+            <span>{t(`datasourceType.${type}`)}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 function processTreeAndCollectDatasource(
   tree: DatasourceGroup[],
   datasourceKeys: DatasourceKey[],
@@ -122,7 +136,16 @@ const DatasourceSelector = (props) => {
 
   return (
     <div style={{ maxHeight: '60vh' }} className="flex w-full" id={id}>
-      <Card type="inner" title="可选数据源" className="w-1/2 overflow-hidden" size="small">
+      <Card
+        type="inner"
+        title={
+          <div className="flex">
+            可选数据源 <TypeExample />
+          </div>
+        }
+        className="w-1/2 overflow-hidden"
+        size="small"
+      >
         <Tree
           checkable
           onCheck={onCheck}
@@ -141,25 +164,34 @@ const DatasourceSelector = (props) => {
           }}
         />
       </Card>
-      <Card type="inner" title="已选数据源" className="w-1/2" size="small">
-        {DatasourceTypes.map((type) => {
-          const result = datasourceList.filter((item) => item.type === type)
-          return (
-            result.length > 0 && (
-              <>
-                <div className="font-bold flex items-center">
-                  <DatasourceIcon type={type} /> <span className="ml-2">{type}</span>
-                  <span className="text-xs text-[var(--ant-color-text-secondary)] ml-2">
-                    ({result.length})
-                  </span>
-                </div>
-                {result.map((item) => (
-                  <DatasourceTag {...item} closable onRemoveSelection={deleteDatasource} />
-                ))}
-              </>
+      <Card
+        classNames={{ body: 'h-full ' }}
+        type="inner"
+        title="已选数据源"
+        className="w-1/2 overflow-hidden"
+        size="small"
+      >
+        <div className="h-full w-full overflow-y-auto overflow-x-hidden pb-[50px]">
+          {DatasourceTypes.map((type) => {
+            const result = datasourceList.filter((item) => item.type === type)
+            return (
+              result.length > 0 && (
+                <>
+                  <div className="font-bold flex items-center">
+                    <DatasourceIcon type={type} />{' '}
+                    <span className="ml-2">{t(`datasourceType.${type}`)}</span>
+                    <span className="text-xs text-[var(--ant-color-text-secondary)] ml-2">
+                      ({result.length})
+                    </span>
+                  </div>
+                  {result.map((item) => (
+                    <DatasourceTag {...item} closable onRemoveSelection={deleteDatasource} />
+                  ))}
+                </>
+              )
             )
-          )
-        })}
+          })}
+        </div>
       </Card>
     </div>
   )

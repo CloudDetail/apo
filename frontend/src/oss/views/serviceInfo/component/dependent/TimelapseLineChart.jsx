@@ -14,6 +14,7 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { useDispatch, useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import { usePropsContext } from 'src/core/contexts/PropsContext'
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
@@ -23,7 +24,8 @@ const TimelapseLineChart = (props) => {
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = usePropsContext()
   const [option, setOption] = useState({
     title: {},
     color: ChartColorList,
@@ -189,6 +191,8 @@ const TimelapseLineChart = (props) => {
       service: serviceName,
       endpoint: endpoint,
       step: getStep(startTime, endTime),
+      clusterIds: clusterIds,
+      groupId: dataGroupId,
     })
       .then((res) => {
         // console.log(res)
@@ -203,13 +207,13 @@ const TimelapseLineChart = (props) => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      if (serviceName && endpoint && startTime && endTime) {
+      if (serviceName && endpoint && startTime && endTime && dataGroupId !== null) {
         setLoading(true)
         getChartData()
       }
     },
     300, // 延迟时间 300ms
-    [serviceName, startTime, endTime, endpoint],
+    [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
   useEffect(() => {
     const newOption = {

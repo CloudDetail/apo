@@ -24,5 +24,11 @@
   "dataGroupAuthorize": "Data Group Authorization",
   "authorizeToUser": "Authorize the user",
   "authorizeToTeam": "Authorize the team",
-  "groupManage": "Manage Data Groups"
+  "groupManage": "Manage Data Groups",
+  "datasourceType": {
+    "system": "Host",
+    "cluster": "Cluster",
+    "namespace": "Namespace",
+    "service": "Service"
+  }
 }

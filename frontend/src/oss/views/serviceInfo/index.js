@@ -30,6 +30,7 @@ const ServiceInfo = () => {
 
   const serviceName = searchParams.get('service-name')
   const endpoint = searchParams.get('endpoint')
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const stringToArray = (value) => {
     if (!value) return null
     return value.split(',').filter(Boolean)
@@ -112,6 +113,8 @@ const ServiceInfo = () => {
         endTime: endTime,
         service: serviceName,
         endpoint: endpoint,
+        clusterIds: clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           const { nodes, edges } = prepareTopologyData(res)
@@ -128,10 +131,12 @@ const ServiceInfo = () => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getServiceTopology()
+      if (dataGroupId !== null && serviceName && endpoint) {
+        getServiceTopology()
+      }
     },
     300, // 延迟时间 300ms
-    [serviceName, startTime, endTime, endpoint],
+    [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
 
   return (

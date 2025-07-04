@@ -8,11 +8,11 @@ import { get, post } from 'src/core/utils/request'
 // 服务直接上下游拓扑
 
 export const getServiceTopologyApi = (params) => {
-  return get(`api/service/topology`, params)
+  return post(`api/service/topology`, params)
 }
 //获取所有下游服务的延时曲线
 export const getServiceDsecendantMetricsApi = (params) => {
-  return get(`api/service/descendant/metrics`, params)
+  return post(`api/service/descendant/metrics`, params)
 }
 //获取service对应url实例
 export const getServiceInstancesApi = (params) => {
@@ -29,7 +29,7 @@ export const getServiceErrorInstancesLogsApi = (params) => {
 
 //获取service依赖节点延时关联度
 export const getServiceDsecendantRelevanceApi = (params) => {
-  return get(`/api/service/descendant/relevance`, params)
+  return post(`/api/service/descendant/relevance`, params)
 }
 //获取北极星指标分析情况
 export const getPolarisInferApi = (params) => {

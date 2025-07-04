@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from 'antd'
+import { Button, Tooltip } from 'antd'
 import { LuChevronRight, LuX } from 'react-icons/lu'
 import { useSelector } from 'react-redux'
 import { DatasourceType } from 'src/core/types/dataGroup'
 import DatasourceIcon from './DatasourceIcon'
+import { useTranslation } from 'react-i18next'
 
 interface DatasourceTagProps {
   type: DatasourceType
@@ -45,6 +46,22 @@ const getSelectionColor = (type: string, theme: string) => {
     }
   }
 }
+const renderTooltipTitle = (
+  type: DatasourceType,
+  name: string,
+  cluster: string,
+  namespace: string,
+) => {
+  const { t } = useTranslation('core/dataGroup')
+  return (
+    <div className="flex ">
+      <span className="text-var([--ant-color-text-secondary]) mr-1">
+        {t(`datasourceType.${type}`)} :{' '}
+      </span>
+      {name && <div className={`truncate font-semibold`}>{name}</div>}
+    </div>
+  )
+}
 const DatasourceTag = ({
   type,
   id,
@@ -58,40 +75,42 @@ const DatasourceTag = ({
 }: DatasourceTagProps) => {
   const theme = useSelector((state: any) => state.settingReducer.theme)
   return (
-    <div
-      className={`group flex items-center justify-between px-2 py-1 m-1 rounded-lg text-xs transition-all duration-200 hover:shadow-sm ${
-        block ? 'w-full' : 'inline-flex'
-      } ${getSelectionColor(type, theme)}`}
-    >
-      <div className="flex items-center gap-1 flex-1 min-w-0">
-        <div className="flex items-center gap-1 truncate">
-          {!block && <DatasourceIcon type={type} />}
-          {path?.slice(1).map((item, index) => {
-            return (
-              <div className={`truncate opacity-75 flex items-center gap-1`}>
-                {item} <LuChevronRight />
-              </div>
-            )
-          })}
-          <div className={`truncate font-semibold`}>{name}</div>
-        </div>
+    <Tooltip title={!block && renderTooltipTitle(type, name, cluster, namespace)}>
+      <div
+        className={`group flex items-center justify-between px-2 py-1 m-1 rounded-lg text-xs transition-all duration-200 hover:shadow-sm ${
+          block ? 'w-full' : 'inline-flex'
+        } ${getSelectionColor(type, theme)}`}
+      >
+        <div className="flex items-center gap-1 flex-1 min-w-0">
+          <div className="flex items-center gap-1 truncate">
+            {!block && <DatasourceIcon type={type} />}
+            {path?.slice(1).map((item, index) => {
+              return (
+                <div className={`truncate opacity-75 flex items-center gap-1`}>
+                  {item} <LuChevronRight />
+                </div>
+              )
+            })}
+            <div className={`truncate font-semibold`}>{name}</div>
+          </div>
 
-        {/* Type badge */}
-        {/* <span className="text-xs px-1.5 py-0.5 rounded bg-white/40 capitalize flex-shrink-0 ml-2">
+          {/* Type badge */}
+          {/* <span className="text-xs px-1.5 py-0.5 rounded bg-white/40 capitalize flex-shrink-0 ml-2">
           {type}
         </span> */}
+        </div>
+        {closable && (
+          <Button
+            type="text"
+            onClick={() => onRemoveSelection(id)}
+            className="p-0.5 rounded flex-shrink-0 ml-2"
+            title="Remove"
+          >
+            <LuX />
+          </Button>
+        )}
       </div>
-      {closable && (
-        <Button
-          type="text"
-          onClick={() => onRemoveSelection(id)}
-          className="p-0.5 rounded flex-shrink-0 ml-2"
-          title="Remove"
-        >
-          <LuX />
-        </Button>
-      )}
-    </div>
+    </Tooltip>
   )
 }
 export default DatasourceTag

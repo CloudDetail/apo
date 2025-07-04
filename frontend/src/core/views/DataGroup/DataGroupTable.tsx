@@ -20,6 +20,7 @@ export default function DataGroupTable({
   openEditModal,
   openPermissionModal,
   deleteDataGroup,
+  key,
 }) {
   const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
@@ -129,7 +130,7 @@ export default function DataGroupTable({
         setSubGroups(res.subGroups)
       })
     }
-  }, [parentGroupInfo])
+  }, [parentGroupInfo, key])
   return (
     <>
       <div className="w-full flex justify-between h-[40px]">

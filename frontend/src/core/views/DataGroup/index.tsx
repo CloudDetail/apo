@@ -23,7 +23,7 @@ export default function DataGroupPage() {
   const [infoModalVisible, setInfoModalVisible] = useState(false)
   const [permissionModalVisible, setPermissionModalVisible] = useState(false)
   const [infoGroupId, setInfoGroupId] = useState(null)
-
+  const [refreshKey, setRefreshKey] = useState(0)
   const closeInfoModal = () => {
     setInfoModalVisible(false)
     setGroupInfo(null)
@@ -36,6 +36,7 @@ export default function DataGroupPage() {
     closeInfoModal()
     closePermissionModal()
     getDataGroups()
+    setRefreshKey(refreshKey + 1)
   }
   const getDataGroups = () => {
     getDatasourceByGroupApiV2().then((res) => {
@@ -156,6 +157,7 @@ export default function DataGroupPage() {
             </Splitter.Panel>
             <Splitter.Panel className="ml-2">
               <DataGroupTable
+                key={refreshKey}
                 parentGroupInfo={parentGroupInfo}
                 openAddModal={() => {
                   setInfoGroupId(parentGroupInfo?.groupId)

@@ -9,7 +9,7 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { useNavigate } from 'react-router-dom'
 import { convertTime } from 'src/core/utils/time'
 import { getServiceDsecendantRelevanceApi } from 'core/api/serviceInfo'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { getStep } from 'src/core/utils/step'
 import { DelaySourceTimeUnit } from 'src/constants'
 import { Tooltip } from 'antd'
@@ -17,6 +17,7 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
 import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
+import { usePropsContext } from 'src/core/contexts/PropsContext'
 
 function DependentTable(props) {
   const { serviceName, endpoint, startTime, endTime, storeDisplayData = false } = props
@@ -25,6 +26,8 @@ function DependentTable(props) {
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const { t } = useTranslation('oss/serviceInfo')
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = usePropsContext()
 
   const setDisplayData = (value) => {
     dispatch({ type: 'setDisplayData', payload: value })
@@ -39,6 +42,8 @@ function DependentTable(props) {
         service: serviceName,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        clusterIds: clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           setData(res ?? [])
@@ -59,10 +64,10 @@ function DependentTable(props) {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      if (serviceName && endpoint) getTableData()
+      if (serviceName && endpoint && dataGroupId !== null) getTableData()
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint],
+    [startTime, endTime, serviceName, endpoint, dataGroupId, clusterIds],
   )
   const columns = useMemo(
     () => [
