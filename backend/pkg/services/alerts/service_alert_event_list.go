@@ -171,7 +171,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		ContainerID:  record.AlertEvent.GetContainerIDTag(),
 		Tags:         record.Alert.EnrichTags,
 		RawTags:      record.Alert.Tags,
-		AlertEventId: record.AlertEvent.ID.String(),
+		AlertEventId: record.Input,
 	}
 
 	if len(services) == 1 {

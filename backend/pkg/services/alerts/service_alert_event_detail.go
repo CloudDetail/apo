@@ -113,7 +113,7 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 			ContainerID:  records[i].AlertEvent.GetContainerIDTag(),
 			Tags:         records[i].AlertEvent.EnrichTags,
 			RawTags:      records[i].AlertEvent.Tags,
-			AlertEventId: records[i].AlertEvent.ID.String(),
+			AlertEventId: records[i].Input,
 		}
 
 		if len(services) == 1 {
