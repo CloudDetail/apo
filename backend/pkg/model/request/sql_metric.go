@@ -10,6 +10,7 @@ type GetSQLMetricsRequest struct {
 	Step      int64  `form:"step" binding:"min=1000000" json:"step"`                      // query step size (us)
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 
 	SortBy     string `form:"sortBy" json:"sortBy"` // sorting method,(latency,errorRate,tps) is sorted by latency by default
 	*PageParam        // Paging Parameters

@@ -42,9 +42,8 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			)
 			return
 		}
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetSQLMetricsResponse{
 				Pagination: model.Pagination{
 					Total:       0,
@@ -55,6 +54,7 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetSQLMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(

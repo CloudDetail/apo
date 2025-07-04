@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 const (
@@ -25,7 +26,11 @@ func (s *service) GetSQLMetrics(ctx core.Context, req *request.GetSQLMetricsRequ
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step) * time.Microsecond
 
-	var filter = prom.NewFilter()
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(req.Service) > 0 {
 		filter.AddPatternFilter(prom.ServicePQLFilter, req.Service)
 	}
