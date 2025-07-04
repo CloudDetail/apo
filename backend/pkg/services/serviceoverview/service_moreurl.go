@@ -8,18 +8,27 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
-func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error) {
-	filter := EndpointsFilter{
-		ServiceName: serviceNames,
+func (s *service) GetServiceMoreUrl(ctx core.Context, req *request.GetServiceMoreUrlListRequest) (res []response.ServiceDetail, err error) {
+	pqlFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "apm", req.GroupID)
+	if err != nil {
+		return nil, err
 	}
+	if len(req.ClusterIDs) > 0 {
+		pqlFilter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+	pqlFilter.Equal(prometheus.ServiceNameKey, req.ServiceName)
 
-	pqlFilter := filter.ExtractPQLFilterStr()
+	startTime := time.UnixMicro(req.StartTime)
+	endTime := time.UnixMicro(req.EndTime)
+
 	endpointsMap := s.EndpointsREDMetric(ctx, startTime, endTime, pqlFilter)
 	endpoints := endpointsMap.MetricGroupList
 
@@ -76,7 +85,7 @@ func (s *service) GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTi
 
 	}
 	// Sort all URLs
-	switch sortRule {
+	switch req.SortRule {
 	case request.DODThreshold: //Sort by Day-to-Year Threshold
 		sortByDODThreshold(endpoints)
 	}

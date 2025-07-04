@@ -1,8 +1,11 @@
 package database
 
 import (
+	"errors"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -21,6 +24,30 @@ type DaoDataScope interface {
 
 	GetScopeIDsByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]string, error)
 	GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
+
+	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
+}
+
+func (repo *daoRepo) CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error) {
+	var res datagroup.DataScope
+
+	db := repo.GetContextDB(ctx)
+
+	err := db.Table("data_group_2_scope as dgs").
+		Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
+		Where("dgs.group_id in ?", permGroupIDs).
+		Where(
+			db.Where("ds.cluster_id = ? and ds.namespace = ? and ds.service = ?", cluster, namespace, service).
+				Or("ds.cluster_id = ? and ds.namespace = ? and ds.type = 'namespace'", cluster, namespace).
+				Or("ds.cluster_id = ? and ds.type = 'cluster'", cluster),
+		).First(&res).Error
+
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (repo *daoRepo) UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error {

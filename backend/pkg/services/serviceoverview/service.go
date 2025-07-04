@@ -19,7 +19,7 @@ import (
 var _ Service = (*service)(nil)
 
 type Service interface {
-	GetServiceMoreUrl(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames string, sortRule request.SortType) (res []response.ServiceDetail, err error)
+	GetServiceMoreUrl(ctx core.Context, req *request.GetServiceMoreUrlListRequest) (res []response.ServiceDetail, err error)
 	GetThreshold(ctx core.Context, level string, serviceName string, endPoint string) (res response.GetThresholdResponse, err error)
 	SetThreshold(ctx core.Context, level string, serviceName string, endPoint string, latency float64, errorRate float64, tps float64, log float64) (res response.SetThresholdResponse, err error)
 	GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error)

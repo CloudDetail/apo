@@ -37,6 +37,40 @@ func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroup
 	return t.cloneWithPermission(DATA_GROUP_PERMISSION_TYPE_KNOWN, permGroupIDs)
 }
 
+func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []int64) bool {
+	if containsInInt(permGroupIDs, groupID) {
+		return true
+	}
+
+	// return
+	// -1 no permission
+	// 0 not found
+	// 1 have permission
+	var dfs func(node *DataGroupTreeNode, pPerm string) int
+	dfs = func(node *DataGroupTreeNode, pPerm string) int {
+		if node.GroupID == groupID {
+			if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW {
+				return 1
+			}
+			return -1
+		}
+
+		if containsInInt(permGroupIDs, node.GroupID) {
+			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
+		}
+
+		for _, sub := range node.SubGroups {
+			res := dfs(sub, pPerm)
+			if res == 1 || res == -1 {
+				return res
+			}
+		}
+		return 0
+	}
+
+	return dfs(t, DATA_GROUP_PERMISSION_TYPE_KNOWN) == 1
+}
+
 func (t *DataGroupTreeNode) cloneWithPermission(pPerm string, groupsIDs []int64) *DataGroupTreeNode {
 	selfPerm := checkPermission(pPerm, groupsIDs, t.GroupID)
 	if len(t.SubGroups) == 0 {
@@ -125,4 +159,13 @@ func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
 		}
 	}
 	return DATA_GROUP_PERMISSION_TYPE_IGNORE
+}
+
+func containsInInt(options []int64, input int64) bool {
+	for _, v := range options {
+		if v == input {
+			return true
+		}
+	}
+	return false
 }

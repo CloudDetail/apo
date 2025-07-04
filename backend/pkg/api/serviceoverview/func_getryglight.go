@@ -7,12 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
 )
 
@@ -43,14 +40,15 @@ func (h *handler) GetRYGLight() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.AbortWithPermissionError(err, code.AuthError, response.ServiceRYGLightRes{
-				ServiceList: []*response.ServiceRYGResult{},
-			})
-			return
-		}
+		// userID := c.UserID()
+		// err := h.dataService.CheckDatasourcePermission(c, userID, 0, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		// if err != nil {
+		// 	c.AbortWithPermissionError(err, code.AuthError, response.ServiceRYGLightRes{
+		// 		ServiceList: []*response.ServiceRYGResult{},
+		// 	})
+		// 	return
+		// }
+
 		startTime := time.UnixMicro(req.StartTime)
 		endTime := time.UnixMicro(req.EndTime)
 		filter := serviceoverview.EndpointsFilter{

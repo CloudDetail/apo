@@ -130,6 +130,7 @@ type Repo interface {
 	GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	CheckGroupPermission(ctx core.Context, userID, groupID int64, typ string) (bool, error)
+	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
 
 	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
 

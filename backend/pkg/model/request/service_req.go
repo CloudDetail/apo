@@ -266,11 +266,14 @@ type GetServiceNamespaceListRequest struct {
 }
 
 type GetServiceMoreUrlListRequest struct {
-	StartTime   int64    `form:"startTime" binding:"required"`                 // query start time
-	EndTime     int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step        int64    `form:"step" binding:"required"`                      // step size
-	ServiceName string   `form:"serviceName" binding:"required"`               // application name
-	SortRule    SortType `form:"sortRule" binding:"required"`                  // sort logic
+	StartTime   int64    `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime     int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64    `form:"step" json:"step" binding:"required"`                         // step size
+	ServiceName string   `form:"serviceName" json:"serviceName" binding:"required"`           // application name
+	SortRule    SortType `form:"sortRule" json:"sortRule" binding:"required"`                 // sort logic
+
+	GroupID    int64    `form:"groupId" json:"groupId"`
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetServiceREDChartsRequest struct {

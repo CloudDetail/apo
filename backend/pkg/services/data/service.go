@@ -22,6 +22,7 @@ type Service interface {
 	GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error)
 	// CheckDatasourcePermission Filtering and filling data sources that users are not authorised to view. Expected *string or *[]string.
 	CheckDatasourcePermission(ctx core.Context, userID, groupID int64, namespaces, services interface{}, fillCategory string) (err error)
+	CheckScopePermission(ctx core.Context, cluster, namespace, service string) (bool, error)
 	GroupSubsOperation(ctx core.Context, req *request.GroupSubsOperationRequest) error
 	GetGroupSubs(ctx core.Context, req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
 
@@ -37,6 +38,8 @@ type Service interface {
 	DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error
 
 	GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequest) (*response.ListDataScopeFilterResponse, error)
+
+	CheckGroupPermission(ctx core.Context, groupID int64) (bool, error)
 }
 
 type service struct {

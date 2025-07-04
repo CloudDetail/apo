@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -44,12 +42,13 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceNames, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceAlertRes{})
-			return
-		}
+		// userID := c.UserID()
+		// err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceNames, model.DATASOURCE_CATEGORY_APM)
+		// if err != nil {
+		// 	c.AbortWithPermissionError(err, code.AuthError, []response.ServiceAlertRes{})
+		// 	return
+		// }
+
 		var startTime time.Time
 		var endTime time.Time
 		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
