@@ -17,19 +17,19 @@ type ServiceEndpointMap = prometheus.MetricGroupMap[prometheus.EndpointKey, *pro
 
 func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse {
 	endpointKey := prometheus.EndpointKey{
-		SvcName: req.ServiceName,
+		SvcName:    req.ServiceName,
 		ContentKey: req.Endpoint,
 	}
 	endpointMap := &ServiceEndpointMap{
 		MetricGroupList: []*prometheus.ServiceEndpointMetrics{},
-		MetricGroupMap:  map[prometheus.EndpointKey]*prometheus.ServiceEndpointMetrics{
+		MetricGroupMap: map[prometheus.EndpointKey]*prometheus.ServiceEndpointMetrics{
 			endpointKey: {
 				EndpointKey: endpointKey,
 			},
 		},
 	}
-	startTime := time.Unix(req.StartTime / 1000000, 0)
-	endTime := time.Unix(req.EndTime / 1000000, 0)
+	startTime := time.Unix(req.StartTime/1000000, 0)
+	endTime := time.Unix(req.EndTime/1000000, 0)
 	granularity := prometheus.EndpointGranularity
 	filters := []string{prometheus.ServicePQLFilter, req.ServiceName, prometheus.ContentKeyPQLFilter, req.Endpoint}
 	// Chart data
@@ -87,7 +87,7 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	s.promRepo.FillMetric(ctx, endpointMap, prometheus.AVG, startTime, endTime, filters, granularity)
 	s.promRepo.FillMetric(ctx, endpointMap, prometheus.DOD, startTime, endTime, filters, granularity)
 	s.promRepo.FillMetric(ctx, endpointMap, prometheus.WOW, startTime, endTime, filters, granularity)
-	
+
 	results := make([]*response.QueryChartResult, 0)
 	for _, endpointMetric := range endpointMap.MetricGroupMap {
 		latencyTempChartObject := response.TempChartObject{
@@ -102,15 +102,15 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 		} else {
 			latencyTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "平均响应时间",
-			Unit:   "ms",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "平均响应时间",
+			Unit:  "ms",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
-						"service": req.ServiceName,
+						"service":  req.ServiceName,
 						"endpoint": req.Endpoint,
 					},
 					Chart: latencyTempChartObject,
@@ -134,15 +134,15 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 		} else {
 			errorTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "错误率",
-			Unit:   "%",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "错误率",
+			Unit:  "%",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
-						"service": req.ServiceName,
+						"service":  req.ServiceName,
 						"endpoint": req.Endpoint,
 					},
 					Chart: errorTempChartObject,
@@ -163,15 +163,15 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 		} else {
 			tpmTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "吞吐量",
-			Unit:   "次/分",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "吞吐量",
+			Unit:  "次/分",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
-						"service": req.ServiceName,
+						"service":  req.ServiceName,
 						"endpoint": req.Endpoint,
 					},
 					Chart: tpmTempChartObject,
@@ -216,6 +216,6 @@ func mergeEndpointChartMetrics(endpointMap *ServiceEndpointMap, results []promet
 
 func (s *service) queryServiceEndpointRedsByApi(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse {
 	return &response.QueryServiceRedChartsResponse{
-		Msg: "not Implemented",
+		Msg: "Data not found",
 	}
 }
