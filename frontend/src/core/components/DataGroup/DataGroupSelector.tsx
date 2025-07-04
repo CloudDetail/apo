@@ -7,7 +7,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 
 const DataGroupSelector = ({ readonly = false }) => {
   const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
@@ -15,6 +15,7 @@ const DataGroupSelector = ({ readonly = false }) => {
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const flattenedAvailableNodes = useMemo(() => {
     const result: any[] = []
@@ -40,11 +41,10 @@ const DataGroupSelector = ({ readonly = false }) => {
   // --- 初始化：从 URL 设置 groupId（仅首次）
   useEffect(() => {
     if (flattenedAvailableNodes.length > 0) {
-      const urlParams = new URLSearchParams(location.search)
+      const urlParams = searchParams
       const groupIdStr = urlParams.get('groupId')
       const groupIdFromUrl = groupIdStr ? Number(groupIdStr) : null
       const isUrlGroupValid = groupIdFromUrl !== null && availableNodeIds.has(groupIdFromUrl)
-
       if (isUrlGroupValid) {
         if (groupIdFromUrl !== dataGroupId) {
           dispatch({
@@ -66,12 +66,15 @@ const DataGroupSelector = ({ readonly = false }) => {
             urlParams.set('groupId', newGroupId.toString())
             navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
           }
+        } else if (!groupIdStr) {
+          urlParams.set('groupId', dataGroupId.toString())
+          navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
         }
       }
     } else if (dataGroupId) {
       dispatch({ type: 'setSelectedDataGroupId', payload: null })
     }
-  }, [flattenedAvailableNodes, availableNodeIds, dispatch, location.search])
+  }, [flattenedAvailableNodes, availableNodeIds, dispatch, location, searchParams])
 
   // --- 双向绑定：dataGroupId 变化 → 同步到 URL（只在实际变化时）
   useEffect(() => {
