@@ -4,7 +4,7 @@
     "notify": "Notification Channels"
   },
   "rule": {
-    "groupName": "Groups",
+    "groupName": "Alert Type",
     "alertRuleName": "Alert Name",
     "duration": "For",
     "query": "Expression",

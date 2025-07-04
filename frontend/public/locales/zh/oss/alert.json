@@ -4,7 +4,7 @@
     "notify": "告警通知"
   },
   "rule": {
-    "groupName": "组名",
+    "groupName": "告警类型",
     "alertRuleName": "告警规则名",
     "duration": "持续时间",
     "query": "查询语句",

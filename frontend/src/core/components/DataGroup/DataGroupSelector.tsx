@@ -8,7 +8,7 @@ import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 
-const DataGroupSelector = () => {
+const DataGroupSelector = ({ readonly = false }) => {
   const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
   const dispatch = useDispatch()
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
@@ -61,6 +61,7 @@ const DataGroupSelector = () => {
 
   return (
     <TreeSelect
+      disabled={readonly}
       showSearch
       className="mx-2"
       style={{ width: 200 }}

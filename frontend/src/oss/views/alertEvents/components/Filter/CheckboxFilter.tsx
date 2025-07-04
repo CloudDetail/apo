@@ -20,9 +20,10 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   const [value, setValue] = useState([])
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector((state) => state.timeRange)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const getAlertsFilterValues = () => {
     setLoading(true)
-    getAlertsFilterValuesApi({ searchKey: item.key, startTime, endTime })
+    getAlertsFilterValuesApi({ searchKey: item.key, startTime, endTime, groupId: dataGroupId })
       .then((res) => {
         const options = res.options?.map((option) => ({
           label: <ValueTag {...option} itemKey={item.key} key={option.value} />,
@@ -47,7 +48,7 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   }
   useEffect(() => {
     getAlertsFilterValues()
-  }, [item.key, startTime, endTime])
+  }, [item.key, startTime, endTime, dataGroupId])
   useEffect(() => {
     const oldValue = filters.find((filterItem) => filterItem.key === item.key)
     if (oldValue) setValue(oldValue.selected)

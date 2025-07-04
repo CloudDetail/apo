@@ -12,6 +12,7 @@ import PermissionModal from './PermissionModal'
 import { deleteDataGroupApiV2, getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
 import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
+import { Splitter } from 'antd'
 
 export default function DataGroupPage() {
   const { t: ct } = useTranslation('common')
@@ -130,46 +131,48 @@ export default function DataGroupPage() {
   return (
     <>
       <BasicCard>
-        <div className="flex w-full">
-          <div className="w-1/4">
-            <DataGroupTree
-              dataGroups={dataGroups}
-              setParentGroupInfo={(data) => {
-                setParentGroupInfo(data)
-              }}
-              openAddModal={(groupId) => {
-                setInfoGroupId(groupId)
-                setInfoModalVisible(true)
-              }}
-              openEditModal={(record) => {
-                setGroupInfo(record)
-                setInfoModalVisible(true)
-              }}
-              openPermissionModal={(record) => {
-                setGroupInfo(record)
-                setPermissionModalVisible(true)
-              }}
-              deleteDataGroup={deleteDataGroup}
-            />
-          </div>
-          <div className="w-3/4">
-            <DataGroupTable
-              parentGroupInfo={parentGroupInfo}
-              openAddModal={() => {
-                setInfoGroupId(parentGroupInfo?.groupId)
-                setInfoModalVisible(true)
-              }}
-              openEditModal={(record) => {
-                setGroupInfo(record)
-                setInfoModalVisible(true)
-              }}
-              openPermissionModal={(record) => {
-                setGroupInfo(record)
-                setPermissionModalVisible(true)
-              }}
-              deleteDataGroup={deleteDataGroup}
-            />
-          </div>
+        <div className=" w-full h-full">
+          <Splitter style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+            <Splitter.Panel defaultSize="25%" className="h-full overflow-hidden w-full">
+              <DataGroupTree
+                dataGroups={dataGroups}
+                setParentGroupInfo={(data) => {
+                  setParentGroupInfo(data)
+                }}
+                openAddModal={(groupId) => {
+                  setInfoGroupId(groupId)
+                  setInfoModalVisible(true)
+                }}
+                openEditModal={(record) => {
+                  setGroupInfo(record)
+                  setInfoModalVisible(true)
+                }}
+                openPermissionModal={(record) => {
+                  setGroupInfo(record)
+                  setPermissionModalVisible(true)
+                }}
+                deleteDataGroup={deleteDataGroup}
+              />
+            </Splitter.Panel>
+            <Splitter.Panel className="ml-2">
+              <DataGroupTable
+                parentGroupInfo={parentGroupInfo}
+                openAddModal={() => {
+                  setInfoGroupId(parentGroupInfo?.groupId)
+                  setInfoModalVisible(true)
+                }}
+                openEditModal={(record) => {
+                  setGroupInfo(record)
+                  setInfoModalVisible(true)
+                }}
+                openPermissionModal={(record) => {
+                  setGroupInfo(record)
+                  setPermissionModalVisible(true)
+                }}
+                deleteDataGroup={deleteDataGroup}
+              />
+            </Splitter.Panel>
+          </Splitter>
         </div>
       </BasicCard>
       <InfoModal

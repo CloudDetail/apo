@@ -106,7 +106,9 @@ const AppHeader = ({ type = 'default' }) => {
         ) : (
           <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
             <AppBreadcrumb />
-            {currentRoute?.showDataGroup && <DataGroupSelector />}
+            {currentRoute?.showDataGroup && (
+              <DataGroupSelector readonly={currentRoute?.showDataGroup === 'view'} />
+            )}
           </CHeaderNav>
         )}
         <CHeaderNav className="pr-4 flex items-center">

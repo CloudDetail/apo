@@ -14,6 +14,7 @@ import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useSelector } from 'react-redux'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -25,7 +26,7 @@ export default function AlertsNotify() {
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
   const { t } = useTranslation('oss/alert')
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
       row.dingTalkConfigs
@@ -115,9 +116,13 @@ export default function AlertsNotify() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{t('notify.edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {t('notify.edit')}
+              </span>
             </Button>
             <Popconfirm
               title={<>{t('notify.confirmDelete', { name: row.name })}</>}
@@ -154,6 +159,7 @@ export default function AlertsNotify() {
       pageSize: pageSize,
       name: searchName,
       refreshCache: true,
+      groupId: dataGroupId,
     })
       .then((res) => {
         setLoading(false)
@@ -185,7 +191,7 @@ export default function AlertsNotify() {
       },
       loading: false,
     }
-  }, [column, data, pageIndex, pageSize])
+  }, [column, data, pageIndex, pageSize, dataGroupId])
   return (
     <BasicCard>
       <LoadingSpinner loading={loading} />

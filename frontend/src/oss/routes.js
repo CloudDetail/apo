@@ -61,7 +61,7 @@ const ossRoutes = [
     path: '/service/info',
     name: <TranslationCom text="serviceDetailName" space={namespace} />,
     element: ServiceInfo,
-    showDataGroup: true,
+    showDataGroup: 'view',
   },
   {
     path: '/logs/fault-site',
@@ -114,12 +114,14 @@ const ossRoutes = [
     name: <TranslationCom text="alertRulesName" space={namespace} />,
     element: AlertsRule,
     hideSystemTimeRangePicker: true,
+    showDataGroup: true,
   },
   {
     path: '/alerts/notify',
     name: <TranslationCom text="notificationChannelsName" space={namespace} />,
     element: AlertsNotify,
     hideSystemTimeRangePicker: true,
+    showDataGroup: true,
   },
   {
     path: '/config',
@@ -131,6 +133,7 @@ const ossRoutes = [
     path: '/alerts/events',
     name: <TranslationCom text="alertEvents" space={namespace} />,
     element: AlertEventsPage,
+    showDataGroup: true,
   },
   {
     path: '/workflows',
