@@ -116,6 +116,7 @@ SELECT
   fw.workflow_name,
   fw.importance,
   fw.created_at as last_check_at,
+	fw.input,
   fw.output,
   fw.alert_direction,
   fw.analyze_run_id,

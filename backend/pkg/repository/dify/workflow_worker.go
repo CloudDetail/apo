@@ -147,6 +147,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"params":    event.TagsInStr(),
 		"startTime": startTime,
 		"endTime":   endTime,
+		"edition":   "ce",
 	})
 	classify := w.getAlertClassify(c, event)
 	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
@@ -228,6 +229,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  event.GetInfraNodeTag(),
+		Edition:   "ce",
 	}
 
 	var services, endpoints []string
