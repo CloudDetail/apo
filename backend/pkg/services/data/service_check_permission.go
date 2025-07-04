@@ -38,5 +38,5 @@ func (s *service) CheckGroupPermission(ctx core.Context, groupID int64) (bool, e
 	if err != nil {
 		return false, err
 	}
-	return s.DataGroupStore.CheckGroupPermission(groupID, premGroups), nil
+	return DataGroupStorage.CheckGroupPermission(groupID, premGroups), nil
 }

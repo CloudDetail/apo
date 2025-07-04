@@ -56,7 +56,7 @@ func getOrCreateParent(
 
 	parent := &datagroup.DataScopeTreeNode{
 		DataScope: datagroup.DataScope{
-			ScopeID:     label.ScopeID(),
+			ScopeID:     label.ToScopeID(),
 			Name:        name,
 			Type:        typ,
 			ScopeLabels: label,

@@ -4,6 +4,8 @@
 package data
 
 import (
+	"sync"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -47,17 +49,21 @@ type service struct {
 	promRepo prometheus.Repo
 
 	k8sRepo kubernetes.Repo
-
-	DataGroupStore *DataGroupStore
 }
+
+var (
+	DataGroupStorage *DataGroupStore
+	once             sync.Once
+)
 
 func New(dbRepo database.Repo, promRepo prometheus.Repo, chRepo clickhouse.Repo, k8sRepo kubernetes.Repo) Service {
 	service := &service{
 		dbRepo:   dbRepo,
 		promRepo: promRepo,
 		k8sRepo:  k8sRepo,
-
-		DataGroupStore: NewDatasourceStoreMap(promRepo, chRepo, dbRepo),
 	}
+	once.Do(func() {
+		DataGroupStorage = NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+	})
 	return service
 }

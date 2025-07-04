@@ -51,7 +51,7 @@ type ScopeLabels struct {
 }
 
 // This ID is used for identification only and should not be parsed or used for business purposes.
-func (l ScopeLabels) ScopeID() string {
+func (l ScopeLabels) ToScopeID() string {
 	if l.Namespace == "" {
 		return l.ClusterID
 	}

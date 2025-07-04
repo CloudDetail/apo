@@ -23,9 +23,9 @@ func (s *service) ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeL
 
 	var scopes *datagroup.DataScopeTreeNode
 	if req.SkipNotChecked {
-		scopes = s.DataGroupStore.CloneScopeWithPermission(selected, nil)
+		scopes = DataGroupStorage.CloneScopeWithPermission(selected, nil)
 	} else {
-		scopes = s.DataGroupStore.CloneScopeWithPermission(options, selected)
+		scopes = DataGroupStorage.CloneScopeWithPermission(options, selected)
 	}
 
 	return &response.ListDataScopesResponse{
@@ -40,7 +40,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		return nil, err
 	}
 
-	scopes, leafs := s.DataGroupStore.CloneWithCategory(scopeIDs, req.Category)
+	scopes, leafs := DataGroupStorage.CloneWithCategory(scopeIDs, req.Category)
 	filter := common.ConvertScopeNodeToPQLFilter(scopes)
 
 	switch req.Extra {

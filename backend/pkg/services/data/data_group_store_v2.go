@@ -111,7 +111,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		}
 		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
 		ds := datagroup.DataScope{
-			ScopeID:     scopeLabels.ScopeID(),
+			ScopeID:     scopeLabels.ToScopeID(),
 			Name:        scopeLabels.Service,
 			Type:        datagroup.DATASOURCE_TYP_SERVICE,
 			Category:    datagroup.DATASOURCE_CATEGORY_APM,
@@ -139,7 +139,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 
 		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
 		ds := datagroup.DataScope{
-			ScopeID:     scopeLabels.ScopeID(),
+			ScopeID:     scopeLabels.ToScopeID(),
 			Name:        scopeLabels.Service,
 			Type:        datagroup.DATASOURCE_TYP_SERVICE,
 			Category:    datagroup.DATASOURCE_CATEGORY_LOG,
@@ -167,7 +167,7 @@ func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTim
 	}
 	for i := 0; i < len(scopes); i++ {
 		fillEmptyLabel(&scopes[i].ScopeLabels, scopes[i].Type)
-		scopes[i].ScopeID = scopes[i].ScopeLabels.ScopeID()
+		scopes[i].ScopeID = scopes[i].ScopeLabels.ToScopeID()
 		if _, find := m.ExistedScope[scopes[i]]; find {
 			continue
 		}
@@ -215,7 +215,7 @@ func addIfNotExists(labels datagroup.ScopeLabels, seen map[datagroup.ScopeLabels
 
 func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
 	return datagroup.DataScope{
-		ScopeID:     labels.ScopeID(),
+		ScopeID:     labels.ToScopeID(),
 		Category:    serviceScope.Category,
 		Name:        serviceScope.Namespace,
 		Type:        datagroup.DATASOURCE_TYP_NAMESPACE,
@@ -225,7 +225,7 @@ func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.Sco
 
 func createClusterScope(baseScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
 	return datagroup.DataScope{
-		ScopeID:     labels.ScopeID(),
+		ScopeID:     labels.ToScopeID(),
 		Category:    baseScope.Category,
 		Name:        baseScope.ClusterID,
 		Type:        datagroup.DATASOURCE_TYP_CLUSTER,
