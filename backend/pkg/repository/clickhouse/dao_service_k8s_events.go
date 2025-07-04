@@ -20,7 +20,7 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($1) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
-		  AND ResourceAttributes['cluster.id'] = IN ($4)
+		  AND ResourceAttributes['cluster.id'] IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)
 		UNION ALL
@@ -33,7 +33,7 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($2) - toIntervalDay(7) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
-		  AND ResourceAttributes['cluster.id'] = IN ($4)
+		  AND ResourceAttributes['cluster.id'] IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)
 		UNION ALL
@@ -46,7 +46,7 @@ const (
 		  FROM k8s_events
 		  WHERE Timestamp BETWEEN toDateTime($2) - toIntervalDay(30) AND toDateTime($2)
 		  AND ResourceAttributes['k8s.object.name'] IN ($3)
-		  AND ResourceAttributes['cluster.id'] = IN ($4)
+		  AND ResourceAttributes['cluster.id'] IN ($4)
 		  GROUP BY LogAttributes['k8s.event.reason'], SeverityText
 		)`
 )

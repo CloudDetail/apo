@@ -108,6 +108,7 @@ type GetK8sEventsRequest struct {
 	ServiceName string `form:"service" binding:"required" json:"service"`                   // query service name
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceListRequest struct {

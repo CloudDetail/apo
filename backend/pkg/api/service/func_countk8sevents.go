@@ -6,10 +6,9 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -39,16 +38,14 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetK8sEventsResponse{
 				Status:  model.STATUS_NORMAL,
 				Reasons: []string{},
 				Data:    make(map[string]*response.K8sEventStatistics),
 			})
-			return
 		}
+
 		resp, err := h.serviceInfoService.CountK8sEvents(c, req)
 		if err != nil {
 			c.AbortWithError(
