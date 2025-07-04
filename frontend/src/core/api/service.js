@@ -106,7 +106,7 @@ export const getServiceAlertEventsApi = (params) => {
  * @returns {Promise<Object>} - 返回结果
  */
 export const getServiceRelationApi = (params) => {
-  return get(`/api/service/relation`, params)
+  return post(`/api/service/relation`, params)
 }
 
 /**

@@ -10,11 +10,6 @@ import { get, post } from 'src/core/utils/request'
 export const getServiceTopologyApi = (params) => {
   return get(`api/service/topology`, params)
 }
-// 获取更多下游拓扑
-export const getServiceRelationApi = (params) => {
-  return get(`/api/service/relation`, params)
-}
-
 //获取所有下游服务的延时曲线
 export const getServiceDsecendantMetricsApi = (params) => {
   return get(`api/service/descendant/metrics`, params)
