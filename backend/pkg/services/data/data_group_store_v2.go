@@ -124,11 +124,8 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 	}
 
 	metricRes, err = prom.QueryMetricsWithPQLFilter(ctx,
-		prometheus.PQLMetricSeries(
-			prometheus.LOG_LEVEL_COUNT,
-			prometheus.LOG_EXCEPTION_COUNT,
-		),
-		startTime, endTime, "cluster_id,namespace", nil,
+		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		startTime, endTime, "cluster_id,namespace,svc_name", nil,
 	)
 	if err != nil {
 		return nil, err
@@ -137,13 +134,14 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		scopeLabels := datagroup.ScopeLabels{
 			ClusterID: metric.Metric.ClusterID,
 			Namespace: metric.Metric.Namespace,
+			Service:   metric.Metric.SvcName,
 		}
 
-		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_NAMESPACE)
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
 		ds := datagroup.DataScope{
 			ScopeID:     scopeLabels.ScopeID(),
 			Name:        scopeLabels.Namespace,
-			Type:        datagroup.DATASOURCE_TYP_NAMESPACE,
+			Type:        datagroup.DATASOURCE_TYP_SERVICE,
 			Category:    datagroup.DATASOURCE_CATEGORY_LOG,
 			ScopeLabels: scopeLabels,
 		}

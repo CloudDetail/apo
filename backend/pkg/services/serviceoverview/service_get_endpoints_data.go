@@ -32,7 +32,7 @@ func (s *service) GetServicesEndPointData(ctx core.Context, req *request.GetEndP
 	}
 	sortRule := req.SortRule
 
-	groupFilter, err := common.GetGroupPQLFilter(ctx, s.dbRepo, "apm", req.GroupID)
+	groupFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "apm", req.GroupID)
 	if groupFilter == prometheus.AlwaysFalseFilter {
 		return []response.ServiceEndPointsRes{}, nil
 	}

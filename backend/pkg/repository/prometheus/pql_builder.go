@@ -181,7 +181,7 @@ func PQLAvgLogErrorCountWithPQLFilter(rng string, gran string, filter PQLFilter,
 // WARNING: LogErrorCount without service will not return
 func PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
 	grans := strings.Split(gran, ",")
-	grans = append(grans, "namespace", "pod", "node_name", "pid")
+	grans = append(grans, "container_id", "node_name", "pid")
 	granWithCombineKey := strings.Join(grans, ",")
 
 	filter, svcFilter := Clone(filter).SplitFilters([]string{ServiceNameKey, ContentKeyKey})
@@ -194,17 +194,41 @@ func PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter(rng string, gran strin
 	// ( errorLevelCount + exceptionCount ) or errorLevelCount or exceptionCount
 	logErrorCount := addWithDef(errorLevelCount, exceptionCount, errorLevelCount, exceptionCount)
 
-	k8sSVCGroup := groupBy("svc_name,content_key,node_name,pid",
-		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).NotEqual("pod", ""), rng, offset)))
+	k8sSVCGroup := groupBy("svc_name,content_key,container_id",
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).NotEqual("container_id", ""), rng, offset)))
 
 	vmSVCGroup := groupBy("svc_name,content_key,node_name,pid",
-		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).Equal("pod", "").NotEqual("pid", ""), rng, offset)))
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).Equal("container_id", "").NotEqual("pid", ""), rng, offset)))
 
 	return addWithDef(
 		sumBy(gran, labelLeftOn(logErrorCount, "pod", "svc_name,content_key", k8sSVCGroup)),
 		sumBy(gran, labelLeftOn(logErrorCount, "node_name,pid", "svc_name,content_key", vmSVCGroup)),
 		sumBy(gran, labelLeftOn(logErrorCount, "pod", "svc_name,content_key", k8sSVCGroup)),
 		sumBy(gran, labelLeftOn(logErrorCount, "node_name,pid", "svc_name,content_key", vmSVCGroup)),
+	)
+}
+
+func LogErrorCountSeriesCombineSvcInfoWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
+	grans := strings.Split(gran, ",")
+	grans = append(grans, "container_id", "node_name", "pid")
+	granWithCombineKey := strings.Join(grans, ",")
+
+	filter, svcFilter := Clone(filter).SplitFilters([]string{ServiceNameKey})
+
+	errorLevel := groupBy(granWithCombineKey, lastOverTime(rangeVec(LOG_LEVEL_COUNT, Clone(filter).RegexMatch("level", "error|critical"), rng, offset)))
+	exceptionCount := groupBy(granWithCombineKey, lastOverTime(rangeVec(LOG_EXCEPTION_COUNT, filter, rng, offset)))
+
+	k8sSVCGroup := groupBy("svc_name,container_id",
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).NotEqual("container_id", ""), rng, offset)))
+
+	vmSVCGroup := groupBy("svc_name,node_name,pid",
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).Equal("container_id", "").NotEqual("pid", ""), rng, offset)))
+
+	return or(
+		sumBy(gran, labelLeftOn(errorLevel, "container_id", "svc_name", k8sSVCGroup)),
+		sumBy(gran, labelLeftOn(exceptionCount, "node_name,pid", "svc_name", vmSVCGroup)),
+		sumBy(gran, labelLeftOn(errorLevel, "container_id", "svc_name", k8sSVCGroup)),
+		sumBy(gran, labelLeftOn(exceptionCount, "node_name,pid", "svc_name", vmSVCGroup)),
 	)
 }
 

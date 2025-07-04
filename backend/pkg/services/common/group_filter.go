@@ -10,7 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
-func GetGroupPQLFilter(ctx core.Context, dbRepo database.Repo, category string, groupID int64) (prometheus.PQLFilter, error) {
+func GetPQLFilterByGroupID(ctx core.Context, dbRepo database.Repo, category string, groupID int64) (prometheus.PQLFilter, error) {
 	scopes, err := dbRepo.GetScopesByGroupIDAndCat(ctx, groupID, category)
 	if err != nil {
 		return nil, err

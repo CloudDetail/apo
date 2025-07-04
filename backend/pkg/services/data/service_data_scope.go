@@ -1,6 +1,8 @@
 package data
 
 import (
+	"fmt"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -41,8 +43,8 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 	scopes, leafs := s.DataGroupStore.CloneWithCategory(scopeIDs, req.Category)
 	filter := common.ConvertScopeNodeToPQLFilter(scopes)
 
-	switch req.Category {
-	case datagroup.DATASOURCE_CATEGORY_APM:
+	switch req.Extra {
+	case "endpoint":
 		series, err := s.promRepo.QueryMetricsWithPQLFilter(
 			ctx, prometheus.PQLMetricSeries(prometheus.SPAN_TRACE_COUNT),
 			req.StartTime, req.EndTime,
@@ -62,20 +64,22 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 
 			node := leafs[label]
 			if node != nil {
-				node.Children = append(node.Children, &datagroup.DataScopeTreeNode{
-					DataScope: datagroup.DataScope{
-						Name: metric.Metric.ContentKey,
-						Type: datagroup.DATASOURCE_TYP_ENDPOINT,
-					},
+				node.ExtraChildren = append(node.ExtraChildren, &datagroup.ExtraChild{
+					ID:       fmt.Sprintf("%s#%s", node.ScopeID, metric.Metric.ContentKey),
+					Name:     metric.Metric.ContentKey,
+					Type:     req.Extra,
+					Endpoint: metric.Metric.ContentKey,
+					Service:  metric.Metric.SvcName,
 				})
 			}
 		}
 
-	case datagroup.DATASOURCE_CATEGORY_LOG:
+	case "instance":
 		series, err := s.promRepo.QueryMetricsWithPQLFilter(
-			ctx, prometheus.PQLMetricSeries(prometheus.LOG_EXCEPTION_COUNT, prometheus.LOG_LEVEL_COUNT),
+			ctx,
+			prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
 			req.StartTime, req.EndTime,
-			"cluster_id,namespace,pod", filter,
+			"cluster_id,namespace,svc_name,pod,node_name,pid,container_id", filter,
 		)
 
 		if err != nil {
@@ -86,15 +90,27 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 			label := datagroup.ScopeLabels{
 				ClusterID: metric.Metric.ClusterID,
 				Namespace: metric.Metric.Namespace,
+				Service:   metric.Metric.SvcName,
 			}
 
 			node := leafs[label]
 			if node != nil {
-				node.Children = append(node.Children, &datagroup.DataScopeTreeNode{
-					DataScope: datagroup.DataScope{
-						Name: metric.Metric.POD,
-						Type: datagroup.DATASOURCE_TYP_POD,
-					},
+				var extraName string
+				if len(metric.Metric.POD) > 0 {
+					extraName = metric.Metric.POD
+				} else {
+					extraName = fmt.Sprintf("%s#%s", metric.Metric.NodeName, metric.Metric.ContainerID)
+				}
+
+				node.ExtraChildren = append(node.ExtraChildren, &datagroup.ExtraChild{
+					ID:          extraName,
+					Name:        extraName,
+					Type:        req.Extra,
+					ContainerID: metric.Metric.ContainerID,
+					POD:         metric.Metric.POD,
+					Node:        metric.Metric.NodeName,
+					Pid:         metric.Metric.PID,
+					Service:     metric.Metric.SvcName,
 				})
 			}
 		}

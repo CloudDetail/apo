@@ -8,7 +8,7 @@ const (
 	DATASOURCE_TYP_NAMESPACE   = "namespace"
 	DATASOURCE_TYP_SERVICE     = "service"
 	DATASOURCE_TYP_ENDPOINT    = "endpoint"
-	DATASOURCE_TYP_POD         = "pod"
+	DATASOURCE_TYP_INSTANCE    = "instance"
 	DATASOURCE_CATEGORY_APM    = "apm"
 	DATASOURCE_CATEGORY_NORMAL = "normal"
 	DATASOURCE_CATEGORY_LOG    = "log"
@@ -28,6 +28,20 @@ type DataScope struct {
 
 	// Special Labels for this Scope
 	ScopeLabels
+}
+
+type ExtraChild struct {
+	ID   string `json:"id" gorm:"-"`
+	Name string `json:"name" gorm:"-"`
+
+	Type string `json:"type" gorm:"-"`
+
+	ContainerID string `json:"containerId" gorm:"-"`
+	POD         string `json:"pod" gorm:"-"`
+	Node        string `json:"node" gorm:"-"`
+	Pid         string `json:"pid" gorm:"-"`
+	Endpoint    string `json:"endpoint" gorm:"-"`
+	Service     string `json:"service" gorm:"-"`
 }
 
 type ScopeLabels struct {
@@ -64,6 +78,8 @@ type DataScopeTreeNode struct {
 
 	HasCheckBox bool `json:"hasCheckBox"`
 	IsChecked   bool `json:"isChecked"`
+
+	ExtraChildren []*ExtraChild `json:"extraChildren,omitempty"`
 }
 
 func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected []string) *DataScopeTreeNode {
@@ -200,15 +216,8 @@ func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*
 			IsChecked: selfStatus.isChecked(),
 		}
 
-		switch category {
-		case DATASOURCE_CATEGORY_APM:
-			if node.Type == DATASOURCE_TYP_SERVICE {
-				leafs[node.ScopeLabels] = newNode
-			}
-		case DATASOURCE_CATEGORY_LOG:
-			if node.Type == DATASOURCE_TYP_NAMESPACE {
-				leafs[node.ScopeLabels] = newNode
-			}
+		if node.Type == DATASOURCE_TYP_SERVICE {
+			leafs[node.ScopeLabels] = newNode
 		}
 
 		return newNode

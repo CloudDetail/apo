@@ -49,11 +49,12 @@ type service struct {
 }
 
 func New(dbRepo database.Repo, promRepo prometheus.Repo, chRepo clickhouse.Repo, k8sRepo kubernetes.Repo) Service {
-	return &service{
+	service := &service{
 		dbRepo:   dbRepo,
 		promRepo: promRepo,
 		k8sRepo:  k8sRepo,
 
 		DataGroupStore: NewDatasourceStoreMap(promRepo, chRepo, dbRepo),
 	}
+	return service
 }

@@ -97,7 +97,7 @@ func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceRe
 }
 
 func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error) {
-	filter, err := common.GetGroupPQLFilter(ctx, s.dbRepo, req.Category, req.GroupID)
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, req.Category, req.GroupID)
 	if err != nil {
 		return response.GetGroupDatasourceResponse{}, err
 	}

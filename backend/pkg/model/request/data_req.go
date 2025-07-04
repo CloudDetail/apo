@@ -76,6 +76,8 @@ type DGFilterRequest struct {
 	GroupID  int64  `form:"groupId" json:"groupId"`
 	Category string `form:"category" json:"category"`
 
+	Extra string `form:"extra" json:"extra"`
+
 	StartTime int64 `form:"startTime" json:"startTime"`
 	EndTime   int64 `form:"endTime" json:"endTime"`
 }
