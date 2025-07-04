@@ -11,6 +11,7 @@ import { TimeLineTypeApiMap } from 'src/constants'
 import { useTranslation } from 'react-i18next'
 import { Button, ConfigProvider, List, Slider, Tooltip } from 'antd'
 import { useSelector } from 'react-redux'
+import { useDebounce } from 'react-use'
 
 const Timeline = (props) => {
   const { t } = useTranslation('oss/serviceInfo')
@@ -36,36 +37,40 @@ const Timeline = (props) => {
     setMarks(result)
   }, [startTime, endTime])
 
-  useEffect(() => {
-    if (startTime && endTime) {
-      setLoading(true)
-      const params = nodeName
-        ? {
-            pid,
-            nodeName,
-            containerId,
-          }
-        : { instance }
-      TimeLineTypeApiMap[type]({
-        startTime: sliderValue[0],
-        endTime: sliderValue[1],
-        service: serviceName,
-        endpoint: endpoint,
-        groupId: dataGroupId,
-        clusterIds,
-        ...params,
-      })
-        .then((res) => {
-          // 函数式更新
-          setChronoList(res)
-          setLoading(false)
+  useDebounce(
+    () => {
+      if (startTime && endTime && dataGroupId !== null) {
+        setLoading(true)
+        const params = nodeName
+          ? {
+              pid,
+              nodeName,
+              containerId,
+            }
+          : { instance }
+        TimeLineTypeApiMap[type]({
+          startTime: sliderValue[0],
+          endTime: sliderValue[1],
+          service: serviceName,
+          endpoint: endpoint,
+          groupId: dataGroupId,
+          clusterIds,
+          ...params,
         })
-        .catch((error) => {
-          setLoading(false)
-          // setChronoList([])
-        })
-    }
-  }, [sliderValue, type, serviceName, endpoint, instance, dataGroupId, clusterIds])
+          .then((res) => {
+            // 函数式更新
+            setChronoList(res)
+            setLoading(false)
+          })
+          .catch((error) => {
+            setLoading(false)
+            // setChronoList([])
+          })
+      }
+    },
+    300,
+    [sliderValue, type, serviceName, endpoint, instance, dataGroupId, clusterIds],
+  )
 
   const scrollTimeline = (direction) => {
     const scrollAmount = 100

@@ -113,7 +113,7 @@ function FaultSiteLogs(props) {
   // }, [pageIndex])
   useDebounce(
     () => {
-      if (startTime && endTime && isFilterDone) {
+      if (startTime && endTime && isFilterDone && dataGroupId !== null) {
         if (pageIndex === 1) {
           getLogs()
         } else {

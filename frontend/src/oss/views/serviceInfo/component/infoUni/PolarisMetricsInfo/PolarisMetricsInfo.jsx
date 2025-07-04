@@ -61,7 +61,9 @@ function PolarisMetricsInfo() {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300, // 延迟时间 300ms
     [startTime, endTime, serviceName, endpoint, dataGroupId],

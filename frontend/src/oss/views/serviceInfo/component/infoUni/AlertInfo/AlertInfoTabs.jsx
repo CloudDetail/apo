@@ -82,7 +82,9 @@ export default function AlertInfoTabs() {
 
   useDebounce(
     () => {
-      getAlertEvents()
+      if (startTime && endTime && dataGroupId !== null) {
+        getAlertEvents()
+      }
     },
     300,
     [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],

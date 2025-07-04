@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux'
 import { getAlertsFilterValuesApi } from 'src/core/api/alerts'
 import { FilterRenderProps } from './type'
 import { useTranslation } from 'react-i18next'
+import { useDebounce } from 'react-use'
 
 const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
   const { t } = useTranslation('oss/alertEvents')
@@ -44,9 +45,16 @@ const LabelKeyFilter = ({ item, addFilter, filters }: FilterRenderProps) => {
         setLoading(false)
       })
   }
-  useEffect(() => {
-    if (key) getAlertsFilterValues()
-  }, [key, dataGroupId])
+  useDebounce(
+    () => {
+      if (key && startTime && endTime && dataGroupId !== null) {
+        getAlertsFilterValues()
+      }
+    },
+    300,
+    [key, startTime, endTime, dataGroupId],
+  )
+
   const getSelectedItems = () => {
     return options
       .filter((opt) => selected.includes(opt.value))

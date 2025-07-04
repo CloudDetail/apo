@@ -4,7 +4,7 @@
  */
 
 import { Button, Input, Popconfirm, Select, Space, Tag, theme } from 'antd'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
@@ -15,6 +15,7 @@ import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useDebounce } from 'react-use'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
@@ -206,13 +207,17 @@ export default function AlertsRule() {
     setLoading(false)
   }, [loadRulesData, loadAlertStates])
 
-  useEffect(() => {
-    if (alertStateMap) {
-      loadRulesData()
-    } else {
-      init()
-    }
-  }, [pageIndex, pageSize, searchAlert, searchGroup, dataGroupId])
+  useDebounce(
+    () => {
+      if (dataGroupId !== null) {
+        loadRulesData()
+      } else {
+        init()
+      }
+    },
+    300,
+    [pageIndex, pageSize, searchAlert, searchGroup, dataGroupId],
+  )
   async function fetchData() {
     try {
       setLoading(true)

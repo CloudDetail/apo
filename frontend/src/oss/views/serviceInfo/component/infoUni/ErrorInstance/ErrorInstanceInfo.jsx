@@ -163,7 +163,9 @@ export default function ErrorInstanceInfo() {
   }
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300,
     [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],

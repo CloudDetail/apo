@@ -4,7 +4,7 @@
  */
 
 import { Button, Input, Popconfirm, Space } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next' // 引入i18n
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 import { useSelector } from 'react-redux'
+import { useDebounce } from 'react-use'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -148,9 +149,15 @@ export default function AlertsNotify() {
     setModalInfo(notifyInfo)
     setModalVisible(true)
   }
-  useEffect(() => {
-    fetchData()
-  }, [pageSize, pageIndex, searchName])
+  useDebounce(
+    () => {
+      if (dataGroupId !== null) {
+        fetchData()
+      }
+    },
+    300,
+    [searchName, dataGroupId],
+  )
   const fetchData = () => {
     setLoading(true)
 

@@ -122,10 +122,12 @@ export default function SqlMetrics() {
 
   useDebounce(
     () => {
-      if (pageIndex === 1) {
-        getData()
-      } else {
-        setPageIndex(1)
+      if (startTime && endTime && dataGroupId !== null) {
+        if (pageIndex === 1) {
+          getData()
+        } else {
+          setPageIndex(1)
+        }
       }
     },
     300, // 延迟时间 300ms

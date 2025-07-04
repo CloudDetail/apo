@@ -253,12 +253,16 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
       setInstanceOptions(treeData.instances)
     })
   }
-  useEffect(() => {
-    if (dataGroupId != null && startTime != null && endTime != null) {
-      setIsFilterDone?.(false)
-      getDatasourceByGroup()
-    }
-  }, [dataGroupId, startTime, endTime])
+  useDebounce(
+    () => {
+      if (dataGroupId != null && startTime != null && endTime != null) {
+        setIsFilterDone?.(false)
+        getDatasourceByGroup()
+      }
+    },
+    300,
+    [dataGroupId, startTime, endTime],
+  )
   const filterAndSyncSearch = (options, searchValues, getValue = (item) => item.value) => {
     const allValues = options.flatMap((group) => group.options.map(getValue))
     const filtered = (searchValues || []).filter((val) => allValues.includes(val))

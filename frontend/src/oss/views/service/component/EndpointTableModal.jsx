@@ -31,7 +31,7 @@ function EndpointTableModal(props) {
   const currentLanguage = i18n.language
 
   useEffect(() => {
-    if (visible && serviceName) {
+    if (visible && serviceName && dataGroupId !== null) {
       setLoading(true)
       // 记录请求的时间范围，以便后续趋势图补0
       getEndpointTableApi({

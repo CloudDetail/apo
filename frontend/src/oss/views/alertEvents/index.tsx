@@ -257,7 +257,7 @@ const AlertEventsPage = () => {
   }
   useDebounce(
     () => {
-      if (startTime && endTime) {
+      if (startTime && endTime && dataGroupId !== null) {
         setLoading(true)
 
         getAlertEvents()

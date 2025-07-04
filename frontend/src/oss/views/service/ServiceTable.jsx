@@ -70,7 +70,7 @@ const ServiceTable = React.memo(() => {
           ? `&clusterIds=${encodeURIComponent(Array.isArray(cluster) ? cluster.join(',') : cluster)}`
           : ''
         navigate(
-          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}${clusterIdsParam}`,
+          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}&groupId=${dataGroupId}${clusterIdsParam}`,
         )
       },
       showMore: (original) => {
@@ -325,7 +325,9 @@ const ServiceTable = React.memo(() => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getTableData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getTableData()
+      }
     },
     300, // 延迟时间 300ms
     [startTime, endTime, serviceName, endpoint, namespace, dataGroupId, sortBy, cluster],

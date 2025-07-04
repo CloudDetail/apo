@@ -115,7 +115,9 @@ function TraceInfo() {
   // }, [serviceName, startTime, endTime])
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300, // 延迟时间 300ms
     [startTime, endTime, serviceName, endpoint, dataGroupId, clusterIds],

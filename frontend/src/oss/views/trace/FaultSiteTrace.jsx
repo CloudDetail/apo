@@ -313,7 +313,7 @@ function FaultSiteTrace() {
   // }, [startTime, endTime, service, instance, traceId, pageIndex, endpoint])
   useDebounce(
     () => {
-      if (startTime && endTime && isFilterDone) {
+      if (startTime && endTime && isFilterDone && dataGroupId !== null) {
         getTraceData()
       }
     },
