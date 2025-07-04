@@ -79,38 +79,40 @@ const AppHeader = ({ type = 'default' }) => {
   return (
     <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
       <div className="flex justify-between items-center w-full">
-        {type === 'united' ? (
-          <div className="flex items-center">
-            <div className="h-[50px] flex overflow-hidden items-center mr-5">
-              <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
-              <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
-            </div>
-            {commercialNav.map((item) => (
-              <div
-                onClick={() => onClick(item.to)}
-                className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
-                style={{
-                  backgroundColor: selectedKeys.includes(item.key)
-                    ? token.colorPrimary
-                    : 'var(--header-menu-color)',
-                  color: selectedKeys.includes(item.key)
-                    ? 'var(--menu-selected-text-color)'
-                    : token.colorText,
-                  borderBottom: '1px solid var(--cui-body-bg)',
-                }}
-              >
-                <span className="pr-2">{item.icon}</span> {item.label}
+        <div className="flex items-center">
+          {type === 'united' ? (
+            <div className="flex items-center">
+              <div className="h-[50px] flex overflow-hidden items-center mr-5">
+                <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
+                <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
-            <AppBreadcrumb />
-            {currentRoute?.showDataGroup && (
-              <DataGroupSelector readonly={currentRoute?.showDataGroup === 'view'} />
-            )}
-          </CHeaderNav>
-        )}
+              {commercialNav.map((item) => (
+                <div
+                  onClick={() => onClick(item.to)}
+                  className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
+                  style={{
+                    backgroundColor: selectedKeys.includes(item.key)
+                      ? token.colorPrimary
+                      : 'var(--header-menu-color)',
+                    color: selectedKeys.includes(item.key)
+                      ? 'var(--menu-selected-text-color)'
+                      : token.colorText,
+                    borderBottom: '1px solid var(--cui-body-bg)',
+                  }}
+                >
+                  <span className="pr-2">{item.icon}</span> {item.label}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
+              <AppBreadcrumb />
+            </CHeaderNav>
+          )}
+          {currentRoute?.showDataGroup && (
+            <DataGroupSelector readonly={currentRoute?.showDataGroup === 'view'} />
+          )}
+        </div>
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
