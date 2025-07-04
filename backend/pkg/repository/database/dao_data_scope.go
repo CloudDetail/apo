@@ -137,7 +137,7 @@ func (repo *daoRepo) GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, c
 		Select("DISTINCT dgs.scope_id, name, type, cluster_id, namespace, service")
 
 	if len(category) > 0 {
-		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id AND ds.category = ?", category)
+		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id AND (ds.category = ? or ds.category = 'system')", category)
 	} else {
 		qb.Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id")
 	}

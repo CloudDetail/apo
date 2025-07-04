@@ -6,7 +6,6 @@ package serviceoverview
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
@@ -45,14 +44,15 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		}
 		var data []response.ServiceEndPointsRes
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
-			return
-		}
+		// TODO Check groupID permission
+		// userID := c.UserID()
+		// err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
+		// if err != nil {
+		// 	c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
+		// 	return
+		// }
 
-		data, err = h.serviceoverview.GetServicesEndPointData(c, req)
+		data, err := h.serviceoverview.GetServicesEndPointData(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

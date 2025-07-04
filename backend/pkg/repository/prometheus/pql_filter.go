@@ -144,6 +144,9 @@ func Or(filters ...PQLFilter) *OrFilter {
 		}
 		switch ft := f.(type) {
 		case *AndFilter:
+			if len(ft.Filters) == 0 {
+				continue
+			}
 			options = append(options, *ft.Clone().(*AndFilter))
 		case *OrFilter:
 			for _, andf := range ft.Filters {
@@ -162,6 +165,10 @@ func And(filters ...PQLFilter) *OrFilter {
 		}
 		switch f := filter.(type) {
 		case *OrFilter:
+			if len(f.Filters) == 0 {
+				continue
+			}
+
 			if len(options) == 0 {
 				options = append(options, f.Filters...)
 				continue
@@ -176,6 +183,9 @@ func And(filters ...PQLFilter) *OrFilter {
 			}
 			options = newOptions
 		case *AndFilter:
+			if len(f.Filters) == 0 {
+				continue
+			}
 			if len(options) == 0 {
 				options = append(options, *f.Clone().(*AndFilter))
 				continue
