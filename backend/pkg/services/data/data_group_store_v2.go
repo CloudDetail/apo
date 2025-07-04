@@ -140,7 +140,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
 		ds := datagroup.DataScope{
 			ScopeID:     scopeLabels.ScopeID(),
-			Name:        scopeLabels.Namespace,
+			Name:        scopeLabels.Service,
 			Type:        datagroup.DATASOURCE_TYP_SERVICE,
 			Category:    datagroup.DATASOURCE_CATEGORY_LOG,
 			ScopeLabels: scopeLabels,
