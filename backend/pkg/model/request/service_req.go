@@ -223,8 +223,8 @@ type AlertFilter struct {
 	Status   string `form:"status" json:"status"`
 
 	ClusterIDs []string `form:"clusterID" json:"clusterID"`
-	Services   []string `form:"services" json:"services" binding:"required"`
-	Endpoints  []string `form:"endpoints" json:"endpoints" binding:"required"`
+	Services   []string `form:"services" json:"services"`
+	Endpoints  []string `form:"endpoints" json:"endpoints"`
 
 	// Deprecated: use Services instead
 	Service string `form:"service" json:"service"`
@@ -243,7 +243,8 @@ type GetAlertEventsSampleRequest struct {
 
 	AlertFilter // filter parameters
 
-	SampleCount int `form:"sampleCount"` // number of samples
+	SampleCount int   `form:"sampleCount"` // number of samples
+	GroupID     int64 `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEntryEndpointsRequest struct {
