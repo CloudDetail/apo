@@ -2,7 +2,7 @@
   "group": "data group",
   "deleteSuccess": "Deleted successfully",
   "deleteGroupError": "Cannot delete data group with sub-groups",
-  "dataGroupName": "Data Group Name",
+  "dataGroupName": "Alert Type",
   "dataGroupDes": "Data Group Description",
   "datasource": "Data Source",
   "operation": "Operation",
@@ -37,5 +37,10 @@
   "groupNameLabel": "Data Group Name:",
   "datasourceLabel": "Data Source:",
   "availableDatasource": "Available Data Sources",
-  "selectedDatasource": "Selected Data Sources"
+  "selectedDatasource": "Selected Data Sources",
+  "dataGroupPlaceholder": "Please select a data group",
+  "modifyAlertRuleModal": {
+    "dataGroup": "Data Group",
+    "alertGroup": "Alert Group"
+  }
 }

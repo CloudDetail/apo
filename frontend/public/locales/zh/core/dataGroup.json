@@ -2,7 +2,7 @@
   "group": "数据组",
   "deleteSuccess": "删除成功",
   "deleteGroupError": "无法删除包含子组的数据组",
-  "dataGroupName": "数据组名",
+  "dataGroupName": "告警类型",
   "dataGroupDes": "数据组描述",
   "datasource": "数据源",
   "operation": "操作",
@@ -37,5 +37,10 @@
   "groupNameLabel": "数据组名：",
   "datasourceLabel": "数据源：",
   "availableDatasource": "可选数据源",
-  "selectedDatasource": "已选数据源"
+  "selectedDatasource": "已选数据源",
+  "dataGroupPlaceholder": "请选择数据分组",
+  "modifyAlertRuleModal": {
+    "dataGroup": "数据分组",
+    "alertGroup": "告警分组"
+  }
 }
