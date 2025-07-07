@@ -68,12 +68,15 @@ export function addDataGroupApi(params) {
 export function updateDataGroupApiV2(params) {
   return post('/api/v2/data/group/update', params)
 }
-export function getSubGroupsApiV2(groupId: string) {
+export function getSubGroupsApiV2(groupId: number) {
   return get('/api/v2/data/group/detail', { groupId })
 }
-export function deleteDataGroupApiV2(groupId: string) {
+export function deleteDataGroupApiV2(groupId: number) {
   return del('/api/v2/data/group/delete', { groupId })
 }
 export function getDatasourceFilterApiV2(params) {
   return post('/api/v2/data/group/filter', params)
+}
+export function refreshGroupDatasourceApiV2(groupId: number, clean?: boolean) {
+  return get('/api/v2/data/group/datasource/refresh', { groupId, clean })
 }

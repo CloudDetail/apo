@@ -3,16 +3,33 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Flex, Popconfirm, Table } from 'antd'
-import { getSubGroupsApiV2 } from 'src/core/api/dataGroup'
+import { Button, Flex, Modal, Popconfirm, Table } from 'antd'
+import { getSubGroupsApiV2, refreshGroupDatasourceApiV2 } from 'src/core/api/dataGroup'
 import { MdOutlineAdd, MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { LuShieldCheck } from 'react-icons/lu'
+import { LuRefreshCcw, LuShieldCheck } from 'react-icons/lu'
 import DatasourceTag from './component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
-import React from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { notify } from 'src/core/utils/notify'
+
+interface DataGroupInfo {
+  groupId: number
+  groupName: string
+  description: string
+  permissionType: 'known' | 'view' | 'edit'
+  subGroups?: DataGroupInfo[]
+}
+
+interface DataGroupTableProps {
+  parentGroupInfo: DataGroupInfo | null
+  openAddModal: () => void
+  openEditModal: (record: DataGroupInfo) => void
+  openPermissionModal: (record: DataGroupInfo) => void
+  deleteDataGroup: (record: DataGroupInfo) => void
+  refreshKey: number
+}
 
 export default function DataGroupTable({
   parentGroupInfo,
@@ -20,117 +37,167 @@ export default function DataGroupTable({
   openEditModal,
   openPermissionModal,
   deleteDataGroup,
-  key,
-}) {
+  refreshKey,
+}: DataGroupTableProps) {
   const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
-  const [subGroups, setSubGroups] = useState([])
+  const [subGroups, setSubGroups] = useState<DataGroupInfo[]>([])
+  const [openRefreshModal, setOpenRefreshModal] = useState<boolean>(false)
+  const [cleanList, setCleanList] = useState<any[]>([])
+  const [protectedList, setProtectedList] = useState<any[]>([])
+  console.log(parentGroupInfo)
+  const handleEdit = useCallback(
+    (record: DataGroupInfo) => {
+      openEditModal(record)
+    },
+    [openEditModal],
+  )
 
-  const columns = [
-    {
-      title: 'groupId',
-      dataIndex: 'groupId',
-      key: 'groupId',
-      hidden: true,
+  const handleDelete = useCallback(
+    (record: DataGroupInfo) => {
+      deleteDataGroup(record)
     },
-    {
-      title: t('dataGroupName'),
-      dataIndex: 'groupName',
-      width: 150,
-      key: 'groupName',
+    [deleteDataGroup],
+  )
+
+  const handlePermission = useCallback(
+    (record: DataGroupInfo) => {
+      openPermissionModal(record)
     },
-    {
-      title: t('dataGroupDes'),
-      width: 200,
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: t('datasource'),
-      dataIndex: 'datasources',
-      key: 'datasources',
-      render: (value) => {
-        return (
-          <Paragraph
-            className="m-0 items-center flex flex-wrap"
-            ellipsis={{
-              expandable: true,
-              rows: 3,
-            }}
-          >
-            {value
-              ?.sort((a, b) => {
-                const typeOrder = ['system', 'cluster', 'namespace', 'service']
-                const aIndex = typeOrder.indexOf(a.type)
-                const bIndex = typeOrder.indexOf(b.type)
-                return aIndex - bIndex
-              })
-              ?.map((item) => <DatasourceTag {...item} block={false} />)}
-          </Paragraph>
-        )
+    [openPermissionModal],
+  )
+
+  const handleParentPermission = useCallback(() => {
+    if (parentGroupInfo) {
+      openPermissionModal(parentGroupInfo)
+    }
+  }, [parentGroupInfo, openPermissionModal])
+
+  const columns = useMemo(
+    () => [
+      {
+        title: 'groupId',
+        dataIndex: 'groupId',
+        key: 'groupId',
+        hidden: true,
       },
-    },
-    {
-      title: ct('operation'),
-      dataIndex: 'operation',
-      key: 'operation',
-      width: 250,
-      render: (_, record) => {
-        return (
-          <Flex align="center" justify="space-evenly">
-            {record?.permissionType === 'edit' && (
-              <>
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={() => {
-                    openEditModal(record)
-                  }}
-                  icon={
-                    <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
-                  }
-                >
-                  <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
-                    {t('edit')}
-                  </span>
-                </Button>
-                <Popconfirm
-                  title={t('confirmDelete', {
-                    groupName: record.groupName,
-                  })}
-                  onConfirm={() => deleteDataGroup(record)}
-                  okText={ct('confirm')}
-                  cancelText={ct('cancel')}
-                >
-                  <Button type="text" size="small" icon={<RiDeleteBin5Line />} danger>
-                    {ct('delete')}
+      {
+        title: t('dataGroupName'),
+        dataIndex: 'groupName',
+        width: 150,
+        key: 'groupName',
+      },
+      {
+        title: t('dataGroupDes'),
+        width: 200,
+        dataIndex: 'description',
+        key: 'description',
+      },
+      {
+        title: t('datasource'),
+        dataIndex: 'datasources',
+        key: 'datasources',
+        render: (value: any[]) => {
+          return (
+            <Paragraph
+              className="m-0 items-center flex flex-wrap"
+              ellipsis={{
+                expandable: true,
+                rows: 3,
+              }}
+            >
+              {value
+                ?.sort((a, b) => {
+                  const typeOrder = ['system', 'cluster', 'namespace', 'service']
+                  const aIndex = typeOrder.indexOf(a.type)
+                  const bIndex = typeOrder.indexOf(b.type)
+                  return aIndex - bIndex
+                })
+                ?.map((item) => <DatasourceTag key={item.id} {...item} block={false} />)}
+            </Paragraph>
+          )
+        },
+      },
+      {
+        title: ct('operation'),
+        dataIndex: 'operation',
+        key: 'operation',
+        width: 250,
+        render: (_: any, record: DataGroupInfo) => {
+          return (
+            <Flex align="center" justify="space-evenly">
+              {record?.permissionType === 'edit' && (
+                <>
+                  <Button
+                    type="text"
+                    size="small"
+                    onClick={() => handleEdit(record)}
+                    icon={
+                      <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+                    }
+                  >
+                    <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                      {t('edit')}
+                    </span>
                   </Button>
-                </Popconfirm>
-                <Button
-                  color="primary"
-                  variant="outlined"
-                  size="small"
-                  icon={<LuShieldCheck />}
-                  onClick={() => {
-                    openPermissionModal(record)
-                  }}
-                >
-                  {t('authorize')}
-                </Button>
-              </>
-            )}
-          </Flex>
-        )
+                  <Popconfirm
+                    title={t('confirmDelete', {
+                      groupName: record.groupName,
+                    })}
+                    onConfirm={() => handleDelete(record)}
+                    okText={ct('confirm')}
+                    cancelText={ct('cancel')}
+                  >
+                    <Button type="text" size="small" icon={<RiDeleteBin5Line />} danger>
+                      {ct('delete')}
+                    </Button>
+                  </Popconfirm>
+                  <Button
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    icon={<LuShieldCheck />}
+                    onClick={() => handlePermission(record)}
+                  >
+                    {t('authorize')}
+                  </Button>
+                </>
+              )}
+            </Flex>
+          )
+        },
       },
-    },
-  ]
+    ],
+    [t, ct, handleEdit, handleDelete, handlePermission],
+  )
+
   useEffect(() => {
     if (parentGroupInfo?.groupId != null) {
-      getSubGroupsApiV2(parentGroupInfo.groupId).then((res) => {
-        setSubGroups(res.subGroups)
+      getSubGroupsApiV2(parentGroupInfo.groupId).then((res: any) => {
+        setSubGroups(res?.subGroups || [])
       })
     }
-  }, [parentGroupInfo, key])
+  }, [parentGroupInfo, refreshKey])
+  const handleRefresh = useCallback(
+    (clean?: boolean) => {
+      refreshGroupDatasourceApiV2(parentGroupInfo?.groupId, clean).then((res: any) => {
+        setSubGroups(res?.subGroups || [])
+        if (clean) {
+          setCleanList(res?.cleanList || [])
+          setProtectedList(res?.protectedList || [])
+        } else {
+          notify({
+            type: 'success',
+            message: t('refreshSuccess'),
+          })
+        }
+      })
+    },
+    [parentGroupInfo],
+  )
+  const closeRefreshModal = useCallback(() => {
+    setOpenRefreshModal(false)
+  }, [])
   return (
     <>
       <div className="w-full flex justify-between h-[40px]">
@@ -146,9 +213,7 @@ export default function DataGroupTable({
               color="primary"
               variant="outlined"
               icon={<LuShieldCheck />}
-              onClick={() => {
-                openPermissionModal(parentGroupInfo)
-              }}
+              onClick={handleParentPermission}
             >
               {t('authorize')}
             </Button>
@@ -161,6 +226,7 @@ export default function DataGroupTable({
         scroll={{ y: 'calc(100vh - 240px)' }}
         className="overflow-auto text-xs"
         size="small"
+        rowKey="groupId"
       />
     </>
   )

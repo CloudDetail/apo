@@ -4,7 +4,7 @@
  */
 
 import { Form, Input, Modal } from 'antd'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DatasourceSelector from './component/DatasourceSelector'
 import { addDataGroupApi, updateDataGroupApiV2 } from 'src/core/api/dataGroup'
 import { SaveDataGroupParams } from 'src/core/types/dataGroup'
@@ -14,26 +14,37 @@ import { notify } from 'src/core/utils/notify'
 
 interface InfoModalProps {
   open: boolean
-  closeModal: any
+  closeModal: () => void
   groupInfo: SaveDataGroupParams | null
-  groupId: string | null
-  refresh: any
+  groupId: number | null
+  refresh: () => void
 }
-const InfoModal = ({ open, closeModal, groupInfo, refresh, groupId }: InfoModalProps) => {
+
+const InfoModal: React.FC<InfoModalProps> = ({ open, closeModal, groupInfo, refresh, groupId }) => {
   const { t } = useTranslation('core/dataGroup')
 
   const [form] = Form.useForm()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<boolean>(false)
+  console.log('parent', groupId)
   const saveDataGroup = (params: SaveDataGroupParams) => {
     let api
+    let apiParams: any = params
     if (params.groupId) {
       api = updateDataGroupApiV2
     } else {
+      if (groupId === null) {
+        notify({
+          type: 'error',
+          message: t('addGroupError'),
+        })
+        setLoading(false)
+        return
+      }
       api = addDataGroupApi
-      params.parentGroupId = groupId
+      apiParams = { ...params, parentGroupId: groupId }
     }
-    api(params)
-      .then((res) => {
+    api(apiParams)
+      .then(() => {
         notify({
           type: 'success',
           message: t('saveSuccess'),
@@ -44,8 +55,9 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh, groupId }: InfoModalP
         setLoading(false)
       })
   }
+
   const saveInfo = () => {
-    // setLoading(true)
+    setLoading(true)
     form
       .validateFields()
       .then((values) => {
@@ -55,13 +67,14 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh, groupId }: InfoModalP
         setLoading(false)
       })
   }
+
   useEffect(() => {
     if (groupInfo) {
       form.setFieldsValue(groupInfo)
     } else {
       form.resetFields()
     }
-  }, [open, groupInfo])
+  }, [open, groupInfo, form])
 
   return (
     <>
@@ -82,13 +95,13 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh, groupId }: InfoModalP
 
         <Form form={form} labelCol={{ span: 3, offset: 1 }} wrapperCol={{ span: 18 }} colon={false}>
           <Form.Item name="groupId" hidden>
-            <Input></Input>
+            <Input />
           </Form.Item>
           <Form.Item name="groupName" label={t('dataGroupName')} rules={[{ required: true }]}>
-            <Input></Input>
+            <Input />
           </Form.Item>
           <Form.Item name="description" label={t('dataGroupDes')}>
-            <Input></Input>
+            <Input />
           </Form.Item>
           <Form.Item name="datasources" label={t('datasource')} valuePropName="datasources">
             <DatasourceSelector groupId={groupInfo?.groupId || groupId} isAdd={!groupInfo} />
@@ -98,4 +111,5 @@ const InfoModal = ({ open, closeModal, groupInfo, refresh, groupId }: InfoModalP
     </>
   )
 }
+
 export default InfoModal

@@ -4,14 +4,32 @@
  */
 import { Button, Popconfirm, Tree } from 'antd'
 import Search from 'antd/es/input/Search'
-import { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LuShieldCheck } from 'react-icons/lu'
 import { MdModeEdit, MdOutlineAdd } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import styles from './index.module.scss'
 
-const DataGroupTree = ({
+interface DataGroupInfo {
+  groupId: number
+  groupName: string
+  description: string
+  permissionType: 'known' | 'view' | 'edit'
+
+  subGroups?: DataGroupInfo[]
+}
+
+interface DataGroupTreeProps {
+  dataGroups: DataGroupInfo[]
+  setParentGroupInfo: (data: DataGroupInfo) => void
+  openAddModal: (groupId: number) => void
+  openEditModal: (record: DataGroupInfo) => void
+  openPermissionModal: (record: DataGroupInfo) => void
+  deleteDataGroup: (record: DataGroupInfo) => void
+}
+
+const DataGroupTree: React.FC<DataGroupTreeProps> = ({
   dataGroups,
   setParentGroupInfo,
   openAddModal,
@@ -19,131 +37,241 @@ const DataGroupTree = ({
   openPermissionModal,
   deleteDataGroup,
 }) => {
-  const [treeData, setTreeData] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [selectedKeys, setSelectedKeys] = useState([])
-  const [expandedKeys, setExpandedKeys] = useState([])
+  const [treeData, setTreeData] = useState<DataGroupInfo[]>([])
+  const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([])
+  const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
+  const [searchValue, setSearchValue] = useState<string>('')
+  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true)
+  const [flattenedData, setFlattenedData] = useState<
+    Array<{
+      node: DataGroupInfo
+      path: number[]
+      level: number
+    }>
+  >([])
   const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
 
-  const onSelectTree = (selectedKeys, { selectedNodes }) => {
-    if (selectedNodes.length > 0) {
-      setSelectedKeys(selectedKeys)
-      setParentGroupInfo(selectedNodes[0])
-    }
-  }
+  const onSelectTree = useCallback(
+    (selectedKeys: React.Key[], { selectedNodes }: any) => {
+      if (selectedNodes.length > 0) {
+        setSelectedKeys(selectedKeys)
+        setParentGroupInfo(selectedNodes[0])
+      }
+    },
+    [setParentGroupInfo],
+  )
 
-  const onChange = (e) => {
-    setSearchValue(e.target.value)
-    setTreeData(dataGroups.filter((item) => item.title.includes(e.target.value)))
-  }
+  // Flatten tree data for efficient search
+  const flattenTreeData = useCallback(
+    (nodes: DataGroupInfo[], path: number[] = [], level: number = 0) => {
+      const flattened: Array<{
+        node: DataGroupInfo
+        path: number[]
+        level: number
+      }> = []
 
-  // 递归获取所有节点的 key，同时检查 selectedKeys 是否存在
-  const getAllKeysAndCheckSelected = (nodes, selectedKeys) => {
-    const allKeys = []
-    let selectedExists = false
+      for (const node of nodes) {
+        const currentPath = [...path, node.groupId]
+        flattened.push({
+          node,
+          path: currentPath,
+          level,
+        })
 
-    const traverse = (nodeList) => {
-      for (const node of nodeList) {
-        allKeys.push(node.groupId)
-        if (selectedKeys.includes(node.groupId)) {
-          selectedExists = true
-        }
         if (node.subGroups && node.subGroups.length > 0) {
-          traverse(node.subGroups)
+          flattened.push(...flattenTreeData(node.subGroups, currentPath, level + 1))
         }
+      }
+
+      return flattened
+    },
+    [],
+  )
+
+  // Get all expandable keys from flattened data
+  const getAllExpandableKeys = useCallback((flattened: typeof flattenedData): React.Key[] => {
+    const keys: React.Key[] = []
+    for (const item of flattened) {
+      if (item.node.subGroups && item.node.subGroups.length > 0) {
+        keys.push(item.node.groupId)
+      }
+    }
+    return keys
+  }, [])
+
+  // Optimized search using flattened data
+  const getSearchResult = useCallback((searchValue: string, flattened: typeof flattenedData) => {
+    const expandedKeys: React.Key[] = []
+    const matchedKeys: React.Key[] = []
+
+    for (const item of flattened) {
+      // Check if current node matches
+      if (item.node.groupName.toLowerCase().includes(searchValue.toLowerCase())) {
+        matchedKeys.push(item.node.groupId)
+        // Add all parent keys to expanded keys (excluding the current node)
+        expandedKeys.push(...item.path.slice(0, -1).map((key) => key as React.Key))
       }
     }
 
-    traverse(nodes)
-    return { allKeys, selectedExists }
-  }
+    // Remove duplicates
+    return {
+      expandedKeys: [...new Set(expandedKeys)],
+      matchedKeys: [...new Set(matchedKeys)],
+    }
+  }, [])
 
+  const onChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value
+      setSearchValue(value)
+
+      if (value) {
+        // Use flattened data for search
+        const { expandedKeys: searchExpandedKeys, matchedKeys } = getSearchResult(
+          value,
+          flattenedData,
+        )
+        setExpandedKeys(searchExpandedKeys)
+        setAutoExpandParent(true)
+
+        // Highlight first match if any
+        if (matchedKeys.length > 0) {
+          setSelectedKeys([matchedKeys[0]])
+          // Find the first matched node from flattened data
+          const matchedItem = flattenedData.find((item) => item.node.groupId === matchedKeys[0])
+          if (matchedItem) {
+            setParentGroupInfo(matchedItem.node)
+          }
+        }
+      } else {
+        // Clear search - expand all nodes
+        const allKeys = getAllExpandableKeys(flattenedData)
+        setExpandedKeys(allKeys)
+        setAutoExpandParent(false)
+      }
+    },
+    [flattenedData, getSearchResult, getAllExpandableKeys, setParentGroupInfo],
+  )
+
+  // Initialize tree data and flatten it
   useEffect(() => {
     setTreeData(dataGroups)
-  }, [dataGroups])
+    const flattened = flattenTreeData(dataGroups)
+    setFlattenedData(flattened)
+  }, [dataGroups, flattenTreeData])
 
+  // Set initial selection and expand all nodes
   useEffect(() => {
-    if (treeData && treeData.length > 0) {
-      const { allKeys, selectedExists } = getAllKeysAndCheckSelected(treeData, selectedKeys)
-
+    if (treeData && treeData.length > 0 && !searchValue) {
+      const allKeys = getAllExpandableKeys(flattenedData)
       setExpandedKeys(allKeys)
 
-      if (!selectedExists) {
+      if (selectedKeys.length === 0) {
         const firstNode = treeData[0]
         setSelectedKeys([firstNode.groupId])
         setParentGroupInfo(firstNode)
       }
     }
-  }, [treeData, selectedKeys])
+  }, [
+    treeData,
+    selectedKeys.length,
+    getAllExpandableKeys,
+    setParentGroupInfo,
+    searchValue,
+    flattenedData,
+  ])
 
-  const titleRender = (nodeData) => {
-    return (
-      <div className={styles.treeTitleRow}>
-        <div className="flex-1 truncate">{nodeData.groupName}</div>
-        <div className={styles.treeTitleActions}>
-          {nodeData.permissionType === 'edit' && (
-            <Button
-              type="link"
-              size="small"
-              icon={<MdModeEdit />}
-              onClick={(e) => {
-                e.stopPropagation()
-                openEditModal(nodeData)
-              }}
-            />
-          )}
-          {nodeData.permissionType === 'edit' && (
-            <>
-              <Popconfirm
-                title={t('confirmDelete', {
-                  groupName: nodeData.groupName,
-                })}
-                onConfirm={(e) => {
-                  e.stopPropagation()
-                  deleteDataGroup(nodeData)
-                }}
-                onPopupClick={(e) => {
-                  e.stopPropagation()
-                }}
-                okText={ct('confirm')}
-                cancelText={ct('cancel')}
-              >
-                <Button
-                  type="text"
-                  icon={<RiDeleteBin5Line />}
-                  danger
-                  size="small"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </Popconfirm>
+  const titleRender = useCallback(
+    (nodeData: DataGroupInfo) => {
+      const strTitle = nodeData.groupName
+      const index = strTitle.toLowerCase().indexOf(searchValue.toLowerCase())
+
+      const renderTitle = () => {
+        if (searchValue && index > -1) {
+          const beforeStr = strTitle.substring(0, index)
+          const afterStr = strTitle.slice(index + searchValue.length)
+          const matchedStr = strTitle.substring(index, index + searchValue.length)
+
+          return (
+            <span>
+              {beforeStr}
+              <span className="text-[var(--ant-color-warning)] font-semibold">{matchedStr}</span>
+              {afterStr}
+            </span>
+          )
+        }
+        return <span>{strTitle}</span>
+      }
+
+      return (
+        <div className={styles.treeTitleRow}>
+          <div className="flex-1 truncate">{renderTitle()}</div>
+          <div className={styles.treeTitleActions}>
+            {nodeData.permissionType === 'edit' && (
               <Button
-                type="text"
+                type="link"
                 size="small"
-                icon={<LuShieldCheck />}
-                onClick={(e) => {
+                icon={<MdModeEdit />}
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation()
-                  e.preventDefault()
-                  openPermissionModal(nodeData)
+                  openEditModal(nodeData)
                 }}
               />
-            </>
-          )}
-          {nodeData.permissionType !== 'known' && (
-            <Button
-              type="link"
-              size="small"
-              icon={<MdOutlineAdd />}
-              onClick={(e) => {
-                e.stopPropagation()
-                openAddModal(nodeData.groupId)
-              }}
-            />
-          )}
+            )}
+            {nodeData.permissionType === 'edit' && (
+              <>
+                <Popconfirm
+                  title={t('confirmDelete', {
+                    groupName: nodeData.groupName,
+                  })}
+                  onConfirm={(e: React.MouseEvent) => {
+                    e.stopPropagation()
+                    deleteDataGroup(nodeData)
+                  }}
+                  onPopupClick={(e: React.MouseEvent) => {
+                    e.stopPropagation()
+                  }}
+                  okText={ct('confirm')}
+                  cancelText={ct('cancel')}
+                >
+                  <Button
+                    type="text"
+                    icon={<RiDeleteBin5Line />}
+                    danger
+                    size="small"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  />
+                </Popconfirm>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<LuShieldCheck />}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    openPermissionModal(nodeData)
+                  }}
+                />
+              </>
+            )}
+            {nodeData.permissionType !== 'known' && (
+              <Button
+                type="link"
+                size="small"
+                icon={<MdOutlineAdd />}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  openAddModal(nodeData.groupId)
+                }}
+              />
+            )}
+          </div>
         </div>
-      </div>
-    )
-  }
+      )
+    },
+    [t, ct, openEditModal, deleteDataGroup, openPermissionModal, openAddModal, searchValue],
+  )
 
   return (
     <>
@@ -168,6 +296,7 @@ const DataGroupTree = ({
             children: 'subGroups',
           }}
           blockNode
+          autoExpandParent={autoExpandParent}
         />
       )}
     </>

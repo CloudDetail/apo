@@ -161,7 +161,7 @@ const DatasourceSelector = (props) => {
         type="inner"
         title={
           <div className="flex">
-            可选数据源 <TypeExample />
+            {t('availableDatasource')} <TypeExample />
           </div>
         }
         className="w-1/2 overflow-hidden"
@@ -191,7 +191,7 @@ const DatasourceSelector = (props) => {
         type="inner"
         title={
           <div className="flex">
-            已选数据源 <TypeCount datasourceList={datasourceList} />
+            {t('selectedDatasource')} <TypeCount datasourceList={datasourceList} />
           </div>
         }
         className="w-1/2 overflow-hidden"

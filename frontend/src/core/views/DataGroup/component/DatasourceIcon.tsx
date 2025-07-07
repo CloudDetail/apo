@@ -2,13 +2,18 @@
  * Copyright 2025 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
+import React from 'react'
 import { FiDatabase } from 'react-icons/fi'
 import { LuServer } from 'react-icons/lu'
 import { PiComputerTowerBold } from 'react-icons/pi'
 import { VscSymbolNamespace } from 'react-icons/vsc'
 import { DatasourceType } from 'src/core/types/dataGroup'
 
-const DatasourceIcon = ({ type }: { type: DatasourceType }) => {
+interface DatasourceIconProps {
+  type: DatasourceType
+}
+
+const DatasourceIcon: React.FC<DatasourceIconProps> = ({ type }) => {
   return (
     <span>
       {type === 'cluster' ? (

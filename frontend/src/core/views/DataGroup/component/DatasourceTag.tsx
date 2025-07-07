@@ -4,6 +4,7 @@
  */
 
 import { Button, Tooltip } from 'antd'
+import React from 'react'
 import { LuChevronRight, LuX } from 'react-icons/lu'
 import { useSelector } from 'react-redux'
 import { DatasourceType } from 'src/core/types/dataGroup'
@@ -17,10 +18,11 @@ interface DatasourceTagProps {
   cluster?: string
   namespace?: string
   closable?: boolean
-  onRemoveSelection?: any
+  onRemoveSelection?: (id: string) => void
   block?: boolean
   path: string[]
 }
+
 const getSelectionColor = (type: string, theme: string) => {
   if (theme === 'dark') {
     switch (type) {
@@ -46,15 +48,11 @@ const getSelectionColor = (type: string, theme: string) => {
     }
   }
 }
-const renderTooltipTitle = (
-  type: DatasourceType,
-  name: string,
-  cluster: string,
-  namespace: string,
-) => {
+
+const renderTooltipTitle = (type: DatasourceType, name: string) => {
   const { t } = useTranslation('core/dataGroup')
   return (
-    <div className="flex ">
+    <div className="flex">
       <span className="text-var([--ant-color-text-secondary]) mr-1">
         {t(`datasourceType.${type}`)} :{' '}
       </span>
@@ -62,20 +60,24 @@ const renderTooltipTitle = (
     </div>
   )
 }
-const DatasourceTag = ({
+
+const DatasourceTag: React.FC<DatasourceTagProps> = ({
   type,
   id,
   name,
-  cluster,
-  namespace,
   path,
   closable = false,
   onRemoveSelection,
   block = true,
-}: DatasourceTagProps) => {
+}) => {
   const theme = useSelector((state: any) => state.settingReducer.theme)
+
+  const handleRemove = () => {
+    onRemoveSelection?.(id)
+  }
+
   return (
-    <Tooltip title={!block && renderTooltipTitle(type, name, cluster, namespace)}>
+    <Tooltip title={!block && renderTooltipTitle(type, name)}>
       <div
         className={`group flex items-center justify-between px-2 py-1 m-1 rounded-lg text-xs transition-all duration-200 hover:shadow-sm ${
           block ? 'w-full' : 'inline-flex'
@@ -86,23 +88,18 @@ const DatasourceTag = ({
             {!block && <DatasourceIcon type={type} />}
             {path?.slice(1).map((item, index) => {
               return (
-                <div className={`truncate opacity-75 flex items-center gap-1`}>
+                <div key={index} className={`truncate opacity-75 flex items-center gap-1`}>
                   {item} <LuChevronRight />
                 </div>
               )
             })}
             <div className={`truncate font-semibold`}>{name}</div>
           </div>
-
-          {/* Type badge */}
-          {/* <span className="text-xs px-1.5 py-0.5 rounded bg-white/40 capitalize flex-shrink-0 ml-2">
-          {type}
-        </span> */}
         </div>
         {closable && (
           <Button
             type="text"
-            onClick={() => onRemoveSelection(id)}
+            onClick={handleRemove}
             className="p-0.5 rounded flex-shrink-0 ml-2"
             title="Remove"
           >
@@ -113,4 +110,5 @@ const DatasourceTag = ({
     </Tooltip>
   )
 }
+
 export default DatasourceTag

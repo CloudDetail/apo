@@ -1,11 +1,13 @@
 {
   "group": "数据组",
   "deleteSuccess": "删除成功",
+  "deleteGroupError": "无法删除包含子组的数据组",
   "dataGroupName": "数据组名",
   "dataGroupDes": "数据组描述",
   "datasource": "数据源",
   "operation": "操作",
   "confirmDelete": "是否确定删除数据组{{groupName}}?",
+  "confirmDeleteWithDatasources": "删除数据组{{groupName}}将同时清理以下数据源：{{datasources}}。是否确定删除？",
   "confirm": "确定",
   "cancel": "取消",
   "delete": "删除",
@@ -31,5 +33,9 @@
     "namespace": "命名空间",
     "service": "服务"
   },
-  "clearAll": "清空"
+  "clearAll": "清空",
+  "groupNameLabel": "数据组名：",
+  "datasourceLabel": "数据源：",
+  "availableDatasource": "可选数据源",
+  "selectedDatasource": "已选数据源"
 }

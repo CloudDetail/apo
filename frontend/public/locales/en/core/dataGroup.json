@@ -1,11 +1,13 @@
 {
   "group": "data group",
   "deleteSuccess": "Deleted successfully",
+  "deleteGroupError": "Cannot delete data group with sub-groups",
   "dataGroupName": "Data Group Name",
   "dataGroupDes": "Data Group Description",
   "datasource": "Data Source",
   "operation": "Operation",
   "confirmDelete": "Are you sure you want to delete the data group {{groupName}}?",
+  "confirmDeleteWithDatasources": "Deleting data group {{groupName}} will also clean up the following data sources: {{datasources}}. Are you sure you want to delete?",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "delete": "Delete",
@@ -31,5 +33,9 @@
     "namespace": "Namespace",
     "service": "Service"
   },
-  "clearAll": "Clear All"
+  "clearAll": "Clear All",
+  "groupNameLabel": "Data Group Name:",
+  "datasourceLabel": "Data Source:",
+  "availableDatasource": "Available Data Sources",
+  "selectedDatasource": "Selected Data Sources"
 }
