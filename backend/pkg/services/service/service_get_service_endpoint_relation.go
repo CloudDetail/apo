@@ -8,11 +8,17 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
 	// Query all upstream nodes
 	parents, err := s.chRepo.ListParentNodes(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	parents, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
 	if err != nil {
 		return nil, err
 	}

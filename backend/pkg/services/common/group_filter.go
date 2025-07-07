@@ -28,6 +28,28 @@ func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRe
 	})
 }
 
+func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyRelation []*model.ToplogyRelation) ([]*model.ToplogyRelation, error) {
+	if groupID == 0 {
+		return topologyRelation, nil
+	}
+
+	selected, err := dbRepo.GetScopeIDsSelectedByGroupID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	svcList := DataGroupStorage.GetFullPermissionSvcList(selected)
+	cutRelation := make([]*model.ToplogyRelation, 0)
+	for _, relation := range topologyRelation {
+		if relation.Group != model.GROUP_SERVICE ||
+			containsInStr(svcList, relation.Service) ||
+			containsInStr(svcList, relation.ParentService) {
+			cutRelation = append(cutRelation, relation)
+		}
+	}
+	return cutRelation, nil
+}
+
 func CutTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyNode *model.TopologyNodes) (*model.TopologyNodes, error) {
 	if groupID == 0 {
 		return topologyNode, nil
