@@ -140,6 +140,11 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 		And(whereInstance)
 
 	if len(filter.ClusterIDs) > 0 {
+		for i := 0; i < len(filter.ClusterIDs); i++ {
+			if filter.ClusterIDs[i] == "unknown" {
+				filter.ClusterIDs[i] = ""
+			}
+		}
 		builder.InStrings("cluster_id", filter.ClusterIDs)
 	}
 
@@ -203,6 +208,11 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 		And(whereInstance)
 
 	if len(filter.ClusterIDs) > 0 {
+		for i := 0; i < len(filter.ClusterIDs); i++ {
+			if filter.ClusterIDs[i] == "unknown" {
+				filter.ClusterIDs[i] = ""
+			}
+		}
 		builder.InStrings("cluster_id", filter.ClusterIDs)
 	}
 

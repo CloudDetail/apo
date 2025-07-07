@@ -64,7 +64,6 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 }
 
 func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error {
-	// TODO Check Group With Same name?
 	parentGroup := common.DataGroupStorage.GetGroupNodeRef(req.ParentGId)
 	if parentGroup == nil {
 		return fmt.Errorf("parent group %d not found", req.ParentGId)
@@ -119,7 +118,6 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 		return err
 	}
 
-	// TODO auto update
 	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
@@ -175,7 +173,6 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 		return err
 	}
 
-	// TODO auto update
 	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
@@ -210,7 +207,7 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 	if err != nil {
 		return err
 	}
-	// TODO auto update
+
 	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
 }
