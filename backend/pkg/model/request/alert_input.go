@@ -157,6 +157,8 @@ type AlertRuleFilter struct {
 	Alert    string   `form:"alert" json:"alert"`
 	Severity []string `form:"severity" json:"severity"` // alarm level info warning...
 	Keyword  string   `form:"keyword" json:"keyword"`
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type AMConfigReceiverFilter struct {

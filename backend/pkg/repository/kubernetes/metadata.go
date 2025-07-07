@@ -5,6 +5,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -443,6 +444,12 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 	if len(filter.Severity) > 0 {
 		severity := rule.Labels["severity"]
 		if !ContainsIn(filter.Severity, severity) {
+			return false
+		}
+	}
+
+	if filter.GroupID > 0 {
+		if rule.Annotations["groupId"] != strconv.FormatInt(filter.GroupID, 10) {
 			return false
 		}
 	}
