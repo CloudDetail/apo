@@ -24,7 +24,7 @@ func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRe
 	once.Do(func() {
 		DataGroupStorage = NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
 		DataGroupStorage.scanAndSave(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
-		DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
+		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
 	})
 }
 
@@ -90,6 +90,10 @@ func ConvertScopeNodeToPQLFilter(scopeNode *datagroup.DataScopeTreeNode) prometh
 					filters = append(filters, filter)
 				}
 			}
+		}
+
+		if len(options) == 0 {
+			return nil
 		}
 
 		switch node.Type {

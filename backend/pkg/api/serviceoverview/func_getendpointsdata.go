@@ -45,12 +45,11 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 		var data []response.ServiceEndPointsRes
 
 		// TODO Check groupID permission
-		// userID := c.UserID()
-		// err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespace, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		// if err != nil {
-		// 	c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
-		// 	return
-		// }
+
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
+			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
+			return
+		}
 
 		data, err := h.serviceoverview.GetServicesEndPointData(c, req)
 		if err != nil {
