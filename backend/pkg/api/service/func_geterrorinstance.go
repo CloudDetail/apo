@@ -43,7 +43,7 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 			return
 		}
 
-		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.Service); !allowed || err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetErrorInstanceResponse{
 				Status:    model.STATUS_NORMAL,
 				Instances: []*response.ErrorInstance{},

@@ -42,7 +42,7 @@ func (h *handler) GetLogLogs() core.HandlerFunc {
 			return
 		}
 
-		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.Service); !allowed || err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []clickhouse.FaultLogResult{})
 			return
 		}

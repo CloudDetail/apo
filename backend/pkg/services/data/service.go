@@ -24,6 +24,7 @@ type Service interface {
 
 	CheckGroupPermission(ctx core.Context, groupID int64) (bool, error)
 	CheckScopePermission(ctx core.Context, cluster, namespace, service string) (bool, error)
+	CheckServicesPermission(ctx core.Context, services ...string) (bool, error)
 
 	GroupSubsOperation(ctx core.Context, req *request.GroupSubsOperationRequest) error
 	GetGroupSubs(ctx core.Context, req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)

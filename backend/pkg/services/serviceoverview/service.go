@@ -28,7 +28,7 @@ type Service interface {
 	// TODO move to prometheus package and avoid to repeated again
 	GetServicesEndpointDataWithChart(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, filter EndpointsFilter, sortRule request.SortType) (res []response.ServiceEndPointsRes, err error)
 
-	GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error)
+	GetServicesRYGLightStatus(ctx core.Context, req *request.GetRygLightRequest) (response.ServiceRYGLightRes, error)
 	GetMonitorStatus(ctx core.Context, startTime time.Time, endTime time.Time) (response.GetMonitorStatusResponse, error)
 
 	GetAlertRelatedEntryData(ctx core.Context, startTime, endTime time.Time, namespaces []string, entry []response.AlertRelatedEntry) (res []response.AlertRelatedEntry, err error)

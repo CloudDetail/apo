@@ -99,28 +99,25 @@ func (t *DataScopeTreeNode) GetScopeRef(scopeID string) *DataScopeTreeNode {
 	return nil
 }
 
-func (t *DataScopeTreeNode) GetFullPermissionSvcList(options []string) []string {
-	optionsMap := make(map[string]*DataScope)
+func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []string {
+	optionsMap := make(map[string]struct{})
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
-		if pPerm == checked || containsInStr(options, node.ScopeID) {
-			optionsMap[node.ScopeID] = &node.DataScope
-			for _, child := range node.Children {
-				dfs(checked, child)
-			}
-			return
+		if pPerm == checked || containsInStr(permScopeIDs, node.ScopeID) {
+			optionsMap[node.Service] = struct{}{}
+			pPerm = checked
 		}
 		for _, child := range node.Children {
-			dfs(notChecked, child)
+			dfs(pPerm, child)
 		}
 	}
 
 	dfs(notChecked, t)
 	var result []string
 
-	for _, scope := range optionsMap {
-		result = append(result, scope.Name)
+	for svc := range optionsMap {
+		result = append(result, svc)
 	}
 	return result
 }
@@ -135,13 +132,10 @@ func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []strin
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
 		if pPerm == checked || containsInStr(options, node.ScopeID) {
 			optionsMap[node.ScopeID] = true
-			for _, child := range node.Children {
-				dfs(checked, child)
-			}
-			return
+			pPerm = checked
 		}
 		for _, child := range node.Children {
-			dfs(notChecked, child)
+			dfs(pPerm, child)
 		}
 	}
 

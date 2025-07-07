@@ -51,7 +51,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			alertResps    []response.ServiceAlertRes
 		)
 
-		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.Service); !allowed || err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
 				Status: model.STATUS_NORMAL,
 				Data:   []*response.EntryInstanceData{},

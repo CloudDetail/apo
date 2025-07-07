@@ -206,6 +206,8 @@ type GetRygLightRequest struct {
 	// Query condition
 	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type GetAlertEventsRequest struct {

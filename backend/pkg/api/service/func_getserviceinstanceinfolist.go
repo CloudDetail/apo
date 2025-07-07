@@ -39,7 +39,7 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 			return
 		}
 
-		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.ServiceName); !allowed || err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.ServiceName); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []prometheus.InstanceKey{})
 			return
 		}

@@ -24,6 +24,31 @@ func (s *service) CheckScopePermission(ctx core.Context, cluster, namespace, ser
 	return s.dbRepo.CheckScopePermission(ctx, premGroups, cluster, namespace, service)
 }
 
+func (s *service) CheckServicesPermission(ctx core.Context, services ...string) (bool, error) {
+	userID := ctx.UserID()
+	premGroups, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	if containsInInt(premGroups, 0) {
+		return true, nil
+	}
+
+	selected, err := s.dbRepo.GetScopeIDsSelectedByPermGroupIDs(ctx, premGroups)
+	if err != nil {
+		return false, err
+	}
+
+	svcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+
+	for _, service := range services {
+		if !containsInStr(svcList, service) {
+			return false, nil
+		}
+	}
+	return true, nil
+}
+
 func (s *service) CheckGroupPermission(ctx core.Context, groupID int64) (bool, error) {
 	userID := ctx.UserID()
 	premGroups, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)

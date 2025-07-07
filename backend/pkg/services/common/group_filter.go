@@ -5,6 +5,7 @@ package common
 
 import (
 	"sync"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -22,6 +23,8 @@ var (
 func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
 	once.Do(func() {
 		DataGroupStorage = NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+		DataGroupStorage.scanAndSave(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
+		DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
 	})
 }
 

@@ -18,6 +18,7 @@ type DaoDataScope interface {
 
 	GetScopeIDsOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error)
 	GetScopeIDsSelectedByGroupID(ctx core.Context, groupID int64) (selected []string, err error)
+	GetScopeIDsSelectedByPermGroupIDs(ctx core.Context, permGroupIDs []int64) ([]string, error)
 
 	UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error
 	DeleteGroup2Scope(ctx core.Context, groupID int64) error
@@ -32,23 +33,14 @@ func (repo *daoRepo) CheckScopePermission(ctx core.Context, permGroupIDs []int64
 	var res datagroup.DataScope
 
 	db := repo.GetContextDB(ctx)
-
-	var err error
-	if cluster == "" && namespace == "" {
-		err = db.Table("data_group_2_scope as dgs").
-			Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
-			Where("dgs.group_id in ?", permGroupIDs).
-			Where("ds.service = ?", service).First(&res).Error
-	} else {
-		err = db.Table("data_group_2_scope as dgs").
-			Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
-			Where("dgs.group_id in ?", permGroupIDs).
-			Where(
-				db.Where("ds.cluster_id = ? and ds.namespace = ? and ds.service = ?", cluster, namespace, service).
-					Or("ds.cluster_id = ? and ds.namespace = ? and ds.type = 'namespace'", cluster, namespace).
-					Or("ds.cluster_id = ? and ds.type = 'cluster'", cluster),
-			).First(&res).Error
-	}
+	err := db.Table("data_group_2_scope as dgs").
+		Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
+		Where("dgs.group_id in ?", permGroupIDs).
+		Where(
+			db.Where("ds.cluster_id = ? and ds.namespace = ? and ds.service = ?", cluster, namespace, service).
+				Or("ds.cluster_id = ? and ds.namespace = ? and ds.type = 'namespace'", cluster, namespace).
+				Or("ds.cluster_id = ? and ds.type = 'cluster'", cluster),
+		).First(&res).Error
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
@@ -100,6 +92,13 @@ func (repo *daoRepo) GetScopeIDsSelectedByGroupID(ctx core.Context, groupID int6
 		Where("group_id = ?", groupID).
 		Pluck("scope_id", &options).Error
 	return options, err
+}
+
+func (repo *daoRepo) GetScopeIDsSelectedByPermGroupIDs(ctx core.Context, permGroupIDs []int64) (selected []string, err error) {
+	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).
+		Where("group_id in ?", permGroupIDs).
+		Pluck("scope_id", &selected).Error
+	return selected, err
 }
 
 func (repo *daoRepo) SaveScopes(ctx core.Context, scopes []datagroup.DataScope) error {
