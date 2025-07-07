@@ -186,6 +186,11 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 		return err
 	}
 
+	groupNode := common.DataGroupStorage.GetGroupNodeRef(req.GroupID)
+	if groupNode != nil && len(groupNode.SubGroups) > 0 {
+		return core.Error(code.DeleteDataGroupError, "data group has sub groups")
+	}
+
 	if !exists {
 		return core.Error(code.DataGroupNotExistError, "data group does not exist")
 	}

@@ -216,6 +216,7 @@ type AddAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
 	AlertRule AlertRule `json:"alertRule"`
+	GroupID   int64     `json:"groupId"`
 }
 
 type CheckAlertRuleRequest struct {
