@@ -226,7 +226,7 @@ func (f *OrFilter) RegexMatch(k, regexPattern string) PQLFilter {
 
 func (f *OrFilter) AddPatternFilter(pattern, v string) PQLFilter {
 	for i := 0; i < len(f.Filters); i++ {
-		f.Filters[i].RegexMatch(pattern, v)
+		f.Filters[i].AddPatternFilter(pattern, v)
 	}
 	return f
 }
