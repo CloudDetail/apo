@@ -175,8 +175,7 @@ func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServic
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}
-
-	return nil, nil
+	return results, nil
 }
 
 type ParentNode struct {
@@ -192,7 +191,7 @@ type ParentNode struct {
 type ServiceNodeWithDepth struct {
 	Service  string `ch:"service"`
 	Endpoint string `ch:"url"`
-	Depth    int64  `ch:"depth"`
+	Depth    uint64 `ch:"depth"`
 }
 
 // Consider 2 scenarios

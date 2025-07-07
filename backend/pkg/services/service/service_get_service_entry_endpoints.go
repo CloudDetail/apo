@@ -33,7 +33,7 @@ func (s *service) GetServiceEntryEndpointsInGroup(ctx core.Context, req *request
 	}
 
 	var entryInGroup []clickhouse.EntryNode
-	var minDepth int64 = 999
+	var minDepth uint64 = 999
 	for i := 0; i < len(parents); i++ {
 		if parents[i].Depth > minDepth {
 			continue
