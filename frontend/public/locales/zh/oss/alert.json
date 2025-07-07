@@ -54,7 +54,7 @@
     "saveSuccess": "保存告警规则成功",
     "save": "保存",
     "cancel": "取消",
-    "groupName": "组名",
+    "groupName": "告警类型",
     "alertRuleName": "告警规则名",
     "alertCondition": "告警条件",
     "alertLevel": "告警级别",
