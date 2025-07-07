@@ -168,9 +168,7 @@ func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServic
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
-		Equals("url", req.Endpoint).
-		NotEquals("parentService", ""). // Filter data with empty entry node
-		NotEquals("clientGroup", "")    // Ensure that the data of MQ -> A can be queried here.
+		Equals("url", req.Endpoint)
 
 	results := []ServiceNodeWithDepth{}
 	sql := fmt.Sprintf(SQL_GET_UPSTREAM_NODES, queryBuilder.String())

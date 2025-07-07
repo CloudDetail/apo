@@ -22,7 +22,7 @@ func (s *service) GetServiceEntryEndpointsInGroup(ctx core.Context, req *request
 
 	permSvcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
 
-	var permSvcMap map[string]struct{}
+	var permSvcMap = make(map[string]struct{})
 	for _, svc := range permSvcList {
 		permSvcMap[svc] = struct{}{}
 	}
