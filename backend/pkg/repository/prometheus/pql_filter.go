@@ -204,29 +204,29 @@ func And(filters ...PQLFilter) *OrFilter {
 }
 
 func (f *OrFilter) Equal(k, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.Equal(k, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].Equal(k, v)
 	}
 	return f
 }
 
 func (f *OrFilter) NotEqual(k, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.NotEqual(k, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].NotEqual(k, v)
 	}
 	return f
 }
 
 func (f *OrFilter) RegexMatch(k, regexPattern string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.RegexMatch(k, regexPattern)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].RegexMatch(k, regexPattern)
 	}
 	return f
 }
 
 func (f *OrFilter) AddPatternFilter(pattern, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.AddPatternFilter(pattern, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].RegexMatch(pattern, v)
 	}
 	return f
 }
