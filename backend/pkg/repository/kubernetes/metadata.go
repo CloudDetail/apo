@@ -449,7 +449,7 @@ func matchAlertRuleFilter(filter *request.AlertRuleFilter, rule *request.AlertRu
 	}
 
 	if filter.GroupID > 0 {
-		if rule.Annotations["groupId"] != strconv.FormatInt(filter.GroupID, 10) {
+		if rule.Labels["groupId"] != strconv.FormatInt(filter.GroupID, 10) {
 			return false
 		}
 	}

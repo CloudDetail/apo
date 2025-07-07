@@ -17,7 +17,7 @@ func (s *service) AddAlertRule(ctx core.Context, req *request.AddAlertRuleReques
 	}
 
 	if req.GroupID != 0 {
-		req.AlertRule.Annotations["groupId"] = strconv.FormatInt(req.GroupID, 10)
+		req.AlertRule.Labels["groupId"] = strconv.FormatInt(req.GroupID, 10)
 	}
 
 	return s.k8sApi.AddAlertRule(req.AlertRuleFile, req.AlertRule)
