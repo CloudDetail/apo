@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
 import { Checkbox, Input, InputNumber, Segmented, Tooltip } from 'antd'
@@ -54,8 +54,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const initialParamsRef = React.useRef({
     clusterIds: stringToArray(params.get('clusterIds')),
     namespaces: stringToArray(params.get('namespaces')),
-    instance: stringToArray(params.get('instance'))?.[0],
+    instance: stringToArray(params.get('instance')),
     traceId: params.get('traceId') || '',
+    serviceName: stringToArray(params.get('service')),
   })
 
   const onChangeSWTraceId = (event) => {
@@ -72,6 +73,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
   const onChangeMaxDuration = (value) => {
     setMaxDuration(value)
   }
+  useEffect(() => {
+    setTraceId(initialParamsRef?.current.traceId)
+  }, [initialParamsRef?.current])
   return (
     <>
       <div className="flex flex-row mb-2 justify-between">
@@ -85,6 +89,8 @@ const LogsTraceFilter = React.memo(({ type }) => {
             setPod={(value) => setInstance(value[0])}
             initCluster={initialParamsRef?.current.clusterIds}
             initNamespace={initialParamsRef?.current.namespaces}
+            initInstance={initialParamsRef?.current.instance}
+            initServiceName={initialParamsRef?.current.serviceName}
             startTime={startTime}
             endTime={endTime}
             setIsFilterDone={setIsFilterDone}

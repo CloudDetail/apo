@@ -207,6 +207,7 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
     initServiceName,
     initEndpointName,
     initPod,
+    initInstance,
     startTime,
     endTime,
     setIsFilterDone,
@@ -358,6 +359,19 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
       infos: Array.from(infoSet),
     }
   }
+  function getValuesByNames(options: GroupedList[], names: string[]): string[] {
+    if (!names) return []
+    const nameSet = new Set(names)
+    const values: string[] = []
+    for (const group of options) {
+      for (const opt of group.options) {
+        if (nameSet.has(opt.label)) {
+          values.push(opt.value)
+        }
+      }
+    }
+    return values
+  }
   useEffect(() => {
     setCluster?.(searchCluster)
   }, [searchCluster, clusterOptions])
@@ -390,27 +404,38 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
     if (initCluster) {
       setSearchCluster(initCluster)
     }
-  }, [initCluster])
+  }, [initCluster, clusterOptions])
   useEffect(() => {
     if (initNamespace) {
-      setSearchNamespace(initNamespace)
+      const values = getValuesByNames(namespaceOptions, initNamespace)
+      setSearchNamespace(values)
     }
-  }, [initNamespace])
+  }, [initNamespace, namespaceOptions])
   useEffect(() => {
     if (initServiceName) {
-      setSearchServiceName(initServiceName)
+      const values = getValuesByNames(serviceNameOptions, initServiceName)
+      setSearchServiceName(values)
     }
-  }, [initServiceName])
+  }, [initServiceName, serviceNameOptions])
   useEffect(() => {
     if (initEndpointName) {
-      setSearchEndpointName(initEndpointName)
+      const values = getValuesByNames(endpointNameOptions, initEndpointName)
+      setSearchEndpointName(values)
     }
-  }, [initEndpointName])
+  }, [initEndpointName, endpointNameOptions])
+  useEffect(() => {
+    if (initInstance) {
+      const values = getValuesByNames(instanceOptions, initInstance)
+      setSearchInstances(values)
+      console.log(instanceOptions, initInstance, values)
+    }
+  }, [initInstance, instanceOptions])
   useEffect(() => {
     if (initPod) {
-      setSearchPods(initPod)
+      const values = getValuesByNames(podOptions, initPod)
+      setSearchPods(values)
     }
-  }, [initPod])
+  }, [initPod, podOptions])
   useDebounce(
     () => {
       setIsFilterDone?.(true)

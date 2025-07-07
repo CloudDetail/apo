@@ -151,8 +151,10 @@ function FaultSiteTrace() {
 
         const formattedStartTime = TimestampToISO(startTime)
         const formattedEndTime = TimestampToISO(endTime)
-
-        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}`
+        const clusterIdsParam = clusterIds
+          ? `&clusterIds=${encodeURIComponent(Array.isArray(clusterIds) ? clusterIds.join(',') : clusterIds)}`
+          : ''
+        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}${clusterIdsParam}&groupId=${dataGroupId}`
         return (
           <div className="flex flex-col">
             <Button

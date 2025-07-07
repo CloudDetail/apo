@@ -116,9 +116,11 @@ const Timeline = (props) => {
       default:
         break
     }
-
+    const clusterIdsParam = clusterIds
+      ? `&clusterIds=${encodeURIComponent(Array.isArray(clusterIds) ? clusterIds.join(',') : clusterIds)}`
+      : ''
     const basePath = type === 'traceLogs' ? '#/trace/fault-site' : '#/logs/fault-site'
-    const fullUrl = `${window.location.origin}/${basePath}?${query.toString()}`
+    const fullUrl = `${window.location.origin}/${basePath}?${query.toString()}${clusterIdsParam}&groupId=${dataGroupId}`
     window.open(fullUrl, '_blank')
   }
 

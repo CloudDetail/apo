@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import { useLocation } from 'react-router-dom'
 import InfoUni from './component/infoUni'
@@ -35,7 +35,10 @@ const ServiceInfo = () => {
     if (!value) return null
     return value.split(',').filter(Boolean)
   }
-  const clusterIds = stringToArray(searchParams.get('clusterIds')) || null
+  const clusterIdsStr = searchParams.get('clusterIds')
+  const clusterIds = useMemo(() => {
+    return stringToArray(clusterIdsStr) || null
+  }, [clusterIdsStr])
   const [topologyData, setTopologyData] = useState({
     nodes: [],
     edges: [],

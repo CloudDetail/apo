@@ -96,7 +96,14 @@ export default function ErrorInstanceInfo() {
         accessor: 'propations',
         Cell: (props) => {
           const { value, row } = props
-          return <ErrorCell data={value} instance={row.values.name} />
+          return (
+            <ErrorCell
+              data={value}
+              instance={row.values.name}
+              clusterIds={clusterIds}
+              groupId={dataGroupId}
+            />
+          )
         },
       },
       {
