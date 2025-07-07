@@ -6,8 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -43,12 +41,11 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []*response.GetLogMetricsResponse{})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetLogMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(

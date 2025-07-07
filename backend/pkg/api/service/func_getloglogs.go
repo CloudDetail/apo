@@ -6,12 +6,10 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 )
 
 // GetLogLogs get Log fault site log
@@ -44,12 +42,11 @@ func (h *handler) GetLogLogs() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []clickhouse.FaultLogResult{})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetLogLogs(c, req)
 		if err != nil {
 			c.AbortWithError(

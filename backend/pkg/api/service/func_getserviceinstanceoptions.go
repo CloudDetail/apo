@@ -38,12 +38,11 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.ServiceName); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, make(map[string]*model.ServiceInstance))
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetServiceInstanceOptions(c, req)
 		if err != nil {
 			c.AbortWithError(

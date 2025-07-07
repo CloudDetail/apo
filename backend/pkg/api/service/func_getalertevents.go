@@ -6,8 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -58,15 +56,6 @@ func (h *handler) GetAlertEvents() core.HandlerFunc {
 			}
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Services, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.AbortWithPermissionError(err, code.AuthError, &response.GetAlertEventsResponse{
-				TotalCount: 0,
-				EventList:  []alert.AlertEvent{},
-			})
-			return
-		}
 		resp, err := h.serviceInfoService.GetAlertEvents(c, req)
 		if err != nil {
 			c.AbortWithError(

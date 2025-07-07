@@ -43,15 +43,14 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetErrorInstanceResponse{
 				Status:    model.STATUS_NORMAL,
 				Instances: []*response.ErrorInstance{},
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetErrorInstance(c, req)
 		if err != nil {
 			c.AbortWithError(

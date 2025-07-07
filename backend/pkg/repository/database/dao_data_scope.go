@@ -33,14 +33,22 @@ func (repo *daoRepo) CheckScopePermission(ctx core.Context, permGroupIDs []int64
 
 	db := repo.GetContextDB(ctx)
 
-	err := db.Table("data_group_2_scope as dgs").
-		Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
-		Where("dgs.group_id in ?", permGroupIDs).
-		Where(
-			db.Where("ds.cluster_id = ? and ds.namespace = ? and ds.service = ?", cluster, namespace, service).
-				Or("ds.cluster_id = ? and ds.namespace = ? and ds.type = 'namespace'", cluster, namespace).
-				Or("ds.cluster_id = ? and ds.type = 'cluster'", cluster),
-		).First(&res).Error
+	var err error
+	if cluster == "" && namespace == "" {
+		err = db.Table("data_group_2_scope as dgs").
+			Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
+			Where("dgs.group_id in ?", permGroupIDs).
+			Where("ds.service = ?", service).First(&res).Error
+	} else {
+		err = db.Table("data_group_2_scope as dgs").
+			Joins("INNER JOIN data_scope ds ON ds.scope_id = dgs.scope_id").
+			Where("dgs.group_id in ?", permGroupIDs).
+			Where(
+				db.Where("ds.cluster_id = ? and ds.namespace = ? and ds.service = ?", cluster, namespace, service).
+					Or("ds.cluster_id = ? and ds.namespace = ? and ds.type = 'namespace'", cluster, namespace).
+					Or("ds.cluster_id = ? and ds.type = 'cluster'", cluster),
+			).First(&res).Error
+	}
 
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil

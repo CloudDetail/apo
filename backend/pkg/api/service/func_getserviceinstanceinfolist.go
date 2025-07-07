@@ -6,7 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -40,12 +39,11 @@ func (h *handler) GetServiceInstanceInfoList() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckScopePermission(c, "", "", req.ServiceName); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []prometheus.InstanceKey{})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetServiceInstanceInfoList(c, req)
 		if err != nil {
 			c.AbortWithError(
