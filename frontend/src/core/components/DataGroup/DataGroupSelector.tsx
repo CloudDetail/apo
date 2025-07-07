@@ -7,7 +7,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const DataGroupSelector = ({ readonly = false }) => {
   const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
@@ -15,7 +15,7 @@ const DataGroupSelector = ({ readonly = false }) => {
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams, setSearchParams] = useSearchParams()
+  // 移除未使用的 searchParams 变量
 
   const flattenedAvailableNodes = useMemo(() => {
     const result: any[] = []
@@ -38,10 +38,18 @@ const DataGroupSelector = ({ readonly = false }) => {
     return new Set(flattenedAvailableNodes.map((node) => Number(node.groupId)))
   }, [flattenedAvailableNodes])
 
-  // --- 初始化：从 URL 设置 groupId（仅首次）
+  // 只以 URL 为真源，初始化时如果 URL 没有 groupId 且 redux 有，则补充到 URL
   useEffect(() => {
     if (flattenedAvailableNodes.length > 0) {
-      const urlParams = searchParams
+      let urlParams
+      const URLSearchParamsCtor =
+        typeof globalThis !== 'undefined' ? globalThis['URLSearchParams'] : undefined
+      if (URLSearchParamsCtor) {
+        urlParams = new URLSearchParamsCtor(location.search)
+      } else {
+        // SSR fallback，空实现
+        urlParams = { get: () => null, set: () => {}, toString: () => '' }
+      }
       const groupIdStr = urlParams.get('groupId')
       const groupIdFromUrl = groupIdStr ? Number(groupIdStr) : null
       const isUrlGroupValid = groupIdFromUrl !== null && availableNodeIds.has(groupIdFromUrl)
@@ -54,7 +62,10 @@ const DataGroupSelector = ({ readonly = false }) => {
         }
       } else {
         const isCurrentValid = typeof dataGroupId === 'number' && availableNodeIds.has(dataGroupId)
-        if (!isCurrentValid) {
+        if (isCurrentValid && !groupIdStr) {
+          urlParams.set('groupId', dataGroupId.toString())
+          navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
+        } else if (!isCurrentValid) {
           const firstAvailableNode = flattenedAvailableNodes[0]
           if (firstAvailableNode) {
             const newGroupId = Number(firstAvailableNode.groupId)
@@ -65,28 +76,27 @@ const DataGroupSelector = ({ readonly = false }) => {
             urlParams.set('groupId', newGroupId.toString())
             navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
           }
-        } else if (!groupIdStr) {
-          urlParams.set('groupId', dataGroupId.toString())
-          navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
         }
       }
     } else if (dataGroupId) {
       dispatch({ type: 'setSelectedDataGroupId', payload: null })
     }
-  }, [flattenedAvailableNodes, availableNodeIds, dispatch, location, searchParams])
+  }, [flattenedAvailableNodes, availableNodeIds, dispatch, location, dataGroupId, navigate])
 
-  // --- 双向绑定：dataGroupId 变化 → 同步到 URL（只在实际变化时）
-  useEffect(() => {
-    if (typeof dataGroupId !== 'number') return
-    const urlParams = new URLSearchParams(location.search)
-    if (Number(urlParams.get('groupId')) !== dataGroupId) {
-      urlParams.set('groupId', dataGroupId.toString())
-      navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
-    }
-  }, [dataGroupId, location.pathname, location.search, navigate])
+  // 删除监听 redux 变化同步 URL 的 useEffect
 
   const onChange = (newValue: number) => {
     dispatch({ type: 'setSelectedDataGroupId', payload: newValue })
+    let urlParams
+    const URLSearchParamsCtor =
+      typeof globalThis !== 'undefined' ? globalThis['URLSearchParams'] : undefined
+    if (URLSearchParamsCtor) {
+      urlParams = new URLSearchParamsCtor(location.search)
+    } else {
+      urlParams = { set: () => {}, toString: () => '' }
+    }
+    urlParams.set('groupId', newValue.toString())
+    navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
   }
 
   return (
