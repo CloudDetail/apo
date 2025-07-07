@@ -40,7 +40,9 @@ func CutTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int6
 
 	svcList := DataGroupStorage.GetFullPermissionSvcList(selected)
 
-	cutNode := &model.TopologyNodes{}
+	cutNode := &model.TopologyNodes{
+		Nodes: make(map[string]*model.TopologyNode),
+	}
 	for k, node := range topologyNode.Nodes {
 		if node.Group != model.GROUP_SERVICE || containsInStr(svcList, node.Service) {
 			cutNode.Nodes[k] = node
