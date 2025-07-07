@@ -4,6 +4,8 @@
 package alerts
 
 import (
+	"strconv"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -16,6 +18,10 @@ func (s *service) UpdateAlertRule(ctx core.Context, req *request.UpdateAlertRule
 			code.AlertGroupAndLabelMismatchError,
 			"gourp and group label mismatch",
 		)
+	}
+
+	if req.GroupID != 0 {
+		req.AlertRule.Annotations["groupId"] = strconv.FormatInt(req.GroupID, 10)
 	}
 
 	return s.k8sApi.UpdateAlertRule(req.AlertRuleFile, req.AlertRule, req.OldGroup, req.OldAlert)

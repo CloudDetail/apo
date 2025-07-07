@@ -175,6 +175,8 @@ type UpdateAlertRuleRequest struct {
 	OldGroup  string    `json:"oldGroup" binding:"required"`
 	OldAlert  string    `json:"oldAlert" binding:"required"`
 	AlertRule AlertRule `json:"alertRule"`
+
+	GroupID int64 `json:"groupId"`
 }
 
 type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
