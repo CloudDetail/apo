@@ -35,6 +35,7 @@ type Repo interface {
 	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
+	ListUpstreamEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error)
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
 	ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)

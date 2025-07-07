@@ -64,7 +64,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			Status: model.STATUS_NORMAL,
 			Data:   make([]*response.EntryInstanceData, 0),
 		}
-		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(c, req)
+		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpointsInGroup(c, req)
 		if err == nil {
 			// TODO defaults to global Threshold first, and then adjusts to the Threshold of specific services.
 			threshold, err = h.serviceoverviewService.GetThreshold(c, database.GLOBAL, "", "")

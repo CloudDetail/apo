@@ -57,6 +57,7 @@ type Service interface {
 	GetServiceEndPointList(ctx core.Context, req *request.GetServiceEndPointListRequest) ([]string, error)
 	// Get the list of service portal Endpoint
 	GetServiceEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
+	GetServiceEntryEndpointsInGroup(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
 	// CountK8sEvents get the number of K8s events
 	CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error)
 	// GetAlertEvents get alarm events

@@ -31,7 +31,8 @@ type DataGroupWithScopes struct {
 }
 
 type SubGroupDetailResponse struct {
-	SubGroups []DataGroupWithScopes `json:"subGroups"`
+	Datasources []datagroup.DataScope `json:"datasources"`
+	SubGroups   []DataGroupWithScopes `json:"subGroups"`
 }
 
 func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*SubGroupDetailResponse, error) {
@@ -58,8 +59,14 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 			Scopes:         scopes,
 		})
 	}
+
+	scopes, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, groupID, "")
+	if err != nil {
+		return nil, err
+	}
 	return &SubGroupDetailResponse{
-		SubGroups: subGroups,
+		Datasources: scopes,
+		SubGroups:   subGroups,
 	}, nil
 }
 

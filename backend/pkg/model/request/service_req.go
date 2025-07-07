@@ -262,6 +262,7 @@ type GetServiceEntryEndpointsRequest struct {
 	ShowMissTop bool   `form:"showMissTop" json:"showMissTop"`                              // whether to display the lost non-portal service
 
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetMonitorStatusRequest struct {
