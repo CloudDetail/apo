@@ -19,7 +19,7 @@ func (s *service) GetAlertEventsSample(ctx core.Context, req *request.GetAlertEv
 	filter := prometheus.NewFilter()
 	filter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(req.Services...))
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 
 	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
@@ -73,7 +73,7 @@ func (s *service) GetAlertEvents(ctx core.Context, req *request.GetAlertEventsRe
 	filter := prometheus.NewFilter()
 	filter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(req.Services...))
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 
 	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)

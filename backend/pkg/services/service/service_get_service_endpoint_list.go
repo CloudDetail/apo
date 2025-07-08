@@ -14,7 +14,7 @@ func (s *service) GetServiceEndPointList(ctx core.Context, req *request.GetServi
 	filter := prometheus.NewFilter()
 	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 	return s.promRepo.GetServiceEndPointListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 }

@@ -13,7 +13,7 @@ import (
 func (s *service) GetServiceNamespaceList(ctx core.Context, req *request.GetServiceNamespaceListRequest) (response.GetServiceNamespaceListResponse, error) {
 	filter := prometheus.NewFilter()
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 	list, err := s.promRepo.GetNamespaceList(ctx, req.StartTime, req.EndTime, filter)
 	var resp response.GetServiceNamespaceListResponse

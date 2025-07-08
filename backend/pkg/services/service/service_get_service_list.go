@@ -15,7 +15,7 @@ func (s *service) GetServiceList(ctx core.Context, req *request.GetServiceListRe
 		filter.RegexMatch("namespace", prometheus.RegexMultipleValue(req.Namespace...))
 	}
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 	return s.promRepo.GetServiceList(ctx, req.StartTime, req.EndTime, filter)
 }

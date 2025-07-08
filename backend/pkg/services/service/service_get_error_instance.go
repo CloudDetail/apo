@@ -17,7 +17,7 @@ func (s *service) GetErrorInstance(ctx core.Context, req *request.GetErrorInstan
 	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.Service)
 
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 
 	serviceInstances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)

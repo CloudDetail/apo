@@ -16,7 +16,7 @@ func (s *service) GetServiceInstanceList(ctx core.Context, req *request.GetServi
 	filter := prometheus.NewFilter()
 	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 	instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
@@ -29,7 +29,7 @@ func (s *service) GetServiceInstanceInfoList(ctx core.Context, req *request.GetS
 	filter := prometheus.NewFilter()
 	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
 	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch("cluster_id", prometheus.RegexMultipleValue(req.ClusterIDs...))
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
