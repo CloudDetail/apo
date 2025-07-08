@@ -23,6 +23,14 @@ func (c *WrappedConn) Select(ctx context.Context, dest any, query string, args .
 	endTime := time.Now()
 
 	query = EscapeForLog(query)
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			args[i] = EscapeForLog(v)
+		case []byte:
+			args[i] = EscapeForLog(string(v))
+		}
+	}
 	c.logger.Sugar().Debugf("Clickhouse Select: {query=%s, args=%v}, cost: %d ms",
 		query, args, endTime.UnixMilli()-startTime.UnixMilli())
 	return err
@@ -34,6 +42,14 @@ func (c *WrappedConn) Query(ctx context.Context, query string, args ...any) (dri
 	endTime := time.Now()
 
 	query = EscapeForLog(query)
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			args[i] = EscapeForLog(v)
+		case []byte:
+			args[i] = EscapeForLog(string(v))
+		}
+	}
 	c.logger.Sugar().Debugf("Clickhouse Query: {query=%s, args=%v}, cost: %d ms",
 		query, args, endTime.UnixMilli()-startTime.UnixMilli())
 	return rows, err
@@ -45,6 +61,14 @@ func (c *WrappedConn) QueryRow(ctx context.Context, query string, args ...any) d
 	endTime := time.Now()
 
 	query = EscapeForLog(query)
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			args[i] = EscapeForLog(v)
+		case []byte:
+			args[i] = EscapeForLog(string(v))
+		}
+	}
 	c.logger.Sugar().Debugf("Clickhouse QueryRow: {query=%s, args=%v}, cost: %d ms",
 		query, args, endTime.UnixMilli()-startTime.UnixMilli())
 	return rows
@@ -56,6 +80,14 @@ func (c *WrappedConn) Exec(ctx context.Context, query string, args ...any) error
 	endTime := time.Now()
 
 	query = EscapeForLog(query)
+	for i := 0; i < len(args); i++ {
+		switch v := args[i].(type) {
+		case string:
+			args[i] = EscapeForLog(v)
+		case []byte:
+			args[i] = EscapeForLog(string(v))
+		}
+	}
 	c.logger.Sugar().Debugf("Clickhouse Exec: {query=%s, args=%v}, cost: %d ms",
 		query, args, endTime.UnixMilli()-startTime.UnixMilli())
 	return err
