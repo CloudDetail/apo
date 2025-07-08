@@ -121,7 +121,7 @@ const ossRoutes = [
     name: <TranslationCom text="notificationChannelsName" space={namespace} />,
     element: AlertsNotify,
     hideSystemTimeRangePicker: true,
-    showDataGroup: true,
+    // showDataGroup: true,
   },
   {
     path: '/config',

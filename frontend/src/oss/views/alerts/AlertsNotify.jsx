@@ -14,7 +14,6 @@ import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
-import { useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 
 export default function AlertsNotify() {
@@ -27,7 +26,6 @@ export default function AlertsNotify() {
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
   const { t } = useTranslation('oss/alert')
-  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
       row.dingTalkConfigs
@@ -151,12 +149,10 @@ export default function AlertsNotify() {
   }
   useDebounce(
     () => {
-      if (dataGroupId !== null) {
-        fetchData()
-      }
+      fetchData()
     },
     300,
-    [searchName, dataGroupId],
+    [searchName],
   )
   const fetchData = () => {
     setLoading(true)
@@ -166,7 +162,7 @@ export default function AlertsNotify() {
       pageSize: pageSize,
       name: searchName,
       refreshCache: true,
-      groupId: dataGroupId,
+      // groupId: dataGroupId,
     })
       .then((res) => {
         setLoading(false)
@@ -198,7 +194,7 @@ export default function AlertsNotify() {
       },
       loading: false,
     }
-  }, [column, data, pageIndex, pageSize, dataGroupId])
+  }, [column, data, pageIndex, pageSize])
   return (
     <BasicCard>
       <LoadingSpinner loading={loading} />
