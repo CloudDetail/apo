@@ -5,6 +5,7 @@ package common
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -21,6 +22,19 @@ type DataGroupStore struct {
 	// ScopesID map[datagroup.ScopeLabels]string // TODO using another scopeID construct
 	ExistedScope map[datagroup.DataScope]struct{}
 	stopCh       chan struct{}
+}
+
+func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
+	once.Do(func() {
+		storage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+		if err != nil {
+			log.Fatalf("failed to init DataGroupStorage: %v", err)
+		}
+
+		DataGroupStorage = storage
+		DataGroupStorage.Refresh(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
+		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
+	})
 }
 
 func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) (*DataGroupStore, error) {

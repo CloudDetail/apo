@@ -4,14 +4,11 @@
 package common
 
 import (
-	"log"
 	"sync"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
-	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
@@ -20,17 +17,6 @@ var (
 	DataGroupStorage *DataGroupStore
 	once             sync.Once
 )
-
-func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
-	once.Do(func() {
-		DataGroupStorage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
-		if err != nil {
-			log.Fatalf("failed to init DataGroupStorage: %v", err)
-		}
-		DataGroupStorage.Refresh(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
-		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
-	})
-}
 
 func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyRelation []*model.ToplogyRelation) ([]*model.ToplogyRelation, error) {
 	if groupID == 0 {
