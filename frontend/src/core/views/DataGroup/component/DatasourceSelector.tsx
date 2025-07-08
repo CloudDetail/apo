@@ -3,14 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Card, Tree } from 'antd'
+import { Button, Card, Tree, Tooltip, Badge } from 'antd'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import DatasourceTag from './DatasourceTag'
 import DatasourceIcon from './DatasourceIcon'
 import styles from './index.module.scss'
-import { getCheckableDatasourceApi } from 'src/core/api/dataGroup'
+import { getCheckableDatasourceApi, refreshGroupDatasourceApiV2 } from 'src/core/api/dataGroup'
 import { DatasourceType, DatasourceTypes } from 'src/core/types/dataGroup'
+import { LuRefreshCcw } from 'react-icons/lu'
+import { notify } from 'src/core/utils/notify'
 interface DataType {
   datasource: React.Key
   nested?: string[]
@@ -98,6 +100,9 @@ const DatasourceSelector = (props) => {
   const [checkedTreeKeys, setCheckedTreeKeys] = useState<React.Key[]>([])
   const [datasourceList, setDatasourceList] = useState<DataType[]>([])
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
+  const [protectedList, setProtectedList] = useState<any[]>([])
+  const [showInitialTooltip, setShowInitialTooltip] = useState(false)
+
   const onCheck = (checkedKeys, { checkedNodes }) => {
     setCheckedTreeKeys(checkedKeys.checked)
     setDatasourceList(checkedNodes)
@@ -106,7 +111,6 @@ const DatasourceSelector = (props) => {
 
   const getCheckableDatasource = () => {
     getCheckableDatasourceApi(groupId, isAdd).then((res) => {
-      console.log(res)
       const { tree: newTree, datasourceList } = processTreeAndCollectDatasource(
         [res.view],
         res.datasources,
@@ -154,14 +158,72 @@ const DatasourceSelector = (props) => {
     onChange(resultKeys)
     setCheckedTreeKeys(resultKeys)
   }
+  const onRefreshDatasource = () => {
+    refreshGroupDatasourceApiV2(groupId, true).then((res: any) => {
+      setProtectedList(res?.protected || [])
+      notify({
+        type: 'success',
+        message: t('refreshSuccess'),
+      })
+      getCheckableDatasource()
+      if (res?.protected?.length > 0) {
+        setShowInitialTooltip(true)
+      }
+    })
+  }
+
+  useEffect(() => {
+    if (showInitialTooltip) {
+      const timer = setTimeout(() => {
+        setShowInitialTooltip(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showInitialTooltip])
 
   return (
     <div style={{ maxHeight: '60vh' }} className="flex w-full" id={id}>
       <Card
         type="inner"
         title={
-          <div className="flex">
-            {t('availableDatasource')} <TypeExample />
+          <div className="flex justify-between">
+            <div className="flex items-center">
+              {t('availableDatasource')}
+              <TypeExample />
+            </div>
+            <Tooltip
+              open={showInitialTooltip ? true : undefined}
+              trigger={['hover', 'click']}
+              title={
+                protectedList?.length > 0 && (
+                  <div>
+                    {t('protectedDataSources')}
+                    <div>
+                      {protectedList
+                        ?.sort((a, b) => {
+                          const typeOrder = ['system', 'cluster', 'namespace', 'service']
+                          const aIndex = typeOrder.indexOf(a.type)
+                          const bIndex = typeOrder.indexOf(b.type)
+                          return aIndex - bIndex
+                        })
+                        ?.map((item) => <DatasourceTag key={item.id} {...item} block={false} />)}
+                    </div>
+                  </div>
+                )
+              }
+            >
+              <Button
+                type="link"
+                size="small"
+                className="relative"
+                icon={<LuRefreshCcw />}
+                onClick={onRefreshDatasource}
+              >
+                <Badge dot color="yellow" offset={[5, 5]} count={protectedList?.length || 0}>
+                  <span>{t('refresh')}</span>
+                </Badge>
+              </Button>
+            </Tooltip>
           </div>
         }
         className="w-1/2 overflow-hidden"

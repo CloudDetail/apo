@@ -93,7 +93,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ open, closeModal, groupInfo, refr
       >
         <LoadingSpinner loading={loading} />
 
-        <Form form={form} labelCol={{ span: 3, offset: 1 }} wrapperCol={{ span: 18 }} colon={false}>
+        <Form form={form} labelCol={{ span: 4, offset: 0 }} wrapperCol={{ span: 20 }} colon={false}>
           <Form.Item name="groupId" hidden>
             <Input />
           </Form.Item>

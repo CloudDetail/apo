@@ -36,12 +36,19 @@
   "clearAll": "Clear All",
   "groupNameLabel": "Data Group Name:",
   "datasourceLabel": "Data Source:",
-  "availableDatasource": "Available Data Sources",
-  "selectedDatasource": "Selected Data Sources",
+  "availableDatasource": "Available",
+  "selectedDatasource": "Selected",
   "dataGroupPlaceholder": "Please select a data group",
   "modifyAlertRuleModal": {
     "dataGroup": "Data Group",
     "alertGroup": "Alert Group"
   },
-  "dataGroup": "Data Group"
+  "dataGroup": "Data Group",
+  "clearInvalidDatasource": "Clear Invalid Data Sources",
+  "toBeCleanedData": "Data Sources to be cleaned:",
+  "protectedDataSources": "The following invalid data sources exist in other data groups and cannot be directly refreshed or deleted.",
+  "noInvalidDatasource": "No invalid data sources exist in this data group and its sub-groups",
+  "clearSuccess": "Successfully cleared invalid data sources",
+  "refreshSuccess": "Successfully refreshed data sources",
+  "refresh": "Refresh"
 }

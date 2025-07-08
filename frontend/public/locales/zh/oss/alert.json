@@ -79,7 +79,8 @@
       "dayText": "d（天）"
     },
     "alertGroup": "告警类型",
-    "dataGroup": "数据组"
+    "dataGroup": "数据组",
+    "refresh": "刷新"
   },
   "modifyAlertNotifyModal": {
     "title": "告警通知配置",

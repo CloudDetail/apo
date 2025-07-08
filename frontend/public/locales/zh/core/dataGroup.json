@@ -43,5 +43,12 @@
     "dataGroup": "数据分组",
     "alertGroup": "告警分组"
   },
-  "dataGroup": "数据分组"
+  "dataGroup": "数据分组",
+  "clearInvalidDatasource": "清空无效数据源",
+  "toBeCleanedData": "即将被清理的数据源：",
+  "protectedDataSources": "以下无效数据源存在于其他数据组，无法直接刷新删除",
+  "noInvalidDatasource": "该数据组及其子组下不存在无效数据源",
+  "clearSuccess": "清除无效数据源成功",
+  "refreshSuccess": "刷新数据源成功",
+  "refresh": "刷新"
 }

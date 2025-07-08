@@ -79,7 +79,8 @@
       "dayText": "day"
     },
     "alertGroup": "Alert Group",
-    "dataGroup": "Data Group"
+    "dataGroup": "Data Group",
+    "refresh": "Refresh"
   },
   "modifyAlertNotifyModal": {
     "title": "Alert Notification Configuration",

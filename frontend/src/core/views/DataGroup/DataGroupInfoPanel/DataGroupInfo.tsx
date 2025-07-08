@@ -1,14 +1,15 @@
-import { Button, Descriptions, DescriptionsProps, Popconfirm } from 'antd'
+import { Button, Descriptions, DescriptionsProps, Modal, Popconfirm } from 'antd'
 import Paragraph from 'antd/es/typography/Paragraph'
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LuRefreshCcw, LuShieldCheck } from 'react-icons/lu'
+import { LuShieldCheck } from 'react-icons/lu'
 import { MdOutlineAdd, MdOutlineEdit } from 'react-icons/md'
 import { DataGroupPermissionInfo } from 'src/core/types/dataGroup'
 import DatasourceTag from '../component/DatasourceTag'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-
+import { refreshGroupDatasourceApiV2 } from 'src/core/api/dataGroup'
+import { notify } from 'src/core/utils/notify'
 const DataGroupInfo = ({
   info,
   datasources,
@@ -29,6 +30,7 @@ const DataGroupInfo = ({
   const [openRefreshModal, setOpenRefreshModal] = useState<boolean>(false)
   const [cleanList, setCleanList] = useState<any[]>([])
   const [protectedList, setProtectedList] = useState<any[]>([])
+
   const items: DescriptionsProps['items'] = [
     {
       key: '1',
@@ -60,6 +62,25 @@ const DataGroupInfo = ({
       ),
     },
   ]
+  const handleRefresh = (clean: boolean) => {
+    refreshGroupDatasourceApiV2(info.groupId, clean).then((res: any) => {
+      if (!clean && (res?.toBeDeleted?.length || 0) + (res?.protected?.length || 0) > 0) {
+        setCleanList(res?.toBeDeleted || [])
+        setProtectedList(res?.protected || [])
+        setOpenRefreshModal(true)
+      } else if (!clean) {
+        notify({
+          type: 'info',
+          message: t('noInvalidDatasource'),
+        })
+      } else if (clean) {
+        notify({
+          type: 'success',
+          message: t('clearSuccess'),
+        })
+      }
+    })
+  }
   return (
     <div className="flex flex-col justify-between h-full">
       <Descriptions
@@ -70,20 +91,19 @@ const DataGroupInfo = ({
         classNames={{ label: 'flex items-center' }}
       />
       <div className="w-full text-right mb-2 pr-2">
-        {info?.permissionType === 'edit' && (
+        {/* {info?.permissionType === 'edit' && (
           <Button
             type="text"
             size="small"
             icon={<LuRefreshCcw />}
             onClick={() => {
-              // setOpenRefreshModal(true)
-              // handleRefresh(false)
+              handleRefresh(false)
             }}
             className="mr-2"
           >
-            {t('refresh')}
+            {t('clearInvalidDatasource')}
           </Button>
-        )}
+        )} */}
         {info?.permissionType !== 'known' && (
           <Button
             color="cyan"
@@ -134,13 +154,55 @@ const DataGroupInfo = ({
           </>
         )}
       </div>
-      {/* <Modal open={true} onCancel={() => {}} footer={null}>
+      <Modal
+        width={'50%'}
+        open={openRefreshModal}
+        onCancel={() => {
+          setOpenRefreshModal(false)
+        }}
+        onOk={() => {
+          if (cleanList?.length > 0) {
+            handleRefresh(true)
+          } else {
+            setOpenRefreshModal(false)
+          }
+        }}
+        title={t('clearInvalidDatasource')}
+      >
         <div>
-          <div>
-            <div>123</div>
-          </div>
+          {cleanList?.length > 0 && (
+            <div>
+              {t('toBeCleanedData')}
+              <div>
+                {cleanList
+                  ?.sort((a, b) => {
+                    const typeOrder = ['system', 'cluster', 'namespace', 'service']
+                    const aIndex = typeOrder.indexOf(a.type)
+                    const bIndex = typeOrder.indexOf(b.type)
+                    return aIndex - bIndex
+                  })
+                  ?.map((item) => <DatasourceTag key={item.id} {...item} block={false} />)}
+              </div>
+            </div>
+          )}
+
+          {protectedList?.length > 0 && (
+            <div>
+              {t('protectedDataSources')}
+              <div>
+                {protectedList
+                  ?.sort((a, b) => {
+                    const typeOrder = ['system', 'cluster', 'namespace', 'service']
+                    const aIndex = typeOrder.indexOf(a.type)
+                    const bIndex = typeOrder.indexOf(b.type)
+                    return aIndex - bIndex
+                  })
+                  ?.map((item) => <DatasourceTag key={item.id} {...item} block={false} />)}
+              </div>
+            </div>
+          )}
         </div>
-      </Modal> */}
+      </Modal>
     </div>
   )
 }
