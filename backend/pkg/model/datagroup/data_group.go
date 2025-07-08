@@ -127,10 +127,14 @@ func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm stri
 		}
 		subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
 		for _, sub := range t.SubGroups {
+			perm := checkPermission(selfPerm, groupsIDs, sub.GroupID)
+			if perm == DATA_GROUP_PERMISSION_TYPE_IGNORE {
+				continue
+			}
 			subGroups = append(subGroups, &DataGroupTreeNode{
 				DataGroup:      sub.DataGroup,
 				SubGroups:      nil, // Drop sub groups
-				PermissionType: checkPermission(selfPerm, groupsIDs, sub.GroupID),
+				PermissionType: perm,
 			})
 		}
 
