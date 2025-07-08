@@ -2,7 +2,7 @@
   "group": "数据组",
   "deleteSuccess": "删除成功",
   "deleteGroupError": "无法删除包含子组的数据组",
-  "dataGroupName": "告警类型",
+  "dataGroupName": "数据组名",
   "dataGroupDes": "数据组描述",
   "datasource": "数据源",
   "operation": "操作",

@@ -2,7 +2,7 @@
   "group": "data group",
   "deleteSuccess": "Deleted successfully",
   "deleteGroupError": "Cannot delete data group with sub-groups",
-  "dataGroupName": "Alert Type",
+  "dataGroupName": "Data Group Name",
   "dataGroupDes": "Data Group Description",
   "datasource": "Data Source",
   "operation": "Operation",
