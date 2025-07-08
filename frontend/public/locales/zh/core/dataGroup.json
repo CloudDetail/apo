@@ -50,5 +50,7 @@
   "noInvalidDatasource": "该数据组及其子组下不存在无效数据源",
   "clearSuccess": "清除无效数据源成功",
   "refreshSuccess": "刷新数据源成功",
-  "refresh": "刷新"
+  "refresh": "刷新",
+  "subGroups": "{{groupName}}的直属子数据组",
+  "addSubGroup": "添加子数据组"
 }

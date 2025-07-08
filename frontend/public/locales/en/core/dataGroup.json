@@ -50,5 +50,7 @@
   "noInvalidDatasource": "No invalid data sources exist in this data group and its sub-groups",
   "clearSuccess": "Successfully cleared invalid data sources",
   "refreshSuccess": "Successfully refreshed data sources",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "subGroups": "Direct Subgroup of {{groupName}}",
+  "addSubGroup": "Add Subgroup"
 }

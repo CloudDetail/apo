@@ -104,18 +104,7 @@ const DataGroupInfo = ({
             {t('clearInvalidDatasource')}
           </Button>
         )} */}
-        {info?.permissionType !== 'known' && (
-          <Button
-            color="cyan"
-            variant="link"
-            size="small"
-            icon={<MdOutlineAdd />}
-            onClick={openAddModal}
-            className="mr-2"
-          >
-            {t('add')}
-          </Button>
-        )}
+
         {info?.permissionType === 'edit' && (
           <>
             <Button
@@ -152,6 +141,17 @@ const DataGroupInfo = ({
               {t('authorize')}
             </Button>
           </>
+        )}
+        {info?.permissionType !== 'known' && (
+          <Button
+            type="link"
+            size="small"
+            icon={<MdOutlineAdd />}
+            onClick={openAddModal}
+            className="mr-2"
+          >
+            {t('addSubGroup')}
+          </Button>
         )}
       </div>
       <Modal

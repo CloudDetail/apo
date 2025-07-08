@@ -19,6 +19,7 @@ interface DataGroupTableProps {
   openPermissionModal: (record: DataGroupPermissionInfo) => void
   subGroups: any[]
   scrolllHeight: number | string
+  parentGroupName: string
 }
 
 export default function DataGroupTable({
@@ -27,6 +28,7 @@ export default function DataGroupTable({
   openPermissionModal,
   subGroups,
   scrolllHeight,
+  parentGroupName,
 }: DataGroupTableProps) {
   const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
@@ -152,6 +154,11 @@ export default function DataGroupTable({
   return (
     <>
       <Table
+        title={() => (
+          <span className="text-sm font-bold">
+            {t('subGroups', { groupName: parentGroupName })}
+          </span>
+        )}
         dataSource={subGroups}
         columns={columns}
         scroll={{ y: scrolllHeight }}

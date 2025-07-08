@@ -57,6 +57,7 @@ const DataGroupInfoPanel = ({
           openEditModal={openEditModal}
           deleteDataGroup={deleteDataGroup}
           openPermissionModal={openPermissionModal}
+          parentGroupName={info?.groupName}
         />
       </Splitter.Panel>
     </Splitter>
