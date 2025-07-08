@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 func (h *handler) GetDGDetailV2() core.HandlerFunc {
@@ -21,6 +22,11 @@ func (h *handler) GetDGDetailV2() core.HandlerFunc {
 				code.ParamBindError,
 				err,
 			)
+			return
+		}
+
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
+			c.AbortWithPermissionError(err, code.AuthError, response.SubGroupDetailResponse{})
 			return
 		}
 

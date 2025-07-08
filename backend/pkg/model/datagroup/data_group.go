@@ -25,6 +25,13 @@ type DataGroup struct {
 	ParentGroupID int64 `gorm:"column:parent_group_id" json:"parentGroupId"`
 }
 
+type DataGroupWithScopes struct {
+	DataGroup
+
+	Scopes         []DataScope `json:"datasources"`
+	PermissionType string      `json:"permissionType"`
+}
+
 func (DataGroup) TableName() string {
 	return "data_group"
 }
@@ -115,6 +122,9 @@ func (t *DataGroupTreeNode) CloneGroupNodeWithSubGroup(groupID int64, groupsIDs 
 func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm string, groupsIDs []int64) *DataGroupTreeNode {
 	selfPerm := checkPermission(pPerm, groupsIDs, t.GroupID)
 	if t.GroupID == groupID {
+		if selfPerm == DATA_GROUP_PERMISSION_TYPE_IGNORE {
+			return nil
+		}
 		subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
 		for _, sub := range t.SubGroups {
 			subGroups = append(subGroups, &DataGroupTreeNode{

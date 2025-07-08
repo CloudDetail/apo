@@ -54,3 +54,8 @@ type CleanExpiredDataScopeResponse struct {
 	ToBeDeleted []datagroup.DataScopeWithFullName `json:"toBeDeleted"`
 	Protected   []datagroup.DataScopeWithFullName `json:"protected"`
 }
+
+type SubGroupDetailResponse struct {
+	Datasources []datagroup.DataScope           `json:"datasources"`
+	SubGroups   []datagroup.DataGroupWithScopes `json:"subGroups"`
+}

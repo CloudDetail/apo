@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
@@ -26,19 +27,7 @@ func (s *service) ListDataGroupV2(ctx core.Context) (*datagroup.DataGroupTreeNod
 	return userGroups, nil
 }
 
-type DataGroupWithScopes struct {
-	datagroup.DataGroup
-
-	Scopes         []datagroup.DataScope `json:"datasources"`
-	PermissionType string                `json:"permissionType"`
-}
-
-type SubGroupDetailResponse struct {
-	Datasources []datagroup.DataScope `json:"datasources"`
-	SubGroups   []DataGroupWithScopes `json:"subGroups"`
-}
-
-func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*SubGroupDetailResponse, error) {
+func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*response.SubGroupDetailResponse, error) {
 	userID := ctx.UserID()
 	permGroupIDs, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)
 	if err != nil {
@@ -50,13 +39,13 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 		return nil, fmt.Errorf("group %d not found", groupID)
 	}
 
-	var subGroups []DataGroupWithScopes = make([]DataGroupWithScopes, 0)
+	var subGroups = make([]datagroup.DataGroupWithScopes, 0)
 	for _, subGroup := range group.SubGroups {
 		scopes, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
 			return nil, err
 		}
-		subGroups = append(subGroups, DataGroupWithScopes{
+		subGroups = append(subGroups, datagroup.DataGroupWithScopes{
 			DataGroup:      subGroup.DataGroup,
 			PermissionType: subGroup.PermissionType,
 			Scopes:         scopes,
@@ -67,7 +56,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 	if err != nil {
 		return nil, err
 	}
-	return &SubGroupDetailResponse{
+	return &response.SubGroupDetailResponse{
 		Datasources: scopes,
 		SubGroups:   subGroups,
 	}, nil

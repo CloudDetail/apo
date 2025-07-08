@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 func (h *handler) GetDGScopeList() core.HandlerFunc {
@@ -23,6 +24,15 @@ func (h *handler) GetDGScopeList() core.HandlerFunc {
 			)
 			return
 		}
+
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
+			c.AbortWithPermissionError(err, code.AuthError, response.ListDataScopesResponse{
+				Scopes:      nil,
+				DataSources: []string{},
+			})
+			return
+		}
+
 		resp, err := h.dataService.ListDataScopeByGroupID(c, req)
 		if err != nil {
 			c.AbortWithError(

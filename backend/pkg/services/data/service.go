@@ -34,7 +34,7 @@ type Service interface {
 	ListDataGroupV2(ctx core.Context) (*datagroup.DataGroupTreeNode, error)
 
 	ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeListRequest) (*response.ListDataScopesResponse, error)
-	GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*SubGroupDetailResponse, error)
+	GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*response.SubGroupDetailResponse, error)
 
 	CreateDataGroupV2(ctx core.Context, req *request.CreateDataGroupRequest) error
 	UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error

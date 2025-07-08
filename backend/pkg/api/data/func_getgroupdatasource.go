@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
 
 // GetGroupDatasource Get group's datasource.
@@ -34,6 +35,12 @@ func (h *handler) GetGroupDatasource() core.HandlerFunc {
 			)
 			return
 		}
+
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
+			c.AbortWithPermissionError(err, code.AuthError, response.GetGroupDatasourceResponse{})
+			return
+		}
+
 		resp, err := h.dataService.GetGroupDatasource(c, req)
 		if err != nil {
 			c.AbortWithPermissionError(err, code.GetGroupDatasourceError, nil)
