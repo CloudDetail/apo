@@ -134,6 +134,13 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 	}
 	permScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(options)
 
+	for idx, id := range permScopeIDs {
+		if id == "APO_ALL_DATA" {
+			permScopeIDs = append(permScopeIDs[:idx], permScopeIDs[idx+1:]...)
+			break
+		}
+	}
+
 	userID := ctx.UserID()
 	permGroupIDs, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)
 	if err != nil {

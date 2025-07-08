@@ -21,7 +21,6 @@ import (
 // GetDescendantRelevance implements Service.
 func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDescendantRelevanceRequest) ([]response.GetDescendantRelevanceResponse, error) {
 	// Query all descendant nodes
-	// TODO groupFilter
 	nodes, err := s.chRepo.ListDescendantNodes(ctx, req)
 	if err != nil {
 		return nil, err
@@ -39,7 +38,9 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	descendants := make([]polarisanalyzer.ServiceNode, 0, len(nodes.Nodes))
 	var isTracedMap = make(map[polarisanalyzer.ServiceNode]bool)
 
-	var svcFilter []prom.PQLFilter
+	var svcTmp = make(map[string]struct{})
+	var contentKeyTmp = make(map[string]struct{})
+	var svcList, contentKeyList []string
 	for _, node := range nodes.Nodes {
 		svcNode := polarisanalyzer.ServiceNode{
 			Service:  node.Service,
@@ -53,7 +54,16 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		})
 		descendants = append(descendants, svcNode)
 		isTracedMap[svcNode] = node.IsTraced
-		svcFilter = append(svcFilter, prom.EqualFilter(prom.ServiceNameKey, node.Service).Equal(prom.ContentKeyKey, node.Endpoint))
+
+		if _, ok := svcTmp[svcNode.Service]; !ok {
+			svcList = append(svcList, svcNode.Service)
+			svcTmp[svcNode.Service] = struct{}{}
+		}
+
+		if _, ok := contentKeyTmp[svcNode.Endpoint]; !ok {
+			contentKeyList = append(contentKeyList, svcNode.Endpoint)
+			contentKeyTmp[svcNode.Endpoint] = struct{}{}
+		}
 	}
 
 	// Sort by Delay Similarity
@@ -80,7 +90,10 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 	if err != nil {
 		return nil, err
 	}
-	pqlFilter := prom.And(groupFilter, prom.Or(svcFilter...))
+
+	svcFilter := prom.RegexMatchFilter(prom.ServiceNameKey, prom.RegexMultipleValue(svcList...)).
+		RegexMatch(prom.ContentKeyKey, prom.RegexMultipleValue(contentKeyList...))
+	pqlFilter := prom.And(groupFilter, svcFilter)
 
 	descendantStatus, err := s.queryDescendantStatus(ctx, pqlFilter, req.StartTime, req.EndTime)
 	if err != nil {

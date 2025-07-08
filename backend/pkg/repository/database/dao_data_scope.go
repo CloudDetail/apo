@@ -159,6 +159,22 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, err
 		categoryMaps[res[i].Category] = append(categoryMaps[res[i].Category], res[i].ScopeID)
 	}
 
+	if root == nil {
+		root = &datagroup.DataScopeTreeNode{
+			Children: []*datagroup.DataScopeTreeNode{},
+			DataScope: datagroup.DataScope{
+				ScopeID:     "APO_ALL_DATA",
+				Category:    "system",
+				Name:        "ALL",
+				Type:        "system",
+				ScopeLabels: datagroup.ScopeLabels{},
+			},
+			HasCheckBox:   false,
+			IsChecked:     false,
+			ExtraChildren: []*datagroup.ExtraChild{},
+		}
+	}
+
 	for label, node := range nodesMap {
 		switch node.Type {
 		case datagroup.DATASOURCE_TYP_CLUSTER:
