@@ -24,11 +24,18 @@ func (s *service) GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectD
 	}
 
 	var groupIDs []int64
+	var fromUser []int64
+	var fromTeam []int64
 	for _, group := range dataGroups {
 		groupIDs = append(groupIDs, group.GroupID)
+		if group.Source == model.DATA_GROUP_SUB_TYP_USER {
+			fromUser = append(fromUser, group.GroupID)
+		} else {
+			fromTeam = append(fromTeam, group.GroupID)
+		}
 	}
 
-	fullGroup := common.DataGroupStorage.GetFullPermissionGroup(groupIDs)
+	fullGroup := common.DataGroupStorage.GetFullPermissionGroupWithSource(groupIDs, fromUser, fromTeam)
 	return fullGroup, nil
 }
 

@@ -3,6 +3,8 @@
 
 package datagroup
 
+import "github.com/CloudDetail/apo/backend/pkg/model"
+
 const (
 	DATA_GROUP_SUB_TYP_USER   = "user"
 	DATA_GROUP_SUB_TYP_TEAM   = "team"
@@ -180,6 +182,35 @@ func (t *DataGroupTreeNode) GetFullSubGroupIDs(groupID int64) []int64 {
 	}
 	dfs(false, t)
 	return subGroupIDs
+}
+
+func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, fromUser, fromTeam []int64) []DataGroup {
+	var permGroups []DataGroup
+
+	var dfs func(pPerm string, pSource string, node *DataGroupTreeNode)
+	dfs = func(pPerm string, pSource string, node *DataGroupTreeNode) {
+		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
+			containsInInt(groupIDs, node.GroupID) {
+			group := node.DataGroup
+			if containsInInt(fromUser, node.GroupID) {
+				group.Source = model.DATA_GROUP_SUB_TYP_USER
+				pSource = model.DATA_GROUP_SUB_TYP_USER
+			} else if containsInInt(fromTeam, node.GroupID) {
+				group.Source = model.DATA_GROUP_SUB_TYP_TEAM
+				pSource = model.DATA_GROUP_SUB_TYP_TEAM
+			} else {
+				group.Source = pSource
+			}
+			permGroups = append(permGroups, group)
+			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
+		}
+		for _, child := range node.SubGroups {
+			dfs(pPerm, pSource, child)
+		}
+	}
+
+	dfs(DATA_GROUP_PERMISSION_TYPE_KNOWN, DATA_GROUP_SOURCE_DEFAULT, t)
+	return permGroups
 }
 
 func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup {
