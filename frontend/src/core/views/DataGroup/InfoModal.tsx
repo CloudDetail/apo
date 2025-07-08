@@ -98,7 +98,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ open, closeModal, groupInfo, refr
             <Input />
           </Form.Item>
           <Form.Item name="groupName" label={t('dataGroupName')} rules={[{ required: true }]}>
-            <Input />
+            <Input maxLength={100} showCount />
           </Form.Item>
           <Form.Item name="description" label={t('dataGroupDes')}>
             <Input />
