@@ -41,7 +41,6 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([])
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([])
   const [searchValue, setSearchValue] = useState<string>('')
-  const [autoExpandParent, setAutoExpandParent] = useState<boolean>(true)
   const [flattenedData, setFlattenedData] = useState<
     Array<{
       node: DataGroupInfo
@@ -133,7 +132,6 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
           flattenedData,
         )
         setExpandedKeys(searchExpandedKeys)
-        setAutoExpandParent(true)
 
         // Highlight first match if any
         if (matchedKeys.length > 0) {
@@ -148,7 +146,6 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
         // Clear search - expand all nodes
         const allKeys = getAllExpandableKeys(flattenedData)
         setExpandedKeys(allKeys)
-        setAutoExpandParent(false)
       }
     },
     [flattenedData, getSearchResult, getAllExpandableKeys, setParentGroupInfo],
@@ -277,10 +274,10 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
   )
 
   return (
-    <>
+    <div className="h-full flex flex-col overflow-hidden ">
       <Search
         style={{ marginBottom: 8 }}
-        className="h-[42px]"
+        className="h-[42px] grow-0 shrink-0"
         placeholder="Search"
         onChange={onChange}
       />
@@ -292,17 +289,17 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
           onSelect={onSelectTree}
           treeData={treeData}
           titleRender={titleRender}
-          className="pr-3 h-full"
+          className="pr-3 h-full overflow-auto flex-1"
           fieldNames={{
             title: 'groupName',
             key: 'groupId',
             children: 'subGroups',
           }}
           blockNode
-          autoExpandParent={autoExpandParent}
+          // autoExpandParent={autoExpandParent}
         />
       )}
-    </>
+    </div>
   )
 }
 

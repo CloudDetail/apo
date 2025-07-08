@@ -95,6 +95,8 @@ const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({
             setSelectedGroupId(Number(value))
           }}
           suffixIcon={suffixIcon}
+          popupMatchSelectWidth={false}
+          popupClassName="max-w-[700px]"
         />
       )}
     </div>
