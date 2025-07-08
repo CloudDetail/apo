@@ -2,21 +2,32 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { TreeSelect } from 'antd'
-import React, { useEffect, useMemo } from 'react'
+import { Select } from 'antd'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const DataGroupSelector = ({ readonly = false }) => {
+  const { t } = useTranslation('core/dataGroup')
   const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
   const dispatch = useDispatch()
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
   const navigate = useNavigate()
   const location = useLocation()
+  const [treeData, setTreeData] = useState(dataGroup)
   // 移除未使用的 searchParams 变量
-
+  useEffect(() => {
+    setTreeData([
+      {
+        groupName: t('dataGroup'),
+        title: t('dataGroup'),
+        options: dataGroup,
+      },
+    ])
+  }, [dataGroup])
   const flattenedAvailableNodes = useMemo(() => {
     const result: any[] = []
     const flattenTree = (nodes: any[]) => {
@@ -100,7 +111,7 @@ const DataGroupSelector = ({ readonly = false }) => {
   }
 
   return (
-    <TreeSelect<number>
+    <Select<number>
       disabled={readonly}
       showSearch
       className="mx-2"
@@ -108,13 +119,12 @@ const DataGroupSelector = ({ readonly = false }) => {
       value={dataGroupId}
       placeholder="Please select"
       allowClear
-      treeDefaultExpandAll
       onChange={onChange}
-      treeData={dataGroup}
+      options={treeData}
+      suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
       fieldNames={{
         label: 'groupName',
         value: 'groupId',
-        children: 'subGroups',
       }}
     />
   )

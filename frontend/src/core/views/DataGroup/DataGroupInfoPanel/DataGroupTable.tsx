@@ -3,75 +3,53 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Flex, Modal, Popconfirm, Table } from 'antd'
-import { getSubGroupsApiV2, refreshGroupDatasourceApiV2 } from 'src/core/api/dataGroup'
-import { MdOutlineAdd, MdOutlineEdit } from 'react-icons/md'
+import { Button, Flex, Popconfirm, Table } from 'antd'
+import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { LuRefreshCcw, LuShieldCheck } from 'react-icons/lu'
-import DatasourceTag from './component/DatasourceTag'
+import { LuShieldCheck } from 'react-icons/lu'
+import DatasourceTag from '../component/DatasourceTag'
 import Paragraph from 'antd/es/typography/Paragraph'
 import { useTranslation } from 'react-i18next'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { notify } from 'src/core/utils/notify'
-
-interface DataGroupInfo {
-  groupId: number
-  groupName: string
-  description: string
-  permissionType: 'known' | 'view' | 'edit'
-  subGroups?: DataGroupInfo[]
-}
+import React, { useCallback, useMemo } from 'react'
+import { DataGroupPermissionInfo } from 'src/core/types/dataGroup'
 
 interface DataGroupTableProps {
-  parentGroupInfo: DataGroupInfo | null
-  openAddModal: () => void
-  openEditModal: (record: DataGroupInfo) => void
-  openPermissionModal: (record: DataGroupInfo) => void
-  deleteDataGroup: (record: DataGroupInfo) => void
-  refreshKey: number
+  openEditModal: (record: DataGroupPermissionInfo) => void
+  deleteDataGroup: (record: DataGroupPermissionInfo) => void
+  openPermissionModal: (record: DataGroupPermissionInfo) => void
+  subGroups: any[]
+  scrolllHeight: number | string
 }
 
 export default function DataGroupTable({
-  parentGroupInfo,
-  openAddModal,
   openEditModal,
-  openPermissionModal,
   deleteDataGroup,
-  refreshKey,
+  openPermissionModal,
+  subGroups,
+  scrolllHeight,
 }: DataGroupTableProps) {
   const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
-  const [subGroups, setSubGroups] = useState<DataGroupInfo[]>([])
-  const [openRefreshModal, setOpenRefreshModal] = useState<boolean>(false)
-  const [cleanList, setCleanList] = useState<any[]>([])
-  const [protectedList, setProtectedList] = useState<any[]>([])
-  console.log(parentGroupInfo)
+
   const handleEdit = useCallback(
-    (record: DataGroupInfo) => {
+    (record: DataGroupPermissionInfo) => {
       openEditModal(record)
     },
     [openEditModal],
   )
-
-  const handleDelete = useCallback(
-    (record: DataGroupInfo) => {
-      deleteDataGroup(record)
-    },
-    [deleteDataGroup],
-  )
-
   const handlePermission = useCallback(
-    (record: DataGroupInfo) => {
+    (record: DataGroupPermissionInfo) => {
       openPermissionModal(record)
     },
     [openPermissionModal],
   )
 
-  const handleParentPermission = useCallback(() => {
-    if (parentGroupInfo) {
-      openPermissionModal(parentGroupInfo)
-    }
-  }, [parentGroupInfo, openPermissionModal])
+  const handleDelete = useCallback(
+    (record: DataGroupPermissionInfo) => {
+      deleteDataGroup(record)
+    },
+    [deleteDataGroup],
+  )
 
   const columns = useMemo(
     () => [
@@ -123,7 +101,7 @@ export default function DataGroupTable({
         dataIndex: 'operation',
         key: 'operation',
         width: 250,
-        render: (_: any, record: DataGroupInfo) => {
+        render: (_: any, record: DataGroupPermissionInfo) => {
           return (
             <Flex align="center" justify="space-evenly">
               {record?.permissionType === 'edit' && (
@@ -171,60 +149,13 @@ export default function DataGroupTable({
     [t, ct, handleEdit, handleDelete, handlePermission],
   )
 
-  useEffect(() => {
-    if (parentGroupInfo?.groupId != null) {
-      getSubGroupsApiV2(parentGroupInfo.groupId).then((res: any) => {
-        setSubGroups(res?.subGroups || [])
-      })
-    }
-  }, [parentGroupInfo, refreshKey])
-  const handleRefresh = useCallback(
-    (clean?: boolean) => {
-      refreshGroupDatasourceApiV2(parentGroupInfo?.groupId, clean).then((res: any) => {
-        setSubGroups(res?.subGroups || [])
-        if (clean) {
-          setCleanList(res?.cleanList || [])
-          setProtectedList(res?.protectedList || [])
-        } else {
-          notify({
-            type: 'success',
-            message: t('refreshSuccess'),
-          })
-        }
-      })
-    },
-    [parentGroupInfo],
-  )
-  const closeRefreshModal = useCallback(() => {
-    setOpenRefreshModal(false)
-  }, [])
   return (
     <>
-      <div className="w-full flex justify-between h-[40px]">
-        <div className="text-lg font-bold ml-2">{parentGroupInfo?.groupName}</div>
-        <div>
-          {parentGroupInfo?.permissionType !== 'known' && (
-            <Button type="primary" icon={<MdOutlineAdd />} onClick={openAddModal} className="mr-2">
-              {t('add')}
-            </Button>
-          )}
-          {parentGroupInfo?.permissionType === 'edit' && (
-            <Button
-              color="primary"
-              variant="outlined"
-              icon={<LuShieldCheck />}
-              onClick={handleParentPermission}
-            >
-              {t('authorize')}
-            </Button>
-          )}
-        </div>
-      </div>
       <Table
         dataSource={subGroups}
         columns={columns}
-        scroll={{ y: 'calc(100vh - 240px)' }}
-        className="overflow-auto text-xs"
+        scroll={{ y: scrolllHeight }}
+        className="overflow-auto text-xs h-full"
         size="small"
         rowKey="groupId"
       />

@@ -35,7 +35,7 @@ const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({ onChange, id, gro
         keys.push(Number(node.groupId))
         const newNode: DataGroupInfo = {
           ...node,
-          disabled: node.permissionType !== 'edit',
+          disabled: node.permissionType === 'known',
         }
         if (node.subGroups && node.subGroups.length > 0) {
           newNode.subGroups = process(node.subGroups)

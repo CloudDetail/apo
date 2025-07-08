@@ -6,17 +6,13 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 import DataGroupTree from './DataGroupTree'
-import DataGroupTable from './DataGroupTable'
 import InfoModal from './InfoModal'
 import PermissionModal from './PermissionModal'
-import {
-  deleteDataGroupApiV2,
-  getDatasourceByGroupApiV2,
-  refreshGroupDatasourceApiV2,
-} from 'src/core/api/dataGroup'
+import { deleteDataGroupApiV2, getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
 import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
 import { Splitter } from 'antd'
+import DataGroupInfoPanel from './DataGroupInfoPanel'
 
 interface DataGroupInfo {
   groupId: number
@@ -78,49 +74,57 @@ export default function DataGroupPage() {
         })
         return
       } else {
-        // First step: get datasources that will be cleaned (clean=false)
-        refreshGroupDatasourceApiV2(groupInfo.groupId, false)
-          .then((res: any) => {
-            const datasourcesToClean = res?.datasources || []
-
-            if (datasourcesToClean.length > 0) {
-              // Show confirmation with datasource list
-              const datasourceList = datasourcesToClean.map((ds: any) => ds.name).join(', ')
-              const confirmMessage = `${t('confirmDeleteWithDatasources', {
-                groupName: groupInfo.groupName,
-                datasources: datasourceList,
-              })}`
-
-              // Use window.confirm for now, can be replaced with Modal later
-
-              if (window.confirm(confirmMessage)) {
-                // Second step: actually delete (clean=true)
-                return refreshGroupDatasourceApiV2(groupInfo.groupId, true)
-              } else {
-                return Promise.reject('User cancelled')
-              }
-            } else {
-              // No datasources to clean, proceed with normal deletion
-              return deleteDataGroupApiV2(groupInfo.groupId)
-            }
-          })
+        deleteDataGroupApiV2(groupInfo.groupId)
           .then(() => {
             notify({
               type: 'success',
               message: ct('deleteSuccess'),
             })
-          })
-          .catch((error) => {
-            if (error !== 'User cancelled') {
-              notify({
-                type: 'error',
-                message: ct('deleteFailed'),
-              })
-            }
+            // getDataGroups()
           })
           .finally(() => {
             getDataGroups()
           })
+        // First step: get datasources that will be cleaned (clean=false)
+        // refreshGroupDatasourceApiV2(groupInfo.groupId, false)
+        //   .then((res: any) => {
+        //     const datasourcesToClean = res?.datasources || []
+        //     if (datasourcesToClean.length > 0) {
+        //       // Show confirmation with datasource list
+        //       const datasourceList = datasourcesToClean.map((ds: any) => ds.name).join(', ')
+        //       const confirmMessage = `${t('confirmDeleteWithDatasources', {
+        //         groupName: groupInfo.groupName,
+        //         datasources: datasourceList,
+        //       })}`
+        //       // Use window.confirm for now, can be replaced with Modal later
+        //       if (window.confirm(confirmMessage)) {
+        //         // Second step: actually delete (clean=true)
+        //         return refreshGroupDatasourceApiV2(groupInfo.groupId, true)
+        //       } else {
+        //         return Promise.reject('User cancelled')
+        //       }
+        //     } else {
+        //       // No datasources to clean, proceed with normal deletion
+        //       return deleteDataGroupApiV2(groupInfo.groupId)
+        //     }
+        //   })
+        //   .then(() => {
+        //     notify({
+        //       type: 'success',
+        //       message: ct('deleteSuccess'),
+        //     })
+        //   })
+        //   .catch((error) => {
+        //     if (error !== 'User cancelled') {
+        //       notify({
+        //         type: 'error',
+        //         message: ct('deleteFailed'),
+        //       })
+        //     }
+        //   })
+        //   .finally(() => {
+        //     getDataGroups()
+        //   })
       }
     },
     [t, ct, getDataGroups],
@@ -151,7 +155,7 @@ export default function DataGroupPage() {
     <>
       <BasicCard>
         <div className="w-full h-full">
-          <Splitter style={{ height: '100%', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+          <Splitter style={{ height: '100%' }}>
             <Splitter.Panel defaultSize="25%" className="h-full overflow-hidden w-full">
               <DataGroupTree
                 dataGroups={dataGroups}
@@ -165,9 +169,8 @@ export default function DataGroupPage() {
               />
             </Splitter.Panel>
             <Splitter.Panel className="ml-2">
-              <DataGroupTable
-                key={refreshKey}
-                parentGroupInfo={parentGroupInfo}
+              <DataGroupInfoPanel
+                info={parentGroupInfo}
                 openAddModal={openAddModalForTable}
                 openEditModal={openEditModal}
                 openPermissionModal={openPermissionModal}

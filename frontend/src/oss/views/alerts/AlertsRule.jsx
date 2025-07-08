@@ -210,9 +210,11 @@ export default function AlertsRule() {
   useDebounce(
     () => {
       if (dataGroupId !== null) {
-        loadRulesData()
-      } else {
-        init()
+        if (alertStateMap) {
+          loadRulesData()
+        } else {
+          init()
+        }
       }
     },
     300,

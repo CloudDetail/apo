@@ -167,7 +167,10 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
       const allKeys = getAllExpandableKeys(flattenedData)
       setExpandedKeys(allKeys)
 
-      if (selectedKeys.length === 0) {
+      const currentSelectedKey = selectedKeys[0]
+      const allGroupIds = flattenedData.map((item) => item.node.groupId)
+
+      if (selectedKeys.length === 0 || !allGroupIds.includes(currentSelectedKey as number)) {
         const firstNode = treeData[0]
         setSelectedKeys([firstNode.groupId])
         setParentGroupInfo(firstNode)

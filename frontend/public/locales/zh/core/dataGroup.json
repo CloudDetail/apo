@@ -42,5 +42,6 @@
   "modifyAlertRuleModal": {
     "dataGroup": "数据分组",
     "alertGroup": "告警分组"
-  }
+  },
+  "dataGroup": "数据分组"
 }

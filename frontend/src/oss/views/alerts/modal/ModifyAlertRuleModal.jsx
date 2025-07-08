@@ -271,7 +271,7 @@ export default function ModifyAlertRuleModal({
             rules={[
               {
                 validator: async (_, value) => {
-                  if (!value)
+                  if (value === null)
                     return Promise.reject(
                       new Error(
                         t('modifyAlertRuleModal.dataGroup') +

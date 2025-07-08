@@ -54,3 +54,10 @@ export interface DataGroupItem {
   disabled?: boolean
 }
 export const DatasourceTypes: DatasourceType[] = ['system', 'cluster', 'namespace', 'service']
+export interface DataGroupPermissionInfo {
+  groupId: number
+  groupName: string
+  description: string
+  permissionType: 'known' | 'view' | 'edit'
+  subGroups?: DataGroupPermissionInfo[]
+}

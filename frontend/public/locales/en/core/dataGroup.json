@@ -42,5 +42,6 @@
   "modifyAlertRuleModal": {
     "dataGroup": "Data Group",
     "alertGroup": "Alert Group"
-  }
+  },
+  "dataGroup": "Data Group"
 }
