@@ -61,6 +61,113 @@ func (m *DataGroupStore) KeepWatchScope(
 	}
 }
 
+func ScanScope(
+	ctx core.Context,
+	promRepo prometheus.Repo,
+	chRepo clickhouse.Repo,
+	dbRepo database.Repo,
+	interval time.Duration,
+) (map[string]struct{}, error) {
+	now := time.Now()
+	start := now.Add(-2 * interval)
+
+	scopeIDs := map[string]struct{}{}
+
+	metricRes, err := promRepo.QueryMetricsWithPQLFilter(ctx,
+		prometheus.PQLMetricSeries(prometheus.SPAN_TRACE_COUNT),
+		start.UnixMicro(), now.UnixMicro(), "cluster_id,namespace,svc_name", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, metric := range metricRes {
+		scopeLabels := datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+			Namespace: metric.Metric.Namespace,
+			Service:   metric.Metric.SvcName,
+		}
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+
+		scopeLabels = datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+			Namespace: metric.Metric.Namespace,
+		}
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_NAMESPACE)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+
+		scopeLabels = datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+		}
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_CLUSTER)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+	}
+
+	metricRes, err = promRepo.QueryMetricsWithPQLFilter(ctx,
+		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		start.UnixMicro(), now.UnixMicro(), "cluster_id,namespace,svc_name", nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	for _, metric := range metricRes {
+		scopeLabels := datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+			Namespace: metric.Metric.Namespace,
+			Service:   metric.Metric.SvcName,
+		}
+
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_SERVICE)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+
+		scopeLabels = datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+			Namespace: metric.Metric.Namespace,
+		}
+
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_NAMESPACE)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+
+		scopeLabels = datagroup.ScopeLabels{
+			ClusterID: metric.Metric.ClusterID,
+		}
+
+		fillEmptyLabel(&scopeLabels, datagroup.DATASOURCE_TYP_CLUSTER)
+		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
+	}
+
+	scopes, err := chRepo.GetAlertDataScope(
+		ctx,
+		start,
+		now,
+	)
+	if err != nil {
+		return nil, err
+	}
+	for i := 0; i < len(scopes); i++ {
+		labels := scopes[i].ScopeLabels
+
+		fillEmptyLabel(&labels, scopes[i].Type)
+
+		scopeIDs[labels.ToScopeID()] = struct{}{}
+		if scopes[i].Type == datagroup.DATASOURCE_TYP_SERVICE {
+			labels.Service = ""
+			scopes[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
+
+			scopeIDs[labels.ToScopeID()] = struct{}{}
+		}
+
+		if scopes[i].Type == datagroup.DATASOURCE_TYP_NAMESPACE {
+			labels.Namespace = ""
+			scopes[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
+			scopeIDs[labels.ToScopeID()] = struct{}{}
+		}
+	}
+
+	return scopeIDs, nil
+}
+
 func (m *DataGroupStore) scanAndSave(
 	ctx core.Context,
 	promRepo prometheus.Repo,

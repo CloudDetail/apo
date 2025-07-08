@@ -2,6 +2,7 @@ package data
 
 import (
 	"fmt"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
@@ -118,5 +119,77 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 
 	return &response.ListDataScopeFilterResponse{
 		Scopes: scopes,
+	}, nil
+}
+
+func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean bool) (*response.CleanExpiredDataScopeResponse, error) {
+	scopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, 24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+
+	options, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+	permScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(options)
+
+	userID := ctx.UserID()
+	permGroupIDs, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	toClean := []string{}
+	for _, id := range permScopeIDs {
+		if _, ok := scopeIDs[id]; !ok {
+			toClean = append(toClean, id)
+		}
+	}
+
+	scopes, err := s.dbRepo.GetScopesByScopeIDs(ctx, toClean)
+	if err != nil {
+		return nil, err
+	}
+
+	permScopes, err := s.dbRepo.CheckScopesPermission(ctx, permGroupIDs, toClean)
+	if err != nil {
+		return nil, err
+	}
+
+	if clean {
+		var deleteGroup2Scope = func(ctx core.Context) error {
+			return s.dbRepo.DeleteGroup2ScopeByGroupIDScopeIDs(ctx, groupID, permScopes)
+		}
+
+		var deleteScope = func(ctx core.Context) error {
+			return s.dbRepo.DeleteScopes(ctx, permScopes)
+		}
+
+		err = s.dbRepo.Transaction(ctx, deleteGroup2Scope, deleteScope)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var toCleanScopes []datagroup.DataScopeWithFullName
+	var protectedScopes []datagroup.DataScopeWithFullName
+	for _, scope := range scopes {
+		if containsInStr(permScopes, scope.ScopeID) {
+			toCleanScopes = append(toCleanScopes, datagroup.DataScopeWithFullName{
+				DataScope: scope,
+				FullName:  scope.FullName(),
+			})
+		} else {
+			protectedScopes = append(protectedScopes, datagroup.DataScopeWithFullName{
+				DataScope: scope,
+				FullName:  scope.FullName(),
+			})
+		}
+	}
+
+	return &response.CleanExpiredDataScopeResponse{
+		ToBeDeleted: toCleanScopes,
+		Protected:   protectedScopes,
 	}, nil
 }

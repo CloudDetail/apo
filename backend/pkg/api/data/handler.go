@@ -74,6 +74,8 @@ type Handler interface {
 	UpdateDataGroupV2() core.HandlerFunc
 
 	GetFilterByGroupIDV2() core.HandlerFunc
+
+	CleanExpiredDataScope() core.HandlerFunc
 }
 
 type handler struct {

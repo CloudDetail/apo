@@ -41,11 +41,14 @@ type Service interface {
 	DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGroupRequest) error
 
 	GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequest) (*response.ListDataScopeFilterResponse, error)
+
+	CleanExpiredDataScope(ctx core.Context, groupID int64, clean bool) (*response.CleanExpiredDataScopeResponse, error)
 }
 
 type service struct {
 	dbRepo   database.Repo
 	promRepo prometheus.Repo
+	chRepo   clickhouse.Repo
 
 	k8sRepo kubernetes.Repo
 }
@@ -56,6 +59,7 @@ func New(dbRepo database.Repo, promRepo prometheus.Repo, chRepo clickhouse.Repo,
 		dbRepo:   dbRepo,
 		promRepo: promRepo,
 		k8sRepo:  k8sRepo,
+		chRepo:   chRepo,
 	}
 	return service
 }

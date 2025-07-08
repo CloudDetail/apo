@@ -47,5 +47,10 @@ type ListDataScopesResponse struct {
 }
 
 type ListDataScopeFilterResponse struct {
-	Scopes      *datagroup.DataScopeTreeNode `json:"view"`
+	Scopes *datagroup.DataScopeTreeNode `json:"view"`
+}
+
+type CleanExpiredDataScopeResponse struct {
+	ToBeDeleted []datagroup.DataScopeWithFullName `json:"toBeDeleted"`
+	Protected   []datagroup.DataScopeWithFullName `json:"protected"`
 }

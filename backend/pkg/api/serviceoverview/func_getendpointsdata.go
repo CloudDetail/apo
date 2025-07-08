@@ -43,9 +43,6 @@ func (h *handler) GetEndPointsData() core.HandlerFunc {
 			return
 		}
 		var data []response.ServiceEndPointsRes
-
-		// TODO Check groupID permission
-
 		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceEndPointsRes{})
 			return

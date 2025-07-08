@@ -81,3 +81,8 @@ type DGFilterRequest struct {
 	StartTime int64 `form:"startTime" json:"startTime"`
 	EndTime   int64 `form:"endTime" json:"endTime"`
 }
+
+type CleanExpiredDataScopeRequest struct {
+	GroupID int64 `form:"groupId" json:"groupId"`
+	Clean   bool  `form:"clean" json:"clean"`
+}

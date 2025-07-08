@@ -14,19 +14,37 @@ var DaoDataScopeImpl DaoDataScope = nil
 type DaoDataScope interface {
 	SaveScopes(ctx core.Context, scopes []datagroup.DataScope) error
 	LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, error)
-	DeleteScopes(ctx core.Context, scopesID ...string) error
+	DeleteScopes(ctx core.Context, scopesIDs []string) error
 
+	GetScopesByScopeIDs(ctx core.Context, scopeIDs []string) ([]datagroup.DataScope, error)
 	GetScopeIDsOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error)
 	GetScopeIDsSelectedByGroupID(ctx core.Context, groupID int64) (selected []string, err error)
 	GetScopeIDsSelectedByPermGroupIDs(ctx core.Context, permGroupIDs []int64) ([]string, error)
 
 	UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error
 	DeleteGroup2Scope(ctx core.Context, groupID int64) error
+	DeleteGroup2ScopeByGroupIDScopeIDs(ctx core.Context, groupID int64, scopeIDs []string) error
 
 	GetScopeIDsByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]string, error)
 	GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
 
 	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
+
+	CheckScopesPermission(ctx core.Context, permGroupIDs []int64, scopeIDs []string) (perm []string, err error)
+}
+
+func (repo *daoRepo) GetScopesByScopeIDs(ctx core.Context, scopeIDs []string) ([]datagroup.DataScope, error) {
+	var res []datagroup.DataScope
+	return res, repo.GetContextDB(ctx).Where("scope_id in ?", scopeIDs).Find(&res).Error
+}
+
+func (repo *daoRepo) CheckScopesPermission(ctx core.Context, permGroupIDs []int64, scopeIDs []string) (perm []string, err error) {
+	err = repo.GetContextDB(ctx).Table("data_group_2_scope as dgs").
+		Where("dgs.group_id in ?", permGroupIDs).
+		Where("dgs.scope_id in ?", scopeIDs).
+		Pluck("dgs.scope_id", &perm).Error
+
+	return
 }
 
 func (repo *daoRepo) CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error) {
@@ -76,6 +94,13 @@ func (repo *daoRepo) UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs
 
 func (repo *daoRepo) DeleteGroup2Scope(ctx core.Context, groupID int64) error {
 	return repo.GetContextDB(ctx).Where("group_id = ?", groupID).Delete(&datagroup.DataGroup2Scope{}).Error
+}
+
+func (repo *daoRepo) DeleteGroup2ScopeByGroupIDScopeIDs(ctx core.Context, groupID int64, scopeIDs []string) error {
+	return repo.GetContextDB(ctx).
+		Where("group_id = ?", groupID).
+		Where("scope_id in ?", scopeIDs).
+		Delete(&datagroup.DataGroup2Scope{}).Error
 }
 
 func (repo *daoRepo) GetScopeIDsOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error) {
@@ -158,10 +183,8 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, err
 	return &datagroup.DataScopeTree{DataScopeTreeNode: root, CategoryIDs: categoryMaps}, nil
 }
 
-func (repo *daoRepo) DeleteScopes(ctx core.Context, scopesID ...string) error {
-	// TODO
-	panic("not implemented")
-	return repo.GetContextDB(ctx).Model(&datagroup.DataScope{}).Where("scope_id in ?", scopesID).Delete(nil).Error
+func (repo *daoRepo) DeleteScopes(ctx core.Context, scopesIDs []string) error {
+	return repo.GetContextDB(ctx).Where("scope_id in ?", scopesIDs).Delete(&datagroup.DataScope{}).Error
 }
 
 func (repo *daoRepo) GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error) {

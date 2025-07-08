@@ -30,6 +30,11 @@ type DataScope struct {
 	ScopeLabels
 }
 
+type DataScopeWithFullName struct {
+	DataScope
+	FullName string
+}
+
 type ExtraChild struct {
 	ID   string `json:"id" gorm:"-"`
 	Name string `json:"name" gorm:"-"`
@@ -63,6 +68,19 @@ func (l ScopeLabels) ToScopeID() string {
 
 func (DataScope) TableName() string {
 	return "data_scope"
+}
+
+func (l DataScope) FullName() string {
+	switch l.Type {
+	case DATASOURCE_TYP_CLUSTER:
+		return l.ClusterID
+	case DATASOURCE_TYP_NAMESPACE:
+		return strings.Join([]string{l.ClusterID, l.Namespace}, "-")
+	case DATASOURCE_TYP_SERVICE:
+		return strings.Join([]string{l.ClusterID, l.Namespace, l.Service}, "-")
+	default:
+		return l.ScopeID
+	}
 }
 
 type DataScopeTree struct {
