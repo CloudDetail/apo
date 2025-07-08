@@ -128,7 +128,12 @@ func clusterScopeMap(labelsList []prometheus.MetricResult, clusterNames map[stri
 	clusterMap := make(map[string]*response.ClusterScopedDatasource)
 	for _, l := range labelsList {
 		clusterID := l.Metric.ClusterID
-		clusterName := clusterNames[clusterID]
+		clusterName := clusterID
+		if clusterNames != nil {
+			if name, find := clusterNames[clusterID]; find {
+				clusterName = name
+			}
+		}
 		namespace := l.Metric.Namespace
 		svc := l.Metric.SvcName
 		endpoint := l.Metric.ContentKey

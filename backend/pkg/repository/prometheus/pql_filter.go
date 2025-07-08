@@ -103,7 +103,9 @@ func (f *AndFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
 	var removed []string
 	for _, key := range keys {
 		for i := len(f.Filters) - 1; i >= 0; i-- {
-			if strings.HasPrefix(f.Filters[i], key+"=") || strings.HasPrefix(f.Filters[i], key+"!=") || strings.HasPrefix(f.Filters[i], key+"=~") {
+			if strings.HasPrefix(f.Filters[i], key+"=") ||
+				strings.HasPrefix(f.Filters[i], key+"!=") ||
+				strings.HasPrefix(f.Filters[i], key+"=~") {
 				removed = append(removed, f.Filters[i])
 				f.Filters = append(f.Filters[:i], f.Filters[i+1:]...)
 			}
@@ -113,9 +115,7 @@ func (f *AndFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
 	if len(removed) == 0 {
 		return f, nil
 	}
-	return f, &AndFilter{
-		Filters: f.Filters,
-	}
+	return f, &AndFilter{Filters: removed}
 }
 
 type OrFilter struct {
@@ -270,7 +270,10 @@ func (o *OrFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
 	for i := 0; i < len(o.Filters); i++ {
 		_, r := o.Filters[i].SplitFilters(keys)
 		if r != nil {
-			removed = append(removed, *r.(*AndFilter))
+			aF := r.(*AndFilter)
+			if len(aF.Filters) > 0 {
+				removed = append(removed, *aF)
+			}
 		}
 	}
 	return o, &OrFilter{
