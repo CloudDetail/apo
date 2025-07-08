@@ -23,7 +23,7 @@ type DataGroupStore struct {
 	stopCh       chan struct{}
 }
 
-func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) *DataGroupStore {
+func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) (*DataGroupStore, error) {
 	dgStore := &DataGroupStore{
 		ExistedScope: make(map[datagroup.DataScope]struct{}),
 		stopCh:       make(chan struct{}),
@@ -31,17 +31,17 @@ func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database
 
 	dgTree, err := db.LoadDataGroupTree(core.EmptyCtx())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	dgStore.DataGroupTreeNode = dgTree
 
 	scopeTree, err := db.LoadScopes(core.EmptyCtx())
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	dgStore.DataScopeTree = scopeTree
-	return dgStore
+	return dgStore, nil
 }
 
 func (m *DataGroupStore) KeepWatchScope(
@@ -57,7 +57,7 @@ func (m *DataGroupStore) KeepWatchScope(
 	for {
 		select {
 		case <-ticker.C:
-			m.scanAndSave(ctx, promRepo, chRepo, dbRepo, interval)
+			m.Refresh(ctx, promRepo, chRepo, dbRepo, interval)
 		case <-m.stopCh:
 			return
 		}
@@ -171,7 +171,7 @@ func ScanScope(
 	return scopeIDs, nil
 }
 
-func (m *DataGroupStore) scanAndSave(
+func (m *DataGroupStore) Refresh(
 	ctx core.Context,
 	promRepo prometheus.Repo,
 	chRepo clickhouse.Repo,

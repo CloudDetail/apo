@@ -33,7 +33,7 @@ type DaoDataScope interface {
 
 	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
 
-	CheckScopesPermission(ctx core.Context, permGroupIDs []int64, scopeIDs []string) (perm []string, err error)
+	PeekScopeIDWithoutPerm(ctx core.Context, permGroupIDs []int64, scopeIDs []string) (noPerm []string, err error)
 }
 
 func (repo *daoRepo) GetScopesByScopeIDs(ctx core.Context, scopeIDs []string) ([]datagroup.DataScope, error) {
@@ -41,13 +41,15 @@ func (repo *daoRepo) GetScopesByScopeIDs(ctx core.Context, scopeIDs []string) ([
 	return res, repo.GetContextDB(ctx).Where("scope_id in ?", scopeIDs).Find(&res).Error
 }
 
-func (repo *daoRepo) CheckScopesPermission(ctx core.Context, permGroupIDs []int64, scopeIDs []string) (perm []string, err error) {
-	err = repo.GetContextDB(ctx).Table("data_group_2_scope as dgs").
-		Where("dgs.group_id in ?", permGroupIDs).
-		Where("dgs.scope_id in ?", scopeIDs).
-		Pluck("dgs.scope_id", &perm).Error
+func (repo *daoRepo) PeekScopeIDWithoutPerm(ctx core.Context, permGroupIDs []int64, scopeIDs []string) ([]string, error) {
+	var noPerm []string
 
-	return
+	err := repo.GetContextDB(ctx).Table("data_group_2_scope as dgs").
+		Where("dgs.group_id not in ?", permGroupIDs).
+		Where("dgs.scope_id in ?", scopeIDs).
+		Pluck("dgs.scope_id", &noPerm).Error
+
+	return noPerm, err
 }
 
 func (repo *daoRepo) CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error) {

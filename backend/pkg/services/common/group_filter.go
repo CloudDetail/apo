@@ -4,6 +4,7 @@
 package common
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -22,8 +23,11 @@ var (
 
 func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
 	once.Do(func() {
-		DataGroupStorage = NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
-		DataGroupStorage.scanAndSave(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
+		DataGroupStorage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+		if err != nil {
+			log.Fatalf("failed to init DataGroupStorage: %v", err)
+		}
+		DataGroupStorage.Refresh(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
 		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
 	})
 }

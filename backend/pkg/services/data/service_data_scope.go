@@ -126,22 +126,36 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 }
 
 func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean bool) (*response.CleanExpiredDataScopeResponse, error) {
-	scopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, 24*time.Hour)
+	realTimeScopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, 24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
 
-	options, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, groupID)
+	toBeCheckScopeIDs, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, groupID)
 	if err != nil {
 		return nil, err
 	}
-	permScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(options)
 
-	for idx, id := range permScopeIDs {
+	toBeCheckScopeIDs = common.DataGroupStorage.GetFullPermissionScopeList(toBeCheckScopeIDs)
+
+	// SKIP APO_ALL_DATA SCOPE
+	for idx, id := range toBeCheckScopeIDs {
 		if id == "APO_ALL_DATA" {
-			permScopeIDs = append(permScopeIDs[:idx], permScopeIDs[idx+1:]...)
+			toBeCheckScopeIDs = append(toBeCheckScopeIDs[:idx], toBeCheckScopeIDs[idx+1:]...)
 			break
 		}
+	}
+
+	needCleanScopeIDs := []string{}
+	for _, id := range toBeCheckScopeIDs {
+		if _, ok := realTimeScopeIDs[id]; !ok {
+			needCleanScopeIDs = append(needCleanScopeIDs, id)
+		}
+	}
+
+	needCleanScopes, err := s.dbRepo.GetScopesByScopeIDs(ctx, needCleanScopeIDs)
+	if err != nil {
+		return nil, err
 	}
 
 	userID := ctx.UserID()
@@ -149,52 +163,53 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 	if err != nil {
 		return nil, err
 	}
+	permGroups := common.DataGroupStorage.GetFullPermissionGroup(permGroupIDs)
+	for _, group := range permGroups {
+		permGroupIDs = append(permGroupIDs, group.GroupID)
+	}
 
-	toClean := []string{}
-	for _, id := range permScopeIDs {
-		if _, ok := scopeIDs[id]; !ok {
-			toClean = append(toClean, id)
+	// Check Group Permission
+	noPermScopes, err := s.dbRepo.PeekScopeIDWithoutPerm(ctx, permGroupIDs, needCleanScopeIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	var toCleanScopes, protectedScopes []datagroup.DataScopeWithFullName
+	var toCleanScopeIDs []string
+	for _, scope := range needCleanScopes {
+		if containsInStr(noPermScopes, scope.ScopeID) {
+			protectedScopes = append(protectedScopes, datagroup.DataScopeWithFullName{
+				DataScope: scope,
+				FullName:  scope.FullName(),
+			})
+		} else {
+			toCleanScopeIDs = append(toCleanScopeIDs, scope.ScopeID)
+			toCleanScopes = append(toCleanScopes, datagroup.DataScopeWithFullName{
+				DataScope: scope,
+				FullName:  scope.FullName(),
+			})
 		}
-	}
-
-	scopes, err := s.dbRepo.GetScopesByScopeIDs(ctx, toClean)
-	if err != nil {
-		return nil, err
-	}
-
-	permScopes, err := s.dbRepo.CheckScopesPermission(ctx, permGroupIDs, toClean)
-	if err != nil {
-		return nil, err
 	}
 
 	if clean {
 		var deleteGroup2Scope = func(ctx core.Context) error {
-			return s.dbRepo.DeleteGroup2ScopeByGroupIDScopeIDs(ctx, groupID, permScopes)
+			return s.dbRepo.DeleteGroup2ScopeByGroupIDScopeIDs(ctx, groupID, toCleanScopeIDs)
 		}
 
 		var deleteScope = func(ctx core.Context) error {
-			return s.dbRepo.DeleteScopes(ctx, permScopes)
+			return s.dbRepo.DeleteScopes(ctx, toCleanScopeIDs)
 		}
 
 		err = s.dbRepo.Transaction(ctx, deleteGroup2Scope, deleteScope)
 		if err != nil {
 			return nil, err
 		}
-	}
 
-	var toCleanScopes []datagroup.DataScopeWithFullName
-	var protectedScopes []datagroup.DataScopeWithFullName
-	for _, scope := range scopes {
-		if containsInStr(permScopes, scope.ScopeID) {
-			toCleanScopes = append(toCleanScopes, datagroup.DataScopeWithFullName{
-				DataScope: scope,
-				FullName:  scope.FullName(),
-			})
-		} else {
-			protectedScopes = append(protectedScopes, datagroup.DataScopeWithFullName{
-				DataScope: scope,
-				FullName:  scope.FullName(),
-			})
+		// Refresh ScopeTree
+		_ = common.DataGroupStorage.Refresh(ctx, s.promRepo, s.chRepo, s.dbRepo, 10*time.Minute)
+		newScopeTree, err := s.dbRepo.LoadScopes(ctx)
+		if err == nil {
+			common.DataGroupStorage.DataScopeTree = newScopeTree
 		}
 	}
 
