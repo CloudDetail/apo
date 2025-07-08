@@ -2,13 +2,13 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Select } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import DataGroupTreeSelector from './DataGroupTreeSelector'
 
 const DataGroupSelector = ({ readonly = false }) => {
   const { t } = useTranslation('core/dataGroup')
@@ -111,22 +111,30 @@ const DataGroupSelector = ({ readonly = false }) => {
   }
 
   return (
-    <Select<number>
-      disabled={readonly}
-      showSearch
-      className="mx-2"
-      style={{ width: 200 }}
-      value={dataGroupId}
-      placeholder="Please select"
-      allowClear
-      onChange={onChange}
-      options={treeData}
-      suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
-      fieldNames={{
-        label: 'groupName',
-        value: 'groupId',
-      }}
-    />
+    // <Select<number>
+    //   disabled={readonly}
+    //   showSearch
+    //   className="mx-2"
+    //   style={{ width: 200 }}
+    //   value={dataGroupId}
+    //   placeholder="Please select"
+    //   allowClear
+    //   onChange={onChange}
+    //   options={treeData}
+    //   suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
+    //   fieldNames={{
+    //     label: 'groupName',
+    //     value: 'groupId',
+    //   }}
+    // />
+    <div className="w-[200px]">
+      <DataGroupTreeSelector
+        onChange={onChange}
+        groupId={dataGroupId}
+        disabled={readonly}
+        suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
+      />
+    </div>
   )
 }
 

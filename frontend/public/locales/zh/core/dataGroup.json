@@ -38,12 +38,12 @@
   "datasourceLabel": "数据源：",
   "availableDatasource": "可选数据源",
   "selectedDatasource": "已选数据源",
-  "dataGroupPlaceholder": "请选择数据分组",
+  "dataGroupPlaceholder": "请选择数据组",
   "modifyAlertRuleModal": {
-    "dataGroup": "数据分组",
+    "dataGroup": "数据组",
     "alertGroup": "告警分组"
   },
-  "dataGroup": "数据分组",
+  "dataGroup": "数据组",
   "clearInvalidDatasource": "清空无效数据源",
   "toBeCleanedData": "即将被清理的数据源：",
   "protectedDataSources": "以下无效数据源存在于其他数据组，无法直接刷新删除",

@@ -56,7 +56,7 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
 
   useEffect(() => {
     getDataGroups()
-  }, [dataGroupList])
+  }, [])
 
   const deleteDataGroup = (e, groupId: string) => {
     e.preventDefault()
@@ -64,7 +64,7 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
     onChange(result)
   }
   return (
-    <div style={{ maxHeight: '40vh' }} className="flex flex-col overflow-auto" id={id}>
+    <div style={{ maxHeight: '40vh' }} className="flex flex-col overflow-auto w-full" id={id}>
       <Search
         style={{ marginBottom: 8 }}
         className="h-[42px]"
@@ -74,16 +74,17 @@ const DataGroupPermission = (props: DataGroupPermissionProps) => {
       {treeData && treeData.length > 0 && (
         <Tree
           checkable
+          selectable={false}
           checkedKeys={checkedKeys}
           expandedKeys={expandedKeys}
           onExpand={setExpandedKeys}
           onCheck={(checkedKeys, { node }) => {
-            setCheckedKeys(checkedKeys.checked)
-            onChange(checkedKeys.checked)
+            setCheckedKeys(checkedKeys)
+            onChange(checkedKeys)
           }}
-          checkStrictly={true}
           treeData={treeData}
-          className="pr-3 h-full"
+          style={{ width: '100%' }}
+          className="pr-3 h-full w-full"
           fieldNames={{
             title: 'groupName',
             key: 'groupId',

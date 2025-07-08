@@ -190,7 +190,7 @@ export default function ModifyAlertRuleModal({
   useEffect(() => {
     // console.log(ruleInfo)
     if (ruleInfo && modalVisible) {
-      const { time, unit } = splitTimeUnit(ruleInfo.for)
+      const { time, unit } = splitTimeUnit(ruleInfo?.for)
       if (unit) {
         setForUnit(unit)
       }
@@ -209,7 +209,7 @@ export default function ModifyAlertRuleModal({
         description: ruleInfo.annotations?.description,
         severity: ruleInfo.labels?.severity,
         expr: ruleInfo.expr,
-        groupId: dataGroupId,
+        groupId: ruleInfo.labels?.groupId ? Number(ruleInfo.labels.groupId) : null,
       })
     } else {
       form.resetFields()

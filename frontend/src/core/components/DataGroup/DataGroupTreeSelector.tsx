@@ -20,9 +20,17 @@ interface DataGroupTreeProps {
   onChange: (data: DataGroupInfo) => void
   id?: string
   groupId?: number
+  disabled?: boolean
+  suffixIcon?: React.ReactNode
 }
 
-const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({ onChange, id, groupId }) => {
+const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({
+  onChange,
+  id,
+  groupId,
+  disabled = false,
+  suffixIcon,
+}) => {
   const [expandedKeys, setExpandedKeys] = useState<number[]>([])
   const [dataGroup, setDataGroups] = useState<DataGroupInfo[]>([])
   const [selectedGroupId, setSelectedGroupId] = useState<number>(groupId)
@@ -65,12 +73,13 @@ const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({ onChange, id, gro
     <div id={id} className="w-full">
       {dataGroup && dataGroup.length > 0 && (
         <TreeSelect
+          disabled={disabled}
           placeholder={t('dataGroupPlaceholder')}
           value={selectedGroupId}
           showSearch
           treeData={dataGroup}
           treeExpandedKeys={expandedKeys}
-          className="h-full"
+          className="h-full w-full"
           fieldNames={{
             label: 'groupName',
             value: 'groupId',
@@ -85,6 +94,7 @@ const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({ onChange, id, gro
           onSelect={(value) => {
             setSelectedGroupId(Number(value))
           }}
+          suffixIcon={suffixIcon}
         />
       )}
     </div>
