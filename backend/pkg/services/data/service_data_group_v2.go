@@ -133,7 +133,7 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 }
 
 func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGroupRequest) error {
-	// Check Scope exist
+	// Check ParentGroup Option
 	options, err := s.dbRepo.GetScopeIDsOptionByGroupID(ctx, req.GroupID)
 	fullParentOptions := common.DataGroupStorage.GetFullPermissionScopeList(options)
 	if err != nil {
@@ -141,36 +141,40 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	}
 	for _, id := range req.DataScopeIDs {
 		if !containsInStr(fullParentOptions, id) {
-			return fmt.Errorf("scope %s not in group %d", id, req.GroupID)
+			return core.Error(code.UpdateDataGroupError, fmt.Sprintf("unauthorized datasource: %s", id))
 		}
 	}
 
-	// Check childGroup Used
-	groupNode := common.DataGroupStorage.CloneGroupNodeWithSubGroup(req.GroupID, nil)
-	if groupNode == nil {
-		return fmt.Errorf("group %d not found", req.GroupID)
+	// remove ChildUsed Scope First
+	oldSelected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+	if err != nil {
+		return err
+	}
+	oldPermScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(oldSelected)
+	newPermScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(req.DataScopeIDs)
+
+	removedScopeIDs := []string{}
+	for _, id := range oldPermScopeIDs {
+		if !containsInStr(newPermScopeIDs, id) {
+			removedScopeIDs = append(removedScopeIDs, id)
+		}
 	}
 
-	fullOptions := common.DataGroupStorage.GetFullPermissionScopeList(req.DataScopeIDs)
-	for _, subGroup := range groupNode.SubGroups {
-		selected, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
-		if err != nil {
-			return err
-		}
+	subGroupIDs := common.DataGroupStorage.GetFullSubGroupIDs(req.GroupID)
 
-		for _, scope := range selected {
-			if !containsInStr(fullOptions, scope.ScopeID) {
-				return fmt.Errorf("remove datasource [%s:%s] in group [%s] first", scope.Type, scope.Name, subGroup.GroupName)
+	var updateG2SFunc = func(ctx core.Context) error {
+		if len(removedScopeIDs) > 0 {
+			err := s.dbRepo.DeleteG2SByGroupsIDsAndScopeIDs(ctx, subGroupIDs, removedScopeIDs)
+			if err != nil {
+				return err
 			}
 		}
+
+		return s.dbRepo.UpdateGroup2Scope(ctx, req.GroupID, req.DataScopeIDs)
 	}
 
 	var updateNameFunc = func(ctx core.Context) error {
 		return s.dbRepo.UpdateDataGroup(ctx, req.GroupID, req.GroupName, req.Description)
-	}
-
-	var updateG2SFunc = func(ctx core.Context) error {
-		return s.dbRepo.UpdateGroup2Scope(ctx, req.GroupID, req.DataScopeIDs)
 	}
 
 	err = s.dbRepo.Transaction(ctx, updateNameFunc, updateG2SFunc)

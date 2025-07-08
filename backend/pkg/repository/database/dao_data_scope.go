@@ -27,6 +27,7 @@ type DaoDataScope interface {
 	UpdateGroup2Scope(ctx core.Context, groupID int64, scopeIDs []string) error
 	DeleteGroup2Scope(ctx core.Context, groupID int64) error
 	DeleteGroup2ScopeByGroupIDScopeIDs(ctx core.Context, groupID int64, scopeIDs []string) error
+	DeleteG2SByGroupsIDsAndScopeIDs(ctx core.Context, groupIDs []int64, scopeIDs []string) error
 
 	GetScopeIDsByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]string, error)
 	GetScopesByGroupIDAndCat(ctx core.Context, groupID int64, category string) ([]datagroup.DataScope, error)
@@ -104,6 +105,13 @@ func (repo *daoRepo) DeleteGroup2Scope(ctx core.Context, groupID int64) error {
 func (repo *daoRepo) DeleteGroup2ScopeByGroupIDScopeIDs(ctx core.Context, groupID int64, scopeIDs []string) error {
 	return repo.GetContextDB(ctx).
 		Where("group_id = ?", groupID).
+		Where("scope_id in ?", scopeIDs).
+		Delete(&datagroup.DataGroup2Scope{}).Error
+}
+
+func (repo *daoRepo) DeleteG2SByGroupsIDsAndScopeIDs(ctx core.Context, groupIDs []int64, scopeIDs []string) error {
+	return repo.GetContextDB(ctx).
+		Where("group_id in ?", groupIDs).
 		Where("scope_id in ?", scopeIDs).
 		Delete(&datagroup.DataGroup2Scope{}).Error
 }

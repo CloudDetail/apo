@@ -152,6 +152,22 @@ func (t *DataGroupTreeNode) GetGroupNodeRef(groupID int64) *DataGroupTreeNode {
 	return nil
 }
 
+func (t *DataGroupTreeNode) GetFullSubGroupIDs(groupID int64) []int64 {
+	var subGroupIDs []int64
+	var dfs func(isSubGroup bool, node *DataGroupTreeNode)
+	dfs = func(pNode bool, node *DataGroupTreeNode) {
+		if node.GroupID == groupID {
+			subGroupIDs = append(subGroupIDs, node.GroupID)
+			pNode = true
+		}
+		for _, sub := range node.SubGroups {
+			dfs(pNode, sub)
+		}
+	}
+	dfs(false, t)
+	return subGroupIDs
+}
+
 func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup {
 	var permGroups []DataGroup
 
