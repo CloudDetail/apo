@@ -33,7 +33,7 @@ const DataGroupSelector = ({ readonly = false }) => {
     const flattenTree = (nodes: any[]) => {
       if (!nodes || nodes.length === 0) return
       for (const node of nodes) {
-        if (!node.disabled) {
+        if (!node.disabled && node.permissionType !== 'known') {
           result.push(node)
         }
         if (node.subGroups?.length) {
