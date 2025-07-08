@@ -149,6 +149,25 @@ func (t *DataGroupTreeNode) GetGroupNodeRef(groupID int64) *DataGroupTreeNode {
 	return nil
 }
 
+func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup {
+	var permGroups []DataGroup
+
+	var dfs func(pPerm string, node *DataGroupTreeNode)
+	dfs = func(pPerm string, node *DataGroupTreeNode) {
+		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
+			containsInInt(groupIDs, node.GroupID) {
+			permGroups = append(permGroups, node.DataGroup)
+			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
+		}
+		for _, child := range node.SubGroups {
+			dfs(pPerm, child)
+		}
+	}
+
+	dfs(DATA_GROUP_PERMISSION_TYPE_KNOWN, t)
+	return permGroups
+}
+
 func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
 	if pPerm == DATA_GROUP_PERMISSION_TYPE_EDIT || pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW {
 		return DATA_GROUP_PERMISSION_TYPE_EDIT

@@ -10,13 +10,26 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
 	if req.SubjectType == model.DATA_GROUP_SUB_TYP_TEAM {
 		return s.dbRepo.GetSubjectDataGroupList(ctx, req.SubjectID, req.SubjectType)
 	}
-	return s.dbRepo.GetDataGroupByUserID(ctx, req.SubjectID)
+
+	dataGroups, err := s.dbRepo.GetDataGroupByUserID(ctx, req.SubjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupIDs []int64
+	for _, group := range dataGroups {
+		groupIDs = append(groupIDs, group.GroupID)
+	}
+
+	fullGroup := common.DataGroupStorage.GetFullPermissionGroup(groupIDs)
+	return fullGroup, nil
 }
 
 func (s *service) getDefaultDataGroup(ctx core.Context, category string) (datagroup.DataGroup, error) {
