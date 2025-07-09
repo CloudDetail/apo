@@ -166,7 +166,7 @@ func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServic
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
 		Equals("url", req.Endpoint).
-		Equals("miss_top", true)
+		Equals("miss_top", false)
 
 	results := []ServiceNodeWithDepth{}
 	sql := fmt.Sprintf(SQL_GET_UPSTREAM_NODES, queryBuilder.String())
