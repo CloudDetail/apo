@@ -24,7 +24,7 @@ func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*res
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)
 			if count > int(right) {
-				req.StartTime = chart.To
+				req.EndTime = chart.To
 				offset = count - int(right)
 				break
 			}
