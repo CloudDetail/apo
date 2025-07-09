@@ -49,6 +49,8 @@ func (repo *daoRepo) LoadDataGroupTree(ctx core.Context) (*datagroup.DataGroupTr
 			parentNode.SubGroups = append(parentNode.SubGroups, node)
 		}
 	}
+
+	root.RecursiveSortSubGroups()
 	return root, nil
 }
 

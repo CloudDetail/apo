@@ -3,7 +3,11 @@
 
 package datagroup
 
-import "github.com/CloudDetail/apo/backend/pkg/model"
+import (
+	"sort"
+
+	"github.com/CloudDetail/apo/backend/pkg/model"
+)
 
 const (
 	DATA_GROUP_SUB_TYP_USER   = "user"
@@ -43,6 +47,20 @@ type DataGroupTreeNode struct {
 
 	SubGroups      []*DataGroupTreeNode `json:"subGroups,omitempty"`
 	PermissionType string               `json:"permissionType"`
+}
+
+func (t *DataGroupTreeNode) RecursiveSortSubGroups() {
+	if t == nil || len(t.SubGroups) == 0 {
+		return
+	}
+
+	sort.Slice(t.SubGroups, func(i, j int) bool {
+		return t.SubGroups[i].GroupID < t.SubGroups[j].GroupID
+	})
+
+	for _, child := range t.SubGroups {
+		child.RecursiveSortSubGroups()
+	}
 }
 
 func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroupTreeNode {
