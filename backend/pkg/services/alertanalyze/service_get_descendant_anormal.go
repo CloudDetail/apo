@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 // GetDescendantAnormal 查询入口节点的下游告警情况
@@ -37,6 +38,11 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		})
 	if err != nil {
 		return &response.GetDescendantAnormalEventResponse{}, err
+	}
+
+	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	if err != nil {
+		return nil, err
 	}
 
 	var instances []*model.ServiceInstance

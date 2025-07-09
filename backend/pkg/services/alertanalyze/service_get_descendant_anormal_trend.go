@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
@@ -24,6 +25,11 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 			Service:   req.Service,
 			Endpoint:  req.Endpoint,
 		})
+	if err != nil {
+		return nil, err
+	}
+
+	descendants, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
 	if err != nil {
 		return nil, err
 	}

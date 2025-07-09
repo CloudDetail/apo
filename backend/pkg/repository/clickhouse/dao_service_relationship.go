@@ -68,7 +68,7 @@ const (
 		WHERE service_relationship.timestamp BETWEEN %d AND %d
 		GROUP BY parentService, service, clientGroup, clientPeer
 	`
-	SQL_GET_UPSTREAM_NODES = `WITH found_trace_ids AS
+	SQL_GET_ANCESTOR_NODES = `WITH found_trace_ids AS
   (
     SELECT trace_id, path , '' as empty_path
     FROM service_relationship
@@ -192,7 +192,7 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	return getServiceTopologyNodes(results), nil
 }
 
-func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
+func (ch *chRepo) ListAncestorService(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
@@ -200,7 +200,7 @@ func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServic
 		Equals("miss_top", false)
 
 	results := []ServiceNodeWithDepth{}
-	sql := fmt.Sprintf(SQL_GET_UPSTREAM_NODES, queryBuilder.String())
+	sql := fmt.Sprintf(SQL_GET_ANCESTOR_NODES, queryBuilder.String())
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
 		return nil, err
 	}

@@ -59,7 +59,7 @@ func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEvent
 	}
 
 	endpoints := endpointsMap.EndpointsList()
-	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertServiceAndGroupID(ctx,
+	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertServiceInGroup(ctx,
 		endpoints, startTime.UnixMicro(), endTime.UnixMicro(), svcInGroup)
 
 	if err != nil {

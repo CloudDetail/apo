@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 const (
@@ -32,6 +33,11 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		Service:   req.Service,
 		Endpoint:  req.Endpoint,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	descendants, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
 	if err != nil {
 		return nil, err
 	}

@@ -22,6 +22,8 @@ type AlertImpactRequest struct {
 
 	AlertImpactFilter
 	AnalyzeSize int `form:"analyzeSize" json:"analyzeSize"` // 最大分析数量
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type AlertImpactFilter struct {

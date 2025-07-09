@@ -45,6 +45,8 @@ type GetDescendantAnormalEventRequest struct {
 	EntryService  string `form:"entryService"`                                 // 入口服务名
 	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
 
+	GroupID int64 `form:"groupId" json:"groupId"`
+
 	*PageParam // 分页参数
 }
 
@@ -78,6 +80,8 @@ type GetDescendantAnormalDeltaEventRequest struct {
 	DeltaEndTime   int64 `form:"deltaEndTime" binding:"min=0"`   // 播放结束时间
 
 	AnormalTypes string `form:"anormalTypes" json:"anormalTypes"` //要查询的异常类型
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type GetPolarisInferRequest struct {
@@ -350,6 +354,8 @@ type GetAnomalySpanRequest struct {
 	IsSlow     string `json:"isSlow"`
 	IsError    string `json:"isError"`
 	*PageParam `json:",inline"`
+
+	GroupID int64 `json:"groupId"`
 }
 
 type GetServiceMoreUrlListRequest struct {

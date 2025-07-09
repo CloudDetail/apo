@@ -23,13 +23,37 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
-	// Query the calling relationship list of all downstream nodes
 	var relations []*model.ToplogyRelation
+
+	if req.GroupID > 0 {
+		// target service is not Real entry but a ancestor service in group
+		req.EntryService = ""
+		req.EntryEndpoint = ""
+	}
+
+	// Query the calling relationship list of all downstream nodes
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(ctx, &req.GetServiceEndpointTopologyRequest)
 	} else {
 		// Query the calling relationship list of all downstream nodes
 		relations, err = s.chRepo.ListDescendantRelations(ctx, &req.GetServiceEndpointTopologyRequest)
+	}
+
+	if req.GroupID > 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		svcInGroup := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		cutRelation := make([]*model.ToplogyRelation, 0)
+		for _, relation := range relations {
+			if relation.Group != model.GROUP_SERVICE ||
+				containsInStr(svcInGroup, relation.Service) ||
+				containsInStr(svcInGroup, relation.ParentService) {
+				cutRelation = append(cutRelation, relation)
+			}
+		}
+		relations = cutRelation
 	}
 
 	if err != nil {
@@ -216,6 +240,15 @@ func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
 func isSkipped(skipped []int, idx int) bool {
 	for _, v := range skipped {
 		if v == idx {
+			return true
+		}
+	}
+	return false
+}
+
+func containsInStr(options []string, input string) bool {
+	for _, v := range options {
+		if v == input {
 			return true
 		}
 	}

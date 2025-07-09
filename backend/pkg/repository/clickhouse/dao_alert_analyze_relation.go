@@ -89,7 +89,7 @@ type AlertService struct {
 	DatabasePort string `json:"dbPort"`
 }
 
-func (ch *chRepo) SearchEntryEndpointsByAlertServiceAndGroupID(
+func (ch *chRepo) SearchEntryEndpointsByAlertServiceInGroup(
 	ctx core.Context,
 	alertServices []AlertService,
 	startTime, endTime int64,
