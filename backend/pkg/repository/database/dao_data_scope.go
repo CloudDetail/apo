@@ -154,7 +154,6 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, err
 		return nil, err
 	}
 
-	// TODO init RootNode
 	var root *datagroup.DataScopeTreeNode
 	var categoryMaps = make(map[string][]string)
 
@@ -209,6 +208,7 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, err
 			}
 		}
 	}
+	root.RecursiveSortScope()
 	return &datagroup.DataScopeTree{DataScopeTreeNode: root, CategoryIDs: categoryMaps}, nil
 }
 

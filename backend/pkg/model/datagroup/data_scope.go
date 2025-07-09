@@ -3,7 +3,10 @@
 
 package datagroup
 
-import "strings"
+import (
+	"sort"
+	"strings"
+)
 
 const (
 	DATASOURCE_TYP_SYSTEM      = "system"
@@ -101,6 +104,20 @@ type DataScopeTreeNode struct {
 	IsChecked   bool `json:"isChecked"`
 
 	ExtraChildren []*ExtraChild `json:"extraChildren,omitempty"`
+}
+
+func (t *DataScopeTreeNode) RecursiveSortScope() {
+	if t == nil || len(t.Children) == 0 {
+		return
+	}
+
+	sort.Slice(t.Children, func(i, j int) bool {
+		return t.Children[i].ScopeID < t.Children[j].ScopeID
+	})
+
+	for _, child := range t.Children {
+		child.RecursiveSortScope()
+	}
 }
 
 func (t *DataScopeTreeNode) CloneScopeWithPermission(options []string, selected []string) *DataScopeTreeNode {
