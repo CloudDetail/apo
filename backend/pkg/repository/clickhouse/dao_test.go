@@ -229,7 +229,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 
 func testCountK8sEvents(t *testing.T, repo Repo) {
 	pods := []string{"ts-travel2-service-fdbbd5946-l4h2r"}
-	count, err := repo.CountK8sEvents(core.EmptyCtx(), 1722244803099000, 1722245703099000, pods)
+	count, err := repo.CountK8sEvents(core.EmptyCtx(), 1722244803099000, 1722245703099000, pods, []string{"default"})
 	if err != nil {
 		t.Errorf("Error to get k8s events: %v", err)
 	}

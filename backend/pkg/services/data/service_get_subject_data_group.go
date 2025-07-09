@@ -6,65 +6,41 @@ package data
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetSubjectDataGroup(ctx core.Context, req *request.GetSubjectDataGroupRequest) (response.GetSubjectDataGroupResponse, error) {
 	if req.SubjectType == model.DATA_GROUP_SUB_TYP_TEAM {
-		return s.dbRepo.GetSubjectDataGroupList(ctx, req.SubjectID, req.SubjectType, req.Category)
+		return s.dbRepo.GetSubjectDataGroupList(ctx, req.SubjectID, req.SubjectType)
 	}
 
-	return s.getUserDataGroup(ctx, req.SubjectID, req.Category)
-}
-
-// getUserDataGroup Get user's data group or default data group.
-func (s *service) getUserDataGroup(ctx core.Context, userID int64, category string) ([]database.DataGroup, error) {
-	teamIDs, err := s.dbRepo.GetUserTeams(ctx, userID)
+	dataGroups, err := s.dbRepo.GetDataGroupByUserID(ctx, req.SubjectID)
 	if err != nil {
 		return nil, err
 	}
 
-	seen := make(map[int64]struct{})
-	// Get user's teams.
-	var groups []database.DataGroup
-	for _, teamID := range teamIDs {
-		gs, err := s.dbRepo.GetSubjectDataGroupList(ctx, teamID, model.DATA_GROUP_SUB_TYP_TEAM, category)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, g := range gs {
-			if _, ok := seen[g.GroupID]; ok {
-				continue
-			}
-
-			seen[g.GroupID] = struct{}{}
-			groups = append(groups, g)
+	var groupIDs []int64
+	var fromUser []int64
+	var fromTeam []int64
+	for _, group := range dataGroups {
+		groupIDs = append(groupIDs, group.GroupID)
+		if group.Source == model.DATA_GROUP_SUB_TYP_USER {
+			fromUser = append(fromUser, group.GroupID)
+		} else {
+			fromTeam = append(fromTeam, group.GroupID)
 		}
 	}
 
-	for i := range groups {
-		groups[i].Source = model.DATA_GROUP_SUB_TYP_TEAM
-	}
-
-	gs, err := s.dbRepo.GetSubjectDataGroupList(ctx, userID, model.DATA_GROUP_SUB_TYP_USER, category)
-	for i := range gs {
-		gs[i].Source = model.DATA_GROUP_SUB_TYP_USER
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	groups = append(groups, gs...)
-
-	return groups, nil
+	fullGroup := common.DataGroupStorage.GetFullPermissionGroupWithSource(groupIDs, fromUser, fromTeam)
+	return fullGroup, nil
 }
 
-func (s *service) getDefaultDataGroup(ctx core.Context, category string) (database.DataGroup, error) {
-	defaultGroup := database.DataGroup{
+func (s *service) getDefaultDataGroup(ctx core.Context, category string) (datagroup.DataGroup, error) {
+	defaultGroup := datagroup.DataGroup{
 		GroupName: "default",
 		Source:    model.DATA_GROUP_SOURCE_DEFAULT,
 	}
@@ -96,6 +72,5 @@ func (s *service) getDefaultDataGroup(ctx core.Context, category string) (databa
 		})
 	}
 
-	defaultGroup.DatasourceList = items
 	return defaultGroup, nil
 }

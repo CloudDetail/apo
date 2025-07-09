@@ -18,6 +18,7 @@ type Repo interface {
 	// SortDescendantByRelevance query dependency node latency correlation
 	SortDescendantByRelevance(
 		startTime, endTime int64, stepStr string,
+		clusterIDs []string,
 		targetService, targetEndpoint string,
 		unsortedDescendant []ServiceNode, sortBy string,
 	) (sortResp *RelevanceResponse, err error)

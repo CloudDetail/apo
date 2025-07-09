@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -172,6 +173,10 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
+
 	// TODO remove in v1.9.x
 	{
 		if len(req.Filter.Namespaces) > 0 {
@@ -239,6 +244,10 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
+
 	// TODO remove in v1.9.x
 	{
 		if len(req.Filter.Namespaces) > 0 {
@@ -300,6 +309,10 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 	alertFilter := NewQueryBuilder().
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
+
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
 
 	var counts []_alertEventCount
 	intervalMicro := int64(5*time.Minute) / 1e3

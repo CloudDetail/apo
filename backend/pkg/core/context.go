@@ -43,6 +43,8 @@ func releaseContext(ctx Context) {
 var _ Context = (*context)(nil)
 
 type Context interface {
+	ShouldBind(obj interface{}) error
+
 	// ShouldBindQuery deserialization querystring
 	// tag: `form:"xxx"`(note: do not write query)
 	ShouldBindQuery(obj interface{}) error
@@ -109,6 +111,11 @@ type Context interface {
 
 type context struct {
 	ctx *gin.Context
+}
+
+// 基于Context-Type动态切换绑定方式
+func (c *context) ShouldBind(obj interface{}) error {
+	return c.ctx.ShouldBind(obj)
 }
 
 // ShouldBindQuery deserialization querystring

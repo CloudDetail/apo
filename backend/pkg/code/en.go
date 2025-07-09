@@ -190,6 +190,7 @@ var enText = map[string]string{
 	AuthError:                         "Failed to authorize permission",
 	GetGroupSubsError:                 "Failed to get data group's assigned subjects",
 	UserNameError:                     "UserName format invaild",
+	AccessGroupError:                  "Failed to access group",
 
 	CreateTeamError:       "Failed to create team",
 	TeamAlreadyExistError: "Team already exists",

@@ -5,7 +5,6 @@ package service
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 
@@ -20,7 +19,7 @@ import (
 // @Summary get the URL instance corresponding to the service
 // @Description get the URL instance corresponding to the service
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -30,11 +29,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.InstancesRes
 // @Failure 400 {object} code.Failure
-// @Router /api/service/instances [get]
+// @Router /api/service/instances [post]
 func (h *handler) GetServiceInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -42,25 +41,16 @@ func (h *handler) GetServiceInstance() core.HandlerFunc {
 			)
 			return
 		}
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.InstancesRes{
 				Status: model.STATUS_NORMAL,
 				Data:   []response.InstanceData{},
 			})
 			return
 		}
-		var startTime time.Time
-		var endTime time.Time
-		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
-		req.EndTime = req.EndTime / 1000000     // received microsecond-level startTime and endTime need to be converted to second-level first
-		startTime = time.Unix(req.StartTime, 0)
-		endTime = time.Unix(req.EndTime, 0)
-		step := time.Duration(req.Step * 1000)
-		serviceName := req.ServiceName
-		endpoint := req.Endpoint
-		data, err := h.serviceInfoService.GetInstancesNew(c, startTime, endTime, step, serviceName, endpoint)
+
+		data, err := h.serviceInfoService.GetInstancesNew(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

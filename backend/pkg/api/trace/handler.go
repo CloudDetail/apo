@@ -58,6 +58,6 @@ func New(logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo, jaege
 	return &handler{
 		logger:       logger,
 		traceService: trace.New(chRepo, jaegerRepo, logger),
-		dataService:  data.New(dbRepo, promRepo, k8sRepo),
+		dataService:  data.New(dbRepo, promRepo, chRepo, k8sRepo),
 	}
 }
