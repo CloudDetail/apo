@@ -37,7 +37,7 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		return nil, err
 	}
 
-	descendants, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
+	descendants, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +56,9 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 	var databaseInstances []model.MiddlewareInstance
 	instanceMap := newInstanceMap()
 	for _, descendant := range descendants.Nodes {
+		if descendant.OutOfGroup {
+			continue
+		}
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
 			Endpoint:    descendant.Endpoint,

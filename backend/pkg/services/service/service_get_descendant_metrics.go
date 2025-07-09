@@ -22,7 +22,7 @@ func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescend
 		return make([]response.GetDescendantMetricsResponse, 0), nil
 	}
 
-	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	nodes, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
 	if err != nil {
 		return nil, err
 	}

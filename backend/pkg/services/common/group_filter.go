@@ -18,7 +18,7 @@ var (
 	once             sync.Once
 )
 
-func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyRelation []*model.ToplogyRelation) ([]*model.ToplogyRelation, error) {
+func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyRelation []*model.TopologyRelation) ([]*model.TopologyRelation, error) {
 	if groupID == 0 {
 		return topologyRelation, nil
 	}
@@ -29,7 +29,7 @@ func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID 
 	}
 
 	svcList := DataGroupStorage.GetFullPermissionSvcList(selected)
-	cutRelation := make([]*model.ToplogyRelation, 0)
+	cutRelation := make([]*model.TopologyRelation, 0)
 	for _, relation := range topologyRelation {
 		if relation.Group != model.GROUP_SERVICE ||
 			containsInStr(svcList, relation.Service) ||
@@ -40,7 +40,7 @@ func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID 
 	return cutRelation, nil
 }
 
-func CutTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyNode *model.TopologyNodes) (*model.TopologyNodes, error) {
+func MarkTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int64, topologyNode *model.TopologyNodes) (*model.TopologyNodes, error) {
 	if groupID == 0 {
 		return topologyNode, nil
 	}
@@ -52,15 +52,12 @@ func CutTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int6
 
 	svcList := DataGroupStorage.GetFullPermissionSvcList(selected)
 
-	cutNode := &model.TopologyNodes{
-		Nodes: make(map[string]*model.TopologyNode),
-	}
-	for k, node := range topologyNode.Nodes {
-		if node.Group != model.GROUP_SERVICE || containsInStr(svcList, node.Service) {
-			cutNode.Nodes[k] = node
+	for _, node := range topologyNode.Nodes {
+		if node.Group == model.GROUP_SERVICE && !containsInStr(svcList, node.Service) {
+			node.OutOfGroup = true
 		}
 	}
-	return cutNode, nil
+	return topologyNode, nil
 }
 
 func GetPQLFilterByGroupID(ctx core.Context, dbRepo database.Repo, category string, groupID int64) (prometheus.PQLFilter, error) {

@@ -32,9 +32,9 @@ type Repo interface {
 	// Query the list of all descendant service nodes
 	ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// 查询服务类戏的子孙节点的调用关系(不携带边信息)
-	ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
+	ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error)
 	// Query the calling relationship of all descendant nodes
-	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
+	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 	SearchEntryEndpointsByAlertServiceInGroup(ctx core.Context, alertServices []AlertService, startTime, endTime int64, groupSvcList []string) ([]EntryRelationship, error)

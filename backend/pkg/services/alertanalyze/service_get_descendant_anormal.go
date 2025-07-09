@@ -40,7 +40,7 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		return &response.GetDescendantAnormalEventResponse{}, err
 	}
 
-	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	nodes, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +54,9 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		req.Service, req.Endpoint, true)
 
 	for _, node := range nodes.Nodes {
+		if node.OutOfGroup {
+			continue
+		}
 		endpointList = append(endpointList, model.EndpointKey{
 			ServiceName: node.Service,
 			Endpoint:    node.Endpoint,
