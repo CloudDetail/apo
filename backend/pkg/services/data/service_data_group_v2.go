@@ -142,7 +142,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	oldPermScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(oldSelected)
 	existedNewScopes := []string{}
 	for _, id := range req.DataScopeIDs {
-		if !containsInStr(oldSelected, id) {
+		if containsInStr(oldSelected, id) {
 			existedNewScopes = append(existedNewScopes, id)
 		}
 	}
