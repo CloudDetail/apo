@@ -71,7 +71,8 @@ func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []i
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
 
-		for _, sub := range node.SubGroups {
+		for i := 0; i < len(node.SubGroups); i++ {
+			sub := node.SubGroups[i]
 			res := dfs(sub, pPerm)
 			if res == 1 || res == -1 {
 				return res
@@ -97,7 +98,8 @@ func (t *DataGroupTreeNode) cloneWithPermission(pPerm string, groupsIDs []int64)
 	}
 
 	subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
-	for _, sub := range t.SubGroups {
+	for i := 0; i < len(t.SubGroups); i++ {
+		sub := t.SubGroups[i]
 		if subNode := sub.cloneWithPermission(selfPerm, groupsIDs); subNode != nil {
 			if selfPerm == DATA_GROUP_PERMISSION_TYPE_IGNORE {
 				selfPerm = DATA_GROUP_PERMISSION_TYPE_KNOWN
@@ -128,7 +130,8 @@ func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm stri
 			return nil
 		}
 		subGroups := make([]*DataGroupTreeNode, 0, len(t.SubGroups))
-		for _, sub := range t.SubGroups {
+		for i := 0; i < len(t.SubGroups); i++ {
+			sub := subGroups[i]
 			perm := checkPermission(selfPerm, groupsIDs, sub.GroupID)
 			if perm == DATA_GROUP_PERMISSION_TYPE_IGNORE {
 				continue
@@ -147,10 +150,12 @@ func (t *DataGroupTreeNode) cloneGroupNodeWithSubGroup(groupID int64, pPerm stri
 		}
 	}
 
-	for _, subGroup := range t.SubGroups {
-		if subNode := subGroup.cloneGroupNodeWithSubGroup(groupID, selfPerm, groupsIDs); subNode != nil {
+	for i := 0; i < len(t.SubGroups); i++ {
+		sub := t.SubGroups[i]
+		if subNode := sub.cloneGroupNodeWithSubGroup(groupID, selfPerm, groupsIDs); subNode != nil {
 			return subNode
 		}
+
 	}
 	return nil
 }
@@ -160,8 +165,9 @@ func (t *DataGroupTreeNode) GetGroupNodeRef(groupID int64) *DataGroupTreeNode {
 		return t
 	}
 
-	for _, subGroup := range t.SubGroups {
-		if subNode := subGroup.GetGroupNodeRef(groupID); subNode != nil {
+	for i := 0; i < len(t.SubGroups); i++ {
+		sub := t.SubGroups[i]
+		if subNode := sub.GetGroupNodeRef(groupID); subNode != nil {
 			return subNode
 		}
 	}
@@ -176,7 +182,8 @@ func (t *DataGroupTreeNode) GetFullSubGroupIDs(groupID int64) []int64 {
 			subGroupIDs = append(subGroupIDs, node.GroupID)
 			pNode = true
 		}
-		for _, sub := range node.SubGroups {
+		for i := 0; i < len(node.SubGroups); i++ {
+			sub := node.SubGroups[i]
 			dfs(pNode, sub)
 		}
 	}
@@ -204,7 +211,8 @@ func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, f
 			permGroups = append(permGroups, group)
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
-		for _, child := range node.SubGroups {
+		for i := 0; i < len(node.SubGroups); i++ {
+			child := node.SubGroups[i]
 			dfs(pPerm, pSource, child)
 		}
 	}
@@ -223,7 +231,9 @@ func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup
 			permGroups = append(permGroups, node.DataGroup)
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
-		for _, child := range node.SubGroups {
+
+		for i := 0; i < len(node.SubGroups); i++ {
+			child := node.SubGroups[i]
 			dfs(pPerm, child)
 		}
 	}

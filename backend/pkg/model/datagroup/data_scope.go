@@ -112,7 +112,8 @@ func (t *DataScopeTreeNode) GetScopeRef(scopeID string) *DataScopeTreeNode {
 		return t
 	}
 
-	for _, child := range t.Children {
+	for i := 0; i < len(t.Children); i++ {
+		child := t.Children[i]
 		if n := child.GetScopeRef(scopeID); n != nil {
 			return n
 		}
@@ -129,7 +130,9 @@ func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []st
 			optionsMap[node.Service] = struct{}{}
 			pPerm = checked
 		}
-		for _, child := range node.Children {
+
+		for i := 0; i < len(node.Children); i++ {
+			child := node.Children[i]
 			dfs(pPerm, child)
 		}
 	}
@@ -155,7 +158,9 @@ func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []strin
 			optionsMap[node.ScopeID] = true
 			pPerm = checked
 		}
-		for _, child := range node.Children {
+
+		for i := 0; i < len(node.Children); i++ {
+			child := node.Children[i]
 			dfs(pPerm, child)
 		}
 	}
@@ -196,7 +201,9 @@ func (t *DataScopeTreeNode) cloneWithPermission(pPerm scopeStatus, options []str
 	}
 
 	var children []*DataScopeTreeNode
-	for _, node := range t.Children {
+
+	for i := 0; i < len(t.Children); i++ {
+		node := t.Children[i]
 		child := node.cloneWithPermission(selfStatus, options, selected)
 		if child != nil {
 			if selfStatus == ignored {
@@ -237,8 +244,9 @@ func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*
 
 		var subChildren []*DataScopeTreeNode
 		pStatus = selfStatus
-		for _, child := range node.Children {
-			child := dfs(child, pStatus, selected, category)
+		for i := 0; i < len(node.Children); i++ {
+			child := node.Children[i]
+			child = dfs(child, pStatus, selected, category)
 			if child != nil {
 				if selfStatus != checked {
 					selfStatus = notChecked
