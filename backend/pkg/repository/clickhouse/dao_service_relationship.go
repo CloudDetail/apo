@@ -223,6 +223,13 @@ type ServiceNodeWithDepth struct {
 	Depth    uint64 `ch:"depth"`
 }
 
+type ServiceNodeRelationWithDepth struct {
+	ParentService  string `ch:"parent_service"`
+	ParentEndpoint string `ch:"parent_url"`
+
+	ServiceNodeWithDepth
+}
+
 // Consider 2 scenarios
 // MQ -> B
 // A -> B

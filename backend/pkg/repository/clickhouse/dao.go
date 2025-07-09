@@ -38,6 +38,8 @@ type Repo interface {
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 	// 根据Endpoint查询入口节点
+
+	SearchEntryEndpointsByAlertServiceAndGroupID(ctx core.Context, alertServices []AlertService, startTime, endTime int64, groupSvcList []string) ([]EntryRelationship, error)
 	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// Query Service Topology
 	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)

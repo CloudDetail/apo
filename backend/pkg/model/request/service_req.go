@@ -298,6 +298,8 @@ type AlertFilter struct {
 	// -> serviceInstances: query instance by Services
 	// -> dbInstances: query instance by Services
 	EndpointKeys []model.EndpointKey
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type PageParam struct {
