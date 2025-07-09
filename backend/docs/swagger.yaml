@@ -53,6 +53,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      tagsDisplay:
+        items:
+          $ref: '#/definitions/alert.TagDisplay'
+        type: array
       updateTime:
         type: string
       validity:
@@ -165,6 +169,10 @@ definitions:
         additionalProperties:
           type: string
         type: object
+      tagsDisplay:
+        items:
+          $ref: '#/definitions/alert.TagDisplay'
+        type: array
       updateTime:
         type: string
     type: object
@@ -302,6 +310,15 @@ definitions:
       sourceName:
         type: string
       sourceType:
+        type: string
+    type: object
+  alert.TagDisplay:
+    properties:
+      key:
+        type: string
+      name:
+        type: string
+      value:
         type: string
     type: object
   alert.TargetTag:
@@ -1359,6 +1376,23 @@ definitions:
         description: service name
         type: string
     type: object
+  model.ServiceToplogyNode:
+    properties:
+      category:
+        type: string
+      children:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      parents:
+        items:
+          type: string
+        type: array
+    type: object
   model.SeverityLevel:
     enum:
     - 0
@@ -2248,6 +2282,34 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.QueryServiceNameRequest:
+    properties:
+      cluster:
+        description: query Cluster
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      startTime:
+        description: query start time
+        type: integer
+      tags:
+        $ref: '#/definitions/request.QueryServiceNameTag'
+    required:
+    - endTime
+    - startTime
+    type: object
+  request.QueryServiceNameTag:
+    properties:
+      containerId:
+        type: string
+      nodeName:
+        type: string
+      pid:
+        type: string
+      pod:
+        type: string
+    type: object
   request.RemoveAlertSlienceConfigRequest:
     properties:
       alertId:
@@ -3469,6 +3531,78 @@ definitions:
           type: array
         type: array
     type: object
+  response.QueryChartResult:
+    properties:
+      timeseries:
+        items:
+          $ref: '#/definitions/response.Timeseries'
+        type: array
+      title:
+        type: string
+      unit:
+        type: string
+    type: object
+  response.QueryServiceEndpointsResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          type: string
+        type: array
+    type: object
+  response.QueryServiceInstancesResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/model.ServiceInstance'
+        type: array
+    type: object
+  response.QueryServiceNameResponse:
+    properties:
+      msg:
+        type: string
+      result:
+        type: string
+    type: object
+  response.QueryServiceRedChartsResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/response.QueryChartResult'
+        type: array
+    type: object
+  response.QueryServiceResult:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      source:
+        type: string
+    type: object
+  response.QueryServicesResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/response.QueryServiceResult'
+        type: array
+    type: object
+  response.QueryTopologyResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/model.ServiceToplogyNode'
+        type: array
+    type: object
   response.RYGScoreDetail:
     properties:
       detail:
@@ -3671,6 +3805,45 @@ definitions:
       value:
         description: Value metric average
         type: number
+    type: object
+  response.Timeseries:
+    properties:
+      chart:
+        $ref: '#/definitions/response.TempChartObject'
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      legend:
+        type: string
+      legendFormat:
+        type: string
+    type: object
+  response.TopologyExternalClientCall:
+    properties:
+      childs:
+        items:
+          $ref: '#/definitions/model.TopologyNode'
+        type: array
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
+    type: object
+  response.TopologyNodeLevel:
+    properties:
+      depth:
+        type: integer
+      endpoint:
+        type: string
+      service:
+        type: string
     type: object
   slienceconfig.AlertSlienceConfig:
     properties:
@@ -5408,6 +5581,226 @@ paths:
       summary: Get user's assigned data group.
       tags:
       - API.data
+  /api/dataplane/endpoints:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get service's endpoints.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query service name
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServiceEndpointsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get service's endpoints.
+      tags:
+      - API.dataplane
+  /api/dataplane/instances:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get service's instances.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query service name
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServiceInstancesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get service's instances.
+      tags:
+      - API.dataplane
+  /api/dataplane/redcharts:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get service's redcharts.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query service name
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      - description: Query endpoint
+        in: query
+        name: endpoint
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServiceRedChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get service's redcharts.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename:
+    post:
+      consumes:
+      - application/json
+      description: Get service name by instance.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.QueryServiceNameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServiceNameResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get service name by instance.
+      tags:
+      - API.dataplane
+  /api/dataplane/services:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get all services.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryServicesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get all services.
+      tags:
+      - API.dataplane
+  /api/dataplane/topology:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get service's topology.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Query service name
+        in: query
+        name: service
+        required: true
+        type: string
+      - description: Query cluster name
+        in: query
+        name: cluster
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryTopologyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get service's topology.
+      tags:
+      - API.dataplane
   /api/health:
     get:
       consumes:

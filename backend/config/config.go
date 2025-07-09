@@ -92,6 +92,7 @@ type Config struct {
 		APIKeys struct {
 			AlertCheck    string `mapstructure:"alert_check"`
 			AlertClassify string `mapstructure:"alert_classify"`
+			AlertAnalyze  string `mapstructure:"alert_analyze"`
 		} `mapstructure:"api_keys"`
 		FlowIDs struct {
 			AlertCheck        string `mapstructure:"alert_check"`
@@ -101,6 +102,8 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`
+		AutoCheck      bool   `mapstructure:"auto_check"`
+		AutoAnalyze    bool   `mapstructure:"auto_analyze"`
 	} `mapstructure:"dify"`
 	AlertReceiver struct {
 		Enabled     bool   `mapstructure:"enabled"`
