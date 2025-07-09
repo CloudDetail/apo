@@ -38,12 +38,12 @@ type GetDescendantMetricsRequest struct {
 }
 
 type GetDescendantAnormalEventRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // 查询开始时间
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
-	Service       string `form:"service" binding:"required"`                   // 查询服务名
-	Endpoint      string `form:"endpoint" binding:"required"`                  // 查询Endpoint
-	EntryService  string `form:"entryService"`                                 // 入口服务名
-	EntryEndpoint string `form:"entryEndpoint"`                                // 入口Endpoint
+	StartTime     int64  `form:"startTime" json:"startTime" binding:"min=0"`                  // 查询开始时间
+	EndTime       int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // 查询结束时间
+	Service       string `form:"service" json:"service" binding:"required"`                   // 查询服务名
+	Endpoint      string `form:"endpoint" json:"endpoint" binding:"required"`                 // 查询Endpoint
+	EntryService  string `form:"entryService" json:"entryService"`                            // 入口服务名
+	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                          // 入口Endpoint
 
 	GroupID int64 `form:"groupId" json:"groupId"`
 
@@ -54,7 +54,7 @@ type GetDescendantAlertContributaionRequest struct {
 	GetDescendantMetricsRequest
 
 	// 贡献度排序方式
-	SortBy string `form:"sortBy"`
+	SortBy string `form:"sortBy" json:"sortBy"`
 }
 
 type GetDescendantAnormalTrendRequest struct {

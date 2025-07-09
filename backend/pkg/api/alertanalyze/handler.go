@@ -17,27 +17,27 @@ type Handler interface {
 	// ========================告警分析========================
 	// GetAlertEvents 获取告警事件
 	// @Tags API.alerts
-	// @Router /api/alerts/alert/events [get]
+	// @Router /api/alerts/alert/events [post]
 	GetAlertEvents() core.HandlerFunc
 
 	// GetAlertImpact 获取告警数据的影响面
 	// @Tags API.alerts
-	// @Router /api/alerts/event/impact [get]
+	// @Router /api/alerts/event/impact [post]
 	GetAlertImpact() core.HandlerFunc
 
 	// GetDescendantContribution 获取下游故障贡献度
 	// @Tags API.alerts
-	// @Router /api/alerts/descendant/anormal/contribution [get]
+	// @Router /api/alerts/descendant/anormal/contribution [post]
 	GetDescendantContribution() core.HandlerFunc
 
 	// GetDescendantAnormal 获取下游异常
 	// @Tags API.alerts
-	// @Router /api/alerts/descendant/anormal/list [get]
+	// @Router /api/alerts/descendant/anormal/list [post]
 	GetDescendantAnormal() core.HandlerFunc
 
 	// GetAnormalTrendByEntry 获取下游异常变化趋势
 	// @Tags API.alerts
-	// @Router /api/alerts/descendant/anormal/trend [get]
+	// @Router /api/alerts/descendant/anormal/trend [post]
 	GetAnormalTrendByEntry() core.HandlerFunc
 
 	// GetDescendantAnormalDelta 获取下游异常变化

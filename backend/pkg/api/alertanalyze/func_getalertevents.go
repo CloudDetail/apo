@@ -35,7 +35,7 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/alert/events [get]
+// @Router /api/alerts/alert/events [post]
 func (h *handler) GetAlertEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertEventsSvcReq)

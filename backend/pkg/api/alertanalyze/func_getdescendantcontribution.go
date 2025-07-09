@@ -24,11 +24,11 @@ import (
 // @Param sortBy query string false "排序字段,支持latency和errorRate,多个使用,链接"
 // @Success 200 {object} response.GetDescendantAlertContributationResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/descendant/anormal/contribution [get]
+// @Router /api/alerts/descendant/anormal/contribution [post]
 func (h *handler) GetDescendantContribution() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAlertContributaionRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

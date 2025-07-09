@@ -22,7 +22,7 @@ import (
 // @Param step query int64 true "查询步长(us)"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/event/impact [get]
+// @Router /api/alerts/event/impact [post]
 func (h *handler) GetAlertImpact() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AlertImpactRequest)

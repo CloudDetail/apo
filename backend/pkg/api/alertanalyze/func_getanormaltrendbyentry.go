@@ -18,11 +18,11 @@ import (
 // @Param Request body request.GetDescendantAnormalTrendRequest true "请求信息"
 // @Success 200 {object} response.GetDescendantDeltaAnormalEventResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/descendant/anormal/trend [get]
+// @Router /api/alerts/descendant/anormal/trend [post]
 func (h *handler) GetAnormalTrendByEntry() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAnormalTrendRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
