@@ -26,13 +26,13 @@ func (s *service) GetServiceInstances(ctx core.Context, req *request.QueryServic
 	for _, instance := range instanceList.GetInstanceIdMap() {
 		instances = append(instances, instance)
 	}
-	return &response.QueryServiceInstancesResponse {
+	return &response.QueryServiceInstancesResponse{
 		Results: instances,
 	}
 }
 
 func (s *service) queryServiceInstancesByApi(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse {
 	return &response.QueryServiceInstancesResponse{
-		Msg: "not Implemented",
+		Msg: "Data not found",
 	}
 }

@@ -29,7 +29,7 @@ func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceName
 	}
 	services, err := s.promRepo.GetServiceListByFilter(
 		ctx,
-		time.Unix(req.StartTime / 1000000, 0), time.Unix(req.EndTime / 1000000, 0),
+		time.Unix(req.StartTime/1000000, 0), time.Unix(req.EndTime/1000000, 0),
 		filterKVs...,
 	)
 	if err != nil {
@@ -45,13 +45,13 @@ func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceName
 			Msg: fmt.Sprintf("more than one service name[%v] is found by instance", services),
 		}
 	}
-	return &response.QueryServiceNameResponse {
+	return &response.QueryServiceNameResponse{
 		Result: services[0],
 	}
 }
 
 func (s *service) queryServiceNameByApi(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
 	return &response.QueryServiceNameResponse{
-		Msg: "not Implemented",
+		Msg: "Data not found",
 	}
 }

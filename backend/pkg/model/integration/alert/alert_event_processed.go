@@ -25,6 +25,7 @@ type WorkflowDetail struct {
 	WorkflowName string `json:"workflowName" ch:"workflow_name"`
 
 	Validity    string    `json:"validity" ch:"validity"`
+	Input       string    `json:"input" ch:"input"`
 	Output      string    `json:"output" ch:"output"`
 	RoundedTime time.Time `json:"-" ch:"rounded_time"`
 	Importance  uint8     `json:"-" ch:"importance"`
@@ -36,6 +37,10 @@ type WorkflowDetail struct {
 
 	// Deprecated: use [Validity] instead, will remove after 1.7.x
 	IsValid string `json:"isValid" ch:"is_valid"`
+
+	AlertDirection string `json:"alertDirection" ch:"alert_direction"`
+	AnalyzeRunID   string `json:"analyzeRunId" ch:"analyze_run_id"`
+	AnalyzeErr     string `json:"analyzeErr" ch:"analyze_err"`
 }
 
 type NotifyDetail struct {
@@ -51,7 +56,8 @@ type WorkflowParams struct {
 	NodeName string `json:"nodeName" form:"nodeName"`
 	NodeIp   string `json:"nodeIp" form:"nodeIp"`
 
-	Params string `json:"params"`
+	Params  string `json:"params"`
+	Edition string `json:"edition"`
 }
 
 type AlertAnalyzeWorkflowParams struct {
@@ -66,6 +72,7 @@ type AlertAnalyzeWorkflowParams struct {
 	Detail      string `json:"detail,omitempty"`
 	ContainerID string `json:"containerId,omitempty"`
 
-	Tags    map[string]string `json:"tags,omitempty"`
-	RawTags map[string]any    `json:"raw_tags,omitempty"`
+	Tags         map[string]string `json:"tags,omitempty"`
+	RawTags      map[string]any    `json:"raw_tags,omitempty"`
+	AlertEventId string            `json:"alertEventId,omitempty"`
 }

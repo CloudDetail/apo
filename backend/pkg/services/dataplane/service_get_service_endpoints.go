@@ -31,6 +31,6 @@ func (s *service) GetServiceEndpoints(ctx core.Context, req *request.QueryServic
 
 func (s *service) queryServiceEndpointsByApi(ctx core.Context, req *request.QueryServiceEndpointsRequest) *response.QueryServiceEndpointsResponse {
 	return &response.QueryServiceEndpointsResponse{
-		Msg: "not Implemented",
+		Msg: "Data not found",
 	}
 }

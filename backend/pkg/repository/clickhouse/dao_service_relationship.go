@@ -70,7 +70,7 @@ const (
 	`
 	SQL_GET_ANCESTOR_NODES = `WITH found_trace_ids AS
   (
-    SELECT trace_id, path , '' as empty_path
+    SELECT trace_id, path
     FROM service_relationship
     %s
     GROUP BY trace_id, path
@@ -80,7 +80,6 @@ const (
   FROM service_relationship
   GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
   WHERE startsWith(found_trace_ids.path, service_relationship.path)
-  AND service_relationship.parent_service != found_trace_ids.empty_path
   group by service,url`
 )
 
@@ -192,7 +191,7 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	return getServiceTopologyNodes(results), nil
 }
 
-func (ch *chRepo) ListAncestorService(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
+func (ch *chRepo) ListAncestorEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
 		Equals("service", req.Service).
@@ -205,6 +204,7 @@ func (ch *chRepo) ListAncestorService(ctx core.Context, req *request.GetServiceE
 		return nil, err
 	}
 	return results, nil
+
 }
 
 type ParentNode struct {

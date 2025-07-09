@@ -27,7 +27,7 @@ func (s *service) GetServiceEntryEndpointsInGroup(ctx core.Context, req *request
 		permSvcMap[svc] = struct{}{}
 	}
 
-	parents, err := s.chRepo.ListAncestorService(ctx, req)
+	parents, err := s.chRepo.ListAncestorEndpoints(ctx, req)
 	if err != nil {
 		return nil, err
 	}

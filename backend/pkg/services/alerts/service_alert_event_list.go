@@ -16,6 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/google/uuid"
 )
 
 func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
@@ -128,6 +129,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
 		record.Duration = formatDuration(record.EndTime.Sub(record.CreateTime))
+		record.ID, _ = uuid.Parse(record.Input)
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
@@ -137,12 +139,14 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 			endTime = record.UpdateTime
 		}
 		record.Duration = formatDuration(time.Since(record.CreateTime))
+		record.ID, _ = uuid.Parse(record.Input)
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  record.AlertEvent.GetInfraNodeTag(),
+		Edition:   "ce",
 	}
 
 	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
@@ -158,15 +162,16 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 	}
 
 	parmas := alert.AlertAnalyzeWorkflowParams{
-		AlertName:   record.AlertEvent.Name,
-		Node:        record.AlertEvent.GetInfraNodeTag(),
-		Namespace:   record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:         record.AlertEvent.GetK8sPodTag(),
-		Pid:         record.AlertEvent.GetPidTag(),
-		Detail:      record.Detail,
-		ContainerID: record.AlertEvent.GetContainerIDTag(),
-		Tags:        record.Alert.EnrichTags,
-		RawTags:     record.Alert.Tags,
+		AlertName:    record.AlertEvent.Name,
+		Node:         record.AlertEvent.GetInfraNodeTag(),
+		Namespace:    record.AlertEvent.GetK8sNamespaceTag(),
+		Pod:          record.AlertEvent.GetK8sPodTag(),
+		Pid:          record.AlertEvent.GetPidTag(),
+		Detail:       record.Detail,
+		ContainerID:  record.AlertEvent.GetContainerIDTag(),
+		Tags:         record.Alert.EnrichTags,
+		RawTags:      record.Alert.Tags,
+		AlertEventId: record.Input,
 	}
 
 	if len(services) == 1 {
