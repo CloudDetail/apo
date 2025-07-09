@@ -7,7 +7,7 @@ import (
 )
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
-	services, err := s.promRepo.GetServiceList(ctx, req.StartTime, req.EndTime, []string{})
+	services, err := s.promRepo.GetServiceList(ctx, req.StartTime, req.EndTime, nil)
 	if err != nil {
 		return &response.QueryServicesResponse{
 			Msg: "query services failed: " + err.Error(),

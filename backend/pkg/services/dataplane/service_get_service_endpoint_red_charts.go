@@ -31,16 +31,20 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	startTime := time.Unix(req.StartTime/1000000, 0)
 	endTime := time.Unix(req.EndTime/1000000, 0)
 	granularity := prometheus.EndpointGranularity
-	filters := []string{prometheus.ServicePQLFilter, req.ServiceName, prometheus.ContentKeyPQLFilter, req.Endpoint}
+
+	filter := prometheus.NewFilter().
+		Equal(prometheus.ServiceNameKey, req.ServiceName).
+		Equal(prometheus.ContentKeyKey, req.Endpoint)
+
 	// Chart data
 	stepMs := getStepMs(req.EndTime - req.StartTime)
-	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgLatencyWithFilters,
+	latencyRes, latencyErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgLatencyWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if latencyErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -53,13 +57,13 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	}
 	mergeEndpointChartMetrics(endpointMap, latencyRes, metricLatencyData)
 
-	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgErrorRateWithFilters,
+	errorRes, rateErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgErrorRateWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if rateErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -68,13 +72,13 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	}
 	mergeEndpointChartMetrics(endpointMap, errorRes, metricErrorData)
 
-	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgTPSWithFilters,
+	tpmRes, tmpErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgTPSWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if tmpErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -84,9 +88,9 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	mergeEndpointChartMetrics(endpointMap, tpmRes, metricTPMData)
 
 	// Metric Value
-	s.promRepo.FillMetric(ctx, endpointMap, prometheus.AVG, startTime, endTime, filters, granularity)
-	s.promRepo.FillMetric(ctx, endpointMap, prometheus.DOD, startTime, endTime, filters, granularity)
-	s.promRepo.FillMetric(ctx, endpointMap, prometheus.WOW, startTime, endTime, filters, granularity)
+	s.promRepo.FillMetric(ctx, endpointMap, prometheus.AVG, startTime, endTime, filter, granularity)
+	s.promRepo.FillMetric(ctx, endpointMap, prometheus.DOD, startTime, endTime, filter, granularity)
+	s.promRepo.FillMetric(ctx, endpointMap, prometheus.WOW, startTime, endTime, filter, granularity)
 
 	results := make([]*response.QueryChartResult, 0)
 	for _, endpointMetric := range endpointMap.MetricGroupMap {
