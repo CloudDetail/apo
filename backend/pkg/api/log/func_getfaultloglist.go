@@ -43,9 +43,8 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 		if req.PageSize == 0 {
 			req.PageSize = 10
 		}
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, req.GroupID, &req.Namespaces, &req.Service, "")
-		if err != nil {
+
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetFaultLogPageListResponse{
 				Pagination: &model.Pagination{
 					Total:       0,
@@ -56,6 +55,7 @@ func (h *handler) GetFaultLogPageList() core.HandlerFunc {
 			})
 			return
 		}
+
 		resp, err := h.logService.GetFaultLogPageList(c, req)
 		if err != nil {
 			c.AbortWithError(

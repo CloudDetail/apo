@@ -22,9 +22,6 @@ const (
 	TEMPLATE_GET_SERVICES                = `sum by(svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_SERVICES_WITH_NAMESPACE = `sum by(svc_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_GET_ENDPOINTS               = `sum by(content_key) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
-	TEMPLATE_GET_SERVICE_INSTANCE        = `sum by(svc_name, pod, pid, container_id, node_name, namespace, node_ip) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
-	TEMPLATE_GET_ACTIVE_INSTANCE         = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) > 0`
-	TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE = `sum by(svc_name, pod, pid, container_id, node_name, namespace) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))`
 	TEMPLATE_ERROR_RATE_INSTANCE         = "100*(" +
 		"(sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s, is_error='true'}[%s])) or 0)" + // or 0 Supplements missing data scenarios
 		"/sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))" +
@@ -43,12 +40,9 @@ const (
 )
 
 // GetServiceList to query the service name list
-func (repo *promRepo) GetServiceList(ctx core.Context, startTime int64, endTime int64, namespace []string) ([]string, error) {
-	var namespaceFilter string
-	if len(namespace) > 0 {
-		namespaceFilter = fmt.Sprintf(`%s"%s"`, NamespaceRegexPQLFilter, RegexMultipleValue(namespace...))
-	}
-	query := fmt.Sprintf(TEMPLATE_GET_SERVICES, namespaceFilter, VecFromS2E(startTime, endTime))
+func (repo *promRepo) GetServiceList(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error) {
+	pqlTemplate := PQLMetricSeries(SPAN_TRACE_COUNT)
+	query := pqlTemplate(VecFromS2E(startTime, endTime), "svc_name", filter, "")
 	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 
 	if err != nil {
@@ -231,57 +225,48 @@ func (repo *promRepo) GetServiceListByFilter(ctx core.Context, startTime time.Ti
 }
 
 // GetServiceEndPointList to query the service Endpoint list. The service name can be empty.
-func (repo *promRepo) GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error) {
-	queryCondition := ""
-	if serviceName != "" {
-		queryCondition = fmt.Sprintf("svc_name='%s'", serviceName)
-	}
-	query := fmt.Sprintf(TEMPLATE_GET_ENDPOINTS, queryCondition, VecFromS2E(startTime, endTime))
-	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
-
+func (repo *promRepo) GetServiceEndPointListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error) {
+	pqlTemplate := PQLMetricSeries(SPAN_TRACE_COUNT)
+	res, err := repo.QueryData(ctx, time.UnixMicro(endTime), pqlTemplate(VecFromS2E(startTime, endTime), "content_key", filter, ""))
 	if err != nil {
 		return nil, err
 	}
 	result := make([]string, 0)
-	vector, ok := value.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
-	for _, sample := range vector {
-		result = append(result, string(sample.Metric["content_key"]))
+	for _, sample := range res {
+		result = append(result, string(sample.Metric.ContentKey))
 	}
 	return result, nil
 }
 
-// Query the list of active instances
-func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
-	queryCondition := fmt.Sprintf("%s'%s'", ServiceRegexPQLFilter, RegexMultipleValue(serviceNames...))
+func (repo *promRepo) GetActiveInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (*model.ServiceInstances, error) {
+	res, err := repo.QueryData(ctx,
+		time.UnixMicro(endTime),
+		greater(
+			sumBy(string(InstanceGranularity), increase(rangeVec(SPAN_TRACE_COUNT, filter, VecFromS2E(startTime, endTime), ""))),
+			"0",
+		),
+	)
 
-	query := fmt.Sprintf(TEMPLATE_GET_ACTIVE_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
 	if err != nil {
 		return nil, err
 	}
-	result := model.NewServiceInstances()
-	vector, ok := res.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
-	instances := make([]*model.ServiceInstance, 0)
-	for _, sample := range vector {
-		if float64(sample.Value) > 0 {
-			pidStr := sample.Metric["pid"]
-			pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
 
-			instances = append(instances, &model.ServiceInstance{
-				ServiceName: string(sample.Metric["svc_name"]),
-				ContainerId: string(sample.Metric["container_id"]),
-				PodName:     string(sample.Metric["pod"]),
-				Namespace:   string(sample.Metric["namespace"]),
-				NodeName:    string(sample.Metric["node_name"]),
-				Pid:         pid,
-			})
-		}
+	result := model.NewServiceInstances()
+	instances := make([]*model.ServiceInstance, 0)
+	for _, sample := range res {
+		pidStr := sample.Metric.PID
+		pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
+
+		instances = append(instances, &model.ServiceInstance{
+			ServiceName: sample.Metric.SvcName,
+			ContainerId: sample.Metric.ContainerID,
+			PodName:     sample.Metric.POD,
+			Namespace:   sample.Metric.Namespace,
+			NodeName:    sample.Metric.NodeName,
+			Pid:         pid,
+			NodeIP:      sample.Metric.NodeIP,
+			ClusterID:   sample.Metric.ClusterID,
+		})
 	}
 	result.AddInstances(instances)
 	return result, nil
@@ -289,67 +274,77 @@ func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, e
 
 // GetInstanceList to query the service instance list. The URL can be empty.
 func (repo *promRepo) GetInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error) {
-	var queryCondition string
-	if url == "" {
-		queryCondition = fmt.Sprintf("svc_name='%s'", serviceName)
-	} else {
-		queryCondition = fmt.Sprintf("svc_name='%s',content_key='%s'", serviceName, url)
+	filter := NewFilter()
+	if url != "" {
+		filter.Equal(ContentKeyKey, url)
 	}
-	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
+	if serviceName != "" {
+		filter.Equal(ServiceNameKey, serviceName)
+	}
+	return repo.GetInstanceListByPQLFilter(ctx, startTime, endTime, filter)
+}
+
+// GetInstanceListByServicesList
+func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
+	filter := NewFilter()
+	filter.RegexMatch(ServiceNameKey, RegexMultipleValue(serviceNames...))
+	return repo.GetInstanceListByPQLFilter(ctx, startTime, endTime, filter)
+}
+
+func (repo *promRepo) GetInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (*model.ServiceInstances, error) {
+	res, err := repo.QueryData(ctx,
+		time.UnixMicro(endTime),
+		sumBy(string(InstanceGranularity), increase(rangeVec(SPAN_TRACE_COUNT, filter, VecFromS2E(startTime, endTime), ""))),
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
 	result := model.NewServiceInstances()
-	vector, ok := res.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
-
 	instances := make([]*model.ServiceInstance, 0)
-	for _, sample := range vector {
-		pidStr := sample.Metric["pid"]
+	for _, sample := range res {
+		pidStr := sample.Metric.PID
 		pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
 
 		instances = append(instances, &model.ServiceInstance{
-			ServiceName: string(sample.Metric["svc_name"]),
-			ContainerId: string(sample.Metric["container_id"]),
-			PodName:     string(sample.Metric["pod"]),
-			Namespace:   string(sample.Metric["namespace"]),
-			NodeName:    string(sample.Metric["node_name"]),
+			ServiceName: sample.Metric.SvcName,
+			ContainerId: sample.Metric.ContainerID,
+			PodName:     sample.Metric.POD,
+			Namespace:   sample.Metric.Namespace,
+			NodeName:    sample.Metric.NodeName,
 			Pid:         pid,
-			NodeIP:      string(sample.Metric["node_ip"]),
+			NodeIP:      sample.Metric.NodeIP,
+			ClusterID:   sample.Metric.ClusterID,
 		})
 	}
 	result.AddInstances(instances)
 	return result, nil
 }
 
-func (repo *promRepo) GetMultiServicesInstanceList(ctx core.Context, startTime int64, endTime int64, services []string) (map[string]*model.ServiceInstances, error) {
-	var queryCondition = fmt.Sprintf("svc_name=~'%s'", RegexMultipleValue(services...))
-	query := fmt.Sprintf(TEMPLATE_GET_SERVICE_INSTANCE, queryCondition, VecFromS2E(startTime, endTime))
-	res, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
+func (repo *promRepo) GetMultiSVCInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (map[string]*model.ServiceInstances, error) {
+	res, err := repo.QueryData(ctx,
+		time.UnixMicro(endTime),
+		sumBy(string(InstanceGranularity), increase(rangeVec(SPAN_TRACE_COUNT, filter, VecFromS2E(startTime, endTime), ""))),
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
 	result := make(map[string]*model.ServiceInstances)
-	vector, ok := res.(prometheus_model.Vector)
-	if !ok {
-		return result, nil
-	}
+
 	serviceMapList := make(map[string][]*model.ServiceInstance)
-	for _, sample := range vector {
-		pidStr := sample.Metric["pid"]
+	for _, sample := range res {
+		pidStr := sample.Metric.PID
 		pid, _ := strconv.ParseInt(string(pidStr), 10, 64)
 
 		instance := &model.ServiceInstance{
-			ServiceName: string(sample.Metric["svc_name"]),
-			ContainerId: string(sample.Metric["container_id"]),
-			PodName:     string(sample.Metric["pod"]),
-			Namespace:   string(sample.Metric["namespace"]),
-			NodeName:    string(sample.Metric["node_name"]),
+			ServiceName: string(sample.Metric.SvcName),
+			ContainerId: string(sample.Metric.ContainerID),
+			PodName:     string(sample.Metric.POD),
+			Namespace:   string(sample.Metric.Namespace),
+			NodeName:    string(sample.Metric.NodeName),
 			Pid:         pid,
 		}
 		if list, ok := serviceMapList[instance.ServiceName]; ok {

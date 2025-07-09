@@ -3,7 +3,9 @@
 
 package core
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 var _ BusinessError = (*businessError)(nil)
 
@@ -25,6 +27,8 @@ type BusinessError interface {
 
 	Error() string
 }
+
+var _ BusinessError = (*businessError)(nil)
 
 type businessError struct {
 	httpCode     int    // HTTP status code

@@ -5,7 +5,6 @@ package serviceoverview
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
@@ -32,7 +31,7 @@ import (
 func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceMoreUrlListRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -40,17 +39,18 @@ func (h *handler) GetServiceMoreUrlList() core.HandlerFunc {
 			)
 			return
 		}
-		var startTime time.Time
-		var endTime time.Time
-		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
-		req.EndTime = req.EndTime / 1000000     // received microsecond-level startTime and endTime need to be converted to second-level first
-		startTime = time.Unix(req.StartTime, 0)
-		endTime = time.Unix(req.EndTime, 0)
-		step := time.Duration(req.Step * 1000)
-		//step := time.Minute
-		serviceName := req.ServiceName
+
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.AuthError,
+				err,
+			)
+			return
+		}
+
 		var res []response.ServiceDetail
-		data, err := h.serviceoverview.GetServiceMoreUrl(c, startTime, endTime, step, serviceName, req.SortRule)
+		data, err := h.serviceoverview.GetServiceMoreUrl(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

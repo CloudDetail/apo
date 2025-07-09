@@ -6,8 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -30,11 +28,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetTraceMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/trace/metrics [get]
+// @Router /api/service/trace/metrics [post]
 func (h *handler) GetTraceMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetTraceMetricsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -43,12 +41,11 @@ func (h *handler) GetTraceMetrics() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []response.GetTraceMetricsResponse{})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetTraceMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(

@@ -53,6 +53,7 @@ const (
 		GROUP BY entry_service, entry_url
 	`
 
+
 	SQL_GET_SERVICE_TOPOLOGY = `
 		WITH found_trace_ids AS
 		(
@@ -68,6 +69,22 @@ const (
 		WHERE service_relationship.timestamp BETWEEN %d AND %d
 		GROUP BY parentService, service, clientGroup, clientPeer
 	`
+
+	SQL_GET_UPSTREAM_NODES = `WITH found_trace_ids AS
+  (
+    SELECT trace_id, path , '' as empty_path
+    FROM service_relationship
+    %s
+    GROUP BY trace_id, path
+    LIMIT 1000
+  )
+  SELECT  service, url, min(length(splitByChar('.', service_relationship.path))) AS depth
+  FROM service_relationship
+  GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
+  WHERE startsWith(found_trace_ids.path, service_relationship.path)
+  AND service_relationship.parent_service != found_trace_ids.empty_path
+  group by service,url`
+
 )
 
 // Query the list of upstream nodes
@@ -163,6 +180,7 @@ func (ch *chRepo) ListEntryEndpoints(ctx core.Context, req *request.GetServiceEn
 	return results, nil
 }
 
+
 // Query Service Topology
 func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error) {
 	startTime := req.StartTime / 1000000
@@ -177,6 +195,22 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	}
 	return getServiceTopologyNodes(results), nil
 }
+  
+func (ch *chRepo) ListUpstreamEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
+		Equals("service", req.Service).
+		Equals("url", req.Endpoint).
+		Equals("miss_top", false)
+
+	results := []ServiceNodeWithDepth{}
+	sql := fmt.Sprintf(SQL_GET_UPSTREAM_NODES, queryBuilder.String())
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return results, nil
+
+}
 
 type ParentNode struct {
 	ParentService string `ch:"parentService"`
@@ -186,6 +220,12 @@ type ParentNode struct {
 	ClientType    string `ch:"clientType"`
 	ClientPeer    string `ch:"clientPeer"`
 	ClientKey     string `ch:"clientKey"`
+}
+
+type ServiceNodeWithDepth struct {
+	Service  string `ch:"service"`
+	Endpoint string `ch:"url"`
+	Depth    uint64 `ch:"depth"`
 }
 
 // Consider 2 scenarios

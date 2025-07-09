@@ -12,49 +12,62 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
-func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Time, endTime time.Time, filter EndpointsFilter) (response.ServiceRYGLightRes, error) {
+func (s *service) GetServicesRYGLightStatus(ctx core.Context, req *request.GetRygLightRequest) (response.ServiceRYGLightRes, error) {
 	var servicesMap = &servicesRYGLightMap{
 		MetricGroupList: []*RYGLightStatus{},
 		MetricGroupMap:  map[prom.ServiceKey]*RYGLightStatus{},
 	}
 
-	startMicroTS := startTime.UnixMicro()
-	endMicroTs := endTime.UnixMicro()
+	startTime := time.UnixMicro(req.StartTime)
+	endTime := time.UnixMicro(req.EndTime)
+	filter := EndpointsFilter{
+		ContainsSvcName:      req.ServiceName,
+		ContainsEndpointName: req.EndpointName,
+		Namespace:            req.Namespace,
+	}
 
-	filters := filter.ExtractFilterStr()
+	groupFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "apm", req.GroupID)
+	if err != nil {
+		return response.ServiceRYGLightRes{}, err
+	}
+	filters := filter.ExtractPQLFilterStr()
+
+	pqlFilter := prometheus.And(groupFilter, filters)
 
 	// FIX for showing services without LatencyDay-over-Day Growth Rate
-	avgLatency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.PQLAvgLatencyWithFilters,
-		startMicroTS, endMicroTs,
-		prom.SVCGranularity, filters...)
+	avgLatency, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.PQLAvgLatencyWithPQLFilter,
+		req.StartTime, req.EndTime,
+		prom.SVCGranularity, pqlFilter)
 	if err == nil {
 		servicesMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
 	}
 
-	avgLatencyDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgLatencyWithFilters),
-		startMicroTS, endMicroTs,
-		prom.SVCGranularity, filters...)
+	avgLatencyDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgLatencyWithPQLFilter),
+		req.StartTime, req.EndTime,
+		prom.SVCGranularity, pqlFilter)
 	if err == nil {
 		servicesMap.MergeMetricResults(prom.DOD, prom.LATENCY, avgLatencyDoD)
 	}
 
-	avgErrorRateDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgErrorRateWithFilters),
-		startMicroTS, endMicroTs,
-		prom.SVCGranularity, filters...)
+	avgErrorRateDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgErrorRateWithPQLFilter),
+		req.StartTime, req.EndTime,
+		prom.SVCGranularity, pqlFilter)
 	if err == nil {
 		servicesMap.MergeMetricResults(prom.DOD, prom.ERROR_RATE, avgErrorRateDoD)
 	}
 
-	avgLogErrorCountDoD, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		prom.DayOnDay(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithFilters),
-		startMicroTS, endMicroTs,
-		prom.SVCGranularity, filters...)
+	avgLogErrorCountDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.DayOnDayTemplate(prom.PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter),
+		req.StartTime, req.EndTime,
+		prom.SVCGranularity, pqlFilter)
 	if err == nil {
 		servicesMap.MergeMetricResults(prom.DOD, prom.LOG_ERROR_COUNT, avgLogErrorCountDoD)
 	}
@@ -63,13 +76,14 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, startTime time.Tim
 		ServiceList: []*response.ServiceRYGResult{},
 	}
 
-	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx, startTime,
-		endTime,
+	alertEventCount, _ := s.chRepo.GetAlertEventCountGroupByInstance(ctx,
+		startTime, endTime,
 		request.AlertFilter{Status: "firing"},
 		nil,
 	)
+
 	for svcKey, status := range servicesMap.MetricGroupMap {
-		instances, err := s.promRepo.GetInstanceList(ctx, startMicroTS, endMicroTs, svcKey.SvcName, "")
+		instances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, svcKey.SvcName, "")
 		if err != nil {
 			continue
 		}

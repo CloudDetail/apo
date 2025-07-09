@@ -6,8 +6,6 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -18,7 +16,7 @@ import (
 // @Summary get log related metrics
 // @Description get log related metrics
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -30,7 +28,7 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetLogMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/log/metrics [get]
+// @Router /api/service/log/metrics [post]
 func (h *handler) GetLogMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetLogMetricsRequest)
@@ -43,12 +41,11 @@ func (h *handler) GetLogMetrics() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, []*response.GetLogMetricsResponse{})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetLogMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(

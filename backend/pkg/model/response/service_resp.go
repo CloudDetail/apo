@@ -18,6 +18,12 @@ type GetServiceEndpointRelationResponse struct {
 	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // downstream node call relationship list
 }
 
+type TopologyNodeLevel struct {
+	Service  string `ch:"service" json:"service"`
+	Endpoint string `ch:"endpoint" json:"endpoint"`
+	Depth    int    `ch:"depth" json:"depth"`
+}
+
 type GetServiceEndpointTopologyResponse struct {
 	Parents  []*model.TopologyNode `json:"parents"`  // upstream node list
 	Current  *model.TopologyNode   `json:"current"`  // current service

@@ -4,12 +4,11 @@
 package polarisanalyzer
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/util"
@@ -28,24 +27,36 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 		req.Step = 60e6 // interval must be large than 1m
 	}
 
-	params := url.Values{}
-	params.Add("startTime", strconv.FormatInt(req.StartTime, 10))
-	params.Add("endTime", strconv.FormatInt(req.EndTime, 10))
-	params.Add("stepStr", prom.VecFromDuration(time.Duration(req.Step)*time.Microsecond))
-	params.Add("service", req.Service)
-	params.Add("endpoint", req.Endpoint)
+	for i := 0; i < len(req.ClusterIDs); i++ {
+		if req.ClusterIDs[i] == "unknown" {
+			req.ClusterIDs[i] = ""
+		}
+	}
 
-	params.Add("language", req.Language)
-	params.Add("timezone", req.Timezone)
+	payload := PolarisInferReq{
+		StartTime:  req.StartTime,
+		EndTime:    req.EndTime,
+		StepStr:    prom.VecFromDuration(time.Duration(req.Step) * time.Microsecond),
+		Service:    req.Service,
+		Endpoint:   req.Endpoint,
+		Language:   req.Language,
+		Timezone:   req.Timezone,
+		ClusterIDs: req.ClusterIDs,
+	}
 
-	fullUrl := fmt.Sprintf("%s%s?%s", polarisAnalyzerAddress, PolarisInferAPI, params.Encode())
-	request, err := http.NewRequest("GET", fullUrl, nil)
+	jsonBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	fullUrl := fmt.Sprintf("%s%s", polarisAnalyzerAddress, PolarisInferAPI)
+	request, err := http.NewRequest("POST", fullUrl, bytes.NewReader(jsonBytes))
 	if err != nil {
 		return &PolarisInferRes{}, err
 	}
 	// Send http request
 
-	// request.Header.Add("Accept-Language", req.Lanaguage)
+	request.Header.Add("Content-Type", "application/json")
 	// request.Header.Add("X-Timezone", req.Timezone)
 
 	res, err := http.DefaultClient.Do(request)
@@ -68,6 +79,19 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 		return nil, err
 	}
 	return inferRes, nil
+}
+
+type PolarisInferReq struct {
+	StartTime int64  `json:"startTime"`
+	EndTime   int64  `json:"endTime"`
+	StepStr   string `json:"stepStr"`
+	Service   string `json:"service"`
+	Endpoint  string `json:"endpoint"`
+
+	Language string `json:"language"`
+	Timezone string `json:"timezone"`
+
+	ClusterIDs []string `json:"clusterIds"`
 }
 
 type PolarisInferRes struct {

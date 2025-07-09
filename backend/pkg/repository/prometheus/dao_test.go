@@ -4,11 +4,9 @@
 package prometheus
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -29,7 +27,6 @@ func TestRepo(t *testing.T) {
 	}
 
 	testGetActiveInstanceList(t, repo)
-	testGetMultiServicesInstanceList(t, repo)
 }
 
 func testGetActiveInstanceList(t *testing.T, repo Repo) {
@@ -48,19 +45,4 @@ func testGetActiveInstanceList(t *testing.T, repo Repo) {
 	for i, key := range expect {
 		validator.CheckStringValue(fmt.Sprintf("Exist instance-%d", i), key, got[i])
 	}
-}
-
-func testGetMultiServicesInstanceList(t *testing.T, repo Repo) {
-	endTime := time.Now()
-	startTime := endTime.Add(-time.Minute * 30)
-	services := []string{"ts-basic-service", "ts-route-service", "${SPRING_APP_NAME:spring-reqtemplate-demo}"}
-	ret, err := repo.GetMultiServicesInstanceList(core.EmptyCtx(), startTime.UnixMicro(), endTime.UnixMicro(), services)
-	if err != nil {
-		t.Fatalf("GetMultiServicesInstanceList failed, err: %v", err)
-	}
-	retJson, err := json.Marshal(ret)
-	if err != nil {
-		t.Fatalf("Marshal result failed, err: %v", err)
-	}
-	t.Logf("GetMultiServicesInstanceList result: %s", retJson)
 }

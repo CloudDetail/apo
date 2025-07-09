@@ -9,6 +9,7 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescendantMetricsRequest) ([]response.GetDescendantMetricsResponse, error) {
@@ -19,6 +20,11 @@ func (s *service) GetDescendantMetrics(ctx core.Context, req *request.GetDescend
 	}
 	if len(nodes.Nodes) == 0 {
 		return make([]response.GetDescendantMetricsResponse, 0), nil
+	}
+
+	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	if err != nil {
+		return nil, err
 	}
 
 	// In addition to descendant nodes, the current node needs to be supplemented

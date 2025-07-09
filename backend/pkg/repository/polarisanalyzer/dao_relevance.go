@@ -23,6 +23,7 @@ func (p *polRepo) SortDescendantByRelevance(
 	startTime int64,
 	endTime int64,
 	stepStr string,
+	clusterIDs []string,
 	targetService string,
 	targetEndpoint string,
 	descendants []ServiceNode,
@@ -86,6 +87,7 @@ type SortRelevanceRequest struct {
 	Target             Target        `json:"target"`
 	UnsortedDescendant []ServiceNode `json:"unsortedDescendant"`
 	SortBy             string        `json:"sortBy"`
+	ClusterIDs         []string      `json:"clusterIds"`
 }
 
 type Target struct {
@@ -104,6 +106,8 @@ type ServiceNode struct {
 	Endpoint string `json:"endpoint"`
 	Group    string `json:"group"`
 	System   string `json:"system"`
+
+	ClusterID string `json:"clusterId"`
 }
 
 type Relevance struct {

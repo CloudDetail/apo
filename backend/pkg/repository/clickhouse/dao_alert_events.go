@@ -15,6 +15,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
@@ -62,6 +63,13 @@ const (
 	SELECT *
 	FROM grouped_alarm
 	WHERE rn <= %d %s`
+
+	SQL_GET_ALERT_EVENT_DATA_SCOPE = `SELECT
+		DISTINCT tags['cluster_id'] as cluster_id,
+		tags['namespace'] as namespace,
+		tags['serviceName'] as service
+	FROM alert_event
+	%s`
 
 	SQL_GET_GROUP_COUNTS_ALERT_EVENT = `WITH grouped_alarm AS (
 	SELECT group,severity,tags,
@@ -131,6 +139,15 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
 
+	if len(filter.ClusterIDs) > 0 {
+		for i := 0; i < len(filter.ClusterIDs); i++ {
+			if filter.ClusterIDs[i] == "unknown" {
+				filter.ClusterIDs[i] = ""
+			}
+		}
+		builder.InStrings("cluster_id", filter.ClusterIDs)
+	}
+
 	byBuilder := NewByLimitBuilder().
 		OrderBy("group", true).
 		OrderBy("name", true)
@@ -142,10 +159,39 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 	return events, err
 }
 
+func (ch *chRepo) GetAlertDataScope(ctx core.Context, startTime time.Time, endTime time.Time) ([]datagroup.DataScope, error) {
+	builder := NewQueryBuilder().
+		Between("update_time", startTime.Unix(), endTime.Unix()).
+		NotGreaterThan("end_time", endTime.Unix())
+
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_DATA_SCOPE, builder.String())
+	var datasources []datagroup.DataScope
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &datasources, sql, builder.values...)
+
+	for i := 0; i < len(datasources); i++ {
+		datasources[i].Category = datagroup.DATASOURCE_CATEGORY_ALERT
+		if len(datasources[i].Service) > 0 {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_SERVICE
+			datasources[i].Name = datasources[i].Service
+		} else if len(datasources[i].Namespace) > 0 {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
+			datasources[i].Name = datasources[i].Namespace
+		} else {
+			datasources[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
+			if datasources[i].ClusterID == "" {
+				datasources[i].ClusterID = "unknown"
+			}
+			datasources[i].Name = datasources[i].ClusterID
+		}
+	}
+
+	return datasources, err
+}
+
 func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error) {
 	var whereInstance *whereSQL = ALWAYS_TRUE
 	if len(filter.Services) > 0 ||
-		len(filter.Endpoint) > 0 ||
+		len(filter.Endpoints) > 0 ||
 		(instances != nil && (len(instances.SIs) > 0 || len(instances.MIs) > 0)) {
 		whereInstance = extractFilter(filter, instances)
 	}
@@ -160,6 +206,15 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
+
+	if len(filter.ClusterIDs) > 0 {
+		for i := 0; i < len(filter.ClusterIDs); i++ {
+			if filter.ClusterIDs[i] == "unknown" {
+				filter.ClusterIDs[i] = ""
+			}
+		}
+		builder.InStrings("cluster_id", filter.ClusterIDs)
+	}
 
 	var count uint64
 	countSql := buildAlertEventsCountQuery(GET_ALERT_EVENTS_COUNT, builder)
@@ -254,19 +309,17 @@ func extractFilter(filter request.AlertFilter, instances *model.RelatedInstances
 			for _, s := range filter.Services {
 				arr = append(arr, s)
 			}
+
+			endpoints := make(clickhouse.ArraySet, 0, len(filter.Endpoints))
+			for _, e := range filter.Endpoints {
+				endpoints = append(endpoints, e)
+			}
+
 			serviceCondition = append(serviceCondition,
 				mergeWheres(
-					OrSep,
-					mergeWheres(
-						AndSep,
-						in("tags['svc_name']", arr),
-						equalsIfNotEmpty("tags['content_key']", filter.Endpoint),
-					), // Compatible with older versions
-					mergeWheres(
-						AndSep,
-						in("tags['serviceName']", arr),
-						equalsIfNotEmpty("tags['endpoint']", filter.Endpoint),
-					),
+					AndSep,
+					in("tags['serviceName']", arr),
+					in("tags['endpoint']", endpoints),
 				),
 			)
 		}
