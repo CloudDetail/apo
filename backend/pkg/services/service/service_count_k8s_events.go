@@ -7,6 +7,8 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 // CountK8sEvents get K8s events
@@ -14,7 +16,17 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 	startTime := req.StartTime
 	endTime := req.EndTime
 	// Get all the instance information of the service first
-	instanceList, err := s.promRepo.GetInstanceList(ctx, startTime, endTime, req.ServiceName, "")
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if len(req.ServiceName) > 0 {
+		filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
+	}
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, startTime, endTime, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +41,7 @@ func (s *service) CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequ
 		return resp, nil
 	}
 	// Use all pod instances as filter criteria to return a list of events related to the time period
-	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances)
+	counts, err := s.chRepo.CountK8sEvents(ctx, startTime, endTime, podInstances, req.ClusterIDs)
 	if err != nil {
 		return resp, err
 	}

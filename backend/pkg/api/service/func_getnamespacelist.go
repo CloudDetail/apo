@@ -16,17 +16,17 @@ import (
 // @Summary Get monitored namespaces.
 // @Description Get monitored namespaces.
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "start time"
 // @Param endTime query int64 true "end time"
 // @Success 200 {object} response.GetServiceNamespaceListResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/namespace/list [get]
+// @Router /api/service/namespace/list [post]
 func (h *handler) GetNamespaceList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceNamespaceListRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

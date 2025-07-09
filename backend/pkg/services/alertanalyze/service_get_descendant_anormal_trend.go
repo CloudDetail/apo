@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
@@ -62,7 +63,11 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 
 		// 查询服务下游的数据库服务
 		if isSelect(selectedEvents, "middleware") {
-			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			filter := prometheus.NewFilter().
+				Equal(prometheus.ServiceNameKey, descendant.Service).
+				Equal(prometheus.ContentKeyKey, descendant.Endpoint)
+
+			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, filter)
 			if err != nil {
 				continue
 			}

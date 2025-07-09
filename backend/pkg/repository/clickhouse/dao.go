@@ -16,6 +16,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/factory"
@@ -40,6 +41,7 @@ type Repo interface {
 	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// Query Service Topology
 	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)
+	ListUpstreamEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error)
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
 	ListErrorPropagation(ctx core.Context, req *request.GetErrorInstanceRequest) ([]ErrorInstancePropagation, error)
@@ -59,7 +61,7 @@ type Repo interface {
 	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
 	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
 
-	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
+	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string, clusterIDs []string) ([]K8sEventsCount, error)
 
 	GetAnomalyTrace(ctx core.Context, req *request.GetAnomalySpanRequest) ([]QueryTraceResult, int64, error)
 	// ========== application_logs ==========
@@ -104,12 +106,13 @@ type Repo interface {
 	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
 
 	// Query alarm events by pageParam
-	GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
 	GetAlertEventsByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
 	GetAlertEventsWithKeyByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
 	GetAlertEventById(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
 
+	GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
+	GetAlertDataScope(ctx core.Context, startTime time.Time, endTime time.Time) ([]datagroup.DataScope, error)
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
 	GetK8sAlertEventsSample(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)

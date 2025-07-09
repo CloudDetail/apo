@@ -28,25 +28,25 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	}
 	serviceMap := &ServiceMap{
 		MetricGroupList: []*prometheus.ServiceMetrics{},
-		MetricGroupMap:  map[prometheus.ServiceKey]*prometheus.ServiceMetrics{
+		MetricGroupMap: map[prometheus.ServiceKey]*prometheus.ServiceMetrics{
 			serviceKey: {
 				ServiceKey: serviceKey,
 			},
 		},
-	} 
-	startTime := time.Unix(req.StartTime / 1000000, 0)
-	endTime := time.Unix(req.EndTime / 1000000, 0)
+	}
+	startTime := time.Unix(req.StartTime/1000000, 0)
+	endTime := time.Unix(req.EndTime/1000000, 0)
 	granularity := prometheus.SVCGranularity
-	filters := []string{prometheus.ServicePQLFilter, req.ServiceName}
+	filter := prometheus.EqualFilter(prometheus.ServiceNameKey, req.ServiceName)
 	// Chart data
 	stepMs := getStepMs(req.EndTime - req.StartTime)
-	latencyRes, latencyErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgLatencyWithFilters,
+	latencyRes, latencyErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgLatencyWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if latencyErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -59,13 +59,13 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	}
 	mergeServiceChartMetrics(serviceMap, latencyRes, metricLatencyData)
 
-	errorRes, rateErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgErrorRateWithFilters,
+	errorRes, rateErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgErrorRateWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if rateErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -74,13 +74,13 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	}
 	mergeServiceChartMetrics(serviceMap, errorRes, metricErrorData)
 
-	tpmRes, tmpErr := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgTPSWithFilters,
+	tpmRes, tmpErr := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgTPSWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		stepMs,
 		granularity,
-		filters...,
+		filter,
 	)
 	if tmpErr != nil {
 		return &response.QueryServiceRedChartsResponse{
@@ -90,9 +90,9 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	mergeServiceChartMetrics(serviceMap, tpmRes, metricTPMData)
 
 	// Metric Value
-	s.promRepo.FillMetric(ctx, serviceMap, prometheus.AVG, startTime, endTime, filters, granularity)
-	s.promRepo.FillMetric(ctx, serviceMap, prometheus.DOD, startTime, endTime, filters, granularity)
-	s.promRepo.FillMetric(ctx, serviceMap, prometheus.WOW, startTime, endTime, filters, granularity)
+	s.promRepo.FillMetric(ctx, serviceMap, prometheus.AVG, startTime, endTime, filter, granularity)
+	s.promRepo.FillMetric(ctx, serviceMap, prometheus.DOD, startTime, endTime, filter, granularity)
+	s.promRepo.FillMetric(ctx, serviceMap, prometheus.WOW, startTime, endTime, filter, granularity)
 
 	results := make([]*response.QueryChartResult, 0)
 	for _, serviceMetric := range serviceMap.MetricGroupMap {
@@ -108,12 +108,12 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 		} else {
 			latencyTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "平均响应时间",
-			Unit:   "ms",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "平均响应时间",
+			Unit:  "ms",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
 						"service": req.ServiceName,
@@ -139,12 +139,12 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 		} else {
 			errorTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "错误率",
-			Unit:   "%",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "错误率",
+			Unit:  "%",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
 						"service": req.ServiceName,
@@ -167,12 +167,12 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 		} else {
 			tpmTempChartObject.ChartData = FillChart(startTime, endTime, stepMs)
 		}
-		results = append(results, &response.QueryChartResult {
-			Title:  "吞吐量",
-			Unit:   "次/分",
-			Timeseries: []*response.Timeseries {
+		results = append(results, &response.QueryChartResult{
+			Title: "吞吐量",
+			Unit:  "次/分",
+			Timeseries: []*response.Timeseries{
 				{
-					Legend: req.ServiceName,
+					Legend:       req.ServiceName,
 					LegendFormat: "",
 					Labels: map[string]string{
 						"service": req.ServiceName,

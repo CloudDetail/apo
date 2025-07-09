@@ -17,6 +17,7 @@ type GetTracePageListRequest struct {
 	TraceId     string   `json:"traceId"`     // TraceId
 	PageNum     int      `json:"pageNum"`     // page
 	PageSize    int      `json:"pageSize"`
+	ClusterIDs  []string `json:"clusterIds" form:"clusterIds"`
 
 	Filters []*ComplexSpanTraceFilter `json:"filters"` // filter
 }

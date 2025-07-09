@@ -29,7 +29,14 @@ const (
 // K8sAlert query K8S alarm
 func (ch *chRepo) GetK8sAlertEventsSample(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error) {
 	relatedObj := make([]string, 0)
+
+	var clusterIDsTmp = make(map[string]struct{})
+	var clusterIDs []string
 	for _, instance := range instances {
+		if _, find := clusterIDsTmp[instance.ClusterID]; !find {
+			clusterIDs = append(clusterIDs, instance.ClusterID)
+			clusterIDsTmp[instance.ClusterID] = struct{}{}
+		}
 		if instance == nil {
 			continue
 		}
@@ -47,6 +54,10 @@ func (ch *chRepo) GetK8sAlertEventsSample(ctx core.Context, startTime time.Time,
 		InStrings("ResourceAttributes['k8s.object.name']", relatedObj).
 		InStrings("ResourceAttributes['k8s.object.kind']", []string{"Pod", "Node"}).
 		GreaterThan("SeverityNumber", 9)
+
+	if len(clusterIDs) > 0 {
+		builder.InStrings("ResourceAttributes['cluster.id']", clusterIDs)
+	}
 
 	// Take one event per ObjectKind
 	query := fmt.Sprintf(SQL_GET_K8S_EVENTS, builder.String(), 1)

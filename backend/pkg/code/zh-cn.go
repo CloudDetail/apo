@@ -192,6 +192,7 @@ var zhCnText = map[string]string{
 	AuthError:                         "鉴权失败",
 	GetGroupSubsError:                 "获取数据组授权主体失败",
 	UserNameError:                     "用户名格式非法",
+	AccessGroupError:                  "访问数据组失败",
 
 	CreateTeamError:       "创建团队失败",
 	TeamAlreadyExistError: "团队已存在",

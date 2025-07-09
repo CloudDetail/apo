@@ -12,7 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// DeleteDataGroup Delete the data group.
+// DeleteDataGroupV2 Delete the data group.
 // @Summary Delete the data group.
 // @Description Delete the data group.
 // @Tags API.data
@@ -22,11 +22,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/data/group/delete [post]
-func (h *handler) DeleteDataGroup() core.HandlerFunc {
+// @Router /api/v2/data/group/delete [post]
+func (h *handler) DeleteDataGroupV2() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteDataGroupRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -35,7 +35,7 @@ func (h *handler) DeleteDataGroup() core.HandlerFunc {
 			return
 		}
 
-		err := h.dataService.DeleteDataGroup(c, req)
+		err := h.dataService.DeleteDataGroupV2(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

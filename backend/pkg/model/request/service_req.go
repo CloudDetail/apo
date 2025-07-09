@@ -6,12 +6,15 @@ package request
 import "github.com/CloudDetail/apo/backend/pkg/model"
 
 type GetServiceEndpointTopologyRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Service       string `form:"service" binding:"required"`                   // query service name
-	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
-	EntryService  string `form:"entryService"`                                 // Ingress service name
-	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
+	StartTime     int64  `form:"startTime" json:"startTime" binding:"min=0"`                   // query start time
+	EndTime       int64  `form:"endTime" json:"endTime"  binding:"required,gtfield=StartTime"` // query end time
+	Service       string `form:"service" json:"service" binding:"required"`                    // query service name
+	Endpoint      string `form:"endpoint" json:"endpoint"  binding:"required"`                 // query Endpoint
+	EntryService  string `form:"entryService" json:"entryService"`                             // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                           // entry Endpoint
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEndpointRelationRequest struct {
@@ -22,13 +25,16 @@ type GetServiceEndpointRelationRequest struct {
 }
 
 type GetDescendantMetricsRequest struct {
-	StartTime     int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Service       string `form:"service" binding:"required"`                   // query service name
-	Endpoint      string `form:"endpoint" binding:"required"`                  // query Endpoint
-	Step          int64  `form:"step" binding:"min=1000000"`                   // query step size (us)
-	EntryService  string `form:"entryService"`                                 // Ingress service name
-	EntryEndpoint string `form:"entryEndpoint"`                                // entry Endpoint
+	StartTime     int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Service       string `form:"service" binding:"required" json:"service"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required" json:"endpoint"`                 // query Endpoint
+	Step          int64  `form:"step" binding:"min=1000000" json:"step"`                      // query step size (us)
+	EntryService  string `form:"entryService" json:"entryService"`                            // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                          // entry Endpoint
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetDescendantAnormalEventRequest struct {
@@ -57,6 +63,8 @@ type GetDescendantAnormalTrendRequest struct {
 	Step      int64  `form:"step" binding:"min=1000000"`                   // 查询步长(us)
 
 	AnormalTypes string `form:"anormalTypes" json:"anormalTypes"` //要查询的异常类型
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type GetDescendantAnormalDeltaEventRequest struct {
@@ -81,6 +89,8 @@ type GetPolarisInferRequest struct {
 
 	Language string `form:"language" json:"language"` // language of result
 	Timezone string `form:"timezone" json:"timezone"` // timezone of result
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetDescendantRelevanceRequest struct {
@@ -91,24 +101,46 @@ type GetDescendantRelevanceRequest struct {
 }
 
 type GetErrorInstanceRequest struct {
-	GetDescendantMetricsRequest
+	StartTime     int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime       int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Service       string `form:"service" binding:"required" json:"service"`                   // query service name
+	Endpoint      string `form:"endpoint" binding:"required" json:"endpoint"`                 // query Endpoint
+	Step          int64  `form:"step" binding:"min=1000000" json:"step"`                      // query step size (us)
+	EntryService  string `form:"entryService" json:"entryService"`                            // Ingress service name
+	EntryEndpoint string `form:"entryEndpoint" json:"entryEndpoint"`                          // entry Endpoint
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 
 	IgnoreEmptyPropationsInstance bool `form:"ignoreEmptyPropationsInstance"`
 }
 
 type GetErrorInstanceLogsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Service     string `form:"service" binding:"required"`                   // query service name
-	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
-	Instance    string `form:"instance"`                                     // instance name
-	NodeName    string `form:"nodeName"`                                     // hostname
-	ContainerId string `form:"containerId"`                                  // container name
-	Pid         uint32 `form:"pid"`                                          // process number
+	StartTime   int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Service     string `form:"service" binding:"required" json:"service"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required" json:"endpoint"`                 // query Endpoint
+	Instance    string `form:"instance" json:"instance"`                                    // instance name
+	NodeName    string `form:"nodeName" json:"nodeName"`                                    // hostname
+	ContainerId string `form:"containerId" json:"containerId"`                              // container name
+	Pid         uint32 `form:"pid" json:"pid"`                                              // process number
+
+	ClusterID []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetLogMetricsRequest = GetDescendantMetricsRequest
-type GetLogLogsRequest = GetErrorInstanceLogsRequest
+
+type GetLogLogsRequest struct {
+	StartTime   int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Service     string `form:"service" binding:"required" json:"service"`                   // query service name
+	Endpoint    string `form:"endpoint" binding:"required" json:"endpoint"`                 // query Endpoint
+	Instance    string `form:"instance" json:"instance"`                                    // instance name
+	NodeName    string `form:"nodeName" json:"nodeName"`                                    // hostname
+	ContainerId string `form:"containerId" json:"containerId"`                              // container name
+	Pid         uint32 `form:"pid" json:"pid"`                                              // process number
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+}
 
 type GetTraceMetricsRequest = GetDescendantMetricsRequest
 type GetTraceLogsRequest = GetErrorInstanceLogsRequest
@@ -130,63 +162,82 @@ type SetThresholdRequest struct {
 }
 
 type GetK8sEventsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	ServiceName string `form:"service" binding:"required"`                   // query service name
+	StartTime   int64  `form:"startTime" binding:"required" json:"startTime"`               // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	ServiceName string `form:"service" binding:"required" json:"service"`                   // query service name
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceListRequest struct {
-	StartTime int64    `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Namespace []string `form:"namespace"`
+	StartTime int64 `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	Namespace  []string `form:"namespace" json:"namespace"`
 }
 
 type GetServiceInstanceListRequest struct {
 	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
 	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	ServiceName string `form:"service" binding:"required"`                   // query service name
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetServiceInstanceRequest struct {
-	StartTime   int64  `form:"startTime" binding:"required"`                 // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step        int64  `form:"step" binding:"required"`                      // step size
-	ServiceName string `form:"serviceName" binding:"required"`               // application name
-	Endpoint    string `form:"endpoint"`
+	StartTime   int64  `form:"startTime" binding:"required" json:"startTime"`               // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Step        int64  `form:"step" binding:"required" json:"step"`                         // step size
+	ServiceName string `form:"serviceName" binding:"required" json:"serviceName"`           // application name
+	Endpoint    string `form:"endpoint" json:"endpoint"`
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceInstanceOptionsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	ServiceName string `form:"service" binding:"required"`                   // query service name
+	StartTime   int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	ServiceName string `form:"service" binding:"required" json:"service"`                   // query service name
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetServiceAlertRequest struct {
-	StartTime    int64    `form:"startTime" binding:"required"`                 // query start time
-	EndTime      int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step         int64    `form:"step" binding:"required"`                      // step size
-	ServiceNames []string `form:"serviceNames" binding:"required"`              // application name
-	ReturnData   []string `form:"returnData"`
+	StartTime    int64    `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime      int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step         int64    `form:"step" json:"step"  binding:"required"`                        // step size
+	ServiceName  string   `form:"serviceName" json:"serviceName"`
+	ServiceNames []string `form:"serviceNames" json:"serviceNames"`
+	ReturnData   []string `form:"returnData" json:"returnData"`
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEndPointListRequest struct {
 	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
 	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	ServiceName string `form:"service"`                                      // query service name
+
+	ClusterIDs []string `form:"clusterIds,omitempty" json:"clusterIds"`
 }
 
 type GetEndPointsDataRequest struct {
 	// Filter Criteria
-	ServiceName  []string `form:"serviceName,omitempty"`  // application name, exact match
-	Namespace    []string `form:"namespace,omitempty"`    // specify namespace, exact match
-	EndpointName []string `form:"endpointName,omitempty"` // endpoint name, exact match
-	GroupID      int64    `form:"groupId,omitempty"`      // Data group id
+	ServiceName  []string `form:"serviceName,omitempty" json:"serviceName"`   // application name, exact match
+	Namespace    []string `form:"namespace,omitempty" json:"namespace"`       // specify namespace, exact match
+	EndpointName []string `form:"endpointName,omitempty" json:"endpointName"` // endpoint name, exact match
+	GroupID      int64    `form:"groupId,omitempty" json:"groupId"`           // Data group id
+	ClusterIDs   []string `form:"clusterIds,omitempty" json:"clusterIds"`     // Cluster id
 
 	// Query condition
-	StartTime int64    `form:"startTime" binding:"required"`                 // query start time
-	EndTime   int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step      int64    `form:"step" binding:"required"`                      // step size
-	SortRule  SortType `form:"sortRule" binding:"required"`                  // sort logic
+	StartTime int64    `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime   int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step      int64    `form:"step" json:"step" binding:"required"`                         // step size
+	SortRule  SortType `form:"sortRule" json:"sortRule" binding:"required"`                 // sort logic
 }
 
 type SortType int
@@ -212,12 +263,14 @@ type GetRygLightRequest struct {
 	// Query condition
 	StartTime int64 `form:"startTime" binding:"required"`                 // query start time
 	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type GetAlertEventsRequest struct {
-	StartTime int64  `form:"startTime" binding:"required"`                 // query start time
-	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	SortBy    string `form:"sortBy"`                                       // 排序参数
+	StartTime int64  `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	SortBy    string `form:"sortBy" json:"sortBy`                                         // 排序参数
 
 	AlertFilter // filter parameters
 	*PageParam  // Paging Parameters
@@ -226,23 +279,24 @@ type GetAlertEventsRequest struct {
 // AlertFilter provide params to filter alertEvents
 type AlertFilter struct {
 	// basic filter
-	Source       string `form:"source"`
-	Group        string `form:"group"`
-	Name         string `form:"name"`
-	ID           string `form:"id"`
-	Severity     string `form:"severity"`
-	Status       string `form:"status"`
-	WithMutation bool   `form:"withMutation"`
+	Source       string `form:"source" json:"source"`
+	Group        string `form:"group" json:"group"`
+	Name         string `form:"name" json:"name"`
+	ID           string `form:"id" json:"id"`
+	Severity     string `form:"severity" json:"severity"`
+	Status       string `form:"status" json:"status"`
+	WithMutation bool   `form:"withMutation" json:"withMutation"`
 
-	// === Used to query ServiceInstances ===
+	ClusterIDs []string `form:"clusterID" json:"clusterID"`
+	Services   []string `form:"services" json:"services"`
+	Endpoints  []string `form:"endpoints" json:"endpoints"`
 
-	// -> endpoints: (svc: $service) if endpoint is null
-	Service string `form:"service"`
-	// -> endpoints: svc: ($service, endpoint: $endpoint)
-	Endpoint string `form:"endpoint"`
+	// Deprecated: use Services instead
+	Service string `form:"service" json:"service"`
+	// Deprecated: use Endpoints instead
+	Endpoint string `form:"endpoint" json:"endpoint"`
 	// -> serviceInstances: query instance by Services
 	// -> dbInstances: query instance by Services
-	Services     []string `form:"services"`
 	EndpointKeys []model.EndpointKey
 }
 
@@ -257,16 +311,20 @@ type GetAlertEventsSampleRequest struct {
 
 	AlertFilter // filter parameters
 
-	SampleCount int `form:"sampleCount"` // number of samples
+	SampleCount int   `form:"sampleCount"` // number of samples
+	GroupID     int64 `form:"groupId" json:"groupId"`
 }
 
 type GetServiceEntryEndpointsRequest struct {
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Service     string `form:"service" binding:"required"`                   // query service name
-	Endpoint    string `form:"endpoint" binding:"required"`                  // query Endpoint
-	Step        int64  `form:"step" binding:"required"`                      // query step (us)
-	ShowMissTop bool   `form:"showMissTop"`                                  // whether to display the lost non-portal service
+	StartTime   int64  `form:"startTime" binding:"min=0" json:"startTime"`                  // query start time
+	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"` // query end time
+	Service     string `form:"service" binding:"required" json:"service" `                  // query service name
+	Endpoint    string `form:"endpoint" binding:"required" json:"endpoint"`                 // query Endpoint
+	Step        int64  `form:"step" binding:"required" json:"step"`                         // query step (us)
+	ShowMissTop bool   `form:"showMissTop" json:"showMissTop"`                              // whether to display the lost non-portal service
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
+	GroupID    int64    `form:"groupId" json:"groupId"`
 }
 
 type GetMonitorStatusRequest struct {
@@ -275,8 +333,10 @@ type GetMonitorStatusRequest struct {
 }
 
 type GetServiceNamespaceListRequest struct {
-	StartTime int64 `form:"startTime" binding:"min=0"`
-	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime"`
+	StartTime int64 `form:"startTime" binding:"min=0" json:"startTime"`
+	EndTime   int64 `form:"endTime" binding:"required,gtfield=StartTime" json:"endTime"`
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetAnomalySpanRequest struct {
@@ -291,11 +351,14 @@ type GetAnomalySpanRequest struct {
 }
 
 type GetServiceMoreUrlListRequest struct {
-	StartTime   int64    `form:"startTime" binding:"required"`                 // query start time
-	EndTime     int64    `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	Step        int64    `form:"step" binding:"required"`                      // step size
-	ServiceName string   `form:"serviceName" binding:"required"`               // application name
-	SortRule    SortType `form:"sortRule" binding:"required"`                  // sort logic
+	StartTime   int64    `form:"startTime" json:"startTime" binding:"required"`               // query start time
+	EndTime     int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Step        int64    `form:"step" json:"step" binding:"required"`                         // step size
+	ServiceName string   `form:"serviceName" json:"serviceName" binding:"required"`           // application name
+	SortRule    SortType `form:"sortRule" json:"sortRule" binding:"required"`                 // sort logic
+
+	GroupID    int64    `form:"groupId" json:"groupId"`
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetServiceREDChartsRequest struct {

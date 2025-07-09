@@ -28,6 +28,8 @@ type BusinessError interface {
 	Error() string
 }
 
+var _ BusinessError = (*businessError)(nil)
+
 type businessError struct {
 	httpCode     int    // HTTP status code
 	businessCode string // business code

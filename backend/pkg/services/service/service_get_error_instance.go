@@ -8,10 +8,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) GetErrorInstance(ctx core.Context, req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error) {
-	serviceInstances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, req.Service, req.Endpoint)
+	filter := prometheus.NewFilter()
+	filter.EqualIfNotEmpty(prometheus.ContentKeyKey, req.Endpoint)
+	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.Service)
+
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+
+	serviceInstances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
 		return nil, err
 	}

@@ -21,16 +21,16 @@ type GetServiceEndpointRelationResponse struct {
 	ExternalClientCalls []TopologyExternalClientCall `json:"topologyExternalClientCall,omitempty"`
 }
 
-type TopologyNodeLevel struct {
-	Service  string `ch:"service" json:"service"`
-	Endpoint string `ch:"endpoint" json:"endpoint"`
-	Depth    int    `ch:"depth" json:"depth"`
-}
-
 type TopologyExternalClientCall struct {
 	model.TopologyNode
 
 	Childs []model.TopologyNode `json:"childs"`
+}
+
+type TopologyNodeLevel struct {
+	Service  string `ch:"service" json:"service"`
+	Endpoint string `ch:"endpoint" json:"endpoint"`
+	Depth    int    `ch:"depth" json:"depth"`
 }
 
 type GetServiceEndpointTopologyResponse struct {

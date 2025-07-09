@@ -47,7 +47,7 @@ func (s *service) GetDescendantContribution(ctx core.Context, req *request.GetDe
 		// 按延时相似度排序
 		sortResp, err := s.polRepo.SortDescendantByRelevance(
 			req.StartTime, req.EndTime, prometheus.VecFromDuration(time.Duration(req.Step)*time.Microsecond),
-			req.Service, req.Endpoint,
+			nil, req.Service, req.Endpoint,
 			unsortedDescendant, sortBy,
 		)
 

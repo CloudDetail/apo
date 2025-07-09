@@ -162,6 +162,10 @@ type Router struct {
 	group *gin.RouterGroup
 }
 
+func (r *Router) Any(relativePath string, handlers ...HandlerFunc) {
+	r.group.Any(relativePath, wrapHandlers(handlers...)...)
+}
+
 func (r *Router) GET(relativePath string, handlers ...HandlerFunc) {
 	r.group.GET(relativePath, wrapHandlers(handlers...)...)
 }

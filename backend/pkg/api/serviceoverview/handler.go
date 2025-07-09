@@ -17,11 +17,11 @@ import (
 type Handler interface {
 	// GetEndPointsData get the list of endpoints services
 	// @Tags API.service
-	// @Router /api/service/endpoints [get]
+	// @Router /api/service/endpoints [post]
 	GetEndPointsData() core.HandlerFunc
 	// GetServicesAlert get the log alarm and status light information of the Service
 	// @Tags API.service
-	// @Router /api/service/servicesAlert [get]
+	// @Router /api/service/servicesAlert [post]
 	GetServicesAlert() core.HandlerFunc
 	// GetServiceMoreUrlList get more url list of services
 	// @Tags API.service
@@ -59,6 +59,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, promClient prometheus.Repo,
 		logger:          logger,
 		promClient:      promClient,
 		serviceoverview: serviceoverview.New(logger, chRepo, dbRepo, promClient),
-		dataService:     data.New(dbRepo, promClient, k8sRepo),
+		dataService:     data.New(dbRepo, promClient, chRepo, k8sRepo),
 	}
 }

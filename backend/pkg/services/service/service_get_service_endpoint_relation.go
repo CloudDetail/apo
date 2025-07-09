@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
@@ -17,6 +18,12 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
+	parents, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
+	if err != nil {
+		return nil, err
+	}
+
+	// Query the calling relationship list of all downstream nodes
 	var relations []*model.ToplogyRelation
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(ctx, &req.GetServiceEndpointTopologyRequest)

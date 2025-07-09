@@ -5,6 +5,7 @@ package dataplane
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
@@ -12,7 +13,8 @@ import (
 
 func (s *service) GetServiceEndpoints(ctx core.Context, req *request.QueryServiceEndpointsRequest) *response.QueryServiceEndpointsResponse {
 	// Get the list of service Endpoint
-	endpoints, err := s.promRepo.GetServiceEndPointList(ctx, req.StartTime, req.EndTime, req.ServiceName)
+	filter := prometheus.EqualFilter(prometheus.ServiceNameKey, req.ServiceName)
+	endpoints, err := s.promRepo.GetServiceEndPointListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
 	if err != nil {
 		return &response.QueryServiceEndpointsResponse{
 			Msg: "query service endpoints failed: " + err.Error(),
@@ -22,7 +24,7 @@ func (s *service) GetServiceEndpoints(ctx core.Context, req *request.QueryServic
 		return s.queryServiceEndpointsByApi(ctx, req)
 	}
 
-	return &response.QueryServiceEndpointsResponse {
+	return &response.QueryServiceEndpointsResponse{
 		Results: endpoints,
 	}
 }

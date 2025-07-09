@@ -224,6 +224,8 @@ const (
 	AuthError                         = "B0945"
 	GetGroupSubsError                 = "B0946"
 	UserNameError                     = "B0947"
+	AccessGroupError                  = "B0948"
+	CleanExpiredDataScopeError        = "B0949"
 
 	CreateTeamError       = "B1101"
 	TeamAlreadyExistError = "B1102"

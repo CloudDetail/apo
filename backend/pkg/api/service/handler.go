@@ -20,47 +20,47 @@ import (
 type Handler interface {
 	// GetServiceEndpointRelation get the call relationship between the upstream and downstream services.
 	// @Tags API.service
-	// @Router /api/service/relation [get]
+	// @Router /api/service/relation [post]
 	GetServiceEndpointRelation() core.HandlerFunc
 
 	// GetServiceEndpointTopology get the upstream and downstream topology of a service
 	// @Tags API.service
-	// @Router /api/service/topology [get]
+	// @Router /api/service/topology [post]
 	GetServiceEndpointTopology() core.HandlerFunc
 
 	// GetDescendantMetrics get the delay curve data of all downstream services
 	// @Tags API.service
-	// @Router /api/service/descendant/metrics [get]
+	// @Router /api/service/descendant/metrics [post]
 	GetDescendantMetrics() core.HandlerFunc
 
 	// GetDescendantRelevance get the dependent node delay correlation degree
 	// @Tags API.service
-	// @Router /api/service/descendant/relevance [get]
+	// @Router /api/service/descendant/relevance [post]
 	GetDescendantRelevance() core.HandlerFunc
 
 	// GetPolarisInfer access to Polaris metric analysis
 	// @Tags API.service
-	// @Router /api/service/polaris/infer [get]
+	// @Router /api/service/polaris/infer [post]
 	GetPolarisInfer() core.HandlerFunc
 
 	// GetErrorInstance get error instance
 	// @Tags API.service
-	// @Router /api/service/error/instance [get]
+	// @Router /api/service/error/instance [post]
 	GetErrorInstance() core.HandlerFunc
 
 	// GetErrorInstanceLogs get the error instance fault site log
 	// @Tags API.service
-	// @Router /api/service/errorinstance/logs [get]
+	// @Router /api/service/errorinstance/logs [post]
 	GetErrorInstanceLogs() core.HandlerFunc
 
 	// GetLogMetrics get log metrics
 	// @Tags API.service
-	// @Router /api/service/log/metrics [get]
+	// @Router /api/service/log/metrics [post]
 	GetLogMetrics() core.HandlerFunc
 
 	// GetLogLogs get Log fault site log
 	// @Tags API.service
-	// @Router /api/service/log/logs [get]
+	// @Router /api/service/log/logs [post]
 	GetLogLogs() core.HandlerFunc
 
 	// GetTraceMetrics get Trace related metrics
@@ -70,68 +70,68 @@ type Handler interface {
 
 	// GetTraceLogs get trace fault site log
 	// @Tags API.service
-	// @Router /api/service/trace/logs [get]
+	// @Router /api/service/trace/logs [post]
 	GetTraceLogs() core.HandlerFunc
 
 	// GetServiceList get the list of services
 	// @Tags API.service
-	// @Router /api/service/list [get]
+	// @Router /api/service/list [post]
 	GetServiceList() core.HandlerFunc
 
 	// GetServiceInstance get the list of service instances
 	// @Tags API.service
-	// @Router /api/service/instance [get]
+	// @Router /api/service/instance [post]
 	GetServiceInstance() core.HandlerFunc
 
 	// GetServiceInstanceList get more url list of services
 	// @Tags API.service
 	// @DEPRECATED
-	// @Router /api/service/instances/list [get]
+	// @Router /api/service/instances/list [post]
 	GetServiceInstanceList() core.HandlerFunc
 
 	// GetServiceInstanceList get the details of the service instance.
 	// @Tags API.service
-	// @Router /api/service/instanceinfo/list [get]
+	// @Router /api/service/instanceinfo/list [post]
 	GetServiceInstanceInfoList() core.HandlerFunc
 
 	// GetServiceInstanceOptions get the drop-down list of service instances
 	// @Tags API.service
-	// @Router /api/service/instance/options [get]
+	// @Router /api/service/instance/options [post]
 	GetServiceInstanceOptions() core.HandlerFunc
 
 	// GetServiceEndPointList get the list of service EndPoint
 	// @Tags API.service
-	// @Router /api/service/endpoint/list [get]
+	// @Router /api/service/endpoint/list [post]
 	GetServiceEndPointList() core.HandlerFunc
 
 	// CountK8sEvents get the number of K8s events
 	// @Tags API.service
-	// @Router /api/service/k8s/events/count [get]
+	// @Router /api/service/k8s/events/count [post]
 	CountK8sEvents() core.HandlerFunc
 
 	// GetAlertEventsSample get sampling alarm events
 	// @Tags API.service
-	// @Router /api/service/alert/sample/events [get]
+	// @Router /api/service/alert/sample/events [post]
 	GetAlertEventsSample() core.HandlerFunc
 
 	// GetAlertEvents get alarm events
 	// @Tags API.service
-	// @Router /api/service/alert/events [get]
+	// @Router /api/service/alert/events [post]
 	GetAlertEvents() core.HandlerFunc
 
 	// Get SQL metrics GetSQLMetrics
 	// @Tags API.service
-	// @Router /api/service/sql/metrics [get]
+	// @Router /api/service/sql/metrics [post]
 	GetSQLMetrics() core.HandlerFunc
 
 	// GetServiceEntryEndpoints get the list of service portal Endpoint
 	// @Tags API.service
-	// @Router /api/service/entry/endpoints [get]
+	// @Router /api/service/entry/endpoints [post]
 	GetServiceEntryEndpoints() core.HandlerFunc
 
 	// GetNamespaceList Get monitored namespaces.
 	// @Tags API.service
-	// @Router /api/service/namespace/list [get]
+	// @Router /api/service/namespace/list [post]
 	GetNamespaceList() core.HandlerFunc
 
 	// GetServiceREDCharts Get services' red charts.
@@ -152,6 +152,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, p
 		logger:                 logger,
 		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo),
 		serviceoverviewService: serviceoverview.New(logger, chRepo, dbRepo, promRepo),
-		dataService:            data.New(dbRepo, promRepo, k8sRepo),
+		dataService:            data.New(dbRepo, promRepo, chRepo, k8sRepo),
 	}
 }

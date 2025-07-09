@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 // GetDescendantAnormal 查询入口节点的下游告警情况
@@ -64,8 +65,11 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		}
 		instances = append(instances, instanceList.GetInstances()...)
 
+		filter := prometheus.NewFilter().
+			Equal(prometheus.ServiceNameKey, node.Service).
+			Equal(prometheus.ContentKeyKey, node.Endpoint)
 		// 查询服务下游的数据库服务
-		dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, node.Service, node.Endpoint)
+		dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, filter)
 		if err != nil {
 			continue
 		}

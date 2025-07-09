@@ -13,15 +13,34 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"go.uber.org/zap"
 )
 
-func (s *service) GetServicesEndPointData(ctx core.Context,
-	startTime, endTime time.Time, step time.Duration,
-	filter EndpointsFilter,
-	sortRule request.SortType,
-) ([]response.ServiceEndPointsRes, error) {
-	filterStrs := filter.ExtractFilterStr()
+func (s *service) GetServicesEndPointData(ctx core.Context, req *request.GetEndPointsDataRequest) ([]response.ServiceEndPointsRes, error) {
+	var startTime time.Time
+	var endTime time.Time
+	startTime = time.UnixMicro(req.StartTime)
+	endTime = time.UnixMicro(req.EndTime)
+	step := time.Duration(req.Step * 1000)
+	filter := EndpointsFilter{
+		MultiService:   req.ServiceName,
+		MultiEndpoint:  req.EndpointName,
+		MultiNamespace: req.Namespace,
+		ClusterIDs:     req.ClusterIDs,
+	}
+	sortRule := req.SortRule
+
+	groupFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "apm", req.GroupID)
+	if err != nil {
+		return nil, err
+	}
+	if groupFilter == prometheus.AlwaysFalseFilter {
+		return []response.ServiceEndPointsRes{}, nil
+	}
+
+	pqlFilter := prom.And(filter.ExtractPQLFilterStr(), groupFilter)
 
 	var opts = []prometheus.FetchEMOption{
 		prometheus.WithREDMetric(),
@@ -37,7 +56,7 @@ func (s *service) GetServicesEndPointData(ctx core.Context,
 
 	endpointsMap, err := prometheus.FetchEndpointsData(
 		ctx,
-		s.promRepo, filterStrs, startTime, endTime,
+		s.promRepo, pqlFilter, startTime, endTime,
 		opts...,
 	)
 

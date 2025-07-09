@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 const (
@@ -68,7 +69,10 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 
 		// 查询服务下游的数据库服务
 		if isSelect(selectedEvents, "middleware") {
-			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			filter := prometheus.NewFilter().
+				Equal(prometheus.ServiceNameKey, descendant.Service).
+				Equal(prometheus.ContentKeyKey, descendant.Endpoint)
+			dbInstance, err := s.promRepo.GetDescendantDatabase(ctx, req.StartTime, req.EndTime, filter)
 			if err != nil {
 				continue
 			}

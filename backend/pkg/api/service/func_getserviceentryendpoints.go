@@ -21,7 +21,7 @@ import (
 // @Summary get the service entry Endpoint list
 // @Description get the service entry Endpoint list
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -32,11 +32,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/entry/endpoints [get]
+// @Router /api/service/entry/endpoints [post]
 func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEntryEndpointsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -51,9 +51,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			alertResps    []response.ServiceAlertRes
 		)
 
-		userID := c.UserID()
-		err = h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEntryEndpointsResponse{
 				Status: model.STATUS_NORMAL,
 				Data:   []*response.EntryInstanceData{},
@@ -66,7 +64,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			Status: model.STATUS_NORMAL,
 			Data:   make([]*response.EntryInstanceData, 0),
 		}
-		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpoints(c, req)
+		entryNodes, err := h.serviceInfoService.GetServiceEntryEndpointsInGroup(c, req)
 		if err == nil {
 			// TODO defaults to global Threshold first, and then adjusts to the Threshold of specific services.
 			threshold, err = h.serviceoverviewService.GetThreshold(c, database.GLOBAL, "", "")
@@ -81,6 +79,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 					ContainsSvcName:      entryNode.Service,
 					ContainsEndpointName: entryNode.Endpoint,
 					Namespace:            "",
+					ClusterIDs:           req.ClusterIDs,
 				}
 				endpointResps, err = h.serviceoverviewService.GetServicesEndpointDataWithChart(c, startTime, endTime, step, filter, request.DODThreshold)
 				if err == nil {
@@ -127,7 +126,7 @@ func (h *handler) GetServiceEntryEndpoints() core.HandlerFunc {
 			for serviceName := range result {
 				serviceNames = append(serviceNames, serviceName)
 			}
-			alertResps, err = h.serviceoverviewService.GetServicesAlert(c, startTime, endTime, step, serviceNames, nil)
+			alertResps, err = h.serviceoverviewService.GetServicesAlert(c, 0, nil, startTime, endTime, step, serviceNames, nil)
 			if err == nil {
 				for _, alertResp := range alertResps {
 					if serviceResp, found := result[alertResp.ServiceName]; found {

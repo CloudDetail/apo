@@ -6,10 +6,9 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -18,7 +17,7 @@ import (
 // @Summary get the call relationship between the upstream and downstream services
 // @Description the call relationship between the upstream and downstream service
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -29,11 +28,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetServiceEndpointRelationResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/relation [get]
+// @Router /api/service/relation [post]
 func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceEndpointRelationRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -42,9 +41,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointRelationResponse{
 				Parents:       []*model.TopologyNode{},
 				Current:       &model.TopologyNode{},
@@ -52,6 +49,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetServiceEndpointRelation(c, req)
 		if err != nil {
 			c.AbortWithError(

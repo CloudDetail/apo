@@ -115,6 +115,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, k8sAp
 	return &handler{
 		logger:      logger,
 		logService:  logservice,
-		dataService: data.New(dbRepo, promRepo, k8sApi),
+		dataService: data.New(dbRepo, promRepo, chRepo, k8sApi),
 	}
 }
