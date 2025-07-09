@@ -5,6 +5,7 @@ import (
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -22,7 +23,7 @@ func (s *service) GetAlertsImpact(ctx core.Context, req *request.AlertImpactRequ
 
 	// 获取Alert列表,并统计之间段内告警(Firing)的次数
 	alerts, total, err := s.chRepo.GetAlertsWithEventCount(
-		ctx, startTime, endTime, nil, 5000,
+		ctx, startTime, endTime, &alert.AlertEventFilter{GroupID: req.GroupID, Status: "firing"}, 5000,
 	)
 
 	if err != nil {
