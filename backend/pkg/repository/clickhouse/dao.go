@@ -39,8 +39,8 @@ type Repo interface {
 	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// Query Service Topology
 	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)
-  
-	ListUpstreamEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error)
+
+	ListAncestorEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error)
 
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
