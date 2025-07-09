@@ -146,15 +146,19 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	r.dify = difyRepo
 
 	difyConfig := config.Get().Dify
-	if len(difyConfig.APIKeys.AlertCheck) > 0 {
+	if difyConfig.AutoCheck && len(difyConfig.APIKeys.AlertCheck) > 0 {
 		records, err := r.dify.PrepareAsyncAlertCheckWorkflow(&dify.AlertCheckConfig{
-			FlowId:         difyConfig.FlowIDs.AlertCheck,
-			APIKey:         difyConfig.APIKeys.AlertCheck,
-			Authorization:  fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
+			FlowId:        difyConfig.FlowIDs.AlertCheck,
+			APIKey:        difyConfig.APIKeys.AlertCheck,
+			Authorization: fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
+			AnalyzeAuth:   fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertAnalyze),
+
 			User:           "apo-backend",
 			MaxConcurrency: difyConfig.MaxConcurrency,
 			CacheMinutes:   difyConfig.CacheMinutes,
 			Sampling:       difyConfig.Sampling,
+
+			Prom: r.prom,
 		}, r.logger)
 		if err != nil {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))

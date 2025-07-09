@@ -32,7 +32,7 @@ func (s *service) GetServiceTopology(ctx core.Context, req *request.QueryTopolog
 }
 
 func (s *service) queryServiceTopologyByApi(ctx core.Context, req *request.QueryTopologyRequest) *response.QueryTopologyResponse {
-	return &response.QueryTopologyResponse {
-		Msg: "not Implemented",
+	return &response.QueryTopologyResponse{
+		Msg: "Data not found",
 	}
 }

@@ -32,9 +32,9 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 	endTime := time.Unix(req.EndTime/1000000, 0)
 	granularity := prometheus.EndpointGranularity
 
-	filter := prometheus.NewFilter()
-	filter.Equal(prometheus.ServiceNameKey, req.ServiceName)
-	filter.Equal(prometheus.ContentKeyKey, req.Endpoint)
+	filter := prometheus.NewFilter().
+		Equal(prometheus.ServiceNameKey, req.ServiceName).
+		Equal(prometheus.ContentKeyKey, req.Endpoint)
 
 	// Chart data
 	stepMs := getStepMs(req.EndTime - req.StartTime)
@@ -220,6 +220,6 @@ func mergeEndpointChartMetrics(endpointMap *ServiceEndpointMap, results []promet
 
 func (s *service) queryServiceEndpointRedsByApi(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse {
 	return &response.QueryServiceRedChartsResponse{
-		Msg: "not Implemented",
+		Msg: "Data not found",
 	}
 }
