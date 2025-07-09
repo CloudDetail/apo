@@ -163,7 +163,7 @@ func (ch *chRepo) SearchEntryEndpointsByAlertServiceInGroup(
 		if relations[i].Depth > entries.depth {
 			continue
 		}
-		if _, ok := tmpGroupSvcMap[relations[i].Service]; !ok {
+		if _, ok := tmpGroupSvcMap[relations[i].ParentService]; !ok {
 			continue
 		}
 		if relations[i].Depth < entries.depth {
