@@ -19,7 +19,7 @@ type DaoDataGroupNew interface {
 
 func (repo *daoRepo) LoadDataGroupTree(ctx core.Context) (*datagroup.DataGroupTreeNode, error) {
 	var res []datagroup.DataGroup
-	err := repo.GetContextDB(ctx).Find(&res).Error
+	err := repo.GetContextDB(ctx).Find(&res).Order("group_id ASC").Error
 	if err != nil {
 		return nil, err
 	}

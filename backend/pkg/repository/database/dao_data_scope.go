@@ -148,7 +148,7 @@ func (repo *daoRepo) SaveScopes(ctx core.Context, scopes []datagroup.DataScope) 
 
 func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, error) {
 	var res []datagroup.DataScope
-	err := repo.GetContextDB(ctx).Model(&datagroup.DataScope{}).
+	err := repo.GetContextDB(ctx).Model(&datagroup.DataScope{}).Order("scope_id ASC").
 		Find(&res).Error
 	if err != nil {
 		return nil, err
