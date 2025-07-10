@@ -40,26 +40,25 @@ const (
 	LogMetricPidRegexPQLFilter  = "pid=~"
 	ContainerIdRegexPQLFilter   = "container_id=~"
 	PidRegexPQLFilter           = "pid=~"
+
+	ClusterIDKey   = "cluster_id"
+	ServiceNameKey = "svc_name"
+	ContentKeyKey  = "content_key"
 )
 
 type Granularity string
 
 const (
-	SVCGranularity        Granularity = "svc_name"
-	EndpointGranularity   Granularity = "svc_name, content_key"
-	NSEndpointGranularity Granularity = "namespace, svc_name, content_key"
-	InstanceGranularity   Granularity = "svc_name, content_key, container_id, node_name, pid, pod, namespace, node_ip"
+	SVCGranularity              Granularity = "svc_name"
+	EndpointGranularity         Granularity = "svc_name, content_key"
+	NSEndpointGranularity       Granularity = "namespace, svc_name, content_key"
+	InstanceEndpointGranularity Granularity = "svc_name, content_key, container_id, node_name, pid, pod, namespace, node_ip, cluster_id"
+	InstanceGranularity         Granularity = "svc_name, container_id, node_name, pid, pod, namespace, node_ip, cluster_id"
+	LogGranularity              Granularity = "pid,host_name,host_ip,container_id,pod_name,namespace"
+	DBOperationGranularity      Granularity = "svc_name, db_system, db_name, name, db_url"
 
-	LogGranularity         Granularity = "pid,host_name,host_ip,container_id,pod_name,namespace"
-	DBOperationGranularity Granularity = "svc_name, db_system, db_name, name, db_url"
+	DBInstanceGranularity Granularity = "db_url,container_id,node_name,pid,cluster_id"
 )
-
-// AggPQLWithFilters generate PQL statements
-// Generate PQL using vector and filterKVs
-// @vector: Specify the aggregation time range
-// @granularity: Specify aggregation granularity
-// @filterKVs: filter condition, in the format of key1, value1, key2, and value2
-type AggPQLWithFilters func(vector string, granularity string, filterKVs []string) string
 
 /*
 VecFromS2E 根据起止时间戳获取时间范围

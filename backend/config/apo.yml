@@ -59,6 +59,11 @@ meta_server:
     exporter:
       enable_fetch_server: true
 
+dataplane:
+  address: "http://localhost:8089"
+  query_red_interval: 10s
+  query_topology_interval: 30m
+
 jaeger:
   address: "http://apo-jaeger-collector-svc:16686"
 
@@ -78,6 +83,8 @@ user:
 dify:
   url: http://localhost:5001
   user: apo-backend
+  auto_check: true
+  auto_analyze: false
   api_keys:
     alert_check:
   flow_ids: 

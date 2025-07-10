@@ -43,6 +43,10 @@ type ChunkCompletionResponse struct{}
 
 func (r *ChunkCompletionResponse) _WorkflowResponse() {}
 
+type AlertAnalyzeResponse struct {
+	resp *CompletionResponse
+}
+
 type AlertCheckResponse struct {
 	resp *CompletionResponse
 }
@@ -68,6 +72,29 @@ func (r *AlertCheckResponse) getOutput(defaultV string) string {
 	}
 
 	text, find := res["text"]
+	if !find {
+		return defaultV
+	}
+
+	return text
+}
+
+func (r *AlertAnalyzeResponse) WorkflowRunID() string {
+	return r.resp.WorkflowRunID
+}
+
+func (r *AlertAnalyzeResponse) getOutput(defaultV string) string {
+	if r.resp.Data.Status != "succeeded" {
+		return fmt.Sprintf("failed: status: %s, output: %s", r.resp.Data.Status, string(r.resp.Data.Outputs))
+	}
+
+	var res map[string]string
+	err := json.Unmarshal(r.resp.Data.Outputs, &res)
+	if err != nil {
+		return defaultV
+	}
+
+	text, find := res["alertDirection"]
 	if !find {
 		return defaultV
 	}

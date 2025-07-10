@@ -192,6 +192,7 @@ var zhCnText = map[string]string{
 	AuthError:                         "鉴权失败",
 	GetGroupSubsError:                 "获取数据组授权主体失败",
 	UserNameError:                     "用户名格式非法",
+	AccessGroupError:                  "访问数据组失败",
 
 	CreateTeamError:       "创建团队失败",
 	TeamAlreadyExistError: "团队已存在",
@@ -217,4 +218,11 @@ var zhCnText = map[string]string{
 
 	SearchAlertLabelFilterError: "查询告警标签过滤器失败",
 	SearchAlertFilterValueError: "查询告警过滤值失败",
+
+	CreateCustomTopologyError: "创建自定义拓扑失败",
+	DeleteCustomTopologyError: "删除自定义拓扑失败",
+	ListCustomTopologyError:   "列出自定义拓扑失败",
+	CheckServiceNameRuleError: "验证服务名匹配规则失败",
+	SetServiceNameRuleError:   "配置服务名匹配规则失败",
+	ListServiceNameRuleError:  "列出所有服务名匹配规则失败",
 }

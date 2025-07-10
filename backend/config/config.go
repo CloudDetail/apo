@@ -5,6 +5,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"github.com/CloudDetail/metadata/configs"
 	"github.com/spf13/viper"
@@ -74,6 +75,11 @@ type Config struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
+	Dataplane struct {
+		Address               string        `mapstructure:"address"`
+		QueryRedInterval      time.Duration `mapstructure:"query_red_interval"`
+		QueryTopologyInterval time.Duration `mapstructure:"query_topology_interval"`
+	} `mapstructure:"dataplane"`
 	Jaeger struct {
 		Address string `mapstructure:"address"`
 	}
@@ -92,6 +98,7 @@ type Config struct {
 		APIKeys struct {
 			AlertCheck    string `mapstructure:"alert_check"`
 			AlertClassify string `mapstructure:"alert_classify"`
+			AlertAnalyze  string `mapstructure:"alert_analyze"`
 		} `mapstructure:"api_keys"`
 		FlowIDs struct {
 			AlertCheck        string `mapstructure:"alert_check"`
@@ -101,6 +108,8 @@ type Config struct {
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`
+		AutoCheck      bool   `mapstructure:"auto_check"`
+		AutoAnalyze    bool   `mapstructure:"auto_analyze"`
 	} `mapstructure:"dify"`
 	AlertReceiver struct {
 		Enabled     bool   `mapstructure:"enabled"`

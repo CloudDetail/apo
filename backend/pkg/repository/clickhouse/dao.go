@@ -16,6 +16,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse/factory"
@@ -31,9 +32,15 @@ type Repo interface {
 	// Query the list of all descendant service nodes
 	ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// Query the calling relationship of all descendant nodes
-	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
+	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
+
+	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
+	// Query Service Topology
+	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)
+
+	ListAncestorEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error)
 
 	// ========== error_propagation ==========
 	// Query instance-related error propagation chain
@@ -51,7 +58,7 @@ type Repo interface {
 	// InfrastructureAlert(startTime time.Time, endTime time.Time, nodeNames []string) (*model.AlertEvent, bool, error)
 	// NetworkAlert(startTime time.Time, endTime time.Time, pods []string, nodeNames []string, pids []string) (bool, error)
 
-	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string) ([]K8sEventsCount, error)
+	CountK8sEvents(ctx core.Context, startTime int64, endTim int64, pods []string, clusterIDs []string) ([]K8sEventsCount, error)
 
 	// ========== application_logs ==========
 	// Query the log content of the fault site. The sourceFrom can be blank. The log in the first source that can be found will be returned.
@@ -91,6 +98,7 @@ type Repo interface {
 	GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 	// Query alarm events by pageParam
 	GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam) ([]alert.AlertEvent, uint64, error)
+	GetAlertDataScope(ctx core.Context, startTime time.Time, endTime time.Time) ([]datagroup.DataScope, error)
 	// ========== k8s events ============
 	// SeverityNumber > 9 (warning)
 	GetK8sAlertEventsSample(ctx core.Context, startTime time.Time, endTime time.Time, instances []*model.ServiceInstance) ([]K8sEvents, error)
@@ -121,6 +129,17 @@ type Repo interface {
 	GetStaticFilterKeys(ctx core.Context) []request.AlertEventFilter
 	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) ([]string, error)
 	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
+
+	// Dataplane
+	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
+	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
+	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
+	WriteServiceRedMetrics(ctx core.Context, charts *model.ServiceRedCharts) error
+	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
+	QueryServiceTopologyCount(ctx core.Context, timestamp int64, clusterId string, source string) (uint64, error)
+	WriteServiceTopology(ctx core.Context, timestamp int64, clusterId string, source string, topologies []*model.ServiceToplogy) error
+	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
+	WriteRelateApp(ctx core.Context, app *model.AppInfo) error
 
 	integration.Input
 }

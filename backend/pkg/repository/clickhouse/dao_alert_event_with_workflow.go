@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -116,7 +117,11 @@ SELECT
   fw.workflow_name,
   fw.importance,
   fw.created_at as last_check_at,
+	fw.input,
   fw.output,
+  fw.alert_direction,
+  fw.analyze_run_id,
+  fw.analyze_err,
   CASE
     WHEN output = 'false' THEN 'true'
     WHEN output = 'true' THEN 'false'
@@ -172,6 +177,10 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
+
 	// TODO remove in v1.9.x
 	{
 		if len(req.Filter.Namespaces) > 0 {
@@ -183,8 +192,9 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 	}
 
 	var count uint64
-	intervalMicro := int64(5*time.Minute) / 1e3
-	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
+	recordFilter := NewQueryBuilder().Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 
 	resultFilter := NewQueryBuilder()
 
@@ -239,6 +249,10 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
+
 	// TODO remove in v1.9.x
 	{
 		if len(req.Filter.Namespaces) > 0 {
@@ -261,9 +275,10 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 			Limit(req.Pagination.PageSize)
 	}
 
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 
 	resultFilter := NewQueryBuilder()
 	// TODO remove in v1.9.x
@@ -301,10 +316,15 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 		Between("update_time", req.StartTime/1e6, req.EndTime/1e6).
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
+	if req.GroupID > 0 {
+		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+	}
+
 	var counts []_alertEventCount
-	intervalMicro := int64(5*time.Minute) / 1e3
+	intervalMicro := int64(cacheMinutes) * int64(time.Minute) / 1e3
+	endTime := req.EndTime/1e6 + int64(5*time.Minute)/1e9
 	recordFilter := NewQueryBuilder().
-		Between("created_at", (req.StartTime-intervalMicro)/1e6, (req.EndTime+intervalMicro)/1e6)
+		Between("created_at", (req.StartTime-intervalMicro)/1e6, endTime)
 	countSql := fmt.Sprintf(SQL_GET_ALERTEVENT_COUNTS,
 		alertFilter.String(),
 		recordFilter.String(),

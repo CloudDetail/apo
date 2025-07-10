@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -25,8 +26,24 @@ func contains(arr []string, str string) bool {
 	}
 	return false
 }
-func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceNames []string, returnData []string) (res []response.ServiceAlertRes, err error) {
-	svcInstances, err := s.promRepo.GetMultiServicesInstanceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), serviceNames)
+func (s *service) GetServicesAlert(
+	ctx core.Context,
+	groupID int64, clusterIDs []string,
+	startTime time.Time, endTime time.Time,
+	step time.Duration,
+	serviceNames []string,
+	returnData []string,
+) (res []response.ServiceAlertRes, err error) {
+	pqlFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", groupID)
+	if err != nil {
+		return nil, err
+	}
+	if len(clusterIDs) > 0 {
+		pqlFilter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(clusterIDs...))
+	}
+	pqlFilter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
+
+	svcInstances, err := s.promRepo.GetMultiSVCInstanceListByPQLFilter(ctx, startTime.UnixMicro(), endTime.UnixMicro(), pqlFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +81,7 @@ func (s *service) GetServicesAlert(ctx core.Context, startTime time.Time, endTim
 		services = append(services, svcDetail)
 	}
 
-	if returnData == nil || contains(returnData, "logMetrics") {
+	if len(returnData) == 0 || contains(returnData, "logMetrics") {
 		var duration string
 		var stepNS = endTime.Sub(startTime).Nanoseconds()
 		duration = strconv.FormatInt(stepNS/int64(time.Minute), 10) + "m"

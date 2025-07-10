@@ -16,6 +16,8 @@ type AlertEventSearchRequest struct {
 
 	// Deprecated
 	Filter AlertEventSearchFilter `json:"filter" form:"filter"`
+
+	GroupID int64 `json:"groupId" form:"groupId"`
 }
 
 type GetAlertDetailRequest struct {

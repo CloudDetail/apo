@@ -45,6 +45,14 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 		EqualsNotEmpty("trace_id", query.TraceId).
 		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
+	if len(query.ClusterIDs) > 0 {
+		for i := 0; i < len(query.ClusterIDs); i++ {
+			if query.ClusterIDs[i] == "unknown" {
+				query.ClusterIDs[i] = ""
+			}
+		}
+		queryBuilder.InStrings("labels['cluster_id']", query.ClusterIDs)
+	}
 	if len(query.MultiServices) > 0 {
 		queryBuilder.In("labels['service_name']", query.MultiServices)
 	}
@@ -142,6 +150,15 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		EqualsNotEmpty("trace_id", req.TraceId).
 		EqualsNotEmpty("labels['container_id']", req.ContainerId)
 
+	if len(req.ClusterIDs) > 0 {
+		for i := 0; i < len(req.ClusterIDs); i++ {
+			if req.ClusterIDs[i] == "unknown" {
+				req.ClusterIDs[i] = ""
+			}
+		}
+		queryBuilder.InStrings("labels['cluster_id']", req.ClusterIDs)
+	}
+
 	if len(req.Service) > 0 {
 		queryBuilder.In("labels['service_name']", req.Service)
 	}
@@ -215,6 +232,8 @@ type FaultLogQuery struct {
 	MultiServices  []string // Match multiple service
 	MultiNamespace []string // Match multiple namespace
 	Pod            string   // Pod name
+
+	ClusterIDs []string
 }
 
 type FaultLogResult struct {

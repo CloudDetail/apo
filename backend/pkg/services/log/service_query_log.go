@@ -19,12 +19,13 @@ func (s *service) QueryLog(ctx core.Context, req *request.LogQueryRequest) (*res
 	offset := (req.PageNum - 1) * req.PageSize
 	if offset > 10000 {
 		logcharts, _ := s.GetLogChart(ctx, req)
+		right := logcharts.Count - uint64(offset)
 		var count = 0
 		for _, chart := range logcharts.Histograms {
 			count += int(chart.Count)
-			if count > offset {
-				offset = offset - count + int(chart.Count)
-				req.StartTime = chart.From
+			if count > int(right) {
+				req.EndTime = chart.To
+				offset = count - int(right)
 				break
 			}
 		}

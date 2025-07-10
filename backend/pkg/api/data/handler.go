@@ -5,6 +5,7 @@ package data
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
@@ -18,20 +19,10 @@ type Handler interface {
 	// @Router /api/data/datasource [get]
 	GetDatasource() core.HandlerFunc
 
-	// CreateDataGroup Create a data group.
-	// @Tags API.data
-	// @Router /api/data/group/create [post]
-	CreateDataGroup() core.HandlerFunc
-
-	// DeleteDataGroup Delete the data group.
+	// DeleteDataGroupV2 Delete the data group.
 	// @Tags API.data
 	// @Router /api/data/group/delete [post]
-	DeleteDataGroup() core.HandlerFunc
-
-	// UpdateDataGroup Updates data group's name.
-	// @Tags API.data
-	// @Router /api/data/group/update [post]
-	UpdateDataGroup() core.HandlerFunc
+	DeleteDataGroupV2() core.HandlerFunc
 
 	// GetDataGroup Get data group.
 	// @Tags API.data
@@ -67,6 +58,24 @@ type Handler interface {
 	// @Tags API.data
 	// @Router /api/data/subs [get]
 	GetGroupSubs() core.HandlerFunc
+
+	// ################## V2 API #######################
+
+	// @Router /api/v2/data/group
+	GetDataGroupV2() core.HandlerFunc
+
+	GetDGDetailV2() core.HandlerFunc
+
+	// // @Router /api/v2/data/group/datasource/list
+	GetDGScopeList() core.HandlerFunc
+
+	CreateDataGroupV2() core.HandlerFunc
+
+	UpdateDataGroupV2() core.HandlerFunc
+
+	GetFilterByGroupIDV2() core.HandlerFunc
+
+	CleanExpiredDataScope() core.HandlerFunc
 }
 
 type handler struct {
@@ -74,9 +83,9 @@ type handler struct {
 	dataService data.Service
 }
 
-func New(logger *zap.Logger, dbRepo database.Repo, promRepo prometheus.Repo, k8sRepo kubernetes.Repo) Handler {
+func New(logger *zap.Logger, dbRepo database.Repo, promRepo prometheus.Repo, chRepo clickhouse.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:      logger,
-		dataService: data.New(dbRepo, promRepo, k8sRepo),
+		dataService: data.New(dbRepo, promRepo, chRepo, k8sRepo),
 	}
 }

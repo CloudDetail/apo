@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
@@ -81,13 +82,16 @@ type Repo interface {
 	GetFeatureTans(ctx core.Context, features *[]profile.Feature, language string) error
 	GetMenuItemTans(ctx core.Context, menuItems *[]MenuItem, language string) error
 
-	CreateDataGroup(ctx core.Context, group *DataGroup) error
+	CreateDataGroup(ctx core.Context, group *datagroup.DataGroup) error
 	DeleteDataGroup(ctx core.Context, groupID int64) error
 	CreateDatasourceGroup(ctx core.Context, datasource []model.Datasource, dataGroupID int64) error
 	DeleteDSGroup(ctx core.Context, groupID int64) error
 	DataGroupExist(ctx core.Context, filter model.DataGroupFilter) (bool, error)
 	UpdateDataGroup(ctx core.Context, groupID int64, groupName string, description string) error
-	GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]DataGroup, int64, error)
+	GetDataGroup(ctx core.Context, filter model.DataGroupFilter) ([]datagroup.DataGroup, int64, error)
+	GetDataGroupByGroupIDOrUserID(ctx core.Context, groupID int64, userID int64, category string) ([]datagroup.DataGroup, error)
+	GetDataGroupByGroupID(ctx core.Context, groupID int64, category string) ([]datagroup.DataGroup, error)
+	GetDataGroupByUserID(ctx core.Context, userID int64) ([]datagroup.DataGroup, error)
 	RetrieveDataFromGroup(ctx core.Context, groupID int64, datasource []string) error
 	GetGroupDatasource(ctx core.Context, groupID ...int64) ([]DatasourceGroup, error)
 
@@ -120,19 +124,18 @@ type Repo interface {
 	AssignDataGroup(ctx core.Context, authDataGroups []AuthDataGroup) error
 	RevokeDataGroupByGroup(ctx core.Context, dataGroupIDs []int64, subjectID int64) error
 	RevokeDataGroupBySub(ctx core.Context, subjectIDs []int64, groupID int64) error
-	GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string, category string) ([]DataGroup, error)
+	GetSubjectDataGroupList(ctx core.Context, subjectID int64, subjectType string) ([]datagroup.DataGroup, error)
 	GetModifyAndDeleteDataGroup(ctx core.Context, subjectID int64, subjectType string, dgPermissions []request.DataGroupPermission) (toModify []AuthDataGroup, toDelete []int64, err error)
 	DeleteAuthDataGroup(ctx core.Context, subjectID int64, subjectType string) error
 	GetDataGroupUsers(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	CheckGroupPermission(ctx core.Context, userID, groupID int64, typ string) (bool, error)
-
+	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
 	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx core.Context) *gorm.DB
-	// WithTransaction Puts transaction into ctx.
-	WithTransaction(ctx core.Context, tx *gorm.DB) core.Context
+
 	// Transaction Starts a transaction and automatically commit and rollback.
 	Transaction(ctx core.Context, funcs ...func(txCtx core.Context) error) error
 
@@ -144,7 +147,18 @@ type Repo interface {
 	CheckAMReceiverCount(ctx core.Context) int64
 	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
+	CreateCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+	ListCustomServiceTopology(ctx core.Context) ([]CustomServiceTopology, error)
+	DeleteCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+
+	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
+	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
+	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
+	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+
 	integration.ObservabilityInputManage
+	DaoDataScope
+	DaoDataGroupNew
 }
 
 type daoRepo struct {
@@ -284,9 +298,14 @@ func migrateTable(db *gorm.DB) error {
 		&profile.User{},
 		&API{},
 		&AuthDataGroup{},
-		&DataGroup{},
+		&datagroup.DataGroup{},
 		&DatasourceGroup{},
 		&profile.Team{},
 		&profile.UserTeam{},
+		&datagroup.DataScope{},
+		&datagroup.DataGroup2Scope{},
+		&ServiceNameRule{},
+		&ServiceNameRuleCondition{},
+		&CustomServiceTopology{},
 	)
 }
