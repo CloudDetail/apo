@@ -84,4 +84,3 @@ type SetServiceNameRuleConditionRequest struct {
 	MatchType   string `json:"matchType"`
 	Value       string `json:"value"`
 }
-
