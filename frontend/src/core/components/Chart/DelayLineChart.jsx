@@ -249,11 +249,10 @@ const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true }) => {
           // 获取 brush 选中的区域
           const brushArea = params.areas[0]
           if (brushArea.brushType === 'lineX' && brushArea.range) {
-            const range = brushArea.range
-
+            const { range } = brushArea
             // 获取时间轴的起始和结束时间
-            const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
-            const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
+            const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[0])
+            const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[1])
             setStoreTimeRange({
               rangeType: null,
               startTime: Math.round(startTime * 1000),
