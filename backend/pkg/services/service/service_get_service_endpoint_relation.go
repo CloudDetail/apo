@@ -18,13 +18,13 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
-	parents, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
+	parents, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
 	if err != nil {
 		return nil, err
 	}
 
 	// Query the calling relationship list of all downstream nodes
-	var relations []*model.ToplogyRelation
+	var relations []*model.TopologyRelation
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(ctx, &req.GetServiceEndpointTopologyRequest)
 	} else {
@@ -74,7 +74,7 @@ type EndpointInfo struct {
 	ExternalClientCalls []model.TopologyNode
 }
 
-func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*model.ToplogyRelation) *EndpointDepthMatrix {
+func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*model.TopologyRelation) *EndpointDepthMatrix {
 	matrix := &EndpointDepthMatrix{
 		EndpointSet:  map[model.EndpointKey]int{},
 		EndpointKeys: []model.EndpointKey{},
@@ -120,7 +120,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*mod
 	return matrix
 }
 
-func (m *EndpointDepthMatrix) AddRelation(relation *model.ToplogyRelation) {
+func (m *EndpointDepthMatrix) AddRelation(relation *model.TopologyRelation) {
 	parentEndpoint := model.EndpointKey{
 		ServiceName: relation.ParentService,
 		Endpoint:    relation.ParentEndpoint,
