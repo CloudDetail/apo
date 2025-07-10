@@ -304,5 +304,8 @@ func migrateTable(db *gorm.DB) error {
 		&profile.UserTeam{},
 		&datagroup.DataScope{},
 		&datagroup.DataGroup2Scope{},
+		&ServiceNameRule{},
+		&ServiceNameRuleCondition{},
+		&CustomServiceTopology{},
 	)
 }
