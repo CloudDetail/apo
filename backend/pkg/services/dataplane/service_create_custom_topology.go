@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package dataplane
 
 import (
@@ -9,8 +12,8 @@ import (
 func (s *service) CreateCustomTopology(ctx core.Context, req *request.CreateCustomTopologyRequest) error {
 	return s.dbRepo.CreateCustomServiceTopology(ctx, &database.CustomServiceTopology{
 		ClusterId: req.ClusterId,
-		LeftNode: req.LeftNode,
-		LeftType: req.LeftType,
+		LeftNode:  req.LeftNode,
+		LeftType:  req.LeftType,
 		RightNode: req.RightNode,
 		RightType: req.RightType,
 	})

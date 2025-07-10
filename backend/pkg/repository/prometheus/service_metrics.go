@@ -1,16 +1,19 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package prometheus
 
 type ServiceMetrics struct {
 	ServiceKey
 
-	REDMetrics REDMetrics
+	REDMetrics    REDMetrics
 	LatencyData   []Points
 	ErrorRateData []Points
 	TPMData       []Points
 }
 
 func (e *ServiceMetrics) InitEmptyGroup(key ConvertFromLabels) MetricGroup {
-	return &ServiceMetrics {
+	return &ServiceMetrics{
 		ServiceKey: key.(ServiceKey),
 	}
 }
