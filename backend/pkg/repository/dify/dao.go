@@ -44,8 +44,9 @@ type DifyRepo interface {
 
 	// ########################## Async AlertCheck Workflow #########################
 
-	PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan *model.WorkflowRecord, err error)
-	SubmitAlertEvents(events []alert.AlertEvent)
+	PrepareAsyncAlertCheckWorkflow(prom prometheus.Repo, logger *zap.Logger) (records <-chan *WorkflowRecordWithCtx, err error)
+
+	SubmitAlertEvents(ctx core.Context, events []alert.AlertEvent) error
 	GetCacheMinutes() int
 	GetAlertCheckFlowID() string
 	GetAlertAnalyzeFlowID() string

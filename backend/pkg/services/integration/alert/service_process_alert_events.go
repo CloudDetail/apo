@@ -10,6 +10,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/services/common/alertbus"
 )
 
 func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, data []byte) error {
@@ -33,6 +34,8 @@ func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, 
 		return fmt.Errorf("enrich alertEvent failed, err: %v", err)
 	}
 
-	s.difyRepo.SubmitAlertEvents(events)
+	if alertbus.ExtraHandlers != nil {
+		alertbus.ExtraHandlers.HandleEvents(ctx, events)
+	}
 	return s.ckRepo.InsertAlertEvent(ctx, events, source)
 }

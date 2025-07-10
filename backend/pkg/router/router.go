@@ -4,14 +4,13 @@
 package router
 
 import (
-	"context"
 	"errors"
-	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
+	"github.com/CloudDetail/apo/backend/pkg/services/common/alertbus"
 
 	"go.uber.org/zap"
 
@@ -142,37 +141,30 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
-	difyRepo, err := dify.New()
-	r.dify = difyRepo
-
 	difyConfig := config.Get().Dify
-	if difyConfig.AutoCheck && len(difyConfig.APIKeys.AlertCheck) > 0 {
-		records, err := r.dify.PrepareAsyncAlertCheckWorkflow(&dify.AlertCheckConfig{
-			FlowId:        difyConfig.FlowIDs.AlertCheck,
-			APIKey:        difyConfig.APIKeys.AlertCheck,
-			Authorization: fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
-			AnalyzeAuth:   fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertAnalyze),
+	receiverConfig := config.Get().AlertReceiver
 
-			User:           "apo-backend",
-			MaxConcurrency: difyConfig.MaxConcurrency,
-			CacheMinutes:   difyConfig.CacheMinutes,
-			Sampling:       difyConfig.Sampling,
+	if len(difyConfig.APIKeys.AlertCheck) == 0 && receiverConfig.Enabled {
+		extraHandler := alertbus.InitExtraEventHandler(r.logger, 300)
+		extraHandler.RegisterHandler(r.receivers.HandleAlertEvent)
+	} else {
+		extraHandler := alertbus.InitExtraEventHandler(r.logger, difyConfig.TimeoutSecond*4)
 
-			Prom: r.prom,
-		}, r.logger)
+		difyRepo, records, err := dify.New(r.prom, r.logger)
 		if err != nil {
-			logger.Error("failed to setup alertCheck workflow", zap.Error(err))
+			logger.Fatal("new dify err", zap.Error(err))
+		}
+		r.dify = difyRepo
+		extraHandler.RegisterHandler(difyRepo.SubmitAlertEvents)
+		if receiverConfig.Enabled {
+			go dify.HandleRecords(r.logger, records,
+				r.ch.AddWorkflowRecord,
+				r.receivers.HandleAlertCheckRecord,
+			)
 		} else {
-			if config.Get().AlertReceiver.Enabled {
-				go dify.HandleRecords(context.Background(), r.logger, records,
-					r.ch.AddWorkflowRecord,
-					r.receivers.HandleAlertCheckRecord,
-				)
-			} else {
-				go dify.HandleRecords(context.Background(), r.logger, records,
-					r.ch.AddWorkflowRecord,
-				)
-			}
+			go dify.HandleRecords(r.logger, records,
+				r.ch.AddWorkflowRecord,
+			)
 		}
 	}
 

@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAddUser(t *testing.T) {
-	difyRepo, err := New()
+	cfg := config.Get().Dify
+	difyRepo, err := newRepo(nil, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create difyRepo: %v", err)
 	}
@@ -24,7 +26,8 @@ func TestAddUser(t *testing.T) {
 }
 
 func TestUpdatePassword(t *testing.T) {
-	difyRepo, err := New()
+	cfg := config.Get().Dify
+	difyRepo, err := newRepo(nil, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create difyRepo: %v", err)
 	}
@@ -36,7 +39,8 @@ func TestUpdatePassword(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
-	difyRepo, err := New()
+	cfg := config.Get().Dify
+	difyRepo, err := newRepo(nil, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create difyRepo: %v", err)
 	}
@@ -49,7 +53,8 @@ func TestRemoveUser(t *testing.T) {
 }
 
 func TestRunWorkflows(t *testing.T) {
-	difyRepo, err := New()
+	cfg := config.Get().Dify
+	difyRepo, err := newRepo(nil, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create difyRepo: %v", err)
 	}

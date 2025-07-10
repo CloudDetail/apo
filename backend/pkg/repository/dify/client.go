@@ -8,9 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
-	"time"
 )
 
 type DifyClient struct {
@@ -77,16 +75,4 @@ func (c *DifyClient) WorkflowsRun(req *WorkflowRequest, authorization string) (W
 		panic("not implemented yet")
 	}
 	return nil, nil
-}
-
-var DefaultDifyFastHttpClient = &http.Client{
-	Transport: &http.Transport{
-		MaxIdleConns:        10,
-		MaxIdleConnsPerHost: 10,
-		DialContext: (&net.Dialer{
-			Timeout:   1 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-	},
-	Timeout: 3 * time.Minute,
 }

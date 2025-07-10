@@ -6,27 +6,14 @@ package dify
 import (
 	"context"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
 )
 
-func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger *zap.Logger) (records <-chan *model.WorkflowRecord, err error) {
-	if len(cfg.Sampling) == 0 {
-		cfg.Sampling = "first"
-	}
-	if len(cfg.FlowName) == 0 {
-		cfg.FlowName = "AlertCheck"
-	}
-	if cfg.CacheMinutes <= 0 {
-		cfg.CacheMinutes = 20
-	} else {
-		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
-	}
-	if cfg.MaxConcurrency <= 0 {
-		cfg.MaxConcurrency = 1
-	}
-	r.AlertCheckCFG = cfg
+func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(prom prometheus.Repo, logger *zap.Logger) (records <-chan *WorkflowRecordWithCtx, err error) {
+	r.AlertCheckCFG.Prom = prom
 	r.asyncAlertCheck = newAsyncAlertCheck(r.AlertCheckCFG, logger)
 	records, err = r.asyncAlertCheck.Run(context.Background(), r.cli)
 	if err != nil {
@@ -35,19 +22,12 @@ func (r *difyRepo) PrepareAsyncAlertCheckWorkflow(cfg *AlertCheckConfig, logger 
 	return records, err
 }
 
-func (r *difyRepo) SubmitAlertEvents(events []alert.AlertEvent) {
+func (r *difyRepo) SubmitAlertEvents(ctx core.Context, events []alert.AlertEvent) error {
 	if r.asyncAlertCheck == nil {
-		return
+		return nil
 	}
-	r.asyncAlertCheck.AddEvents(events)
-}
-
-func DefaultAlertCheckConfig() *AlertCheckConfig {
-	return &AlertCheckConfig{
-		Sampling:       "first",
-		CacheMinutes:   20,
-		MaxConcurrency: 1,
-	}
+	r.asyncAlertCheck.AddEvents(ctx, events)
+	return nil
 }
 
 func maxFactorOf60LessThanN(n int) int {

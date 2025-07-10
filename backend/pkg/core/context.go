@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 
@@ -107,6 +108,13 @@ type Context interface {
 	UserID() int64
 
 	ErrMessage(errCode string) string
+
+	Clone() Context
+
+	Deadline() (deadline time.Time, ok bool)
+	Done() <-chan struct{}
+	Err() error
+	Value(key any) any
 }
 
 type context struct {
@@ -285,4 +293,32 @@ func (c *context) UserID() int64 {
 		return 0
 	}
 	return id
+}
+
+func (c *context) Deadline() (deadline time.Time, ok bool) {
+	return c.ctx.Deadline()
+}
+
+func (c *context) Done() <-chan struct{} {
+	return c.ctx.Done()
+}
+
+func (c *context) Err() error {
+	return c.ctx.Err()
+}
+
+func (c *context) Value(key any) any {
+	return c.ctx.Value(key)
+}
+
+func (c *context) Clone() Context {
+	keys := make(map[string]any, len(c.ctx.Keys))
+	for k, v := range c.ctx.Keys {
+		keys[k] = v
+	}
+	return &context{
+		ctx: &gin.Context{
+			Keys: keys,
+		},
+	}
 }
