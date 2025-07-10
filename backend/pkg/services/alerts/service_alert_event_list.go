@@ -139,6 +139,9 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 			endTime = record.UpdateTime
 		}
 		record.Duration = formatDuration(time.Since(record.CreateTime))
+	}
+
+	if len(record.Input) > 0 {
 		record.ID, _ = uuid.Parse(record.Input)
 	}
 
