@@ -110,23 +110,7 @@ const DataGroupSelector = ({ readonly = false }) => {
     navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
   }
 
-  return (
-    // <Select<number>
-    //   disabled={readonly}
-    //   showSearch
-    //   className="mx-2"
-    //   style={{ width: 200 }}
-    //   value={dataGroupId}
-    //   placeholder="Please select"
-    //   allowClear
-    //   onChange={onChange}
-    //   options={treeData}
-    //   suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
-    //   fieldNames={{
-    //     label: 'groupName',
-    //     value: 'groupId',
-    //   }}
-    // />
+  return import.meta.env.VITE_APP_CODE_VERSION !== 'CE' ? (
     <div className="w-[200px]">
       <DataGroupTreeSelector
         onChange={onChange}
@@ -135,6 +119,8 @@ const DataGroupSelector = ({ readonly = false }) => {
         suffixIcon={<span className="mr-3">{t('dataGroup')}</span>}
       />
     </div>
+  ) : (
+    <></>
   )
 }
 
