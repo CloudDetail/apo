@@ -2,7 +2,13 @@ basePath: /
 definitions:
   alert.AEventWithWRecord:
     properties:
+      alertDirection:
+        type: string
       alertId:
+        type: string
+      analyzeErr:
+        type: string
+      analyzeRunId:
         type: string
       createTime:
         type: string
@@ -15,6 +21,8 @@ definitions:
       group:
         type: string
       id:
+        type: string
+      input:
         type: string
       isValid:
         description: 'Deprecated: use [Validity] instead, will remove after 1.7.x'
@@ -357,6 +365,8 @@ definitions:
     type: object
   alert.WorkflowParams:
     properties:
+      edition:
+        type: string
       endTime:
         type: integer
       nodeIp:
@@ -700,34 +710,24 @@ definitions:
       user:
         $ref: '#/definitions/profile.User'
     type: object
-  database.DataGroup:
+  database.CustomServiceTopology:
     properties:
-      authType:
+      clusterId:
         type: string
-      datasourceList:
-        items:
-          $ref: '#/definitions/database.DatasourceGroup'
-        type: array
-      description:
-        description: The description of data group.
-        type: string
-      groupId:
+      expireTime:
         type: integer
-      groupName:
+      id:
+        type: integer
+      leftNode:
         type: string
-      source:
+      leftType:
         type: string
-    type: object
-  database.DatasourceGroup:
-    properties:
-      category:
-        description: apm or normal
+      rightNode:
         type: string
-      datasource:
+      rightType:
         type: string
-      type:
-        description: service or namespace
-        type: string
+      startTime:
+        type: integer
     type: object
   database.InsertPage:
     properties:
@@ -766,6 +766,35 @@ definitions:
       routerId:
         type: integer
       to:
+        type: string
+    type: object
+  database.ServiceNameRuleCondition:
+    properties:
+      id:
+        type: integer
+      key:
+        type: string
+      matchType:
+        type: string
+      ruleId:
+        type: integer
+      value:
+        type: string
+    type: object
+  datagroup.DataGroup:
+    properties:
+      authType:
+        type: string
+      description:
+        description: The description of data group.
+        type: string
+      groupId:
+        type: integer
+      groupName:
+        type: string
+      parentGroupId:
+        type: integer
+      source:
         type: string
     type: object
   httpconfig.Authorization:
@@ -1317,6 +1346,25 @@ definitions:
         $ref: '#/definitions/model.AlertDetail'
       type: array
     type: object
+  model.AppInfo:
+    properties:
+      agentInstanceId:
+        type: string
+      containerId:
+        type: string
+      containerPid:
+        type: integer
+      hostPid:
+        type: integer
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      startTime:
+        type: integer
+      timestamp:
+        type: string
+    type: object
   model.Datasource:
     properties:
       category:
@@ -1356,8 +1404,21 @@ definitions:
         description: total number of records
         type: integer
     type: object
+  model.Service:
+    properties:
+      clusterId:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      source:
+        type: string
+    type: object
   model.ServiceInstance:
     properties:
+      clusterId:
+        type: string
       containerId:
         description: container ID
         type: string
@@ -1386,6 +1447,8 @@ definitions:
         type: array
       id:
         type: string
+      isCustom:
+        type: boolean
       name:
         type: string
       parents:
@@ -1415,23 +1478,6 @@ definitions:
     x-enum-varnames:
     - StatusResolved
     - StatusFiring
-  model.ToplogyRelation:
-    properties:
-      endpoint:
-        type: string
-      group:
-        type: string
-      isTraced:
-        type: boolean
-      parentEndpoint:
-        type: string
-      parentService:
-        type: string
-      service:
-        type: string
-      system:
-        type: string
-    type: object
   model.TopologyNode:
     properties:
       endpoint:
@@ -1440,6 +1486,27 @@ definitions:
         type: string
       isTraced:
         type: boolean
+      outOfGroup:
+        type: boolean
+      service:
+        type: string
+      system:
+        type: string
+    type: object
+  model.TopologyRelation:
+    properties:
+      endpoint:
+        type: string
+      group:
+        type: string
+      isTraced:
+        type: boolean
+      outOfGroup:
+        type: boolean
+      parentEndpoint:
+        type: string
+      parentService:
+        type: string
       service:
         type: string
       system:
@@ -1532,6 +1599,8 @@ definitions:
         $ref: '#/definitions/request.AlertRule'
       alertRuleFile:
         type: string
+      groupId:
+        type: integer
     type: object
   request.AddLogParseRequest:
     properties:
@@ -1657,6 +1726,8 @@ definitions:
         items:
           $ref: '#/definitions/request.AlertEventFilter'
         type: array
+      groupId:
+        type: integer
       pagination:
         $ref: '#/definitions/model.Pagination'
       sortBy:
@@ -1735,19 +1806,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  request.CreateDataGroupRequest:
-    properties:
-      datasourceList:
-        items:
-          $ref: '#/definitions/model.Datasource'
-        type: array
-      description:
-        type: string
-      groupName:
-        type: string
-    required:
-    - groupName
     type: object
   request.CreateTeamRequest:
     properties:
@@ -1917,6 +1975,8 @@ definitions:
         type: integer
       group:
         type: string
+      groupId:
+        type: integer
       groups:
         items:
           type: string
@@ -1980,6 +2040,10 @@ definitions:
     type: object
   request.GetFaultLogPageListRequest:
     properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
       containerId:
         description: container name
         type: string
@@ -2068,6 +2132,10 @@ definitions:
     type: object
   request.GetTracePageListRequest:
     properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
       containerId:
         description: container name
         type: string
@@ -2335,6 +2403,30 @@ definitions:
       forDuration:
         type: string
     type: object
+  request.SetServiceNameRuleConditionRequest:
+    properties:
+      conditionId:
+        type: integer
+      key:
+        type: string
+      matchType:
+        type: string
+      value:
+        type: string
+    type: object
+  request.SetServiceNameRuleRequest:
+    properties:
+      clusterId:
+        type: string
+      conditions:
+        items:
+          $ref: '#/definitions/request.SetServiceNameRuleConditionRequest'
+        type: array
+      ruleId:
+        type: integer
+      service:
+        type: string
+    type: object
   request.SetSingleTTLRequest:
     properties:
       day:
@@ -2398,6 +2490,8 @@ definitions:
         $ref: '#/definitions/request.AlertRule'
       alertRuleFile:
         type: string
+      groupId:
+        type: integer
       oldAlert:
         type: string
       oldGroup:
@@ -2405,22 +2499,6 @@ definitions:
     required:
     - oldAlert
     - oldGroup
-    type: object
-  request.UpdateDataGroupRequest:
-    properties:
-      datasourceList:
-        items:
-          $ref: '#/definitions/model.Datasource'
-        type: array
-      description:
-        type: string
-      groupId:
-        type: integer
-      groupName:
-        type: string
-    required:
-    - groupId
-    - groupName
     type: object
   request.UpdateLogParseRequest:
     properties:
@@ -2518,6 +2596,34 @@ definitions:
     properties:
       available:
         type: boolean
+    type: object
+  response.CheckServiceNameRuleResponse:
+    properties:
+      apps:
+        items:
+          $ref: '#/definitions/model.AppInfo'
+        type: array
+    type: object
+  response.ClusterScopedDatasource:
+    properties:
+      clusterId:
+        type: string
+      clusterName:
+        type: string
+      namespaceMap:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: 'namespace: services'
+        type: object
+      serviceMap:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        description: 'service: endpoints'
+        type: object
     type: object
   response.Column:
     properties:
@@ -2730,7 +2836,7 @@ definitions:
         type: integer
       dataGroupList:
         items:
-          $ref: '#/definitions/database.DataGroup'
+          $ref: '#/definitions/datagroup.DataGroup'
         type: array
       pageSize:
         description: number of entries per page
@@ -2867,6 +2973,10 @@ definitions:
     type: object
   response.GetGroupDatasourceResponse:
     properties:
+      clusterScoped:
+        items:
+          $ref: '#/definitions/response.ClusterScopedDatasource'
+        type: array
       namespaceMap:
         additionalProperties:
           items:
@@ -2995,7 +3105,7 @@ definitions:
       childRelations:
         description: downstream node call relationship list
         items:
-          $ref: '#/definitions/model.ToplogyRelation'
+          $ref: '#/definitions/model.TopologyRelation'
         type: array
       current:
         allOf:
@@ -3301,6 +3411,31 @@ definitions:
           $ref: '#/definitions/slienceconfig.AlertSlienceConfig'
         type: array
     type: object
+  response.ListCustomTopologyResponse:
+    properties:
+      topologies:
+        items:
+          $ref: '#/definitions/database.CustomServiceTopology'
+        type: array
+    type: object
+  response.ListServiceNameRule:
+    properties:
+      conditions:
+        items:
+          $ref: '#/definitions/database.ServiceNameRuleCondition'
+        type: array
+      id:
+        type: integer
+      serviceName:
+        type: string
+    type: object
+  response.ListServiceNameRuleResponse:
+    properties:
+      rules:
+        items:
+          $ref: '#/definitions/response.ListServiceNameRule'
+        type: array
+    type: object
   response.LogChartResponse:
     properties:
       count:
@@ -3576,22 +3711,13 @@ definitions:
           $ref: '#/definitions/response.QueryChartResult'
         type: array
     type: object
-  response.QueryServiceResult:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      source:
-        type: string
-    type: object
   response.QueryServicesResponse:
     properties:
       msg:
         type: string
       results:
         items:
-          $ref: '#/definitions/response.QueryServiceResult'
+          $ref: '#/definitions/model.Service'
         type: array
     type: object
   response.QueryTopologyResponse:
@@ -3817,32 +3943,6 @@ definitions:
       legend:
         type: string
       legendFormat:
-        type: string
-    type: object
-  response.TopologyExternalClientCall:
-    properties:
-      childs:
-        items:
-          $ref: '#/definitions/model.TopologyNode'
-        type: array
-      endpoint:
-        type: string
-      group:
-        type: string
-      isTraced:
-        type: boolean
-      service:
-        type: string
-      system:
-        type: string
-    type: object
-  response.TopologyNodeLevel:
-    properties:
-      depth:
-        type: integer
-      endpoint:
-        type: string
-      service:
         type: string
     type: object
   slienceconfig.AlertSlienceConfig:
@@ -5289,36 +5389,6 @@ paths:
       summary: Get data group.
       tags:
       - API.data
-  /api/data/group/create:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Create a data group.
-      parameters:
-      - description: Request
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.CreateDataGroupRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Create a data group.
-      tags:
-      - API.data
   /api/data/group/data:
     get:
       consumes:
@@ -5349,35 +5419,6 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get group's datasource.
-      tags:
-      - API.data
-  /api/data/group/delete:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Delete the data group.
-      parameters:
-      - description: Data group's id
-        in: formData
-        name: groupId
-        required: true
-        type: integer
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Delete the data group.
       tags:
       - API.data
   /api/data/group/operation:
@@ -5411,36 +5452,6 @@ paths:
       summary: Assign data groups to users or teams, or remove them from data groups.
       tags:
       - API.data
-  /api/data/group/update:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Updates data group.
-      parameters:
-      - description: Request
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.UpdateDataGroupRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Updates data group.
-      tags:
-      - API.data
   /api/data/sub/group:
     get:
       consumes:
@@ -5472,7 +5483,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.DataGroup'
+              $ref: '#/definitions/datagroup.DataGroup'
             type: array
         "400":
           description: Bad Request
@@ -5572,7 +5583,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/database.DataGroup'
+              $ref: '#/definitions/datagroup.DataGroup'
             type: array
         "400":
           description: Bad Request
@@ -5581,6 +5592,116 @@ paths:
       summary: Get user's assigned data group.
       tags:
       - API.data
+  /api/dataplane/customtopology/create:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Create custom topology.
+      parameters:
+      - description: cluster Id
+        in: query
+        name: clusterId
+        required: true
+        type: string
+      - description: parent node name
+        in: query
+        name: leftNode
+        required: true
+        type: string
+      - description: parent node type
+        in: query
+        name: leftType
+        required: true
+        type: string
+      - description: child node name
+        in: query
+        name: rightNode
+        required: true
+        type: string
+      - description: child node type
+        in: query
+        name: rightType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create custom topology.
+      tags:
+      - API.dataplane
+  /api/dataplane/customtopology/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete custom topology.
+      parameters:
+      - description: query Id
+        in: query
+        name: id
+        required: true
+        type: integer
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete custom topology.
+      tags:
+      - API.dataplane
+  /api/dataplane/customtopology/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: List custom topology.
+      parameters:
+      - description: query start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListCustomTopologyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: List custom topology.
+      tags:
+      - API.dataplane
   /api/dataplane/endpoints:
     get:
       consumes:
@@ -5726,6 +5847,82 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get service name by instance.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/checkRule:
+    post:
+      consumes:
+      - application/json
+      description: Check servicename rule.
+      parameters:
+      - description: Check ServiceName Rule Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetServiceNameRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CheckServiceNameRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Check servicename rule.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/listRule:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: List servicename rule.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListServiceNameRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: List servicename rule.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/upsertRule:
+    post:
+      consumes:
+      - application/json
+      description: Create or update servicename rule.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetServiceNameRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Create or update servicename rule.
       tags:
       - API.dataplane
   /api/dataplane/services:
@@ -7112,9 +7309,9 @@ paths:
       tags:
       - API.role
   /api/service/alert/events:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get alarm events
       parameters:
       - description: query start time
@@ -7185,9 +7382,9 @@ paths:
       tags:
       - API.service
   /api/service/alert/sample/events:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get sampling alarm events
       parameters:
       - description: query start time
@@ -7248,9 +7445,9 @@ paths:
       tags:
       - API.service
   /api/service/descendant/metrics:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the delay curve data of all downstream services
       parameters:
       - description: query start time
@@ -7307,9 +7504,9 @@ paths:
       tags:
       - API.service
   /api/service/descendant/relevance:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the dependent node delay correlation degree
       parameters:
       - description: query start time
@@ -7366,9 +7563,9 @@ paths:
       tags:
       - API.service
   /api/service/endpoint/list:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the list of service EndPoint
       parameters:
       - description: query start time
@@ -7406,9 +7603,9 @@ paths:
       tags:
       - API.service
   /api/service/endpoints:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the list of endpoints services
       parameters:
       - description: data group id
@@ -7475,9 +7672,9 @@ paths:
       tags:
       - API.service
   /api/service/entry/endpoints:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the service entry Endpoint list
       parameters:
       - description: query start time
@@ -7530,9 +7727,9 @@ paths:
       tags:
       - API.service
   /api/service/error/instance:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the error instance
       parameters:
       - description: query start time
@@ -7587,9 +7784,9 @@ paths:
       tags:
       - API.service
   /api/service/errorinstance/logs:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the error instance failure site log
       parameters:
       - description: query start time
@@ -7684,9 +7881,9 @@ paths:
       tags:
       - API.service
   /api/service/instance/list:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       deprecated: true
       description: get the list of service instances
       parameters:
@@ -7726,9 +7923,9 @@ paths:
       tags:
       - API.service
   /api/service/instance/options:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the drop-down list of service instances
       parameters:
       - description: query start time
@@ -7767,9 +7964,9 @@ paths:
       tags:
       - API.service
   /api/service/instanceinfo/list:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       deprecated: true
       description: get the list of service instances
       parameters:
@@ -7809,9 +8006,9 @@ paths:
       tags:
       - API.service
   /api/service/instances:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the URL instance corresponding to the service
       parameters:
       - description: query start time
@@ -7857,9 +8054,9 @@ paths:
       tags:
       - API.service
   /api/service/k8s/events/count:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get K8s events
       parameters:
       - description: query start time
@@ -7896,9 +8093,9 @@ paths:
       tags:
       - API.service
   /api/service/list:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the list of services
       parameters:
       - description: query start time
@@ -7939,9 +8136,9 @@ paths:
       tags:
       - API.service
   /api/service/log/logs:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get Log fault site log
       parameters:
       - description: query start time
@@ -8001,9 +8198,9 @@ paths:
       tags:
       - API.service
   /api/service/log/metrics:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get log related metrics
       parameters:
       - description: query start time
@@ -8145,9 +8342,9 @@ paths:
       tags:
       - API.service
   /api/service/namespace/list:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Get monitored namespaces.
       parameters:
       - description: start time
@@ -8175,9 +8372,9 @@ paths:
       tags:
       - API.service
   /api/service/polaris/infer:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Get Polaris metric Analysis
       parameters:
       - description: query start time
@@ -8254,9 +8451,9 @@ paths:
       tags:
       - API.service
   /api/service/relation:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: the call relationship between the upstream and downstream service
       parameters:
       - description: query start time
@@ -8352,7 +8549,7 @@ paths:
       tags:
       - API.service
   /api/service/servicesAlert:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: get the log alarm and status light information of the Service
@@ -8461,9 +8658,9 @@ paths:
       tags:
       - API.service
   /api/service/sql/metrics:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get SQL metrics
       parameters:
       - description: query start time
@@ -8518,9 +8715,9 @@ paths:
       tags:
       - API.service
   /api/service/topology:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get the upstream and downstream topology of the service
       parameters:
       - description: query start time
@@ -8570,9 +8767,9 @@ paths:
       tags:
       - API.service
   /api/service/trace/logs:
-    get:
+    post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: get trace fault site log
       parameters:
       - description: query start time
@@ -8632,7 +8829,7 @@ paths:
       tags:
       - API.service
   /api/service/trace/metrics:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: get Trace related metrics
@@ -9736,4 +9933,33 @@ paths:
       summary: Update self info.
       tags:
       - API.user
+  /api/v2/data/group/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Delete the data group.
+      parameters:
+      - description: Data group's id
+        in: formData
+        name: groupId
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete the data group.
+      tags:
+      - API.data
 swagger: "2.0"

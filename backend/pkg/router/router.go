@@ -10,6 +10,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 
@@ -38,6 +39,7 @@ type resource struct {
 	jaegerRepo         jaeger.JaegerRepo
 	dify               dify.DifyRepo
 	receivers          receiver.Receivers
+	dataplaneRepo      dataplane.DataplaneRepo
 }
 
 type Server struct {
@@ -174,6 +176,13 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 				)
 			}
 		}
+	}
+
+	dataplaneConf := config.Get().Dataplane
+	if dataplaneConf.Address != "" {
+		dataplaneRepo, _ := dataplane.New(r.ch, r.pkg_db)
+		dataplaneRepo.Start()
+		r.dataplaneRepo = dataplaneRepo
 	}
 
 	// Set API routing

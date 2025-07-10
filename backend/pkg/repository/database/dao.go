@@ -147,6 +147,15 @@ type Repo interface {
 	CheckAMReceiverCount(ctx core.Context) int64
 	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
 
+	CreateCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+	ListCustomServiceTopology(ctx core.Context) ([]CustomServiceTopology, error)
+	DeleteCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+
+	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
+	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
+	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
+	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+
 	integration.ObservabilityInputManage
 	DaoDataScope
 	DaoDataGroupNew

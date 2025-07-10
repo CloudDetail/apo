@@ -325,5 +325,12 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("/instances", handler.QueryServiceInstances())
 		dataplaneAPI.POST("/servicename", handler.QueryServiceName())
 		dataplaneAPI.GET("/topology", handler.QueryTopology())
+
+		dataplaneAPI.POST("/customtopology/create", handler.CreateCustomTopology())
+		dataplaneAPI.GET("/customtopology/list", handler.ListCustomTopology())
+		dataplaneAPI.POST("/customtopology/delete", handler.DeleteCustomTopology())
+		dataplaneAPI.POST("/servicename/checkRule", handler.CheckServiceNameRule())
+		dataplaneAPI.POST("/servicename/upsertRule", handler.SetServiceNameRule())
+		dataplaneAPI.GET("/servicename/listRule", handler.ListServiceNameRule())
 	}
 }

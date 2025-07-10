@@ -3,11 +3,14 @@
 
 package response
 
-import "github.com/CloudDetail/apo/backend/pkg/model"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+)
 
 type QueryServicesResponse struct {
-	Msg     string                `json:"msg"`
-	Results []*QueryServiceResult `json:"results,omitempty"`
+	Msg     string           `json:"msg"`
+	Results []*model.Service `json:"results,omitempty"`
 }
 
 type QueryServiceRedChartsResponse struct {
@@ -35,12 +38,6 @@ type QueryTopologyResponse struct {
 	Results []*model.ServiceToplogyNode `json:"results"`
 }
 
-type QueryServiceResult struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Source string `json:"source"`
-}
-
 type QueryChartResult struct {
 	Title      string        `json:"title"`
 	Unit       string        `json:"unit"`
@@ -52,4 +49,22 @@ type Timeseries struct {
 	LegendFormat string            `json:"legendFormat"`
 	Labels       map[string]string `json:"labels"`
 	Chart        TempChartObject   `json:"chart"`
+}
+
+type ListCustomTopologyResponse struct {
+	Topologies []*database.CustomServiceTopology `json:"topologies"`
+}
+
+type ListServiceNameRuleResponse struct {
+	Rules []*ListServiceNameRule `json:"rules"`
+}
+
+type ListServiceNameRule struct {
+	Id          int                                  `json:"id"`
+	ServiceName string                               `json:"serviceName"`
+	Conditions  []*database.ServiceNameRuleCondition `json:"conditions"`
+}
+
+type CheckServiceNameRuleResponse struct {
+	Apps []*model.AppInfo `json:"apps"`
 }

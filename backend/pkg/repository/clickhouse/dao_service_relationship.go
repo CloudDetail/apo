@@ -522,15 +522,15 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 		var parentNode *model.ServiceToplogyNode
 		var childNode *model.ServiceToplogyNode
 		if relation.ParentService != "" {
-			parentNode = result.AddTopologyNode(relation.ParentService, "application")
+			parentNode = result.AddTopologyNode(relation.ParentService, "application", false)
 		}
 		if relation.Service != "" {
-			childNode = result.AddTopologyNode(relation.Service, "application")
+			childNode = result.AddTopologyNode(relation.Service, "application", false)
 		}
 		if relation.ClientGroup == model.GROUP_MQ {
 			// MQ data A -> MQ -> B, two nodes MQ and B need to be generated
 			if relation.ClientPeer != "" {
-				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq")
+				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq", false)
 				if parentNode != nil {
 					parentNode.AddChild(mqNode)
 				}
@@ -553,7 +553,7 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 		if relation.ParentService != "" && relation.ClientPeer != "" {
 			if _, found := externalMap[relation.ClientPeer]; !found {
 				parentNode := result.Nodes[relation.ParentService]
-				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup)
+				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup, false)
 				parentNode.AddChild(externalNode)
 			}
 		}

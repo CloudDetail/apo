@@ -5,6 +5,7 @@ package dataplane
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -12,14 +13,26 @@ import (
 )
 
 func (s *service) GetServiceInstances(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse {
-	instanceList, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, []string{req.ServiceName})
+	filter := prometheus.NewFilter()
+	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
+	filter.EqualIfNotEmpty("service_name", req.ServiceName)
+	instances, err := s.promRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, req.ServiceName, filter.String())
 	if err != nil {
 		return &response.QueryServiceInstancesResponse{
 			Msg: "query service instances failed: " + err.Error(),
 		}
 	}
-	if len(instanceList.InstanceMap) == 0 {
-		return s.queryServiceInstancesByApi(ctx, req)
+	return &response.QueryServiceInstancesResponse{
+		Results: instances,
+	}
+}
+
+func (s *service) getServiceInstancesByApo(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse {
+	instanceList, err := s.promRepo.GetActiveInstanceList(ctx, req.StartTime, req.EndTime, []string{req.ServiceName})
+	if err != nil {
+		return &response.QueryServiceInstancesResponse{
+			Msg: "query service instances failed: " + err.Error(),
+		}
 	}
 
 	instances := make([]*model.ServiceInstance, 0)
@@ -28,11 +41,5 @@ func (s *service) GetServiceInstances(ctx core.Context, req *request.QueryServic
 	}
 	return &response.QueryServiceInstancesResponse{
 		Results: instances,
-	}
-}
-
-func (s *service) queryServiceInstancesByApi(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse {
-	return &response.QueryServiceInstancesResponse{
-		Msg: "Data not found",
 	}
 }

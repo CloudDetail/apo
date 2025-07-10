@@ -130,6 +130,17 @@ type Repo interface {
 	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) ([]string, error)
 	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 
+	// Dataplane
+	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
+	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
+	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
+	WriteServiceRedMetrics(ctx core.Context, charts *model.ServiceRedCharts) error
+	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
+	QueryServiceTopologyCount(ctx core.Context, timestamp int64, clusterId string, source string) (uint64, error)
+	WriteServiceTopology(ctx core.Context, timestamp int64, clusterId string, source string, topologies []*model.ServiceToplogy) error
+	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
+	WriteRelateApp(ctx core.Context, app *model.AppInfo) error
+
 	integration.Input
 }
 
