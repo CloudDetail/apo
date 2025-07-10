@@ -5,15 +5,15 @@
 
 import React, { useCallback } from 'react'
 import { Handle, Position } from 'reactflow'
-import { BiCctv } from 'react-icons/bi'
 import { MdRemoveRedEye } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
+import { LuShieldOff } from 'react-icons/lu'
+import { Tooltip } from 'antd'
 const handleStyle = { left: 10 }
 const MoreNode = React.memo((prop) => {
   const { data, isConnectable } = prop
   const onChange = useCallback((evt) => {}, [])
   const { t } = useTranslation('oss/serviceInfo')
-
   return (
     <div className="text-updater-node cursor-pointer">
       <Handle
@@ -22,21 +22,28 @@ const MoreNode = React.memo((prop) => {
         isConnectable={isConnectable}
         className="invisible"
       />
-      <div
-        className="px-3 py-2 rounded-full border-2 border-solid bg-[var(--ant-color-fill-secondary)] border-[var(--ant-color-primary-border)] text-[var(--ant-color-primary-text)] overflow-hidden flex flex-row items-center justify-center"
-        // style={{ backgroundColor: 'rgba(19, 25, 32, 0.6)' }}
-      >
-        <MdRemoveRedEye className="mr-2" />
-        {t('moreNode.seeMore')}
-        {/* <div className="absolute top-0 left-0">
-          {' '}
-          <BiCctv size={35} color={data.isTraced ? '#80ce8dff' : '#a1a1a1'} />
+      <Tooltip title={data.disabled ? t('moreNode.outOfGroup') : ''}>
+        <div
+          className={`px-3 py-2 rounded-full border-1 border-solid bg-[var(--ant-color-fill-secondary)]  text-[var(--ant-color-primary-text)] overflow-hidden
+             flex flex-row items-center justify-center ${data.disabled ? 'text-[var(--ant-color-text-secondary)] border-[var(--ant-color-text-secondary)]' : 'text-[var(--ant-color-primary-text)] border-[var(--ant-color-primary-border)]'}`}
+          style={{
+            cursor: data.disabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {data.disabled ? (
+            <>
+              <LuShieldOff className="mr-2" />
+              {t('moreNode.more')}
+            </>
+          ) : (
+            <>
+              <MdRemoveRedEye className="mr-2" />
+              {t('moreNode.seeMore')}
+            </>
+          )}
         </div>
-        <div className="text-center text-lg pt-2 px-2">
-          {data.label}
-          <div className="text-xs text-[#9e9e9e] text-left">{data.endpoint}</div>
-        </div> */}
-      </div>
+      </Tooltip>
+
       <Handle
         type="source"
         position={Position.Right}

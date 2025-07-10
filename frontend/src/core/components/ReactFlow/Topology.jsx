@@ -115,7 +115,7 @@ const LayoutFlow = (props) => {
     return { nodes, edges }
   }
   const clickNode = (e, node) => {
-    if (node.type === 'moreNode') {
+    if (node.type === 'moreNode' && !node.data.disabled) {
       setModalData({
         modalService: node.data.parentService,
         modalEndpoint: node.data.parentEndpoint,

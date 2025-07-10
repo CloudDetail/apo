@@ -87,6 +87,7 @@ export default function TopologyModal(props) {
             isTraced: parent.isTraced,
             service: parent.service,
             endpoint: parent.endpoint,
+            outOfGroup: parent.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'serviceNode',
@@ -116,6 +117,7 @@ export default function TopologyModal(props) {
             isTraced: child.isTraced,
             service: child.service,
             endpoint: child.endpoint,
+            outOfGroup: child.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'serviceNode',
@@ -208,6 +210,7 @@ export default function TopologyModal(props) {
       const children = allEdges.filter(
         (edge) => node.id === edge.source && !edgesToDisplay.has(edge.id),
       )
+
       if (children?.length > 0) {
         moreNodes.push({
           id: node.id + '-child',
@@ -215,6 +218,7 @@ export default function TopologyModal(props) {
             label: '更多',
             parentService: node.data.service,
             parentEndpoint: node.data.endpoint,
+            disabled: node.data.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'moreNode',

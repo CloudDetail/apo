@@ -70,5 +70,6 @@
   "addSuccess": "Added Successfully",
   "operation": "Operation",
   "error": "An unexpected error occurred on this page.",
-  "routeError": "Having no permission to access this route."
+  "routeError": "Having no permission to access this route.",
+  "outOfGroup": "This service is not in the current data group"
 }

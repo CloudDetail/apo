@@ -71,5 +71,6 @@
   "addSuccess": "新增成功",
   "operation": "操作",
   "error": "页面遇到未知错误",
-  "routeError": "当前没有权限访问该路由"
+  "routeError": "当前没有权限访问该路由",
+  "outOfGroup": "该服务不属于当前数据组"
 }
