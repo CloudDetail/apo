@@ -22,6 +22,13 @@ type Service interface {
 	GetServiceInstances(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse
 	GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse
 	GetServiceTopology(ctx core.Context, req *request.QueryTopologyRequest) *response.QueryTopologyResponse
+
+	CreateCustomTopology(ctx core.Context, req *request.CreateCustomTopologyRequest) error
+	DeleteCustomTopology(ctx core.Context, req *request.DeleteCustomTopologyRequest) error
+	ListCustomTopology(ctx core.Context, req *request.ListCustomTopologyRequest) (*response.ListCustomTopologyResponse, error)
+	CheckServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) (*response.CheckServiceNameRuleResponse, error)
+	SetServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) error
+	ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error)
 }
 
 type service struct {
