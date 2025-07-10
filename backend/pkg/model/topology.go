@@ -54,6 +54,9 @@ func (nodes *TopologyNodes) GetLabels(group string) ([]string, []string, []strin
 	endpoints := make([]string, 0)
 	systems := make([]string, 0)
 	for _, node := range nodes.Nodes {
+		if node.OutOfGroup {
+			continue
+		}
 		if node.Group == group {
 			services = append(services, node.Service)
 			endpoints = append(endpoints, node.Endpoint)
@@ -69,6 +72,8 @@ type TopologyNode struct {
 	IsTraced bool   `json:"isTraced"`
 	Group    string `json:"group"`
 	System   string `json:"system"`
+
+	OutOfGroup bool `json:"outOfGroup"`
 }
 
 func NewServerNode(service string, url string, isTraced bool) *TopologyNode {
@@ -81,7 +86,7 @@ func NewServerNode(service string, url string, isTraced bool) *TopologyNode {
 	}
 }
 
-type ToplogyRelation struct {
+type TopologyRelation struct {
 	ParentService  string `json:"parentService"`
 	ParentEndpoint string `json:"parentEndpoint"`
 	Service        string `json:"service"`
@@ -89,10 +94,12 @@ type ToplogyRelation struct {
 	IsTraced       bool   `json:"isTraced"`
 	Group          string `json:"group"`
 	System         string `json:"system"`
+
+	OutOfGroup bool `json:"outOfGroup"`
 }
 
-func NewServerRelation(parentService, parentEndPoint, service, endpoint string, isTraced bool) *ToplogyRelation {
-	return &ToplogyRelation{
+func NewServerRelation(parentService, parentEndPoint, service, endpoint string, isTraced bool) *TopologyRelation {
+	return &TopologyRelation{
 		ParentService:  parentService,
 		ParentEndpoint: parentEndPoint,
 		Service:        service,
@@ -132,8 +139,8 @@ type ServiceToplogyNode struct {
 
 func NewServiceToplogyNode(service string, category string) *ServiceToplogyNode {
 	return &ServiceToplogyNode{
-		Id: service,
-		Name:  service,
+		Id:       service,
+		Name:     service,
 		Category: category,
 		Parents:  []string{},
 		Children: []string{},

@@ -161,7 +161,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*model.ToplogyRelation{
+	expect := []*model.TopologyRelation{
 		{
 			ParentService:  "stuck-demo-tomcat",
 			ParentEndpoint: "GET /wait/callOthers",
@@ -204,7 +204,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*model.ToplogyRelation{
+	expect := []*model.TopologyRelation{
 		{
 			ParentService:  "kafka-provider",
 			ParentEndpoint: "GET /send",
@@ -250,7 +250,7 @@ func checkTopologyNodes(validator *util.Validator, expect map[string]*model.Topo
 	}
 }
 
-func checkToplogyRelation(validator *util.Validator, expect []*model.ToplogyRelation, got []*model.ToplogyRelation) {
+func checkToplogyRelation(validator *util.Validator, expect []*model.TopologyRelation, got []*model.TopologyRelation) {
 	validator.CheckIntValue("Response Size", len(expect), len(got))
 	for i, gotTopology := range got {
 		expectTopology := expect[i]

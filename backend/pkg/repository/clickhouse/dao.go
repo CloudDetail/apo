@@ -32,7 +32,7 @@ type Repo interface {
 	// Query the list of all descendant service nodes
 	ListDescendantNodes(ctx core.Context, req *request.GetDescendantMetricsRequest) (*model.TopologyNodes, error)
 	// Query the calling relationship of all descendant nodes
-	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error)
+	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
 

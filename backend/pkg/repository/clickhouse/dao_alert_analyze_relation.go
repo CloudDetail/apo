@@ -121,7 +121,7 @@ func (ch *chRepo) SearchEntryEndpointsByAlertService(ctx core.Context, alertServ
 	return parentTopologys, nil
 }
 
-func (ch *chRepo) ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelationsWithoutEdge(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -138,13 +138,13 @@ func (ch *chRepo) ListDescendantRelationsWithoutEdge(ctx core.Context, req *requ
 	return getDescendantServiceNode(results), nil
 }
 
-func getDescendantServiceNode(relations []ChildRelation) []*model.ToplogyRelation {
-	result := make([]*model.ToplogyRelation, 0)
+func getDescendantServiceNode(relations []ChildRelation) []*model.TopologyRelation {
+	result := make([]*model.TopologyRelation, 0)
 	if len(relations) == 0 {
 		return result
 	}
 
-	relationMap := make(map[string]*model.ToplogyRelation)
+	relationMap := make(map[string]*model.TopologyRelation)
 	for _, relation := range relations {
 		if relation.ParentService != "" && relation.Service != "" {
 			// 已监控服务数据

@@ -45,7 +45,7 @@ func (h *handler) GetServiceEndpointRelation() core.HandlerFunc {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetServiceEndpointRelationResponse{
 				Parents:       []*model.TopologyNode{},
 				Current:       &model.TopologyNode{},
-				ChildRelation: []*model.ToplogyRelation{},
+				ChildRelation: []*model.TopologyRelation{},
 			})
 			return
 		}

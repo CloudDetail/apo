@@ -26,7 +26,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		return nil, err
 	}
 
-	nodes, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	nodes, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
 	if err != nil {
 		return nil, err
 	}

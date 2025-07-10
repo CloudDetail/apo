@@ -18,7 +18,7 @@ func (s *service) GetServiceEndpointTopology(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
-	parents, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
+	parents, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (s *service) GetServiceEndpointTopology(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
-	children, err = common.CutTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, children)
+	children, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, children)
 	if err != nil {
 		return nil, err
 	}

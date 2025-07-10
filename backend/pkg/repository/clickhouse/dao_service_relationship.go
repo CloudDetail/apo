@@ -141,7 +141,7 @@ func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescenda
 }
 
 // Query the topological relationships of all descendants
-func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -408,13 +408,13 @@ func (relation *ChildRelation) getParentCurrentKey() string {
 	return fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.Service, relation.Url)
 }
 
-func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation {
-	result := make([]*model.ToplogyRelation, 0)
+func getDescendantRelations(relations []ChildRelation) []*model.TopologyRelation {
+	result := make([]*model.TopologyRelation, 0)
 	if len(relations) == 0 {
 		return result
 	}
 
-	relationMap := make(map[string]*model.ToplogyRelation)
+	relationMap := make(map[string]*model.TopologyRelation)
 	childMap := make(map[string]struct{}) // remove dirty data
 	for _, relation := range relations {
 		if relation.ClientGroup == model.GROUP_MQ {
@@ -424,7 +424,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 			if relation.ParentService != "" {
 				clientKey := relation.getParentClientKey()
 				if _, exist := relationMap[clientKey]; !exist {
-					relationMap[clientKey] = &model.ToplogyRelation{
+					relationMap[clientKey] = &model.TopologyRelation{
 						ParentService:  relation.ParentService,
 						ParentEndpoint: relation.ParentUrl,
 						Service:        relation.ClientPeer,
@@ -474,7 +474,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
 				// Service not monitored
-				relationMap[key] = &model.ToplogyRelation{
+				relationMap[key] = &model.TopologyRelation{
 					ParentService:  relation.ParentService,
 					ParentEndpoint: relation.ParentUrl,
 					Service:        relation.ClientPeer,
