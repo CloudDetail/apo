@@ -60,6 +60,7 @@ const ServiceInfo = () => {
           label: current.service,
           isTraced: current.isTraced,
           endpoint: current.endpoint,
+          outOfGroup: current.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',

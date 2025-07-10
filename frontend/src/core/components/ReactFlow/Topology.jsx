@@ -106,6 +106,8 @@ const LayoutFlow = (props) => {
       const sourceNode = nodes.find((node) => node.id === edge.source)
       const targetNode = nodes.find((node) => node.id === edge.target)
       if (
+        sourceNode &&
+        targetNode &&
         sourceNode.position.x > targetNode.position.x &&
         Math.abs(sourceNode.position.y - targetNode.position.y) < nodeHeight
       ) {

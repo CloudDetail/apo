@@ -70,6 +70,7 @@ export default function TopologyModal(props) {
           isTraced: current.isTraced,
           service: current.service,
           endpoint: current.endpoint,
+          outOfGroup: current.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',
