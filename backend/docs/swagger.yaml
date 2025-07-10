@@ -516,8 +516,7 @@ definitions:
           type: string
         type: object
       receivedTime:
-        description: Failure event reception time (used to record data connection,
-          no business meaning)
+        description: Failure event reception time (used to record data connection, no business meaning)
         type: string
       severity:
         $ref: '#/definitions/model.SeverityLevel'
@@ -775,8 +774,7 @@ definitions:
       credentialsFile:
         type: string
       credentialsRef:
-        description: CredentialsRef is the name of the secret within the secret manager
-          to use as credentials.
+        description: CredentialsRef is the name of the secret within the secret manager to use as credentials.
         type: string
       type:
         type: string
@@ -788,16 +786,14 @@ definitions:
       passwordFile:
         type: string
       passwordRef:
-        description: PasswordRef is the name of the secret within the secret manager
-          to use as the password.
+        description: PasswordRef is the name of the secret within the secret manager to use as the password.
         type: string
       username:
         type: string
       usernameFile:
         type: string
       usernameRef:
-        description: UsernameRef is the name of the secret within the secret manager
-          to use as the username.
+        description: UsernameRef is the name of the secret within the secret manager to use as the username.
         type: string
     type: object
   httpconfig.HTTPClientConfig:
@@ -1355,8 +1351,7 @@ definitions:
         description: namespaceName or serviceName
         type: string
       nested:
-        description: Nested datasource (namespace service belongs to or service under
-          namespace)
+        description: Nested datasource (namespace service belongs to or service under namespace)
         items:
           type: string
         type: array
@@ -1537,7 +1532,7 @@ definitions:
     x-enum-varnames:
     - StatusResolved
     - StatusFiring
-  model.ToplogyRelation:
+  model.TopologyRelation:
     properties:
       endpoint:
         type: string
@@ -3163,8 +3158,7 @@ definitions:
         description: delay curve difference
         type: number
       distanceType:
-        description: delay curve difference calculation method, there are four types
-          of euclidean/pearson/dtw/failed/net_failed
+        description: delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed
         type: string
       endpoint:
         description: Endpoint
@@ -3381,7 +3375,7 @@ definitions:
       childRelations:
         description: downstream node call relationship list
         items:
-          $ref: '#/definitions/model.ToplogyRelation'
+          $ref: '#/definitions/model.TopologyRelation'
         type: array
       current:
         allOf:
@@ -6318,8 +6312,7 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
-      description: Assign data groups to users or teams, or remove them from data
-        groups.
+      description: Assign data groups to users or teams, or remove them from data groups.
       parameters:
       - description: Request
         in: body
@@ -7588,8 +7581,7 @@ paths:
         in: query
         name: namespace
         type: string
-      - description: Workload to be queried. If the value is empty, all of them will
-          be queried
+      - description: Workload to be queried. If the value is empty, all of them will be queried
         in: query
         name: workload
         type: string
@@ -9874,8 +9866,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
-      description: get the flame chart data of the specified time period and specified
-        conditions
+      description: get the flame chart data of the specified time period and specified conditions
       parameters:
       - description: sample type
         in: query
@@ -9927,8 +9918,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: get the flame chart data of the specified time period and specified
-        conditions
+      summary: get the flame chart data of the specified time period and specified conditions
       tags:
       - API.trace
   /api/trace/flame/process:
@@ -10120,8 +10110,7 @@ paths:
         name: endTime
         required: true
         type: integer
-      - description: Whether to update the available filters immediately based on
-          the time entered by the user
+      - description: Whether to update the available filters immediately based on the time entered by the user
         in: query
         name: needUpdate
         type: boolean

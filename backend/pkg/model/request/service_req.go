@@ -349,7 +349,7 @@ type GetAnomalySpanRequest struct {
 	StartTime  int64  `json:"startTime" binding:"required"`
 	EndTime    int64  `json:"endTime" binding:"required"`
 	Service    string `json:"service" binding:"required"`
-	ContentKey string `json:"contentKey" binding:"required"`
+	ContentKey string `json:"contentKey"`
 	Reason     string `json:"reason"`
 	IsSlow     string `json:"isSlow"`
 	IsError    string `json:"isError"`

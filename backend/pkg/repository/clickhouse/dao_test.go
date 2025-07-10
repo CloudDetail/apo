@@ -192,7 +192,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 			System:         "mysql",
 		},
 	}
-	checkToplogyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
+	checkTopologyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
 }
 
 func testKafkaDescendantRelations(t *testing.T, repo Repo) {
@@ -226,7 +226,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 			System:         "",
 		},
 	}
-	checkToplogyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
+	checkTopologyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
 }
 
 func testCountK8sEvents(t *testing.T, repo Repo) {
@@ -252,7 +252,7 @@ func checkTopologyNodes(validator *util.Validator, expect map[string]*model.Topo
 	}
 }
 
-func checkToplogyRelation(validator *util.Validator, expect []*model.TopologyRelation, got []*model.TopologyRelation) {
+func checkTopologyRelation(validator *util.Validator, expect []*model.TopologyRelation, got []*model.TopologyRelation) {
 	validator.CheckIntValue("Response Size", len(expect), len(got))
 	for i, gotTopology := range got {
 		expectTopology := expect[i]

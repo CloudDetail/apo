@@ -31,7 +31,6 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		req.EntryEndpoint = ""
 	}
 
-	// Query the calling relationship list of all downstream nodes
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(ctx, &req.GetServiceEndpointTopologyRequest)
 	} else {

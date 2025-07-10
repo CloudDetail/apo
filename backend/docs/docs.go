@@ -12352,7 +12352,7 @@ const docTemplate = `{
                 "StatusFiring"
             ]
         },
-        "model.ToplogyRelation": {
+        "model.TopologyRelation": {
             "type": "object",
             "properties": {
                 "endpoint": {
@@ -15088,7 +15088,7 @@ const docTemplate = `{
                     "description": "downstream node call relationship list",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ToplogyRelation"
+                        "$ref": "#/definitions/model.TopologyRelation"
                     }
                 },
                 "current": {
