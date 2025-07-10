@@ -68,7 +68,6 @@ const (
 		WHERE service_relationship.timestamp BETWEEN %d AND %d
 		GROUP BY parentService, service, clientGroup, clientPeer
 	`
-
 	SQL_GET_ANCESTOR_NODES = `WITH found_trace_ids AS
   (
     SELECT trace_id, path
@@ -222,6 +221,13 @@ type ServiceNodeWithDepth struct {
 	Service  string `ch:"service"`
 	Endpoint string `ch:"url"`
 	Depth    uint64 `ch:"depth"`
+}
+
+type ServiceNodeRelationWithDepth struct {
+	ParentService  string `ch:"parent_service"`
+	ParentEndpoint string `ch:"parent_url"`
+
+	ServiceNodeWithDepth
 }
 
 // Consider 2 scenarios

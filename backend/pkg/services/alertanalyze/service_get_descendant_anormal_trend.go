@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
@@ -24,6 +25,11 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 			Service:   req.Service,
 			Endpoint:  req.Endpoint,
 		})
+	if err != nil {
+		return nil, err
+	}
+
+	descendants, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
 	if err != nil {
 		return nil, err
 	}
@@ -44,6 +50,9 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 	// TODO 优化,减少查询次数
 
 	for _, descendant := range descendants.Nodes {
+		if descendant.OutOfGroup {
+			continue
+		}
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
 			Endpoint:    descendant.Endpoint,

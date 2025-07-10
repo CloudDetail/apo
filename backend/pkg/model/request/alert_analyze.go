@@ -4,6 +4,8 @@ type GetAlertEventsSvcReq struct {
 	StartTime int64 `json:"startTime"`
 	EndTime   int64 `json:"endTime"`
 
+	GroupID int64 `json:"groupId"`
+
 	*PageParam // 告警分页参数
 
 	// TODO Analyzed Filter
@@ -20,6 +22,8 @@ type AlertImpactRequest struct {
 
 	AlertImpactFilter
 	AnalyzeSize int `form:"analyzeSize" json:"analyzeSize"` // 最大分析数量
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type AlertImpactFilter struct {

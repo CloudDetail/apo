@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 // GetDescendantAnormal 查询入口节点的下游告警情况
@@ -39,6 +40,11 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		return &response.GetDescendantAnormalEventResponse{}, err
 	}
 
+	nodes, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, nodes)
+	if err != nil {
+		return nil, err
+	}
+
 	var instances []*model.ServiceInstance
 	var databaseInstances []model.MiddlewareInstance
 	tmpServiceSet := map[string]struct{}{}
@@ -48,6 +54,9 @@ func (s *service) GetDescendantAnormal(ctx core.Context, req *request.GetDescend
 		req.Service, req.Endpoint, true)
 
 	for _, node := range nodes.Nodes {
+		if node.OutOfGroup {
+			continue
+		}
 		endpointList = append(endpointList, model.EndpointKey{
 			ServiceName: node.Service,
 			Endpoint:    node.Endpoint,

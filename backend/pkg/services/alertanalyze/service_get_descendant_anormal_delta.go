@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 const (
@@ -36,6 +37,11 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 		return nil, err
 	}
 
+	descendants, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, descendants)
+	if err != nil {
+		return nil, err
+	}
+
 	descendants.AddServerNode(fmt.Sprintf("%s.%s", req.Service, req.Endpoint),
 		req.Service, req.Endpoint, true)
 
@@ -50,6 +56,9 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 	var databaseInstances []model.MiddlewareInstance
 	instanceMap := newInstanceMap()
 	for _, descendant := range descendants.Nodes {
+		if descendant.OutOfGroup {
+			continue
+		}
 		endpoint := model.EndpointKey{
 			ServiceName: descendant.Service,
 			Endpoint:    descendant.Endpoint,

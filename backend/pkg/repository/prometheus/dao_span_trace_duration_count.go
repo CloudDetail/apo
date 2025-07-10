@@ -28,15 +28,6 @@ const (
 		") or (sum by(%s)(increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) * 0)" // or * 0补充中间缺失数据的场景
 	TEMPLATE_GET_NAMESPACES            = `sum(kindling_span_trace_duration_nanoseconds_count{namespace=~".+"}[%s]) by (namespace)`
 	TEMPLATE_GET_NAMESPACES_BY_SERVICE = `sum(kindling_span_trace_duration_nanoseconds_count{%s}[%s]) by (namespace)`
-
-	TEMPLATE_GET_SERVICE_BY_DB = `group by (svc_name)
-(
-	last_over_time(kindling_db_duration_nanoseconds_count{%s}[%s])
-	or
-	(apo_network_middleware_connect{%s} * on (node_name,pid,container_id)
-		group_left (svc_name) (group by(node_name,pid,container_id,svc_name)
-		(last_over_time(kindling_span_trace_duration_nanoseconds_count[%s]))))
-)`
 )
 
 // GetServiceList to query the service name list
@@ -175,13 +166,29 @@ func (repo *promRepo) GetServiceListByDatabase(ctx core.Context,
 ) ([]string, error) {
 	// 清理URL后面的Namespace信息,会导致无法查询namespace
 	dbURL = cutServiceSuffixFromURL(dbURL)
-	vector := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
-	pql := fmt.Sprintf(TEMPLATE_GET_SERVICE_BY_DB,
-		fmt.Sprintf(`db_url=~"%s.*",db_url!=""`, EscapeRegexp(dbURL)),
-		vector,
-		fmt.Sprintf(`db_ip="%s",db_port="%s",db_ip!="",db_port!=""`, dbIP, dbPort),
-		vector,
-	)
+	rng := VecFromS2E(startTime.UnixMicro(), endTime.UnixMicro())
+
+	spanFilter := NewFilter().
+		AddPatternFilter("db_url=~", EscapeRegexp(dbURL)+".*").
+		NotEqual("db_url", "")
+
+	dbNetFilter := NewFilter().
+		Equal("db_ip", dbIP).
+		Equal("db_port", dbPort).
+		NotEqual("db_ip", "").
+		NotEqual("db_port", "")
+
+	pql := groupBy("svc_name",
+		or(
+			lastOverTime(rangeVec(SPAN_DB_COUNT, spanFilter, rng, "")),
+			labelLeftOn(
+				vector(MIDDLEWARE_CONNECT_COUNT, dbNetFilter).String(),
+				"node_name,pid,container_id",
+				"svc_name",
+				lastOverTime(rangeVec(SPAN_TRACE_COUNT, nil, rng, "")),
+			),
+		))
+
 	ress, err := repo.QueryData(ctx, endTime, pql)
 	if err != nil {
 		return nil, err

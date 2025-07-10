@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -267,6 +268,10 @@ func (ch *chRepo) getAlertEventsByWhere(ctx core.Context, startTime time.Time, e
 		EqualsNotEmpty("severity", filter.Severity).
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
+
+	if filter.GroupID > 0 {
+		builder.Equals("raw_tags['groupId']", strconv.FormatInt(filter.GroupID, 10))
+	}
 
 	if len(filter.ClusterIDs) > 0 {
 		for i := 0; i < len(filter.ClusterIDs); i++ {

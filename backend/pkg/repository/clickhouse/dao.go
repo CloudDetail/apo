@@ -37,7 +37,7 @@ type Repo interface {
 	ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error)
 	// Query the entry node list
 	ListEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]EntryNode, error)
-
+	SearchEntryEndpointsByAlertServiceInGroup(ctx core.Context, alertServices []AlertService, startTime, endTime int64, groupSvcList []string) ([]EntryRelationship, error)
 	SearchEntryEndpointsByAlertService(ctx core.Context, endpoints []AlertService, startTime, endTime int64) ([]EntryRelationship, error)
 	// Query Service Topology
 	ListServiceTopologys(ctx core.Context, req *request.QueryTopologyRequest) (*model.ServiceTopologyNodes, error)
