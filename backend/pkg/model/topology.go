@@ -120,11 +120,11 @@ func NewServiceTopologyNodes() *ServiceTopologyNodes {
 	}
 }
 
-func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category string) *ServiceToplogyNode {
+func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category string, isCustom bool) *ServiceToplogyNode {
 	if node, exist := nodes.Nodes[service]; exist {
 		return node
 	}
-	node := NewServiceToplogyNode(service, category)
+	node := NewServiceToplogyNode(service, category, isCustom)
 	nodes.Nodes[service] = node
 	return node
 }
@@ -133,15 +133,17 @@ type ServiceToplogyNode struct {
 	Id       string   `json:"id"`
 	Name     string   `json:"name"`
 	Category string   `json:"category"`
+	IsCustom bool     `json:"isCustom"`
 	Parents  []string `json:"parents"`
 	Children []string `json:"children"`
 }
 
-func NewServiceToplogyNode(service string, category string) *ServiceToplogyNode {
+func NewServiceToplogyNode(service string, category string, isCustom bool) *ServiceToplogyNode {
 	return &ServiceToplogyNode{
 		Id:       service,
 		Name:     service,
 		Category: category,
+		IsCustom: isCustom,
 		Parents:  []string{},
 		Children: []string{},
 	}

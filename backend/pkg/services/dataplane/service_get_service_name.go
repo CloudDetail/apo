@@ -15,6 +15,33 @@ import (
 )
 
 func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
+	filter := prometheus.NewFilter()
+	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
+	filter.EqualIfNotEmpty("node_name", req.Tags.NodeName)
+	filter.EqualIfNotEmpty("pod_name", req.Tags.PodName)
+	filter.EqualIfNotEmpty("container_id", req.Tags.ContainerId)
+	services, err := s.promRepo.GetDataplaneServiceList(ctx, req.StartTime, req.EndTime, filter.String())
+	if err != nil {
+		return &response.QueryServiceNameResponse{
+			Msg: "query service name failed: " + err.Error(),
+		}
+	}
+	if len(services) == 0 {
+		return &response.QueryServiceNameResponse{
+			Msg: "Data Not Found",
+		}
+	}
+	// if len(services) > 1 {
+	// 	return &response.QueryServiceNameResponse{
+	// 		Msg: fmt.Sprintf("more than one service name[%v] is found by instance", services),
+	// 	}
+	// }
+	return &response.QueryServiceNameResponse{
+		Result: services[0].Name,
+	}
+}
+
+func (s *service) getServiceNameByApo(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
 	filterKVs := make([]string, 0)
 	if req.Tags.PodName != "" {
 		filterKVs = append(filterKVs, prometheus.PodPQLFilter, req.Tags.PodName)
@@ -38,7 +65,9 @@ func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceName
 		}
 	}
 	if len(services) == 0 {
-		return s.queryServiceNameByApi(ctx, req)
+		return &response.QueryServiceNameResponse{
+			Msg: "Data Not Found",
+		}
 	}
 	if len(services) > 1 {
 		return &response.QueryServiceNameResponse{
@@ -47,11 +76,5 @@ func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceName
 	}
 	return &response.QueryServiceNameResponse{
 		Result: services[0],
-	}
-}
-
-func (s *service) queryServiceNameByApi(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
-	return &response.QueryServiceNameResponse{
-		Msg: "Data not found",
 	}
 }

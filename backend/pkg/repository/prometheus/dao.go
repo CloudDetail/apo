@@ -44,6 +44,8 @@ type Repo interface {
 	// 查询在时间点过去一小时活跃过的实例
 	GetActiveRequestInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
+	GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error)
+	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	// Query service instance failure rate
 	QueryInstanceErrorRate(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error)
@@ -93,6 +95,9 @@ type Repo interface {
 
 	GetNamespaceList(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error)
+
+	GetDataplaneServiceList(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.Service, error)
+	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceName string) ([]*model.ServiceInstance, error)
 
 	QueryWithPQLFilter
 }
