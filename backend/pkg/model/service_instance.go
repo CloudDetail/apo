@@ -124,6 +124,7 @@ type ServiceInstance struct {
 	NodeName    string `json:"nodeName"` // hostname
 	Pid         int64  `json:"pid"`      // process number
 	NodeIP      string `json:"nodeIp"`
+	ClusterID   string `json:"clusterId"`
 }
 
 func (i *ServiceInstance) MatchSvcTags(group string, tags map[string]string) bool {

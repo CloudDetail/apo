@@ -18,7 +18,7 @@ import (
 // @Summary get SQL metrics
 // @Description get SQL metrics
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -30,11 +30,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/sql/metrics [get]
+// @Router /api/service/sql/metrics [post]
 func (h *handler) GetSQLMetrics() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetSQLMetricsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -42,9 +42,8 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			)
 			return
 		}
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetSQLMetricsResponse{
 				Pagination: model.Pagination{
 					Total:       0,
@@ -55,6 +54,7 @@ func (h *handler) GetSQLMetrics() core.HandlerFunc {
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetSQLMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(

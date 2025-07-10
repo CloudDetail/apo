@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -30,12 +28,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceAlertRes
 // @Failure 400 {object} code.Failure
-// @Router /api/service/servicesAlert [get]
+// @Router /api/service/servicesAlert [post]
 func (h *handler) GetServicesAlert() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceAlertRequest)
-
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -44,12 +41,13 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceNames, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
-			c.AbortWithPermissionError(err, code.AuthError, []response.ServiceAlertRes{})
-			return
-		}
+		// userID := c.UserID()
+		// err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceNames, model.DATASOURCE_CATEGORY_APM)
+		// if err != nil {
+		// 	c.AbortWithPermissionError(err, code.AuthError, []response.ServiceAlertRes{})
+		// 	return
+		// }
+
 		var startTime time.Time
 		var endTime time.Time
 		req.StartTime = req.StartTime / 1000000 // received microsecond-level startTime and endTime need to be converted to second-level first
@@ -57,10 +55,14 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		startTime = time.Unix(req.StartTime, 0)
 		endTime = time.Unix(req.EndTime, 0)
 		step := time.Duration(req.Step * 1000)
-		serviceNames := req.ServiceNames
 		returnData := req.ReturnData
+
+		if len(req.ServiceName) > 0 {
+			req.ServiceNames = append(req.ServiceNames, req.ServiceName)
+		}
+
 		var resp []response.ServiceAlertRes
-		data, err := h.serviceoverview.GetServicesAlert(c, startTime, endTime, step, serviceNames, returnData)
+		data, err := h.serviceoverview.GetServicesAlert(c, 0, req.ClusterIDs, startTime, endTime, step, req.ServiceNames, returnData)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,

@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// PQLFilter provides fine-grained filtering, primarily used for data group scenarios.
+//
+// All conditions will be expanded into DNF, which may cause combinatorial explosion.
+// It is recommended to use RegexFilter instead of OrFilter to reduce complexity
 type PQLFilter interface {
 	// { $k='$v' }
 	Equal(k, v string) PQLFilter
@@ -20,11 +24,12 @@ type PQLFilter interface {
 	// e.g. { $pattern$v }
 	AddPatternFilter(pattern, v string) PQLFilter
 
-	Clone() PQLFilter
+	// HACK remove related filter directly
+	SplitFilters(keys []string) (remain PQLFilter, removed PQLFilter)
 
 	// return PQL using VM-extended syntax syntax
 	//
-	// e.g. {a=1 or b=2}
+	// e.g. {a=1 or b=2}ss
 	String() string
 
 	// return PQL using strict prometheus syntax
@@ -42,6 +47,7 @@ func NewFilter() *AndFilter {
 }
 
 func (f *AndFilter) EqualIfNotEmpty(k, v string) PQLFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	if len(v) == 0 || len(k) == 0 {
 		return f
 	}
@@ -50,21 +56,25 @@ func (f *AndFilter) EqualIfNotEmpty(k, v string) PQLFilter {
 }
 
 func (f *AndFilter) Equal(k, v string) PQLFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	f.Filters = append(f.Filters, k+`="`+v+`"`)
 	return f
 }
 
 func (f *AndFilter) NotEqual(k, v string) PQLFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	f.Filters = append(f.Filters, k+`!="`+v+`"`)
 	return f
 }
 
 func (f *AndFilter) RegexMatch(k, regexPattern string) PQLFilter {
+	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
 	f.Filters = append(f.Filters, k+`=~"`+regexPattern+`"`)
 	return f
 }
 
 func (f *AndFilter) AddPatternFilter(pattern, v string) PQLFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	f.Filters = append(f.Filters, pattern+`"`+v+`"`)
 	return f
 }
@@ -78,6 +88,10 @@ func (f *AndFilter) String() string {
 }
 
 func (f *AndFilter) Clone() PQLFilter {
+	if f == nil {
+		return nil
+	}
+
 	newFilters := make([]string, len(f.Filters))
 	copy(newFilters, f.Filters)
 	return &AndFilter{
@@ -85,11 +99,49 @@ func (f *AndFilter) Clone() PQLFilter {
 	}
 }
 
+func (f *AndFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
+	var removed []string
+	for _, key := range keys {
+		for i := len(f.Filters) - 1; i >= 0; i-- {
+			if strings.HasPrefix(f.Filters[i], key+"=") ||
+				strings.HasPrefix(f.Filters[i], key+"!=") ||
+				strings.HasPrefix(f.Filters[i], key+"=~") {
+				removed = append(removed, f.Filters[i])
+				f.Filters = append(f.Filters[:i], f.Filters[i+1:]...)
+			}
+		}
+	}
+
+	if len(removed) == 0 {
+		return f, nil
+	}
+	return f, &AndFilter{Filters: removed}
+}
+
 type OrFilter struct {
 	Filters []AndFilter
 }
 
+func Clone(filter PQLFilter) PQLFilter {
+	if filter == nil {
+		return &AndFilter{}
+	}
+	switch f := filter.(type) {
+	case *AndFilter:
+		return f.Clone()
+	case *OrFilter:
+		return f.Clone()
+	}
+	return nil
+}
+
 func Or(filters ...PQLFilter) *OrFilter {
+	if len(filters) == 0 {
+		return &OrFilter{
+			Filters: []AndFilter{*AlwaysFalseFilter},
+		}
+	}
+
 	var options []AndFilter
 	for _, f := range filters {
 		if f == nil {
@@ -97,6 +149,9 @@ func Or(filters ...PQLFilter) *OrFilter {
 		}
 		switch ft := f.(type) {
 		case *AndFilter:
+			if len(ft.Filters) == 0 {
+				continue
+			}
 			options = append(options, *ft.Clone().(*AndFilter))
 		case *OrFilter:
 			for _, andf := range ft.Filters {
@@ -115,6 +170,10 @@ func And(filters ...PQLFilter) *OrFilter {
 		}
 		switch f := filter.(type) {
 		case *OrFilter:
+			if len(f.Filters) == 0 {
+				continue
+			}
+
 			if len(options) == 0 {
 				options = append(options, f.Filters...)
 				continue
@@ -129,6 +188,9 @@ func And(filters ...PQLFilter) *OrFilter {
 			}
 			options = newOptions
 		case *AndFilter:
+			if len(f.Filters) == 0 {
+				continue
+			}
 			if len(options) == 0 {
 				options = append(options, *f.Clone().(*AndFilter))
 				continue
@@ -142,29 +204,29 @@ func And(filters ...PQLFilter) *OrFilter {
 }
 
 func (f *OrFilter) Equal(k, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.Equal(k, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].Equal(k, v)
 	}
 	return f
 }
 
 func (f *OrFilter) NotEqual(k, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.NotEqual(k, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].NotEqual(k, v)
 	}
 	return f
 }
 
 func (f *OrFilter) RegexMatch(k, regexPattern string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.RegexMatch(k, regexPattern)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].RegexMatch(k, regexPattern)
 	}
 	return f
 }
 
 func (f *OrFilter) AddPatternFilter(pattern, v string) PQLFilter {
-	for _, filter := range f.Filters {
-		filter.AddPatternFilter(pattern, v)
+	for i := 0; i < len(f.Filters); i++ {
+		f.Filters[i].AddPatternFilter(pattern, v)
 	}
 	return f
 }
@@ -192,6 +254,10 @@ func (f *OrFilter) String() string {
 }
 
 func (o *OrFilter) Clone() PQLFilter {
+	if o == nil {
+		return nil
+	}
+
 	newFilters := make([]AndFilter, len(o.Filters))
 	for i, f := range o.Filters {
 		newFilters[i] = *f.Clone().(*AndFilter)
@@ -199,10 +265,27 @@ func (o *OrFilter) Clone() PQLFilter {
 	return &OrFilter{Filters: newFilters}
 }
 
+func (o *OrFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
+	var removed []AndFilter
+	for i := 0; i < len(o.Filters); i++ {
+		_, r := o.Filters[i].SplitFilters(keys)
+		if r != nil {
+			aF := r.(*AndFilter)
+			if len(aF.Filters) > 0 {
+				removed = append(removed, *aF)
+			}
+		}
+	}
+	return o, &OrFilter{
+		Filters: removed,
+	}
+}
+
 // ############## Fast Filter ##############
 
 // Fast Filter
 func EqualFilter(k, v string) *AndFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	return &AndFilter{Filters: []string{k + `="` + v + `"`}}
 }
 
@@ -210,14 +293,17 @@ func EqualIfNotEmptyFilter(k, v string) *AndFilter {
 	if len(v) == 0 {
 		return nil
 	}
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	return &AndFilter{Filters: []string{k + `="` + v + `"`}}
 }
 
 func NotEqualFilter(k, v string) *AndFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	return &AndFilter{Filters: []string{k + `!="` + v + `"`}}
 }
 
 func RegexMatchFilter(k, regexPattern string) *AndFilter {
+	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
 	return &AndFilter{Filters: []string{k + `=~"` + regexPattern + `"`}}
 }
 
@@ -225,9 +311,13 @@ func RegexMatchIfNotEmptyFilter(k, regexPattern string) *AndFilter {
 	if len(regexPattern) == 0 {
 		return nil
 	}
+	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
 	return &AndFilter{Filters: []string{k + `=~"` + regexPattern + `"`}}
 }
 
 func PatternFilter(pattern, v string) *AndFilter {
+	v = strings.ReplaceAll(v, `unknown`, ``)
 	return &AndFilter{Filters: []string{pattern + `"` + v + `"`}}
 }
+
+var AlwaysFalseFilter = &AndFilter{Filters: []string{"apo_filter=\"never_match\""}}

@@ -6,10 +6,9 @@ package service
 import (
 	"net/http"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
-
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
@@ -18,7 +17,7 @@ import (
 // @Summary get K8s events
 // @Description get K8s events
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -26,11 +25,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetK8sEventsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/k8s/events/count [get]
+// @Router /api/service/k8s/events/count [post]
 func (h *handler) CountK8sEvents() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetK8sEventsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -39,16 +38,14 @@ func (h *handler) CountK8sEvents() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allow, err := h.dataService.CheckGroupPermission(c, req.GroupID); !allow || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetK8sEventsResponse{
 				Status:  model.STATUS_NORMAL,
 				Reasons: []string{},
 				Data:    make(map[string]*response.K8sEventStatistics),
 			})
-			return
 		}
+
 		resp, err := h.serviceInfoService.CountK8sEvents(c, req)
 		if err != nil {
 			c.AbortWithError(

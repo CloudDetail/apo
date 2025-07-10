@@ -12,7 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"github.com/pkg/errors"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 const (
@@ -26,7 +26,19 @@ func (s *service) GetSQLMetrics(ctx core.Context, req *request.GetSQLMetricsRequ
 	endTime := time.UnixMicro(req.EndTime)
 	step := time.Duration(req.Step) * time.Microsecond
 
-	sqlMetricMap := s.SQLREDMetric(ctx, startTime, endTime, req.Service)
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(req.Service) > 0 {
+		filter.AddPatternFilter(prom.ServicePQLFilter, req.Service)
+	}
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch(prom.ClusterIDKey, prom.RegexMultipleValue(req.ClusterIDs...))
+	}
+
+	sqlMetricMap := s.SQLREDMetric(ctx, startTime, endTime, filter)
 	// Sort and page by average latency/error rate/TPS
 	switch req.SortBy {
 	case SortByErrorRate:
@@ -68,7 +80,17 @@ func (s *service) GetSQLMetrics(ctx core.Context, req *request.GetSQLMetricsRequ
 	}
 
 	// Fill the chart
-	_ = s.FillSQLREDChart(ctx, sqlMetricMap, req.Service, startTime, endTime, step)
+	var opNames []string
+	// Traverse the services array, get the ContentKey of each URL and store it in the slice.
+	for _, sqlOperation := range sqlMetricMap.MetricGroupList {
+		opNames = append(opNames, sqlOperation.DBOperation)
+	}
+
+	if len(opNames) > 0 {
+		filter.AddPatternFilter(prom.DBNameRegexPQLFilter, prom.RegexMultipleValue(opNames...))
+		_ = s.FillSQLREDChart(ctx, sqlMetricMap, filter, startTime, endTime, step)
+	}
+
 	// Convert format
 	for _, metricGroups := range sqlMetricMap.MetricGroupList {
 		res.SQLOperationDetails = append(res.SQLOperationDetails, response.SQLOperationDetail{
@@ -145,29 +167,24 @@ func (s *SQLMetricsWithChart) SetValues(metricGroup prom.MGroupName, metricName 
 }
 
 // EndpointsREDMetric query Endpoint-level RED metric results (including average value, DoD/WoW Growth Rate)
-func (s *service) SQLREDMetric(ctx core.Context, startTime, endTime time.Time, service string) *SQLMetricMap {
+func (s *service) SQLREDMetric(ctx core.Context, startTime, endTime time.Time, filter prom.PQLFilter) *SQLMetricMap {
 	var res = &SQLMetricMap{
 		MetricGroupList: []*SQLMetricsWithChart{},
 		MetricGroupMap:  map[prom.SQLKey]*SQLMetricsWithChart{},
 	}
 
-	var filters []string
-	if len(service) > 0 {
-		filters = append(filters, prom.ServicePQLFilter, service)
-	}
-
 	// Average RED metric over the fill time period
-	s.fillSQLMetric(ctx, res, prom.AVG, startTime, endTime, filters)
+	s.fillSQLMetric(ctx, res, prom.AVG, startTime, endTime, filter)
 	// RED metric day-to-day-on-da during the fill period
-	s.fillSQLMetric(ctx, res, prom.DOD, startTime, endTime, filters)
+	s.fillSQLMetric(ctx, res, prom.DOD, startTime, endTime, filter)
 	// RED metric week-on-week in the fill time period
-	s.fillSQLMetric(ctx, res, prom.WOW, startTime, endTime, filters)
+	s.fillSQLMetric(ctx, res, prom.WOW, startTime, endTime, filter)
 	return res
 }
 
-func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup prom.MGroupName, startTime, endTime time.Time, filters []string) {
+func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup prom.MGroupName, startTime, endTime time.Time, filter prom.PQLFilter) {
 	// Decorator, PQL statement is not modified by default, for AVG or REALTIME two metricGroup
-	var decorator = func(apf prom.AggPQLWithFilters) prom.AggPQLWithFilters {
+	var decorator = func(apf prom.PQLTemplate) prom.PQLTemplate {
 		return apf
 	}
 
@@ -177,19 +194,19 @@ func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup
 		// Time unit is microsecond
 		startTime = endTime.Add(-3 * time.Minute)
 	case prom.DOD:
-		decorator = prom.DayOnDay
+		decorator = prom.DayOnDayTemplate
 	case prom.WOW:
-		decorator = prom.WeekOnWeek
+		decorator = prom.WeekOnWeekTemplate
 	}
 
 	startTS := startTime.UnixMicro()
 	endTS := endTime.UnixMicro()
 
-	latency, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		decorator(prom.PQLAvgSQLLatencyWithFilters),
+	latency, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		decorator(prom.PQLAvgSQLLatencyWithPQLFilter),
 		startTS, endTS,
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		// TODO output log or log errors to Endpoint
@@ -197,11 +214,11 @@ func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup
 
 	res.MergeMetricResults(metricGroup, prom.LATENCY, latency)
 
-	errorRate, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		decorator(prom.PQLAvgSQLErrorRateWithFilters),
+	errorRate, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		decorator(prom.PQLAvgSQLErrorRateWithPQLFilter),
 		startTS, endTS,
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		// TODO output log or log errors to Endpoint
@@ -212,11 +229,11 @@ func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup
 		// Currently, the real-time value of TPS is not calculated.
 		return
 	}
-	tps, err := s.promRepo.QueryAggMetricsWithFilter(ctx,
-		decorator(prom.PQLAvgSQLTPSWithFilters),
+	tps, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		decorator(prom.PQLAvgSQLTPSWithPQLFilter),
 		startTS, endTS,
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		// TODO output log or log errors to Endpoint
@@ -226,29 +243,12 @@ func (s *service) fillSQLMetric(ctx core.Context, res *SQLMetricMap, metricGroup
 }
 
 // EndpointRangeREDChart query graph
-func (s *service) FillSQLREDChart(ctx core.Context, sqlMap *SQLMetricMap, service string, startTime time.Time, endTime time.Time, step time.Duration) error {
-	var opNames []string
-	// Traverse the services array, get the ContentKey of each URL and store it in the slice.
-	for _, sqlOperation := range sqlMap.MetricGroupList {
-		opNames = append(opNames, sqlOperation.DBOperation)
-		service = sqlOperation.Service
-	}
-
-	var filters []string
-	if len(service) > 0 {
-		filters = append(filters, prom.ServicePQLFilter, service)
-	}
-	if len(opNames) > 0 {
-		filters = append(filters, prom.DBNameRegexPQLFilter, prom.RegexMultipleValue(opNames...))
-	} else {
-		return errors.New("no sql operation found")
-	}
-
-	avgLatencys, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prom.PQLAvgSQLLatencyWithFilters,
+func (s *service) FillSQLREDChart(ctx core.Context, sqlMap *SQLMetricMap, filter prom.PQLFilter, startTime time.Time, endTime time.Time, step time.Duration) error {
+	avgLatencys, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prom.PQLAvgSQLLatencyWithPQLFilter,
 		startTime.UnixMicro(), endTime.UnixMicro(), step.Microseconds(),
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 	if err == nil {
 		for _, avgLatency := range avgLatencys {
@@ -262,11 +262,11 @@ func (s *service) FillSQLREDChart(ctx core.Context, sqlMap *SQLMetricMap, servic
 		}
 	}
 
-	avgErrorRates, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prom.PQLAvgSQLErrorRateWithFilters,
+	avgErrorRates, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prom.PQLAvgSQLErrorRateWithPQLFilter,
 		startTime.UnixMicro(), endTime.UnixMicro(), step.Microseconds(),
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 
 	if err == nil {
@@ -281,11 +281,11 @@ func (s *service) FillSQLREDChart(ctx core.Context, sqlMap *SQLMetricMap, servic
 		}
 	}
 
-	avgTPSs, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prom.PQLAvgSQLTPSWithFilters,
+	avgTPSs, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prom.PQLAvgSQLTPSWithPQLFilter,
 		startTime.UnixMicro(), endTime.UnixMicro(), step.Microseconds(),
 		prom.DBOperationGranularity,
-		filters...,
+		filter,
 	)
 
 	if err == nil {

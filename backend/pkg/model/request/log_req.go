@@ -8,15 +8,17 @@ type GetFaultLogPageListRequest struct {
 	EndTime     int64    `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
 	Service     []string `json:"service"`                                      // query service name
 	Namespaces  []string `json:"namespaces"`
-	Instance    string   `json:"instance"`    // instance name
-	NodeName    string   `json:"nodeName"`    // hostname
-	ContainerId string   `json:"containerId"` // container name
+	Instance    string   `json:"instance"`          // instance name
+	NodeName    string   `json:"nodeName"`          // hostname
+	ContainerId string   `json:"containerId"`       // container name
 	Pid         uint32   `json:"pid"`               // process number
 	TraceId     string   `json:"traceId"`           // TraceId
 	PageNum     int      `json:"pageNum"`           // page
 	PageSize    int      `json:"pageSize"`          // display number per page
-	GroupID     int64    `json:"groupId,omitempty"` // Data group 
+	GroupID     int64    `json:"groupId,omitempty"` // Data group
 	Pod         string   `json:"pod"`
+
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }
 
 type GetFaultLogContentRequest struct {
