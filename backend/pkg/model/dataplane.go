@@ -29,10 +29,10 @@ type RedMetricValue struct {
 }
 
 type ServiceToplogy struct {
-	ParentService string `json:"parentService"`
-	ParentType    string `json:"parentType"`
-	ChildService  string `json:"childService"`
-	ChildType     string `json:"childType"`
+	ParentService string `ch:"parent_service" json:"parentService"`
+	ParentType    string `ch:"parent_type" json:"parentType"`
+	ChildService  string `ch:"child_service" json:"childService"`
+	ChildType     string `ch:"child_type" json:"childType"`
 }
 
 type ApmServiceInstance struct {
