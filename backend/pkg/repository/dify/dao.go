@@ -10,8 +10,9 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -54,38 +55,67 @@ type DifyRepo interface {
 
 type difyRepo struct {
 	cli *DifyClient
-	url string
 
 	asyncAlertCheck
 
-	AlertCheckCFG      *AlertCheckConfig
-	AlertAnalyzeFlowId string
+	AlertCheckCFG *AlertCheckConfig
 }
 
-func New() (DifyRepo, error) {
+func New(prom prometheus.Repo, logger *zap.Logger) (DifyRepo, <-chan *WorkflowRecordWithCtx, error) {
 	// client := &http.Client{}
-	difyConf := config.Get().Dify
-	if difyConf.TimeoutSecond <= 0 {
-		difyConf.TimeoutSecond = 180
+	cfg := config.Get().Dify
+
+	if len(cfg.Sampling) == 0 {
+		cfg.Sampling = "first"
+	}
+	if cfg.CacheMinutes <= 0 {
+		cfg.CacheMinutes = 20
+	} else {
+		cfg.CacheMinutes = maxFactorOf60LessThanN(cfg.CacheMinutes)
+	}
+	if cfg.MaxConcurrency <= 0 {
+		cfg.MaxConcurrency = 1
+	}
+
+	repo, err := newRepo(prom, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+	record, err := repo.PrepareAsyncAlertCheckWorkflow(prom, logger)
+	return repo, record, err
+}
+
+func newRepo(prom prometheus.Repo, cfg config.DifyConfig) (*difyRepo, error) {
+	if cfg.TimeoutSecond <= 0 {
+		cfg.TimeoutSecond = 180
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:        10,
+			MaxIdleConnsPerHost: 10,
+			DialContext: (&net.Dialer{
+				Timeout:   10 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+		},
+		Timeout: time.Duration(cfg.TimeoutSecond) * time.Second,
+	}
+
+	alertCfg := &AlertCheckConfig{
+		DifyConfig:     cfg,
+		AlertCheckAuth: fmt.Sprintf("Bearer %s", cfg.APIKeys.AlertCheck),
+		AnalyzeAuth:    fmt.Sprintf("Bearer %s", cfg.APIKeys.AlertAnalyze),
+		User:           "apo-backend",
+		Prom:           prom,
 	}
 
 	return &difyRepo{
 		cli: &DifyClient{
-			Client: &http.Client{
-				Transport: &http.Transport{
-					MaxIdleConns:        10,
-					MaxIdleConnsPerHost: 10,
-					DialContext: (&net.Dialer{
-						Timeout:   1 * time.Second,
-						KeepAlive: 30 * time.Second,
-					}).DialContext,
-				},
-				Timeout: time.Duration(difyConf.TimeoutSecond) * time.Second,
-			},
-			BaseURL: difyConf.URL,
+			Client:  client,
+			BaseURL: cfg.URL,
 		},
-		AlertCheckCFG: DefaultAlertCheckConfig(),
-		url:           difyConf.URL,
+		AlertCheckCFG: alertCfg,
 	}, nil
 }
 
@@ -94,11 +124,11 @@ func (r *difyRepo) GetCacheMinutes() int {
 }
 
 func (r *difyRepo) GetAlertCheckFlowID() string {
-	return r.AlertCheckCFG.FlowId
+	return r.AlertCheckCFG.FlowIDs.AlertCheck
 }
 
 func (r *difyRepo) GetAlertAnalyzeFlowID() string {
-	return r.AlertAnalyzeFlowId
+	return r.AlertCheckCFG.FlowIDs.AlertEventAnalyze
 }
 
 func (r *difyRepo) WorkflowsRun(req *WorkflowRequest, authorization string) (*CompletionResponse, error) {

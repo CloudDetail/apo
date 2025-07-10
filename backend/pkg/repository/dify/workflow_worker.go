@@ -17,6 +17,7 @@ import (
 )
 
 const MAX_CACHE_SIZE = 100
+const AlertCheckWorkFlowName = "AlertCheck"
 
 type inputChan struct {
 	Ch         chan *alert.AlertEvent
@@ -48,7 +49,12 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 			record = w.createExpiredRecord(c, event, endTime)
 		} else {
 			runner.Add(1)
-			record = w.doAlertCheck(c, event, endTime)
+			var isSuccess bool
+			record, isSuccess = w.doAlertCheck(c, event, endTime)
+			if !isSuccess && w.Retry {
+				eventInput <- event
+			}
+
 			runner.Add(-1)
 		}
 
@@ -140,7 +146,7 @@ func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, end
 	}
 }
 
-func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
+func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime int64) (record model.WorkflowRecord, isSuccess bool) {
 	startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
 	inputs, _ := json.Marshal(map[string]interface{}{
 		"alert":     event.Name,
@@ -150,7 +156,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"edition":   "ce",
 	})
 	classify := w.getAlertClassify(c, event)
-	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
+	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.AlertCheckAuth, w.User)
 	if err != nil || resp == nil {
 		w.logger.Error("failed to to alert check", zap.Error(err))
 		tw := time.Duration(w.CacheMinutes) * time.Minute
@@ -158,7 +164,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		return model.WorkflowRecord{
 			WorkflowRunID: "",
 			WorkflowID:    classify.WorkflowId,
-			WorkflowName:  w.FlowName,
+			WorkflowName:  AlertCheckWorkFlowName,
 			Ref:           event.AlertID,
 			Input:         event.ID.String(),
 			Output:        "failed: workflow execution failed due to API call failure",
@@ -166,18 +172,17 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			RoundedTime:   roundedTime.UnixMicro(),
 
 			InputRef: event,
-		}
+		}, false
 	}
 
 	tw := time.Duration(w.CacheMinutes) * time.Minute
 	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
 
-	var record model.WorkflowRecord
 	output := resp.getOutput("failed: not find expected output")
 	record = model.WorkflowRecord{
 		WorkflowRunID: resp.WorkflowRunID(),
 		WorkflowID:    classify.WorkflowId,
-		WorkflowName:  w.FlowName,
+		WorkflowName:  AlertCheckWorkFlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(), // TODO record input param
 		Output:        output,            // 'false' means valid alert
@@ -186,31 +191,39 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 
 		InputRef: event,
 	}
-	difyconf := config.Get().Dify
-	if difyconf.AutoAnalyze && output == "false" {
-		param := w.getWorkflowParams(event)
-		if param == nil {
-			// unexpected err
-			record.AnalyzeErr = "failed to get analyze workflow params"
-			record.AlertDirection = ""
-		}
-		inputStr, err := json.Marshal(param)
-		if err != nil {
-			w.logger.Info("failed to marshal workflow params", zap.Error(err))
-			record.AnalyzeErr = err.Error()
-			record.AlertDirection = ""
-		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
-			if err != nil {
-				record.AnalyzeErr = err.Error()
-				record.AlertDirection = ""
-			} else {
-				record.AnalyzeRunID = resp.WorkflowRunID()
-				record.AlertDirection = resp.getOutput("")
-			}
-		}
+
+	if output != "false" || !w.AutoAnalyze {
+		return record, true
 	}
-	return record
+
+	// DO AutoAnalyze
+	param := w.getWorkflowParams(event)
+	if param == nil {
+		// unexpected err
+		record.AnalyzeErr = "failed to get analyze workflow params"
+		record.AlertDirection = "" // no retry
+		return record, true
+	}
+
+	analyzeParam, err := json.Marshal(param)
+	if err != nil {
+		// Unexpect err
+	}
+	analyzeResp, err := c.alertAnalyze(
+		&WorkflowRequest{Inputs: analyzeParam},
+		"Bearer "+classify.WorkflowApiKey,
+		w.User,
+	)
+	if err != nil {
+		record.AnalyzeErr = err.Error()
+		record.AlertDirection = ""
+		isSuccess = false
+	} else {
+		record.AnalyzeRunID = analyzeResp.WorkflowRunID()
+		record.AlertDirection = analyzeResp.getOutput("")
+		isSuccess = true
+	}
+	return record, isSuccess
 }
 
 func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParams {
