@@ -106,8 +106,6 @@ type ServiceNode struct {
 	Endpoint string `json:"endpoint"`
 	Group    string `json:"group"`
 	System   string `json:"system"`
-
-	ClusterID string `json:"clusterId"`
 }
 
 type Relevance struct {
