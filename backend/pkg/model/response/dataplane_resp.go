@@ -10,12 +10,12 @@ import (
 
 type QueryServicesResponse struct {
 	Msg     string           `json:"msg"`
-	Results []*model.Service `json:"results,omitempty"`
+	Results []*model.Service `json:"results"`
 }
 
 type QueryServiceRedChartsResponse struct {
 	Msg     string              `json:"msg"`
-	Results []*QueryChartResult `json:"results,omitempty"`
+	Results []*QueryChartResult `json:"results"`
 }
 
 type QueryServiceEndpointsResponse struct {

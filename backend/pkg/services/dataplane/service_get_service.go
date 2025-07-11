@@ -8,17 +8,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
-	filter := prometheus.NewFilter().
-		EqualIfNotEmpty("cluster_id", req.Cluster).
-		String()
-	services, err := s.promRepo.GetDataplaneServiceList(ctx, req.StartTime, req.EndTime, filter)
+	// Get the list of service
+	services, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster)
 	if err != nil {
 		return &response.QueryServicesResponse{
-			Msg: "query services failed: " + err.Error(),
+			Msg: "query service failed: " + err.Error(),
 		}
 	}
 	return &response.QueryServicesResponse{
