@@ -34,6 +34,7 @@ var validRouters = []Router{
 	{RouterTo: "/service/info", HideTimeSelector: false},
 	{RouterTo: "/integration/data/settings", HideTimeSelector: true},
 	{RouterTo: "/user", HideTimeSelector: true},
+	{RouterTo: "/demo/service-config", HideTimeSelector: true},
 	{RouterTo: "/mysql-dashboard", HideTimeSelector: false},
 	{RouterTo: "/healthy-service", HideTimeSelector: false},
 }

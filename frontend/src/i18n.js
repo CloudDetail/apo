@@ -17,6 +17,7 @@ const coreNsList = [
   'dataIntegration',
   'dateTime',
   'login',
+  'config',
 ]
 const proNsList = [
   'dataViewCom',

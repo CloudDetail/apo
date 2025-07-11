@@ -41,7 +41,7 @@ const MultiLineChart = (props) => {
 
         let result = `<div class="max-h-[200px] flex flex-col"><div class=" flex-0 text-[rgb(102,102,102)] mb-1">${timeStr}</div><div class="w-full flex-1 h-o overflow-auto">`
         params.forEach((param) => {
-          const { color } = param
+          const color = param.color
           const name = param.seriesName
           const value = YFormatter(param.data[1])
 
@@ -89,33 +89,51 @@ const MultiLineChart = (props) => {
   const { theme } = useSelector((state) => state.settingReducer)
   const handleActiveServices = (event, item) => {
     const chartInstance = chartRef.current.getEchartsInstance()
-    const isMetaPressed = event.metaKey
-    const isActive = activeSeries.includes(item.legend)
-    const activeOnlyOne = activeSeries.length === 1
-    const hasMultipleSeries = chartData?.length > 1
 
-    if (isMetaPressed) {
-      if (isActive) {
-        const newActives = activeSeries.filter((legend) => legend !== item.legend)
+    if (event.metaKey) {
+      if (activeSeries?.includes(item.legend)) {
+        let newActives = activeSeries.filter((legend) => legend !== item.legend)
         setActiveSeries(newActives)
-        chartInstance.dispatchAction({ type: 'legendUnSelect', name: item.legend })
+        chartInstance.dispatchAction({
+          type: 'legendUnSelect',
+          name: item.legend,
+        })
       } else {
         setActiveSeries((prev) => [...prev, item.legend])
-        chartInstance.dispatchAction({ type: 'legendSelect', name: item.legend })
+        chartInstance.dispatchAction({
+          type: 'legendSelect',
+          name: item.legend,
+        })
       }
     } else {
-      if (isActive && activeOnlyOne && hasMultipleSeries) {
-        const allLegends = chartData.map((d) => d.legend)
-        setActiveSeries(allLegends)
-        allLegends.forEach((name) => {
-          chartInstance.dispatchAction({ type: 'legendSelect', name })
+      if (
+        activeSeries.includes(item.legend) &&
+        activeSeries?.length === 1 &&
+        chartData?.length !== 1
+      ) {
+        setActiveSeries(chartData?.map((item) => item.legend))
+        chartData?.forEach((chartItem) => {
+          chartInstance.dispatchAction({
+            type: 'legendSelect',
+            name: chartItem.legend,
+          })
         })
       } else {
         setActiveSeries([item.legend])
-        chartData.forEach((d) => {
-          chartInstance.dispatchAction({ type: 'legendUnSelect', name: d.legend })
+
+        // 先取消所有系列的显示
+        chartData?.forEach((item) => {
+          chartInstance.dispatchAction({
+            type: 'legendUnSelect',
+            name: item.legend,
+          })
         })
-        chartInstance.dispatchAction({ type: 'legendSelect', name: item.legend })
+
+        // 仅显示点击的系列
+        chartInstance.dispatchAction({
+          type: 'legendSelect',
+          name: item.legend,
+        })
       }
     }
   }
@@ -148,8 +166,14 @@ const MultiLineChart = (props) => {
           },
           hideOverlap: true,
         },
-        min: startTime / 1000,
-        max: endTime / 1000,
+        // min: startTime / 1000,
+        // max: endTime / 1000,
+        ...(startTime && endTime
+          ? {
+              min: startTime / 1000,
+              max: endTime / 1000,
+            }
+          : {}),
       },
       color: ChartColorList,
       series: chartData?.map((item) => ({
@@ -167,6 +191,7 @@ const MultiLineChart = (props) => {
     }
     setActiveSeries(chartData?.map((item) => item.legend))
     setOption(newOption)
+    console.log(chartData)
   }, [chartData, theme])
   const onChartReady = (chart) => {
     if (allowTimeBrush) {
@@ -185,10 +210,10 @@ const MultiLineChart = (props) => {
           // 获取 brush 选中的区域
           const brushArea = params.areas[0]
           if (brushArea.brushType === 'lineX' && brushArea.range) {
-            const { range } = brushArea
+            const range = brushArea.range
             // 获取时间轴的起始和结束时间
-            const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[0])
-            const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[1])
+            const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
+            const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
             setStoreTimeRange({
               rangeType: null,
               startTime: Math.round(startTime * 1000),
