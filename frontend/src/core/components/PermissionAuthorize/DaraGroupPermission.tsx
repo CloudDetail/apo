@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Alert, Button, Table, Tag, Tooltip } from 'antd'
 import { useEffect, useState } from 'react'
-import styles from './index.module.scss'
-import { getDataGroupsApi } from 'src/core/api/dataGroup'
-import Paragraph from 'antd/es/typography/Paragraph'
-import DatasourceTag from 'src/core/views/DataGroup/component/DatasourceTag'
-import { SaveDataGroupParams } from 'src/core/types/dataGroup'
-import { AiOutlineCloseCircle } from 'react-icons/ai'
+import { getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
+import { DataGroupItem } from 'src/core/types/dataGroup'
 import { useTranslation } from 'react-i18next'
+import Search from 'antd/es/transfer/search'
+import { Tree } from 'antd'
 
 interface DataGroupPermissionProps {
   id: string
@@ -24,159 +21,78 @@ interface DataGroupPermissionProps {
 const DataGroupPermission = (props: DataGroupPermissionProps) => {
   const { t } = useTranslation('core/permission')
   const { id, dataGroupList = [], onChange, type, permissionSourceTeam } = props
-  const [checkedKeys, setcheckedKeys] = useState([])
-  const [data, setData] = useState<SaveDataGroupParams[]>([])
-  const columns = [
-    {
-      title: 'groupId',
-      dataIndex: 'groupId',
-      key: 'groupId',
-      hidden: true,
-    },
-    {
-      title: t('dataGroupName'),
-      dataIndex: 'groupName',
-      width: 200,
-      key: 'groupName',
-    },
-    {
-      title: t('dataGroupDes'),
-      width: 200,
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: t('datasource'),
-      dataIndex: 'datasourceList',
-      key: 'datasourceList',
-      render: (value) => {
-        return (
-          <Paragraph
-            className="m-0"
-            ellipsis={{
-              expandable: true,
-              rows: 3,
-            }}
-          >
-            {value?.map((item) => <DatasourceTag type={item.type} datasource={item.datasource} />)}
-          </Paragraph>
-        )
-      },
-    },
-  ]
+  const [checkedKeys, setCheckedKeys] = useState([])
+  const [treeData, setTreeData] = useState<DataGroupItem[]>([])
+  const [expandedKeys, setExpandedKeys] = useState([])
+
   const getDataGroups = () => {
-    getDataGroupsApi({
-      currentPage: 1,
-      pageSize: 1000,
-    }).then((res) => {
-      setData(res.dataGroupList)
+    getDatasourceByGroupApiV2().then((res) => {
+      setTreeData([res])
+      const allKeys = getAllKeys([res])
+      setExpandedKeys(allKeys)
+      setCheckedKeys(dataGroupList)
     })
+    // getDataGroupsApi({
+    //   currentPage: 1,
+    //   pageSize: 1000,
+    // }).then((res) => {
+    //   setData(res.dataGroupList)
+    // })
   }
+  // 递归获取所有节点的key，用于展开所有节点
+  const getAllKeys = (nodes) => {
+    const keys = []
+    const traverse = (nodeList) => {
+      nodeList.forEach((node) => {
+        keys.push(node.groupId)
+        if (node.subGroups && node.subGroups.length > 0) {
+          traverse(node.subGroups)
+        }
+      })
+    }
+    traverse(nodes)
+    return keys
+  }
+
   useEffect(() => {
     getDataGroups()
   }, [])
-  const onSelectAll = (selected, selectedRows, changeRows) => {
-    if (selected) {
-      onChange([...dataGroupList, ...changeRows])
-    } else {
-      onChange([])
-    }
-  }
-  const rowSelection = {
-    onSelect: (record: SaveDataGroupParams) => {
-      onSelectTableRow(record)
-    },
-    onSelectAll: onSelectAll,
-    selectedRowKeys: checkedKeys,
-  }
-  const onSelectTableRow = ({ groupId, groupName }: SaveDataGroupParams, event?: any) => {
-    if (event) {
-      event.stopPropagation()
-    }
-    if (checkedKeys.includes(groupId)) {
-      onChange(dataGroupList.filter((item) => !(item.groupId === groupId)))
-    } else {
-      onChange([
-        ...dataGroupList,
-        {
-          groupId: groupId,
-          groupName: groupName,
-        },
-      ])
-    }
-  }
+
   const deleteDataGroup = (e, groupId: string) => {
     e.preventDefault()
     const result = dataGroupList.filter((item) => item.groupId !== groupId)
     onChange(result)
   }
-  useEffect(() => {
-    setcheckedKeys(dataGroupList.map((group) => group.groupId))
-  }, [dataGroupList])
-
   return (
-    <div style={{ maxHeight: '60vh' }} className="flex flex-col" id={id}>
-      <div className={styles.tagContainer}>
-        <div className="flex-1">
-          {dataGroupList.map((item) => (
-            <Tag
-              closable
-              onClose={(e) => {
-                deleteDataGroup(e, item.groupId)
-              }}
-              color="success"
-            >
-              {item.groupName}
-            </Tag>
-          ))}
-          {/* {permissionSourceTeam?.map((item) => (
-            <Tooltip title={t('tagTooltip')}>
-              <Tag
-                onClose={(e) => {
-                  deleteDataGroup(e, item.groupId)
-                }}
-              >
-                {item.groupName}
-              </Tag>
-            </Tooltip>
-          ))} */}
-        </div>
-
-        {dataGroupList?.length > 0 && (
-          <Button
-            size="small"
-            type="text"
-            icon={<AiOutlineCloseCircle />}
-            className="absolute right-2 flex-grow-0 flex-shrink-0"
-            onClick={() => {
-              onSelectAll(false, [], [])
-            }}
-          ></Button>
-        )}
-      </div>
-      {/* <Alert
-        message={t('dataGroupAlert')}
-        type="warning"
-        showIcon
-        className="text-xs mb-2 mx-0"
-      ></Alert> */}
-      <Table<SaveDataGroupParams>
-        rowSelection={{ type: 'checkbox', ...rowSelection }}
-        dataSource={data}
-        columns={columns}
-        pagination={false}
-        className="overflow-auto"
-        scroll={{ y: 310 }}
-        size="small"
-        rowKey="groupId"
-        onRow={(record) => {
-          return {
-            onClick: (event) => {
-              onSelectTableRow(record, event)
-            },
-          }
-        }}
-      ></Table>
+    <div style={{ maxHeight: '40vh' }} className="flex flex-col overflow-auto w-full" id={id}>
+      <Search
+        style={{ marginBottom: 8 }}
+        className="h-[42px]"
+        placeholder="Search"
+        onChange={onChange}
+      />
+      {treeData && treeData.length > 0 && (
+        <Tree
+          checkable
+          selectable={false}
+          checkedKeys={checkedKeys}
+          expandedKeys={expandedKeys}
+          onExpand={setExpandedKeys}
+          onCheck={(checkedKeys, { node }) => {
+            setCheckedKeys(checkedKeys)
+            onChange(checkedKeys)
+          }}
+          treeData={treeData}
+          style={{ width: '100%' }}
+          className="pr-3 h-full w-full"
+          fieldNames={{
+            title: 'groupName',
+            key: 'groupId',
+            children: 'subGroups',
+          }}
+          blockNode
+        />
+      )}
     </div>
   )
 }

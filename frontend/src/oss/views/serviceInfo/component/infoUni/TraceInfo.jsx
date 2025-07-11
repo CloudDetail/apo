@@ -19,7 +19,8 @@ function TraceInfo() {
   const { t } = useTranslation('oss/serviceInfo')
   const [data, setData] = useState()
   const [loading, setLoading] = useState(false)
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const column = useMemo(
     () => [
@@ -96,6 +97,8 @@ function TraceInfo() {
         service: serviceName,
         endpoint: endpoint,
         step: getStep(startTime, endTime),
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setData(res ?? [])
@@ -112,10 +115,12 @@ function TraceInfo() {
   // }, [serviceName, startTime, endTime])
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint],
+    [startTime, endTime, serviceName, endpoint, dataGroupId, clusterIds],
   )
   const tableProps = useMemo(() => {
     return {

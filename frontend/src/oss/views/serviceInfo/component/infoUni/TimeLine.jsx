@@ -10,11 +10,14 @@ import './timeline.css'
 import { TimeLineTypeApiMap } from 'src/constants'
 import { useTranslation } from 'react-i18next'
 import { Button, ConfigProvider, List, Slider, Tooltip } from 'antd'
+import { useSelector } from 'react-redux'
+import { useDebounce } from 'react-use'
 
 const Timeline = (props) => {
   const { t } = useTranslation('oss/serviceInfo')
   const { type, startTime, endTime, instance, pid, nodeName, containerId } = props
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [chronoList, setChronoList] = useState([])
   const [loading, setLoading] = useState(false)
   const [sliderValue, setSliderValue] = useState([startTime, endTime])
@@ -34,34 +37,40 @@ const Timeline = (props) => {
     setMarks(result)
   }, [startTime, endTime])
 
-  useEffect(() => {
-    if (startTime && endTime) {
-      setLoading(true)
-      const params = nodeName
-        ? {
-            pid,
-            nodeName,
-            containerId,
-          }
-        : { instance }
-      TimeLineTypeApiMap[type]({
-        startTime: sliderValue[0],
-        endTime: sliderValue[1],
-        service: serviceName,
-        endpoint: endpoint,
-        ...params,
-      })
-        .then((res) => {
-          // 函数式更新
-          setChronoList(res)
-          setLoading(false)
+  useDebounce(
+    () => {
+      if (startTime && endTime && dataGroupId !== null) {
+        setLoading(true)
+        const params = nodeName
+          ? {
+              pid,
+              nodeName,
+              containerId,
+            }
+          : { instance }
+        TimeLineTypeApiMap[type]({
+          startTime: sliderValue[0],
+          endTime: sliderValue[1],
+          service: serviceName,
+          endpoint: endpoint,
+          groupId: dataGroupId,
+          clusterIds,
+          ...params,
         })
-        .catch((error) => {
-          setLoading(false)
-          // setChronoList([])
-        })
-    }
-  }, [sliderValue, type, serviceName, endpoint, instance])
+          .then((res) => {
+            // 函数式更新
+            setChronoList(res)
+            setLoading(false)
+          })
+          .catch((error) => {
+            setLoading(false)
+            // setChronoList([])
+          })
+      }
+    },
+    300,
+    [sliderValue, type, serviceName, endpoint, instance, dataGroupId, clusterIds],
+  )
 
   const scrollTimeline = (direction) => {
     const scrollAmount = 100
@@ -107,9 +116,11 @@ const Timeline = (props) => {
       default:
         break
     }
-
+    const clusterIdsParam = clusterIds
+      ? `&clusterIds=${encodeURIComponent(Array.isArray(clusterIds) ? clusterIds.join(',') : clusterIds)}`
+      : ''
     const basePath = type === 'traceLogs' ? '#/trace/fault-site' : '#/logs/fault-site'
-    const fullUrl = `${window.location.origin}/${basePath}?${query.toString()}`
+    const fullUrl = `${window.location.origin}/${basePath}?${query.toString()}${clusterIdsParam}&groupId=${dataGroupId}`
     window.open(fullUrl, '_blank')
   }
 

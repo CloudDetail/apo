@@ -3,19 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useUserContext } from 'src/core/contexts/UserContext'
 import ServiceTable from './ServiceTable'
-import DataGroupTabs from 'src/core/components/DataGroupTabs'
-import { useEffect } from 'react'
 import { ChartsProvider } from 'src/core/contexts/ChartsContext'
 export default function ServiceView() {
-  const { getUserDataGroup } = useUserContext()
-  useEffect(() => {
-    getUserDataGroup()
-  }, [])
   return (
     <>
-      <DataGroupTabs>
+      {/* <DataGroupTabs>
         {(groupId, height) => (
           <div className="overflow-hidden">
             <ChartsProvider>
@@ -23,7 +16,12 @@ export default function ServiceView() {
             </ChartsProvider>
           </div>
         )}
-      </DataGroupTabs>
+      </DataGroupTabs> */}
+      <div className="overflow-hidden">
+        <ChartsProvider>
+          <ServiceTable />
+        </ChartsProvider>
+      </div>
     </>
   )
 }

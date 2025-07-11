@@ -1,11 +1,13 @@
 {
   "group": "data group",
   "deleteSuccess": "Deleted successfully",
+  "deleteGroupError": "Cannot delete data group with sub-groups",
   "dataGroupName": "Data Group Name",
   "dataGroupDes": "Data Group Description",
   "datasource": "Data Source",
   "operation": "Operation",
   "confirmDelete": "Are you sure you want to delete the data group {{groupName}}?",
+  "confirmDeleteWithDatasources": "Deleting data group {{groupName}} will also clean up the following data sources: {{datasources}}. Are you sure you want to delete?",
   "confirm": "Confirm",
   "cancel": "Cancel",
   "delete": "Delete",
@@ -24,5 +26,31 @@
   "dataGroupAuthorize": "Data Group Authorization",
   "authorizeToUser": "Authorize the user",
   "authorizeToTeam": "Authorize the team",
-  "groupManage": "Manage Data Groups"
+  "groupManage": "Manage Data Groups",
+  "datasourceType": {
+    "system": "Host",
+    "cluster": "Cluster",
+    "namespace": "Namespace",
+    "service": "Service"
+  },
+  "clearAll": "Clear All",
+  "groupNameLabel": "Data Group Name:",
+  "datasourceLabel": "Data Source:",
+  "availableDatasource": "Available",
+  "selectedDatasource": "Selected",
+  "dataGroupPlaceholder": "Please select a data group",
+  "modifyAlertRuleModal": {
+    "dataGroup": "Data Group",
+    "alertGroup": "Alert Group"
+  },
+  "dataGroup": "Data Group",
+  "clearInvalidDatasource": "Clear Invalid Data Sources",
+  "toBeCleanedData": "Data Sources to be cleaned:",
+  "protectedDataSources": "The following invalid data sources exist in other data groups and cannot be directly refreshed or deleted.",
+  "noInvalidDatasource": "No invalid data sources exist in this data group and its sub-groups",
+  "clearSuccess": "Successfully cleared invalid data sources",
+  "refreshSuccess": "Successfully refreshed data sources",
+  "refresh": "Refresh",
+  "subGroups": "Direct Subgroup of {{groupName}}",
+  "addSubGroup": "Add Subgroup"
 }

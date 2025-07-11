@@ -10,13 +10,13 @@ import { getRuleMetricsApi } from 'core/api/alerts'
 import MonacoEditorWrapper from 'src/core/components/Editor/MonacoEditor'
 import { useTranslation } from 'react-i18next'
 
-export default function ALertConditionCom({ expr, setExpr }) {
+export default function ALertConditionCom({ expr, id, onChange }) {
   const { t } = useTranslation('oss/alert')
   const [metricsList, setMetricsList] = useState([])
   const [metricsDetail, setMetricsDetail] = useState()
   const { useToken } = theme
   const { token } = useToken()
-
+  const [value, setValue] = useState(expr)
   const contentStyle = useMemo(
     () => ({
       backgroundColor: token.colorBgElevated,
@@ -49,13 +49,20 @@ export default function ALertConditionCom({ expr, setExpr }) {
     return metricsList.map((item, index) => ({
       key: `${item.name}-${index}`, // 确保 key 是唯一的
       label: <div onMouseEnter={() => handlePopoverOpen(item)}>{item.name}</div>,
-      onClick: () => setExpr(item.pql),
+      onClick: () => handleChange(item.pql),
     }))
-  }, [metricsList, handlePopoverOpen, setExpr])
+  }, [metricsList, handlePopoverOpen, onChange])
 
+  const handleChange = (value) => {
+    setValue(value)
+    onChange(value)
+  }
   return (
     <>
-      <div className="flex border-1 border-solid rounded border-[var(--ant-color-border-secondary)] hover:border-[var(--ant-color-primary-border-hover)] focus:border-[var(--ant-color-primary-border)]">
+      <div
+        id={id}
+        className="flex border-1 border-solid rounded border-[var(--ant-color-border-secondary)] hover:border-[var(--ant-color-primary-border-hover)] focus:border-[var(--ant-color-primary-border)]"
+      >
         <div className="flex-grow-0 flex-shrink-0 flex items-center px-2">
           <Dropdown
             menu={{
@@ -97,7 +104,7 @@ export default function ALertConditionCom({ expr, setExpr }) {
           </Dropdown>
         </div>
         <div className="flex-1">
-          <MonacoEditorWrapper defaultValue={expr} handleEditorChange={setExpr} />
+          <MonacoEditorWrapper defaultValue={value} handleEditorChange={handleChange} />
         </div>
       </div>
     </>

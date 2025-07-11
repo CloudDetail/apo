@@ -1,0 +1,55 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.tagContainer {
+  background: var(--ant-color-bg-container);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--ant-color-border);
+  border-radius: 6px;
+  padding: 4px 11px;
+  min-height: 32px;
+  flex-shrink: 0;
+  flex-grow: 0;
+  max-height: 400px;
+  overflow: auto;
+  width: 50%;
+}
+
+.datasource {
+  max-height: 500px;
+  overflow: auto;
+  :global(.ant-tree-node-content-wrapper) {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    vertical-align: middle;
+  }
+  :global(.ant-tree-iconEle) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    vertical-align: middle !important;
+  }
+}
+
+.treeTitleRow {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.treeTitleActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.treeTitleRow:hover .treeTitleActions {
+  opacity: 1;
+}

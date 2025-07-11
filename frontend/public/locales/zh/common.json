@@ -74,6 +74,7 @@
   "endpoint": "端点",
   "error": "页面遇到未知错误",
   "routeError": "当前没有权限访问该路由",
+  "outOfGroup": "该服务不属于当前数据组",
   "tempCell": {
     "times": "次/分",
     "unitsText": "个",

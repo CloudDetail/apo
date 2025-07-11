@@ -75,6 +75,9 @@ export const useUserActions = () => {
     const userDataReady = {
       ...userData,
       roleList: [userData.roleId],
+
+      //TODO
+      groupId: 0
     }
     await api.create.sendRequest(userDataReady, {
       onSuccess: () => {

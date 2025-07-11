@@ -11,17 +11,16 @@ const UserPage = AuthRouter(React.lazy(() => import('src/core/views/UserPage/ind
 const UserManage = AuthRouter(React.lazy(() => import('src/core/views/UserManage/index')))
 const MenuManage = AuthRouter(React.lazy(() => import('src/core/views/MenuManage/index')))
 const RoleManage = AuthRouter(React.lazy(() => import('src/core/views/RoleManage/index')))
-const AlertsIntegrationPage = AuthRouter(React.lazy(
-  () => import('src/core/views/IntegrationCenter/AlertsIntegration'),
-))
-const DataGroupPage = AuthRouter(React.lazy(() => import('src/core/views/DataGroup/index')))
+const AlertsIntegrationPage = AuthRouter(
+  React.lazy(() => import('src/core/views/IntegrationCenter/AlertsIntegration')),
+)
 const TeamPage = AuthRouter(React.lazy(() => import('src/core/views/Team/index')))
-const DataIntegrationPage = AuthRouter(React.lazy(
-  () => import('src/core/views/IntegrationCenter/DataIntegration'),
-))
-const IntegrationSettings = AuthRouter(React.lazy(
-  () => import('src/core/views/IntegrationCenter/DataIntegration/Integration'),
-))
+const DataIntegrationPage = AuthRouter(
+  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')),
+)
+const IntegrationSettings = AuthRouter(
+  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
+)
 const namespace = 'core/routes'
 
 const baseRoutes = [
@@ -64,12 +63,6 @@ const baseRoutes = [
     path: '/integration/data/settings',
     name: <TranslationCom text="dataIntegrationSettings" space={namespace} />,
     element: IntegrationSettings,
-  },
-  {
-    path: '/system/data-group',
-    name: <TranslationCom text="dataGroup" space={namespace} />,
-    element: DataGroupPage,
-    hideSystemTimeRangePicker: true,
   },
   {
     path: '/system/team',

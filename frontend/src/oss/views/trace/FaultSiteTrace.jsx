@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import { traceTableMock } from './mock'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertTime, TimestampToISO } from 'src/core/utils/time'
 import { getTracePageListApi } from 'core/api/trace.js'
 import EndpointTableModal from './component/JaegerIframeModal'
-import { useSelector } from 'react-redux'
 import LoadingSpinner from 'src/core/components/Spinner'
 import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { DefaultTraceFilters } from 'src/constants'
 import TraceErrorType from './component/TraceErrorType'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
-import { Card, Tooltip, Button } from 'antd'
+import { Tooltip, Button } from 'antd'
 import { useTranslation } from 'react-i18next'
-import { useDebouncedCallback } from 'use-debounce';
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useLogsTraceFilterContext } from 'src/oss/contexts/LogsTraceFilterContext'
+import { useDebounce } from 'react-use'
+import { useSelector } from 'react-redux'
 
 function FaultSiteTrace() {
   const { t } = useTranslation('oss/trace')
@@ -38,130 +39,21 @@ function FaultSiteTrace() {
   const [modalVisible, setModalVisible] = useState(false)
   // 传入modal的traceid
   const [selectTraceId, setSelectTraceId] = useState('')
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const {
-    startTime,
-    endTime,
-    service,
+    clusterIds,
+    services,
     instance,
     traceId,
-    instanceOption,
-    endpoint,
-    namespace,
+    namespaces,
+    startTime,
+    endTime,
     minDuration,
     maxDuration,
     faultTypeList,
-  } = useSelector((state) => state.urlParamsReducer)
-  const previousValues = useRef({
-    startTime: null,
-    endTime: null,
-    service: '',
-    instance: '',
-    traceId: '',
-    endpoint: '',
-    pageIndex: 1,
-    selectInstanceOption: {},
-    //filter
-    namespace: '',
-    faultTypeList: null,
-    minDuration: '',
-    maxDuration: '',
-  })
-  useEffect(() => {
-    const prev = previousValues.current
-    let paramsChange = false
-
-    if (prev.startTime !== startTime) {
-      paramsChange = true
-    }
-    if (prev.endTime !== endTime) {
-      paramsChange = true
-    }
-    if (prev.service !== service) {
-      paramsChange = true
-    }
-    if (prev.instance !== instance) {
-      paramsChange = true
-    }
-    if (prev.traceId !== traceId) {
-      paramsChange = true
-    }
-    if (prev.namespace !== namespace) {
-      paramsChange = true
-    }
-    if (prev.minDuration !== minDuration) {
-      paramsChange = true
-    }
-    if (prev.maxDuration !== maxDuration) {
-      paramsChange = true
-    }
-    // console.log(prev.isError, isError)
-    // if (prev.isError !== isError) {
-    //   paramsChange = true
-    // }
-    // if (prev.isSlow !== isSlow) {
-    //   paramsChange = true
-    // }
-    if (prev.faultTypeList !== faultTypeList) {
-      paramsChange = true
-    }
-    if (prev.endpoint !== endpoint) {
-      // console.log('endpoint -> pre:', prev.endpoint, 'now:', endpoint)
-      paramsChange = true
-    }
-    const selectInstanceOption = instanceOption[instance]
-    if (JSON.stringify(prev.selectInstanceOption) !== JSON.stringify(selectInstanceOption)) {
-      // console.log(
-      //   'selectInstanceOption -> pre:',
-      //   prev.selectInstanceOption,
-      //   'now:',
-      //   selectInstanceOption,
-      // )
-      paramsChange = true
-    }
-    if (instance && !selectInstanceOption) {
-      paramsChange = false
-    }
-
-    previousValues.current = {
-      startTime,
-      endTime,
-      service,
-      instance,
-      traceId,
-      pageIndex,
-      endpoint,
-      selectInstanceOption,
-      namespace,
-      minDuration,
-      maxDuration,
-      faultTypeList,
-    }
-    if (startTime && endTime) {
-      if (paramsChange) {
-        if (pageIndex === 1) {
-          debouncedGetTraceData()
-        } else {
-          setPageIndex(1)
-        }
-      } else if (prev.pageIndex !== pageIndex) {
-        debouncedGetTraceData()
-      }
-    }
-  }, [
-    startTime,
-    endTime,
-    service,
-    instance,
-    traceId,
     endpoint,
-    pageIndex,
-    instanceOption,
-    namespace,
-    minDuration,
-    maxDuration,
-    faultTypeList,
-  ])
+    isFilterDone,
+  } = useLogsTraceFilterContext((ctx) => ctx)
   const openJeagerModal = (traceId) => {
     setSelectTraceId(traceId)
     setModalVisible(true)
@@ -240,7 +132,10 @@ function FaultSiteTrace() {
         const { value } = props
 
         return (
-          <a className=" cursor-pointer text-[var(--ant-color-link)]" onClick={() => openJeagerModal(value)}>
+          <a
+            className=" cursor-pointer text-[var(--ant-color-link)]"
+            onClick={() => openJeagerModal(value)}
+          >
             {value}
           </a>
         )
@@ -256,8 +151,10 @@ function FaultSiteTrace() {
 
         const formattedStartTime = TimestampToISO(startTime)
         const formattedEndTime = TimestampToISO(endTime)
-
-        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}`
+        const clusterIdsParam = clusterIds
+          ? `&clusterIds=${encodeURIComponent(Array.isArray(clusterIds) ? clusterIds.join(',') : clusterIds)}`
+          : ''
+        const targetUrl = `#/logs/fault-site?logs-from=${encodeURIComponent(formattedStartTime)}&logs-to=${encodeURIComponent(formattedEndTime)}&service=${encodeURIComponent(serviceName)}&instance=${encodeURIComponent(instanceId)}&traceId=${encodeURIComponent(traceId)}${clusterIdsParam}&groupId=${dataGroupId}`
         return (
           <div className="flex flex-col">
             <Button
@@ -275,10 +172,10 @@ function FaultSiteTrace() {
   ]
   const prepareFilter = () => {
     let filters = []
-    if (namespace) {
+    if (namespaces?.length > 0) {
       let filter = DefaultTraceFilters.namespace
       filter.operation = 'LIKE'
-      filter.value = [namespace]
+      filter.value = namespaces
       filters.push(filter)
     }
     let duration = DefaultTraceFilters.duration
@@ -310,11 +207,11 @@ function FaultSiteTrace() {
         }
       }
 
-      return { mergeSep: operator, subFilters };
+      return { mergeSep: operator, subFilters }
     }
 
     const subFilters = []
-    faultTypeList?.forEach(faultType => {
+    faultTypeList?.forEach((faultType) => {
       switch (faultType) {
         case 'slow':
           subFilters.push(createSingleOption({ slow: 'true', error: 'false' }))
@@ -333,30 +230,48 @@ function FaultSiteTrace() {
 
     filters.push({
       mergeSep: 'OR',
-      subFilters
+      subFilters,
     })
 
     return filters
   }
+  const filterUndefinedOrEmpty = (obj) => {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, value]) => {
+        if (value === undefined || value === null) return false
+        if (typeof value === 'string' && value.trim() === '') return false
+        if (Array.isArray(value) && value.length === 0) return false
+        return true
+      }),
+    )
+  }
   const getTraceData = useCallback(() => {
-    const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
     setLoading(true)
-    getTracePageListApi({
+    const { containerId, node: nodeName, pid, id: instanceId } = instance?.[0] ?? {}
+    const queryParams = filterUndefinedOrEmpty({
       startTime,
       endTime,
-      service: service ? [service] : undefined,
+      service: services,
       // instance: instance,
       traceId: traceId,
       endpoint: endpoint,
-      namespace: namespace ? [namespace] : undefined,
+      namespace: namespaces,
       pageNum: pageIndex,
       pageSize: pageSize,
       containerId,
       nodeName,
+      clusterIds,
       pid,
       filters: prepareFilter(),
+      groupId: dataGroupId,
     })
+    getTracePageListApi(queryParams)
       .then((res) => {
+        const totalPages = Math.ceil(res.pagination.total / res.pagination.pageSize)
+        if (pageIndex > totalPages && totalPages > 0) {
+          setPageIndex(totalPages)
+          return
+        }
         setLoading(false)
         setTracePageList(res?.list ?? [])
         setTotal(res?.pagination.total)
@@ -373,21 +288,21 @@ function FaultSiteTrace() {
         setLoading(false)
       })
   }, [
-    startTime,
-    endTime,
-    service,
+    clusterIds,
+    services,
     instance,
     traceId,
-    endpoint,
-    namespace,
-    pageIndex,
-    pageSize,
-    instanceOption,
+    namespaces,
+    startTime,
+    endTime,
     minDuration,
     maxDuration,
     faultTypeList,
-  ]);
-  const debouncedGetTraceData = useDebouncedCallback(getTraceData, 500);
+    endpoint,
+    pageIndex,
+    pageSize,
+    dataGroupId,
+  ])
   const handleTableChange = (pageIndex, pageSize) => {
     if (pageSize && pageIndex) {
       setPageSize(pageSize), setPageIndex(pageIndex)
@@ -398,6 +313,30 @@ function FaultSiteTrace() {
   //     getTraceData()
   //   }
   // }, [startTime, endTime, service, instance, traceId, pageIndex, endpoint])
+  useDebounce(
+    () => {
+      if (startTime && endTime && isFilterDone && dataGroupId !== null) {
+        getTraceData()
+      }
+    },
+    300,
+    [
+      clusterIds,
+      services,
+      instance,
+      traceId,
+      namespaces,
+      startTime,
+      endTime,
+      isFilterDone,
+      faultTypeList,
+      endpoint,
+      pageIndex,
+      minDuration,
+      maxDuration,
+      dataGroupId,
+    ],
+  )
   const tableProps = useMemo(() => {
     return {
       columns: column,
@@ -422,9 +361,7 @@ function FaultSiteTrace() {
         </div>
       </BasicCard.Header>
 
-      <BasicCard.Table>
-        {traceTableMock && <BasicTable {...tableProps} />}
-      </BasicCard.Table>
+      <BasicCard.Table>{traceTableMock && <BasicTable {...tableProps} />}</BasicCard.Table>
 
       <EndpointTableModal
         traceId={selectTraceId}

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import { useLocation } from 'react-router-dom'
 import InfoUni from './component/infoUni'
@@ -30,6 +30,15 @@ const ServiceInfo = () => {
 
   const serviceName = searchParams.get('service-name')
   const endpoint = searchParams.get('endpoint')
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const stringToArray = (value) => {
+    if (!value) return null
+    return value.split(',').filter(Boolean)
+  }
+  const clusterIdsStr = searchParams.get('clusterIds')
+  const clusterIds = useMemo(() => {
+    return stringToArray(clusterIdsStr) || null
+  }, [clusterIdsStr])
   const [topologyData, setTopologyData] = useState({
     nodes: [],
     edges: [],
@@ -51,6 +60,7 @@ const ServiceInfo = () => {
           label: current.service,
           isTraced: current.isTraced,
           endpoint: current.endpoint,
+          outOfGroup: current.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',
@@ -65,6 +75,7 @@ const ServiceInfo = () => {
           label: child.service,
           isTraced: child.isTraced,
           endpoint: child.endpoint,
+          outOfGroup: child.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',
@@ -83,6 +94,7 @@ const ServiceInfo = () => {
           label: parent.service,
           isTraced: parent.isTraced,
           endpoint: parent.endpoint,
+          outOfGroup: parent.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',
@@ -107,6 +119,8 @@ const ServiceInfo = () => {
         endTime: endTime,
         service: serviceName,
         endpoint: endpoint,
+        clusterIds: clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           const { nodes, edges } = prepareTopologyData(res)
@@ -123,17 +137,19 @@ const ServiceInfo = () => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getServiceTopology()
+      if (dataGroupId !== null && serviceName && endpoint) {
+        getServiceTopology()
+      }
     },
     300, // 延迟时间 300ms
-    [serviceName, startTime, endTime, endpoint],
+    [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
 
   return (
     <div className="h-full relative">
       <LoadingSpinner loading={loading} />
       <ServiceInfoProvider>
-        <PropsProvider value={{ serviceName, endpoint }}>
+        <PropsProvider value={{ serviceName, endpoint, clusterIds }}>
           <>
             <div className="flex flex-row">
               <Card
