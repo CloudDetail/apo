@@ -37,6 +37,7 @@ var validRouters = []Router{
 	{RouterTo: "/demo/service-config", HideTimeSelector: true},
 	{RouterTo: "/mysql-dashboard", HideTimeSelector: false},
 	{RouterTo: "/healthy-service", HideTimeSelector: false},
+	{RouterTo: "/system/data-group", HideTimeSelector: true},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required

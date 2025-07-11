@@ -41,6 +41,7 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "menuManage", Order: 45}, RouterKey: "/system/menu-manage"},
 	{MenuItem: MenuItem{Key: "team", Order: 51}, RouterKey: "/system/team"},
 	{MenuItem: MenuItem{Key: "role", Order: 52}, RouterKey: "/system/role-manage"},
+	{MenuItem: MenuItem{Key: "dataGroup", Order: 49}, RouterKey: "/system/data-group"},
 }
 
 func (repo *daoRepo) initMenuItems(ctx core.Context) error {
@@ -83,10 +84,10 @@ func (repo *daoRepo) initMenuItems(ctx core.Context) error {
 			"alertsNotify":      "alerts",
 			"dataIntegration":   "integration",
 			"alertsIntegration": "integration",
-			// "dataGroup":         "manage",
-			"team":        "manage",
-			"alertEvents": "alerts",
-			"role":        "manage",
+			"dataGroup":         "manage",
+			"team":              "manage",
+			"alertEvents":       "alerts",
+			"role":              "manage",
 		}
 
 		// update parent_id
