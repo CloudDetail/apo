@@ -11,6 +11,8 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
 import MultiLineChart from 'src/core/components/Chart/MultiLineChart'
+import { useSelector } from 'react-redux'
+import { usePropsContext } from 'src/core/contexts/PropsContext'
 const convertMetricsData = (data) => {
   return data.map((item) => ({
     data: item.latencyP90.map((i) => [i.timestamp / 1000, i.value]),
@@ -20,6 +22,8 @@ const convertMetricsData = (data) => {
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
   const { t } = useTranslation('oss/serviceInfo')
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = usePropsContext()
 
   const [chartData, setChartData] = useState([])
   const [loading, setLoading] = useState(false)
@@ -31,6 +35,8 @@ const TimelapseLineChart = (props) => {
       service: serviceName,
       endpoint: endpoint,
       step: getStep(startTime, endTime),
+      clusterIds: clusterIds,
+      groupId: dataGroupId,
     })
       .then((res) => {
         // console.log(res)
@@ -45,7 +51,7 @@ const TimelapseLineChart = (props) => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      if (serviceName && endpoint && startTime && endTime) {
+      if (serviceName && endpoint && startTime && endTime && dataGroupId !== null) {
         setLoading(true)
         getChartData()
       }
