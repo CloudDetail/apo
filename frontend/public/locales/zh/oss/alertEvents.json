@@ -77,5 +77,7 @@
   "selectPlaceholder": "请选择需要过滤的字段",
   "filterKey": "筛选字段",
   "filterMode": "筛选方式",
-  "exprHint": "使用 * 通配符"
+  "exprHint": "使用 * 通配符",
+  "alertDirection": "故障方向",
+  "viewReport": "点击查看故障报告"
 }

@@ -16,6 +16,7 @@ const coreNsList = [
   'permission',
   'dataIntegration',
   'login',
+  'config',
 ]
 const getNsList = () => {
   return coreNsList.map((ns) => `core/${ns}`)

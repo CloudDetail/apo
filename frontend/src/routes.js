@@ -21,6 +21,7 @@ const DataIntegrationPage = AuthRouter(
 const IntegrationSettings = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
 )
+const ConfigPageAuth = AuthRouter(React.lazy(() => import('src/core/views/Config/index')))
 const namespace = 'core/routes'
 
 const baseRoutes = [
@@ -69,6 +70,11 @@ const baseRoutes = [
     name: <TranslationCom text="team" space={namespace} />,
     element: TeamPage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/demo/service-config',
+    name: 'Service Config',
+    element: ConfigPageAuth,
   },
 ]
 const routes = [...baseRoutes, ...ossRoutes]
