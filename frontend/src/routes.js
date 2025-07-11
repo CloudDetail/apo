@@ -16,6 +16,7 @@ const RoleManage = AuthRouter(React.lazy(() => import('src/core/views/RoleManage
 const AlertsIntegrationPage = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/AlertsIntegration')),
 )
+const DataGroupPage = AuthRouter(React.lazy(() => import('src/core/views/DataGroup/index')))
 const TeamPage = AuthRouter(React.lazy(() => import('src/core/views/Team/index')))
 const DataIntegrationPage = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')),
