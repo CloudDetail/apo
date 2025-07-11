@@ -155,6 +155,8 @@ type Repo interface {
 	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
 	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
 	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+	ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error)
+	DeleteServiceNameRule(ctx core.Context, ruleId int) error
 
 	integration.ObservabilityInputManage
 	DaoDataScope

@@ -332,5 +332,6 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.POST("/servicename/checkRule", handler.CheckServiceNameRule())
 		dataplaneAPI.POST("/servicename/upsertRule", handler.SetServiceNameRule())
 		dataplaneAPI.GET("/servicename/listRule", handler.ListServiceNameRule())
+		dataplaneAPI.POST("/servicename/deleteRule", handler.DeleteServiceNameRule())
 	}
 }

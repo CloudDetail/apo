@@ -250,12 +250,14 @@ const (
 	SearchAlertFilterValueError = "B1707"
 
 	// DataPlane
-	CreateCustomTopologyError = "B1801"
-	DeleteCustomTopologyError = "B1802"
-	ListCustomTopologyError   = "B1803"
-	CheckServiceNameRuleError = "B1804"
-	SetServiceNameRuleError   = "B1805"
-	ListServiceNameRuleError  = "B1806"
+	CreateCustomTopologyError     = "B1801"
+	DeleteCustomTopologyError     = "B1802"
+	ListCustomTopologyError       = "B1803"
+	CheckServiceNameRuleError     = "B1804"
+	SetServiceNameRuleError       = "B1805"
+	ListServiceNameRuleError      = "B1806"
+	DeleteServiceNameRuleError    = "B1807"
+	ServiceNameRuleNotExistsError = "B1808"
 )
 
 func Text(lang string, code string) string {

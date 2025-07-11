@@ -84,3 +84,7 @@ type SetServiceNameRuleConditionRequest struct {
 	MatchType   string `json:"matchType"`
 	Value       string `json:"value"`
 }
+
+type DeleteServiceNameRuleRequest struct {
+	RuleId int `form:"ruleId" binding:"required"`
+}

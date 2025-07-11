@@ -219,10 +219,12 @@ var zhCnText = map[string]string{
 	SearchAlertLabelFilterError: "查询告警标签过滤器失败",
 	SearchAlertFilterValueError: "查询告警过滤值失败",
 
-	CreateCustomTopologyError: "创建自定义拓扑失败",
-	DeleteCustomTopologyError: "删除自定义拓扑失败",
-	ListCustomTopologyError:   "列出自定义拓扑失败",
-	CheckServiceNameRuleError: "验证服务名匹配规则失败",
-	SetServiceNameRuleError:   "配置服务名匹配规则失败",
-	ListServiceNameRuleError:  "列出所有服务名匹配规则失败",
+	CreateCustomTopologyError:     "创建自定义拓扑失败",
+	DeleteCustomTopologyError:     "删除自定义拓扑失败",
+	ListCustomTopologyError:       "列出自定义拓扑失败",
+	CheckServiceNameRuleError:     "验证服务名匹配规则失败",
+	SetServiceNameRuleError:       "配置服务名匹配规则失败",
+	ListServiceNameRuleError:      "列出所有服务名匹配规则失败",
+	DeleteServiceNameRuleError:    "删除服务名匹配规则失败",
+	ServiceNameRuleNotExistsError: "服务名匹配规则不存在",
 }

@@ -217,10 +217,12 @@ var enText = map[string]string{
 	SearchAlertLabelFilterError: "Failed to search alert label filter",
 	SearchAlertFilterValueError: "Failed to search alert filter value",
 
-	CreateCustomTopologyError: "Failed to create custom topology",
-	DeleteCustomTopologyError: "Failed to delete custom topology",
-	ListCustomTopologyError:   "Failed to list custom topology",
-	CheckServiceNameRuleError: "Failed to check service name rule",
-	SetServiceNameRuleError:   "Failed to set service name rule",
-	ListServiceNameRuleError:  "Failed to list service name rule",
+	CreateCustomTopologyError:     "Failed to create custom topology",
+	DeleteCustomTopologyError:     "Failed to delete custom topology",
+	ListCustomTopologyError:       "Failed to list custom topology",
+	CheckServiceNameRuleError:     "Failed to check service name rule",
+	SetServiceNameRuleError:       "Failed to set service name rule",
+	ListServiceNameRuleError:      "Failed to list service name rule",
+	DeleteServiceNameRuleError:    "Failed to delete service name rule",
+	ServiceNameRuleNotExistsError: "service name rule not exists",
 }

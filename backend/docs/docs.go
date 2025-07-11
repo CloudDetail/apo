@@ -2575,7 +2575,7 @@ const docTemplate = `{
             "post": {
                 "description": "Delete custom topology.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2586,25 +2586,13 @@ const docTemplate = `{
                 "summary": "Delete custom topology.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "query Id",
-                        "name": "id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
+                        "description": "Delete Custom Topology Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomTopologyRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -2917,6 +2905,46 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.CheckServiceNameRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/deleteRule": {
+            "post": {
+                "description": "Delete servicename rule.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Delete servicename rule.",
+                "parameters": [
+                    {
+                        "description": "Delete ServiceName Rule Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteServiceNameRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -11871,6 +11899,25 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DeleteCustomTopologyRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "id",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.DeleteLogParseRequest": {
             "type": "object",
             "properties": {
@@ -11896,6 +11943,17 @@ const docTemplate = `{
                 },
                 "tableName": {
                     "type": "string"
+                }
+            }
+        },
+        "request.DeleteServiceNameRuleRequest": {
+            "type": "object",
+            "required": [
+                "ruleId"
+            ],
+            "properties": {
+                "ruleId": {
+                    "type": "integer"
                 }
             }
         },

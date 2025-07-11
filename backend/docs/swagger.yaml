@@ -1889,6 +1889,19 @@ definitions:
     - alert
     - group
     type: object
+  request.DeleteCustomTopologyRequest:
+    properties:
+      endTime:
+        type: integer
+      id:
+        type: integer
+      startTime:
+        type: integer
+    required:
+    - endTime
+    - id
+    - startTime
+    type: object
   request.DeleteLogParseRequest:
     properties:
       dataBase:
@@ -1906,6 +1919,13 @@ definitions:
         type: string
       tableName:
         type: string
+    type: object
+  request.DeleteServiceNameRuleRequest:
+    properties:
+      ruleId:
+        type: integer
+    required:
+    - ruleId
     type: object
   request.Field:
     properties:
@@ -5640,24 +5660,15 @@ paths:
   /api/dataplane/customtopology/delete:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Delete custom topology.
       parameters:
-      - description: query Id
-        in: query
-        name: id
+      - description: Delete Custom Topology Request
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query start time
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: query end time
-        in: query
-        name: endTime
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/request.DeleteCustomTopologyRequest'
       produces:
       - application/json
       responses:
@@ -5873,6 +5884,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Check servicename rule.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/deleteRule:
+    post:
+      consumes:
+      - application/json
+      description: Delete servicename rule.
+      parameters:
+      - description: Delete ServiceName Rule Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteServiceNameRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Delete servicename rule.
       tags:
       - API.dataplane
   /api/dataplane/servicename/listRule:

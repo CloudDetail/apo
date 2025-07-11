@@ -11,19 +11,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// DeleteCustomTopology Delete custom topology.
-// @Summary Delete custom topology.
-// @Description Delete custom topology.
+// DeleteServiceNameRule Delete servicename rule.
+// @Summary Delete servicename rule.
+// @Description Delete servicename rule.
 // @Tags API.dataplane
 // @Accept json
 // @Produce json
-// @Param Request body request.DeleteCustomTopologyRequest true "Delete Custom Topology Request"
+// @Param Request body request.DeleteServiceNameRuleRequest true "Delete ServiceName Rule Request"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/dataplane/customtopology/delete [post]
-func (h *handler) DeleteCustomTopology() core.HandlerFunc {
+// @Router /api/dataplane/servicename/deleteRule [post]
+func (h *handler) DeleteServiceNameRule() core.HandlerFunc {
 	return func(c core.Context) {
-		req := new(request.DeleteCustomTopologyRequest)
+		req := new(request.DeleteServiceNameRuleRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
@@ -32,11 +32,12 @@ func (h *handler) DeleteCustomTopology() core.HandlerFunc {
 			)
 			return
 		}
-		err := h.dataplaneService.DeleteCustomTopology(c, req)
+
+		err := h.dataplaneService.DeleteServiceNameRule(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
-				code.DeleteCustomTopologyError,
+				code.DeleteServiceNameRuleError,
 				err,
 			)
 			return
