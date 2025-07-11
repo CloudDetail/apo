@@ -131,7 +131,6 @@ export default function DataGroupPage() {
   )
 
   const openAddModal = useCallback((groupId: number) => {
-    console.log(groupId)
     setInfoGroupId(groupId)
     setInfoModalVisible(true)
   }, [])

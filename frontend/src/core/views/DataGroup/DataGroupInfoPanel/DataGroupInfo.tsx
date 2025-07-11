@@ -1,3 +1,7 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
 import { Button, Descriptions, DescriptionsProps, Modal, Popconfirm } from 'antd'
 import Paragraph from 'antd/es/typography/Paragraph'
 

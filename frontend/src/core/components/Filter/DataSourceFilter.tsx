@@ -60,9 +60,6 @@ export function extractTreeData(nodes: TreeNode[]): TreeExtractedResult {
   const endpointsMap = new Map<string, GroupedList>()
   const podsMap = new Map<string, GroupedList>()
   const instancesMap = new Map<string, GroupedList>()
-  function makeLabel(path: string[]): string {
-    return path.join(' / ')
-  }
 
   function visit(node: TreeNode, path: string[], idPath: string[], parent?: TreeNode) {
     const currentPath = [...path, node.name]
@@ -76,7 +73,7 @@ export function extractTreeData(nodes: TreeNode[]): TreeExtractedResult {
       idPath: currentIdPath,
     }
     const parentId = parent?.id || ''
-    const groupLabel = makeLabel(path)
+    const groupLabel = path.join(' / ')
 
     switch (node.type) {
       case 'cluster':

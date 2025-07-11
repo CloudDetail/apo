@@ -49,7 +49,7 @@ const getSelectionColor = (type: string, theme: string) => {
   }
 }
 
-const renderTooltipTitle = (type: DatasourceType, name: string) => {
+const RenderTooltipTitle = ({ type, name }: { type: DatasourceType; name: string }) => {
   const { t } = useTranslation('core/dataGroup')
   return (
     <div className="flex">
@@ -77,7 +77,7 @@ const DatasourceTag: React.FC<DatasourceTagProps> = ({
   }
 
   return (
-    <Tooltip title={!block && renderTooltipTitle(type, name)}>
+    <Tooltip title={!block && <RenderTooltipTitle type={type} name={name} />}>
       <div
         className={`group flex items-center justify-between px-2 py-1 m-1 rounded-lg text-xs transition-all duration-200 hover:shadow-sm ${
           block ? 'w-full' : 'inline-flex'

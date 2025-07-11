@@ -25,7 +25,6 @@ const InfoModal: React.FC<InfoModalProps> = ({ open, closeModal, groupInfo, refr
 
   const [form] = Form.useForm()
   const [loading, setLoading] = useState<boolean>(false)
-  console.log('parent', groupId)
   const saveDataGroup = (params: SaveDataGroupParams) => {
     let api
     let apiParams: any = params
