@@ -20,7 +20,7 @@ import (
 // @Param Request body request.AlertEventClassifyRequest true "请求信息"
 // @Success 200 {object} response.AlertEventClassifyResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/events/classify [get]
+// @Router /api/alerts/events/report/add [get]
 func (h *handler) AddAlertEventReport() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AddAlertEventReportRequest)

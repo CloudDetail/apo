@@ -914,7 +914,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/alert/events": {
-            "get": {
+            "post": {
                 "description": "get alarm events",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1245,7 +1245,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/descendant/anormal/contribution": {
-            "get": {
+            "post": {
                 "description": "获取下游故障贡献度",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1473,7 +1473,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/descendant/anormal/trend": {
-            "get": {
+            "post": {
                 "description": "获取下游异常变化趋势",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1703,7 +1703,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/event/impact": {
-            "get": {
+            "post": {
                 "description": "获取告警数据的影响面",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1828,6 +1828,44 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.AlertEventSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/events/report/add": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
                         }
                     },
                     "400": {
@@ -2784,91 +2822,193 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/custom/create": {
+            "post": {
+                "description": "创建一个用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "创建一个用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/delete": {
+            "delete": {
+                "description": "删除用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "删除用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/get": {
+            "get": {
+                "description": "获取用户自定义查询数据类型",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "获取用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCustomResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/custom/update": {
+            "post": {
+                "description": "更新用户自定义查询数据类型",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.custom"
+                ],
+                "summary": "更新用户自定义查询数据类型",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateCustomRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/data/datasource": {
             "get": {
                 "description": "Gets all datasource.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.data"
-                ],
-                "summary": "Gets all datasource.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetDatasourceResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/data/group": {
-            "post": {
-                "description": "Get data group.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.data"
-                ],
-                "summary": "Get data group.",
-                "parameters": [
-                    {
-                        "description": "Request",
-                        "name": "Request",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/request.GetDataGroupRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetDataGroupResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/data/group/data": {
-            "get": {
-                "description": "Get group's datasource.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -12036,10 +12176,11 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Service": {
+        "model.PredefinedMetricExpr": {
             "type": "object",
             "properties": {
-                "clusterId": {
+                "compareGroup": {
+                    "description": "用于记录可以相互比较的检测表达式",
                     "type": "string"
                 },
                 "customMetric": {
@@ -13071,6 +13212,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "endTime": {
+                    "type": "integer"
+                },
+                "groupId": {
                     "type": "integer"
                 },
                 "isError": {

@@ -2195,6 +2195,8 @@ definitions:
         type: integer
       endTime:
         type: integer
+      groupId:
+        type: integer
       isError:
         type: string
       isSlow:
@@ -5001,7 +5003,7 @@ paths:
       tags:
       - API.alertinput
   /api/alerts/alert/events:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: get alarm events
@@ -5219,7 +5221,7 @@ paths:
       tags:
       - API.alerts
   /api/alerts/descendant/anormal/contribution:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取下游故障贡献度
@@ -5374,7 +5376,7 @@ paths:
       tags:
       - API.alerts
   /api/alerts/descendant/anormal/trend:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取下游异常变化趋势
@@ -5523,7 +5525,7 @@ paths:
       tags:
       - API.alerts
   /api/alerts/event/impact:
-    get:
+    post:
       consumes:
       - application/x-www-form-urlencoded
       description: 获取告警数据的影响面
@@ -5605,6 +5607,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.AlertEventSearchResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/events/report/add:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AlertEventClassifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.AlertEventClassifyResponse'
         "400":
           description: Bad Request
           schema:
