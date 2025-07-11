@@ -1,3 +1,8 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import styles from './index.module.scss'
 const GlassCard = ({ content }) => {
   return (

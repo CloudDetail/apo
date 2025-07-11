@@ -32,7 +32,6 @@ func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRe
 		}
 
 		DataGroupStorage = storage
-		DataGroupStorage.Refresh(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
 		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
 	})
 }
@@ -41,6 +40,12 @@ func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database
 	dgStore := &DataGroupStore{
 		ExistedScope: make(map[datagroup.DataScope]struct{}),
 		stopCh:       make(chan struct{}),
+	}
+
+	dgStore.Refresh(core.EmptyCtx(), prom, ch, db, -24*time.Hour)
+	err := db.InitRootGroup(core.EmptyCtx())
+	if err != nil {
+		return nil, err
 	}
 
 	dgTree, err := db.LoadDataGroupTree(core.EmptyCtx())

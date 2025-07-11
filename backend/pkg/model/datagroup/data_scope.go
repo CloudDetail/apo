@@ -4,6 +4,7 @@
 package datagroup
 
 import (
+	"slices"
 	"sort"
 	"strings"
 )
@@ -143,7 +144,7 @@ func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []st
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
-		if pPerm == checked || containsInStr(permScopeIDs, node.ScopeID) {
+		if pPerm == checked || slices.Contains(permScopeIDs, node.ScopeID) {
 			optionsMap[node.Service] = struct{}{}
 			pPerm = checked
 		}
@@ -171,7 +172,7 @@ func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []strin
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
-		if pPerm == checked || containsInStr(options, node.ScopeID) {
+		if pPerm == checked || slices.Contains(options, node.ScopeID) {
 			optionsMap[node.ScopeID] = true
 			pPerm = checked
 		}
@@ -253,9 +254,9 @@ func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*
 
 	dfs = func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode {
 		var selfStatus scopeStatus = ignored
-		if containsInStr(selected, node.ScopeID) {
+		if slices.Contains(selected, node.ScopeID) {
 			selfStatus = checked
-		} else if pStatus == checked && containsInStr(categoryIDs, node.ScopeID) {
+		} else if pStatus == checked && slices.Contains(categoryIDs, node.ScopeID) {
 			selfStatus = notChecked
 		}
 
@@ -338,13 +339,4 @@ func checkScopePerm(pPerm scopeStatus, options []string, selected []string, scop
 	}
 
 	return ignored
-}
-
-func containsInStr(options []string, input string) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }

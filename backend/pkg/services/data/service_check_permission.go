@@ -4,6 +4,8 @@
 package data
 
 import (
+	"slices"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
@@ -18,7 +20,7 @@ func (s *service) CheckScopePermission(ctx core.Context, cluster, namespace, ser
 	if err != nil {
 		return false, err
 	}
-	if containsInInt(premGroups, 0) {
+	if slices.Contains(premGroups, 0) {
 		return true, nil
 	}
 	return s.dbRepo.CheckScopePermission(ctx, premGroups, cluster, namespace, service)
@@ -30,7 +32,7 @@ func (s *service) CheckServicesPermission(ctx core.Context, services ...string) 
 	if err != nil {
 		return false, err
 	}
-	if containsInInt(premGroups, 0) {
+	if slices.Contains(premGroups, 0) {
 		return true, nil
 	}
 
@@ -42,7 +44,7 @@ func (s *service) CheckServicesPermission(ctx core.Context, services ...string) 
 	svcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
 
 	for _, service := range services {
-		if !containsInStr(svcList, service) {
+		if !slices.Contains(svcList, service) {
 			return false, nil
 		}
 	}
@@ -53,7 +55,7 @@ func (s *service) CheckGroupPermission(ctx core.Context, groupID int64) (bool, e
 	userID := ctx.UserID()
 	premGroups, err := s.dbRepo.GetDataGroupIDsByUserId(ctx, userID)
 
-	if containsInInt(premGroups, 0) {
+	if slices.Contains(premGroups, 0) {
 		return true, nil
 	}
 

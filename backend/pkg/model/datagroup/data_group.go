@@ -4,6 +4,7 @@
 package datagroup
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -68,7 +69,7 @@ func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroup
 }
 
 func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []int64) bool {
-	if containsInInt(permGroupIDs, groupID) {
+	if slices.Contains(permGroupIDs, groupID) {
 		return true
 	}
 
@@ -85,7 +86,7 @@ func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []i
 			return -1
 		}
 
-		if containsInInt(permGroupIDs, node.GroupID) {
+		if slices.Contains(permGroupIDs, node.GroupID) {
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
 
@@ -215,12 +216,12 @@ func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, f
 	var dfs func(pPerm string, pSource string, node *DataGroupTreeNode)
 	dfs = func(pPerm string, pSource string, node *DataGroupTreeNode) {
 		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
-			containsInInt(groupIDs, node.GroupID) {
+			slices.Contains(groupIDs, node.GroupID) {
 			group := node.DataGroup
-			if containsInInt(fromUser, node.GroupID) {
+			if slices.Contains(fromUser, node.GroupID) {
 				group.Source = model.DATA_GROUP_SUB_TYP_USER
 				pSource = model.DATA_GROUP_SUB_TYP_USER
-			} else if containsInInt(fromTeam, node.GroupID) {
+			} else if slices.Contains(fromTeam, node.GroupID) {
 				group.Source = model.DATA_GROUP_SUB_TYP_TEAM
 				pSource = model.DATA_GROUP_SUB_TYP_TEAM
 			} else {
@@ -245,7 +246,7 @@ func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup
 	var dfs func(pPerm string, node *DataGroupTreeNode)
 	dfs = func(pPerm string, node *DataGroupTreeNode) {
 		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
-			containsInInt(groupIDs, node.GroupID) {
+			slices.Contains(groupIDs, node.GroupID) {
 			permGroups = append(permGroups, node.DataGroup)
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
@@ -270,13 +271,4 @@ func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
 		}
 	}
 	return DATA_GROUP_PERMISSION_TYPE_IGNORE
-}
-
-func containsInInt(options []int64, input int64) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }
