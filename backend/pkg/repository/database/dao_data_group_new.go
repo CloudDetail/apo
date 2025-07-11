@@ -7,6 +7,7 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"gorm.io/gorm/clause"
 )
 
 var DaoDataGroup DaoDataGroupNew
@@ -15,6 +16,8 @@ type DaoDataGroupNew interface {
 	LoadDataGroupTree(ctx core.Context) (*datagroup.DataGroupTreeNode, error)
 
 	GetDataGroupIDsByUserId(ctx core.Context, userID int64) ([]int64, error)
+
+	InitRootGroup(ctx core.Context) error
 }
 
 func (repo *daoRepo) LoadDataGroupTree(ctx core.Context) (*datagroup.DataGroupTreeNode, error) {
@@ -86,4 +89,62 @@ func (repo *daoRepo) GetDataGroupIDsByUserId(ctx core.Context, userID int64) ([]
 		groups = append(groups, groupID)
 	}
 	return groups, nil
+}
+
+func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
+	err := repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(&datagroup.DataGroup{
+		GroupID:       0,
+		GroupName:     "ALL",
+		Description:   "Contains all data",
+		ParentGroupID: -1,
+	}).Error
+
+	if err != nil {
+		return err
+	}
+
+	err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(&datagroup.DataScope{
+		ScopeID:  "APO_ALL_DATA",
+		Category: "system",
+		Name:     "ALL",
+		Type:     "system",
+	}).Error
+
+	if err != nil {
+		return err
+	}
+
+	// migrate-datasourceGroup
+	var count int64
+	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+			DoNothing: true,
+		}).Select("ds.group_id, ds.scope_id").
+			Table("data_scope AS ds").
+			Joins(`INNER JOIN datasource_group AS dsg ON (dsg.datasource = ds.namespace AND dsg.type = 'namespace') OR (dsg.datasource = ds.service AND dsg.type = 'service')`).
+			Group("ds.group_id, ds.scope_id").
+			Create(nil).Error
+
+		if err != nil {
+			return err
+		}
+	}
+
+	err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		DoNothing: true,
+	}).Create(&datagroup.DataGroup2Scope{
+		GroupID: 0,
+		ScopeID: "APO_ALL_DATA",
+	}).Error
+
+	return err
 }
