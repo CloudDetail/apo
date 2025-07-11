@@ -29,6 +29,7 @@ type Service interface {
 	CheckServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) (*response.CheckServiceNameRuleResponse, error)
 	SetServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) error
 	ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error)
+	DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error
 }
 
 type service struct {

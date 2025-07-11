@@ -29,3 +29,23 @@ func (repo *daoRepo) ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule
 		Scan(&nameRules).Error
 	return nameRules, err
 }
+
+func (repo *daoRepo) ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error) {
+	var count int64
+
+	query := repo.GetContextDB(ctx).
+		Model(&ServiceNameRule{}).
+		Where("id = ?", ruleId)
+	err := query.Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (repo *daoRepo) DeleteServiceNameRule(ctx core.Context, ruleId int) error {
+	if err := repo.GetContextDB(ctx).Model(&ServiceNameRuleCondition{}).Where("rule_id = ?", ruleId).Delete(nil).Error; err != nil {
+		return err
+	}
+	return repo.GetContextDB(ctx).Model(&ServiceNameRule{}).Where("id = ?", ruleId).Delete(nil).Error
+}

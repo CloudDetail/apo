@@ -15,18 +15,16 @@ import (
 // @Summary Delete custom topology.
 // @Description Delete custom topology.
 // @Tags API.dataplane
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param id query int true "query Id"
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
+// @Param Request body request.DeleteCustomTopologyRequest true "Delete Custom Topology Request"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/dataplane/customtopology/delete [post]
 func (h *handler) DeleteCustomTopology() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteCustomTopologyRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

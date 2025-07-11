@@ -15,7 +15,9 @@ func (s *service) ListServiceNameRule(ctx core.Context) (*response.ListServiceNa
 		return nil, err
 	}
 	if len(serviceRules) == 0 {
-		return &response.ListServiceNameRuleResponse{}, nil
+		return &response.ListServiceNameRuleResponse{
+			Rules: []*response.ListServiceNameRule{},
+		}, nil
 	}
 
 	serviceRuleConditions, err := s.dbRepo.ListAllServiceNameRuleCondition(ctx)
@@ -34,7 +36,10 @@ func (s *service) ListServiceNameRule(ctx core.Context) (*response.ListServiceNa
 
 	rules := make([]*response.ListServiceNameRule, 0)
 	for _, serviceRule := range serviceRules {
-		conditions := conditionMap[serviceRule.ID]
+		conditions, ok := conditionMap[serviceRule.ID]
+		if !ok {
+			conditions = []*database.ServiceNameRuleCondition{}
+		}
 		rules = append(rules, &response.ListServiceNameRule{
 			Id:          serviceRule.ID,
 			ServiceName: serviceRule.Service,
