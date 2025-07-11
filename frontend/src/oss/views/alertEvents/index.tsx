@@ -192,7 +192,7 @@ const AlertEventsPage = () => {
   const [firingCounts, setFiringCounts] = useState(0)
   const [resolvedCounts, setResolvedCounts] = useState(0)
   const timerRef = useRef(null)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [keys, setKeys] = useState([])
   const [labelKeys, setLabelKeys] = useState([])
   const [filters, setFilters] = useState([
@@ -226,6 +226,7 @@ const AlertEventsPage = () => {
         matchExpr: item?.matchExpr,
         selected: item?.selected,
       })),
+      groupId: dataGroupId,
     })
       .then((res) => {
         const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
@@ -256,14 +257,14 @@ const AlertEventsPage = () => {
   }
   useDebounce(
     () => {
-      if (startTime && endTime) {
+      if (startTime && endTime && dataGroupId !== null) {
         setLoading(true)
 
         getAlertEvents()
       }
     },
     300,
-    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters],
+    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters, dataGroupId],
   )
 
   async function openWorkflowModal(workflowParams, group, name) {

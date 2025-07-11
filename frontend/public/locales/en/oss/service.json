@@ -37,12 +37,18 @@
     }
   },
   "tableFilter": {
+    "clusterLabel": "Cluster",
+    "clusterPlaceholder": "Select cluster",
     "namespacesLabel": "Namespaces",
     "namespacePlaceholder": "Please Select",
     "applicationsLabel": "Applications",
     "applicationsPlaceholder": "Please Select",
     "endpointsLabel": "Endpoints",
-    "endpointsPlaceholder": "Please Select"
+    "endpointsPlaceholder": "Please Select",
+    "podsLabel": "Pod",
+    "podsPlaceholder": "Please Select",
+    "instancesLabel": "Instance",
+    "instancesPlaceholder": "Please Select"
   },
   "endpointTableModal": {
     "columns": {

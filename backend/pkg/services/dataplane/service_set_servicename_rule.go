@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package dataplane
 
 import (
@@ -27,11 +30,11 @@ func (s *service) SetServiceNameRule(ctx core.Context, req *request.SetServiceNa
 
 	for _, condition := range req.Conditions {
 		ruleCondition := &database.ServiceNameRuleCondition{
-			ID: condition.CondtiondId,
-			RuleID: ruleId,
-			Key: condition.Key,
+			ID:        condition.CondtiondId,
+			RuleID:    ruleId,
+			Key:       condition.Key,
 			MatchType: condition.MatchType,
-			Value: condition.Value,
+			Value:     condition.Value,
 		}
 		if err := s.dbRepo.UpsertServiceNameRuleCondition(ctx, ruleCondition); err != nil {
 			return err

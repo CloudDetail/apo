@@ -8,9 +8,7 @@
 import { cilCalendar, cilClock } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import {
-  CButton,
   CDropdown,
-  CDropdownItem,
   CDropdownMenu,
   CDropdownToggle,
   CForm,
@@ -26,24 +24,16 @@ import { useSearchParams } from 'react-router-dom'
 import {
   GetInitalTimeRange,
   getTimestampRange,
-  initialTimeRangeState,
-  timeRangeList,
   timeRangeMap,
 } from 'src/core/store/reducers/timeRangeReducer'
-import {
-  convertTime,
-  DateToISO,
-  ISOToTimestamp,
-  TimestampToISO,
-  ValidDate,
-  timeUtils
-} from 'src/core/utils/time'
+import { convertTime, DateToISO, ISOToTimestamp, timeUtils } from 'src/core/utils/time'
 import './index.css'
 import 'react-date-range/dist/styles.css' // main style file
 import 'react-date-range/dist/theme/default.css' // theme css file
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Button, Menu } from 'antd'
+import { useLogsTraceFilterContext } from 'src/oss/contexts/LogsTraceFilterContext'
 // logs: logsFrom, logsTo
 // traces: traceFrom, traceTo
 const TypeUrlParamMap = {
@@ -61,6 +51,7 @@ export default function DateTimeRangePickerCom(props) {
   const { type } = props
   const [searchParams, setSearchParams] = useSearchParams()
   const [dropdownVisible, setDropdownVisible] = useState(false)
+  const { setStartTime, setEndTime } = useLogsTraceFilterContext((ctx) => ctx)
   // 快速范围
   // 左侧输入框是否合规以及违反规则的反馈文本
   const [startTimeInvalid, setStartTimeInvalid] = useState(false)
@@ -101,6 +92,8 @@ export default function DateTimeRangePickerCom(props) {
       event.stopPropagation()
       return
     }
+    setStartTime(new Date(inputStartTime).getTime() * 1000)
+    setEndTime(new Date(inputEndTime).getTime() * 1000)
     setDropdownVisible(false)
     const fromISO = DateToISO(inputStartTime)
     const toISO = DateToISO(inputEndTime)
@@ -132,6 +125,8 @@ export default function DateTimeRangePickerCom(props) {
     setInputEndTime(toString)
     setDropdownVisible(false)
     updataUrlTimeRange(fromString, toString)
+    setStartTime(new Date(fromString).getTime() * 1000)
+    setEndTime(new Date(toString).getTime() * 1000)
   }
   const validStartTime = () => {
     let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
@@ -179,6 +174,8 @@ export default function DateTimeRangePickerCom(props) {
     setInputStartTime(initFromString, 'yyyy-mm-dd hh:mm:ss')
     setInputEndTime(initToString, 'yyyy-mm-dd hh:mm:ss')
     updataUrlTimeRange(initFromString, initToString)
+    setStartTime(new Date(initFromString).getTime() * 1000)
+    setEndTime(new Date(initToString).getTime() * 1000)
   }
   useEffect(() => {
     const from = searchParams.get(type + '-from')
@@ -198,6 +195,8 @@ export default function DateTimeRangePickerCom(props) {
         setInputStartTime(fromString)
         setInputEndTime(toString)
         updataUrlTimeRange(fromString, toString)
+        setStartTime(new Date(fromString).getTime() * 1000)
+        setEndTime(new Date(toString).getTime() * 1000)
       }
     } else {
       initTimeRange()
@@ -269,7 +268,7 @@ export default function DateTimeRangePickerCom(props) {
                 <CFormFeedback invalid>{endTimeFeedback}</CFormFeedback>
               </CInputGroup>
               <Button type="primary" className="mt-3" onClick={confirmTimeRange}>
-                  {t('dateTimeRangePicker.applyTimeRangeButtonText')}
+                {t('dateTimeRangePicker.applyTimeRangeButtonText')}
               </Button>
             </CForm>
             <DateRange
@@ -284,13 +283,13 @@ export default function DateTimeRangePickerCom(props) {
           <div className="w-2/5">
             <div className="p-2">{t('dateTimeRangePicker.quickRangeTitle')}</div>
             <Menu
-                selectedKeys={[storeTimeRange.rangeTypeKey]}
-                onClick={({ key }) => handleTimeRange(key)}
-              >
-                {Object.keys(timeRangeMap).map((key) => (
-                  <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
-                ))}
-              </Menu>
+              selectedKeys={[storeTimeRange.rangeTypeKey]}
+              onClick={({ key }) => handleTimeRange(key)}
+            >
+              {Object.keys(timeRangeMap).map((key) => (
+                <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
+              ))}
+            </Menu>
           </div>
         </div>
       </CDropdownMenu>

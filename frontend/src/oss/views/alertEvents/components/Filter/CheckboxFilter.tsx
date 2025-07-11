@@ -12,6 +12,7 @@ import { FilterRenderProps } from './type'
 import { useTranslation } from 'react-i18next'
 import Empty from 'src/core/components/Empty/Empty'
 import { LuSearch } from 'react-icons/lu'
+import { useDebounce } from 'react-use'
 
 const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   const { t } = useTranslation('oss/alertEvents')
@@ -20,9 +21,10 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
   const [value, setValue] = useState([])
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector((state) => state.timeRange)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const getAlertsFilterValues = () => {
     setLoading(true)
-    getAlertsFilterValuesApi({ searchKey: item.key, startTime, endTime })
+    getAlertsFilterValuesApi({ searchKey: item.key, startTime, endTime, groupId: dataGroupId })
       .then((res) => {
         const options = res.options?.map((option) => ({
           label: <ValueTag {...option} itemKey={item.key} key={option.value} />,
@@ -45,9 +47,15 @@ const CheckboxFilter = ({ filters, item, addFilter }: FilterRenderProps) => {
         value: opt.value,
       }))
   }
-  useEffect(() => {
-    getAlertsFilterValues()
-  }, [item.key, startTime, endTime])
+  useDebounce(
+    () => {
+      if (startTime && endTime && dataGroupId !== null) {
+        getAlertsFilterValues()
+      }
+    },
+    300,
+    [item.key, startTime, endTime, dataGroupId],
+  )
   useEffect(() => {
     const oldValue = filters.find((filterItem) => filterItem.key === item.key)
     if (oldValue) setValue(oldValue.selected)

@@ -41,7 +41,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
   const { useToken } = theme
   const { token } = useToken()
   //canClickTo 是否点击跳转
-  const { data, chartId = 'errorChain', endpoint, canClickTo = true } = props
+  const { data, chartId = 'errorChain', endpoint, canClickTo = true, clusterIds, groupId } = props
   // const mutatedRef = useRef(props.instance)
   // mutatedRef.current = props.instance
   const navigate = useNavigate()
@@ -107,8 +107,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
         arrowheadId: escapeId(
           chartId + 'arrow-parent-' + data.instance + '-current-' + current.instance,
         ),
-        style:
-          `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
+        style: `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
       })
     })
     data.children.forEach((data) => {
@@ -133,8 +132,7 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
         arrowheadId: escapeId(
           chartId + 'arrow-current-' + current.instance + '-child-' + data.instance,
         ),
-        style:
-          `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
+        style: `stroke: ${token.colorPrimary}; stroke-width: 3px; stroke-dasharray: 5, 5;fill: none`, // 5px实线，5px空白
       })
     })
     // 创建渲染器并准备 SVG 容器
@@ -205,9 +203,11 @@ export const ErrorChain = React.memo(function ErrorChain(props) {
             // console.log('节点数据:', nodeData)
             const from = TimestampToISO(startTime)
             const to = TimestampToISO(endTime)
-
+            const clusterIdsParam = clusterIds
+              ? `&clusterIds=${encodeURIComponent(Array.isArray(clusterIds) ? clusterIds.join(',') : clusterIds)}`
+              : ''
             navigate(
-              `/logs/fault-site?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}`,
+              `/logs/fault-site?service=${nodeData.service}&endpoint=${endpoint}&instance=${nodeName}&logs-from=${from}&logs-to=${to}${clusterIdsParam}&groupId=${groupId}`,
             )
           })
           .on('mouseover', function (d) {

@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package dataplane
 
 import (
@@ -11,16 +14,15 @@ import (
 func (s *service) CheckServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) (*response.CheckServiceNameRuleResponse, error) {
 	apps, err := s.chRepo.GetToResolveApps(ctx)
 	if err != nil {
-		return nil, err 
+		return nil, err
 	}
-
 
 	conditions := make([]*database.ServiceNameRuleCondition, 0)
 	for _, condition := range req.Conditions {
-		conditions = append(conditions, &database.ServiceNameRuleCondition {
-			Key: condition.Key,
+		conditions = append(conditions, &database.ServiceNameRuleCondition{
+			Key:       condition.Key,
 			MatchType: condition.MatchType,
-			Value: condition.Value,
+			Value:     condition.Value,
 		})
 	}
 	result := make([]*model.AppInfo, 0)
@@ -29,7 +31,7 @@ func (s *service) CheckServiceNameRule(ctx core.Context, req *request.SetService
 			result = append(result, app)
 		}
 	}
-	return &response.CheckServiceNameRuleResponse {
+	return &response.CheckServiceNameRuleResponse{
 		Apps: result,
 	}, nil
 }

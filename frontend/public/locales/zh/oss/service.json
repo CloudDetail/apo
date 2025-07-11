@@ -37,12 +37,18 @@
     }
   },
   "tableFilter": {
+    "clusterLabel": "集群",
+    "clusterPlaceholder": "请选择集群",
     "namespacesLabel": "命名空间",
     "namespacePlaceholder": "请选择",
     "applicationsLabel": "服务名",
     "applicationsPlaceholder": "请选择",
     "endpointsLabel": "服务端点",
-    "endpointsPlaceholder": "请选择"
+    "endpointsPlaceholder": "请选择",
+    "podsLabel": "实例",
+    "podsPlaceholder": "请选择",
+    "instancesLabel": "实例",
+    "instancesPlaceholder": "请选择"
   },
   "endpointTableModal": {
     "columns": {

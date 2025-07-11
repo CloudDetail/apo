@@ -4,7 +4,7 @@
     "notify": "Notification Channels"
   },
   "rule": {
-    "groupName": "Groups",
+    "groupName": "Alert Type",
     "alertRuleName": "Alert Name",
     "duration": "For",
     "query": "Expression",
@@ -54,8 +54,8 @@
     "saveSuccess": "Successfully saved alert rule",
     "save": "Save",
     "cancel": "Cancel",
-    "groupName": "Group",
-    "alertRuleName": "Alert Name",
+    "groupName": "Alert Type",
+    "alertRuleName": "Alert Rule Name",
     "alertCondition": "Alert Condition",
     "alertLevel": "Alert Level",
     "critical": "Critical",
@@ -77,7 +77,10 @@
       "minuteText": "minute",
       "hourText": "hour",
       "dayText": "day"
-    }
+    },
+    "alertGroup": "Alert Group",
+    "dataGroup": "Data Group",
+    "refresh": "Refresh"
   },
   "modifyAlertNotifyModal": {
     "title": "Alert Notification Configuration",

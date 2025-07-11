@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package util
 
 // PtrFloat64 is a helper routine that returns a pointer to given float value.

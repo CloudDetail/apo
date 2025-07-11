@@ -24,10 +24,10 @@ import { useServiceInfoContext } from 'src/oss/contexts/ServiceInfoContext'
 export default function EntryImpact(props) {
   const setPanelsStatus = useServiceInfoContext((ctx) => ctx.setPanelsStatus)
   const openTab = useServiceInfoContext((ctx) => ctx.openTab)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const navigate = useNavigate()
   const [data, setData] = useState([])
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { t } = useTranslation('oss/serviceInfo')
@@ -207,6 +207,8 @@ export default function EntryImpact(props) {
         step: getStep(startTime, endTime),
         service: serviceName,
         endpoint: endpoint,
+        groupId: dataGroupId,
+        clusterIds: clusterIds,
       })
         .then((res) => {
           setData(res.data ?? [])
@@ -228,10 +230,12 @@ export default function EntryImpact(props) {
   // }, [startTime, endTime, serviceName, endpoint])
   useDebounce(
     () => {
-      getTableData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getTableData()
+      }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint],
+    [startTime, endTime, serviceName, endpoint, clusterIds, dataGroupId],
   )
   const tableProps = useMemo(() => {
     return {
