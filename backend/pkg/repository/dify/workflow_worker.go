@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -17,15 +16,26 @@ import (
 )
 
 const MAX_CACHE_SIZE = 100
+const AlertCheckWorkFlowName = "AlertCheck"
 
 type inputChan struct {
-	Ch         chan *alert.AlertEvent
+	Ch         chan *EventWithCtx
 	IsShutDown bool
+}
+
+type EventWithCtx struct {
+	*alert.AlertEvent
+	ctx core.Context
+}
+
+type WorkflowRecordWithCtx struct {
+	*model.WorkflowRecord
+	ctx core.Context
 }
 
 func newInputChan() *inputChan {
 	return &inputChan{
-		Ch:         make(chan *alert.AlertEvent, MAX_CACHE_SIZE+10),
+		Ch:         make(chan *EventWithCtx, MAX_CACHE_SIZE+10),
 		IsShutDown: false,
 	}
 }
@@ -37,7 +47,7 @@ type worker struct {
 	expiredTS int64
 }
 
-func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results chan<- *model.WorkflowRecord, wg *sync.WaitGroup) {
+func (w *worker) run(c *DifyClient, eventInput chan *EventWithCtx, results chan<- *WorkflowRecordWithCtx, wg *sync.WaitGroup) {
 	defer wg.Done()
 	timeout := time.NewTimer(3 * time.Second)
 	defer timeout.Stop()
@@ -45,10 +55,15 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 		endTime := event.UpdateTime.UnixMicro()
 		var record model.WorkflowRecord
 		if w.expiredTS > 0 && endTime < w.expiredTS {
-			record = w.createExpiredRecord(c, event, endTime)
+			record = w.createExpiredRecord(c, event.AlertEvent, endTime)
 		} else {
 			runner.Add(1)
-			record = w.doAlertCheck(c, event, endTime)
+			var isSuccess bool
+			record, isSuccess = w.doAlertCheck(c, event, endTime)
+			if !isSuccess && w.Retry {
+				eventInput <- event
+			}
+
 			runner.Add(-1)
 		}
 
@@ -63,7 +78,10 @@ func (w *worker) run(c *DifyClient, eventInput <-chan *alert.AlertEvent, results
 		case <-timeout.C:
 			w.logger.Error("too many record need to handler, drop")
 			continue
-		case results <- &record:
+		case results <- &WorkflowRecordWithCtx{
+			WorkflowRecord: &record,
+			ctx:            event.ctx,
+		}:
 		}
 	}
 }
@@ -86,25 +104,23 @@ func (w *worker) getAlertClassify(c *DifyClient, event *alert.AlertEvent) model.
 		User:         "apo-backend",
 	}
 
-	difyconf := config.Get().Dify
-	resp, err := c.WorkflowsRun(request, "Bearer "+difyconf.APIKeys.AlertClassify)
-
+	resp, err := c.WorkflowsRun(request, "Bearer "+w.APIKeys.AlertClassify)
 	classify := model.AlertEventClassify{
-		WorkflowId:     w.FlowId,
+		WorkflowId:     w.FlowIDs.AlertEventAnalyze,
 		WorkflowApiKey: w.AnalyzeAuth,
 	}
 	if err != nil {
 		w.logger.Error("failed to alert event classify", zap.Error(err))
 		return classify
 	}
-	completResp, ok := resp.(*CompletionResponse)
+	classifyResp, ok := resp.(*CompletionResponse)
 	if !ok {
 		w.logger.Error("failed to alert event classify", zap.Error(err))
 		return classify
 	}
 
 	var res map[string]string
-	err = json.Unmarshal(completResp.Data.Outputs, &res)
+	err = json.Unmarshal(classifyResp.Data.Outputs, &res)
 	if err != nil {
 		w.logger.Error("failed to get alert event classify api", zap.Error(err))
 		return classify
@@ -129,7 +145,7 @@ func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, end
 	return model.WorkflowRecord{
 		WorkflowRunID: "",
 		WorkflowID:    classify.WorkflowId,
-		WorkflowName:  w.FlowName,
+		WorkflowName:  AlertCheckWorkFlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(),
 		Output:        "failed: alert check too late, could be too many event to check or last check cost too much time, skipped",
@@ -140,7 +156,7 @@ func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, end
 	}
 }
 
-func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
+func (w *worker) doAlertCheck(c *DifyClient, event *EventWithCtx, endTime int64) (record model.WorkflowRecord, isSuccess bool) {
 	startTime := event.UpdateTime.Add(-15 * time.Minute).UnixMicro()
 	inputs, _ := json.Marshal(map[string]interface{}{
 		"alert":     event.Name,
@@ -149,8 +165,8 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"endTime":   endTime,
 		"edition":   "ce",
 	})
-	classify := w.getAlertClassify(c, event)
-	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
+	classify := w.getAlertClassify(c, event.AlertEvent)
+	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.AlertCheckAuth, w.User)
 	if err != nil || resp == nil {
 		w.logger.Error("failed to to alert check", zap.Error(err))
 		tw := time.Duration(w.CacheMinutes) * time.Minute
@@ -158,7 +174,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		return model.WorkflowRecord{
 			WorkflowRunID: "",
 			WorkflowID:    classify.WorkflowId,
-			WorkflowName:  w.FlowName,
+			WorkflowName:  AlertCheckWorkFlowName,
 			Ref:           event.AlertID,
 			Input:         event.ID.String(),
 			Output:        "failed: workflow execution failed due to API call failure",
@@ -166,18 +182,17 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			RoundedTime:   roundedTime.UnixMicro(),
 
 			InputRef: event,
-		}
+		}, false
 	}
 
 	tw := time.Duration(w.CacheMinutes) * time.Minute
 	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
 
-	var record model.WorkflowRecord
 	output := resp.getOutput("failed: not find expected output")
 	record = model.WorkflowRecord{
 		WorkflowRunID: resp.WorkflowRunID(),
 		WorkflowID:    classify.WorkflowId,
-		WorkflowName:  w.FlowName,
+		WorkflowName:  AlertCheckWorkFlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(), // TODO record input param
 		Output:        output,            // 'false' means valid alert
@@ -186,34 +201,42 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 
 		InputRef: event,
 	}
-	difyconf := config.Get().Dify
-	if difyconf.AutoAnalyze && output == "false" {
-		param := w.getWorkflowParams(event)
-		if param == nil {
-			// unexpected err
-			record.AnalyzeErr = "failed to get analyze workflow params"
-			record.AlertDirection = ""
-		}
-		inputStr, err := json.Marshal(param)
-		if err != nil {
-			w.logger.Info("failed to marshal workflow params", zap.Error(err))
-			record.AnalyzeErr = err.Error()
-			record.AlertDirection = ""
-		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
-			if err != nil {
-				record.AnalyzeErr = err.Error()
-				record.AlertDirection = ""
-			} else {
-				record.AnalyzeRunID = resp.WorkflowRunID()
-				record.AlertDirection = resp.getOutput("")
-			}
-		}
+
+	if output != "false" || !w.AutoAnalyze {
+		return record, true
 	}
-	return record
+
+	// DO AutoAnalyze
+	param := w.getWorkflowParams(event)
+	if param == nil {
+		// unexpected err
+		record.AnalyzeErr = "failed to get analyze workflow params"
+		record.AlertDirection = "" // no retry
+		return record, true
+	}
+
+	analyzeParam, err := json.Marshal(param)
+	if err != nil {
+		// Unexpect err
+	}
+	analyzeResp, err := c.alertAnalyze(
+		&WorkflowRequest{Inputs: analyzeParam},
+		"Bearer "+classify.WorkflowApiKey,
+		w.User,
+	)
+	if err != nil {
+		record.AnalyzeErr = err.Error()
+		record.AlertDirection = ""
+		isSuccess = false
+	} else {
+		record.AnalyzeRunID = analyzeResp.WorkflowRunID()
+		record.AlertDirection = analyzeResp.getOutput("")
+		isSuccess = true
+	}
+	return record, isSuccess
 }
 
-func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParams {
+func (w *worker) getWorkflowParams(event *EventWithCtx) *alert.WorkflowParams {
 	var startTime, endTime time.Time
 	if event.Status == alert.StatusResolved {
 		startTime = event.EndTime.Add(-15 * time.Minute)
@@ -223,7 +246,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		endTime = event.UpdateTime
 	}
 
-	alertServices, _ := tryGetAlertService(core.EmptyCtx(), w.Prom, event, startTime, endTime)
+	alertServices, _ := tryGetAlertService(event.ctx, w.Prom, event.AlertEvent, startTime, endTime)
 
 	res := alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),
