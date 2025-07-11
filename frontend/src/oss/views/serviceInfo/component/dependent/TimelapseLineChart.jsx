@@ -3,24 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState, useRef } from 'react'
-import ReactECharts from 'echarts-for-react'
-import { convertTime, timeUtils } from 'src/core/utils/time'
-import Empty from 'src/core/components/Empty/Empty'
-import { ChartColorList } from 'src/constants'
+import React, { useState } from 'react'
+import { convertTime } from 'src/core/utils/time'
 import { getServiceDsecendantMetricsApi } from 'core/api/serviceInfo'
 import { getStep } from 'src/core/utils/step'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { useDispatch, useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { useTranslation } from 'react-i18next'
+import MultiLineChart from 'src/core/components/Chart/MultiLineChart'
+import { useDispatch, useSelector } from 'react-redux'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
+const convertMetricsData = (data) => {
+  return data.map((item) => ({
+    data: item.latencyP90.map((i) => [i.timestamp / 1000, i.value]),
+    legend: item.serviceName + `(${item.endpoint})`,
+  }))
+}
 
 const TimelapseLineChart = (props) => {
   const { startTime, endTime, serviceName, endpoint } = props
-  const chartRef = useRef(null)
-  const dispatch = useDispatch()
   const { t } = useTranslation('oss/serviceInfo')
+  const dispatch = useDispatch()
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
   }
@@ -153,36 +156,6 @@ const TimelapseLineChart = (props) => {
   const [activeSeries, setActiveSeries] = useState(null)
   const [chartData, setChartData] = useState([])
   const [loading, setLoading] = useState(false)
-  const { theme } = useSelector((state) => state.settingReducer)
-  const handleActiveServices = (item) => {
-    const seriesName = item.serviceName + `(${item.endpoint})`
-    const chartInstance = chartRef.current.getEchartsInstance()
-    if (seriesName === activeSeries) {
-      setActiveSeries(null)
-      chartData.forEach((item) => {
-        chartInstance.dispatchAction({
-          type: 'legendSelect',
-          name: item.serviceName + `(${item.endpoint})`,
-        })
-      })
-    } else {
-      setActiveSeries(seriesName)
-
-      // 先取消所有系列的显示
-      chartData.forEach((item) => {
-        chartInstance.dispatchAction({
-          type: 'legendUnSelect',
-          name: item.serviceName + `(${item.endpoint})`,
-        })
-      })
-
-      // 仅显示点击的系列
-      chartInstance.dispatchAction({
-        type: 'legendSelect',
-        name: seriesName,
-      })
-    }
-  }
 
   const getChartData = () => {
     getServiceDsecendantMetricsApi({
@@ -215,113 +188,17 @@ const TimelapseLineChart = (props) => {
     300, // 延迟时间 300ms
     [serviceName, startTime, endTime, endpoint, dataGroupId, clusterIds],
   )
-  useEffect(() => {
-    const newOption = {
-      ...option,
-      xAxis: {
-        type: 'time',
-        boundaryGap: false,
-        axisPointer: {
-          type: 'line',
-          // snap: true
-        },
-        axisLabel: {
-          formatter: function (value) {
-            return timeUtils.format(value, 'HH:mm')
-          },
-          hideOverlap: true,
-        },
-        min: startTime / 1000,
-        max: endTime / 1000,
-      },
-      color: ChartColorList,
-      series: chartData.map((item) => {
-        return {
-          data: item.latencyP90.map((i) => [i.timestamp / 1000, i.value]),
-          type: 'line',
-          smooth: true,
-          name: item.serviceName + `(${item.endpoint})`,
-        }
-      }),
-    }
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance()
-      chartInstance.setOption(newOption, true) // 这里通过true来确保完全更新
-      onChartReady(chartInstance)
-    }
-    setOption(newOption)
-  }, [chartData, theme])
-  const onChartReady = (chart) => {
-    setTimeout(() => {
-      chart.dispatchAction({
-        type: 'takeGlobalCursor',
-        key: 'brush',
-        brushOption: {
-          brushType: 'lineX',
-          brushMode: 'single',
-        },
-      })
-    }, 100)
-    chart.on('brushEnd', function (params) {
-      if (params.areas && params.areas.length > 0) {
-        // 获取 brush 选中的区域
-        const brushArea = params.areas[0]
-        if (brushArea.brushType === 'lineX' && brushArea.range) {
-          const range = brushArea.range
-
-          // 获取时间轴的起始和结束时间
-          const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
-          const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
-          setStoreTimeRange({
-            rangeType: null,
-            startTime: Math.round(startTime * 1000),
-            endTime: Math.round(endTime * 1000),
-          })
-        }
-      }
-    })
-  }
   return (
     <>
       <LoadingSpinner loading={loading} />
-      {chartData && chartData.length > 0 && option ? (
-        <div className="w-full flex flex-row h-full text-sm">
-          <ReactECharts
-            ref={chartRef}
-            theme={theme}
-            option={option}
-            style={{ height: '100%', width: '50%' }}
-          />
-          <div className="w-1/2 h-full overflow-y-auto">
-            {chartData.map((item, index) => (
-              <div
-                className={'flex break-all p-1 cursor-pointer '}
-                onClick={() => handleActiveServices(item)}
-                key={index}
-              >
-                <div
-                  className="w-4 h-2 m-1 rounded flex-shrink-0 "
-                  style={{ background: ChartColorList[index] }}
-                ></div>
-                <span
-                  className={
-                    !activeSeries || item.serviceName + `(${item.endpoint})` === activeSeries
-                      ? ''
-                      : 'text-stone-400'
-                  }
-                >
-                  {item.serviceName}({item.endpoint})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        !loading && (
-          <Empty
-            context={serviceName + ' ' + t('dependent.timelapseLineChart.noDownstreamDependencies')}
-          />
-        )
+      {chartData && (
+        <MultiLineChart
+          emptyContext={t('dependent.timelapseLineChart.noDownstreamDependencies')}
+          chartData={convertMetricsData(chartData)}
+          startTime={startTime}
+          endTime={endTime}
+          YFormatter={(value) => convertTime(value, 'ms', 2) + 'ms'}
+        />
       )}
     </>
   )
