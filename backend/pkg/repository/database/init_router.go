@@ -34,6 +34,7 @@ var validRouters = []Router{
 	{RouterTo: "/service/info", HideTimeSelector: false},
 	{RouterTo: "/integration/data/settings", HideTimeSelector: true},
 	{RouterTo: "/user", HideTimeSelector: true},
+	{RouterTo: "/demo/service-config", HideTimeSelector: true},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required
