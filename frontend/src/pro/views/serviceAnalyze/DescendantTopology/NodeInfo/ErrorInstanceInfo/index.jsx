@@ -22,7 +22,8 @@ export default function ErrorInstanceInfo(props) {
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [reRender, setReRender] = useState(0)
   const tableRef = useRef(null)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = useServiceAnalyzeContext()
   const column = [
     {
       title: t(`${i18nKey}.instanceName`),
@@ -81,6 +82,8 @@ export default function ErrorInstanceInfo(props) {
         ignoreEmptyPropationsInstance: true,
         entryService: service,
         entryEndpoint: endpoint,
+        clusterIds: clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           setStatus(res.status)
@@ -102,12 +105,12 @@ export default function ErrorInstanceInfo(props) {
 
   useDebounce(
     () => {
-      if (selectedNodeInfo.endpoint) {
+      if (selectedNodeInfo.endpoint && dataGroupId !== null) {
         getData()
       }
     },
     300,
-    [selectedNodeInfo, startTime, endTime],
+    [selectedNodeInfo, startTime, endTime, dataGroupId, clusterIds],
   )
 
   useEffect(() => {

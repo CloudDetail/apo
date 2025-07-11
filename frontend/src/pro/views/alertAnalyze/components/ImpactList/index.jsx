@@ -13,9 +13,9 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
-import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useDebounce } from 'react-use'
 import styles from './index.module.scss'
+import DataSourceFilter from 'src/core/components/Filter/DataSourceFilter'
 const i18nKey = 'impactList'
 
 const ImpactList = () => {
@@ -33,10 +33,10 @@ const ImpactList = () => {
   const [serviceName, setServiceName] = useState(null)
   const [endpoint, setEndpoint] = useState(null)
   const [namespace, setNamespace] = useState(null)
-
+  const [cluster, setCluster] = useState(null)
   const isFirstRender = useRef(true)
   const [sortBy, setSortBy] = useState()
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const latestController = useRef(new AbortController())
   const [pageData, setPageData] = useState([])
 
@@ -46,14 +46,18 @@ const ImpactList = () => {
         isFirstRender.current = false
         return
       }
-      getAlertEventImpact({
-        services: serviceName,
-        namespaces: namespace,
-        endpoints: endpoint,
-      })
+      if (dataGroupId !== null) {
+        getAlertEventImpact({
+          services: serviceName,
+          namespaces: namespace,
+          endpoints: endpoint,
+          clusterIds: cluster,
+          groupId: dataGroupId,
+        })
+      }
     },
     300, // 延迟 300ms
-    [serviceName, endpoint, namespace], // 依赖项
+    [serviceName, endpoint, namespace, cluster, dataGroupId], // 依赖项
   )
 
   const column = [
@@ -224,8 +228,11 @@ const ImpactList = () => {
               variant="outlined"
               color="primary"
               onClick={() => {
+                const clusterIdsParam = cluster
+                  ? `&clusterIds=${encodeURIComponent(Array.isArray(cluster) ? cluster.join(',') : cluster)}`
+                  : ''
                 window.open(
-                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}?service=${encodeURIComponent(row.serviceName)}&endpoint=${encodeURIComponent(row.endpoint)}`,
+                  `#/alert-analyze/chatAI/${encodeURIComponent(row.serviceName)}/${encodeURIComponent(row.endpoint)}?service=${encodeURIComponent(row.serviceName)}&endpoint=${encodeURIComponent(row.endpoint)}&groupId=${dataGroupId}${clusterIdsParam}`,
                 )
               }}
             >
@@ -331,11 +338,22 @@ const ImpactList = () => {
       <div className="flex flex-col h-full  text-xs">
         <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
           <span className="shrink-0 text-sm">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
-          <TableFilter
+          {/* <TableFilter
             className="px-4 mb-0"
             setServiceName={setServiceName}
             setEndpoint={setEndpoint}
             setNamespace={setNamespace}
+          /> */}
+          <DataSourceFilter
+            setServiceName={setServiceName}
+            setEndpoint={setEndpoint}
+            setNamespace={setNamespace}
+            setCluster={setCluster}
+            startTime={startTime}
+            endTime={endTime}
+            className="mb-2"
+            category="apm"
+            extra="endpoint"
           />
         </div>
         <BasicTable {...tableProps} />
@@ -352,6 +370,7 @@ const ImpactList = () => {
           endpointInfo={modalEndpointInfo}
           modalVisible={modalVisible}
           closeModal={closeModal}
+          clusterIds={cluster}
         />
       </div>
     </>

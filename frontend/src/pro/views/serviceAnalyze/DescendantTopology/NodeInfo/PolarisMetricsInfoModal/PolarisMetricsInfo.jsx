@@ -34,6 +34,8 @@ function PolarisMetricsInfo({ service, endpoint }) {
   const [modalVisibility, setModalVisibility] = useState(false)
   const [selectedErrorType, setSelectedErrorType] = useState(null)
   const [defaultSelected, setDefaultSelected] = useState('')
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = useServiceAnalyzeContext()
   const columns = [
     {
       title: t(`${i18nKey}.type`),
@@ -67,6 +69,8 @@ function PolarisMetricsInfo({ service, endpoint }) {
         step: getStep(startTime, endTime),
         language: language,
         timezone: timeZone,
+        groupId: dataGroupId,
+        clusterIds: clusterIds,
       })
         .then((res) => {
           setImage(res?.inferMetricsPng)
@@ -108,7 +112,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      if (selectedNodeInfo.endpoint) {
+      if (selectedNodeInfo.endpoint && dataGroupId !== null) {
         setLoading(true)
         getData()
       } else {
@@ -116,7 +120,7 @@ function PolarisMetricsInfo({ service, endpoint }) {
       }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, service, endpoint],
+    [startTime, endTime, service, endpoint, dataGroupId, clusterIds],
   )
 
   return (

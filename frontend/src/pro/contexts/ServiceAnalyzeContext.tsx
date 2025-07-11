@@ -124,7 +124,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
   const [searchParams] = useSearchParams()
   const [service, setService] = useState<string | null>(null)
   const [endpoint, setEndpoint] = useState<string | null>(null)
-
+  const [clusterIds, setClusterIds] = useState<string[]>([])
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const prepareTopologyNode = (data: AnormalCounts[]) => {
     let topologyNodesMap: TopologyNodeInfoMap = {}
     data?.map((node: AnormalCounts) => {
@@ -150,6 +151,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
       entryEndpoint: endpoint!,
       withTopologyLevel: true,
       removeClientCall: true,
+      clusterIds,
+      groupId: dataGroupId,
     })
     setTopologyData(res)
     let result: string[][] = []
@@ -171,6 +174,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
       endpoint: endpoint,
       step,
       anormalTypes: anormalTypes.join(','),
+      clusterIds,
+      groupId: dataGroupId,
     })
     type ChartDataMap = Record<string, number>
 
@@ -207,6 +212,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
         deltaEndTime: stepEndTime,
         step,
         anormalTypes: anormalTypes.join(','),
+        clusterIds,
+        groupId: dataGroupId,
       })
 
       const finalTopologyNodesMap = prepareTopologyNode(res.finalAnormalCounts)
@@ -248,6 +255,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
         deltaEndTime: deltaEndTime,
         step,
         anormalTypes: anormalTypes.join(','),
+        clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           const finalTopologyNodesMap = prepareTopologyNode(res.finalAnormalCounts)
@@ -282,6 +291,8 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
       endpoint: endpoint,
       step,
       anormalTypes: anormalTypes.join(','),
+      clusterIds,
+      groupId: dataGroupId,
     }).then((res) => {
       const chartData = res.anormalCount?.chartData || []
       setTimeLineChartData(chartData)
@@ -344,17 +355,19 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
   //防抖避免跳转使用旧时间
   useDebounce(
     async () => {
-      if (startTime && endTime && service && endpoint) {
+      if (startTime && endTime && service && endpoint && dataGroupId !== null) {
         setLoading(true)
         await updateState()
       }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, service, endpoint],
+    [startTime, endTime, service, endpoint, clusterIds, dataGroupId],
   )
   useEffect(() => {
     setService(searchParams.get('service'))
     setEndpoint(searchParams.get('endpoint'))
+    const clusterIds = searchParams.getAll('clusterIds')
+    setClusterIds(clusterIds.length > 0 ? clusterIds : undefined)
   }, [searchParams])
 
   const updateState = async () => {
@@ -368,9 +381,9 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
         initAlertDescendantTrend(),
         initAlertDescendantDelta(),
       ])
-    } catch(error){
+    } catch (error) {
       console.log(error)
-    }finally {
+    } finally {
       setLoading(false)
     }
   }
@@ -384,6 +397,7 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
   }, [anormalTypes])
   const memoizedValue = useMemo(
     () => ({
+      clusterIds,
       loading,
       topologyData,
       anormalTypes,
@@ -430,6 +444,7 @@ export const ServiceAnalyzeProvider: React.FC<{ children: ReactNode }> = ({ chil
       deltaAnormalEvents,
       service,
       endpoint,
+      clusterIds,
     ],
   )
 

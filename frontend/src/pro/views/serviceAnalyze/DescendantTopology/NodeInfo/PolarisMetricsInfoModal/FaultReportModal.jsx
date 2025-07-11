@@ -9,6 +9,7 @@ import BasicTable from 'src/core/components/Table/basicTable'
 import { getEntryEndpointApi } from 'src/pro/api/cause'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
+import { useServiceAnalyzeContext } from 'src/pro/contexts/ServiceAnalyzeContext'
 const i18nKey = 'node'
 
 export default function FaultReportModal({
@@ -19,7 +20,8 @@ export default function FaultReportModal({
   reason,
 }) {
   const { t } = useTranslation('pro/serviceAnalyze')
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+  const { clusterIds } = useServiceAnalyzeContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [reportList, setReportList] = useState([])
   const [pageIndex, setPageIndex] = useState(1)
@@ -128,6 +130,8 @@ export default function FaultReportModal({
         reason: reason,
         currentPage: pageIndex,
         pageSize: pageSize,
+        groupId: dataGroupId,
+        clusterIds: clusterIds,
       })
       const ReportList = result.list.map((item) => {
         return {
@@ -152,7 +156,7 @@ export default function FaultReportModal({
 
   useDebounce(
     () => {
-      if (modalVisibility) {
+      if (modalVisibility && dataGroupId !== null) {
         if (pageIndex === 1) {
           getData()
         } else {
@@ -161,7 +165,7 @@ export default function FaultReportModal({
       }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, service, endpoint, reason, modalVisibility],
+    [startTime, endTime, service, endpoint, reason, modalVisibility, dataGroupId, clusterIds],
   )
   useUpdateEffect(() => {
     getData()

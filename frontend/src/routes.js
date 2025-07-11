@@ -69,6 +69,12 @@ const baseRoutes = [
     element: IntegrationSettings,
   },
   {
+    path: '/system/data-group',
+    name: <TranslationCom text="dataGroup" space={namespace} />,
+    element: DataGroupPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
     path: '/system/team',
     name: <TranslationCom text="team" space={namespace} />,
     element: TeamPage,
