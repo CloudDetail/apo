@@ -5,6 +5,7 @@ package data
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -177,7 +178,7 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 	var toCleanScopes, protectedScopes []datagroup.DataScopeWithFullName
 	var toCleanScopeIDs []string
 	for _, scope := range needCleanScopes {
-		if containsInStr(noPermScopes, scope.ScopeID) {
+		if slices.Contains(noPermScopes, scope.ScopeID) {
 			protectedScopes = append(protectedScopes, datagroup.DataScopeWithFullName{
 				DataScope: scope,
 				FullName:  scope.FullName(),

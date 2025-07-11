@@ -4,6 +4,7 @@
 package common
 
 import (
+	"slices"
 	"sync"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -32,8 +33,8 @@ func CutTopologyRelationInGroup(ctx core.Context, dbRepo database.Repo, groupID 
 	cutRelation := make([]*model.TopologyRelation, 0)
 	for _, relation := range topologyRelation {
 		if relation.Group != model.GROUP_SERVICE ||
-			containsInStr(svcList, relation.Service) ||
-			containsInStr(svcList, relation.ParentService) {
+			slices.Contains(svcList, relation.Service) ||
+			slices.Contains(svcList, relation.ParentService) {
 			cutRelation = append(cutRelation, relation)
 		}
 	}
@@ -53,7 +54,7 @@ func MarkTopologyNodeInGroup(ctx core.Context, dbRepo database.Repo, groupID int
 	svcList := DataGroupStorage.GetFullPermissionSvcList(selected)
 
 	for _, node := range topologyNode.Nodes {
-		if node.Group == model.GROUP_SERVICE && !containsInStr(svcList, node.Service) {
+		if node.Group == model.GROUP_SERVICE && !slices.Contains(svcList, node.Service) {
 			node.OutOfGroup = true
 		}
 	}
@@ -124,13 +125,4 @@ func ConvertScopeNodeToPQLFilter(scopeNode *datagroup.DataScopeTreeNode) prometh
 	}
 
 	return prometheus.Or(filters...)
-}
-
-func containsInStr(options []string, input string) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }
