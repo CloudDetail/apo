@@ -16,7 +16,7 @@ export const adjustAlpha = (color, alpha) => {
   return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${alpha})`
 }
 
-const DelayLineChart = ({ data, timeRange, type }) => {
+const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true }) => {
   const { t } = useTranslation('common')
   const chartRef = useRef(null)
   const dispatch = useDispatch()
@@ -232,36 +232,36 @@ const DelayLineChart = ({ data, timeRange, type }) => {
     }
   }, [data, theme])
   const onChartReady = (chart) => {
-    setTimeout(() => {
-      console.log('test', chart)
-      chart.dispatchAction({
-        type: 'takeGlobalCursor',
-        key: 'brush',
-        brushOption: {
-          brushType: 'lineX',
-          brushMode: 'single',
-        },
-      })
-      chartRef.current?.getEchartsInstance().resize()
-    }, 100)
-    chart.on('brushEnd', function (params) {
-      if (params.areas && params.areas.length > 0) {
-        // 获取 brush 选中的区域
-        const brushArea = params.areas[0]
-        if (brushArea.brushType === 'lineX' && brushArea.range) {
-          const range = brushArea.range
-
-          // 获取时间轴的起始和结束时间
-          const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[0])
-          const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range[1])
-          setStoreTimeRange({
-            rangeType: null,
-            startTime: Math.round(startTime * 1000),
-            endTime: Math.round(endTime * 1000),
-          })
+    if (allowTimeBrush) {
+      setTimeout(() => {
+        chart.dispatchAction({
+          type: 'takeGlobalCursor',
+          key: 'brush',
+          brushOption: {
+            brushType: 'lineX',
+            brushMode: 'single',
+          },
+        })
+        chartRef.current?.getEchartsInstance().resize()
+      }, 100)
+      chart.on('brushEnd', function (params) {
+        if (params.areas && params.areas.length > 0) {
+          // 获取 brush 选中的区域
+          const brushArea = params.areas[0]
+          if (brushArea.brushType === 'lineX' && brushArea.range) {
+            const { range } = brushArea
+            // 获取时间轴的起始和结束时间
+            const startTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[0])
+            const endTime = chart.convertFromPixel({ xAxisIndex: 0 }, range?.[1])
+            setStoreTimeRange({
+              rangeType: null,
+              startTime: Math.round(startTime * 1000),
+              endTime: Math.round(endTime * 1000),
+            })
+          }
         }
-      }
-    })
+      })
+    }
   }
   return (
     <ReactECharts

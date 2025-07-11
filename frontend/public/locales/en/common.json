@@ -69,6 +69,14 @@
   "deleteSuccess": "Deleted Successfully",
   "addSuccess": "Added Successfully",
   "operation": "Operation",
+  "service": "Application",
+  "endpoint": "Endpoint",
   "error": "An unexpected error occurred on this page.",
-  "routeError": "Having no permission to access this route."
+  "routeError": "Having no permission to access this route.",
+  "tempCell": {
+    "times": " tpm ",
+    "unitsText": " Entry",
+    "DailyYoYText": "DailyYoY",
+    "WeeklyYoYText": "WeeklyYoY"
+  }
 }

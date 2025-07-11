@@ -70,6 +70,14 @@
   "deleteSuccess": "删除成功",
   "addSuccess": "新增成功",
   "operation": "操作",
+  "service": "应用名",
+  "endpoint": "端点",
   "error": "页面遇到未知错误",
-  "routeError": "当前没有权限访问该路由"
+  "routeError": "当前没有权限访问该路由",
+  "tempCell": {
+    "times": "次/分",
+    "unitsText": "个",
+    "DailyYoYText": "日同比",
+    "WeeklyYoYText": "周同比"
+  }
 }
