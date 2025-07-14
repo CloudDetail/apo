@@ -29,17 +29,17 @@ func rowsToMapSlice(rows driver.Rows) ([]map[string]any, error) {
 		switch colType.DatabaseTypeName() {
 		case "DateTime64", "DateTime", "DateTime64(9)":
 			valuePtrs[i] = new(time.Time)
-		case "UInt64":
+		case "UInt64", "Nullable(UInt64)":
 			valuePtrs[i] = new(uint64)
-		case "Int64":
+		case "Int64", "Nullable(Int64)":
 			valuePtrs[i] = new(int64)
-		case "UInt32":
+		case "UInt32", "Nullable(Uint32)":
 			valuePtrs[i] = new(uint32)
-		case "Int32":
+		case "Int32", "Nullable(Int32)":
 			valuePtrs[i] = new(int32)
-		case "Float64":
+		case "Float64", "Nullable(Float64)":
 			valuePtrs[i] = new(float64)
-		case "Float32":
+		case "Float32", "Nullable(Float32)":
 			valuePtrs[i] = new(float32)
 		case "Nullable(String)", "String", "FixedString", "LowCardinality(String)":
 			valuePtrs[i] = new(string)
