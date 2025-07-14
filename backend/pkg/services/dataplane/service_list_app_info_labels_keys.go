@@ -25,7 +25,7 @@ func (s *service) ListAPPInfoLabelValues(ctx core.Context, req *request.QueryAPP
 		return nil, err
 	}
 	return &response.QueryAPPInfoTagValuesResponse{
-		Labels: req.Label,
+		Label:  req.Label,
 		Values: values,
 	}, nil
 }

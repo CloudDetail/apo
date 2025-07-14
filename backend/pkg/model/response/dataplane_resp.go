@@ -74,6 +74,6 @@ type QueryAPPInfoTagsResponse struct {
 }
 
 type QueryAPPInfoTagValuesResponse struct {
-	Labels string   `json:"label"`
+	Label  string   `json:"label"`
 	Values []string `json:"values"`
 }

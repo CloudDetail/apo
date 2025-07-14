@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -40,16 +41,23 @@ func (repo *chRepo) ListAppInfoLabelKeys(ctx core.Context, startTime, endTime in
 	return result, nil
 }
 
-func escapeAppInfoKeys(key string) string {
+var safeKeyRe = regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
+
+func escapeAppInfoKeys(key string) (string, error) {
+	if !safeKeyRe.MatchString(key) {
+		return "", fmt.Errorf("invalid label key")
+	}
 	escapedKey := strings.ReplaceAll(key, `'`, `''`)
-	expr := `labels['` + escapedKey + `']`
-	escapedExpr := strings.ReplaceAll(expr, "`", "``")
-	return "`" + escapedExpr + "`"
+	return "labels['" + escapedKey + "']", nil
 }
 
 func (repo *chRepo) ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error) {
+	labelKey, err := escapeAppInfoKeys(key)
+	if err != nil {
+		return nil, err
+	}
 	fb := NewFieldBuilder().
-		Alias(escapeAppInfoKeys(key), "value")
+		Alias(labelKey, "value")
 
 	qb := NewQueryBuilder().
 		Between("timestamp", startTime/1e6, endTime/1e6)
