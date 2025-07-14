@@ -3,11 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { createContext, useContext, useEffect, useMemo, useReducer, useState } from 'react'
-import userReducer, { initialState } from '../store/reducers/userReducer'
+import React, { createContext, useContext, useEffect } from 'react'
 import { getUserPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
-import { getUserGroupApi } from '../api/dataGroup'
 import { useDispatch, useSelector } from 'react-redux'
 
 const UserContext = createContext({})
@@ -27,21 +25,6 @@ export const UserProvider = ({ children }) => {
     })
   }
 
-  const getUserDataGroup = () => {
-    if (user.userId) {
-      getUserGroupApi(user.userId, 'apm').then((res) => {
-        dispatch({
-          type: 'setDataGroupList',
-          payload: (res || []).map((item) => ({
-            groupId: item.groupId,
-            groupName: item.groupName,
-            authType: item.authType,
-            source: item.source,
-          })),
-        })
-      })
-    }
-  }
   useEffect(() => {
     if (user.userId) {
       getUserPermission()
@@ -55,7 +38,6 @@ export const UserProvider = ({ children }) => {
     dispatch: dispatch,
     menuItems: menuItems,
     getUserPermission,
-    getUserDataGroup: () => getUserDataGroup(),
   }
 
   return (

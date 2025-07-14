@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { CCard } from '@coreui/react'
 import { useSelector } from 'react-redux'
@@ -9,6 +9,7 @@ import LoadingSpinner from 'src/core/components/Spinner'
 import BorderTag from 'src/core/components/Tag/BorderTag'
 import { getServiceHealthyApi } from 'src/pro/api/serviceHealthy'
 import { useTranslation } from 'react-i18next'
+import { useDebounce } from 'react-use'
 export default function ServiceHealthyPage() {
   const { t } = useTranslation('pro/healthy')
   const [data, setData] = useState([])
@@ -16,6 +17,8 @@ export default function ServiceHealthyPage() {
   const [serachEndpointName, setSerachEndpointName] = useState()
   const [serachNamespace, setSerachNamespace] = useState()
   const [loading, setLoading] = useState(false)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+
   const StatusColorMap = {
     yellow: '#f9bb07',
     green: '#24d160',
@@ -89,6 +92,7 @@ export default function ServiceHealthyPage() {
         serviceName: serachServiceName,
         endpointName: serachEndpointName,
         namespace: serachNamespace,
+        dataGroupId: dataGroupId,
       })
         .then((res) => {
           //   if (res && res?.length > 0) {
@@ -105,9 +109,15 @@ export default function ServiceHealthyPage() {
         })
     }
   }
-  useEffect(() => {
-    getTableData()
-  }, [startTime, endTime])
+  useDebounce(
+    () => {
+      if (startTime && endTime && dataGroupId !== null) {
+        getTableData()
+      }
+    },
+    300, // 延迟 300ms
+    [startTime, endTime, dataGroupId], // 依赖项
+  )
 
   const handleKeyDown = (event) => {
     getTableData()

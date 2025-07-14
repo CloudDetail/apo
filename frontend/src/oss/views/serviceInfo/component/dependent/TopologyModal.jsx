@@ -7,7 +7,6 @@ import { CCard, CCardBody, CCardHeader } from '@coreui/react'
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getServiceRelationApi } from 'core/api/serviceInfo'
 import Topology from 'src/core/components/ReactFlow/Topology'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
 import TimelapseLineChart from './TimelapseLineChart'
@@ -15,6 +14,7 @@ import DependentTable from './DependentTable'
 import { Button, Modal } from 'antd'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
+import { getServiceRelationApi } from 'src/core/api/service'
 
 function escapeId(id) {
   return id.replace(/[^a-zA-Z0-9-_]/g, '_')
@@ -24,7 +24,7 @@ function contactServiceEndpoint(service, endpoint) {
 }
 export default function TopologyModal(props) {
   const [visible, setVisible] = useState(false)
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
   const { startTime, endTime } = props
   const [topologyData, setTopologyData] = useState({
     nodes: [],
@@ -34,6 +34,7 @@ export default function TopologyModal(props) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const { displayData, modalService, modalEndpoint } = useSelector((state) => state.topologyReducer)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const dispatch = useDispatch()
   const { t } = useTranslation('oss/serviceInfo')
   const clearTopology = () => {
@@ -69,6 +70,7 @@ export default function TopologyModal(props) {
           isTraced: current.isTraced,
           service: current.service,
           endpoint: current.endpoint,
+          outOfGroup: current.outOfGroup,
         },
         position: { x: 0, y: 0 },
         type: 'serviceNode',
@@ -86,6 +88,7 @@ export default function TopologyModal(props) {
             isTraced: parent.isTraced,
             service: parent.service,
             endpoint: parent.endpoint,
+            outOfGroup: parent.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'serviceNode',
@@ -115,6 +118,7 @@ export default function TopologyModal(props) {
             isTraced: child.isTraced,
             service: child.service,
             endpoint: child.endpoint,
+            outOfGroup: child.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'serviceNode',
@@ -207,6 +211,7 @@ export default function TopologyModal(props) {
       const children = allEdges.filter(
         (edge) => node.id === edge.source && !edgesToDisplay.has(edge.id),
       )
+
       if (children?.length > 0) {
         moreNodes.push({
           id: node.id + '-child',
@@ -214,6 +219,7 @@ export default function TopologyModal(props) {
             label: '更多',
             parentService: node.data.service,
             parentEndpoint: node.data.endpoint,
+            disabled: node.data.outOfGroup,
           },
           position: { x: 0, y: 0 },
           type: 'moreNode',
@@ -277,7 +283,7 @@ export default function TopologyModal(props) {
   }, [allTopologyData, displayData])
 
   useEffect(() => {
-    if (modalService && modalEndpoint && startTime && endTime) {
+    if (modalService && modalEndpoint && startTime && endTime && dataGroupId !== null) {
       setLoading(true)
       setData(null)
       setAllTopologyData(null)
@@ -286,6 +292,8 @@ export default function TopologyModal(props) {
         endTime: endTime,
         service: modalService,
         endpoint: modalEndpoint,
+        clusterIds: clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           setData(res)
@@ -296,7 +304,7 @@ export default function TopologyModal(props) {
           setLoading(false)
         })
     }
-  }, [modalService, modalEndpoint, startTime, endTime])
+  }, [modalService, modalEndpoint, startTime, endTime, dataGroupId, clusterIds])
   const closeModal = () => {
     clearTopology()
     setVisible(false)

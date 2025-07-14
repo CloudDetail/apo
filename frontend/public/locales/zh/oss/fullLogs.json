@@ -29,7 +29,9 @@
     "placeholder": "请输入查询语句"
   },
   "logQueryResult": {
-    "totalText": "日志总条数："
+    "totalText": "日志总条数：",
+    "hideNull": "隐藏空白字段",
+    "displayNull": "显示空白字段"
   },
   "queryList": {
     "noDataText": "暂无日志数据",

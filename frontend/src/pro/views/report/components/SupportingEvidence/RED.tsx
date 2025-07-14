@@ -19,6 +19,7 @@ const REDMetrics = ({ data, startTime, endTime }) => {
               data={item.chartData}
               timeRange={{ startTime, endTime }}
               type={item.type}
+              needFillZero={false}
               allowTimeBrush={false}
             />
           </div>

@@ -68,6 +68,19 @@ const (
 		WHERE service_relationship.timestamp BETWEEN %d AND %d
 		GROUP BY parentService, service, clientGroup, clientPeer
 	`
+	SQL_GET_ANCESTOR_NODES = `WITH found_trace_ids AS
+  (
+    SELECT trace_id, path
+    FROM service_relationship
+    %s
+    GROUP BY trace_id, path
+    LIMIT 1000
+  )
+  SELECT  service, url, min(length(splitByChar('.', service_relationship.path))) AS depth
+  FROM service_relationship
+  GLOBAL JOIN found_trace_ids ON service_relationship.trace_id = found_trace_ids.trace_id
+  WHERE startsWith(found_trace_ids.path, service_relationship.path)
+  group by service,url`
 )
 
 // Query the list of upstream nodes
@@ -127,7 +140,7 @@ func (ch *chRepo) ListDescendantNodes(ctx core.Context, req *request.GetDescenda
 }
 
 // Query the topological relationships of all descendants
-func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.ToplogyRelation, error) {
+func (ch *chRepo) ListDescendantRelations(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) ([]*model.TopologyRelation, error) {
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
@@ -178,6 +191,22 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	return getServiceTopologyNodes(results), nil
 }
 
+func (ch *chRepo) ListAncestorEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]ServiceNodeWithDepth, error) {
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", req.StartTime/1000000, req.EndTime/1000000).
+		Equals("service", req.Service).
+		Equals("url", req.Endpoint).
+		Equals("miss_top", false)
+
+	results := []ServiceNodeWithDepth{}
+	sql := fmt.Sprintf(SQL_GET_ANCESTOR_NODES, queryBuilder.String())
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+	return results, nil
+
+}
+
 type ParentNode struct {
 	ParentService string `ch:"parentService"`
 	ParentUrl     string `ch:"parentUrl"`
@@ -186,6 +215,19 @@ type ParentNode struct {
 	ClientType    string `ch:"clientType"`
 	ClientPeer    string `ch:"clientPeer"`
 	ClientKey     string `ch:"clientKey"`
+}
+
+type ServiceNodeWithDepth struct {
+	Service  string `ch:"service"`
+	Endpoint string `ch:"url"`
+	Depth    uint64 `ch:"depth"`
+}
+
+type ServiceNodeRelationWithDepth struct {
+	ParentService  string `ch:"parent_service"`
+	ParentEndpoint string `ch:"parent_url"`
+
+	ServiceNodeWithDepth
 }
 
 // Consider 2 scenarios
@@ -372,13 +414,13 @@ func (relation *ChildRelation) getParentCurrentKey() string {
 	return fmt.Sprintf("%s.%s.%s.%s", relation.ParentService, relation.ParentUrl, relation.Service, relation.Url)
 }
 
-func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation {
-	result := make([]*model.ToplogyRelation, 0)
+func getDescendantRelations(relations []ChildRelation) []*model.TopologyRelation {
+	result := make([]*model.TopologyRelation, 0)
 	if len(relations) == 0 {
 		return result
 	}
 
-	relationMap := make(map[string]*model.ToplogyRelation)
+	relationMap := make(map[string]*model.TopologyRelation)
 	childMap := make(map[string]struct{}) // remove dirty data
 	for _, relation := range relations {
 		if relation.ClientGroup == model.GROUP_MQ {
@@ -388,7 +430,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 			if relation.ParentService != "" {
 				clientKey := relation.getParentClientKey()
 				if _, exist := relationMap[clientKey]; !exist {
-					relationMap[clientKey] = &model.ToplogyRelation{
+					relationMap[clientKey] = &model.TopologyRelation{
 						ParentService:  relation.ParentService,
 						ParentEndpoint: relation.ParentUrl,
 						Service:        relation.ClientPeer,
@@ -438,7 +480,7 @@ func getDescendantRelations(relations []ChildRelation) []*model.ToplogyRelation 
 			key := relation.getParentClientKey()
 			if _, exist := childMap[key]; !exist {
 				// Service not monitored
-				relationMap[key] = &model.ToplogyRelation{
+				relationMap[key] = &model.TopologyRelation{
 					ParentService:  relation.ParentService,
 					ParentEndpoint: relation.ParentUrl,
 					Service:        relation.ClientPeer,
@@ -486,15 +528,15 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 		var parentNode *model.ServiceToplogyNode
 		var childNode *model.ServiceToplogyNode
 		if relation.ParentService != "" {
-			parentNode = result.AddTopologyNode(relation.ParentService, "application")
+			parentNode = result.AddTopologyNode(relation.ParentService, "application", false)
 		}
 		if relation.Service != "" {
-			childNode = result.AddTopologyNode(relation.Service, "application")
+			childNode = result.AddTopologyNode(relation.Service, "application", false)
 		}
 		if relation.ClientGroup == model.GROUP_MQ {
 			// MQ data A -> MQ -> B, two nodes MQ and B need to be generated
 			if relation.ClientPeer != "" {
-				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq")
+				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq", false)
 				if parentNode != nil {
 					parentNode.AddChild(mqNode)
 				}
@@ -512,12 +554,12 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 			}
 		}
 	}
-	
+
 	for _, relation := range relations {
 		if relation.ParentService != "" && relation.ClientPeer != "" {
 			if _, found := externalMap[relation.ClientPeer]; !found {
 				parentNode := result.Nodes[relation.ParentService]
-				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup)
+				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup, false)
 				parentNode.AddChild(externalNode)
 			}
 		}

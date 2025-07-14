@@ -57,8 +57,6 @@ const SupportingEvidence = ({ evidence, startTime, endTime }: SupportingEvidence
             <MultiLineChart
               chartData={convertMetricsData(data)}
               unit={unit}
-              startTime={startTime}
-              endTime={endTime}
               allowTimeBrush={false}
               YFormatter={(value) => YFormatter(value, unit)}
             />

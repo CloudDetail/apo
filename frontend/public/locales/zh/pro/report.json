@@ -2,7 +2,7 @@
   "error": "错误报告",
   "slow": "慢故障报告",
   "infra": "基础设施异常报告",
-  "serviceName": "服务名",
+  "service": "服务名",
   "pod": "Pod信息",
   "containerId": "容器ID",
   "nodeName": "节点名称",
@@ -12,7 +12,13 @@
     "code": "代码性能",
     "net": "网络质量",
     "storage": "存储问题",
-    "downstream": "依赖慢"
+    "downstream": "依赖慢",
+    "thirdparty": "第三方依赖",
+    "config": "配置问题",
+    "system": "系统资源异常",
+    "disk": "磁盘异常",
+    "file": "文件描述符使用异常",
+    "memory": "内存使用异常"
   },
   "level": {
     "major": "主要故障",
@@ -32,5 +38,7 @@
   "main": "主要故障",
   "showMore": "显示节点具体信息",
   "collapse": "收起",
-  "configBusinessName": "配置业务名"
+  "clickToConfig": "点击配置业务别名",
+  "configBusinessName": "配置业务名",
+  "alertDirection": "告警方向"
 }

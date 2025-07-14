@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetServiceEndpointRelationRequest) (*response.GetServiceEndpointRelationResponse, error) {
@@ -17,12 +18,39 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
-	var relations []*model.ToplogyRelation
+	parents, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
+	if err != nil {
+		return nil, err
+	}
+
+	var relations []*model.TopologyRelation
+
+	if req.GroupID > 0 {
+		// target service is not Real entry but a ancestor service in group
+		req.EntryService = ""
+		req.EntryEndpoint = ""
+	}
+
 	if req.RemoveClientCall {
 		relations, err = s.chRepo.ListDescendantRelationsWithoutEdge(ctx, &req.GetServiceEndpointTopologyRequest)
 	} else {
 		// Query the calling relationship list of all downstream nodes
 		relations, err = s.chRepo.ListDescendantRelations(ctx, &req.GetServiceEndpointTopologyRequest)
+	}
+
+	var svcInGroup []string
+	if req.GroupID > 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		svcInGroup = common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		for i := 0; i < len(relations); i++ {
+			if relations[i].Group == model.GROUP_SERVICE &&
+				!containsInStr(svcInGroup, relations[i].Service) {
+				relations[i].OutOfGroup = true
+			}
+		}
 	}
 
 	if err != nil {
@@ -45,7 +73,7 @@ func (s *service) GetServiceEndpointRelation(ctx core.Context, req *request.GetS
 		endpointMatrix := newEndpointDepthMatrix(req.EntryService, req.EntryEndpoint, relations)
 		if req.WithTopologyLevel {
 			// 下游接口评估非循环下的最大深度
-			res.TopologyLevels = endpointMatrix.EndpointsLevel()
+			res.TopologyLevels = endpointMatrix.EndpointsLevel(svcInGroup)
 		}
 	}
 	return res, nil
@@ -56,6 +84,7 @@ type EndpointDepthMatrix struct {
 	EndpointKeys []model.EndpointKey
 
 	NotTracedEndpointsIdx []int
+	DBService             map[string]struct{}
 
 	Matrix [][]int
 }
@@ -67,10 +96,11 @@ type EndpointInfo struct {
 	ExternalClientCalls []model.TopologyNode
 }
 
-func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*model.ToplogyRelation) *EndpointDepthMatrix {
+func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*model.TopologyRelation) *EndpointDepthMatrix {
 	matrix := &EndpointDepthMatrix{
 		EndpointSet:  map[model.EndpointKey]int{},
 		EndpointKeys: []model.EndpointKey{},
+		DBService:    map[string]struct{}{},
 	}
 	root := model.EndpointKey{
 		ServiceName: entryService,
@@ -80,6 +110,9 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*mod
 	matrix.EndpointKeys = append(matrix.EndpointKeys, root)
 
 	for _, relation := range relations {
+		if relation.Group != model.GROUP_SERVICE {
+			matrix.DBService[relation.Service] = struct{}{}
+		}
 		childEndpoint := model.EndpointKey{
 			ServiceName: relation.Service,
 			Endpoint:    relation.Endpoint,
@@ -113,7 +146,7 @@ func newEndpointDepthMatrix(entryService, entryEndpoint string, relations []*mod
 	return matrix
 }
 
-func (m *EndpointDepthMatrix) AddRelation(relation *model.ToplogyRelation) {
+func (m *EndpointDepthMatrix) AddRelation(relation *model.TopologyRelation) {
 	parentEndpoint := model.EndpointKey{
 		ServiceName: relation.ParentService,
 		Endpoint:    relation.ParentEndpoint,
@@ -187,7 +220,7 @@ func (m *EndpointDepthMatrix) dfs(node int, target int, visited []bool, currentD
 	return maxDistance, false
 }
 
-func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
+func (m *EndpointDepthMatrix) EndpointsLevel(svcInGroups []string) []response.TopologyNodeLevel {
 	var res []response.TopologyNodeLevel
 	for idx, endpoint := range m.EndpointKeys {
 		if isSkipped(m.NotTracedEndpointsIdx, idx) {
@@ -197,10 +230,20 @@ func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
 		if !find {
 			depth = -1
 		}
+
+		var outOfGroup = false
+		if len(svcInGroups) > 0 {
+			if !containsInStr(svcInGroups, endpoint.ServiceName) {
+				if _, find := m.DBService[endpoint.ServiceName]; !find {
+					outOfGroup = true
+				}
+			}
+		}
 		res = append(res, response.TopologyNodeLevel{
-			Service:  endpoint.ServiceName,
-			Endpoint: endpoint.Endpoint,
-			Depth:    depth,
+			Service:    endpoint.ServiceName,
+			Endpoint:   endpoint.Endpoint,
+			Depth:      depth,
+			OutOfGroup: outOfGroup,
 		})
 	}
 	return res
@@ -209,6 +252,15 @@ func (m *EndpointDepthMatrix) EndpointsLevel() []response.TopologyNodeLevel {
 func isSkipped(skipped []int, idx int) bool {
 	for _, v := range skipped {
 		if v == idx {
+			return true
+		}
+	}
+	return false
+}
+
+func containsInStr(options []string, input string) bool {
+	for _, v := range options {
+		if v == input {
 			return true
 		}
 	}

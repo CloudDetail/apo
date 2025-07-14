@@ -54,6 +54,9 @@ func (nodes *TopologyNodes) GetLabels(group string) ([]string, []string, []strin
 	endpoints := make([]string, 0)
 	systems := make([]string, 0)
 	for _, node := range nodes.Nodes {
+		if node.OutOfGroup {
+			continue
+		}
 		if node.Group == group {
 			services = append(services, node.Service)
 			endpoints = append(endpoints, node.Endpoint)
@@ -69,6 +72,8 @@ type TopologyNode struct {
 	IsTraced bool   `json:"isTraced"`
 	Group    string `json:"group"`
 	System   string `json:"system"`
+
+	OutOfGroup bool `json:"outOfGroup"`
 }
 
 func NewServerNode(service string, url string, isTraced bool) *TopologyNode {
@@ -81,7 +86,7 @@ func NewServerNode(service string, url string, isTraced bool) *TopologyNode {
 	}
 }
 
-type ToplogyRelation struct {
+type TopologyRelation struct {
 	ParentService  string `json:"parentService"`
 	ParentEndpoint string `json:"parentEndpoint"`
 	Service        string `json:"service"`
@@ -89,10 +94,12 @@ type ToplogyRelation struct {
 	IsTraced       bool   `json:"isTraced"`
 	Group          string `json:"group"`
 	System         string `json:"system"`
+
+	OutOfGroup bool `json:"outOfGroup"`
 }
 
-func NewServerRelation(parentService, parentEndPoint, service, endpoint string, isTraced bool) *ToplogyRelation {
-	return &ToplogyRelation{
+func NewServerRelation(parentService, parentEndPoint, service, endpoint string, isTraced bool) *TopologyRelation {
+	return &TopologyRelation{
 		ParentService:  parentService,
 		ParentEndpoint: parentEndPoint,
 		Service:        service,
@@ -113,11 +120,11 @@ func NewServiceTopologyNodes() *ServiceTopologyNodes {
 	}
 }
 
-func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category string) *ServiceToplogyNode {
+func (nodes *ServiceTopologyNodes) AddTopologyNode(service string, category string, isCustom bool) *ServiceToplogyNode {
 	if node, exist := nodes.Nodes[service]; exist {
 		return node
 	}
-	node := NewServiceToplogyNode(service, category)
+	node := NewServiceToplogyNode(service, category, isCustom)
 	nodes.Nodes[service] = node
 	return node
 }
@@ -126,15 +133,17 @@ type ServiceToplogyNode struct {
 	Id       string   `json:"id"`
 	Name     string   `json:"name"`
 	Category string   `json:"category"`
+	IsCustom bool     `json:"isCustom"`
 	Parents  []string `json:"parents"`
 	Children []string `json:"children"`
 }
 
-func NewServiceToplogyNode(service string, category string) *ServiceToplogyNode {
+func NewServiceToplogyNode(service string, category string, isCustom bool) *ServiceToplogyNode {
 	return &ServiceToplogyNode{
-		Id: service,
-		Name:  service,
+		Id:       service,
+		Name:     service,
 		Category: category,
+		IsCustom: isCustom,
 		Parents:  []string{},
 		Children: []string{},
 	}

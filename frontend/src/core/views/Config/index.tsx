@@ -1,10 +1,16 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useState, useEffect } from 'react'
 import { Table, Button, Modal, Form, Input, message, Space, Popconfirm } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import GlassCard from 'src/core/components/GlassCard'
 
 const ServiceAliasConfig = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation('core/config')
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -12,9 +18,9 @@ const ServiceAliasConfig = () => {
   const [form] = Form.useForm()
 
   const mockData = [
-    { id: 1, serviceName: 'user-service', businessAlias: '用户服务' },
-    { id: 2, serviceName: 'order-service', businessAlias: '订单服务' },
-    { id: 3, serviceName: 'payment-service', businessAlias: '支付服务' },
+    { id: 1, serviceName: 'user-service', businessAlias: t('serviceAlias.userService') },
+    { id: 2, serviceName: 'order-service', businessAlias: t('serviceAlias.orderService') },
+    { id: 3, serviceName: 'payment-service', businessAlias: t('serviceAlias.paymentService') },
   ]
 
   useEffect(() => {
@@ -44,24 +50,22 @@ const ServiceAliasConfig = () => {
 
   const handleDelete = (id) => {
     setData(data.filter((item) => item.id !== id))
-    message.success(t('删除成功'))
+    message.success(t('serviceAlias.deleteSuccess'))
   }
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields()
       if (editingRecord) {
-        // 更新
         setData(data.map((item) => (item.id === editingRecord.id ? { ...item, ...values } : item)))
-        message.success(t('更新成功'))
+        message.success(t('serviceAlias.updateSuccess'))
       } else {
-        // 新增
         const newRecord = {
           id: Date.now(),
           ...values,
         }
         setData([...data, newRecord])
-        message.success(t('添加成功'))
+        message.success(t('serviceAlias.addSuccess'))
       }
       setModalVisible(false)
     } catch (error) {
@@ -71,31 +75,31 @@ const ServiceAliasConfig = () => {
 
   const columns = [
     {
-      title: t('服务名'),
+      title: t('serviceAlias.serviceName'),
       dataIndex: 'serviceName',
       key: 'serviceName',
     },
     {
-      title: t('业务别名'),
+      title: t('serviceAlias.businessAlias'),
       dataIndex: 'businessAlias',
       key: 'businessAlias',
     },
     {
-      title: t('操作'),
+      title: t('serviceAlias.operation'),
       key: 'action',
       render: (_, record) => (
         <Space>
           <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            {t('编辑')}
+            {t('serviceAlias.edit')}
           </Button>
           <Popconfirm
-            title={t('确定删除吗？')}
+            title={t('serviceAlias.confirmDelete')}
             onConfirm={() => handleDelete(record.id)}
-            okText={t('确定')}
-            cancelText={t('取消')}
+            okText={t('serviceAlias.confirm')}
+            cancelText={t('serviceAlias.cancel')}
           >
             <Button type="link" danger icon={<DeleteOutlined />}>
-              {t('删除')}
+              {t('serviceAlias.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -104,10 +108,11 @@ const ServiceAliasConfig = () => {
   ]
 
   return (
-    <div>
+    <div style={{ position: 'relative', height: 'calc(100vh - 120px)' }}>
+      <GlassCard content={<p>{t('core/mask:comingSoon')}</p>} />
       <div style={{ marginBottom: 16 }}>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          {t('添加服务别名')}
+          {t('serviceAlias.add')}
         </Button>
       </div>
 
@@ -119,32 +124,32 @@ const ServiceAliasConfig = () => {
         pagination={{
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => t('共 {{total}} 条', { total }),
+          showTotal: (total) => t('serviceAlias.totalItems', { total }),
         }}
       />
 
       <Modal
-        title={editingRecord ? t('编辑服务别名') : t('添加服务别名')}
+        title={editingRecord ? t('serviceAlias.edit') : t('serviceAlias.add')}
         open={modalVisible}
         onOk={handleSubmit}
         onCancel={() => setModalVisible(false)}
-        okText={t('确定')}
-        cancelText={t('取消')}
+        okText={t('serviceAlias.confirm')}
+        cancelText={t('serviceAlias.cancel')}
       >
         <Form form={form} layout="vertical">
           <Form.Item
             name="serviceName"
-            label={t('服务名')}
-            rules={[{ required: true, message: t('请输入服务名') }]}
+            label={t('serviceAlias.serviceName')}
+            rules={[{ required: true, message: t('serviceAlias.pleaseInputServiceName') }]}
           >
-            <Input placeholder={t('请输入服务名')} />
+            <Input placeholder={t('serviceAlias.pleaseInputServiceName')} />
           </Form.Item>
           <Form.Item
             name="businessAlias"
-            label={t('业务别名')}
-            rules={[{ required: true, message: t('请输入业务别名') }]}
+            label={t('serviceAlias.businessAlias')}
+            rules={[{ required: true, message: t('serviceAlias.pleaseInputBusinessAlias') }]}
           >
-            <Input placeholder={t('请输入业务别名')} />
+            <Input placeholder={t('serviceAlias.pleaseInputBusinessAlias')} />
           </Form.Item>
         </Form>
       </Modal>

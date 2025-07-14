@@ -106,6 +106,8 @@ const LayoutFlow = (props) => {
       const sourceNode = nodes.find((node) => node.id === edge.source)
       const targetNode = nodes.find((node) => node.id === edge.target)
       if (
+        sourceNode &&
+        targetNode &&
         sourceNode.position.x > targetNode.position.x &&
         Math.abs(sourceNode.position.y - targetNode.position.y) < nodeHeight
       ) {
@@ -115,7 +117,7 @@ const LayoutFlow = (props) => {
     return { nodes, edges }
   }
   const clickNode = (e, node) => {
-    if (node.type === 'moreNode') {
+    if (node.type === 'moreNode' && !node.data.disabled) {
       setModalData({
         modalService: node.data.parentService,
         modalEndpoint: node.data.parentEndpoint,

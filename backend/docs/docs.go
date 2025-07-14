@@ -914,7 +914,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/alert/events": {
-            "get": {
+            "post": {
                 "description": "get alarm events",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1245,7 +1245,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/descendant/anormal/contribution": {
-            "get": {
+            "post": {
                 "description": "获取下游故障贡献度",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1473,7 +1473,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/descendant/anormal/trend": {
-            "get": {
+            "post": {
                 "description": "获取下游异常变化趋势",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1703,7 +1703,7 @@ const docTemplate = `{
             }
         },
         "/api/alerts/event/impact": {
-            "get": {
+            "post": {
                 "description": "获取告警数据的影响面",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1828,6 +1828,82 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.AlertEventSearchResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/events/report/add": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alerts/events/report/get": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertEventReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertEventReportResponse"
                         }
                     },
                     "400": {
@@ -3012,52 +3088,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/data/group/create": {
-            "post": {
-                "description": "Create a data group.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.data"
-                ],
-                "summary": "Create a data group.",
-                "parameters": [
-                    {
-                        "description": "Request",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.CreateDataGroupRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/data/group/data": {
             "get": {
                 "description": "Get group's datasource.",
@@ -3107,50 +3137,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/data/group/delete": {
-            "post": {
-                "description": "Delete the data group.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.data"
-                ],
-                "summary": "Delete the data group.",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Data group's id",
-                        "name": "groupId",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/data/group/operation": {
             "post": {
                 "description": "Assign data groups to users or teams, or remove them from data groups.",
@@ -3172,52 +3158,6 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.DataGroupOperationRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/data/group/update": {
-            "post": {
-                "description": "Updates data group.",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.data"
-                ],
-                "summary": "Updates data group.",
-                "parameters": [
-                    {
-                        "description": "Request",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.UpdateDataGroupRequest"
                         }
                     },
                     {
@@ -3290,7 +3230,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.DataGroup"
+                                "$ref": "#/definitions/datagroup.DataGroup"
                             }
                         }
                     },
@@ -3442,8 +3382,159 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/database.DataGroup"
+                                "$ref": "#/definitions/datagroup.DataGroup"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/customtopology/create": {
+            "post": {
+                "description": "Create custom topology.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Create custom topology.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cluster Id",
+                        "name": "clusterId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "parent node name",
+                        "name": "leftNode",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "parent node type",
+                        "name": "leftType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "child node name",
+                        "name": "rightNode",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "child node type",
+                        "name": "rightType",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/customtopology/delete": {
+            "post": {
+                "description": "Delete custom topology.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Delete custom topology.",
+                "parameters": [
+                    {
+                        "description": "Delete Custom Topology Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteCustomTopologyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/customtopology/list": {
+            "get": {
+                "description": "List custom topology.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "List custom topology.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListCustomTopologyResponse"
                         }
                     },
                     "400": {
@@ -3664,6 +3755,163 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.QueryServiceNameResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/checkRule": {
+            "post": {
+                "description": "Check servicename rule.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Check servicename rule.",
+                "parameters": [
+                    {
+                        "description": "Check ServiceName Rule Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetServiceNameRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CheckServiceNameRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/deleteRule": {
+            "post": {
+                "description": "Delete servicename rule.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Delete servicename rule.",
+                "parameters": [
+                    {
+                        "description": "Delete ServiceName Rule Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteServiceNameRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/listRule": {
+            "get": {
+                "description": "List servicename rule.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "List servicename rule.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListServiceNameRuleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/upsertRule": {
+            "post": {
+                "description": "Create or update servicename rule.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Create or update servicename rule.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetServiceNameRuleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -5784,10 +6032,10 @@ const docTemplate = `{
             }
         },
         "/api/service/alert/events": {
-            "get": {
+            "post": {
                 "description": "get alarm events",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -5893,10 +6141,10 @@ const docTemplate = `{
             }
         },
         "/api/service/alert/sample/events": {
-            "get": {
+            "post": {
                 "description": "get sampling alarm events",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -5987,10 +6235,10 @@ const docTemplate = `{
             }
         },
         "/api/service/descendant/metrics": {
-            "get": {
+            "post": {
                 "description": "get the delay curve data of all downstream services",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6074,10 +6322,10 @@ const docTemplate = `{
             }
         },
         "/api/service/descendant/relevance": {
-            "get": {
+            "post": {
                 "description": "get the dependent node delay correlation degree",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6167,10 +6415,10 @@ const docTemplate = `{
             }
         },
         "/api/service/endpoint/list": {
-            "get": {
+            "post": {
                 "description": "get the list of service EndPoint",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6227,10 +6475,10 @@ const docTemplate = `{
             }
         },
         "/api/service/endpoints": {
-            "get": {
+            "post": {
                 "description": "get the list of endpoints services",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6328,10 +6576,10 @@ const docTemplate = `{
             }
         },
         "/api/service/entry/endpoints": {
-            "get": {
+            "post": {
                 "description": "get the service entry Endpoint list",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6409,10 +6657,10 @@ const docTemplate = `{
             }
         },
         "/api/service/error/instance": {
-            "get": {
+            "post": {
                 "description": "get the error instance",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6493,10 +6741,10 @@ const docTemplate = `{
             }
         },
         "/api/service/errorinstance/logs": {
-            "get": {
+            "post": {
                 "description": "get the error instance failure site log",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6638,10 +6886,10 @@ const docTemplate = `{
             }
         },
         "/api/service/instance/list": {
-            "get": {
+            "post": {
                 "description": "get the list of service instances",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6700,10 +6948,10 @@ const docTemplate = `{
             }
         },
         "/api/service/instance/options": {
-            "get": {
+            "post": {
                 "description": "get the drop-down list of service instances",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6761,10 +7009,10 @@ const docTemplate = `{
             }
         },
         "/api/service/instanceinfo/list": {
-            "get": {
+            "post": {
                 "description": "get the list of service instances",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6823,10 +7071,10 @@ const docTemplate = `{
             }
         },
         "/api/service/instances": {
-            "get": {
+            "post": {
                 "description": "get the URL instance corresponding to the service",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6894,10 +7142,10 @@ const docTemplate = `{
             }
         },
         "/api/service/k8s/events/count": {
-            "get": {
+            "post": {
                 "description": "get K8s events",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -6952,10 +7200,10 @@ const docTemplate = `{
             }
         },
         "/api/service/list": {
-            "get": {
+            "post": {
                 "description": "get the list of services",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7016,10 +7264,10 @@ const docTemplate = `{
             }
         },
         "/api/service/log/logs": {
-            "get": {
+            "post": {
                 "description": "get Log fault site log",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7108,10 +7356,10 @@ const docTemplate = `{
             }
         },
         "/api/service/log/metrics": {
-            "get": {
+            "post": {
                 "description": "get log related metrics",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7321,10 +7569,10 @@ const docTemplate = `{
             }
         },
         "/api/service/namespace/list": {
-            "get": {
+            "post": {
                 "description": "Get monitored namespaces.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7366,10 +7614,10 @@ const docTemplate = `{
             }
         },
         "/api/service/polaris/infer": {
-            "get": {
+            "post": {
                 "description": "Get Polaris metric Analysis",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7484,10 +7732,10 @@ const docTemplate = `{
             }
         },
         "/api/service/relation": {
-            "get": {
+            "post": {
                 "description": "the call relationship between the upstream and downstream service",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7630,7 +7878,7 @@ const docTemplate = `{
             }
         },
         "/api/service/servicesAlert": {
-            "get": {
+            "post": {
                 "description": "get the log alarm and status light information of the Service",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -7790,10 +8038,10 @@ const docTemplate = `{
             }
         },
         "/api/service/sql/metrics": {
-            "get": {
+            "post": {
                 "description": "get SQL metrics",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7874,10 +8122,10 @@ const docTemplate = `{
             }
         },
         "/api/service/topology": {
-            "get": {
+            "post": {
                 "description": "get the upstream and downstream topology of the service",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -7951,10 +8199,10 @@ const docTemplate = `{
             }
         },
         "/api/service/trace/logs": {
-            "get": {
+            "post": {
                 "description": "get trace fault site log",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -8043,7 +8291,7 @@ const docTemplate = `{
             }
         },
         "/api/service/trace/metrics": {
-            "get": {
+            "post": {
                 "description": "get Trace related metrics",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -9691,13 +9939,66 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v2/data/group/delete": {
+            "post": {
+                "description": "Delete the data group.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.data"
+                ],
+                "summary": "Delete the data group.",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Data group's id",
+                        "name": "groupId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "alert.AEventWithWRecord": {
             "type": "object",
             "properties": {
+                "alertDirection": {
+                    "type": "string"
+                },
                 "alertId": {
+                    "type": "string"
+                },
+                "analyzeErr": {
+                    "type": "string"
+                },
+                "analyzeRunId": {
                     "type": "string"
                 },
                 "createTime": {
@@ -9716,6 +10017,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "type": "string"
+                },
+                "input": {
                     "type": "string"
                 },
                 "isValid": {
@@ -10236,6 +10540,9 @@ const docTemplate = `{
         "alert.WorkflowParams": {
             "type": "object",
             "properties": {
+                "edition": {
+                    "type": "string"
+                },
                 "endTime": {
                     "type": "integer"
                 },
@@ -10748,46 +11055,32 @@ const docTemplate = `{
                 }
             }
         },
-        "database.DataGroup": {
+        "database.CustomServiceTopology": {
             "type": "object",
             "properties": {
-                "authType": {
+                "clusterId": {
                     "type": "string"
                 },
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/database.DatasourceGroup"
-                    }
-                },
-                "description": {
-                    "description": "The description of data group.",
-                    "type": "string"
-                },
-                "groupId": {
+                "expireTime": {
                     "type": "integer"
                 },
-                "groupName": {
+                "id": {
+                    "type": "integer"
+                },
+                "leftNode": {
                     "type": "string"
                 },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
-        "database.DatasourceGroup": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "description": "apm or normal",
+                "leftType": {
                     "type": "string"
                 },
-                "datasource": {
+                "rightNode": {
                     "type": "string"
                 },
-                "type": {
-                    "description": "service or namespace",
+                "rightType": {
                     "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
                 }
             }
         },
@@ -10848,6 +11141,50 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.ServiceNameRuleCondition": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "matchType": {
+                    "type": "string"
+                },
+                "ruleId": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "datagroup.DataGroup": {
+            "type": "object",
+            "properties": {
+                "authType": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The description of data group.",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "parentGroupId": {
+                    "type": "integer"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -11663,7 +12000,7 @@ const docTemplate = `{
                 "AnormalTypeAlertApp": "应用接口告警     =\u003e group=app",
                 "AnormalTypeAlertAppInstance": "应用实例告警     =\u003e group=appInstance",
                 "AnormalTypeAlertContainer": "容器告警         =\u003e group=container",
-                "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=database",
+                "AnormalTypeAlertDatabase": "数据库告警       =\u003e group=middleware",
                 "AnormalTypeAlertInfra": "基础设施告警     =\u003e group=infra",
                 "AnormalTypeAlertNet": "网络告警         =\u003e group=net",
                 "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
@@ -11675,10 +12012,39 @@ const docTemplate = `{
                 "AnormalTypeAlertContainer",
                 "AnormalTypeAlertInfra",
                 "AnormalTypeAlertNet",
-                "AnormalTypeAlertDatabase",
                 "AnormalTypeError",
-                "AnormalTypeAlertAppInstance"
+                "AnormalTypeAlertAppInstance",
+                "AnormalTypeAlertDatabase"
             ]
+        },
+        "model.AppInfo": {
+            "type": "object",
+            "properties": {
+                "agentInstanceId": {
+                    "type": "string"
+                },
+                "containerId": {
+                    "type": "string"
+                },
+                "containerPid": {
+                    "type": "integer"
+                },
+                "hostPid": {
+                    "type": "integer"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
         },
         "model.Datasource": {
             "type": "object",
@@ -11867,9 +12233,29 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Service": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
         "model.ServiceInstance": {
             "type": "object",
             "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
                 "containerId": {
                     "description": "container ID",
                     "type": "string"
@@ -11910,6 +12296,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "isCustom": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -11949,32 +12338,6 @@ const docTemplate = `{
                 "StatusFiring"
             ]
         },
-        "model.ToplogyRelation": {
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string"
-                },
-                "group": {
-                    "type": "string"
-                },
-                "isTraced": {
-                    "type": "boolean"
-                },
-                "parentEndpoint": {
-                    "type": "string"
-                },
-                "parentService": {
-                    "type": "string"
-                },
-                "service": {
-                    "type": "string"
-                },
-                "system": {
-                    "type": "string"
-                }
-            }
-        },
         "model.TopologyNode": {
             "type": "object",
             "properties": {
@@ -11986,6 +12349,38 @@ const docTemplate = `{
                 },
                 "isTraced": {
                     "type": "boolean"
+                },
+                "outOfGroup": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.TopologyRelation": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "outOfGroup": {
+                    "type": "boolean"
+                },
+                "parentEndpoint": {
+                    "type": "string"
+                },
+                "parentService": {
+                    "type": "string"
                 },
                 "service": {
                     "type": "string"
@@ -12126,6 +12521,9 @@ const docTemplate = `{
                 },
                 "alertRuleFile": {
                     "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
                 }
             }
         },
@@ -12319,6 +12717,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/request.AlertEventFilter"
                     }
                 },
+                "groupId": {
+                    "type": "integer"
+                },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
                 },
@@ -12454,26 +12855,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.CreateDataGroupRequest": {
-            "type": "object",
-            "required": [
-                "groupName"
-            ],
-            "properties": {
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Datasource"
-                    }
-                },
-                "description": {
-                    "type": "string"
-                },
-                "groupName": {
-                    "type": "string"
-                }
-            }
-        },
         "request.CreateTeamRequest": {
             "type": "object",
             "required": [
@@ -12603,6 +12984,25 @@ const docTemplate = `{
                 }
             }
         },
+        "request.DeleteCustomTopologyRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "id",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.DeleteLogParseRequest": {
             "type": "object",
             "properties": {
@@ -12628,6 +13028,17 @@ const docTemplate = `{
                 },
                 "tableName": {
                     "type": "string"
+                }
+            }
+        },
+        "request.DeleteServiceNameRuleRequest": {
+            "type": "object",
+            "required": [
+                "ruleId"
+            ],
+            "properties": {
+                "ruleId": {
+                    "type": "integer"
                 }
             }
         },
@@ -12754,6 +13165,23 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetAlertEventReportRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
@@ -12792,6 +13220,9 @@ const docTemplate = `{
                 "group": {
                     "type": "string"
                 },
+                "groupId": {
+                    "type": "integer"
+                },
                 "groups": {
                     "type": "array",
                     "items": {
@@ -12827,7 +13258,6 @@ const docTemplate = `{
         "request.GetAnomalySpanRequest": {
             "type": "object",
             "required": [
-                "contentKey",
                 "endTime",
                 "service",
                 "startTime"
@@ -12840,6 +13270,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "endTime": {
+                    "type": "integer"
+                },
+                "groupId": {
                     "type": "integer"
                 },
                 "isError": {
@@ -12905,6 +13338,9 @@ const docTemplate = `{
                     "description": "查询Endpoint",
                     "type": "string"
                 },
+                "groupId": {
+                    "type": "integer"
+                },
                 "service": {
                     "description": "查询服务名",
                     "type": "string"
@@ -12967,6 +13403,12 @@ const docTemplate = `{
                 "endTime"
             ],
             "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "containerId": {
                     "description": "container name",
                     "type": "string"
@@ -13093,6 +13535,12 @@ const docTemplate = `{
                 "endTime"
             ],
             "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "containerId": {
                     "description": "container name",
                     "type": "string"
@@ -13476,6 +13924,43 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SetServiceNameRuleConditionRequest": {
+            "type": "object",
+            "properties": {
+                "conditionId": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "matchType": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SetServiceNameRuleRequest": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.SetServiceNameRuleConditionRequest"
+                    }
+                },
+                "ruleId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "type": "string"
+                }
+            }
+        },
         "request.SetSingleTTLRequest": {
             "type": "object",
             "required": [
@@ -13571,6 +14056,9 @@ const docTemplate = `{
                 "alertRuleFile": {
                     "type": "string"
                 },
+                "groupId": {
+                    "type": "integer"
+                },
                 "oldAlert": {
                     "type": "string"
                 },
@@ -13591,30 +14079,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "request.UpdateDataGroupRequest": {
-            "type": "object",
-            "required": [
-                "groupId",
-                "groupName"
-            ],
-            "properties": {
-                "datasourceList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Datasource"
-                    }
-                },
-                "description": {
-                    "type": "string"
-                },
-                "groupId": {
-                    "type": "integer"
-                },
-                "groupName": {
-                    "type": "string"
                 }
             }
         },
@@ -13764,6 +14228,48 @@ const docTemplate = `{
             "properties": {
                 "available": {
                     "type": "boolean"
+                }
+            }
+        },
+        "response.CheckServiceNameRuleResponse": {
+            "type": "object",
+            "properties": {
+                "apps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.AppInfo"
+                    }
+                }
+            }
+        },
+        "response.ClusterScopedDatasource": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "clusterName": {
+                    "type": "string"
+                },
+                "namespaceMap": {
+                    "description": "namespace: services",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "serviceMap": {
+                    "description": "service: endpoints",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -14054,6 +14560,15 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetAlertEventReportResponse": {
+            "type": "object",
+            "properties": {
+                "reportData": {},
+                "reportType": {
+                    "type": "string"
+                }
+            }
+        },
         "response.GetAlertEventsResponse": {
             "type": "object",
             "properties": {
@@ -14173,7 +14688,7 @@ const docTemplate = `{
                 "dataGroupList": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/database.DataGroup"
+                        "$ref": "#/definitions/datagroup.DataGroup"
                     }
                 },
                 "pageSize": {
@@ -14482,6 +14997,12 @@ const docTemplate = `{
         "response.GetGroupDatasourceResponse": {
             "type": "object",
             "properties": {
+                "clusterScoped": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ClusterScopedDatasource"
+                    }
+                },
                 "namespaceMap": {
                     "description": "namespace: services",
                     "type": "object",
@@ -14685,7 +15206,7 @@ const docTemplate = `{
                     "description": "downstream node call relationship list",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ToplogyRelation"
+                        "$ref": "#/definitions/model.TopologyRelation"
                     }
                 },
                 "current": {
@@ -15159,6 +15680,45 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ListCustomTopologyResponse": {
+            "type": "object",
+            "properties": {
+                "topologies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.CustomServiceTopology"
+                    }
+                }
+            }
+        },
+        "response.ListServiceNameRule": {
+            "type": "object",
+            "properties": {
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.ServiceNameRuleCondition"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ListServiceNameRuleResponse": {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ListServiceNameRule"
+                    }
+                }
+            }
+        },
         "response.LogChartResponse": {
             "type": "object",
             "properties": {
@@ -15579,20 +16139,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.QueryServiceResult": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "source": {
-                    "type": "string"
-                }
-            }
-        },
         "response.QueryServicesResponse": {
             "type": "object",
             "properties": {
@@ -15602,7 +16148,7 @@ const docTemplate = `{
                 "results": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.QueryServiceResult"
+                        "$ref": "#/definitions/model.Service"
                     }
                 }
             }
@@ -15977,6 +16523,9 @@ const docTemplate = `{
                 "isTraced": {
                     "type": "boolean"
                 },
+                "outOfGroup": {
+                    "type": "boolean"
+                },
                 "service": {
                     "type": "string"
                 },
@@ -15993,6 +16542,9 @@ const docTemplate = `{
                 },
                 "endpoint": {
                     "type": "string"
+                },
+                "outOfGroup": {
+                    "type": "boolean"
                 },
                 "service": {
                     "type": "string"

@@ -4,8 +4,6 @@
 package service
 
 import (
-	"time"
-
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -47,7 +45,7 @@ type Service interface {
 	GetServiceList(ctx core.Context, req *request.GetServiceListRequest) ([]string, error)
 	// Get the list of service instances
 	// New interface
-	GetInstancesNew(ctx core.Context, startTime time.Time, endTime time.Time, step time.Duration, serviceName string, endPoint string) (res response.InstancesRes, err error)
+	GetInstancesNew(ctx core.Context, req *request.GetServiceInstanceRequest) (res response.InstancesRes, err error)
 	// Get the list of service instances
 	// DEPRECATED
 	GetServiceInstanceList(ctx core.Context, req *request.GetServiceInstanceListRequest) ([]string, error)
@@ -59,6 +57,7 @@ type Service interface {
 	GetServiceEndPointList(ctx core.Context, req *request.GetServiceEndPointListRequest) ([]string, error)
 	// Get the list of service portal Endpoint
 	GetServiceEntryEndpoints(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
+	GetServiceEntryEndpointsInGroup(ctx core.Context, req *request.GetServiceEntryEndpointsRequest) ([]clickhouse.EntryNode, error)
 	// CountK8sEvents get the number of K8s events
 	CountK8sEvents(ctx core.Context, req *request.GetK8sEventsRequest) (*response.GetK8sEventsResponse, error)
 	// GetAlertEvents get alarm events

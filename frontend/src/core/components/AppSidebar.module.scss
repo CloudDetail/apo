@@ -1,0 +1,50 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+// 通用样式
+.sidebarMenu {
+  :global(.ant-menu-sub .ant-menu-item) {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+  }
+
+  :global(.ant-tooltip-inner) {
+    background-color: var(--ant-color-bg-elevated) !important;
+    color: var(--ant-color-text) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    position: relative !important;
+    left: -6px;
+    padding: 6px 10px !important;
+    border-radius: 4px !important;
+  }
+
+  /* Hide Tooltip arrow */
+  :global(.ant-tooltip-arrow),
+  :global(.ant-tooltip-arrow-content) {
+    display: none !important;
+  }
+}
+// :global(.ant-tooltip-inner) {
+//   background-color: var(--ant-color-bg-elevated) !important;
+//   color: var(--ant-color-text) !important;
+//   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+//   position: relative !important;
+//   left: -6px;
+//   padding: 6px 10px !important;
+//   border-radius: 4px !important;
+// }
+// 菜单项图标样式
+.appSidebarMenuIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+}

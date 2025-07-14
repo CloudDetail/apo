@@ -18,7 +18,7 @@ import (
 // @Summary get the error instance
 // @Description get the error instance
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"
@@ -30,11 +30,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetErrorInstanceResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/service/error/instance [get]
+// @Router /api/service/error/instance [post]
 func (h *handler) GetErrorInstance() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetErrorInstanceRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -43,15 +43,14 @@ func (h *handler) GetErrorInstance() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.Service, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.Service); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, &response.GetErrorInstanceResponse{
 				Status:    model.STATUS_NORMAL,
 				Instances: []*response.ErrorInstance{},
 			})
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetErrorInstance(c, req)
 		if err != nil {
 			c.AbortWithError(

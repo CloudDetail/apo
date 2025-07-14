@@ -4,7 +4,7 @@
  */
 
 import { Button, Input, Popconfirm, Space } from 'antd'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { deleteAlertNotifyApi, getAlertmanagerListApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
 import BasicTable from 'src/core/components/Table/basicTable'
@@ -14,6 +14,7 @@ import ModifyAlertNotifyModal from './modal/ModifyAlertNotifyModal'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useDebounce } from 'react-use'
 
 export default function AlertsNotify() {
   const [data, setData] = useState([])
@@ -25,7 +26,6 @@ export default function AlertsNotify() {
   const [modalInfo, setModalInfo] = useState(null)
   const [searchName, setSearchName] = useState(null)
   const { t } = useTranslation('oss/alert')
-
   const deleteAlertNotify = (row) => {
     deleteAlertNotifyApi(
       row.dingTalkConfigs
@@ -115,9 +115,13 @@ export default function AlertsNotify() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{t('notify.edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {t('notify.edit')}
+              </span>
             </Button>
             <Popconfirm
               title={<>{t('notify.confirmDelete', { name: row.name })}</>}
@@ -143,9 +147,13 @@ export default function AlertsNotify() {
     setModalInfo(notifyInfo)
     setModalVisible(true)
   }
-  useEffect(() => {
-    fetchData()
-  }, [pageSize, pageIndex, searchName])
+  useDebounce(
+    () => {
+      fetchData()
+    },
+    300,
+    [searchName],
+  )
   const fetchData = () => {
     setLoading(true)
 
@@ -154,6 +162,7 @@ export default function AlertsNotify() {
       pageSize: pageSize,
       name: searchName,
       refreshCache: true,
+      // groupId: dataGroupId,
     })
       .then((res) => {
         setLoading(false)

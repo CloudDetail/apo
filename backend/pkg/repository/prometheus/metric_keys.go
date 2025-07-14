@@ -16,6 +16,7 @@ type InstanceKey struct {
 	Namespace   string `json:"namespace"`
 	NodeName    string `json:"node_name"`
 	NodeIP      string `json:"node_ip"`
+	ClusterID   string `json:"cluster_id"`
 }
 
 func (i InstanceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
@@ -27,6 +28,7 @@ func (i InstanceKey) ConvertFromLabels(labels Labels) ConvertFromLabels {
 		Namespace:   labels.Namespace,
 		NodeName:    labels.NodeName,
 		NodeIP:      labels.NodeIP,
+		ClusterID:   labels.ClusterID,
 	}
 }
 
@@ -37,7 +39,7 @@ func (i InstanceKey) GenInstanceName() string {
 	} else if len(i.ContainerId) > 0 {
 		name += i.ServiceName + "@" + i.NodeName + "@" + i.ContainerId
 	} else if len(i.PID) > 0 {
-		name += i.ServiceName + "@" +i.NodeName + "@" + i.PID
+		name += i.ServiceName + "@" + i.NodeName + "@" + i.PID
 	}
 
 	return name

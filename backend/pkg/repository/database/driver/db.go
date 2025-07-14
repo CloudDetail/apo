@@ -32,7 +32,12 @@ func (d *DB) GetContextDB(ctx core.Context) *gorm.DB {
 	return d.WithContext(ctx.GetContext())
 }
 
-func (d *DB) WithTransaction(ctx core.Context, tx *gorm.DB) core.Context {
+func WithTransaction(ctx core.Context, tx *gorm.DB) core.Context {
 	ctx.Set(_transactionCtxKey, tx)
+	return ctx
+}
+
+func FinishTransaction(ctx core.Context) core.Context {
+	ctx.Set(_transactionCtxKey, nil)
 	return ctx
 }

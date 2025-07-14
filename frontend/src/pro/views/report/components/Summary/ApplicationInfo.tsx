@@ -1,21 +1,23 @@
-import { Row, Col, Button } from 'antd'
+import { Row, Col, Button, Tooltip } from 'antd'
 import { AiOutlineNodeIndex } from 'react-icons/ai'
 import { LuServer, LuHash, LuBox, LuContainer } from 'react-icons/lu'
+import { BsChevronLeft } from 'react-icons/bs'
+import { MdOutlineMore } from 'react-icons/md'
 import { TagsParams } from '../../type'
 import { t } from 'i18next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const i18nPrefix = 'pro/report:'
 const InfoItemIconMap = {
-  serviceName: <LuServer size={24} className="text-emerald-400" />,
+  service: <LuServer size={24} className="text-emerald-400" />,
   pod: <LuBox size={24} className="text-lime-400" />,
   containerId: <LuContainer size={24} className="text-lime-400" />,
   nodeName: <AiOutlineNodeIndex size={24} className="text-cyan-400" />,
   pid: <LuHash size={24} className="text-violet-400" />,
 }
 const InfoItem = ({ type, value }: { type: string; value: string }) => {
-  const isServiceName = type === 'serviceName'
+  const isServiceName = type === 'service'
   const navigate = useNavigate()
   return (
     <div className="flex mb-2 items-center">
@@ -39,29 +41,73 @@ const InfoItem = ({ type, value }: { type: string; value: string }) => {
     </div>
   )
 }
-const TagKeyOrder: (keyof TagsParams)[] = ['serviceName', 'pod', 'containerId', 'nodeName', 'pid']
+const TagKeyOrder: (keyof TagsParams)[] = ['service', 'pod', 'containerId', 'nodeName', 'pid']
 const ApplicationInfo = ({ tags }: { tags: TagsParams }) => {
-  const [showMore, setShowMore] = useState(false)
+  const hasService =
+    tags.service !== undefined &&
+    tags.service !== null &&
+    tags.service !== '' &&
+    Object.keys(tags.service || {}).length > 0
+  const [showMore, setShowMore] = useState(!hasService)
+  const [showInitialTooltip, setShowInitialTooltip] = useState(true)
+
+  useEffect(() => {
+    if (showInitialTooltip) {
+      const timer = setTimeout(() => {
+        setShowInitialTooltip(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showInitialTooltip])
 
   return (
-    <Row className="w-full mt-2" justify="space-between" align="middle">
-      {TagKeyOrder.filter((key) => key === 'serviceName' && tags[key] !== undefined).map((key) => (
-        <Col key={key} flex={1}>
+    <Row className="w-full mt-2" align="middle">
+      {TagKeyOrder.filter(
+        (key) =>
+          key === 'service' &&
+          tags[key] !== undefined &&
+          tags[key] !== null &&
+          tags[key] !== '' &&
+          Object.keys(tags[key] || {}).length > 0,
+      ).map((key) => (
+        <Col key={key} flex={showMore ? 1 : 0}>
           <InfoItem type={key} value={tags[key]} />
         </Col>
       ))}
 
       {showMore &&
-        TagKeyOrder.filter((key) => key !== 'serviceName' && tags[key] !== undefined).map((key) => (
+        TagKeyOrder.filter(
+          (key) =>
+            key !== 'service' &&
+            tags[key] !== undefined &&
+            tags[key] !== null &&
+            tags[key] !== '' &&
+            Object.keys(tags[key] || {}).length > 0,
+        ).map((key) => (
           <Col key={key} flex={1}>
             <InfoItem type={key} value={tags[key]} />
           </Col>
         ))}
-      <Col className="mb-2">
-        <Button size="small" type="link" onClick={() => setShowMore((v) => !v)}>
-          {showMore ? t(i18nPrefix + 'collapse') : t(i18nPrefix + 'showMore')}
-        </Button>
-      </Col>
+      {hasService && (
+        <Col>
+          <Tooltip
+            title={showMore ? t(i18nPrefix + 'collapse') : t(i18nPrefix + 'showMore')}
+            placement="right"
+            trigger={['hover', 'click']}
+            open={showInitialTooltip && !showMore ? true : undefined}
+          >
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                setShowMore((v) => !v)
+              }}
+            >
+              {showMore ? <BsChevronLeft size={32} /> : <MdOutlineMore size={32} />}
+            </Button>
+          </Tooltip>
+        </Col>
+      )}
     </Row>
   )
 }

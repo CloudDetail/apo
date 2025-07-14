@@ -73,6 +73,8 @@ export const AlertAnalyzeProvider = ({ children }) => {
   //state
   const [loading, setLoading] = useState(false)
   const [alertEvents, setAlertEvents] = useState([])
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+
   const [pagination, setPagination] = useState({
     pageIndex: 1,
     pageSize: 10,
@@ -149,6 +151,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
         // status: 'firing',
         step: getStep(startTime, endTime),
         // service: 'ts-gateway-service',
+        groupId: dataGroupId,
       }
 
       const [res] = await Promise.all([
@@ -184,6 +187,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       step,
       currentPage: pagination.pageIndex,
       pageSize: pagination.pageSize,
+      groupId: dataGroupId,
       ...queryParams,
     })
       .then((res) => {
@@ -207,6 +211,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       entryEndpoint: selectedEndpointInfo.endpoint,
       withTopologyLevel: true,
       removeClientCall: true,
+      groupId: dataGroupId,
     }).then((res) => {
       setTopologyData(res)
       let result = []
@@ -229,6 +234,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       endpoint: selectedEndpointInfo.endpoint,
       step,
       anormalTypes: anormalTypes.join(','),
+      groupId: dataGroupId,
     }).then((res) => {
       const chartData = res.anormalCount?.chartData || []
       setTimeLineChartData(chartData)
@@ -257,6 +263,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       deltaEndTime: stepEndTime,
       step,
       anormalTypes: anormalTypes.join(','),
+      groupId: dataGroupId,
     })
       .then((res) => {
         //默认初始化，用步长最后一个时间段作为切片
@@ -303,6 +310,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
         deltaEndTime: deltaEndTime,
         step,
         anormalTypes: anormalTypes.join(','),
+        groupId: dataGroupId,
       })
         .then((res) => {
           const finalTopologyNodesMap = prepareTopologyNode(res.finalAnormalCounts)
@@ -337,6 +345,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       endpoint: selectedEndpointInfo.endpoint,
       step,
       anormalTypes: anormalTypes.join(','),
+      groupId: dataGroupId,
     }).then((res) => {
       const chartData = res.anormalCount?.chartData || []
       setTimeLineChartData(chartData)
@@ -408,7 +417,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      if (startTime && endTime) {
+      if (startTime && endTime && dataGroupId !== null) {
         setIsAnalyze(false)
         setTopologyData(null)
         if (pagination.pageIndex === 1) {
@@ -422,7 +431,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
       }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime],
+    [startTime, endTime, dataGroupId],
   )
 
   const updateState = async () => {
@@ -437,7 +446,7 @@ export const AlertAnalyzeProvider = ({ children }) => {
 
   useUpdateEffect(() => {
     updateState()
-  }, [selectedEndpointInfo.endpoint, selectedEndpointInfo.service, startTime, endTime])
+  }, [selectedEndpointInfo.endpoint, selectedEndpointInfo.service, startTime, endTime, dataGroupId])
   useUpdateEffect(() => {
     changeAlertDescendantDelta({
       deltaStartTime: deltaStartTime,

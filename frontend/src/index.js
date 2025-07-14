@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 import { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { setNotifyApi } from './core/utils/notify'
+import { DataGroupProvider } from './core/contexts/DataGroupContext'
 
 loader.config({ monaco })
 
@@ -118,13 +119,18 @@ const AntdWrapper = memo(() => {
           Spin: {
             dotSizeLG: 48,
           },
+          Splitter: {
+            splitTriggerSize: 12,
+          },
         },
       }}
     >
       <MessageProvider>
         <UserProvider>
-          {contextHolder}
-          <App />
+          <DataGroupProvider>
+            {contextHolder}
+            <App />
+          </DataGroupProvider>
         </UserProvider>
       </MessageProvider>
     </ConfigProvider>

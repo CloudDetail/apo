@@ -52,7 +52,6 @@ export default function InfoUni() {
 
   const activeTabKey = useServiceInfoContext((ctx) => ctx.activeTabKey)
   const setActiveTabKey = useServiceInfoContext((ctx) => ctx.setActiveTabKey)
-
   const panelStyle = {
     marginBottom: 12,
     border: 'none',

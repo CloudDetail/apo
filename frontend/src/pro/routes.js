@@ -17,11 +17,13 @@ let proRoutes = [
     exact: true,
     name: t('pro/routes:alertAnalyze'),
     element: AlertAnalyzePage,
+    showDataGroup: true,
   },
   {
     path: '/alert-analyze/info',
     name: t('pro/routes:businessAlertAnalyze'),
     element: ServiceAnalyzePage,
+    showDataGroup: 'view',
   },
   {
     path: '/cause/report/:traceId/:spanId',
@@ -40,11 +42,13 @@ let proRoutes = [
     path: '/healthy-service',
     name: t('pro/routes:serviceHealth'),
     element: ServiceHealthy,
+    showDataGroup: true,
   },
   {
     path: '/alert-analyze/chatAI/:service/:endpoint',
     name: t('pro/routes:aiRootCauseAnalysis'),
     element: ChatAIPage,
+    showDataGroup: 'view',
   },
   {
     path: '/report',

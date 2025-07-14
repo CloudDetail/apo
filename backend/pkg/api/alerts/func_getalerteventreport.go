@@ -17,8 +17,8 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.AlertEventReportRequest true "请求信息"
-// @Success 200 {object} response.AlertEventReportResponse
+// @Param Request body request.GetAlertEventReportRequest true "请求信息"
+// @Success 200 {object} response.GetAlertEventReportResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/events/report/get [post]
 func (h *handler) GetAlertEventReport() core.HandlerFunc {

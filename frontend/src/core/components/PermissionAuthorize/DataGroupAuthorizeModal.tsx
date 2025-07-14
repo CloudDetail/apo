@@ -51,10 +51,7 @@ const DataGroupAuthorizeModal = ({
       ;(res || []).map((item) => {
         if (type === 'user') {
           if (item.source === type) {
-            dataGroupPermission.push({
-              groupId: item.groupId,
-              groupName: item.groupName,
-            })
+            dataGroupPermission.push(item.groupId)
           } else {
             teamDataGroup.push({
               groupId: item.groupId,
@@ -62,10 +59,7 @@ const DataGroupAuthorizeModal = ({
             })
           }
         } else {
-          dataGroupPermission.push({
-            groupId: item.groupId,
-            groupName: item.groupName,
-          })
+          dataGroupPermission.push(item.groupId)
         }
       })
       form.setFieldsValue({
@@ -84,11 +78,12 @@ const DataGroupAuthorizeModal = ({
   }
   const saveAuthorize = () => {
     form.validateFields().then((values) => {
+      console.log(values)
       authorizePermission({
         subjectId: subjectId,
         subjectType: type,
         dataGroupPermission: values?.dataGroupPermission.map((item) => ({
-          groupId: item.groupId,
+          groupId: item,
           type: 'view',
         })),
       })

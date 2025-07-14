@@ -17,7 +17,7 @@ import (
 // @Summary get the drop-down list of service instances
 // @Description get the drop-down list of service instances
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept application/json
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
@@ -25,11 +25,11 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} map[string]model.ServiceInstance
 // @Failure 400 {object} code.Failure
-// @Router /api/service/instance/options [get]
+// @Router /api/service/instance/options [post]
 func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetServiceInstanceOptionsRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,
@@ -38,12 +38,11 @@ func (h *handler) GetServiceInstanceOptions() core.HandlerFunc {
 			return
 		}
 
-		userID := c.UserID()
-		err := h.dataService.CheckDatasourcePermission(c, userID, 0, nil, &req.ServiceName, model.DATASOURCE_CATEGORY_APM)
-		if err != nil {
+		if allowed, err := h.dataService.CheckServicesPermission(c, req.ServiceName); !allowed || err != nil {
 			c.AbortWithPermissionError(err, code.AuthError, make(map[string]*model.ServiceInstance))
 			return
 		}
+
 		resp, err := h.serviceInfoService.GetServiceInstanceOptions(c, req)
 		if err != nil {
 			c.AbortWithError(

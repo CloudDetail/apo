@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServiceEndpointTopology(ctx core.Context, req *request.GetServiceEndpointTopologyRequest) (*response.GetServiceEndpointTopologyResponse, error) {
@@ -17,8 +18,18 @@ func (s *service) GetServiceEndpointTopology(ctx core.Context, req *request.GetS
 		return nil, err
 	}
 
+	parents, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, parents)
+	if err != nil {
+		return nil, err
+	}
+
 	// Query all downstream nodes
 	children, err := s.chRepo.ListChildNodes(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	children, err = common.MarkTopologyNodeInGroup(ctx, s.dbRepo, req.GroupID, children)
 	if err != nil {
 		return nil, err
 	}

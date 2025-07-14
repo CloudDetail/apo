@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody, CCol, CRow } from '@coreui/react'
-import React, { useState, useEffect } from 'react'
+import { CCol, CRow } from '@coreui/react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useDebounce } from 'react-use'
 import { getK8sEventApi } from 'core/api/serviceInfo'
@@ -20,7 +20,8 @@ function K8sInfo() {
   const openTab = useServiceInfoContext((ctx) => ctx.openTab)
 
   const [data, setData] = useState({})
-  const { serviceName } = usePropsContext()
+  const { serviceName, clusterIds } = usePropsContext()
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [colList, setColList] = useState([])
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
@@ -118,6 +119,8 @@ function K8sInfo() {
         startTime: startTime,
         endTime: endTime,
         service: serviceName,
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setData(res.data ?? {})
@@ -138,10 +141,12 @@ function K8sInfo() {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName],
+    [startTime, endTime, serviceName, dataGroupId, clusterIds],
   )
   return (
     <>

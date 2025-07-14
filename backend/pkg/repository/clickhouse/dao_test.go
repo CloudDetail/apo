@@ -163,7 +163,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*model.ToplogyRelation{
+	expect := []*model.TopologyRelation{
 		{
 			ParentService:  "stuck-demo-tomcat",
 			ParentEndpoint: "GET /wait/callOthers",
@@ -192,7 +192,7 @@ func testDescendantRelations(t *testing.T, repo Repo) {
 			System:         "mysql",
 		},
 	}
-	checkToplogyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
+	checkTopologyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
 }
 
 func testKafkaDescendantRelations(t *testing.T, repo Repo) {
@@ -206,7 +206,7 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 	if err != nil {
 		t.Errorf("Error to list descendant relation: %v", err)
 	}
-	expect := []*model.ToplogyRelation{
+	expect := []*model.TopologyRelation{
 		{
 			ParentService:  "kafka-provider",
 			ParentEndpoint: "GET /send",
@@ -226,12 +226,12 @@ func testKafkaDescendantRelations(t *testing.T, repo Repo) {
 			System:         "",
 		},
 	}
-	checkToplogyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
+	checkTopologyRelation(util.NewValidator(t, "ListDescendantTopology"), expect, resp)
 }
 
 func testCountK8sEvents(t *testing.T, repo Repo) {
 	pods := []string{"ts-travel2-service-fdbbd5946-l4h2r"}
-	count, err := repo.CountK8sEvents(core.EmptyCtx(), 1722244803099000, 1722245703099000, pods)
+	count, err := repo.CountK8sEvents(core.EmptyCtx(), 1722244803099000, 1722245703099000, pods, []string{"default"})
 	if err != nil {
 		t.Errorf("Error to get k8s events: %v", err)
 	}
@@ -252,7 +252,7 @@ func checkTopologyNodes(validator *util.Validator, expect map[string]*model.Topo
 	}
 }
 
-func checkToplogyRelation(validator *util.Validator, expect []*model.ToplogyRelation, got []*model.ToplogyRelation) {
+func checkTopologyRelation(validator *util.Validator, expect []*model.TopologyRelation, got []*model.TopologyRelation) {
 	validator.CheckIntValue("Response Size", len(expect), len(got))
 	for i, gotTopology := range got {
 		expectTopology := expect[i]

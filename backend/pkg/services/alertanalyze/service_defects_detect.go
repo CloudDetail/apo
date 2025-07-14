@@ -265,6 +265,7 @@ func extractTagsFromLabels(name, alertGroup, group string, labels prometheus.Lab
 
 	if len(labels.POD) > 0 {
 		res["pod"] = labels.POD
+		res["pod_name"] = labels.POD
 	}
 
 	if len(labels.SvcName) > 0 {
@@ -277,10 +278,6 @@ func extractTagsFromLabels(name, alertGroup, group string, labels prometheus.Lab
 
 	if len(labels.PID) > 0 {
 		res["pid"] = labels.PID
-	}
-
-	if len(labels.PodName) > 0 {
-		res["pod_name"] = labels.PodName
 	}
 
 	if len(labels.Namespace) > 0 {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { CCard } from '@coreui/react'
 import { getFullLogApi, getFullLogChartApi } from 'core/api/logs'
 import { useSearchParams } from 'react-router-dom'
@@ -15,13 +15,14 @@ import LogQueryResult from './component/LogQueryResult'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
 import { useDebounce, useUpdateEffect } from 'react-use'
 import FullLogSider from './component/Sider'
-import { Button, Layout, theme } from 'antd'
-import Sider from 'antd/es/layout/Sider'
+import { Splitter } from 'antd'
 import { Content } from 'antd/es/layout/layout'
-import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
 import './index.css'
 import { useSelector } from 'react-redux'
 import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useState } from 'react'
+import { AiOutlineCaretLeft, AiOutlineCaretRight } from 'react-icons/ai'
 function FullLogs() {
   const {
     query,
@@ -33,12 +34,8 @@ function FullLogs() {
     tableInfo,
   } = useLogsContext()
 
-  const [searchParams] = useSearchParams()
-  const [collapsed, setCollapsed] = useState(false)
-  const { useToken } = theme
-  const { token } = useToken()
-  //@ts-ignore
-  const contentHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-content-height)' : 'var(--ee-app-content-height)';
+const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300)
+
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
     if (startTime && endTime) {
@@ -67,37 +64,65 @@ function FullLogs() {
     300, // 延迟时间 300ms
     [startTime, endTime, tableInfo, query],
   )
+
+  const handleResize = (sizes) => {
+    setSiderSize(sizes[0])
+  }
+
+  useDebounce(
+    () => {
+      if (siderSize === 0) {
+        sessionStorage.setItem('fullLogs:siderCollapse', "true")
+      } else {
+        sessionStorage.setItem('fullLogs:siderCollapse', "false")
+      }
+    },
+    1000,
+    [siderSize]
+  )
+
   return (
-    <>
+    <BasicCard
+      bodyStyle={{ padding: 0 }}
+    >
       <LoadingSpinner loading={loading} />
-      {/* 顶部筛选 */}
-      <CCard style={{ height: contentHeight }}>
-        <Layout className="relative ">
-          <div
-            onClick={() => setCollapsed(!collapsed)}
-            className={`logSiderButton ${collapsed ? ' closeButton ' : 'openButton'}`}
+
+      <Splitter onResize={handleResize}>
+        <Splitter.Panel
+          // collapsible
+          // resizable={false}
+          defaultSize={
+            sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
+          }
+          className='relative text-[var(--ant-color-primary)] overflow-x-hidden'
+          {...((siderSize === 0 || siderSize === 300) && { size: siderSize })}
+          // size={siderSize}
+        >
+          <FullLogSider />
+          {siderSize && <div
+            onClick={() => {setSiderSize(0); sessionStorage.setItem('fullLogs:siderCollapse', "true");}}
+            className='logSiderButton closeButton relative p-2'
           >
-            {collapsed ? (
-              <AiOutlineCaretRight color={token.colorPrimary} />
-            ) : (
-              <AiOutlineCaretLeft color={token.colorPrimary} />
-            )}
+            <AiOutlineCaretLeft className='scale-150 absolute right-0' />
+          </div>}
+        </Splitter.Panel>
+        {/* <Content className="h-full relative flex overflow-hidden px-2"> */}
+        <Splitter.Panel
+          defaultSize={300}
+        >
+          {!siderSize && <div
+            onClick={() => {setSiderSize(300); sessionStorage.setItem('fullLogs:siderCollapse', "false");}}
+            className={`relative text-[var(--ant-color-primary)] logSiderButton openButton`}
+          >
+            <AiOutlineCaretRight className='scale-150' />
+          </div>}
+          <div className="h-full px-2">
+            <IndexList />
           </div>
-          <Sider
-            trigger={null}
-            collapsible
-            collapsed={collapsed}
-            className="p-2 "
-            collapsedWidth={0}
-            width={300}
-          >
-            <FullLogSider />
-          </Sider>
+        </Splitter.Panel>
+        <Splitter.Panel>
           <Content className="h-full relative flex overflow-hidden px-2">
-            <div className="w-[250px] h-full">
-              <IndexList />
-            </div>
-            <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex flex-col flex-1 overflow-hidden ">
               <div className="flex-grow-0 flex-shrink-0">
                 <SearchBar />
               </div>
@@ -106,9 +131,9 @@ function FullLogs() {
               </div>
             </div>
           </Content>
-        </Layout>
-      </CCard>
-    </>
+        </Splitter.Panel>
+      </Splitter>
+    </BasicCard>
   )
 }
 export default FullLogs

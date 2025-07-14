@@ -4,7 +4,7 @@
  */
 
 import { Button, Input, Popconfirm, Select, Space, Tag, theme } from 'antd'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { RiDeleteBin5Line } from 'react-icons/ri'
 import { deleteRuleApi, getAlertRulesApi, getAlertRulesStatusApi } from 'core/api/alerts'
 import LoadingSpinner from 'src/core/components/Spinner'
@@ -15,6 +15,7 @@ import ModifyAlertRuleModal from './modal/ModifyAlertRuleModal'
 import { useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { useDebounce } from 'react-use'
 
 export default function AlertsRule() {
   const { t } = useTranslation('oss/alert')
@@ -31,6 +32,7 @@ export default function AlertsRule() {
   const { groupLabelSelectOptions } = useSelector((state) => state.groupLabelReducer)
   const [searchGroup, setSearchGroup] = useState(null)
   const [searchAlert, setSearchAlert] = useState(null)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const changeSearchGroup = (value) => {
     setSearchGroup(value)
     setPageIndex(1)
@@ -64,6 +66,7 @@ export default function AlertsRule() {
     deleteRuleApi({
       group: rule.group,
       alert: rule.alert,
+      groupId: dataGroupId,
     })
       .then((res) => {
         notify({
@@ -129,7 +132,9 @@ export default function AlertsRule() {
             <Button
               type="text"
               onClick={() => clickEditRule(row)}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
               <span style={{ color: token.colorPrimary }}>{t('rule.edit')}</span>
             </Button>
@@ -168,6 +173,7 @@ export default function AlertsRule() {
         pageSize,
         alert: searchAlert,
         group: searchGroup?.label,
+        groupId: dataGroupId,
       })
       setData(res.alertRules)
       setTotal(res.pagination.total)
@@ -176,7 +182,7 @@ export default function AlertsRule() {
     } finally {
       setLoading(false)
     }
-  }, [pageIndex, pageSize, searchAlert, searchGroup])
+  }, [pageIndex, pageSize, searchAlert, searchGroup, dataGroupId])
 
   const loadAlertStates = useCallback(async () => {
     try {
@@ -201,13 +207,19 @@ export default function AlertsRule() {
     setLoading(false)
   }, [loadRulesData, loadAlertStates])
 
-  useEffect(() => {
-    if (alertStateMap) {
-      loadRulesData()
-    } else {
-      init()
-    }
-  }, [pageIndex, pageSize, searchAlert, searchGroup])
+  useDebounce(
+    () => {
+      if (dataGroupId !== null) {
+        if (alertStateMap) {
+          loadRulesData()
+        } else {
+          init()
+        }
+      }
+    },
+    300,
+    [pageIndex, pageSize, searchAlert, searchGroup, dataGroupId],
+  )
   async function fetchData() {
     try {
       setLoading(true)
@@ -215,10 +227,12 @@ export default function AlertsRule() {
         getAlertRulesApi({
           currentPage: pageIndex,
           pageSize: pageSize,
+          groupId: dataGroupId,
         }),
         getAlertRulesStatusApi({
           type: 'alert',
           exclude_alerts: true,
+          groupId: dataGroupId,
         }),
       ])
       setLoading(false)
@@ -259,7 +273,7 @@ export default function AlertsRule() {
       },
       loading: false,
     }
-  }, [column, data, pageIndex, pageSize, searchAlert, searchGroup])
+  }, [column, data, pageIndex, pageSize, searchAlert, searchGroup, dataGroupId])
   return (
     <BasicCard>
       <LoadingSpinner loading={loading} />

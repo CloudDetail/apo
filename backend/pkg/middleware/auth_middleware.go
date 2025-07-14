@@ -44,9 +44,9 @@ func (m *middleware) AuthMiddleware() core.HandlerFunc {
 	}
 }
 
-type authBy func(c core.Context, m *middleware) (bool, core.BusinessError)
+type authBy func(c core.Context, m *middleware) (bool, error)
 
-func authByToken(c core.Context, m *middleware) (ok bool, err core.BusinessError) {
+func authByToken(c core.Context, m *middleware) (ok bool, err error) {
 	rawToken := c.GetHeader("Authorization")
 	token := jwt.ParseRawToken(rawToken)
 
@@ -68,7 +68,7 @@ func authByToken(c core.Context, m *middleware) (ok bool, err core.BusinessError
 	return true, nil
 }
 
-func authByAnonymousUser(c core.Context, m *middleware) (bool, core.BusinessError) {
+func authByAnonymousUser(c core.Context, m *middleware) (bool, error) {
 	if !config.Get().User.AnonymousUser.Enable {
 		return false, nil
 	}

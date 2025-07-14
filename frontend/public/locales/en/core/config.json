@@ -1,0 +1,7 @@
+{
+  "serviceAlias": {
+    "userService": "User Service",
+    "orderService": "Order Service",
+    "paymentService": "Payment Service"
+  }
+}

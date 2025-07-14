@@ -106,7 +106,7 @@ const AffectedEndpoints = (props) => {
   }
 
   useEffect(() => {
-    if (topologyProps) {
+    if (topologyProps && Object.keys(topologyProps).length > 0) {
       setTopologyData(prepareTopologyData(topologyProps))
     }
   }, [topologyProps])
@@ -127,27 +127,27 @@ const AffectedEndpoints = (props) => {
   }, [])
   useEffect(() => {
     console.log(wrapActive)
-    wrapperRef.current.style.pointerEvents = wrapActive ? 'auto' : 'none'
-    preRef.current.style.outline = wrapActive ? 'rgb(110, 159, 255) solid 2px' : 'none'
+    if (wrapperRef.current && preRef.current) {
+      wrapperRef.current.style.pointerEvents = wrapActive ? 'auto' : 'none'
+      preRef.current.style.outline = wrapActive ? 'rgb(110, 159, 255) solid 2px' : 'none'
+    }
   }, [wrapActive])
-  return (
+  return topologyData?.nodes.length === 0 ? (
+    <Empty />
+  ) : (
     <div ref={wrapperRef} className="w-full h-[500px] z-40 relative">
       <div
         ref={preRef}
         className="w-full h-[500px] z-50 relative"
         onClick={() => setWrapActive(true)}
       >
-        {topologyData?.nodes === 0 ? (
-          <Empty />
-        ) : (
-          <Topology
-            data={topologyData}
-            nodeHeight={260}
-            nodeWidth={200}
-            nodeTypes={{ metricsNode: MetricsNode }}
-            active={wrapActive}
-          />
-        )}
+        <Topology
+          data={topologyData}
+          nodeHeight={260}
+          nodeWidth={200}
+          nodeTypes={{ metricsNode: MetricsNode }}
+          active={wrapActive}
+        />
       </div>
     </div>
   )

@@ -5,6 +5,7 @@ package prometheus
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -19,13 +20,13 @@ type FetchEMOption func(
 	promRepo Repo,
 	em *EndpointsMap,
 	startTime, endTime time.Time,
-	filters []string,
+	filter PQLFilter,
 ) error
 
 func FetchEndpointsData(
 	ctx core.Context,
 	promRepo Repo,
-	filters []string,
+	filter PQLFilter,
 	startTime, endTime time.Time,
 	opts ...FetchEMOption) (*EndpointsMap, error) {
 	result := &EndpointsMap{
@@ -35,7 +36,7 @@ func FetchEndpointsData(
 
 	var errs []error
 	for _, fetchFunc := range opts {
-		err := fetchFunc(ctx, promRepo, result, startTime, endTime, filters)
+		err := fetchFunc(ctx, promRepo, result, startTime, endTime, filter)
 		errs = append(errs, err)
 	}
 
@@ -43,18 +44,18 @@ func FetchEndpointsData(
 }
 
 func WithREDMetric() FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
 		var errs []error
 		// Average RED metric over the fill time period
-		if err := promRepo.FillMetric(ctx, em, AVG, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, AVG, startTime, endTime, filter, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		// RED metric day-to-day-on-da during the fill period
-		if err := promRepo.FillMetric(ctx, em, DOD, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, DOD, startTime, endTime, filter, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		// RED metric week-on-week in the fill time period
-		if err := promRepo.FillMetric(ctx, em, WOW, startTime, endTime, filters, EndpointGranularity); err != nil {
+		if err := promRepo.FillMetric(ctx, em, WOW, startTime, endTime, filter, EndpointGranularity); err != nil {
 			errs = append(errs, err)
 		}
 		return errors.Join(errs...)
@@ -62,12 +63,12 @@ func WithREDMetric() FetchEMOption {
 }
 
 func WithDelaySource() FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		metricResults, err := promRepo.QueryAggMetricsWithFilter(ctx,
-			WithDefaultIFPolarisMetricExits(PQLDepLatencyRadioWithFilters, DefaultDepLatency),
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
+		metricResults, err := promRepo.QueryMetricsWithPQLFilter(ctx,
+			WithDefaultForPolarisActiveSeries(PQLDepLatencyRadioWithPQLFilter, DefaultDepLatency),
 			startTime.UnixMicro(), endTime.UnixMicro(),
 			EndpointGranularity,
-			filters...,
+			filter,
 		)
 
 		if err != nil {
@@ -93,12 +94,12 @@ func WithDelaySource() FetchEMOption {
 }
 
 func WithNamespace() FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		metricResult, err := promRepo.QueryAggMetricsWithFilter(ctx,
-			PQLAvgTPSWithFilters,
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
+		metricResult, err := promRepo.QueryMetricsWithPQLFilter(ctx,
+			PQLAvgTPSWithPQLFilter,
 			startTime.UnixMicro(), endTime.UnixMicro(),
 			NSEndpointGranularity,
-			filters...,
+			filter,
 		)
 		if err != nil {
 			return err
@@ -133,21 +134,21 @@ func appendIfNotExist(slice []string, str string) []string {
 }
 
 func WithRealTimeREDMetric() FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		return promRepo.FillMetric(ctx, em, REALTIME, startTime, endTime, filters, EndpointGranularity)
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
+		return promRepo.FillMetric(ctx, em, REALTIME, startTime, endTime, filter, EndpointGranularity)
 	}
 }
 
 func WithREDChart(step time.Duration) FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		return promRepo.FillRangeMetric(ctx, em, AVG, startTime, endTime, step, filters, EndpointGranularity)
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
+		return promRepo.FillRangeMetric(ctx, em, AVG, startTime, endTime, step, filter, EndpointGranularity)
 	}
 }
 
 func WithLogErrorCount() FetchEMOption {
-	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filters []string) error {
-		result, err := promRepo.QueryAggMetricsWithFilter(ctx, PQLAvgLogErrorCountCombineEndpointsInfoWithFilters,
-			startTime.UnixMicro(), endTime.UnixMicro(), EndpointGranularity, filters...,
+	return func(ctx core.Context, promRepo Repo, em *EndpointsMap, startTime, endTime time.Time, filter PQLFilter) error {
+		result, err := promRepo.QueryMetricsWithPQLFilter(ctx, PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter,
+			startTime.UnixMicro(), endTime.UnixMicro(), EndpointGranularity, filter,
 		)
 		if err != nil {
 			return err
@@ -194,5 +195,177 @@ func ReverseSortWithMetrics(sortType request.SortType) func(i, j *EndpointMetric
 		default:
 			return 0
 		}
+	}
+}
+
+const DefaultDepLatency int64 = -1
+
+func (repo *promRepo) FillRangeMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, step time.Duration, filter PQLFilter, granularity Granularity) error {
+	var decorator = func(apf PQLTemplate) PQLTemplate {
+		return apf
+	}
+
+	switch metricGroup {
+	case REALTIME:
+		startTime = endTime.Add(-3 * time.Minute)
+	case DOD:
+		decorator = DayOnDayTemplate
+	case WOW:
+		decorator = WeekOnWeekTemplate
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+	stepMicro := step.Microseconds()
+
+	var errs []error
+	latency, err := repo.QueryRangeMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgLatencyWithPQLFilter),
+		startTS, endTS, stepMicro,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, LATENCY, latency)
+	}
+
+	errorRate, err := repo.QueryRangeMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgErrorRateWithPQLFilter),
+		startTS, endTS, stepMicro,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, ERROR_RATE, errorRate)
+	}
+
+	if metricGroup == REALTIME {
+		return errors.Join(err)
+	}
+	tps, err := repo.QueryRangeMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgTPSWithPQLFilter),
+		startTS, endTS, stepMicro,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeRangeMetricResults(metricGroup, THROUGHPUT, tps)
+	}
+
+	return errors.Join(errs...)
+}
+
+// FillMetric query and populate RED metric
+func (repo *promRepo) FillMetric(ctx core.Context, res MetricGroupInterface, metricGroup MGroupName, startTime, endTime time.Time, filter PQLFilter, granularity Granularity) error {
+	var decorator = func(apf PQLTemplate) PQLTemplate {
+		return apf
+	}
+
+	switch metricGroup {
+	case REALTIME:
+		startTime = endTime.Add(-3 * time.Minute)
+	case DOD:
+		decorator = DayOnDayTemplate
+	case WOW:
+		decorator = WeekOnWeekTemplate
+	}
+
+	startTS := startTime.UnixMicro()
+	endTS := endTime.UnixMicro()
+
+	var errs []error
+	latency, err := repo.QueryMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgLatencyWithPQLFilter),
+		startTS, endTS,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, LATENCY, latency)
+	}
+
+	errorRate, err := repo.QueryMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgErrorRateWithPQLFilter),
+		startTS, endTS,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, ERROR_RATE, errorRate)
+	}
+
+	if metricGroup == REALTIME {
+		return errors.Join(err)
+	}
+	tps, err := repo.QueryMetricsWithPQLFilter(ctx,
+		decorator(PQLAvgTPSWithPQLFilter),
+		startTS, endTS,
+		granularity,
+		filter,
+	)
+	if err != nil {
+		errs = append(errs, err)
+	} else {
+		res.MergeMetricResults(metricGroup, THROUGHPUT, tps)
+	}
+
+	return errors.Join(errs...)
+}
+
+func WithDefaultForPolarisActiveSeries(template PQLTemplate, defaultValue int64) PQLTemplate {
+	return func(rangeV string, granularity string, filter PQLFilter, offset string) string {
+		pql := template(rangeV, granularity, filter, "")
+		checkPql := PQLPolarisActiveSeries(rangeV, granularity, filter, "")
+		defaultV := strconv.FormatInt(defaultValue, 10)
+		return withDef(pql, checkPql, defaultV)
+	}
+}
+
+// (a[rangeV] / a[rangeV] offset 24h)
+func DayOnDayTemplate(template PQLTemplate) PQLTemplate {
+	return func(rangeV, granularity string, filter PQLFilter, offset string) string {
+		now := template(rangeV, granularity, filter, "")
+		lastDay := template(rangeV, granularity, filter, "offset 24h")
+		return div(now, lastDay)
+	}
+}
+
+// (a[rangeV] / a[rangeV] offset 24h) or (a[rangeV] * 0 + def)
+func DayOnDayWithDef(template PQLTemplate, def int64) PQLTemplate {
+	return func(rangeV, granularity string, filter PQLFilter, offset string) string {
+		now := template(rangeV, granularity, filter, "")
+		lastDay := template(rangeV, granularity, filter, "offset 24h")
+		defaultV := strconv.FormatInt(def, 10)
+
+		return divWithDef(now, lastDay, now, defaultV)
+	}
+}
+
+func WeekOnWeekTemplate(template PQLTemplate) PQLTemplate {
+	return func(rangeV, granularity string, filter PQLFilter, offset string) string {
+		now := template(rangeV, granularity, filter, "")
+		lastWeek := template(rangeV, granularity, filter, "offset 7d")
+		return div(now, lastWeek)
+	}
+}
+
+// (a[rangeV] / a[rangeV] offset 7d) or (a[rangeV] * 0 + def)
+func WeekOnWeekWithPQLFilter(template PQLTemplate, def int64) PQLTemplate {
+	return func(rangeV, granularity string, filter PQLFilter, offset string) string {
+		now := template(rangeV, granularity, filter, "")
+		lastWeek := template(rangeV, granularity, filter, "offset 7d")
+		defaultV := strconv.FormatInt(def, 10)
+
+		return divWithDef(now, lastWeek, now, defaultV)
 	}
 }

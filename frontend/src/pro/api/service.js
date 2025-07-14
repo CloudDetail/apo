@@ -20,19 +20,19 @@ import { get } from 'src/core/utils/request'
 export const getServiceAlertEventsApi = (params) => {
   return get(`/api/service/alert/events`, params)
 }
-/**
- * 告警分析页面->获取服务上下游调用关系
- * @param {Object} params - 包含开始和结束时间的参数对象
- * @param {number} params.startTime - 开始微秒级时间戳
- * @param {number} params.endTime - 结束微秒级时间戳
- * @param {string} params.service - 查询服务名
- * @param {string} params.endpoint - 查询Endpoint
- * @param {string} params.entryService - 查询入口服务名
- * @param {string} params.entryEndpoint - 查询入口Endpoint
- * @param {boolean} params.withTopologyLevel - 是否返回层级
- *
- * @returns {Promise<Object>} - 返回结果
- */
-export const getServiceRelationApi = (params) => {
-  return get(`/api/service/relation`, params)
-}
+// /**
+//  * 告警分析页面->获取服务上下游调用关系
+//  * @param {Object} params - 包含开始和结束时间的参数对象
+//  * @param {number} params.startTime - 开始微秒级时间戳
+//  * @param {number} params.endTime - 结束微秒级时间戳
+//  * @param {string} params.service - 查询服务名
+//  * @param {string} params.endpoint - 查询Endpoint
+//  * @param {string} params.entryService - 查询入口服务名
+//  * @param {string} params.entryEndpoint - 查询入口Endpoint
+//  * @param {boolean} params.withTopologyLevel - 是否返回层级
+//  *
+//  * @returns {Promise<Object>} - 返回结果
+//  */
+// export const getServiceRelationApi = (params) => {
+//   return get(`/api/service/relation`, params)
+// }

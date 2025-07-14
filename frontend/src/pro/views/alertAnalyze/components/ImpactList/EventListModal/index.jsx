@@ -16,7 +16,7 @@ function isJSONString(str) {
   }
 }
 const i18nKey = 'eventList'
-const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
+const EventListModal = ({ endpointInfo, modalVisible, closeModal, clusterIds }) => {
   const { t } = useTranslation('pro/alertAnalyze')
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const { groupLabel } = useSelector((state) => state.groupLabelReducer)
@@ -28,9 +28,9 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const { reactJsonTheme } = useSelector((state) => state.settingReducer)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   useEffect(() => {
-    if (endpointInfo && modalVisible && startTime && endTime) {
+    if (endpointInfo && modalVisible && startTime && endTime && dataGroupId !== null) {
       setLoading(true)
       getAlertDescendantEventApi({
         startTime,
@@ -39,6 +39,8 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
         endpoint: endpointInfo.endpoint,
         currentPage: pagination.pageIndex,
         pageSize: pagination.pageSize,
+        clusterIds,
+        groupId: dataGroupId,
       })
         .then((res) => {
           setData(res?.alertEvents || [])
@@ -58,7 +60,14 @@ const EventListModal = ({ endpointInfo, modalVisible, closeModal }) => {
           setLoading(false)
         })
     }
-  }, [endpointInfo, modalVisible, pagination.pageIndex, pagination.pageSize])
+  }, [
+    endpointInfo,
+    modalVisible,
+    pagination.pageIndex,
+    pagination.pageSize,
+    clusterIds,
+    dataGroupId,
+  ])
   const columns = [
     {
       title: t(`${i18nKey}.alertType`),

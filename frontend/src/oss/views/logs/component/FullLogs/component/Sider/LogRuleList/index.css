@@ -18,3 +18,11 @@
     visibility: visible;
   }
 }
+
+.ant-tree-node-selected {
+  background-color: var(--ant-color-fill-secondary) !important;
+}
+
+.ant-tree-node-selected:hover {
+  background-color: var(--ant-color-fill) !important;
+}

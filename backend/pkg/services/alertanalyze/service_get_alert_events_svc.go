@@ -8,13 +8,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"go.uber.org/zap"
 )
-
-var eventFilter = request.AlertFilter{
-	Status:       "firing",
-	WithMutation: true,
-}
 
 func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEventsSvcReq) (*response.GetAlertEventsSvcResp, error) {
 	startTime := time.UnixMicro(req.StartTime)
@@ -25,6 +21,12 @@ func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEvent
 			CurrentPage: 1,
 			PageSize:    999,
 		}
+	}
+
+	eventFilter := request.AlertFilter{
+		Status:       "firing",
+		WithMutation: true,
+		GroupID:      req.GroupID,
 	}
 
 	events, count, err := s.chRepo.GetAlertEvents(
@@ -47,9 +49,18 @@ func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEvent
 		}
 	}
 
+	var svcInGroup []string
+	if req.GroupID > 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		svcInGroup = common.DataGroupStorage.GetFullPermissionSvcList(selected)
+	}
+
 	endpoints := endpointsMap.EndpointsList()
-	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertService(ctx,
-		endpoints, startTime.UnixMicro(), endTime.UnixMicro())
+	entryRelations, err := s.chRepo.SearchEntryEndpointsByAlertServiceInGroup(ctx,
+		endpoints, startTime.UnixMicro(), endTime.UnixMicro(), svcInGroup)
 
 	if err != nil {
 		s.logger.Error("failed to search entryRelations for alertEvents, err", zap.Error(err))

@@ -16,7 +16,7 @@ export const adjustAlpha = (color, alpha) => {
   return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${alpha})`
 }
 
-const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true }) => {
+const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true, needFillZero = true }) => {
   const { t } = useTranslation('common')
   const chartRef = useRef(null)
   const dispatch = useDispatch()
@@ -189,10 +189,15 @@ const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true }) => {
     }
     return filledData
   }
-
+  const formatData = () => {
+    return Object.keys(data).map((key) => ({
+      timestamp: Number(key),
+      value: data[key],
+    }))
+  }
   useEffect(() => {
     if (data) {
-      const filledData = fillMissingData()
+      const filledData = needFillZero ? fillMissingData() : formatData()
 
       setOption({
         ...option,
@@ -209,8 +214,12 @@ const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true }) => {
             },
             hideOverlap: true,
           },
-          min: timeRange.startTime / 1000,
-          max: timeRange.endTime / 1000,
+          ...(needFillZero
+            ? {
+                min: timeRange.startTime / 1000,
+                max: timeRange.endTime / 1000,
+              }
+            : {}),
         },
         series: [
           {

@@ -43,7 +43,7 @@ func reverseSlice(s []map[string]any) {
 func (ch *chRepo) QueryLogContext(ctx core.Context, req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error) {
 	//condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	logtime := req.Time / 1000000
-	timefront := fmt.Sprintf("toUnixTimestamp(timestamp) < %d AND  toUnixTimestamp(timestamp) > %d ", logtime, logtime-60)
+	timefront := fmt.Sprintf("timestamp < toDateTime(%d) AND  timestamp > toDateTime(%d) ", logtime, logtime-60)
 	tags := tagsCondition(req.Tags)
 	// check the first 50, reverse
 	bySqlfront := NewByLimitBuilder().
@@ -56,7 +56,7 @@ func (ch *chRepo) QueryLogContext(ctx core.Context, req *request.LogQueryContext
 		front = []map[string]any{}
 	}
 	reverseSlice(front)
-	timeend := fmt.Sprintf("toUnixTimestamp(timestamp) >= %d AND toUnixTimestamp(timestamp) < %d ", logtime, logtime+60)
+	timeend := fmt.Sprintf("timestamp >= toDateTime(%d) AND timestamp < toDateTime(%d) ", logtime, logtime+60)
 	bySqlend := NewByLimitBuilder().
 		OrderBy("timestamp", true).
 		Limit(50).

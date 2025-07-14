@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 var subTime = -time.Hour * 24 * 15
@@ -96,127 +96,105 @@ func (s *service) GetDataSource(ctx core.Context) (resp response.GetDatasourceRe
 	return resp, nil
 }
 
-func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest, userID int64) (response.GetGroupDatasourceResponse, error) {
-	var (
-		groups       []database.DataGroup
-		err          error
-		namespaceMap = map[string][]string{}
-		serviceMap   = map[string][]string{}
-		filterMap    = map[string]struct{}{}
-		resp         = response.GetGroupDatasourceResponse{}
-		endTime      = time.Now()
-		startTime    = endTime.Add(subTime)
-	)
-	if req.GroupID != 0 {
-		groups, err = s.getDataGroup(ctx, req.GroupID, req.Category)
-	} else {
-		groups, err = s.getUserDataGroup(ctx, userID, req.Category)
-	}
-
-	if len(groups) == 0 {
-		defaultGroup, err := s.getDefaultDataGroup(ctx, req.Category)
-		if err != nil {
-			return resp, err
-		}
-
-		groups = append(groups, defaultGroup)
-	}
-
+func (s *service) GetGroupDatasource(ctx core.Context, req *request.GetGroupDatasourceRequest) (response.GetGroupDatasourceResponse, error) {
+	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, req.Category, req.GroupID)
 	if err != nil {
-		return resp, err
+		return response.GetGroupDatasourceResponse{}, err
 	}
 
-	for _, group := range groups {
-		for _, ds := range group.DatasourceList {
-			if ds.Type == model.DATASOURCE_TYP_NAMESPACE {
-				if len(ds.Datasource) == 0 {
-					continue
-				}
-				namespaceMap[ds.Datasource] = []string{}
-			} else if ds.Type == model.DATASOURCE_TYP_SERVICE {
-				serviceMap[ds.Datasource] = []string{}
-			}
-		}
-	}
+	endTime := time.Now()
+	startTime := endTime.Add(subTime)
 
-	for namespace := range namespaceMap {
-		nested, err := s.getNested(ctx, namespace, model.DATASOURCE_TYP_NAMESPACE)
-		if err != nil {
-			return resp, err
-		}
-		namespaceMap[namespace] = nested
-
-		for _, srv := range nested {
-			filterMap[namespace+srv] = struct{}{}
-			serviceMap[srv] = []string{}
-		}
-	}
-
-	for service := range serviceMap {
-		nested, err := s.getNested(ctx, service, model.DATASOURCE_TYP_SERVICE)
-		if err != nil {
-			return resp, err
-		}
-		for _, namespace := range nested {
-			if _, ok := filterMap[namespace+service]; ok || len(namespace) == 0 {
-				continue
-			}
-			namespaceMap[namespace] = append(namespaceMap[namespace], service)
-			filterMap[namespace+service] = struct{}{}
-		}
-		endpoints, err := s.promRepo.GetServiceEndPointList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), service)
-		if err != nil {
-			return resp, err
-		}
-
-		serviceMap[service] = endpoints
-	}
-
-	resp.NamespaceMap = namespaceMap
-	resp.ServiceMap = serviceMap
-	return resp, nil
-}
-
-func (s *service) getNested(ctx core.Context, datasource string, typ string) ([]string, error) {
-	var (
-		endTime   = time.Now()
-		startTime = endTime.Add(-24 * time.Hour)
-		nested    []string
-		err       error
+	labels, err := s.promRepo.QueryMetricsWithPQLFilter(
+		ctx,
+		prometheus.PQLMetricSeries(prometheus.SPAN_TRACE_COUNT),
+		startTime.UnixMicro(),
+		endTime.UnixMicro(),
+		"cluster_id,namespace,svc_name,content_key",
+		filter,
 	)
 
-	if typ == model.DATASOURCE_TYP_NAMESPACE {
-		nested, err = s.promRepo.GetServiceList(ctx, startTime.UnixMicro(), endTime.UnixMicro(), []string{datasource})
-	} else if typ == model.DATASOURCE_TYP_SERVICE {
-		nested, err = s.promRepo.GetServiceNamespace(ctx, startTime.UnixMicro(), endTime.UnixMicro(), datasource)
+	if err != nil {
+		return response.GetGroupDatasourceResponse{}, err
 	}
 
-	return nested, err
+	return response.GetGroupDatasourceResponse{
+		GroupDatasource:         groupScopeMap(labels),
+		ClusterScopedDatasource: clusterScopeMap(labels, nil), // TODO pass clusterName map
+	}, nil
 }
 
-func (s *service) getDataGroup(ctx core.Context, groupID int64, category string) ([]database.DataGroup, error) {
-	filter := model.DataGroupFilter{
-		ID: groupID,
-	}
-
-	dataGroups, _, err := s.dbRepo.GetDataGroup(ctx, filter)
-	if err != nil {
-		return dataGroups, err
-	}
-
-	if len(dataGroups) == 0 {
-		return nil, core.Error(code.DataGroupNotExistError, "data group does not exits")
-	}
-
-	for i, group := range dataGroups {
-		filteredDatasource := make([]database.DatasourceGroup, 0, len(group.DatasourceList))
-		for _, ds := range group.DatasourceList {
-			if len(category) == 0 || category == ds.Category {
-				filteredDatasource = append(filteredDatasource, ds)
+func clusterScopeMap(labelsList []prometheus.MetricResult, clusterNames map[string]string) []response.ClusterScopedDatasource {
+	clusterMap := make(map[string]*response.ClusterScopedDatasource)
+	for _, l := range labelsList {
+		clusterID := l.Metric.ClusterID
+		clusterName := clusterID
+		if clusterNames != nil {
+			if name, find := clusterNames[clusterID]; find {
+				clusterName = name
 			}
 		}
-		dataGroups[i].DatasourceList = filteredDatasource
+		namespace := l.Metric.Namespace
+		svc := l.Metric.SvcName
+		endpoint := l.Metric.ContentKey
+
+		if _, ok := clusterMap[clusterID]; !ok {
+			clusterMap[clusterID] = &response.ClusterScopedDatasource{
+				ClusterID:   clusterID,
+				ClusterName: clusterName,
+				GroupDatasource: response.GroupDatasource{
+					NamespaceMap: make(map[string][]string),
+					ServiceMap:   make(map[string][]string),
+				},
+			}
+		}
+
+		ds := clusterMap[clusterID]
+
+		if !contains(ds.NamespaceMap[namespace], svc) {
+			ds.NamespaceMap[namespace] = append(ds.NamespaceMap[namespace], svc)
+		}
+
+		if !contains(ds.ServiceMap[svc], endpoint) {
+			ds.ServiceMap[svc] = append(ds.ServiceMap[svc], endpoint)
+		}
 	}
 
-	return dataGroups, nil
+	var result []response.ClusterScopedDatasource
+	for _, v := range clusterMap {
+		result = append(result, *v)
+	}
+	return result
+}
+
+func groupScopeMap(labelsList []prometheus.MetricResult) response.GroupDatasource {
+	ds := response.GroupDatasource{
+		NamespaceMap: make(map[string][]string),
+		ServiceMap:   make(map[string][]string),
+	}
+
+	for _, l := range labelsList {
+		namespace := l.Metric.Namespace
+		svc := l.Metric.SvcName
+		endpoint := l.Metric.ContentKey
+
+		if !contains(ds.NamespaceMap[namespace], svc) {
+			ds.NamespaceMap[namespace] = append(ds.NamespaceMap[namespace], svc)
+		}
+
+		if !contains(ds.ServiceMap[svc], endpoint) {
+			ds.ServiceMap[svc] = append(ds.ServiceMap[svc], endpoint)
+		}
+	}
+
+	return ds
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

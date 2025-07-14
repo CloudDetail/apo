@@ -26,7 +26,7 @@ import (
 func (h *handler) GetDescendantAnormal() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetDescendantAnormalEventRequest)
-		if err := c.ShouldBindQuery(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

@@ -124,11 +124,11 @@ func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, end
 
 	tw := time.Duration(w.CacheMinutes) * time.Minute
 	roundedTime := event.UpdateTime.Truncate(tw).Add(tw)
-	classfiy := w.getAlertClassify(c, event)
+	classify := w.getAlertClassify(c, event)
 
 	return model.WorkflowRecord{
 		WorkflowRunID: "",
-		WorkflowID:    classfiy.WorkflowId,
+		WorkflowID:    classify.WorkflowId,
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
 		Input:         event.ID.String(),
@@ -147,6 +147,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		"params":    event.TagsInStr(),
 		"startTime": startTime,
 		"endTime":   endTime,
+		"edition":   "ce",
 	})
 	classify := w.getAlertClassify(c, event)
 	resp, err := c.alertCheck(&WorkflowRequest{Inputs: inputs}, w.Authorization, w.User)
@@ -185,7 +186,6 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 
 		InputRef: event,
 	}
-
 	difyconf := config.Get().Dify
 	if difyconf.AutoAnalyze && output == "false" {
 		param := w.getWorkflowParams(event)
@@ -229,6 +229,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  event.GetInfraNodeTag(),
+		Edition:   "ce",
 	}
 
 	var services, endpoints []string

@@ -1,6 +1,6 @@
 
 export type ReportType = 'slow' | 'error' | 'infra'
-export type TagKey = 'serviceName' | 'pod' | 'containerId' | 'nodeName' | 'pid'
+export type TagKey = 'service' | 'pod' | 'containerId' | 'nodeName' | 'pid'
 export type TagsParams = {
     [key in TagKey]: string
 }

@@ -2,7 +2,7 @@
   "error": "Error Report",
   "slow": "Performance Degradation Report",
   "infra": "Infrastructure Incident Report",
-  "serviceName": "Service Name",
+  "service": "Service Name",
   "pod": "Pod Info",
   "containerId": "Container ID",
   "nodeName": "Node Name",
@@ -12,7 +12,13 @@
     "code": "Code Performance",
     "net": "Network Quality",
     "storage": "Storage Issues",
-    "downstream": "Slow Dependency"
+    "downstream": "Slow Dependency",
+    "thirdparty": "Third-party Dependency",
+    "config": "Configuration Issue",
+    "system": "System Resource Exception",
+    "disk": "Disk Exception",
+    "file": "File Descriptor Usage Exception",
+    "memory": "Memory Usage Exception"
   },
   "level": {
     "major": "Major",
@@ -32,5 +38,7 @@
   "main": "Major Incident",
   "showMore": "Show Node Details",
   "collapse": "Collapse",
-  "configBusinessName": "Config Business Name"
+  "clickToConfig": "Click to configure business alias",
+  "configBusinessName": "Config Business Name",
+  "alertDirection": "Alert Direction"
 }

@@ -16,7 +16,7 @@ export const getAlertDescendantDeltaApi = (params) => {
 }
 // 告警分析-》下游服务告警/下游异常 折线图数据
 export const getAlertDescendantTrendApi = (params) => {
-  return get(`/api/alerts/descendant/anormal/trend`, params)
+  return post(`/api/alerts/descendant/anormal/trend`, params)
 }
 // 告警分析-》贡献度
 export const getAlertDescendantContributionApi = (params) => {

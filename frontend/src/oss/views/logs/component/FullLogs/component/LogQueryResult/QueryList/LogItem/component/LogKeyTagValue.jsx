@@ -74,7 +74,7 @@ const LogKeyTagValue = ({ title, description }) => {
         </div>
       ) : type === 'longString' ? (
         <pre
-          className="h-full w-full overflow-hidden text-xs p-2 leading-relaxed"
+          className="h-full w-full overflow-hidden text-xs leading-relaxed m-0"
           style={{
             whiteSpace: 'break-spaces',
             wordBreak: 'break-all',

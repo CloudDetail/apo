@@ -158,6 +158,8 @@ type AlertRuleFilter struct {
 	Alert    string   `form:"alert" json:"alert"`
 	Severity []string `form:"severity" json:"severity"` // alarm level info warning...
 	Keyword  string   `form:"keyword" json:"keyword"`
+
+	GroupID int64 `form:"groupId" json:"groupId"`
 }
 
 type AMConfigReceiverFilter struct {
@@ -176,6 +178,8 @@ type UpdateAlertRuleRequest struct {
 	OldGroup  string    `json:"oldGroup" binding:"required"`
 	OldAlert  string    `json:"oldAlert" binding:"required"`
 	AlertRule AlertRule `json:"alertRule"`
+
+	GroupID int64 `json:"groupId"`
 }
 
 type AddAlertManagerConfigReceiver UpdateAlertManagerConfigReceiver
@@ -217,6 +221,7 @@ type AddAlertRuleRequest struct {
 	AlertRuleFile string `json:"alertRuleFile"`
 
 	AlertRule AlertRule `json:"alertRule"`
+	GroupID   int64     `json:"groupId"`
 }
 
 type CheckAlertRuleRequest struct {

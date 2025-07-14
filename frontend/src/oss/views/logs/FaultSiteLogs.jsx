@@ -7,65 +7,73 @@ import { useEffect, useRef, useState } from 'react'
 import { CTab, CTabList, CTabs, CRow, CCol, CCard } from '@coreui/react'
 import { convertTime } from 'src/core/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'core/api/logs'
-import { useSearchParams } from 'react-router-dom'
 import { CustomSelect } from 'src/core/components/Select'
 import LogContent from './component/LogContent'
 import CustomPagination from 'src/core/components/Pagination/CustomPagination'
 import Empty from 'src/core/components/Empty/Empty'
 import LoadingSpinner from 'src/core/components/Spinner'
-import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
-import { useSelector } from 'react-redux'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
+import { useLogsTraceFilterContext } from 'src/oss/contexts/LogsTraceFilterContext'
+import { useDebounce } from 'react-use'
+import { useSelector } from 'react-redux'
+// import DataSourceFilter from 'src/core/components/Filter/DataSourceFilter'
 function FaultSiteLogs(props) {
   const { t, i18n } = useTranslation('oss/faultSiteLogs')
-  const { startTime, endTime, service, instance, traceId, instanceOption, namespace } = useSelector(
-    (state) => state.urlParamsReducer,
-  )
 
-  const [searchParams, setSearchParams] = useSearchParams()
   const [logsPageList, setLogsPageList] = useState([])
   const [activeItemKey, setActiveItemKey] = useState(0)
   const [logContent, setLogContent] = useState({})
-  const [pageIndex, setPageIndex] = useState(1)
+  const [pageIndex, setPageIndex] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [loading, setLoading] = useState(false)
   const [source, setSource] = useState('')
   const [logContentLoading, setLogContentLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const refs = useRef({})
-  const previousValues = useRef({
-    startTime: null,
-    endTime: null,
-    service: '',
-    instance: '',
-    namespace: '',
-    traceId: '',
-    pageIndex: 1,
-    selectInstanceOption: {},
-  })
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
+
+  //params for api
+
+  const { clusterIds, services, instance, traceId, namespaces, startTime, endTime, isFilterDone } =
+    useLogsTraceFilterContext((ctx) => ctx)
   const changeActiveItemKey = (key) => {
     setActiveItemKey(key)
     setSource('')
   }
+  const filterUndefinedOrEmpty = (obj) => {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([_, value]) => {
+        if (value === undefined || value === null) return false
+        if (typeof value === 'string' && value.trim() === '') return false
+        if (Array.isArray(value) && value.length === 0) return false
+        return true
+      }),
+    )
+  }
+
   const getLogs = () => {
     setActiveItemKey(0)
     setLoading(true)
-    const { containerId, nodeName, pid } = instanceOption[instance] ?? {}
-    getLogPageListApi({
+    const { containerId, node: nodeName, pid, id: instanceId } = instance?.[0] ?? {}
+    const queryParams = filterUndefinedOrEmpty({
       startTime,
       endTime,
-      service: service ? [service] : undefined,
-      instance: instance ? instance : undefined,
-      traceId: traceId ? traceId : undefined,
+      clusterIds,
+      service: services,
+      instance: instanceId,
+      traceId,
       pageNum: pageIndex,
       pageSize: 10,
       containerId,
-      namespaces: namespace ? [namespace] : undefined,
+      namespaces,
       nodeName,
       pid,
+      groupId: dataGroupId,
     })
+    getLogPageListApi(queryParams)
       .then((res) => {
         setLoading(false)
         setLogsPageList(res?.list ?? [])
@@ -103,56 +111,34 @@ function FaultSiteLogs(props) {
   //     getLogs()
   //   }
   // }, [pageIndex])
-  useEffect(() => {
-    console.log('useEffect')
-    const prev = previousValues.current
-    let paramsChange = false
-
-    if (prev.startTime !== startTime) {
-      paramsChange = true
-    }
-    if (prev.endTime !== endTime) {
-      paramsChange = true
-    }
-    if (prev.service !== service) {
-      paramsChange = true
-    }
-    if (prev.traceId !== traceId) {
-      paramsChange = true
-    }
-    if (prev.namespace !== namespace) {
-      paramsChange = true
-    }
-    const selectInstanceOption = instanceOption[instance]
-    if (JSON.stringify(prev.selectInstanceOption) !== JSON.stringify(selectInstanceOption)) {
-      paramsChange = true
-    }
-    if (instance && !selectInstanceOption) {
-      paramsChange = false
-    }
-
-    previousValues.current = {
-      startTime,
-      endTime,
-      service,
-      instance,
-      namespace,
-      traceId,
-      pageIndex,
-      selectInstanceOption,
-    }
-    if (startTime && endTime) {
-      if (paramsChange) {
+  useDebounce(
+    () => {
+      if (startTime && endTime && isFilterDone && dataGroupId !== null) {
         if (pageIndex === 1) {
           getLogs()
         } else {
           setPageIndex(1)
         }
-      } else if (prev.pageIndex !== pageIndex) {
-        getLogs()
       }
+    },
+    300,
+    [
+      clusterIds,
+      services,
+      instance,
+      traceId,
+      namespaces,
+      startTime,
+      endTime,
+      isFilterDone,
+      dataGroupId,
+    ],
+  )
+  useEffect(() => {
+    if (pageIndex > 0) {
+      getLogs()
     }
-  }, [startTime, endTime, service, instance, traceId, pageIndex, namespace])
+  }, [pageIndex])
   useEffect(() => {
     getLogContent()
   }, [logsPageList, activeItemKey])
@@ -203,97 +189,98 @@ function FaultSiteLogs(props) {
       <BasicCard.Header>
         <div className="w-full flex-none">
           <LogsTraceFilter type="logs" />
+          {/* <DataSourceFilter category="log" /> */}
         </div>
       </BasicCard.Header>
 
       <BasicCard.Table>
-      <div className="h-full flex-grow flex-shrink overflow-hidden flex-column-tab ">
-        {logsPageList?.length > 0 && (
-          <CTabs
-            key={pageIndex + activeItemKey}
-            activeItemKey={activeItemKey}
-            className="flex flex-row h-full logs-tab"
-            onChange={changeActiveItemKey}
-          >
-            <CTabList variant="tabs" className="flex-col w-[200px] shrink-0 flex-nowrap">
-              <div className="overflow-y-auto w-full overflow-x-hidden flex-1">
-                {logsPageList &&
-                  logsPageList.map((logs, index) => {
-                    return (
-                      <CTab
-                        itemKey={index}
-                        key={index}
-                        ref={(el) => (refs.current[index] = el)}
-                        onClick={() => changeActiveItemKey(index)}
-                      >
-                        {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
-                        {t('faultSiteLogs.faultLogsText')}
-                      </CTab>
-                    )
-                  })}
-              </div>
-
-              <div className="w-full overflow-hidden flex-grow-0 flex items-end justify-end">
-                <CustomPagination
-                  pageIndex={pageIndex}
-                  pageSize={pageSize}
-                  total={total}
-                  previousPage={() => setPageIndex(pageIndex - 1)}
-                  nextPage={() => setPageIndex(pageIndex + 1)}
-                  gotoPage={(index) => setPageIndex(index)}
-                  maxButtons={2}
-                />
-              </div>
-            </CTabList>
-
-            {logsPageList[activeItemKey] && (
-              <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
-                <LoadingSpinner loading={logContentLoading} />
-                <div className="flex-grow-0 flex-shrink-0">
-                  <CCard className="mx-4 my-2 p-2 font-bold">
-                    <CRow className="my-1 ">
-                      <CCol sm="2" className="text-gray-400 font-bold">
-                        Trace Id
-                      </CCol>
-                      <CCol sm="auto">{logsPageList[activeItemKey]?.traceId}</CCol>
-                    </CRow>
-                    <CRow className="my-1">
-                      <CCol sm="2" className="text-gray-400 font-bold">
-                        {t('faultSiteLogs.endpoint')}
-                      </CCol>
-                      <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
-                    </CRow>
-                    <CRow className="my-1">
-                      <CCol sm="2" className="text-gray-400 font-bold">
-                        {t('faultSiteLogs.timeOfFailure')}
-                      </CCol>
-                      <CCol sm="auto">
-                        {convertTime(
-                          logsPageList[activeItemKey]?.startTime,
-                          'yyyy-mm-dd hh:mm:ss.SSS',
-                        )}
-                      </CCol>
-                    </CRow>
-                  </CCard>
+        <div className="h-full flex-grow flex-shrink overflow-hidden flex-column-tab ">
+          {logsPageList?.length > 0 && (
+            <CTabs
+              key={pageIndex + activeItemKey}
+              activeItemKey={activeItemKey}
+              className="flex flex-row h-full logs-tab"
+              onChange={changeActiveItemKey}
+            >
+              <CTabList variant="tabs" className="flex-col w-[200px] shrink-0 flex-nowrap">
+                <div className="overflow-y-auto w-full overflow-x-hidden flex-1">
+                  {logsPageList &&
+                    logsPageList.map((logs, index) => {
+                      return (
+                        <CTab
+                          itemKey={index}
+                          key={index}
+                          ref={(el) => (refs.current[index] = el)}
+                          onClick={() => changeActiveItemKey(index)}
+                        >
+                          {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
+                          {t('faultSiteLogs.faultLogsText')}
+                        </CTab>
+                      )
+                    })}
                 </div>
-                <div className="text-base font-bold mb-2">
-                  {t('faultSiteLogs.specificLogInformation')}
-                </div>
-                <div className="flex flex-row items-center">
-                  <span className="text-nowrap">Source：</span>
-                  <CustomSelect
-                    options={logContent?.sources ?? []}
-                    value={source}
-                    onChange={(value) => setSource(value)}
+
+                <div className="w-full overflow-hidden flex-grow-0 flex items-end justify-end">
+                  <CustomPagination
+                    pageIndex={pageIndex}
+                    pageSize={pageSize}
+                    total={total}
+                    previousPage={() => setPageIndex(pageIndex - 1)}
+                    nextPage={() => setPageIndex(pageIndex + 1)}
+                    gotoPage={(index) => setPageIndex(index)}
+                    maxButtons={2}
                   />
                 </div>
-                <LogContent data={logContent} />
-              </div>
-            )}
-          </CTabs>
-        )}
-        {(!logsPageList || logsPageList?.length === 0) && <Empty />}
-      </div>
+              </CTabList>
+
+              {logsPageList[activeItemKey] && (
+                <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
+                  <LoadingSpinner loading={logContentLoading} />
+                  <div className="flex-grow-0 flex-shrink-0">
+                    <CCard className="mx-4 my-2 p-2 font-bold">
+                      <CRow className="my-1 ">
+                        <CCol sm="2" className="text-gray-400 font-bold">
+                          Trace Id
+                        </CCol>
+                        <CCol sm="auto">{logsPageList[activeItemKey]?.traceId}</CCol>
+                      </CRow>
+                      <CRow className="my-1">
+                        <CCol sm="2" className="text-gray-400 font-bold">
+                          {t('faultSiteLogs.endpoint')}
+                        </CCol>
+                        <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
+                      </CRow>
+                      <CRow className="my-1">
+                        <CCol sm="2" className="text-gray-400 font-bold">
+                          {t('faultSiteLogs.timeOfFailure')}
+                        </CCol>
+                        <CCol sm="auto">
+                          {convertTime(
+                            logsPageList[activeItemKey]?.startTime,
+                            'yyyy-mm-dd hh:mm:ss.SSS',
+                          )}
+                        </CCol>
+                      </CRow>
+                    </CCard>
+                  </div>
+                  <div className="text-base font-bold mb-2">
+                    {t('faultSiteLogs.specificLogInformation')}
+                  </div>
+                  <div className="flex flex-row items-center">
+                    <span className="text-nowrap">Source：</span>
+                    <CustomSelect
+                      options={logContent?.sources ?? []}
+                      value={source}
+                      onChange={(value) => setSource(value)}
+                    />
+                  </div>
+                  <LogContent data={logContent} />
+                </div>
+              )}
+            </CTabs>
+          )}
+          {(!logsPageList || logsPageList?.length === 0) && <Empty />}
+        </div>
       </BasicCard.Table>
     </BasicCard>
   )

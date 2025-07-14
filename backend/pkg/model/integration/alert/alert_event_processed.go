@@ -56,7 +56,8 @@ type WorkflowParams struct {
 	NodeName string `json:"nodeName" form:"nodeName"`
 	NodeIp   string `json:"nodeIp" form:"nodeIp"`
 
-	Params string `json:"params"`
+	Params  string `json:"params"`
+	Edition string `json:"edition"`
 }
 
 type AlertAnalyzeWorkflowParams struct {

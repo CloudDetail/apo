@@ -69,12 +69,6 @@ const baseRoutes = [
     element: IntegrationSettings,
   },
   {
-    path: '/system/config',
-    name: <TranslationCom text="systemConfigName" space={namespace} />,
-    element: SystemConfiguration,
-    hideSystemTimeRangePicker: true,
-  },
-  {
     path: '/system/data-group',
     name: <TranslationCom text="dataGroup" space={namespace} />,
     element: DataGroupPage,
@@ -88,7 +82,7 @@ const baseRoutes = [
   },
   {
     path: '/demo/service-config',
-    name: '服务别名配置',
+    name: 'Service Config',
     element: ConfigPageAuth,
   },
 ]

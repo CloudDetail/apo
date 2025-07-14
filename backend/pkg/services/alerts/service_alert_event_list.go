@@ -142,6 +142,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 	}
 
 	if len(record.Input) > 0 {
+		// replace EventID by checkedEvent
 		record.ID, _ = uuid.Parse(record.Input)
 	}
 
@@ -149,6 +150,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  record.AlertEvent.GetInfraNodeTag(),
+		Edition:   "ce",
 	}
 
 	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)

@@ -40,7 +40,6 @@ const MultiLineChart = (props) => {
         const timeStr = convertTime(params[0]?.data[0] * 1000, 'yyyy-mm-dd hh:mm:ss')
 
         let result = `<div class="max-h-[200px] flex flex-col"><div class=" flex-0 text-[rgb(102,102,102)] mb-1">${timeStr}</div><div class="w-full flex-1 h-o overflow-auto">`
-        console.log(params)
         params.forEach((param) => {
           const color = param.color
           const name = param.seriesName
@@ -89,14 +88,12 @@ const MultiLineChart = (props) => {
   const [loading, setLoading] = useState(false)
   const { theme } = useSelector((state) => state.settingReducer)
   const handleActiveServices = (event, item) => {
-    console.log(event)
     const chartInstance = chartRef.current.getEchartsInstance()
 
     if (event.metaKey) {
       if (activeSeries?.includes(item.legend)) {
         let newActives = activeSeries.filter((legend) => legend !== item.legend)
         setActiveSeries(newActives)
-        console.log(newActives)
         chartInstance.dispatchAction({
           type: 'legendUnSelect',
           name: item.legend,
@@ -169,8 +166,14 @@ const MultiLineChart = (props) => {
           },
           hideOverlap: true,
         },
-        min: startTime / 1000,
-        max: endTime / 1000,
+        // min: startTime / 1000,
+        // max: endTime / 1000,
+        ...(startTime && endTime
+          ? {
+              min: startTime / 1000,
+              max: endTime / 1000,
+            }
+          : {}),
       },
       color: ChartColorList,
       series: chartData?.map((item) => ({

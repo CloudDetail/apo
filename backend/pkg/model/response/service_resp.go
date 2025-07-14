@@ -13,24 +13,25 @@ import (
 )
 
 type GetServiceEndpointRelationResponse struct {
-	Parents       []*model.TopologyNode    `json:"parents"`        // upstream node list
-	Current       *model.TopologyNode      `json:"current"`        // current service
-	ChildRelation []*model.ToplogyRelation `json:"childRelations"` // downstream node call relationship list
+	Parents       []*model.TopologyNode     `json:"parents"`        // upstream node list
+	Current       *model.TopologyNode       `json:"current"`        // current service
+	ChildRelation []*model.TopologyRelation `json:"childRelations"` // downstream node call relationship list
 
 	TopologyLevels      []TopologyNodeLevel          `json:"topologyLevels,omitempty"`
 	ExternalClientCalls []TopologyExternalClientCall `json:"topologyExternalClientCall,omitempty"`
-}
-
-type TopologyNodeLevel struct {
-	Service  string `ch:"service" json:"service"`
-	Endpoint string `ch:"endpoint" json:"endpoint"`
-	Depth    int    `ch:"depth" json:"depth"`
 }
 
 type TopologyExternalClientCall struct {
 	model.TopologyNode
 
 	Childs []model.TopologyNode `json:"childs"`
+}
+
+type TopologyNodeLevel struct {
+	Service    string `ch:"service" json:"service"`
+	Endpoint   string `ch:"endpoint" json:"endpoint"`
+	Depth      int    `ch:"depth" json:"depth"`
+	OutOfGroup bool   `ch:"-" json:"outOfGroup"`
 }
 
 type GetServiceEndpointTopologyResponse struct {

@@ -7,6 +7,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import logo from 'src/core/assets/brand/logo.svg'
+import { SkinOutlined } from '@ant-design/icons'
 import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
@@ -14,11 +15,13 @@ import CoachMask from './Mask/CoachMask'
 import DateTimeCombine from './DateTime/DateTimeCombine'
 import { commercialNav } from 'src/_nav'
 import UserToolBox from './UserToolBox'
-import { t } from 'i18next'
-import ThemeSwitcher from './ThemeSwitcher'
-import { theme } from 'antd'
+import { Button, theme } from 'antd'
+import DataGroupSelector from './DataGroup/DataGroupSelector'
+import PreferencesDrawer from './Drawer/PreferencesDrawer'
+import { useTranslation } from 'react-i18next'
 
 const AppHeader = ({ type = 'default' }) => {
+  const { t } = useTranslation('common')
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
@@ -28,6 +31,7 @@ const AppHeader = ({ type = 'default' }) => {
   const dispatch = useDispatch()
   const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const onClick = (to) => {
     navigate(to)
@@ -45,13 +49,12 @@ const AppHeader = ({ type = 'default' }) => {
     })
     return result
   }
-
+  const currentRoute = routes.find((route) => {
+    const routePattern = route.path.replace(/:\w+/g, '[^/]+')
+    const regex = new RegExp(`^${routePattern}$`)
+    return regex.test(location.pathname)
+  })
   const checkRoute = () => {
-    const currentRoute = routes.find((route) => {
-      const routePattern = route.path.replace(/:\w+/g, '[^/]+')
-      const regex = new RegExp(`^${routePattern}$`)
-      return regex.test(location.pathname)
-    })
     return !currentRoute?.hideSystemTimeRangePicker
   }
 
@@ -76,40 +79,51 @@ const AppHeader = ({ type = 'default' }) => {
   return (
     <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
       <div className="flex justify-between items-center w-full">
-        {type === 'united' ? (
-          <div className="flex items-center">
-            <div className="h-[50px] flex overflow-hidden items-center mr-5">
-              <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
-              <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
-            </div>
-            {commercialNav.map((item) => (
-              <div
-                onClick={() => onClick(item.to)}
-                className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
-                style={{
-                  backgroundColor: selectedKeys.includes(item.key)
-                    ? token.colorPrimary
-                    : 'var(--header-menu-color)',
-                  color: selectedKeys.includes(item.key)
-                    ? 'var(--menu-selected-text-color)'
-                    : token.colorText,
-                  borderBottom: '1px solid var(--cui-body-bg)',
-                }}
-              >
-                <span className="pr-2">{item.icon}</span> {item.label}
+        <div className="flex items-center">
+          {type === 'united' ? (
+            <div className="flex items-center">
+              <div className="h-[50px] flex overflow-hidden items-center mr-5">
+                <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
+                <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
-            <AppBreadcrumb />
-          </CHeaderNav>
-        )}
+              {commercialNav.map((item) => (
+                <div
+                  onClick={() => onClick(item.to)}
+                  className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
+                  style={{
+                    backgroundColor: selectedKeys.includes(item.key)
+                      ? token.colorPrimary
+                      : 'var(--header-menu-color)',
+                    color: selectedKeys.includes(item.key)
+                      ? 'var(--menu-selected-text-color)'
+                      : token.colorText,
+                    borderBottom: '1px solid var(--cui-body-bg)',
+                  }}
+                >
+                  <span className="pr-2">{item.icon}</span> {item.label}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <CHeaderNav className="d-none d-md-flex px-4 py-2 text-base flex items-center h-[50px] flex-grow">
+              <AppBreadcrumb />
+            </CHeaderNav>
+          )}
+          {currentRoute?.showDataGroup && (
+            <DataGroupSelector readonly={currentRoute?.showDataGroup === 'view'} />
+          )}
+        </div>
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
           {checkRoute() && <DateTimeCombine />}
-          <ThemeSwitcher />
+          <Button
+            type="text"
+            icon={<SkinOutlined />}
+            onClick={() => setDrawerOpen(true)}
+            title={t('preferences')}
+          />
           <UserToolBox />
+          <PreferencesDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
         </CHeaderNav>
       </div>
     </CHeader>

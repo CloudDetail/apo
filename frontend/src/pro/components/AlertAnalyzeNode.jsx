@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Handle, Position } from 'reactflow'
 import { BiCctv } from 'react-icons/bi'
-import { Badge, theme } from 'antd'
+import { Badge, theme, Tooltip } from 'antd'
 import { useUpdateEffect } from 'react-use'
 import _ from 'lodash'
 import { useServiceAnalyzeContext } from '../contexts/ServiceAnalyzeContext'
+import { LuShieldOff } from 'react-icons/lu'
+import { useTranslation } from 'react-i18next'
 
 const handleStyle = { left: 10 }
 
 const AlertAnalyzeNode = React.memo((props) => {
   const { id, data, isConnectable } = props
+  const { t: ct } = useTranslation('common')
   const {
     timeLineChartData,
     topologyNodesMap,
@@ -69,7 +72,7 @@ const AlertAnalyzeNode = React.memo((props) => {
       selectedNodeInfo?.endpoint === data.endpoint
     ) {
       setSelectedNodeInfo({ service: '', endpoint: '' })
-    } else {
+    } else if (!data?.outOfGroup) {
       setSelectedNodeInfo({ service: data.service, endpoint: data.endpoint })
     }
   }
@@ -91,45 +94,52 @@ const AlertAnalyzeNode = React.memo((props) => {
         isConnectable={isConnectable}
         className="invisible"
       />
-      <div
-        className="nodeContent w-[240px] min-h-[60px] "
-        style={{
-          backgroundColor: token.colorBgLayout,
-          color: token.colorPrimaryText,
-          borderColor: token.colorPrimaryText,
-        }}
-      >
-        <div className="absolute top-0 left-0">
-          {' '}
-          <BiCctv size={35} color={data.isTraced ? '#80ce8dff' : '#a1a1a1'} />
-        </div>
-        <div className="text-center text-lg pt-2 px-2">
-          {data.label}
-          <div
-            className="text-xs  text-left  break-all"
-            style={{ color: token.colorTextSecondary }}
-          >
-            {data.endpoint}
+      <Tooltip title={data.outOfGroup ? ct('outOfGroup') : ''}>
+        <div
+          className="nodeContent w-[240px] min-h-[60px] "
+          style={{
+            backgroundColor: token.colorBgLayout,
+            color: data?.outOfGroup ? token.colorTextDisabled : token.colorPrimaryText,
+            borderColor: data?.outOfGroup ? token.colorTextDisabled : token.colorPrimaryText,
+          }}
+        >
+          <div className="absolute top-0 left-0">
+            {' '}
+            <BiCctv size={35} color={data.isTraced ? '#80ce8dff' : '#a1a1a1'} />
           </div>
-          <div className="w-full text-left">
-            {anormalTypes?.map((type) => {
-              let typeItem = anormalTypesOptions.find((item) => item.value === type)
-              return (
-                <div>
-                  <span className="text-sm" style={{ color: token.colorText }}>
-                    {typeItem.label}
-                  </span>
-                  <Badge
-                    count={getCount(typeItem.key)}
-                    showZero
-                    color={getCount(typeItem.key) > 0 ? '#dc4446' : 'gray'}
-                  />
-                </div>
-              )
-            })}
+          <div className="text-center text-lg pt-2 px-2">
+            {data.label}
+            {data.outOfGroup && (
+              <div className="absolute top-0 right-0">
+                <LuShieldOff size={35} />
+              </div>
+            )}
+            <div
+              className="text-xs  text-left  break-all"
+              style={{ color: token.colorTextSecondary }}
+            >
+              {data.endpoint}
+            </div>
+            <div className="w-full text-left">
+              {anormalTypes?.map((type) => {
+                let typeItem = anormalTypesOptions.find((item) => item.value === type)
+                return (
+                  <div>
+                    <span className="text-sm" style={{ color: token.colorText }}>
+                      {typeItem.label}
+                    </span>
+                    <Badge
+                      count={getCount(typeItem.key)}
+                      showZero
+                      color={getCount(typeItem.key) > 0 ? '#dc4446' : 'gray'}
+                    />
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </Tooltip>
       <Handle
         type="source"
         position={Position.Right}

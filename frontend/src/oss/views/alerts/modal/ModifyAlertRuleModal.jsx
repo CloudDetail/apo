@@ -14,6 +14,7 @@ import { notify } from 'src/core/utils/notify'
 import ALertConditionCom from './ALertConditionCom'
 import { useTranslation } from 'react-i18next' // 引入i18n
 import TranslationCom from 'src/oss/components/TranslationCom'
+import DataGroupTreeSelector from 'src/core/components/DataGroup/DataGroupTreeSelector'
 
 function isValidKeyValue(str) {
   // 定义正则表达式，key 以字母或下划线开头，后面可以跟字母、数字或下划线
@@ -47,10 +48,9 @@ export default function ModifyAlertRuleModal({
   refresh,
 }) {
   const [form] = Form.useForm()
-  const [expr, setExpr] = useState(null)
   const [forUnit, setForUnit] = useState('s')
-  const [keepUnit, setKeepUnit] = useState('s')
   const namespace = 'oss/alert'
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const options = [
     {
       value: 's',
@@ -141,10 +141,11 @@ export default function ModifyAlertRuleModal({
     }
     form.setFieldValue('labels', labelsList)
   }
-  const updateRule = (alertRule) => {
+  const updateRule = (alertRule, groupId) => {
     let api = addRuleApi
     let params = {
       alertRule,
+      groupId,
     }
     if (ruleInfo) {
       api = updateRuleApi
@@ -168,7 +169,7 @@ export default function ModifyAlertRuleModal({
         const alertRule = {
           group: formState.group.label,
           alert: formState.alert,
-          expr: expr,
+          expr: formState.expr,
         }
         if (formState.for) {
           alertRule.for = formState.for + forUnit
@@ -182,15 +183,14 @@ export default function ModifyAlertRuleModal({
         if (formState.description) {
           alertRule.annotations['description'] = formState.description
         }
-        updateRule(alertRule)
+        updateRule(alertRule, formState.groupId)
       })
       .catch((error) => console.log(error))
   }
   useEffect(() => {
     // console.log(ruleInfo)
     if (ruleInfo && modalVisible) {
-      setExpr(ruleInfo.expr)
-      const { time, unit } = splitTimeUnit(ruleInfo.for)
+      const { time, unit } = splitTimeUnit(ruleInfo?.for)
       if (unit) {
         setForUnit(unit)
       }
@@ -208,13 +208,14 @@ export default function ModifyAlertRuleModal({
         annotations: formatterAnnotationsToFormState(ruleInfo.annotations ?? {}),
         description: ruleInfo.annotations?.description,
         severity: ruleInfo.labels?.severity,
+        expr: ruleInfo.expr,
+        groupId: ruleInfo.labels?.groupId ? Number(ruleInfo.labels.groupId) : null,
       })
     } else {
       form.resetFields()
-      setExpr()
       setForUnit('s')
     }
-  }, [modalVisible, ruleInfo])
+  }, [modalVisible, ruleInfo, dataGroupId])
   const updateDescription = (e, value) => {
     let description = _.cloneDeep(form.getFieldValue('description') ?? '')
     const isExists = description.includes(value)
@@ -263,6 +264,28 @@ export default function ModifyAlertRuleModal({
           }}
         >
           <Form.Item
+            label={t('modifyAlertRuleModal.dataGroup')}
+            name="groupId"
+            required
+            valuePropName="groupId"
+            rules={[
+              {
+                validator: async (_, value) => {
+                  if (value === null)
+                    return Promise.reject(
+                      new Error(
+                        t('modifyAlertRuleModal.dataGroup') +
+                          ' ' +
+                          t('modifyAlertRuleModal.invalidLabelFormat'),
+                      ),
+                    )
+                },
+              },
+            ]}
+          >
+            <DataGroupTreeSelector />
+          </Form.Item>
+          <Form.Item
             label={t('modifyAlertRuleModal.groupName')}
             name="group"
             required
@@ -300,8 +323,13 @@ export default function ModifyAlertRuleModal({
           >
             <Input placeholder={t('modifyAlertRuleModal.alertRuleName')} />
           </Form.Item>
-          <Form.Item label={t('modifyAlertRuleModal.alertCondition')} name="condition">
-            <ALertConditionCom expr={expr} setExpr={setExpr} />
+          <Form.Item
+            label={t('modifyAlertRuleModal.alertCondition')}
+            name="expr"
+            valuePropName="expr"
+            rules={[{ required: true }]}
+          >
+            <ALertConditionCom />
           </Form.Item>
           <Form.Item
             label={t('modifyAlertRuleModal.alertLevel')}

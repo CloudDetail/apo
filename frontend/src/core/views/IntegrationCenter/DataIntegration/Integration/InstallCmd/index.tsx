@@ -30,9 +30,9 @@ const decodeBase64 = (base64Str: string) => {
 function getAPOChartVersion() {
   try {
     const config = window.__APP_CONFIG__ || {}
-    return config.apoChartVersion || 'v1.2.0'
+    return config.apoChartVersion || '1.9'
   } catch (e) {
-    return 'v1.2.0'
+    return '1.9'
   }
 }
 const InstallCmd = ({ clusterId, clusterType, apoCollector }) => {
