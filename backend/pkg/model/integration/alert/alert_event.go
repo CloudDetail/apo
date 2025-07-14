@@ -72,6 +72,7 @@ func FastAlertIDByStringMap(alertName string, tags map[string]string) string {
 func (e *AlertEvent) TagsInStr() string {
 	param := e.EnrichTags
 	param["status"] = e.Status
+	e.Tags["alertEventId"] = e.ID.String()
 	// param["describe"] =
 	bytes, err := json.Marshal(e.Tags)
 	if err != nil {

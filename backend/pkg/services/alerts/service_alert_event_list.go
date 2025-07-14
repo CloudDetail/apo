@@ -129,6 +129,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
 		record.Duration = formatDuration(record.EndTime.Sub(record.CreateTime))
+		record.ID, _ = uuid.Parse(record.Input)
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
@@ -149,7 +150,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  record.AlertEvent.GetInfraNodeTag(),
-		Edition:   "ce",
+		Edition:   "ee",
 	}
 
 	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)

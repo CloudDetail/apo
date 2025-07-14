@@ -36,7 +36,6 @@ type service struct {
 	chRepo   clickhouse.Repo
 	promRepo prometheus.Repo
 	dbRepo   database.Repo
-
 }
 
 func New(

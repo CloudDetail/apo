@@ -32,7 +32,7 @@ func (s *service) getServiceEndpointsByApo(ctx core.Context, req *request.QueryS
 		}
 	}
 
-	return &response.QueryServiceEndpointsResponse {
+	return &response.QueryServiceEndpointsResponse{
 		Results: endpoints,
 	}
 }

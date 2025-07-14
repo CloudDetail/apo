@@ -38,6 +38,12 @@ type QueryTopologyResponse struct {
 	Results []*model.ServiceToplogyNode `json:"results"`
 }
 
+type QueryServiceResult struct {
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Source string `json:"source"`
+}
+
 type QueryChartResult struct {
 	Title      string        `json:"title"`
 	Unit       string        `json:"unit"`

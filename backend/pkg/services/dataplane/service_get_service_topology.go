@@ -28,21 +28,21 @@ func (s *service) GetServiceTopology(ctx core.Context, req *request.QueryTopolog
 	for _, realTopology := range realTopologies {
 		var (
 			parentNode *model.ServiceToplogyNode
-			childNode *model.ServiceToplogyNode
-			ok bool
+			childNode  *model.ServiceToplogyNode
+			ok         bool
 		)
 		if realTopology.ParentService != "" {
 			parentNode, ok = nodes[realTopology.ParentService]
 			if !ok {
 				parentNode = model.NewServiceToplogyNode(realTopology.ParentService, realTopology.ParentType, false)
-				nodes[realTopology.ParentService] = parentNode 
+				nodes[realTopology.ParentService] = parentNode
 			}
 		}
 		if realTopology.ChildService != "" {
 			childNode, ok = nodes[realTopology.ChildService]
 			if !ok {
 				childNode = model.NewServiceToplogyNode(realTopology.ChildService, realTopology.ChildType, false)
-				nodes[realTopology.ChildService] = childNode 
+				nodes[realTopology.ChildService] = childNode
 			}
 		}
 		if parentNode != nil && childNode != nil {
@@ -55,12 +55,12 @@ func (s *service) GetServiceTopology(ctx core.Context, req *request.QueryTopolog
 			parentNode, ok := nodes[staticTopology.LeftNode]
 			if !ok {
 				parentNode = model.NewServiceToplogyNode(staticTopology.LeftNode, staticTopology.LeftType, true)
-				nodes[staticTopology.LeftNode] = parentNode 
+				nodes[staticTopology.LeftNode] = parentNode
 			}
 			childNode, ok := nodes[staticTopology.RightNode]
 			if !ok {
 				childNode = model.NewServiceToplogyNode(staticTopology.RightNode, staticTopology.RightType, true)
-				nodes[staticTopology.RightNode] = childNode 
+				nodes[staticTopology.RightNode] = childNode
 			}
 			parentNode.AddChild(childNode)
 		}

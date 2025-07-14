@@ -12,7 +12,7 @@ import (
 )
 
 func (s *service) AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error {
-	report, _ := s.chRepo.GetAlertEventReport(ctx, time.UnixMicro(req.Overview.TimeStamp-1000000), time.UnixMicro(req.Overview.TimeStamp+1000000), req.Tags)
+	report, _ := s.chRepo.GetAlertEventReport(ctx, time.UnixMicro(req.Overview.TimeStamp-3600000000), time.UnixMicro(req.Overview.TimeStamp+3600000000), req.Tags)
 	if report != nil {
 		return core.Error(code.AddAlertEventReportError, "alert event report already exists")
 	}
