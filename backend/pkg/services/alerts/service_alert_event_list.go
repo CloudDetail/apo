@@ -150,7 +150,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		StartTime: startTime.UnixMicro(),
 		EndTime:   endTime.UnixMicro(),
 		NodeName:  record.AlertEvent.GetInfraNodeTag(),
-		Edition:   "ce",
+		Edition:   "ee",
 	}
 
 	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)

@@ -90,7 +90,7 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 			StartTime: startTime.UnixMicro(),
 			EndTime:   endTime.UnixMicro(),
 			NodeName:  records[i].AlertEvent.GetInfraNodeTag(),
-			Edition:   "ce",
+			Edition:   "ee",
 		}
 
 		var services, endpoints []string
