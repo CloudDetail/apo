@@ -2370,6 +2370,22 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
+  request.QueryAPPInfoTagValuesRequest:
+    properties:
+      endTime:
+        type: integer
+      key:
+        type: string
+      startTime:
+        type: integer
+    type: object
+  request.QueryAPPInfoTagsRequest:
+    properties:
+      endTime:
+        type: integer
+      startTime:
+        type: integer
+    type: object
   request.QueryServiceNameRequest:
     properties:
       cluster:
@@ -3684,6 +3700,22 @@ definitions:
         items:
           items: {}
           type: array
+        type: array
+    type: object
+  response.QueryAPPInfoTagValuesResponse:
+    properties:
+      label:
+        type: string
+      values:
+        items:
+          type: string
+        type: array
+    type: object
+  response.QueryAPPInfoTagsResponse:
+    properties:
+      labels:
+        items:
+          type: string
         type: array
     type: object
   response.QueryChartResult:
@@ -5612,6 +5644,66 @@ paths:
       summary: Get user's assigned data group.
       tags:
       - API.data
+  /api/dataplane/appinfo/tags:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get app info tags.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.QueryAPPInfoTagsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryAPPInfoTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get app info tags.
+      tags:
+      - API.dataplane
+  /api/dataplane/appinfo/tags/values:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get app info tag values.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.QueryAPPInfoTagValuesRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryAPPInfoTagValuesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get app info tag values.
+      tags:
+      - API.dataplane
   /api/dataplane/customtopology/create:
     post:
       consumes:
@@ -9310,12 +9402,12 @@ paths:
       - application/x-www-form-urlencoded
       description: get span execution consumption
       parameters:
-      - description: start time
+      - description: start time, unit nanosecond
         in: query
         name: startTime
         required: true
         type: integer
-      - description: end time
+      - description: end time, unit nanosecond
         in: query
         name: endTime
         required: true

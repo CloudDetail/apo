@@ -227,4 +227,6 @@ var zhCnText = map[string]string{
 	ListServiceNameRuleError:      "列出所有服务名匹配规则失败",
 	DeleteServiceNameRuleError:    "删除服务名匹配规则失败",
 	ServiceNameRuleNotExistsError: "服务名匹配规则不存在",
+	QueryAPPInfoTagsError:         "查询APP信息标签失败",
+	QueryAPPInfoValuesError:       "查询APP信息值失败",
 }

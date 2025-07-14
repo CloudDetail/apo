@@ -225,4 +225,6 @@ var enText = map[string]string{
 	ListServiceNameRuleError:      "Failed to list service name rule",
 	DeleteServiceNameRuleError:    "Failed to delete service name rule",
 	ServiceNameRuleNotExistsError: "service name rule not exists",
+	QueryAPPInfoTagsError:         "Failed to query APP info tags",
+	QueryAPPInfoValuesError:       "Failed to query APP info values",
 }
