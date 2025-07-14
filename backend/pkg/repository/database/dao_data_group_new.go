@@ -4,9 +4,12 @@
 package database
 
 import (
+	"errors"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -133,7 +136,7 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 			Group("dsg.group_id,ds.scope_id").
 			Find(&group2Scope).Error
 
-		if err != nil {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 
