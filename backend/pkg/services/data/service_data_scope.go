@@ -51,6 +51,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		return nil, err
 	}
 
+	if len(scopeIDs) == 0 {
+		return &response.ListDataScopeFilterResponse{
+			Scopes: &datagroup.DataScopeTreeNode{},
+		}, nil
+	}
+
 	scopes, leafs := common.DataGroupStorage.CloneWithCategory(scopeIDs, req.Category)
 
 	filter := common.ConvertScopeNodeToPQLFilter(scopes)

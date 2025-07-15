@@ -261,6 +261,12 @@ func (repo *daoRepo) GetAnonymousUser(ctx core.Context) (profile.User, error) {
 	return user, err
 }
 
+func (repo *daoRepo) GetAdminUser(ctx core.Context) (profile.User, error) {
+	var user profile.User
+	err := repo.GetContextDB(ctx).Select(userFieldSql).Where("username = ?", model.ROLE_ADMIN).Find(&user).Error
+	return user, err
+}
+
 func (repo *daoRepo) GetUserList(ctx core.Context, req *request.GetUserListRequest) ([]profile.User, int64, error) {
 	var users []profile.User
 	var count int64

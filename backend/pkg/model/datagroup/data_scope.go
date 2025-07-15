@@ -158,6 +158,10 @@ func FillWithClusterName(scopes []DataScope, clusterNameMap map[string]string) [
 }
 
 func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string) {
+	if clusterNameMap == nil {
+		return
+	}
+
 	if name, find := clusterNameMap[t.ClusterID]; find {
 		t.ClusterName = name
 	} else if len(t.ClusterID) == 0 {
@@ -172,6 +176,9 @@ func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string
 }
 
 func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []string {
+	if len(permScopeIDs) == 0 {
+		return []string{}
+	}
 	optionsMap := make(map[string]struct{})
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
@@ -197,6 +204,10 @@ func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []st
 }
 
 func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []string {
+	if len(options) == 0 {
+		return []string{}
+	}
+
 	optionsMap := make(map[string]bool)
 	for _, id := range options {
 		optionsMap[id] = true
@@ -276,6 +287,10 @@ func (t *DataScopeTreeNode) cloneWithPermission(pPerm scopeStatus, options []str
 }
 
 func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*DataScopeTreeNode, map[ScopeLabels]*DataScopeTreeNode) {
+	if len(selected) == 0 {
+		return nil, nil
+	}
+
 	var dfs func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode
 
 	var leafs = make(map[ScopeLabels]*DataScopeTreeNode, 0)

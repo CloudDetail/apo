@@ -106,23 +106,47 @@ func (repo *daoRepo) GetDataGroupIDsByUserId(ctx core.Context, userID int64) ([]
 	return groups, nil
 }
 
-func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
-	err := repo.GetContextDB(ctx).Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(&datagroup.DataScope{
-		ScopeID:  "APO_ALL_DATA",
-		Category: "system",
-		Name:     "ALL",
-		Type:     "system",
-	}).Error
+func (repo *daoRepo) assignUserDataGroupIfNotExist(ctx core.Context, userID, groupID int64) error {
+	var count int64 = 0
+	err := repo.GetContextDB(ctx).Model(&AuthDataGroup{}).
+		Where("subject_id = ? AND type = ? AND data_group_id = ?", userID, model.DATA_GROUP_SUB_TYP_USER, groupID).
+		Count(&count).Error
 
 	if err != nil {
 		return err
 	}
 
+	if count > 0 {
+		return nil
+	}
+
+	return repo.GetContextDB(ctx).Create(&AuthDataGroup{
+		ID:          userID,
+		SubjectID:   userID,
+		SubjectType: model.DATA_GROUP_SUB_TYP_USER,
+		GroupID:     groupID,
+		Type:        "view",
+	}).Error
+}
+
+func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
+	if anonymousUser, err := repo.GetAnonymousUser(ctx); err == nil {
+		err := repo.assignUserDataGroupIfNotExist(ctx, anonymousUser.UserID, 0)
+		if err != nil {
+			return err
+		}
+	}
+
+	if adminUser, err := repo.GetAdminUser(ctx); err == nil {
+		err := repo.assignUserDataGroupIfNotExist(ctx, adminUser.UserID, 0)
+		if err != nil {
+			return err
+		}
+	}
+
 	// migrate-datasourceGroup
 	var count int64
-	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
+	err := repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
 	if err != nil {
 		return err
 	}
