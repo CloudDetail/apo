@@ -17,10 +17,11 @@ const (
 )
 
 type queryServiceToplogyRequest struct {
-	StartTime int64  `json:"startTime"`
-	EndTime   int64  `json:"endTime"`
-	ClusterId string `json:"clusterId"`
-	Source    string `json:"dataSource"`
+	ProviderId int   `json:"providerId"`
+	StartTime  int64  `json:"startTime"`
+	EndTime    int64  `json:"endTime"`
+	ClusterId  string `json:"clusterId"`
+	Source     string `json:"dataSource"`
 }
 
 type queryServiceToplogyResponse struct {
@@ -29,12 +30,13 @@ type queryServiceToplogyResponse struct {
 	ErrorMsg string                  `json:"errorMsg"`
 }
 
-func (repo *dataplaneRepo) QueryServiceToplogy(startTime int64, endTime int64, clusterId string, datasource string) ([]*model.ServiceToplogy, error) {
+func (repo *dataplaneRepo) QueryServiceToplogy(providerId int, startTime int64, endTime int64, clusterId string, datasource string) ([]*model.ServiceToplogy, error) {
 	queryParams := &queryServiceToplogyRequest{
-		StartTime: startTime,
-		EndTime:   endTime,
-		ClusterId: clusterId,
-		Source:    datasource,
+		ProviderId: providerId,
+		StartTime:  startTime,
+		EndTime:    endTime,
+		ClusterId:  clusterId,
+		Source:     datasource,
 	}
 	requestBody, err := json.Marshal(queryParams)
 	if err != nil {

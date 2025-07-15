@@ -17,27 +17,25 @@ const (
 )
 
 type queryServiceRedChartsRequest struct {
+	ProviderId  int    `json:"providerId"`
 	StartTime   int64  `json:"startTime"`
 	EndTime     int64  `json:"endTime"`
-	Cluster     string `json:"clusterId"`
-	Source      string `json:"dataSource"`
 	ServiceId   string `json:"serviceId"`
 	ServiceName string `json:"serviceName"`
 	Step        int64  `json:"step"`
 }
 
 type queryServiceRedChartsResponse struct {
-	Success  bool                    `json:"success"`
-	Data     *model.ServiceRedCharts `json:"data"`
-	ErrorMsg string                  `json:"errorMsg"`
+	Success  bool                        `json:"success"`
+	Data     map[string]*model.RedCharts `json:"data"`
+	ErrorMsg string                      `json:"errorMsg"`
 }
 
-func (repo *dataplaneRepo) QueryServiceRedCharts(startTime int64, endTime int64, service *model.Service, step int64) (*model.ServiceRedCharts, error) {
+func (repo *dataplaneRepo) QueryServiceRedCharts(providerId int, startTime int64, endTime int64, service *model.Service, step int64) (map[string]*model.RedCharts, error) {
 	queryParams := &queryServiceRedChartsRequest{
+		ProviderId:  providerId,
 		StartTime:   startTime,
 		EndTime:     endTime,
-		Cluster:     service.ClusterId,
-		Source:      service.Source,
 		ServiceId:   service.Id,
 		ServiceName: service.Name,
 		Step:        step,

@@ -39,32 +39,3 @@ func (ch *chRepo) GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error) {
 
 	return result, nil
 }
-
-func (ch *chRepo) WriteRelateApp(ctx core.Context, app *model.AppInfo) error {
-	sql := `
-		INSERT INTO originx_app_info(
-			timestamp,
-			start_time,
-			agent_instance_id,
-			host_pid,
-			container_pid,
-			container_id,
-			labels)
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
-
-	err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), sql,
-		time.Now().UTC(),
-		app.StartTime,
-		app.AgentInstanceId,
-		app.HostPid,
-		app.ContainerPid,
-		app.ContainerId,
-		app.Labels,
-	)
-
-	return err
-}
-
-type ServiceName struct {
-	ServiceName string `ch:"serviceName"`
-}

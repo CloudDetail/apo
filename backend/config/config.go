@@ -5,7 +5,6 @@ package config
 
 import (
 	"os"
-	"time"
 
 	"github.com/CloudDetail/metadata/configs"
 	"github.com/spf13/viper"
@@ -77,8 +76,6 @@ type Config struct {
 	} `mapstructure:"meta_server"`
 	Dataplane struct {
 		Address               string        `mapstructure:"address"`
-		QueryRedInterval      time.Duration `mapstructure:"query_red_interval"`
-		QueryTopologyInterval time.Duration `mapstructure:"query_topology_interval"`
 	} `mapstructure:"dataplane"`
 	Jaeger struct {
 		Address string `mapstructure:"address"`

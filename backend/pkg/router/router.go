@@ -181,7 +181,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	dataplaneConf := config.Get().Dataplane
 	if dataplaneConf.Address != "" {
 		dataplaneRepo, _ := dataplane.New(r.ch, r.pkg_db)
-		dataplaneRepo.Start()
 		r.dataplaneRepo = dataplaneRepo
 	}
 

@@ -17,10 +17,9 @@ const (
 )
 
 type queryApmServiceInstancesRequest struct {
+	ProviderId  int    `json:"providerId"`
 	StartTime   int64  `json:"startTime"`
 	EndTime     int64  `json:"endTime"`
-	Cluster     string `json:"clusterId"`
-	Source      string `json:"dataSource"`
 	ServiceId   string `json:"serviceId"`
 	ServiceName string `json:"serviceName"`
 }
@@ -31,12 +30,11 @@ type queryApmServiceInstancesResponse struct {
 	ErrorMsg string                      `json:"errorMsg"`
 }
 
-func (repo *dataplaneRepo) QueryApmServiceInstances(startTime int64, endTime int64, service *model.Service) ([]*model.ApmServiceInstance, error) {
+func (repo *dataplaneRepo) QueryApmServiceInstances(providerId int, startTime int64, endTime int64, service *model.Service) ([]*model.ApmServiceInstance, error) {
 	queryParams := &queryApmServiceInstancesRequest{
+		ProviderId:  providerId,
 		StartTime:   startTime,
 		EndTime:     endTime,
-		Cluster:     service.ClusterId,
-		Source:      service.Source,
 		ServiceId:   service.Id,
 		ServiceName: service.Name,
 	}
