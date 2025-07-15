@@ -140,11 +140,6 @@ func (ch *chRepo) GetAlertEventsSample(ctx core.Context, sampleCount int, startT
 		And(whereInstance)
 
 	if len(filter.ClusterIDs) > 0 {
-		for i := 0; i < len(filter.ClusterIDs); i++ {
-			if filter.ClusterIDs[i] == "unknown" {
-				filter.ClusterIDs[i] = ""
-			}
-		}
 		builder.InStrings("cluster_id", filter.ClusterIDs)
 	}
 
@@ -178,9 +173,6 @@ func (ch *chRepo) GetAlertDataScope(ctx core.Context, startTime time.Time, endTi
 			datasources[i].Name = datasources[i].Namespace
 		} else {
 			datasources[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
-			if datasources[i].ClusterID == "" {
-				datasources[i].ClusterID = "unknown"
-			}
 			datasources[i].Name = datasources[i].ClusterID
 		}
 	}
@@ -208,11 +200,6 @@ func (ch *chRepo) GetAlertEvents(ctx core.Context, startTime time.Time, endTime 
 		And(whereInstance)
 
 	if len(filter.ClusterIDs) > 0 {
-		for i := 0; i < len(filter.ClusterIDs); i++ {
-			if filter.ClusterIDs[i] == "unknown" {
-				filter.ClusterIDs[i] = ""
-			}
-		}
 		builder.InStrings("cluster_id", filter.ClusterIDs)
 	}
 
