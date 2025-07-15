@@ -22,7 +22,7 @@ const (
 )
 
 type DataGroup struct {
-	GroupID     int64  `gorm:"column:group_id;primary_key;auto_increment" json:"groupId"`
+	GroupID     int64  `gorm:"column:group_id;primary_key" json:"groupId"`
 	GroupName   string `gorm:"column:group_name;type:varchar(110)" json:"groupName"`
 	Description string `gorm:"column:description;type:varchar(50)" json:"description"` // The description of data group.
 
