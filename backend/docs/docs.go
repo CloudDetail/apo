@@ -2505,6 +2505,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/appinfo/tags": {
+            "get": {
+                "description": "Get app info tags.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get app info tags.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryAPPInfoTagsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryAPPInfoTagsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/appinfo/tags/values": {
+            "get": {
+                "description": "Get app info tag values.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get app info tag values.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryAPPInfoTagValuesRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryAPPInfoTagValuesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/customtopology/create": {
             "post": {
                 "description": "Create custom topology.",
@@ -8064,14 +8156,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "start time",
+                        "description": "start time, unit nanosecond",
                         "name": "startTime",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "end time",
+                        "description": "end time, unit nanosecond",
                         "name": "endTime",
                         "in": "query",
                         "required": true
@@ -12603,6 +12695,31 @@ const docTemplate = `{
                 "PF_Flags"
             ]
         },
+        "request.QueryAPPInfoTagValuesRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.QueryAPPInfoTagsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.QueryServiceNameRequest": {
             "type": "object",
             "required": [
@@ -14573,6 +14690,31 @@ const docTemplate = `{
                     "items": {
                         "type": "array",
                         "items": {}
+                    }
+                }
+            }
+        },
+        "response.QueryAPPInfoTagValuesResponse": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.QueryAPPInfoTagsResponse": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }

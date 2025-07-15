@@ -141,6 +141,8 @@ type Repo interface {
 	WriteServiceTopology(ctx core.Context, timestamp int64, clusterId string, source string, topologies []*model.ServiceToplogy) error
 	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
 	WriteRelateApp(ctx core.Context, app *model.AppInfo) error
+	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
+	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
 
 	integration.Input
 }

@@ -30,13 +30,14 @@ type Service interface {
 	SetServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) error
 	ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error)
 	DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error
+	ListAPPInfoLabelsKeys(ctx core.Context, req *request.QueryAPPInfoTagsRequest) (*response.QueryAPPInfoTagsResponse, error)
+	ListAPPInfoLabelValues(ctx core.Context, req *request.QueryAPPInfoTagValuesRequest) (*response.QueryAPPInfoTagValuesResponse, error)
 }
 
 type service struct {
 	chRepo   clickhouse.Repo
 	promRepo prometheus.Repo
 	dbRepo   database.Repo
-	
 }
 
 func New(

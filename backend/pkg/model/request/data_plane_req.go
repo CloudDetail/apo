@@ -86,5 +86,17 @@ type SetServiceNameRuleConditionRequest struct {
 }
 
 type DeleteServiceNameRuleRequest struct {
-	RuleId int `form:"ruleId" binding:"required"`
+	RuleId int `form:"ruleId" json:"ruleId" binding:"required"`
+}
+
+type QueryAPPInfoTagsRequest struct {
+	StartTime int64 `form:"startTime" json:"startTime"`
+	EndTime   int64 `form:"endTime" json:"endTime"`
+}
+
+type QueryAPPInfoTagValuesRequest struct {
+	StartTime int64 `form:"startTime" json:"startTime"`
+	EndTime   int64 `form:"endTime" json:"endTime"`
+
+	Label string `form:"key" json:"key"`
 }
