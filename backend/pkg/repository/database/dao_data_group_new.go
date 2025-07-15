@@ -43,6 +43,18 @@ func (repo *daoRepo) LoadDataGroupTree(ctx core.Context) (*datagroup.DataGroupTr
 		nodesMap[res[i].GroupID] = treeNode
 	}
 
+	if root == nil {
+		root = &datagroup.DataGroupTreeNode{
+			DataGroup: datagroup.DataGroup{
+				GroupID:       0,
+				GroupName:     "ALL",
+				Description:   "Contains all data",
+				ParentGroupID: -1,
+			},
+			SubGroups: []*datagroup.DataGroupTreeNode{},
+		}
+	}
+
 	for _, node := range nodesMap {
 		if node.GroupID == 0 {
 			continue
@@ -96,19 +108,6 @@ func (repo *daoRepo) GetDataGroupIDsByUserId(ctx core.Context, userID int64) ([]
 
 func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 	err := repo.GetContextDB(ctx).Clauses(clause.OnConflict{
-		DoNothing: true,
-	}).Create(&datagroup.DataGroup{
-		GroupID:       0,
-		GroupName:     "ALL",
-		Description:   "Contains all data",
-		ParentGroupID: -1,
-	}).Error
-
-	if err != nil {
-		return err
-	}
-
-	err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(&datagroup.DataScope{
 		ScopeID:  "APO_ALL_DATA",
