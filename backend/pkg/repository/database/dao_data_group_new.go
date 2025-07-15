@@ -107,7 +107,7 @@ func (repo *daoRepo) GetDataGroupIDsByUserId(ctx core.Context, userID int64) ([]
 }
 
 func (repo *daoRepo) assignUserDataGroupIfNotExist(ctx core.Context, userID, groupID int64) error {
-	var count int64 = 0
+	var count int64
 	err := repo.GetContextDB(ctx).Model(&AuthDataGroup{}).
 		Where("subject_id = ? AND type = ? AND data_group_id = ?", userID, model.DATA_GROUP_SUB_TYP_USER, groupID).
 		Count(&count).Error
@@ -121,7 +121,6 @@ func (repo *daoRepo) assignUserDataGroupIfNotExist(ctx core.Context, userID, gro
 	}
 
 	return repo.GetContextDB(ctx).Create(&AuthDataGroup{
-		ID:          userID,
 		SubjectID:   userID,
 		SubjectType: model.DATA_GROUP_SUB_TYP_USER,
 		GroupID:     groupID,
@@ -130,6 +129,24 @@ func (repo *daoRepo) assignUserDataGroupIfNotExist(ctx core.Context, userID, gro
 }
 
 func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
+	var count int64
+	err := repo.GetContextDB(ctx).
+		Model(&datagroup.DataGroup{}).
+		Where("group_id = ?", 0).
+		Count(&count).Error
+
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		// using Exec to avoid auto increment of group_id
+		err := repo.GetContextDB(ctx).Exec("INSERT INTO data_group (group_id, group_name, description, parent_group_id) VALUES (0, 'ALL', 'Contains all data', -1)").Error
+		if err != nil {
+			return err
+		}
+	}
+
 	if anonymousUser, err := repo.GetAnonymousUser(ctx); err == nil {
 		err := repo.assignUserDataGroupIfNotExist(ctx, anonymousUser.UserID, 0)
 		if err != nil {
@@ -145,8 +162,7 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 	}
 
 	// migrate-datasourceGroup
-	var count int64
-	err := repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
+	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
 	if err != nil {
 		return err
 	}
