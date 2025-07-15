@@ -29,8 +29,6 @@ type Service interface {
 	GroupSubsOperation(ctx core.Context, req *request.GroupSubsOperationRequest) error
 	GetGroupSubs(ctx core.Context, req *request.GetGroupSubsRequest) (response.GetGroupSubsResponse, error)
 
-	// TestStoreScope(ctx core.Context)
-
 	ListDataGroupV2(ctx core.Context) (*datagroup.DataGroupTreeNode, error)
 
 	ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeListRequest) (*response.ListDataScopesResponse, error)

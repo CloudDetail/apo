@@ -18,8 +18,8 @@ import (
 // @Tags API.trace
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param startTime query int64 true "start time"
-// @Param endTime query int64 true "end time"
+// @Param startTime query int64 true "start time, unit nanosecond"
+// @Param endTime query int64 true "end time, unit nanosecond"
 // @Param pid query uint32 true "process id"
 // @Param nodeName query string true "node name"
 // @Success 200 {object} response.GetOnOffCPUResponse

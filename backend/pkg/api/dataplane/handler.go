@@ -65,6 +65,16 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/servicename/deleteRule [post]
 	DeleteServiceNameRule() core.HandlerFunc
+
+	// QueryAPPInfoTags Get app info tags.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/appinfo/tags [get]
+	QueryAPPInfoTags() core.HandlerFunc
+
+	// QueryAPPInfoTagValues Get app info tag values.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/appinfo/tags/values [get]
+	QueryAPPInfoTagValues() core.HandlerFunc
 }
 
 type handler struct {

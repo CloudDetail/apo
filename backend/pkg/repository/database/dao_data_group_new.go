@@ -4,9 +4,12 @@
 package database
 
 import (
+	"errors"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -126,15 +129,25 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 	}
 
 	if count == 0 {
-		err = repo.GetContextDB(ctx).Exec(
-			`INSERT INTO data_group_2_scope (group_id,scope_id)
-			  SELECT group_id,scope_id FROM data_scope ds
-			  INNER JOIN datasource_group dsg ON (dsg.datasource = ds.namespace and dsg.type = 'namespace') or (dsg.datasource = ds.service and dsg.type = 'service')
-			  GROUP BY group_id,scope_id
-			  ON CONFLICT (group_id,scope_id) DO NOTHING;`,
-		).Error
-		if err != nil {
+		var group2Scope []datagroup.DataGroup2Scope
+		err := repo.GetContextDB(ctx).Table("data_scope ds").
+			Select("group_id", "scope_id").
+			Joins("INNER JOIN datasource_group dsg ON (dsg.datasource = ds.namespace and dsg.type = 'namespace') or (dsg.datasource = ds.service and dsg.type = 'service')").
+			Group("dsg.group_id,ds.scope_id").
+			Find(&group2Scope).Error
+
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
+		}
+
+		if len(group2Scope) > 0 {
+			err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+				DoNothing: true,
+			}).Create(&group2Scope).Error
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 

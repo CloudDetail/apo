@@ -55,11 +55,6 @@ func (ch *chRepo) GetFaultLogPageList(ctx core.Context, query *FaultLogQuery) ([
 		EqualsNotEmpty("labels['pod_name']", query.Pod)
 
 	if len(query.ClusterIDs) > 0 {
-		for i := 0; i < len(query.ClusterIDs); i++ {
-			if query.ClusterIDs[i] == "unknown" {
-				query.ClusterIDs[i] = ""
-			}
-		}
 		queryBuilder.InStrings("labels['cluster_id']", query.ClusterIDs)
 	}
 	if len(query.MultiServices) > 0 {
@@ -160,11 +155,6 @@ func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		EqualsNotEmpty("labels['container_id']", req.ContainerId)
 
 	if len(req.ClusterIDs) > 0 {
-		for i := 0; i < len(req.ClusterIDs); i++ {
-			if req.ClusterIDs[i] == "unknown" {
-				req.ClusterIDs[i] = ""
-			}
-		}
 		queryBuilder.InStrings("labels['cluster_id']", req.ClusterIDs)
 	}
 

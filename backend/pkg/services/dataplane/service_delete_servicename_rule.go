@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package dataplane
 
 import (
@@ -6,7 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-func (s *service) DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error{
+func (s *service) DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error {
 	exists, err := s.dbRepo.ServiceNameRuleExists(ctx, req.RuleId)
 	if err != nil {
 		return err

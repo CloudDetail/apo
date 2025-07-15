@@ -40,6 +40,21 @@ func (repo *subRepos) ListCluster(ctx core.Context) ([]integration.Cluster, erro
 	return clusters, err
 }
 
+func (repo *subRepos) ListClusterName(ctx core.Context) (map[string]string, error) {
+	var clusters []integration.Cluster
+	err := repo.GetContextDB(ctx).Select("id", "name").Find(&clusters).Error
+	if err != nil {
+		return nil, err
+	}
+
+	clustersMap := make(map[string]string)
+	for _, cluster := range clusters {
+		clustersMap[cluster.ID] = cluster.Name
+	}
+
+	return clustersMap, nil
+}
+
 func (repo *subRepos) GetCluster(ctx core.Context, clusterID string) (integration.Cluster, error) {
 	var cluster integration.Cluster
 	err := repo.GetContextDB(ctx).First(&cluster, "id = ?", clusterID).Error

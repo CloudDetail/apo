@@ -160,6 +160,8 @@ type Repo interface {
 	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
 	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
 	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
+	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
+	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
 
 	integration.Input
 }

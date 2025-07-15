@@ -27,12 +27,6 @@ func (p *polRepo) QueryPolarisInfer(req *request.GetPolarisInferRequest) (*Polar
 		req.Step = 60e6 // interval must be large than 1m
 	}
 
-	for i := 0; i < len(req.ClusterIDs); i++ {
-		if req.ClusterIDs[i] == "unknown" {
-			req.ClusterIDs[i] = ""
-		}
-	}
-
 	payload := PolarisInferReq{
 		StartTime:  req.StartTime,
 		EndTime:    req.EndTime,

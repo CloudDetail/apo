@@ -365,25 +365,12 @@ func createClusterScope(baseScope datagroup.DataScope, labels datagroup.ScopeLab
 func fillEmptyLabel(s *datagroup.ScopeLabels, typ string) {
 	switch typ {
 	case datagroup.DATASOURCE_TYP_SERVICE:
-		if s.Service == "" {
-			s.Service = "unknown"
-		}
 		if s.Namespace == "" {
-			s.Namespace = "unknown"
-		}
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
+			s.Namespace = "VM_NS"
 		}
 	case datagroup.DATASOURCE_TYP_NAMESPACE:
 		if s.Namespace == "" {
-			s.Namespace = "unknown"
-		}
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
-		}
-	case datagroup.DATASOURCE_TYP_CLUSTER:
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
+			s.Namespace = "VM_NS"
 		}
 	}
 }
