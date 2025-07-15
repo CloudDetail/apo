@@ -41,11 +41,14 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 	}
 
 	var subGroups = make([]datagroup.DataGroupWithScopes, 0)
+
+	clusterNameMap, _ := s.dbRepo.ListClusterName(ctx)
 	for _, subGroup := range group.SubGroups {
 		scopes, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
 			return nil, err
 		}
+		scopes = datagroup.FillWithClusterName(scopes, clusterNameMap)
 		subGroups = append(subGroups, datagroup.DataGroupWithScopes{
 			DataGroup:      subGroup.DataGroup,
 			PermissionType: subGroup.PermissionType,
@@ -57,6 +60,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 	if err != nil {
 		return nil, err
 	}
+	scopes = datagroup.FillWithClusterName(scopes, clusterNameMap)
 	return &response.SubGroupDetailResponse{
 		Datasources: scopes,
 		SubGroups:   subGroups,

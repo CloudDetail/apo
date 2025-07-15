@@ -33,6 +33,11 @@ func (s *service) ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeL
 		scopes = common.DataGroupStorage.CloneScopeWithPermission(options, selected)
 	}
 
+	clusterNameMap, err := s.dbRepo.ListClusterName(ctx)
+	if err == nil && clusterNameMap != nil {
+		scopes.FillWithClusterName(clusterNameMap)
+	}
+
 	return &response.ListDataScopesResponse{
 		Scopes:      scopes,
 		DataSources: selected,
@@ -46,6 +51,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 	}
 
 	scopes, leafs := common.DataGroupStorage.CloneWithCategory(scopeIDs, req.Category)
+
 	filter := common.ConvertScopeNodeToPQLFilter(scopes)
 
 	switch req.Extra {
@@ -120,6 +126,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 			}
 		}
 	}
+
+	clusterNameMap, err := s.dbRepo.ListClusterName(ctx)
+	if err != nil {
+		return nil, err
+	}
+	scopes.FillWithClusterName(clusterNameMap)
 
 	return &response.ListDataScopeFilterResponse{
 		Scopes: scopes,
