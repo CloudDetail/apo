@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -26,23 +27,32 @@ type DataGroupStore struct {
 
 func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
 	once.Do(func() {
-		storage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+		cfg := config.Get().DataGroup
+
+		if cfg.InitLookBackDays <= 0 {
+			cfg.InitLookBackDays = 3
+		}
+		if cfg.RefreshSeconds <= 0 {
+			cfg.RefreshSeconds = 10 * 60 // 10min
+		}
+
+		storage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo, time.Duration(cfg.InitLookBackDays)*24*time.Hour)
 		if err != nil {
 			log.Fatalf("failed to init DataGroupStorage: %v", err)
 		}
 
 		DataGroupStorage = storage
-		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
+		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, time.Duration(cfg.RefreshSeconds)*time.Second)
 	})
 }
 
-func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) (*DataGroupStore, error) {
+func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo, initLookBack time.Duration) (*DataGroupStore, error) {
 	dgStore := &DataGroupStore{
 		ExistedScope: make(map[datagroup.DataScope]struct{}),
 		stopCh:       make(chan struct{}),
 	}
 
-	dgStore.Refresh(core.EmptyCtx(), prom, ch, db, -24*time.Hour)
+	dgStore.Refresh(core.EmptyCtx(), prom, ch, db, initLookBack)
 	err := db.InitRootGroup(core.EmptyCtx())
 	if err != nil {
 		return nil, err
@@ -76,7 +86,7 @@ func (m *DataGroupStore) KeepWatchScope(
 	for {
 		select {
 		case <-ticker.C:
-			m.Refresh(ctx, promRepo, chRepo, dbRepo, interval)
+			m.Refresh(ctx, promRepo, chRepo, dbRepo, 2*interval)
 		case <-m.stopCh:
 			return
 		}
@@ -91,7 +101,7 @@ func ScanScope(
 	interval time.Duration,
 ) (map[string]struct{}, error) {
 	now := time.Now()
-	start := now.Add(-2 * interval)
+	start := now.Add(-1 * interval)
 
 	scopeIDs := map[string]struct{}{}
 
@@ -198,7 +208,7 @@ func (m *DataGroupStore) Refresh(
 	interval time.Duration,
 ) error {
 	now := time.Now()
-	start := now.Add(-2 * interval)
+	start := now.Add(-1 * interval)
 
 	var errs []error
 

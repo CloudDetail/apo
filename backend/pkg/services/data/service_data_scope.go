@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -139,7 +140,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 }
 
 func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean bool) (*response.CleanExpiredDataScopeResponse, error) {
-	realTimeScopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, 24*time.Hour)
+	cfg := config.Get().DataGroup
+	if cfg.InitLookBackDays <= 0 {
+		cfg.InitLookBackDays = 3
+	}
+
+	realTimeScopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, time.Duration(cfg.InitLookBackDays)*24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
