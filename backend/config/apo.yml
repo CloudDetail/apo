@@ -61,8 +61,6 @@ meta_server:
 
 dataplane:
   address: "http://localhost:8089"
-  query_red_interval: 10s
-  query_topology_interval: 30m
 
 jaeger:
   address: "http://apo-jaeger-collector-svc:16686"

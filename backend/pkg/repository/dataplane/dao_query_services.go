@@ -17,8 +17,9 @@ const (
 )
 
 type queryServicesRequest struct {
-	StartTime int64 `json:"startTime"`
-	EndTime   int64 `json:"endTime"`
+	ProviderId int   `json:"providerId"`
+	StartTime  int64 `json:"startTime"`
+	EndTime    int64 `json:"endTime"`
 }
 
 type queryServicesResponse struct {
@@ -27,10 +28,11 @@ type queryServicesResponse struct {
 	ErrorMsg string           `json:"errorMsg"`
 }
 
-func (repo *dataplaneRepo) QueryServices(startTime int64, endTime int64) ([]*model.Service, error) {
+func (repo *dataplaneRepo) QueryServices(providerId int, startTime int64, endTime int64) ([]*model.Service, error) {
 	queryParams := &queryServicesRequest{
-		StartTime: startTime,
-		EndTime:   endTime,
+		ProviderId: providerId,
+		StartTime:  startTime,
+		EndTime:    endTime,
 	}
 	requestBody, err := json.Marshal(queryParams)
 	if err != nil {

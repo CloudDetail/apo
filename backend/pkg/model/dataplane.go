@@ -5,7 +5,6 @@ package model
 
 import (
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -17,9 +16,10 @@ type Service struct {
 	Source    string `json:"source"`
 }
 
-type ServiceRedCharts struct {
-	Service        *Service                             `json:"service"`
-	EndPointCharts map[string]map[int64]*RedMetricValue `json:"charts"`
+type RedCharts struct {
+	Count      map[int64]int64 `json:"count"`
+	ErrorCount map[int64]int64 `json:"errorCount"`
+	Duration   map[int64]int64 `json:"duration"`
 }
 
 type RedMetricValue struct {
@@ -43,40 +43,6 @@ type ApmServiceInstance struct {
 	Ips         []string `json:"ips"`
 	NodeIp      string   `json:"nodeIp"`
 	NodeName    string   `json:"nodeName"`
-}
-
-func (instance *ApmServiceInstance) MatchApp(apps []*AppInfo) *AppInfo {
-	for _, app := range apps {
-		// Ignore Matched App
-		if app.Labels["service_name"] != "" {
-			continue
-		}
-		if instance.NodeIp != "" && app.Labels["node_ip"] != instance.NodeIp {
-			continue
-		}
-		if instance.NodeName != "" && app.Labels["node_name"] != instance.NodeName {
-			continue
-		}
-		if instance.HostName != "" && app.Labels["host_name"] != instance.HostName {
-			continue
-		}
-		if instance.ContainerId != "" {
-			if app.ContainerId == "" || !strings.HasPrefix(instance.ContainerId, app.ContainerId) {
-				continue
-			}
-		} else if instance.ProcessId != "" {
-			if strconv.FormatUint(uint64(app.HostPid), 10) != instance.ProcessId {
-				continue
-			}
-		}
-		if len(instance.Ips) > 0 && !app.CheckIps(instance.Ips) {
-			continue
-		}
-
-		// All Matched
-		return app
-	}
-	return nil
 }
 
 type AppInfo struct {
