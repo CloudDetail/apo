@@ -75,7 +75,7 @@ type Config struct {
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
 	Dataplane struct {
-		Address               string        `mapstructure:"address"`
+		Address string `mapstructure:"address"`
 	} `mapstructure:"dataplane"`
 	Jaeger struct {
 		Address string `mapstructure:"address"`
@@ -112,6 +112,10 @@ type Config struct {
 		Enabled     bool   `mapstructure:"enabled"`
 		ExternalURL string `mapstructure:"external_url"`
 	} `mapstructure:"alert_receiver"`
+	DataGroup struct {
+		InitLookBackDays int `mapstructure:"init_look_back_days"`
+		RefreshSeconds   int `mapstructure:"refresh_seconds"`
+	} `mapstructure:"data_group"`
 }
 
 type AnonymousUser struct {
