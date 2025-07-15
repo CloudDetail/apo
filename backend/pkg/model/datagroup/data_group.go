@@ -65,10 +65,22 @@ func (t *DataGroupTreeNode) RecursiveSortSubGroups() {
 }
 
 func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroupTreeNode {
+	if len(permGroupIDs) == 0 {
+		return &DataGroupTreeNode{
+			DataGroup:      t.DataGroup,
+			SubGroups:      []*DataGroupTreeNode{},
+			PermissionType: DATA_GROUP_PERMISSION_TYPE_KNOWN,
+		}
+	}
+
 	return t.cloneWithPermission(DATA_GROUP_PERMISSION_TYPE_KNOWN, permGroupIDs)
 }
 
 func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []int64) bool {
+	if len(permGroupIDs) == 0 {
+		return false
+	}
+
 	if slices.Contains(permGroupIDs, groupID) {
 		return true
 	}
@@ -211,8 +223,11 @@ func (t *DataGroupTreeNode) GetFullSubGroupIDs(groupID int64) []int64 {
 }
 
 func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, fromUser, fromTeam []int64) []DataGroup {
-	var permGroups []DataGroup
+	if len(groupIDs) == 0 {
+		return []DataGroup{}
+	}
 
+	var permGroups []DataGroup
 	var dfs func(pPerm string, pSource string, node *DataGroupTreeNode)
 	dfs = func(pPerm string, pSource string, node *DataGroupTreeNode) {
 		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
@@ -241,6 +256,10 @@ func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, f
 }
 
 func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup {
+	if len(groupIDs) == 0 {
+		return []DataGroup{}
+	}
+
 	var permGroups []DataGroup
 
 	var dfs func(pPerm string, node *DataGroupTreeNode)

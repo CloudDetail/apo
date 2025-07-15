@@ -165,8 +165,8 @@ func (repo *daoRepo) LoadScopes(ctx core.Context) (*datagroup.DataScopeTree, err
 		}
 		if res[i].Type == datagroup.DATASOURCE_TYP_SYSTEM {
 			root = &treeNode
+			continue
 		}
-
 		nodesMap[res[i].ScopeLabels] = &treeNode
 		categoryMaps[res[i].Category] = append(categoryMaps[res[i].Category], res[i].ScopeID)
 	}
