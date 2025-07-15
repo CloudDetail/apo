@@ -35,6 +35,8 @@ type DataScope struct {
 
 	// Special Labels for this Scope
 	ScopeLabels
+
+	ClusterName string `gorm:"-" json:"clusterName,omitempty"`
 }
 
 type DataScopeWithFullName struct {
@@ -137,6 +139,27 @@ func (t *DataScopeTreeNode) GetScopeRef(scopeID string) *DataScopeTreeNode {
 		}
 	}
 	return nil
+}
+
+func FillWithClusterName(scopes []DataScope, clusterNameMap map[string]string) []DataScope {
+	if clusterNameMap == nil {
+		return scopes
+	}
+	for i := 0; i < len(scopes); i++ {
+		if name, find := clusterNameMap[scopes[i].ClusterID]; find {
+			scopes[i].ClusterName = name
+		}
+	}
+	return scopes
+}
+
+func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string) {
+	if name, find := clusterNameMap[t.ClusterID]; find {
+		t.ClusterName = name
+	}
+	for i := 0; i < len(t.Children); i++ {
+		t.Children[i].FillWithClusterName(clusterNameMap)
+	}
 }
 
 func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []string {
