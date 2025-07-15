@@ -2033,16 +2033,10 @@ definitions:
     type: object
   request.DeleteCustomTopologyRequest:
     properties:
-      endTime:
-        type: integer
       id:
         type: integer
-      startTime:
-        type: integer
     required:
-    - endTime
     - id
-    - startTime
     type: object
   request.DeleteLogParseRequest:
     properties:

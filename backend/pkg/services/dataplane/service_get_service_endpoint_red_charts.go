@@ -29,6 +29,12 @@ func (s *service) GetServiceEndpointRedCharts(ctx core.Context, req *request.Que
 			Msg: "query redmetrics: " + err.Error(),
 		}
 	}
+	if len(bucketMetrics) == 0 {
+		return &response.QueryServiceRedChartsResponse{
+			Results: results,
+		}
+	}
+
 	bucketMap := make(map[int64]*clickhouse.BucketRedMetric)
 	for _, bucketMetric := range bucketMetrics {
 		bucketMap[int64(bucketMetric.TimeBucket)] = &bucketMetric
