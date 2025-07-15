@@ -12,9 +12,6 @@ RUN go build -v -o apo-backend
 FROM debian:bookworm-slim AS runner
 WORKDIR /app
 
-RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-RUN sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-
 RUN apt-get update && \
     apt-get install -y sqlite3 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
