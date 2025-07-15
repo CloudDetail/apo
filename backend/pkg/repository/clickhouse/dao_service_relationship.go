@@ -182,8 +182,7 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
-		Between("timestamp", startTime, endTime).
-		Equals("service", req.ServiceName)
+		Between("timestamp", startTime, endTime)
 	results := []ServiceRelation{}
 	sql := fmt.Sprintf(SQL_GET_SERVICE_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {

@@ -11994,18 +11994,10 @@ const docTemplate = `{
         "request.DeleteCustomTopologyRequest": {
             "type": "object",
             "required": [
-                "endTime",
-                "id",
-                "startTime"
+                "id"
             ],
             "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
                 "id": {
-                    "type": "integer"
-                },
-                "startTime": {
                     "type": "integer"
                 }
             }

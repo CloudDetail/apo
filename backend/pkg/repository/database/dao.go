@@ -149,7 +149,7 @@ type Repo interface {
 
 	CreateCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
 	ListCustomServiceTopology(ctx core.Context) ([]CustomServiceTopology, error)
-	DeleteCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+	DeleteCustomServiceTopology(ctx core.Context, id int) error
 
 	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
 	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)

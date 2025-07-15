@@ -42,9 +42,6 @@ func (repo *daoRepo) ListCustomServiceTopology(ctx core.Context) ([]CustomServic
 	return topologies, err
 }
 
-func (repo *daoRepo) DeleteCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error {
-	return repo.GetContextDB(ctx).Where("id = ?", topology.ID).Updates(CustomServiceTopology {
-		StartTime: topology.StartTime,
-		ExpireTime: topology.ExpireTime,
-	}).Error
+func (repo *daoRepo) DeleteCustomServiceTopology(ctx core.Context, id int) error {
+	return repo.GetContextDB(ctx).Model(&CustomServiceTopology{}).Where("id = ?", id).Delete(nil).Error
 }
