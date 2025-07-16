@@ -192,6 +192,19 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 
 	err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
 		DoNothing: true,
+	}).Create(&datagroup.DataScope{
+		ScopeID:  "APO_ALL_DATA",
+		Category: "system",
+		Name:     "ALL",
+		Type:     "system",
+	}).Error
+
+	if err != nil {
+		return err
+	}
+
+	err = repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		DoNothing: true,
 	}).Create(&datagroup.DataGroup2Scope{
 		GroupID: 0,
 		ScopeID: "APO_ALL_DATA",

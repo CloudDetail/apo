@@ -149,7 +149,7 @@ func FillWithClusterName(scopes []DataScope, clusterNameMap map[string]string) [
 		if name, find := clusterNameMap[scopes[i].ClusterID]; find {
 			scopes[i].ClusterName = name
 		} else if len(scopes[i].ClusterID) == 0 {
-			scopes[i].ClusterName = "default"
+			scopes[i].ClusterName = "DEFAULT"
 		} else {
 			scopes[i].ClusterName = scopes[i].ClusterID
 		}
@@ -165,7 +165,7 @@ func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string
 	if name, find := clusterNameMap[t.ClusterID]; find {
 		t.ClusterName = name
 	} else if len(t.ClusterID) == 0 {
-		t.ClusterName = "default"
+		t.ClusterName = "DEFAULT"
 	} else {
 		t.ClusterName = t.ClusterID
 	}
