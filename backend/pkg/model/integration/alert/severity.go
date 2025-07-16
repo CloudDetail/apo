@@ -7,8 +7,6 @@ import "strconv"
 
 func ConvertSeverity(sourceType string, severity string) string {
 	switch sourceType {
-	case PrometheusType:
-		return severity
 	case ZabbixType:
 		// Try to determine the data type
 		if level, err := strconv.Atoi(severity); err == nil {
@@ -40,14 +38,8 @@ func ConvertSeverity(sourceType string, severity string) string {
 		}
 	default:
 		switch severity {
-		case "critical":
-			return SeverityCriticalLevel
-		case "error":
-			return SeverityErrorLevel
-		case "warning":
-			return SeverityWarnLevel
-		case "info":
-			return SeverityInfoLevel
+		case SeverityCriticalLevel, SeverityErrorLevel, SeverityWarnLevel, SeverityInfoLevel:
+			return severity
 		default:
 			return SeverityUnknownLevel
 		}
