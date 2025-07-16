@@ -169,33 +169,33 @@ func ScanScope(
 		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
 	}
 
-	scopes, err := chRepo.GetAlertDataScope(
-		ctx,
-		start,
-		now,
-	)
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < len(scopes); i++ {
-		labels := scopes[i].ScopeLabels
+	// scopes, err := chRepo.GetAlertDataScope(
+	// 	ctx,
+	// 	start,
+	// 	now,
+	// )
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for i := 0; i < len(scopes); i++ {
+	// 	labels := scopes[i].ScopeLabels
 
-		fillEmptyLabel(&labels, scopes[i].Type)
+	// 	fillEmptyLabel(&labels, scopes[i].Type)
 
-		scopeIDs[labels.ToScopeID()] = struct{}{}
-		if scopes[i].Type == datagroup.DATASOURCE_TYP_SERVICE {
-			labels.Service = ""
-			scopes[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
+	// 	scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	if scopes[i].Type == datagroup.DATASOURCE_TYP_SERVICE {
+	// 		labels.Service = ""
+	// 		scopes[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
 
-			scopeIDs[labels.ToScopeID()] = struct{}{}
-		}
+	// 		scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	}
 
-		if scopes[i].Type == datagroup.DATASOURCE_TYP_NAMESPACE {
-			labels.Namespace = ""
-			scopes[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
-			scopeIDs[labels.ToScopeID()] = struct{}{}
-		}
-	}
+	// 	if scopes[i].Type == datagroup.DATASOURCE_TYP_NAMESPACE {
+	// 		labels.Namespace = ""
+	// 		scopes[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
+	// 		scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	}
+	// }
 
 	return scopeIDs, nil
 }
@@ -218,14 +218,14 @@ func (m *DataGroupStore) Refresh(
 	}
 	promScopes := generateParent(scopes)
 
-	scopes, err = m.scanInCH(ctx, chRepo, start.UnixMicro(), now.UnixMicro())
-	if err != nil {
-		errs = append(errs, err)
-	}
-	chScopes := generateParent(scopes)
+	// scopes, err = m.scanInCH(ctx, chRepo, start.UnixMicro(), now.UnixMicro())
+	// if err != nil {
+	// 	errs = append(errs, err)
+	// }
+	// chScopes := generateParent(scopes)
 
-	scopes = append(promScopes, chScopes...)
-	if err := dbRepo.SaveScopes(ctx, scopes); err != nil {
+	// scopes = append(promScopes, chScopes...)
+	if err := dbRepo.SaveScopes(ctx, promScopes); err != nil {
 		errs = append(errs, err)
 	}
 
