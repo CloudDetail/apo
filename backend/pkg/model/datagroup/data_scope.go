@@ -294,9 +294,9 @@ func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*
 	var dfs func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode
 
 	var leafs = make(map[ScopeLabels]*DataScopeTreeNode, 0)
-	categoryIDs, find := t.CategoryIDs[category]
-	if !find {
-		return nil, leafs
+	categoryIDs := t.CategoryIDs[category]
+	if categoryIDs == nil {
+		categoryIDs = make([]string, 0)
 	}
 
 	dfs = func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode {
