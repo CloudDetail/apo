@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
 import { DataGroupItem } from 'src/core/types/dataGroup'
 import { Tree } from 'antd'
