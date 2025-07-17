@@ -14,6 +14,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
@@ -155,6 +156,9 @@ type chRepo struct {
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
 	settings := clickhouse.Settings{}
 
+	// Get connection pool settings
+	maxOpenConns, maxIdleConns, connMaxLifetime, dialTimeout := config.GetClickHouseConnPoolConfig()
+
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr:     address,
 		Settings: settings,
@@ -163,7 +167,10 @@ func New(logger *zap.Logger, address []string, database string, username string,
 			Username: username,
 			Password: password,
 		},
-		DialTimeout: time.Duration(5) * time.Second,
+		DialTimeout:     dialTimeout,
+		MaxOpenConns:    maxOpenConns,
+		MaxIdleConns:    maxIdleConns,
+		ConnMaxLifetime: connMaxLifetime,
 	})
 	if err != nil {
 		return nil, err
