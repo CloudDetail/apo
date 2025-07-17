@@ -10,5 +10,5 @@
   "dataGroupAlert": "Data group permissions of the user's team",
   "tagTooltip": "This data group originates from the user's team.",
   "permissionsFromTeam": " Data group permissions inherited from the team",
-  "permissionsFromUser": "User-managed data group permissions"
+  "permissionsFromUser": "User's own data group permissions"
 }
