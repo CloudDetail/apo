@@ -3,126 +3,140 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { Flex, Pagination } from 'antd';
-import LoadingSpinner from 'src/core/components/Spinner';
-import { useRoleActions } from './hooks/useRoleActions';
-import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal';
-import { User } from 'src/core/types/user';
-import style from 'src/core/views/UserManage/index.module.css';
-import { SearchBar } from './components/SearchBar';
-import { UserTable } from './components/UserTable';
-import { AddUserModal } from './components/AddUserModal';
-import { EditUserModal } from './components/EditUserModal';
-import { useUserActions } from './hooks/useUserActions';
-import { BasicCard } from 'src/core/components/Card/BasicCard';
+import React, { useState, useEffect } from 'react'
+import { Pagination } from 'antd'
+import LoadingSpinner from 'src/core/components/Spinner'
+import { useRoleActions } from './hooks/useRoleActions'
+import DataGroupAuthorizeModal from 'src/core/components/PermissionAuthorize/DataGroupAuthorizeModal'
+import { User } from 'src/core/types/user'
+import { SearchBar } from './components/SearchBar'
+import { UserTable } from './components/UserTable'
+import { AddUserModal } from './components/AddUserModal'
+import { EditUserModal } from './components/EditUserModal'
+import { useUserActions } from './hooks/useUserActions'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
+import { getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
 
 interface UserSearchParams {
-  username?: string;
-  corporation?: string;
-  currentPage: number;
-  pageSize: number;
+  username?: string
+  corporation?: string
+  currentPage: number
+  pageSize: number
 }
 
 export default function UserManage() {
-  const [userList, setUserList] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [userList, setUserList] = useState<User[]>([])
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
   const [searchParams, setSearchParams] = useState<UserSearchParams>({
     username: '',
     corporation: '',
     currentPage: 1,
-    pageSize: 10
-  });
+    pageSize: 10,
+  })
   const [modalStates, setModalStates] = useState({
     add: false,
     edit: false,
-    authorize: false
-  });
+    authorize: false,
+  })
 
-  const {
-    fetchUsers,
-    removeUserById,
-    createNewUser,
-    updateUser,
-    resetPassword,
-  } = useUserActions();
+  const { fetchUsers, removeUserById, createNewUser, updateUser, resetPassword } = useUserActions()
 
-  const {
-    loading: roleLoading,
-    fetchRoles,
-    roleOptions
-  } = useRoleActions();
-
+  const { loading: roleLoading, fetchRoles, roleOptions } = useRoleActions()
+  // current user data group list
+  const [dataGroupList, setDataGroupList] = useState<any[]>([])
   // Get user list
   const handleFetchUsers = async (params = searchParams) => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const result = await fetchUsers(params);
+      const result = await fetchUsers(params)
       if (result) {
-        const { users, currentPage: newPage, pageSize: newSize, total: newTotal } = result;
+        const { users, currentPage: newPage, pageSize: newSize, total: newTotal } = result
         const usersReady = users.map((user: User) => ({
           ...user,
-          key: user.userId
-        }));
-        setUserList(usersReady);
-        setCurrentPage(newPage);
-        setPageSize(newSize);
-        setTotal(newTotal);
+          key: user.userId,
+        }))
+        setUserList(usersReady)
+        setCurrentPage(newPage)
+        setPageSize(newSize)
+        setTotal(newTotal)
       }
     } catch (error) {
-      console.error('Error fetch user list:', error);
+      console.error('Error fetch user list:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSearch = (type: 'username' | 'corporation', value: string) => {
     const newParams = {
       ...searchParams,
       [type]: value,
-      currentPage: 1
-    };
-    setSearchParams(newParams);
-    handleFetchUsers(newParams);
-  };
+      currentPage: 1,
+    }
+    setSearchParams(newParams)
+    handleFetchUsers(newParams)
+  }
 
   const handlePaginationChange = (page: number, size: number) => {
     const newParams = {
       ...searchParams,
       currentPage: page,
-      pageSize: size
-    };
-    setSearchParams(newParams);
-    handleFetchUsers(newParams);
-  };
+      pageSize: size,
+    }
+    setSearchParams(newParams)
+    handleFetchUsers(newParams)
+  }
 
   const handleRemoveUser = async (userId: string | number) => {
     try {
-      await removeUserById(userId);
+      await removeUserById(userId)
       if (userList.length <= 1 && currentPage > 1) {
-        handleFetchUsers({ ...searchParams, currentPage: currentPage - 1 });
+        handleFetchUsers({ ...searchParams, currentPage: currentPage - 1 })
       } else {
-        handleFetchUsers(searchParams);
+        handleFetchUsers(searchParams)
       }
     } catch (error) {
-      console.error('Error delete user:', error);
+      console.error('Error delete user:', error)
     }
-  };
+  }
 
   const toggleModal = (modalName: keyof typeof modalStates, visible: boolean) => {
-    setModalStates(prev => ({ ...prev, [modalName]: visible }));
-    if (!visible) setSelectedUser(null);
-  };
+    setModalStates((prev) => ({ ...prev, [modalName]: visible }))
+    if (!visible) setSelectedUser(null)
+  }
 
   useEffect(() => {
-    handleFetchUsers();
-    fetchRoles();
-  }, []);
+    handleFetchUsers()
+    fetchRoles()
+  }, [])
+  const getDataGroups = () => {
+    getDatasourceByGroupApiV2().then((res: any) => {
+      const rawList = Array.isArray(res) ? res : [res]
+      const filteredIds: string[] = []
 
+      const traverseAndFilter = (items: any[]) => {
+        items.forEach((item) => {
+          if (item.permissionType && item.permissionType !== 'know' && item.groupId) {
+            filteredIds.push(item.groupId)
+          }
+          if (item.subGroups && Array.isArray(item.subGroups)) {
+            traverseAndFilter(item.subGroups)
+          }
+        })
+      }
+
+      traverseAndFilter(rawList)
+      setDataGroupList(filteredIds)
+    })
+  }
+
+  useEffect(() => {
+    getDataGroups()
+  }, [])
   return (
     <BasicCard>
       <LoadingSpinner loading={loading || roleLoading} />
@@ -141,13 +155,13 @@ export default function UserManage() {
           userList={userList}
           loading={loading}
           onEdit={(user) => {
-            setSelectedUser(user);
-            toggleModal('edit', true);
+            setSelectedUser(user)
+            toggleModal('edit', true)
           }}
           onDelete={handleRemoveUser}
           onAuthorize={(user) => {
-            setSelectedUser(user);
-            toggleModal('authorize', true);
+            setSelectedUser(user)
+            toggleModal('authorize', true)
           }}
         />
         <Pagination
@@ -166,11 +180,11 @@ export default function UserManage() {
         onCancel={() => toggleModal('add', false)}
         onFinish={async (values) => {
           try {
-            await createNewUser(values);
-            toggleModal('add', false);
-            handleFetchUsers();
+            await createNewUser({ ...values, groupIds: dataGroupList })
+            toggleModal('add', false)
+            handleFetchUsers()
           } catch (error) {
-            console.error('Error add user:', error);
+            console.error('Error add user:', error)
           }
         }}
       />
@@ -181,23 +195,23 @@ export default function UserManage() {
         roleItems={roleOptions}
         onCancel={() => toggleModal('edit', false)}
         onFinish={async (values) => {
-          if (!selectedUser) return;
+          if (!selectedUser) return
           try {
-            await updateUser(selectedUser, values);
-            toggleModal('edit', false);
-            handleFetchUsers();
+            await updateUser(selectedUser, values)
+            toggleModal('edit', false)
+            handleFetchUsers()
           } catch (error) {
-            console.error('Error update user:', error);
+            console.error('Error update user:', error)
           }
         }}
         onResetPassword={async (values) => {
-          if (!selectedUser) return;
+          if (!selectedUser) return
           try {
-            await resetPassword(selectedUser.userId, values);
-            toggleModal('edit', false);
-            handleFetchUsers();
+            await resetPassword(selectedUser.userId, values)
+            toggleModal('edit', false)
+            handleFetchUsers()
           } catch (error) {
-            console.error('Error reset password:', error);
+            console.error('Error reset password:', error)
           }
         }}
       />
@@ -211,5 +225,5 @@ export default function UserManage() {
         refresh={() => toggleModal('authorize', false)}
       />
     </BasicCard>
-  );
+  )
 }
