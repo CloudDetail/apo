@@ -44,6 +44,7 @@ func NewTagEnricher(
 	enrichRule alert.AlertEnrichRuleVO,
 	dbRepo database.Repo,
 	Order int,
+	targetTags []alert.TargetTag,
 ) (*TagEnricher, error) {
 	jqEnricher, err := newJQEnricher(enrichRule)
 	if err != nil {
@@ -70,10 +71,6 @@ func NewTagEnricher(
 		}
 	}
 
-	targetTags, err := dbRepo.ListAlertTargetTags(core.EmptyCtx())
-	if err != nil {
-		return nil, err
-	}
 	if enrichRule.RType == "tagMapping" {
 		if enrichRule.TargetTagId == 0 {
 			tagEnricher.targetTag = enrichRule.CustomTag

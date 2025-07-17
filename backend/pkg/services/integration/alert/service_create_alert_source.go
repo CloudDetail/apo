@@ -8,6 +8,9 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+
+	amodel "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
 	"github.com/google/uuid"
@@ -101,6 +104,11 @@ func (s *service) createAlertSource(
 		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 
+	targetTags, err := s.dbRepo.ListAlertTargetTags(core.EmptyCtx())
+	if err != nil {
+		return nil, err
+	}
+
 	for i := 0; i < len(enrichRules); i++ {
 		enrichRules[i].SourceID = source.SourceID
 		ruleID := enrichRules[i].EnrichRuleID
@@ -134,7 +142,7 @@ func (s *service) createAlertSource(
 			enrichRules[i].SchemaTargets[s].SourceID = source.SourceID
 		}
 
-		tagEnricher, err := enrich.NewTagEnricher(enrichRules[i], s.dbRepo, i)
+		tagEnricher, err := enrich.NewTagEnricher(enrichRules[i], s.dbRepo, i, targetTags)
 		if err != nil {
 			return nil, err
 		}
@@ -145,13 +153,13 @@ func (s *service) createAlertSource(
 }
 
 // load existed enricher from db when process initializing
-func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO) (*enrich.AlertEnricher, error) {
+func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO, targetTags []amodel.TargetTag) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
 		SourceFrom: &source,
 		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),
 	}
 	for idx, rule := range enrichRules {
-		tagEnricher, err := enrich.NewTagEnricher(rule, s.dbRepo, idx)
+		tagEnricher, err := enrich.NewTagEnricher(rule, s.dbRepo, idx, targetTags)
 		if err != nil {
 			return nil, err
 		}

@@ -82,13 +82,19 @@ func New(
 		return service
 	}
 
+	targetTags, err := dbRepo.ListAlertTargetTags(core.EmptyCtx())
+	if err != nil {
+		log.Printf("failed to init alertinput module,err: %v", err)
+		return service
+	}
+
 	for source, enricherRules := range enrichMaps {
 		if strings.HasPrefix(source.SourceName, defaultSourceName) {
 			service.defaultEnrichRules.Store(source.SourceType, enricherRules)
 			continue
 		}
 
-		enricher, err := service.initExistedAlertSource(source, enricherRules)
+		enricher, err := service.initExistedAlertSource(source, enricherRules, targetTags)
 		if err != nil {
 			log.Printf("failed to init enricherFor AlertSource,err: %v", err)
 			continue
