@@ -82,7 +82,7 @@ const updatePhoneApi = (params) => {
  * @returns {Promise<Object>}
  */
 const createUserApi = (params) => {
-  return post(`/api/user/create`, params, headers.formUrlencoded)
+  return post(`/api/user/create`, params)
 }
 
 /**
