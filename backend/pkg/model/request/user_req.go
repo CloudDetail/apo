@@ -21,7 +21,7 @@ type CreateUserRequest struct {
 	TeamList        []int64 `json:"teamList" form:"teamList"`
 	//DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
 
-	GroupID int64 `json:"groupId" form:"groupId"`
+	GroupIDs []int64 `json:"groupIds" form:"groupIds"`
 }
 
 type LogoutRequest struct {
