@@ -10,5 +10,5 @@
   "dataGroupAlert": "可为用户单独配置数据组权限，不可删除的数据组来自用户所属团队。",
   "tagTooltip": "该数据组来自用户所属团队。",
   "permissionsFromTeam": "用户继承自团队的数据组权限",
-  "permissionsFromUser": "用户可自行配置的数据组权限"
+  "permissionsFromUser": "用户自身的数据组权限"
 }

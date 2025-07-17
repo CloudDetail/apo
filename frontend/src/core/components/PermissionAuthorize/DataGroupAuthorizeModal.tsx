@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Form, Input, Modal, Tag, Typography } from 'antd'
+import { Form, Input, Modal, Typography } from 'antd'
 import { useEffect, useState } from 'react'
-import DataGroupPermission from './DaraGroupPermission'
+import DataGroupPermission from './DataGroupPermission'
 import { SubsDataGroupParams } from 'src/core/types/dataGroup'
 import { getSubsDataGroupApi, updateSubsDataGroupApi } from 'src/core/api/dataGroup'
 import { useTranslation } from 'react-i18next'
@@ -53,10 +53,7 @@ const DataGroupAuthorizeModal = ({
           if (item.source === type) {
             dataGroupPermission.push(item.groupId)
           } else {
-            teamDataGroup.push({
-              groupId: item.groupId,
-              groupName: item.groupName,
-            })
+            teamDataGroup.push(item.groupId)
           }
         } else {
           dataGroupPermission.push(item.groupId)
@@ -65,7 +62,6 @@ const DataGroupAuthorizeModal = ({
       form.setFieldsValue({
         dataGroupPermission: dataGroupPermission,
       })
-
       setPermissionSourceTeam(teamDataGroup)
       // form.setFieldsValue({
       //   dataGroupPermission: (res || []).map((item) => ({
@@ -127,11 +123,15 @@ const DataGroupAuthorizeModal = ({
               valuePropName="dataGroupList"
               noStyle={type === 'team'}
             >
-              <DataGroupPermission type={type} permissionSourceTeam={permissionSourceTeam} />
+              <DataGroupPermission type={type} />
             </Form.Item>
             {type === 'user' && (
-              <Form.Item label={t('permissionsFromTeam')} valuePropName="dataGroupList">
-                {permissionSourceTeam?.map((item) => <Tag>{item.groupName}</Tag>)}
+              <Form.Item label={t('permissionsFromTeam')}>
+                <DataGroupPermission
+                  type={type}
+                  readOnly={true}
+                  dataGroupList={permissionSourceTeam}
+                />
               </Form.Item>
             )}
           </Typography>

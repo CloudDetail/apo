@@ -32,7 +32,7 @@ import (
 func (h *handler) CreateUser() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.CreateUserRequest)
-		if err := c.ShouldBindPostForm(req); err != nil {
+		if err := c.ShouldBind(req); err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
 				code.ParamBindError,

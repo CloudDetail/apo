@@ -103,14 +103,16 @@ func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) e
 
 	var assignGroupFunc = func(ctx core.Context) error {
 		// TODO Check permission
-		return s.dbRepo.AssignDataGroup(ctx, []database.AuthDataGroup{
-			{
+		authGroups := make([]database.AuthDataGroup, 0, len(req.GroupIDs))
+		for _, groupId := range req.GroupIDs {
+			authGroups = append(authGroups, database.AuthDataGroup{
 				SubjectID:   user.UserID,
 				SubjectType: model.DATA_GROUP_SUB_TYP_USER,
-				GroupID:     req.GroupID,
-				Type:        "",
-			},
-		})
+				GroupID:     groupId,
+				Type:        "view",
+			})
+		}
+		return s.dbRepo.AssignDataGroup(ctx, authGroups)
 	}
 
 	return s.dbRepo.Transaction(ctx,

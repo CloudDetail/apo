@@ -3,20 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { Table, Button, Popconfirm } from 'antd';
-import { MdOutlineModeEdit } from 'react-icons/md';
-import { RiDeleteBin5Line } from 'react-icons/ri';
-import { LuShieldCheck } from 'react-icons/lu';
-import { useTranslation } from 'react-i18next';
-import { User } from 'src/core/types/user';
+import React from 'react'
+import { Table, Button, Popconfirm } from 'antd'
+import { MdOutlineModeEdit } from 'react-icons/md'
+import { RiDeleteBin5Line } from 'react-icons/ri'
+import { LuShieldCheck } from 'react-icons/lu'
+import { useTranslation } from 'react-i18next'
+import { User } from 'src/core/types/user'
 
 interface UserTableProps {
-  userList: User[];
-  loading: boolean;
-  onEdit: (user: User) => void;
-  onDelete: (userId: string | number) => Promise<void>;
-  onAuthorize: (user: User) => void;
+  userList: User[]
+  loading: boolean
+  onEdit: (user: User) => void
+  onDelete: (userId: string | number) => Promise<void>
+  onAuthorize: (user: User) => void
 }
 
 export const UserTable: React.FC<UserTableProps> = ({
@@ -26,7 +26,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   onDelete,
   onAuthorize,
 }) => {
-  const { t } = useTranslation('core/userManage');
+  const { t } = useTranslation('core/userManage')
 
   const columns = [
     {
@@ -65,41 +65,47 @@ export const UserTable: React.FC<UserTableProps> = ({
       key: 'userId',
       align: 'center',
       render: (userId: string | number, record: User) => {
-        const { username } = record;
-        return username !== 'admin' && (
-          <>
-            <Button
-              onClick={() => onEdit(record)}
-              icon={<MdOutlineModeEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
-              type="text"
-              className="mr-1"
-            >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
-                {t('index.edit')}
-              </span>
-            </Button>
-            <Popconfirm
-              title={t('index.confirmDelete', { name: username })}
-              onConfirm={() => onDelete(userId)}
-            >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
-                {t('index.delete')}
+        const { username } = record
+        return (
+          username !== 'admin' && (
+            <>
+              <Button
+                onClick={() => onEdit(record)}
+                icon={
+                  <MdOutlineModeEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+                }
+                type="text"
+                className="mr-1"
+              >
+                <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                  {t('index.edit')}
+                </span>
               </Button>
-            </Popconfirm>
-            <Button
-              color="primary"
-              variant="outlined"
-              icon={<LuShieldCheck />}
-              onClick={() => onAuthorize(record)}
-            >
-              {t('index.dataGroup')}
-            </Button>
-          </>
+              <Popconfirm
+                title={t('index.confirmDelete', { name: username })}
+                onConfirm={() => onDelete(userId)}
+              >
+                <Button type="text" icon={<RiDeleteBin5Line />} danger className="mr-1">
+                  {t('index.delete')}
+                </Button>
+              </Popconfirm>
+              {import.meta.env.VITE_APP_CODE_VERSION !== 'CE' && (
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  icon={<LuShieldCheck />}
+                  onClick={() => onAuthorize(record)}
+                >
+                  {t('index.dataGroup')}
+                </Button>
+              )}
+            </>
+          )
         )
       },
       width: 400,
     },
-  ];
+  ]
 
   return (
     <Table
@@ -109,5 +115,5 @@ export const UserTable: React.FC<UserTableProps> = ({
       loading={loading}
       scroll={{ y: 'calc(100vh - 240px)' }}
     />
-  );
-};
+  )
+}
