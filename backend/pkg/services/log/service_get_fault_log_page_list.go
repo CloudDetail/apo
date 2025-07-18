@@ -37,6 +37,16 @@ func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLog
 			return nil, err
 		}
 		permSvcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		if len(permSvcList) == 0 {
+			return &response.GetFaultLogPageListResponse{
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: req.PageNum,
+					PageSize:    req.PageSize,
+				},
+				List: []clickhouse.FaultLogResult{},
+			}, nil
+		}
 		query.MultiServices = permSvcList
 	}
 

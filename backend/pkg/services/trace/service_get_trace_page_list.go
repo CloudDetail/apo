@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
@@ -18,6 +19,16 @@ func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 			return nil, err
 		}
 		permSvcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		if len(permSvcList) == 0 {
+			return &response.GetTracePageListResponse{
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: req.PageNum,
+					PageSize:    req.PageSize,
+				},
+				List: []clickhouse.QueryTraceResult{},
+			}, nil
+		}
 		req.Service = permSvcList
 	}
 
