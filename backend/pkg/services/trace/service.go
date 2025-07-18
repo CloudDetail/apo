@@ -6,6 +6,7 @@ package trace
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 	"go.uber.org/zap"
 
@@ -29,13 +30,15 @@ type Service interface {
 
 type service struct {
 	chRepo     clickhouse.Repo
+	dbRepo     database.Repo
 	jaegerRepo jaeger.JaegerRepo
 	logger     *zap.Logger
 }
 
-func New(chRepo clickhouse.Repo, jaegerRepo jaeger.JaegerRepo, logger *zap.Logger) Service {
+func New(chRepo clickhouse.Repo, dbRepo database.Repo, jaegerRepo jaeger.JaegerRepo, logger *zap.Logger) Service {
 	return &service{
 		chRepo:     chRepo,
+		dbRepo:     dbRepo,
 		jaegerRepo: jaegerRepo,
 		logger:     logger,
 	}
