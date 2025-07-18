@@ -162,6 +162,10 @@ func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string
 		return
 	}
 
+	if t == nil {
+		return
+	}
+
 	if name, find := clusterNameMap[t.ClusterID]; find {
 		t.ClusterName = name
 	} else if len(t.ClusterID) == 0 {
