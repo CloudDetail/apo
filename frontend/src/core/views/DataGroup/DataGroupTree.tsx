@@ -168,9 +168,13 @@ const DataGroupTree: React.FC<DataGroupTreeProps> = ({
       const allGroupIds = flattenedData.map((item) => item.node.groupId)
 
       if (selectedKeys.length === 0 || !allGroupIds.includes(currentSelectedKey as number)) {
-        const firstNode = treeData[0]
-        setSelectedKeys([firstNode.groupId])
-        setParentGroupInfo(firstNode)
+        const firstAvailableNode = flattenedData.find(
+          (item) => item.node.permissionType !== 'known',
+        )?.node
+        if (firstAvailableNode) {
+          setSelectedKeys([firstAvailableNode.groupId])
+          setParentGroupInfo(firstAvailableNode)
+        }
       }
     }
   }, [

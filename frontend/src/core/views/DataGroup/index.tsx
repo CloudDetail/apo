@@ -8,11 +8,12 @@ import { BasicCard } from 'src/core/components/Card/BasicCard'
 import DataGroupTree from './DataGroupTree'
 import InfoModal from './InfoModal'
 import PermissionModal from './PermissionModal'
-import { deleteDataGroupApiV2, getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
+import { deleteDataGroupApiV2 } from 'src/core/api/dataGroup'
 import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
 import { Splitter } from 'antd'
 import DataGroupInfoPanel from './DataGroupInfoPanel'
+import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 
 interface DataGroupInfo {
   groupId: number
@@ -26,14 +27,14 @@ interface DataGroupInfo {
 export default function DataGroupPage() {
   const { t: ct } = useTranslation('common')
   const { t } = useTranslation('core/dataGroup')
-  const [dataGroups, setDataGroups] = useState<DataGroupInfo[]>([])
   const [groupInfo, setGroupInfo] = useState<DataGroupInfo | null>(null)
   const [parentGroupInfo, setParentGroupInfo] = useState<DataGroupInfo | null>(null)
   const [infoModalVisible, setInfoModalVisible] = useState<boolean>(false)
   const [permissionModalVisible, setPermissionModalVisible] = useState<boolean>(false)
   const [infoGroupId, setInfoGroupId] = useState<number | null>(null)
   const [refreshKey, setRefreshKey] = useState<number>(0)
-
+  const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
+  const getDataGroup = useDataGroupContext((ctx) => ctx.getDataGroup)
   const closeInfoModal = useCallback(() => {
     setInfoModalVisible(false)
     setGroupInfo(null)
@@ -44,25 +45,15 @@ export default function DataGroupPage() {
     setGroupInfo(null)
   }, [])
 
-  const getDataGroups = useCallback(() => {
-    getDatasourceByGroupApiV2()
-      .then((res: any) => {
-        setDataGroups([res])
-      })
-      .catch((_error) => {
-        setDataGroups([])
-      })
-  }, [])
-
   const refresh = useCallback(() => {
     closeInfoModal()
     closePermissionModal()
-    getDataGroups()
+    getDataGroup()
     setRefreshKey((prev) => prev + 1)
-  }, [closeInfoModal, closePermissionModal, getDataGroups])
+  }, [closeInfoModal, closePermissionModal, getDataGroup])
 
   useEffect(() => {
-    getDataGroups()
+    getDataGroup()
   }, [])
 
   const deleteDataGroup = useCallback(
@@ -80,54 +71,14 @@ export default function DataGroupPage() {
               type: 'success',
               message: ct('deleteSuccess'),
             })
-            // getDataGroups()
+            // getDataGroup()
           })
           .finally(() => {
-            getDataGroups()
+            getDataGroup()
           })
-        // First step: get datasources that will be cleaned (clean=false)
-        // refreshGroupDatasourceApiV2(groupInfo.groupId, false)
-        //   .then((res: any) => {
-        //     const datasourcesToClean = res?.datasources || []
-        //     if (datasourcesToClean.length > 0) {
-        //       // Show confirmation with datasource list
-        //       const datasourceList = datasourcesToClean.map((ds: any) => ds.name).join(', ')
-        //       const confirmMessage = `${t('confirmDeleteWithDatasources', {
-        //         groupName: groupInfo.groupName,
-        //         datasources: datasourceList,
-        //       })}`
-        //       // Use window.confirm for now, can be replaced with Modal later
-        //       if (window.confirm(confirmMessage)) {
-        //         // Second step: actually delete (clean=true)
-        //         return refreshGroupDatasourceApiV2(groupInfo.groupId, true)
-        //       } else {
-        //         return Promise.reject('User cancelled')
-        //       }
-        //     } else {
-        //       // No datasources to clean, proceed with normal deletion
-        //       return deleteDataGroupApiV2(groupInfo.groupId)
-        //     }
-        //   })
-        //   .then(() => {
-        //     notify({
-        //       type: 'success',
-        //       message: ct('deleteSuccess'),
-        //     })
-        //   })
-        //   .catch((error) => {
-        //     if (error !== 'User cancelled') {
-        //       notify({
-        //         type: 'error',
-        //         message: ct('deleteFailed'),
-        //       })
-        //     }
-        //   })
-        //   .finally(() => {
-        //     getDataGroups()
-        //   })
       }
     },
-    [t, ct, getDataGroups],
+    [t, ct, getDataGroup],
   )
 
   const openAddModal = useCallback((groupId: number) => {
@@ -157,7 +108,7 @@ export default function DataGroupPage() {
           <Splitter style={{ height: '100%' }}>
             <Splitter.Panel defaultSize="25%" className="h-full overflow-hidden w-full">
               <DataGroupTree
-                dataGroups={dataGroups}
+                dataGroups={dataGroup}
                 setParentGroupInfo={(data) => {
                   setParentGroupInfo(data)
                 }}
