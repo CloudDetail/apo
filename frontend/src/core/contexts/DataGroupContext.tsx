@@ -4,9 +4,9 @@
  */
 
 import { createContext, useContextSelector } from '@fluentui/react-context-selector'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 import { useUserContext } from './UserContext'
-import { getUserGroupApi } from '../api/dataGroup'
+import { getDatasourceByGroupApiV2 } from '../api/dataGroup'
 import { DataGroupItem } from '../types/dataGroup'
 
 interface DataGroupContextType {}
@@ -16,66 +16,56 @@ export const useDataGroupContext = <T,>(selector: (context: any) => T): T =>
   useContextSelector(DataGroupContext, selector)
 export const DataGroupProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useUserContext()
-  const [dataGroup, setDataGroup] = useState<DataGroupItem[]>([])
+  const [originalDataGroup, setOriginalDataGroup] = useState<DataGroupItem[]>([])
   const getDataGroup = async () => {
     try {
-      const res = await getUserGroupApi(user.userId, 'apm')
-      setDataGroup(res)
-      // setDataGroup([
-      //   {
-      //     groupId: '692489354112',
-      //     groupName: '测试数据组1',
-      //     description: '',
-      //     subGroups: [
-      //       {
-      //         groupId: '11',
-      //         groupName: '测试数据组1-1',
-      //         description: '',
-      //         subGroups: [
-      //           {
-      //             groupId: '111',
-      //             groupName: '测试数据组1-1-1',
-      //             description: '',
-      //             subGroups: null,
-      //           },
-      //         ],
-      //       },
-      //     ],
-      //   },
-      //   {
-      //     groupId: '770368178368',
-      //     groupName: 'train-ticket',
-      //     description: '',
-      //     subGroups: [
-      //       {
-      //         groupId: '21',
-      //         groupName: '测试数据组2-1',
-      //         description: '',
-      //         disabled: true,
-      //         subGroups: [
-      //           {
-      //             groupId: '211',
-      //             groupName: '测试数据组2-1-1',
-      //             description: '',
-      //             subGroups: null,
-      //           },
-      //         ],
-      //       },
-      //     ],
-      //   },
-      // ])
-      console.log(res)
+      const res = await getDatasourceByGroupApiV2()
+      const data = Array.isArray(res) ? res : res ? [res] : []
+      setOriginalDataGroup((prev) => {
+        return JSON.stringify(prev) === JSON.stringify(data) ? prev : data
+      })
     } catch (error) {
       console.error(error)
     }
   }
-  useEffect(() => {
-    if (user.userId) {
-      getDataGroup()
+  const { flattenedAvailableNodes, availableNodeIds, allNodeIds, dataGroup } = useMemo(() => {
+    const availableNodes: any[] = []
+    const allIds: number[] = []
+    const processTree = (nodes: any[]): any[] => {
+      return nodes.map((node) => {
+        const disabled = node.permissionType === 'known'
+        allIds.push(Number(node.groupId))
+        if (!disabled) {
+          availableNodes.push(node)
+        }
+        let children: any[] = []
+        if (node.subGroups?.length) {
+          children = processTree(node.subGroups)
+        }
+        return {
+          ...node,
+          disabled,
+          subGroups: children,
+        }
+      })
     }
-  }, [user.userId])
+
+    const dataGroup = processTree(originalDataGroup)
+
+    return {
+      flattenedAvailableNodes: availableNodes,
+      availableNodeIds: new Set(availableNodes.map((node) => Number(node.groupId))),
+      allNodeIds: allIds,
+      dataGroup,
+    }
+  }, [originalDataGroup])
+
   const finalValue = {
     dataGroup,
+    flattenedAvailableNodes,
+    availableNodeIds,
+    allNodeIds,
+    getDataGroup,
   }
   return <DataGroupContext.Provider value={finalValue}>{children}</DataGroupContext.Provider>
 }

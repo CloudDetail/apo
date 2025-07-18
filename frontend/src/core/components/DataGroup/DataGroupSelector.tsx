@@ -2,52 +2,23 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import React, { useEffect, useMemo, useState } from 'react'
-import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
+import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DataGroupTreeSelector from './DataGroupTreeSelector'
+import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 
 const DataGroupSelector = ({ readonly = false }) => {
   const { t } = useTranslation('core/dataGroup')
-  const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
+  const flattenedAvailableNodes = useDataGroupContext((ctx) => ctx.flattenedAvailableNodes)
+  const availableNodeIds = useDataGroupContext((ctx) => ctx.availableNodeIds)
+  const getDataGroup = useDataGroupContext((ctx) => ctx.getDataGroup)
   const dispatch = useDispatch()
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
   const navigate = useNavigate()
   const location = useLocation()
-  const [treeData, setTreeData] = useState(dataGroup)
-  // 移除未使用的 searchParams 变量
-  useEffect(() => {
-    setTreeData([
-      {
-        groupName: t('dataGroup'),
-        title: t('dataGroup'),
-        options: dataGroup,
-      },
-    ])
-  }, [dataGroup])
-  const flattenedAvailableNodes = useMemo(() => {
-    const result: any[] = []
-    const flattenTree = (nodes: any[]) => {
-      if (!nodes || nodes.length === 0) return
-      for (const node of nodes) {
-        if (!node.disabled && node.permissionType !== 'known') {
-          result.push(node)
-        }
-        if (node.subGroups?.length) {
-          flattenTree(node.subGroups)
-        }
-      }
-    }
-    flattenTree(dataGroup)
-    return result
-  }, [dataGroup])
-
-  const availableNodeIds = useMemo(() => {
-    return new Set(flattenedAvailableNodes.map((node) => Number(node.groupId)))
-  }, [flattenedAvailableNodes])
 
   // 只以 URL 为真源，初始化时如果 URL 没有 groupId 且 redux 有，则补充到 URL
   useEffect(() => {
@@ -94,8 +65,9 @@ const DataGroupSelector = ({ readonly = false }) => {
     }
   }, [flattenedAvailableNodes, availableNodeIds, dispatch, location, dataGroupId, navigate])
 
-  // 删除监听 redux 变化同步 URL 的 useEffect
-
+  useEffect(() => {
+    getDataGroup()
+  }, [])
   const onChange = (newValue: number) => {
     dispatch({ type: 'setSelectedDataGroupId', payload: newValue })
     let urlParams

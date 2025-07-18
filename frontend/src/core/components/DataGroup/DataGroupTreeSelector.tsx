@@ -4,8 +4,8 @@
  */
 import { TreeSelect } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { getDatasourceByGroupApiV2 } from 'src/core/api/dataGroup'
 import { useTranslation } from 'react-i18next'
+import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 
 interface DataGroupInfo {
   groupId: number
@@ -32,42 +32,16 @@ const DataGroupTreeSelector: React.FC<DataGroupTreeProps> = ({
   suffixIcon,
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<number[]>([])
-  const [dataGroup, setDataGroups] = useState<DataGroupInfo[]>([])
   const [selectedGroupId, setSelectedGroupId] = useState<number>(groupId)
   const { t } = useTranslation('core/dataGroup')
-  // 递归处理树结构，设置 disabled 字段，并收集所有 groupId
-  const processTree = (nodes: DataGroupInfo[]): { tree: DataGroupInfo[]; keys: number[] } => {
-    let keys: number[] = []
-    const process = (list: DataGroupInfo[]): DataGroupInfo[] => {
-      return list.map((node) => {
-        keys.push(Number(node.groupId))
-        const newNode: DataGroupInfo = {
-          ...node,
-          disabled: node.permissionType === 'known',
-        }
-        if (node.subGroups && node.subGroups.length > 0) {
-          newNode.subGroups = process(node.subGroups)
-        }
-        return newNode
-      })
-    }
-    const tree = process(nodes)
-    return { tree, keys }
-  }
-
-  const getDataGroups = () => {
-    getDatasourceByGroupApiV2().then((res: any) => {
-      // 兼容 res 可能为单个对象或数组
-      const rawList = Array.isArray(res) ? res : [res]
-      const { tree, keys } = processTree(rawList)
-      setDataGroups(tree)
-      setExpandedKeys(keys)
-    })
-  }
-
+  const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
+  const allNodeIds = useDataGroupContext((ctx) => ctx.allNodeIds)
   useEffect(() => {
-    getDataGroups()
-  }, [])
+    setExpandedKeys(allNodeIds)
+  }, [dataGroup, allNodeIds])
+  useEffect(() => {
+    setSelectedGroupId(groupId)
+  }, [groupId])
 
   return (
     <div id={id} className="w-full">
