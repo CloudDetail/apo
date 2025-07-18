@@ -9,6 +9,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
@@ -29,6 +30,16 @@ func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLog
 		Pod:            req.Pod,
 		ClusterIDs:     req.ClusterIDs,
 	}
+
+	if req.GroupID > 0 && len(query.MultiServices) == 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		permSvcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		query.MultiServices = permSvcList
+	}
+
 	list, total, err := s.chRepo.GetFaultLogPageList(ctx, query)
 	if err != nil {
 		return nil, err
