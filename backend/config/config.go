@@ -5,6 +5,8 @@ package config
 
 import (
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/CloudDetail/metadata/configs"
 	"github.com/spf13/viper"
@@ -59,6 +61,11 @@ type Config struct {
 		Database string `mapstructure:"database"`
 		Cluster  string `mapstructure:"cluster"`
 		Replica  bool   `mapstructure:"replica"`
+		// pool config. by heaven96
+		MaxOpenConns           int `mapstructure:"max_open_conns"`
+		MaxIdleConns           int `mapstructure:"max_idle_conns"`
+		ConnMaxLifetimeMinutes int `mapstructure:"conn_max_lifetime_minutes"`
+		DialTimeoutSeconds     int `mapstructure:"dial_timeout_seconds"`
 	} `mapstructure:"clickhouse"`
 	Promethues struct {
 		Address string `mapstructure:"address"`
@@ -155,4 +162,54 @@ func Get() *Config {
 
 func GetCHCluster() string {
 	return config.ClickHouse.Cluster
+}
+
+// GetClickHouseConnPoolConfig
+// gets the ClickHouse connection configuration, supporting environment variable overrides.
+func GetClickHouseConnPoolConfig() (maxOpenConns, maxIdleConns int, connMaxLifetime, dialTimeout time.Duration) {
+	cfg := Get().ClickHouse
+
+	maxOpenConns = cfg.MaxOpenConns
+	if maxOpenConns == 0 {
+		maxOpenConns = 20 // default
+	}
+	if envVal := os.Getenv("APO_CH_MAX_OPEN_CONNS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			maxOpenConns = val
+		}
+	}
+
+	maxIdleConns = cfg.MaxIdleConns
+	if maxIdleConns == 0 {
+		maxIdleConns = 10 // default
+	}
+	if envVal := os.Getenv("APO_CH_MAX_IDLE_CONNS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			maxIdleConns = val
+		}
+	}
+
+	connMaxLifetimeMinutes := cfg.ConnMaxLifetimeMinutes
+	if connMaxLifetimeMinutes == 0 {
+		connMaxLifetimeMinutes = 60 // default
+	}
+	if envVal := os.Getenv("APO_CH_CONN_MAX_LIFETIME_MINUTES"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			connMaxLifetimeMinutes = val
+		}
+	}
+	connMaxLifetime = time.Duration(connMaxLifetimeMinutes) * time.Minute
+
+	dialTimeoutSeconds := cfg.DialTimeoutSeconds
+	if dialTimeoutSeconds == 0 {
+		dialTimeoutSeconds = 5 // default
+	}
+	if envVal := os.Getenv("APO_CH_DIAL_TIMEOUT_SECONDS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			dialTimeoutSeconds = val
+		}
+	}
+	dialTimeout = time.Duration(dialTimeoutSeconds) * time.Second
+
+	return
 }

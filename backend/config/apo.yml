@@ -35,6 +35,11 @@ clickhouse:
   username: admin
   password: admin
   database: apo
+  # Connection pool settings (optional, defaults are provided) by heaven96
+  max_open_conns: 20      # Max open connections. Default: 20. Env: APO_CH_MAX_OPEN_CONNS
+  max_idle_conns: 10      # Max idle connections. Default: 10. Env: APO_CH_MAX_IDLE_CONNS
+  conn_max_lifetime_minutes: 60   # Connection max lifetime (minutes). Env: APO_CH_CONN_MAX_LIFETIME_MINUTES
+  dial_timeout_seconds: 5         # Connection dial timeout (seconds). Env: APO_CH_DIAL_TIMEOUT_SECONDS
   cluster:
   replica: false
 promethues:
