@@ -3,6 +3,8 @@
 
 package request
 
+import "github.com/CloudDetail/apo/backend/pkg/model/integration"
+
 type QueryServicesRequest struct {
 	Cluster   string `form:"cluster"`                                      // query Cluster
 	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
@@ -39,9 +41,9 @@ type QueryServiceNameRequest struct {
 }
 
 type QueryTopologyRequest struct {
-	Cluster     string `form:"cluster"`                                      // query Cluster
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Cluster   string `form:"cluster"`                                      // query Cluster
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type QueryServiceNameTag struct {
@@ -65,7 +67,7 @@ type ListCustomTopologyRequest struct {
 }
 
 type DeleteCustomTopologyRequest struct {
-	ID        int   `form:"id" binding:"required"`
+	ID int `form:"id" binding:"required"`
 }
 
 type SetServiceNameRuleRequest struct {
@@ -96,4 +98,8 @@ type QueryAPPInfoTagValuesRequest struct {
 	EndTime   int64 `form:"endTime" json:"endTime"`
 
 	Label string `form:"key" json:"key"`
+}
+
+type CreateDataPlaneRequest struct {
+	integration.DataPlane
 }

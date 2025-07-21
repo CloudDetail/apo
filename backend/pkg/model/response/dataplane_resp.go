@@ -5,6 +5,7 @@ package response
 
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
@@ -76,4 +77,12 @@ type QueryAPPInfoTagsResponse struct {
 type QueryAPPInfoTagValuesResponse struct {
 	Label  string   `json:"label"`
 	Values []string `json:"values"`
+}
+
+type ListDataPlaneTypeResponse struct {
+	DPTypes []integration.DataPlaneType `json:"dpTypes"`
+}
+
+type ListDataPlaneResponse struct {
+	DataPlanes []integration.DataPlaneWithClusterIDs `json:"dataPlanes"`
 }

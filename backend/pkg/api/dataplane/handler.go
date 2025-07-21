@@ -75,6 +75,24 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/appinfo/tags/values [get]
 	QueryAPPInfoTagValues() core.HandlerFunc
+
+	// ListDataPlaneType
+	// @Tags API.dataplane
+	// @Router /api/dataplane/type/list [get]
+	ListDataPlaneType() core.HandlerFunc
+
+	// CreateDataPlane
+	// @Tags API.dataplane
+	// @Router /api/dataplane/create [post]
+	CreateDataPlane() core.HandlerFunc
+
+	// ListDataPlane
+	// @Tags API.dataplane
+	// @Router /api/dataplane/list [get]
+	ListDataPlane() core.HandlerFunc
+
+	// UpdateDataPlane() core.HandlerFunc
+	// DeleteDataPlane() core.HandlerFunc
 }
 
 type handler struct {

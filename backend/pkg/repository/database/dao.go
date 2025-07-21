@@ -19,6 +19,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/logger"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
+
+	mi "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -157,6 +159,10 @@ type Repo interface {
 	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
 	ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error)
 	DeleteServiceNameRule(ctx core.Context, ruleId int) error
+	ListDataPlaneType(ctx core.Context) ([]mi.DataPlaneType, error)
+	GetDataPlaneType(ctx core.Context, typeName string) (*mi.DataPlaneType, error)
+	CreateDataPlane(ctx core.Context, d *mi.DataPlane) error
+	ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterIDs, error)
 
 	integration.ObservabilityInputManage
 	DaoDataScope
@@ -309,5 +315,8 @@ func migrateTable(db *gorm.DB) error {
 		&ServiceNameRule{},
 		&ServiceNameRuleCondition{},
 		&CustomServiceTopology{},
+		&mi.DataPlaneType{},
+		&mi.DataPlane{},
+		&mi.Cluster2DataPlane{},
 	)
 }
