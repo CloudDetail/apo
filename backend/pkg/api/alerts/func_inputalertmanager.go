@@ -19,7 +19,7 @@ import (
 // @Accept application/json
 // @Produce json
 // @Param Request body request.InputAlertManagerRequest true "Request information"
-// @Success 200 string ok
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/inputs/alertmanager [post]
 func (h *handler) InputAlertManager() core.HandlerFunc {

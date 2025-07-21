@@ -18,7 +18,7 @@ import (
 // @Produce json
 // @Param Request body request.UpdateDataPlaneRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 string "ok"
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/dataplane/update [post]
 func (h *handler) UpdateDataPlane() core.HandlerFunc {

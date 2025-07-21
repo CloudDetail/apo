@@ -261,11 +261,14 @@ const (
 	QueryAPPInfoTagsError         = "B1809"
 	QueryAPPInfoValuesError       = "B1810"
 
-	CreateDataPlaneError   = "B1811"
-	DeleteDataPlaneError   = "B1812"
-	ListDataPlaneError     = "B1813"
-	ListDataPlaneTypeError = "B1814"
-	UpdateDataPlaneError   = "B1815"
+	CreateDataPlaneError       = "B1811"
+	DeleteDataPlaneError       = "B1812"
+	ListDataPlaneError         = "B1813"
+	ListDataPlaneTypeError     = "B1814"
+	UpdateDataPlaneError       = "B1815"
+	DataPlaneNotExistError     = "B1816"
+	DataPlaneTypeNotExistError = "B1817"
+	DataPlaneParamInvalidError = "B1818"
 )
 
 func Text(lang string, code string) string {

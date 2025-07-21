@@ -32,13 +32,11 @@ func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTy
 func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlaneRequest) error {
 	dpType, err := s.dbRepo.GetDataPlaneType(ctx, req.Typ)
 	if err != nil {
-		// TODO errCode DataPlaneTypeNotExist
-		return core.Error(code.ServerError, "data plane type not exist")
+		return core.Error(code.DataPlaneTypeNotExistError, "data plane type not exist")
 	}
 
 	if err := integration.CheckInvalid(&req.DataPlane, dpType); err != nil {
-		// TODO errCode DataPlaneInvalid
-		return core.Error(code.ServerError, err.Error())
+		return core.Error(code.DataPlaneParamInvalidError, err.Error())
 	}
 
 	return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
@@ -53,18 +51,16 @@ func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneRespon
 
 func (s *service) UpdateDataPlane(ctx core.Context, req *request.UpdateDataPlaneRequest) error {
 	if find, err := s.dbRepo.CheckDataPlaneExist(ctx, req.DataPlane.ID); err != nil || !find {
-		return core.Error(code.ServerError, "data plane not exist") // TODO DataPlaneNotExistError
+		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
 	}
 
 	dpType, err := s.dbRepo.GetDataPlaneType(ctx, req.Typ)
 	if err != nil {
-		// TODO errCode DataPlaneTypeNotExist
-		return core.Error(code.ServerError, "data plane type not exist")
+		return core.Error(code.DataPlaneTypeNotExistError, "data plane type not exist")
 	}
 
 	if err := integration.CheckInvalid(&req.DataPlane, dpType); err != nil {
-		// TODO errCode DataPlaneInvalid
-		return core.Error(code.ServerError, err.Error())
+		return core.Error(code.DataPlaneParamInvalidError, err.Error())
 	}
 
 	return s.dbRepo.UpdateDataPlane(ctx, &req.DataPlane)
@@ -72,7 +68,7 @@ func (s *service) UpdateDataPlane(ctx core.Context, req *request.UpdateDataPlane
 
 func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlaneRequest) error {
 	if find, err := s.dbRepo.CheckDataPlaneExist(ctx, req.ID); err != nil || !find {
-		return core.Error(code.ServerError, "data plane not exist") // TODO DataPlaneNotExistError
+		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
 	}
 
 	return s.dbRepo.DeleteDataPlane(ctx, req.ID)

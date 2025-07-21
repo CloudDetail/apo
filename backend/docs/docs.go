@@ -945,7 +945,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -989,7 +989,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -1338,7 +1338,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -1466,7 +1466,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -1510,7 +1510,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -1819,7 +1819,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -2597,6 +2597,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/create": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDataPlaneRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/customtopology/create": {
             "post": {
                 "description": "Create custom topology.",
@@ -2748,6 +2792,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/delete": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDataPlaneRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/endpoints": {
             "get": {
                 "description": "Get service's endpoints.",
@@ -2853,6 +2941,41 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.QueryServiceInstancesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListDataPlaneResponse"
                         }
                     },
                     "400": {
@@ -3223,6 +3346,85 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.QueryTopologyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/type/list": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListDataPlaneTypeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/update": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDataPlaneRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -10777,6 +10979,87 @@ const docTemplate = `{
                 "type": "string"
             }
         },
+        "integration.DataPlaneType": {
+            "type": "object",
+            "properties": {
+                "capabilitySpec": {
+                    "description": "Str Slice",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-array_string"
+                        }
+                    ]
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "paramSpec": {
+                    "description": "JSONStr",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-integration_ParamSpec"
+                        }
+                    ]
+                },
+                "typeName": {
+                    "type": "string"
+                }
+            }
+        },
+        "integration.DataPlaneWithClusterIDs": {
+            "type": "object",
+            "properties": {
+                "capability": {
+                    "description": "Str Slice",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-array_string"
+                        }
+                    ]
+                },
+                "capabilitySpec": {
+                    "description": "Str Slice",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-array_string"
+                        }
+                    ]
+                },
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "paramSpec": {
+                    "description": "JSONStr",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-integration_ParamSpec"
+                        }
+                    ]
+                },
+                "params": {
+                    "description": "JSONStr",
+                    "type": "string"
+                },
+                "typ": {
+                    "type": "string"
+                },
+                "typeName": {
+                    "type": "string"
+                }
+            }
+        },
         "integration.ElasticConfig": {
             "type": "object",
             "properties": {
@@ -10824,6 +11107,17 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.JSONField-array_string": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "integration.JSONField-integration_LogAPI": {
             "type": "object",
             "properties": {
@@ -10848,6 +11142,14 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.JSONField-integration_ParamSpec": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/integration.ParamSpec"
+                }
+            }
+        },
         "integration.JSONField-integration_TraceAPI": {
             "type": "object",
             "properties": {
@@ -10863,6 +11165,25 @@ const docTemplate = `{
                     "$ref": "#/definitions/integration.TraceSelfCollectConfig"
                 }
             }
+        },
+        "integration.JSONType": {
+            "type": "string",
+            "enum": [
+                "object",
+                "array",
+                "string",
+                "number",
+                "boolean",
+                "null"
+            ],
+            "x-enum-varnames": [
+                "JSONTypeObject",
+                "JSONTypeArray",
+                "JSONTypeString",
+                "JSONTypeNumber",
+                "JSONTypeBoolean",
+                "JSONTypeNull"
+            ]
         },
         "integration.JaegerConfig": {
             "type": "object",
@@ -10962,6 +11283,26 @@ const docTemplate = `{
                 },
                 "user": {
                     "type": "string"
+                }
+            }
+        },
+        "integration.ParamSpec": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.ParamSpec"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "$ref": "#/definitions/integration.JSONType"
                 }
             }
         },
@@ -11871,6 +12212,32 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CreateDataPlaneRequest": {
+            "type": "object",
+            "properties": {
+                "capability": {
+                    "description": "Str Slice",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-array_string"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "params": {
+                    "description": "JSONStr",
+                    "type": "string"
+                },
+                "typ": {
+                    "type": "string"
+                }
+            }
+        },
         "request.CreateTeamRequest": {
             "type": "object",
             "required": [
@@ -11992,6 +12359,17 @@ const docTemplate = `{
             }
         },
         "request.DeleteCustomTopologyRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.DeleteDataPlaneRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -12931,6 +13309,32 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "oldGroup": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateDataPlaneRequest": {
+            "type": "object",
+            "properties": {
+                "capability": {
+                    "description": "Str Slice",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/integration.JSONField-array_string"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "params": {
+                    "description": "JSONStr",
+                    "type": "string"
+                },
+                "typ": {
                     "type": "string"
                 }
             }
@@ -14304,6 +14708,28 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/database.CustomServiceTopology"
+                    }
+                }
+            }
+        },
+        "response.ListDataPlaneResponse": {
+            "type": "object",
+            "properties": {
+                "dataPlanes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataPlaneWithClusterIDs"
+                    }
+                }
+            }
+        },
+        "response.ListDataPlaneTypeResponse": {
+            "type": "object",
+            "properties": {
+                "dpTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataPlaneType"
                     }
                 }
             }
