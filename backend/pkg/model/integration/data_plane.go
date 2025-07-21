@@ -19,7 +19,7 @@ type DataPlane struct {
 	Capability JSONField[[]string] `gorm:"capability" json:"capability"` // Str Slice
 
 	UpdatedAt time.Time `gorm:"updated_at;autoUpdateTime:second" json:"-"`
-	IsDeleted bool      `gorm:"is_deleted" json:"-"`
+	IsDeleted bool      `gorm:"is_deleted;default:false" json:"-"`
 }
 
 func (DataPlane) TableName() string {
