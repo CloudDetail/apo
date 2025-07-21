@@ -15,10 +15,8 @@ import (
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// TODO The following request parameter types and response types must be changed according to actual requirements.
-// @Param Request body request.listDataPlaneRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 {object} response.listDataPlaneResponse
+// @Success 200 {object} response.ListDataPlaneResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/dataplane/list [get]
 func (h *handler) ListDataPlane() core.HandlerFunc {

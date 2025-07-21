@@ -27,6 +27,7 @@ func (repo *daoRepo) ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterI
 	err := repo.GetContextDB(ctx).Table("data_plane as dp").
 		Select("id", "name", "typ", "params", "capability",
 			"type_name", "desc", "param_spec", "capability_spec").
+		Where("is_delete = ?", false).
 		Joins("LEFT JOIN data_plane_type dpt ON dp.typ = dpt.type_name").
 		Find(&dps).Error
 
@@ -66,10 +67,11 @@ func (repo *daoRepo) CheckDataPlaneExist(ctx core.Context, id int) (bool, error)
 }
 
 func (repo *daoRepo) UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error {
-	// TODO update time
 	return repo.GetContextDB(ctx).Save(d).Error
 }
 
 func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
-	return repo.GetContextDB(ctx).Where("id = ?", id).Delete(&mi.DataPlane{}).Error
+	return repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
+		Where("id = ?", id).
+		Update("is_deleted", true).Error
 }
