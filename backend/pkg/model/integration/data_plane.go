@@ -18,7 +18,7 @@ type DataPlane struct {
 	Params     string              `gorm:"params" json:"params"`         // JSONStr
 	Capability JSONField[[]string] `gorm:"capability" json:"capability"` // Str Slice
 
-	UpdatedAt time.Time `gorm:"update_at;autoUpdateTime:second" json:"-"`
+	UpdatedAt time.Time `gorm:"updated_at;autoUpdateTime:second" json:"-"`
 	IsDelete  bool      `gorm:"is_delete" json:"-"`
 }
 
