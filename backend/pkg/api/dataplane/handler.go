@@ -91,8 +91,15 @@ type Handler interface {
 	// @Router /api/dataplane/list [get]
 	ListDataPlane() core.HandlerFunc
 
-	// UpdateDataPlane() core.HandlerFunc
-	// DeleteDataPlane() core.HandlerFunc
+	// UpdateDataPlane
+	// @Tags API.dataplane
+	// @Router /api/dataplane/update [post]
+	UpdateDataPlane() core.HandlerFunc
+
+	// DeleteDataPlane
+	// @Tags API.dataplane
+	// @Router /api/dataplane/delete [post]
+	DeleteDataPlane() core.HandlerFunc
 }
 
 type handler struct {

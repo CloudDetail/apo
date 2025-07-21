@@ -58,3 +58,18 @@ func (repo *daoRepo) ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterI
 	return res, nil
 
 }
+
+func (repo *daoRepo) CheckDataPlaneExist(ctx core.Context, id int) (bool, error) {
+	var count int64
+	err := repo.GetContextDB(ctx).Model(&mi.DataPlane{}).Where("id = ?", id).Count(&count).Error
+	return count > 0, err
+}
+
+func (repo *daoRepo) UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error {
+	// TODO update time
+	return repo.GetContextDB(ctx).Save(d).Error
+}
+
+func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
+	return repo.GetContextDB(ctx).Where("id = ?", id).Delete(&mi.DataPlane{}).Error
+}

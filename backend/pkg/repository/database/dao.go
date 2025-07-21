@@ -163,6 +163,9 @@ type Repo interface {
 	GetDataPlaneType(ctx core.Context, typeName string) (*mi.DataPlaneType, error)
 	CreateDataPlane(ctx core.Context, d *mi.DataPlane) error
 	ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterIDs, error)
+	CheckDataPlaneExist(ctx core.Context, id int) (bool, error)
+	UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error
+	DeleteDataPlane(ctx core.Context, id int) error
 
 	integration.ObservabilityInputManage
 	DaoDataScope

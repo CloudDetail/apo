@@ -103,3 +103,11 @@ type QueryAPPInfoTagValuesRequest struct {
 type CreateDataPlaneRequest struct {
 	integration.DataPlane
 }
+
+type UpdateDataPlaneRequest struct {
+	integration.DataPlane
+}
+
+type DeleteDataPlaneRequest struct {
+	ID int `form:"id" json:"id" binding:"required"`
+}
