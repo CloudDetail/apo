@@ -37,7 +37,7 @@ func (h *handler) CreateDataPlane() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
-				code.ServerError, // TODO CreateDataPlaneError
+				code.CreateDataPlaneError,
 				err,
 			)
 			return

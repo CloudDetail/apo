@@ -229,4 +229,10 @@ var zhCnText = map[string]string{
 	ServiceNameRuleNotExistsError: "服务名匹配规则不存在",
 	QueryAPPInfoTagsError:         "查询APP信息标签失败",
 	QueryAPPInfoValuesError:       "查询APP信息值失败",
+
+	CreateDataPlaneError:   "创建数据平面失败",
+	DeleteDataPlaneError:   "删除数据平面失败",
+	ListDataPlaneError:     "列出数据平面失败",
+	ListDataPlaneTypeError: "列出数据平面类型失败",
+	UpdateDataPlaneError:   "更新数据平面失败",
 }

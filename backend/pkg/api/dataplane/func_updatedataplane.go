@@ -33,12 +33,11 @@ func (h *handler) UpdateDataPlane() core.HandlerFunc {
 			return
 		}
 
-		// TODO replace with Service call
 		err := h.dataplaneService.UpdateDataPlane(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
-				code.ServerError, // TODO UpdateDataPlaneError
+				code.UpdateDataPlaneError,
 				err,
 			)
 			return

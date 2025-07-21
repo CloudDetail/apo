@@ -227,4 +227,10 @@ var enText = map[string]string{
 	ServiceNameRuleNotExistsError: "service name rule not exists",
 	QueryAPPInfoTagsError:         "Failed to query APP info tags",
 	QueryAPPInfoValuesError:       "Failed to query APP info values",
+
+	CreateDataPlaneError:   "Failed to create data plane",
+	DeleteDataPlaneError:   "Failed to delete data plane",
+	ListDataPlaneError:     "Failed to list data plane",
+	ListDataPlaneTypeError: "Failed to list data plane type",
+	UpdateDataPlaneError:   "Failed to update data plane",
 }

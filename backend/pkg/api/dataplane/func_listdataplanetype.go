@@ -25,7 +25,7 @@ func (h *handler) ListDataPlaneType() core.HandlerFunc {
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
-				code.ServerError, // TODO err code
+				code.ListDataPlaneTypeError,
 				err,
 			)
 			return

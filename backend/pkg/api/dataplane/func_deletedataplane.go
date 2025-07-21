@@ -33,12 +33,11 @@ func (h *handler) DeleteDataPlane() core.HandlerFunc {
 			return
 		}
 
-		// TODO replace with Service call
 		err := h.dataplaneService.DeleteDataPlane(c, req)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
-				code.ServerError, // TODO DeleteDataPlaneError
+				code.DeleteDataPlaneError,
 				err,
 			)
 			return
