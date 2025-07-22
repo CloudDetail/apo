@@ -360,5 +360,7 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("/type/list", handler.ListDataPlaneType())
 		dataplaneAPI.GET("/list", handler.ListDataPlane())
 		dataplaneAPI.POST("/create", handler.CreateDataPlane())
+		dataplaneAPI.POST("/update", handler.UpdateDataPlane())
+		dataplaneAPI.POST("/delete", handler.DeleteDataPlane())
 	}
 }
