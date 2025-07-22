@@ -32,6 +32,8 @@ type Service interface {
 	DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error
 	ListAPPInfoLabelsKeys(ctx core.Context, req *request.QueryAPPInfoTagsRequest) (*response.QueryAPPInfoTagsResponse, error)
 	ListAPPInfoLabelValues(ctx core.Context, req *request.QueryAPPInfoTagValuesRequest) (*response.QueryAPPInfoTagValuesResponse, error)
+
+	DPService
 }
 
 type service struct {

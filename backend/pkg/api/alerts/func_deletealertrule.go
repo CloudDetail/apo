@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Param Request body request.DeleteAlertRuleRequest true "Delete object"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 string ok
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rule [delete]
 func (h *handler) DeleteAlertRule() core.HandlerFunc {

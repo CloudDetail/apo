@@ -284,7 +284,7 @@ func (repo *daoRepo) getUsersIDNameByTeamIDs(ctx core.Context, teamIDs ...int64)
 			userIds = append(userIds, user2Team.UserID)
 		}
 	}
-	
+
 	users, err := repo.GetUsersInfoWithoutTeamAndRole(ctx, userIds)
 	if err != nil {
 		return nil, err

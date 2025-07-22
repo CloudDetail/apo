@@ -3,6 +3,8 @@
 
 package request
 
+import "github.com/CloudDetail/apo/backend/pkg/model/integration"
+
 type QueryServicesRequest struct {
 	Cluster   string `form:"cluster"`                                      // query Cluster
 	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
@@ -96,4 +98,16 @@ type QueryAPPInfoTagValuesRequest struct {
 	EndTime   int64 `form:"endTime" json:"endTime"`
 
 	Label string `form:"key" json:"key"`
+}
+
+type CreateDataPlaneRequest struct {
+	integration.DataPlane
+}
+
+type UpdateDataPlaneRequest struct {
+	integration.DataPlane
+}
+
+type DeleteDataPlaneRequest struct {
+	ID int `form:"id" json:"id" binding:"required"`
 }

@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Param Request body request.UpdateAlertRuleRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 string ok
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/rules/file [post]
 func (h *handler) UpdateAlertRuleFile() core.HandlerFunc {

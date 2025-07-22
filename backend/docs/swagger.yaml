@@ -1086,6 +1086,53 @@ definitions:
     additionalProperties:
       type: string
     type: object
+  integration.DataPlaneType:
+    properties:
+      capabilitySpec:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-array_string'
+        description: Str Slice
+      desc:
+        type: string
+      paramSpec:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
+        description: JSONStr
+      typeName:
+        type: string
+    type: object
+  integration.DataPlaneWithClusterIDs:
+    properties:
+      capability:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-array_string'
+        description: Str Slice
+      capabilitySpec:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-array_string'
+        description: Str Slice
+      clusterIds:
+        items:
+          type: string
+        type: array
+      desc:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      paramSpec:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
+        description: JSONStr
+      params:
+        description: JSONStr
+        type: string
+      typ:
+        type: string
+      typeName:
+        type: string
+    type: object
   integration.ElasticConfig:
     properties:
       address:
@@ -1116,6 +1163,13 @@ definitions:
       accessSecret:
         type: string
     type: object
+  integration.JSONField-array_string:
+    properties:
+      obj:
+        items:
+          type: string
+        type: array
+    type: object
   integration.JSONField-integration_LogAPI:
     properties:
       obj:
@@ -1131,6 +1185,11 @@ definitions:
       obj:
         $ref: '#/definitions/integration.MetricAPI'
     type: object
+  integration.JSONField-integration_ParamSpec:
+    properties:
+      obj:
+        $ref: '#/definitions/integration.ParamSpec'
+    type: object
   integration.JSONField-integration_TraceAPI:
     properties:
       obj:
@@ -1141,6 +1200,22 @@ definitions:
       obj:
         $ref: '#/definitions/integration.TraceSelfCollectConfig'
     type: object
+  integration.JSONType:
+    enum:
+    - object
+    - array
+    - string
+    - number
+    - boolean
+    - "null"
+    type: string
+    x-enum-varnames:
+    - JSONTypeObject
+    - JSONTypeArray
+    - JSONTypeString
+    - JSONTypeNumber
+    - JSONTypeBoolean
+    - JSONTypeNull
   integration.JaegerConfig:
     properties:
       address:
@@ -1205,6 +1280,19 @@ definitions:
         type: string
       user:
         type: string
+    type: object
+  integration.ParamSpec:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/integration.ParamSpec'
+        type: array
+      name:
+        type: string
+      optional:
+        type: boolean
+      type:
+        $ref: '#/definitions/integration.JSONType'
     type: object
   integration.PinpointConfig:
     properties:
@@ -1929,17 +2017,21 @@ definitions:
           type: string
         type: array
     type: object
-  request.CreateCustomRequest:
+  request.CreateDataPlaneRequest:
     properties:
-      customName:
-        description: |-
-          UserName   string   `json:"userName"`
-          GroupName  string   `json:"groupName"`
+      capability:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-array_string'
+        description: Str Slice
+      id:
+        type: integer
+      name:
         type: string
-      type:
-        items:
-          type: string
-        type: array
+      params:
+        description: JSONStr
+        type: string
+      typ:
+        type: string
     type: object
   request.CreateTeamRequest:
     properties:
@@ -2032,6 +2124,13 @@ definitions:
         type: string
     type: object
   request.DeleteCustomTopologyRequest:
+    properties:
+      id:
+        type: integer
+    required:
+    - id
+    type: object
+  request.DeleteDataPlaneRequest:
     properties:
       id:
         type: integer
@@ -2777,17 +2876,21 @@ definitions:
     - oldAlert
     - oldGroup
     type: object
-  request.UpdateCustomRequest:
+  request.UpdateDataPlaneRequest:
     properties:
-      customName:
-        description: |-
-          UserName   string   `json:"userName"`
-          GroupName  string   `json:"groupName"`
+      capability:
+        allOf:
+        - $ref: '#/definitions/integration.JSONField-array_string'
+        description: Str Slice
+      id:
+        type: integer
+      name:
         type: string
-      type:
-        items:
-          type: string
-        type: array
+      params:
+        description: JSONStr
+        type: string
+      typ:
+        type: string
     type: object
   request.UpdateLogParseRequest:
     properties:
@@ -3860,6 +3963,20 @@ definitions:
       topologies:
         items:
           $ref: '#/definitions/database.CustomServiceTopology'
+        type: array
+    type: object
+  response.ListDataPlaneResponse:
+    properties:
+      dataPlanes:
+        items:
+          $ref: '#/definitions/integration.DataPlaneWithClusterIDs'
+        type: array
+    type: object
+  response.ListDataPlaneTypeResponse:
+    properties:
+      dpTypes:
+        items:
+          $ref: '#/definitions/integration.DataPlaneType'
         type: array
     type: object
   response.ListServiceNameRule:
@@ -5141,7 +5258,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -5170,7 +5287,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -5788,7 +5905,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -5871,7 +5988,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -5900,7 +6017,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -6102,7 +6219,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: ok
           schema:
             type: string
         "400":
@@ -6730,6 +6847,34 @@ paths:
       summary: Get app info tag values.
       tags:
       - API.dataplane
+  /api/dataplane/create:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDataPlaneRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.dataplane
   /api/dataplane/customtopology/create:
     post:
       consumes:
@@ -6831,6 +6976,34 @@ paths:
       summary: List custom topology.
       tags:
       - API.dataplane
+  /api/dataplane/delete:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDataPlaneRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.dataplane
   /api/dataplane/endpoints:
     get:
       consumes:
@@ -6907,6 +7080,28 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get service's instances.
+      tags:
+      - API.dataplane
+  /api/dataplane/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListDataPlaneResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.dataplane
   /api/dataplane/redcharts:
@@ -7151,6 +7346,56 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get service's topology.
+      tags:
+      - API.dataplane
+  /api/dataplane/type/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListDataPlaneTypeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.dataplane
+  /api/dataplane/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDataPlaneRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.dataplane
   /api/health:
