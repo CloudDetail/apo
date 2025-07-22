@@ -177,7 +177,7 @@ function EndpointTableModal(props) {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     const endpointList = paginatedData.map((item) => item.endpoint)
 
-    await getChartsData([serviceName], endpointList)
+    await getChartsData([serviceName], endpointList, dataGroupId, clusterIds)
   }
   const tableProps = useMemo(() => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)

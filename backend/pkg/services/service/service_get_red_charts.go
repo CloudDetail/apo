@@ -11,23 +11,43 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceREDChartsRequest) (response.GetServiceREDChartsResponse, error) {
 	step := time.Duration(req.Step * 1000)
-	filters := make([]string, 0, 4)
-	filters = append(filters, prometheus.ServiceRegexPQLFilter)
-	filters = append(filters, prometheus.RegexMultipleValue(req.ServiceList...))
-	filters = append(filters, prometheus.ContentKeyRegexPQLFilter)
-	filters = append(filters, prometheus.RegexMultipleValue(req.EndpointList...))
+	// filters := make([]string, 0, 4)
+
+	var err error
+
+	var filter prometheus.PQLFilter
+	if req.GroupID > 0 {
+		filter, err = common.GetPQLFilterByGroupID(ctx, s.dbRepo, "apm", req.GroupID)
+		if err != nil {
+			return response.GetServiceREDChartsResponse{}, err
+		}
+	} else {
+		filter = prometheus.NewFilter()
+	}
+
+	if len(req.ClusterIDs) > 0 {
+		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
+	}
+	if len(req.ServiceList) > 0 {
+		filter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(req.ServiceList...))
+	}
+	if len(req.EndpointList) > 0 {
+		filter.RegexMatch(prometheus.ContentKeyKey, prometheus.RegexMultipleValue(req.EndpointList...))
+	}
+
 	serviceDetails := make(map[string]map[string]response.RedCharts)
-	latencyRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgLatencyWithFilters,
+	latencyRes, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgLatencyWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		step.Microseconds(),
 		prometheus.EndpointGranularity,
-		filters...,
+		filter,
 	)
 	if err != nil {
 		log.Println("get instance range data error: ", err)
@@ -35,13 +55,13 @@ func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceR
 
 	mergeResult(latencyRes, serviceDetails, "latency")
 
-	errorRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgErrorRateWithFilters,
+	errorRes, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgErrorRateWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		step.Microseconds(),
 		prometheus.EndpointGranularity,
-		filters...,
+		filter,
 	)
 
 	mergeResult(errorRes, serviceDetails, "errorRate")
@@ -50,13 +70,13 @@ func (s *service) GetServiceREDCharts(ctx core.Context, req *request.GetServiceR
 		log.Println("get instance range data error: ", err)
 	}
 
-	tpsRes, err := s.promRepo.QueryRangeAggMetricsWithFilter(ctx,
-		prometheus.PQLAvgTPSWithFilters,
+	tpsRes, err := s.promRepo.QueryRangeMetricsWithPQLFilter(ctx,
+		prometheus.PQLAvgTPSWithPQLFilter,
 		req.StartTime,
 		req.EndTime,
 		step.Microseconds(),
 		prometheus.EndpointGranularity,
-		filters...,
+		filter,
 	)
 
 	mergeResult(tpsRes, serviceDetails, "rps")

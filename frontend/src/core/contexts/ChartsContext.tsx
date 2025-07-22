@@ -4,7 +4,7 @@
  */
 
 import { createContext, useContextSelector } from '@fluentui/react-context-selector'
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { getServiceChartsApi } from '../api/service'
 import { useSelector } from 'react-redux'
 import { selectSecondsTimeRange } from '../store/reducers/timeRangeReducer'
@@ -19,7 +19,7 @@ export const ChartsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [chartsData, setChartsData] = useState(null)
   const [chartsLoading, setChartsLoading] = useState(true)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
-  const getChartsData = async (serviceList, endpointList) => {
+  const getChartsData = async (serviceList, endpointList, groupId, clusterIds) => {
     try {
       setChartsLoading(true)
       if (serviceList.length === 0 || endpointList.length === 0) {
@@ -31,6 +31,8 @@ export const ChartsProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         step: getStep(startTime, endTime),
         serviceList,
         endpointList,
+        groupId,
+        clusterIds,
       })
       setChartsData(res)
     } finally {

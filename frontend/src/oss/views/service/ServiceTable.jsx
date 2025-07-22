@@ -368,7 +368,7 @@ const ServiceTable = React.memo(() => {
         endpointList.push(endpoint.endpoint)
       })
     })
-    getChartsData(serviceList, endpointList)
+    getChartsData(serviceList, endpointList, dataGroupId, cluster)
   }
   const handleTableChange = (pageIndex, pageSize) => {
     if (pageSize && pageIndex) {

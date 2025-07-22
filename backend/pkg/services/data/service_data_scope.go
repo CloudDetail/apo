@@ -74,6 +74,10 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		}
 
 		for _, metric := range series {
+			if metric.Metric.Namespace == "" {
+				metric.Metric.Namespace = "VM_NS"
+			}
+
 			label := datagroup.ScopeLabels{
 				ClusterID: metric.Metric.ClusterID,
 				Namespace: metric.Metric.Namespace,
@@ -230,8 +234,9 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 			return nil, err
 		}
 
+		common.DataGroupStorage.CleanScopes()
 		// Refresh ScopeTree
-		_ = common.DataGroupStorage.Refresh(ctx, s.promRepo, s.chRepo, s.dbRepo, 10*time.Minute)
+		_, _ = common.DataGroupStorage.Refresh(ctx, s.promRepo, s.chRepo, s.dbRepo, 10*time.Minute)
 		newScopeTree, err := s.dbRepo.LoadScopes(ctx)
 		if err == nil {
 			common.DataGroupStorage.DataScopeTree = newScopeTree
