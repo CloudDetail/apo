@@ -16,7 +16,7 @@ type AlertEventFilter struct {
 	Status       string
 	WithMutation bool
 
-	GroupID int64
+	GroupIDs []string
 
 	*AlertTagsFilter
 }

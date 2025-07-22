@@ -2,6 +2,7 @@ package alertanalyze
 
 import (
 	"sort"
+	"strconv"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -21,9 +22,17 @@ func (s *service) GetAlertsImpact(ctx core.Context, req *request.AlertImpactRequ
 	startTime := time.UnixMicro(req.StartTime)
 	endTime := time.UnixMicro(req.EndTime)
 
+	if req.GroupID > 0 {
+		subGroupIDs := common.DataGroupStorage.GetFullSubGroupIDs(req.GroupID)
+		for _, id := range subGroupIDs {
+			req.SubGroupIDs = append(req.SubGroupIDs, strconv.FormatInt(id, 10))
+		}
+		req.SubGroupIDs = append(req.SubGroupIDs, strconv.FormatInt(req.GroupID, 10))
+	}
+
 	// 获取Alert列表,并统计之间段内告警(Firing)的次数
 	alerts, total, err := s.chRepo.GetAlertsWithEventCount(
-		ctx, startTime, endTime, &alert.AlertEventFilter{GroupID: req.GroupID, Status: "firing"}, 5000,
+		ctx, startTime, endTime, &alert.AlertEventFilter{GroupIDs: req.SubGroupIDs, Status: "firing"}, 5000,
 	)
 
 	if err != nil {

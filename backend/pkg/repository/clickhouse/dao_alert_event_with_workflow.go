@@ -5,7 +5,6 @@ package clickhouse
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -178,7 +177,8 @@ func (ch *chRepo) GetAlertEventWithWorkflowRecord(ctx core.Context, req *request
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if req.GroupID > 0 {
-		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		// alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		alertFilter.In("ae.raw_tags['groupId']", req.SubGroupIDs)
 	}
 
 	// TODO remove in v1.9.x
@@ -250,9 +250,9 @@ func getSqlAndValueForSortedAlertEvent(req *request.AlertEventSearchRequest, cac
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if req.GroupID > 0 {
-		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		// alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		alertFilter.In("ae.raw_tags['groupId']", req.SubGroupIDs)
 	}
-
 	// TODO remove in v1.9.x
 	{
 		if len(req.Filter.Namespaces) > 0 {
@@ -317,7 +317,8 @@ func (ch *chRepo) GetAlertEventCounts(ctx core.Context, req *request.AlertEventS
 		NotGreaterThan("end_time", req.EndTime/1e6)
 
 	if req.GroupID > 0 {
-		alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		// alertFilter.Equals("ae.raw_tags['groupId']", strconv.FormatInt(req.GroupID, 10))
+		alertFilter.In("ae.raw_tags['groupId']", req.SubGroupIDs)
 	}
 
 	var counts []_alertEventCount

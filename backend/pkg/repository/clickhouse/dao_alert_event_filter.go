@@ -6,7 +6,6 @@ package clickhouse
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -393,8 +392,8 @@ func _extractAlertEventFilter(filter *alert.AlertEventFilter) *whereSQL {
 		equalsIfNotEmpty("status", filter.Status),
 	)
 
-	if filter.GroupID > 0 {
-		basicFilters = append(basicFilters, equals("raw_tags['groupId']", strconv.FormatInt(filter.GroupID, 10)))
+	if len(filter.GroupIDs) > 0 {
+		basicFilters = append(basicFilters, inStrings("raw_tags['groupId']", filter.GroupIDs))
 	}
 
 	if len(filter.Group) > 0 && filter.WithMutation {
