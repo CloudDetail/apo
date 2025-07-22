@@ -86,7 +86,14 @@ func (m *DataGroupStore) KeepWatchScope(
 	for {
 		select {
 		case <-ticker.C:
-			m.Refresh(ctx, promRepo, chRepo, dbRepo, 2*interval)
+			newScope, _ := m.Refresh(ctx, promRepo, chRepo, dbRepo, 2*interval)
+			if len(newScope) > 0 {
+				scopeTree, err := dbRepo.LoadScopes(core.EmptyCtx())
+				if err != nil {
+					log.Printf("failed to load scopes: %v", err)
+				}
+				m.DataScopeTree = scopeTree
+			}
 		case <-m.stopCh:
 			return
 		}
@@ -200,13 +207,17 @@ func ScanScope(
 	return scopeIDs, nil
 }
 
+func (m *DataGroupStore) CleanScopes() {
+	m.ExistedScope = map[datagroup.DataScope]struct{}{}
+}
+
 func (m *DataGroupStore) Refresh(
 	ctx core.Context,
 	promRepo prometheus.Repo,
 	chRepo clickhouse.Repo,
 	dbRepo database.Repo,
 	interval time.Duration,
-) error {
+) ([]datagroup.DataScope, error) {
 	now := time.Now()
 	start := now.Add(-1 * interval)
 
@@ -229,7 +240,7 @@ func (m *DataGroupStore) Refresh(
 		errs = append(errs, err)
 	}
 
-	return errors.Join(errs...)
+	return promScopes, errors.Join(errs...)
 }
 
 func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
@@ -259,6 +270,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		if _, find := m.ExistedScope[ds]; find {
 			continue
 		}
+		m.ExistedScope[ds] = struct{}{}
 		newScope = append(newScope, ds)
 	}
 
@@ -288,6 +300,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		if _, find := m.ExistedScope[ds]; find {
 			continue
 		}
+		m.ExistedScope[ds] = struct{}{}
 		newScope = append(newScope, ds)
 	}
 
@@ -310,6 +323,7 @@ func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTim
 		if _, find := m.ExistedScope[scopes[i]]; find {
 			continue
 		}
+		m.ExistedScope[scopes[i]] = struct{}{}
 		newScope = append(newScope, scopes[i])
 	}
 	return newScope, nil
