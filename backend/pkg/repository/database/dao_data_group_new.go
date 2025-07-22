@@ -129,8 +129,17 @@ func (repo *daoRepo) assignUserDataGroupIfNotExist(ctx core.Context, userID, gro
 }
 
 func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
-	var count int64
 	err := repo.GetContextDB(ctx).
+		Model(&datagroup.DataGroup{}).
+		Where("parent_group_id = ?", nil).
+		Update("parent_group_id", 0).Error
+
+	if err != nil {
+		return err
+	}
+
+	var count int64
+	err = repo.GetContextDB(ctx).
 		Model(&datagroup.DataGroup{}).
 		Where("group_id = ?", 0).
 		Count(&count).Error
@@ -162,7 +171,7 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 	}
 
 	// migrate-datasourceGroup
-	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Count(&count).Error
+	err = repo.GetContextDB(ctx).Model(&datagroup.DataGroup2Scope{}).Where("group_id != ?", 0).Count(&count).Error
 	if err != nil {
 		return err
 	}
