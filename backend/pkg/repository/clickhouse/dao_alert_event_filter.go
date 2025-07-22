@@ -392,6 +392,10 @@ func _extractAlertEventFilter(filter *alert.AlertEventFilter) *whereSQL {
 		equalsIfNotEmpty("status", filter.Status),
 	)
 
+	if len(filter.GroupIDs) > 0 {
+		basicFilters = append(basicFilters, inStrings("raw_tags['groupId']", filter.GroupIDs))
+	}
+
 	if len(filter.Group) > 0 && filter.WithMutation {
 		basicFilters = append(basicFilters,
 			in("group", clickhouse.ArraySet{
