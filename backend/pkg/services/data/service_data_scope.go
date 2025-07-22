@@ -74,6 +74,10 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		}
 
 		for _, metric := range series {
+			if metric.Metric.Namespace == "" {
+				metric.Metric.Namespace = "VM_NS"
+			}
+
 			label := datagroup.ScopeLabels{
 				ClusterID: metric.Metric.ClusterID,
 				Namespace: metric.Metric.Namespace,
