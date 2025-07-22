@@ -27,6 +27,12 @@ func (dsg *DatasourceGroup) TableName() string {
 	return "datasource_group"
 }
 
+func (repo *daoRepo) DropDataGroupDatasourceConstraint(ctx core.Context) error {
+	return repo.GetContextDB(ctx).
+		Migrator().
+		DropConstraint(&DatasourceGroup{}, "fk_data_group_datasource_list")
+}
+
 func (repo *daoRepo) CreateDataGroup(ctx core.Context, group *datagroup.DataGroup) error {
 	return repo.GetContextDB(ctx).Create(group).Error
 }
