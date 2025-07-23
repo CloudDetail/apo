@@ -307,7 +307,7 @@ func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*
 		var selfStatus scopeStatus = ignored
 		if slices.Contains(selected, node.ScopeID) {
 			selfStatus = checked
-		} else if pStatus == checked && slices.Contains(categoryIDs, node.ScopeID) {
+		} else if pStatus != ignored && slices.Contains(categoryIDs, node.ScopeID) {
 			selfStatus = notChecked
 		}
 
