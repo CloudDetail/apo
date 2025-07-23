@@ -261,8 +261,10 @@ func (ch *chRepo) getAlertEventsByWhere(ctx core.Context, startTime time.Time, e
 		EqualsNotEmpty("status", filter.Status).
 		And(whereInstance)
 
-	if filter.GroupID > 0 {
-		builder.Equals("raw_tags['groupId']", strconv.FormatInt(filter.GroupID, 10))
+	if len(filter.SubGroupIDs) > 0 {
+		builder.InStrings("raw_tags['subGroupId']", filter.SubGroupIDs)
+	} else if filter.GroupID > 0 {
+		builder.Equals("raw_tags['subGroupId']", strconv.FormatInt(filter.GroupID, 10))
 	}
 
 	if len(filter.ClusterIDs) > 0 {

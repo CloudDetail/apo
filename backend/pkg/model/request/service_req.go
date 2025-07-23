@@ -304,6 +304,8 @@ type AlertFilter struct {
 	EndpointKeys []model.EndpointKey
 
 	GroupID int64 `form:"groupId" json:"groupId"`
+
+	SubGroupIDs []string `form:"-" json:"-"`
 }
 
 type PageParam struct {

@@ -1,6 +1,7 @@
 package alertanalyze
 
 import (
+	"strconv"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -26,7 +27,14 @@ func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEvent
 	eventFilter := request.AlertFilter{
 		Status:       "firing",
 		WithMutation: true,
-		GroupID:      req.GroupID,
+	}
+
+	if req.GroupID > 0 {
+		subGroupIDs := common.DataGroupStorage.GetFullSubGroupIDs(req.GroupID)
+		for _, id := range subGroupIDs {
+			eventFilter.SubGroupIDs = append(eventFilter.SubGroupIDs, strconv.FormatInt(id, 10))
+		}
+		eventFilter.SubGroupIDs = append(eventFilter.SubGroupIDs, strconv.FormatInt(req.GroupID, 10))
 	}
 
 	events, count, err := s.chRepo.GetAlertEvents(
