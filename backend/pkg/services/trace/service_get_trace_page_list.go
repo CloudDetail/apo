@@ -39,7 +39,7 @@ func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 	}
 
 	for i := 0; i < len(req.Filters); i++ {
-		if req.Filters[i] == nil {
+		if req.Filters[i].SpanTraceFilter == nil {
 			continue
 		}
 		if req.Filters[i].Key == "namespace" && len(req.Filters[i].Value) > 0 {
