@@ -38,6 +38,16 @@ func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		}
 	}
 
+	for i := 0; i < len(req.Filters); i++ {
+		if req.Filters[i].Key == "namespace" && len(req.Filters[i].Value) > 0 {
+			for s := 0; s < len(req.Filters[i].Value); s++ {
+				if req.Filters[i].Value[s] == "VM_NS" {
+					req.Filters[i].Value[s] = ""
+				}
+			}
+		}
+	}
+
 	list, total, err := s.chRepo.GetTracePageList(ctx, req)
 	if err != nil {
 		return nil, err
