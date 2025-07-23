@@ -335,7 +335,7 @@ func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTim
 }
 
 func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
-	parentScopeTmp := make(map[datagroup.ScopeLabels]struct{})
+	parentScopeTmp := make(map[string]map[datagroup.ScopeLabels]struct{})
 	extraScopes := make([]datagroup.DataScope, 0)
 
 	for _, scope := range scopes {
@@ -343,18 +343,18 @@ func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
 		case datagroup.DATASOURCE_TYP_SERVICE:
 			nsLabels := scope.ScopeLabels
 			nsLabels.Service = ""
-			if addIfNotExists(nsLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, nsLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createNamespaceScope(scope, nsLabels))
 			}
 
 			clusterLabels := datagroup.ScopeLabels{ClusterID: scope.ClusterID}
-			if addIfNotExists(clusterLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, clusterLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createClusterScope(scope, clusterLabels))
 			}
 
 		case datagroup.DATASOURCE_TYP_NAMESPACE:
 			clusterLabels := datagroup.ScopeLabels{ClusterID: scope.ClusterID}
-			if addIfNotExists(clusterLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, clusterLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createClusterScope(scope, clusterLabels))
 			}
 		}
@@ -363,12 +363,15 @@ func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
 	return append(scopes, extraScopes...)
 }
 
-func addIfNotExists(labels datagroup.ScopeLabels, seen map[datagroup.ScopeLabels]struct{}) bool {
-	if _, exists := seen[labels]; exists {
-		return false
+func addIfNotExists(category string, labels datagroup.ScopeLabels, seen map[string]map[datagroup.ScopeLabels]struct{}) bool {
+	if _, exists := seen[category]; !exists {
+		seen[category] = make(map[datagroup.ScopeLabels]struct{})
 	}
-	seen[labels] = struct{}{}
-	return true
+	if _, exists := seen[category][labels]; !exists {
+		seen[category][labels] = struct{}{}
+		return true
+	}
+	return false
 }
 
 func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
