@@ -125,7 +125,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 				if len(metric.Metric.POD) > 0 {
 					extraName = metric.Metric.POD
 				} else {
-					extraName = fmt.Sprintf("%s#%s", metric.Metric.NodeName, metric.Metric.ContainerID)
+					extraName = fmt.Sprintf("%s#%s", metric.Metric.NodeName, metric.Metric.PID)
 				}
 
 				node.ExtraChildren = append(node.ExtraChildren, &datagroup.ExtraChild{
