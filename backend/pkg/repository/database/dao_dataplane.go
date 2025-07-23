@@ -30,7 +30,7 @@ func (repo *daoRepo) ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterI
 	err := repo.GetContextDB(ctx).Table("data_plane as dp").
 		Select("id", "name", "typ", "params", "capability",
 			"type_name", "desc", "param_spec", "capability_spec").
-		Where("is_delete = ?", false).
+		Where("is_deleted = ?", false).
 		Joins("LEFT JOIN data_plane_type dpt ON dp.typ = dpt.type_name").
 		Order("id asc").
 		Find(&dps).Error
