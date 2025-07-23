@@ -134,7 +134,7 @@ func (repo *daoRepo) InitRootGroup(ctx core.Context) error {
 		// Ignore Error
 	}
 
-	err = repo.GetContextDB(ctx).
+ 	err = repo.GetContextDB(ctx).
 		Model(&datagroup.DataGroup{}).
 		Where("parent_group_id = ?", nil).
 		Update("parent_group_id", 0).Error

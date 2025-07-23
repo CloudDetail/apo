@@ -159,10 +159,17 @@ func Or(filters ...PQLFilter) *OrFilter {
 			}
 		}
 	}
+
+	if len(options) == 0 {
+		return &OrFilter{
+			Filters: []AndFilter{*AlwaysFalseFilter},
+		}
+	}
+
 	return &OrFilter{Filters: options}
 }
 
-func And(filters ...PQLFilter) *OrFilter {
+func And(filters ...PQLFilter) PQLFilter {
 	var options []AndFilter
 	for _, filter := range filters {
 		if filter == nil {
@@ -199,6 +206,10 @@ func And(filters ...PQLFilter) *OrFilter {
 				options[i].Filters = append(options[i].Filters, f.Filters...)
 			}
 		}
+	}
+
+	if len(options) == 0 {
+		return &AndFilter{Filters: []string{}}
 	}
 	return &OrFilter{Filters: options}
 }
