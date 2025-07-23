@@ -215,14 +215,14 @@ func LogCountSeriesCombineSvcInfoWithPQLFilter(rng string, gran string, filter P
 	grans = append(grans, "container_id", "node_name", "pid")
 	granWithCombineKey := strings.Join(grans, ",")
 
-	filter, svcFilter := Clone(filter).SplitFilters([]string{ServiceNameKey})
+	filter, _ = Clone(filter).SplitFilters([]string{ServiceNameKey})
 
 	logCount := groupBy(granWithCombineKey, lastOverTime(rangeVec(LOG_LEVEL_COUNT, filter, rng, offset)))
 	k8sSVCGroup := groupBy("svc_name,container_id",
-		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).NotEqual("container_id", ""), rng, offset)))
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, NotEqualFilter("container_id", ""), rng, offset)))
 
 	vmSVCGroup := groupBy("svc_name,node_name,pid",
-		lastOverTime(rangeVec(SPAN_TRACE_COUNT, Clone(svcFilter).Equal("container_id", "").NotEqual("pid", ""), rng, offset)))
+		lastOverTime(rangeVec(SPAN_TRACE_COUNT, EqualFilter("container_id", "").NotEqual("pid", ""), rng, offset)))
 
 	return or(
 		sumBy(gran, labelLeftOn(logCount, "container_id", "svc_name", k8sSVCGroup)),
