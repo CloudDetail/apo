@@ -16,15 +16,18 @@ import (
 
 // GetFaultLogContent implements Service.
 func (s *service) GetFaultLogContent(ctx core.Context, req *request.GetFaultLogContentRequest) (*response.GetFaultLogContentResponse, error) {
-	result := s.trySearchInFullLog(req, ctx)
-	if result != nil {
-		return result, nil
-	}
-
 	logContest, sources, err := s.chRepo.QueryApplicationLogs(ctx, req)
 	if err != nil {
 		return nil, err
 	}
+
+	if len(logContest.Contents) == 0 {
+		result := s.trySearchInFullLog(req, ctx)
+		if result != nil {
+			return result, nil
+		}
+	}
+
 	return &response.GetFaultLogContentResponse{
 		Sources:     sources,
 		LogContents: logContest,
