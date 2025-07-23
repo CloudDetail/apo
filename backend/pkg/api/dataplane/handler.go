@@ -100,6 +100,11 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/delete [post]
 	DeleteDataPlane() core.HandlerFunc
+
+	// CheckDataPlane
+	// @Tags API.dataplane
+	// @Router /api/dataplane/data/check [get]
+	CheckDataPlane() core.HandlerFunc
 }
 
 type handler struct {

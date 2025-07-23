@@ -4,6 +4,8 @@
 package dataplane
 
 import (
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -20,6 +22,8 @@ type DPService interface {
 	ListDataPlane(ctx core.Context) (*response.ListDataPlaneResponse, error)
 	UpdateDataPlane(ctx core.Context, req *request.UpdateDataPlaneRequest) error
 	DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlaneRequest) error
+
+	CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error)
 }
 
 func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTypeResponse, error) {
@@ -72,4 +76,30 @@ func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlane
 	}
 
 	return s.dbRepo.DeleteDataPlane(ctx, req.ID)
+}
+
+func (s *service) CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error) {
+	now := time.Now()
+	clusterIDs, err := s.promRepo.GetMinimalAgentExisted(ctx, now, 7*time.Hour*24)
+	if err != nil {
+		return nil, err
+	}
+
+	dpList, err := s.dbRepo.ListDataPlane(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var dataSources []string
+	for _, dp := range dpList {
+		dataSources = append(dataSources, dp.Name)
+	}
+
+	return &response.CheckMinimalDataPlaneResponse{
+		AgentReady:     len(clusterIDs) > 0,
+		Clusters:       clusterIDs,
+		DataPlaneExist: len(dpList) > 0,
+		DataSource:     dataSources,
+	}, nil
+
 }

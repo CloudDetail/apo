@@ -92,3 +92,10 @@ type ListDataPlaneTypeResponse struct {
 type ListDataPlaneResponse struct {
 	DataPlanes []integration.DataPlaneWithClusterIDs `json:"dataPlanes"`
 }
+
+type CheckMinimalDataPlaneResponse struct {
+	AgentReady     bool     `json:"agentReady"`
+	Clusters       []string `json:"clusters"`
+	DataPlaneExist bool     `json:"dataPlaneExist"`
+	DataSource     []string `json:"dataSource"`
+}

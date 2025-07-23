@@ -68,7 +68,9 @@ e.g. avg (xxx[${vec}])
 */
 func VecFromS2E(startTime int64, endTime int64) (vec string) {
 	durationNS := (endTime - startTime) * int64(time.Microsecond)
-	if durationNS > int64(time.Minute) {
+	if durationNS > int64(10*time.Hour) {
+		vec = strconv.FormatInt(durationNS/int64(time.Hour), 10) + "h"
+	} else if durationNS > int64(time.Minute) {
 		vec = strconv.FormatInt(durationNS/int64(time.Minute), 10) + "m"
 	} else {
 		vec = strconv.FormatInt(durationNS/int64(time.Second), 10) + "s"
@@ -78,7 +80,9 @@ func VecFromS2E(startTime int64, endTime int64) (vec string) {
 
 func VecFromDuration(duration time.Duration) (vec string) {
 	durationNS := duration.Nanoseconds()
-	if durationNS > int64(time.Minute) {
+	if durationNS > int64(10*time.Hour) {
+		vec = strconv.FormatInt(durationNS/int64(time.Hour), 10) + "h"
+	} else if durationNS > int64(time.Minute) {
 		vec = strconv.FormatInt(durationNS/int64(time.Minute), 10) + "m"
 	} else {
 		vec = strconv.FormatInt(durationNS/int64(time.Second), 10) + "s"

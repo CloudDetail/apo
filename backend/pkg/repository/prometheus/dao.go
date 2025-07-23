@@ -99,6 +99,8 @@ type Repo interface {
 	GetDataplaneServiceList(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.Service, error)
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceName string) ([]*model.ServiceInstance, error)
 
+	GetMinimalAgentExisted(ctx core.Context, endTime time.Time, duration time.Duration) ([]string, error)
+
 	QueryWithPQLFilter
 }
 
