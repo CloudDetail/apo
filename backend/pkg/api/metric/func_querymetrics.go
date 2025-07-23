@@ -17,6 +17,7 @@ import (
 // @Tags API.metric
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param Request body metric.QueryMetricsRequest true
 // @Success 200 {object} metric.QueryMetricsResult
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/query [post]
