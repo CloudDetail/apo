@@ -43,6 +43,7 @@ func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlane
 		return core.Error(code.DataPlaneParamInvalidError, err.Error())
 	}
 
+	req.DataPlane.IsDeleted = false
 	return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
 }
 
