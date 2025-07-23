@@ -74,6 +74,7 @@ type Repo interface {
 	queryRowsData(ctx core.Context, sql string) ([]map[string]any, error)
 
 	QueryAllLogs(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error)
+	QueryAllLogsInOrder(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error)
 	QueryLogContext(ctx core.Context, req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error)
 	GetLogChart(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error)
 	GetLogIndex(ctx core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error)
