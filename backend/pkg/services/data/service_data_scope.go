@@ -6,6 +6,7 @@ package data
 import (
 	"fmt"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/config"
@@ -125,7 +126,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 				if len(metric.Metric.POD) > 0 {
 					extraName = metric.Metric.POD
 				} else {
-					extraName = fmt.Sprintf("%s#%s", metric.Metric.NodeName, metric.Metric.PID)
+					extraName = fmt.Sprintf("%s@%s@%s", metric.Metric.SvcName, metric.Metric.NodeName, metric.Metric.PID)
+				}
+
+				pid, err := strconv.Atoi(metric.Metric.PID)
+				if err != nil {
+					pid = 0
 				}
 
 				node.ExtraChildren = append(node.ExtraChildren, &datagroup.ExtraChild{
@@ -135,7 +141,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 					ContainerID: metric.Metric.ContainerID,
 					POD:         metric.Metric.POD,
 					Node:        metric.Metric.NodeName,
-					Pid:         metric.Metric.PID,
+					Pid:         pid,
 					Service:     metric.Metric.SvcName,
 				})
 			}

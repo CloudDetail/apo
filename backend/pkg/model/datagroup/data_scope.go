@@ -53,7 +53,7 @@ type ExtraChild struct {
 	ContainerID string `json:"containerId" gorm:"-"`
 	POD         string `json:"pod" gorm:"-"`
 	Node        string `json:"node" gorm:"-"`
-	Pid         string `json:"pid" gorm:"-"`
+	Pid         int    `json:"pid" gorm:"-"`
 	Endpoint    string `json:"endpoint" gorm:"-"`
 	Service     string `json:"service" gorm:"-"`
 }
