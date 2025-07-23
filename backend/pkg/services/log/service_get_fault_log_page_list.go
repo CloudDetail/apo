@@ -13,6 +13,12 @@ import (
 )
 
 func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
+	for i := 0; i < len(req.Namespaces); i++ {
+		if req.Namespaces[i] == "VM_NS" {
+			req.Namespaces[i] = ""
+		}
+	}
+
 	// Paging query fault site logs
 	query := &clickhouse.FaultLogQuery{
 		StartTime:      req.StartTime,
