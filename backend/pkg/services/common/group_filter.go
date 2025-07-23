@@ -115,6 +115,9 @@ func ConvertScopeNodeToPQLFilter(scopeNode *datagroup.DataScopeTreeNode) prometh
 			return prometheus.NewFilter().
 				Equal("cluster_id", node.Name).
 				RegexMatch("namespace", prometheus.RegexMultipleValue(options...))
+		case datagroup.DATASOURCE_TYP_SYSTEM:
+			return prometheus.NewFilter().
+				RegexMatch("cluster_id", prometheus.RegexMultipleValue(options...))
 		default:
 			return nil
 		}
