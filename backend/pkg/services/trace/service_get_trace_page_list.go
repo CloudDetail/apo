@@ -32,6 +32,12 @@ func (s *service) GetTracePageList(ctx core.Context, req *request.GetTracePageLi
 		req.Service = permSvcList
 	}
 
+	for i := 0; i < len(req.Namespace); i++ {
+		if req.Namespace[i] == "VM_NS" {
+			req.Namespace[i] = ""
+		}
+	}
+
 	list, total, err := s.chRepo.GetTracePageList(ctx, req)
 	if err != nil {
 		return nil, err
