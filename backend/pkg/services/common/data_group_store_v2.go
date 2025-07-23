@@ -143,7 +143,7 @@ func ScanScope(
 	}
 
 	metricRes, err = promRepo.QueryMetricsWithPQLFilter(ctx,
-		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		prometheus.LogCountSeriesCombineSvcInfoWithPQLFilter,
 		start.UnixMicro(), now.UnixMicro(), "cluster_id,namespace,svc_name", nil,
 	)
 
@@ -236,6 +236,11 @@ func (m *DataGroupStore) Refresh(
 	// chScopes := generateParent(scopes)
 
 	// scopes = append(promScopes, chScopes...)
+
+	if len(promScopes) == 0 {
+		return nil, errors.Join(errs...)
+
+	}
 	if err := dbRepo.SaveScopes(ctx, promScopes); err != nil {
 		errs = append(errs, err)
 	}
@@ -275,7 +280,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 	}
 
 	metricRes, err = prom.QueryMetricsWithPQLFilter(ctx,
-		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		prometheus.LogCountSeriesCombineSvcInfoWithPQLFilter,
 		startTime, endTime, "cluster_id,namespace,svc_name", nil,
 	)
 	if err != nil {
