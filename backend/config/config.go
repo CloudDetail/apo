@@ -5,6 +5,8 @@ package config
 
 import (
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/CloudDetail/metadata/configs"
 	"github.com/spf13/viper"
@@ -59,6 +61,11 @@ type Config struct {
 		Database string `mapstructure:"database"`
 		Cluster  string `mapstructure:"cluster"`
 		Replica  bool   `mapstructure:"replica"`
+		// pool config
+		MaxOpenConns           int `mapstructure:"max_open_conns"`
+		MaxIdleConns           int `mapstructure:"max_idle_conns"`
+		ConnMaxLifetimeMinutes int `mapstructure:"conn_max_lifetime_minutes"`
+		DialTimeoutSeconds     int `mapstructure:"dial_timeout_seconds"`
 	} `mapstructure:"clickhouse"`
 	Promethues struct {
 		Address string `mapstructure:"address"`
@@ -74,6 +81,9 @@ type Config struct {
 		Enable           bool                     `mapstructure:"enable"`
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
+	Dataplane struct {
+		Address string `mapstructure:"address"`
+	} `mapstructure:"dataplane"`
 	Jaeger struct {
 		Address string `mapstructure:"address"`
 	}
@@ -91,6 +101,10 @@ type Config struct {
 		Enabled     bool   `mapstructure:"enabled"`
 		ExternalURL string `mapstructure:"external_url"`
 	} `mapstructure:"alert_receiver"`
+	DataGroup struct {
+		InitLookBackDays int `mapstructure:"init_look_back_days"`
+		RefreshSeconds   int `mapstructure:"refresh_seconds"`
+	} `mapstructure:"data_group"`
 }
 
 type AnonymousUser struct {
@@ -151,4 +165,55 @@ func Get() *Config {
 
 func GetCHCluster() string {
 	return config.ClickHouse.Cluster
+}
+
+// GetClickHouseConnPoolConfig
+// gets the ClickHouse connection configuration, supporting environment variable overrides.
+func GetClickHouseConnPoolConfig() (maxOpenConns, maxIdleConns int, connMaxLifetime, dialTimeout time.Duration) {
+	cfg := Get().ClickHouse
+
+	maxOpenConns = cfg.MaxOpenConns
+	if envVal := os.Getenv("APO_CH_MAX_OPEN_CONNS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			maxOpenConns = val
+		}
+	}
+	if maxOpenConns <= 0 {
+		maxOpenConns = 20 // default
+	}
+
+	maxIdleConns = cfg.MaxIdleConns
+	if envVal := os.Getenv("APO_CH_MAX_IDLE_CONNS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			maxIdleConns = val
+		}
+	}
+	if maxIdleConns <= 0 {
+		maxIdleConns = 10 // default
+	}
+
+	connMaxLifetimeMinutes := cfg.ConnMaxLifetimeMinutes
+	if envVal := os.Getenv("APO_CH_CONN_MAX_LIFETIME_MINUTES"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			connMaxLifetimeMinutes = val
+		}
+	}
+	if connMaxLifetimeMinutes <= 0 {
+		connMaxLifetimeMinutes = 60 // default
+	}
+	connMaxLifetime = time.Duration(connMaxLifetimeMinutes) * time.Minute
+
+	dialTimeoutSeconds := cfg.DialTimeoutSeconds
+	if envVal := os.Getenv("APO_CH_DIAL_TIMEOUT_SECONDS"); envVal != "" {
+		if val, err := strconv.Atoi(envVal); err == nil {
+			dialTimeoutSeconds = val
+		}
+	}
+	if dialTimeoutSeconds <= 0 {
+		dialTimeoutSeconds = 5 // default
+	}
+
+	dialTimeout = time.Duration(dialTimeoutSeconds) * time.Second
+
+	return
 }

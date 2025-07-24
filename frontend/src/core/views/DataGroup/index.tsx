@@ -3,196 +3,147 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Flex, Popconfirm, Table } from 'antd'
-import { useEffect, useState } from 'react'
-import { deleteDataGroupApi, getDataGroupsApi } from 'src/core/api/dataGroup'
-import InfoModal from './InfoModal'
-import { MdOutlineEdit } from 'react-icons/md'
-import { RiDeleteBin5Line } from 'react-icons/ri'
-import { notify } from 'src/core/utils/notify'
-import { LuShieldCheck } from 'react-icons/lu'
-import PermissionModal from './PermissionModal'
-import DatasourceTag from './component/DatasourceTag'
-import Paragraph from 'antd/es/typography/Paragraph'
-import { useTranslation } from 'react-i18next'
+import React, { useCallback, useEffect, useState } from 'react'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import DataGroupTree from './DataGroupTree'
+import InfoModal from './InfoModal'
+import PermissionModal from './PermissionModal'
+import { deleteDataGroupApiV2 } from 'src/core/api/dataGroup'
+import { notify } from 'src/core/utils/notify'
+import { useTranslation } from 'react-i18next'
+import { Splitter } from 'antd'
+import DataGroupInfoPanel from './DataGroupInfoPanel'
+import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
+
+interface DataGroupInfo {
+  groupId: number
+  groupName: string
+  description: string
+  permissionType: 'known' | 'view' | 'edit'
+
+  subGroups?: DataGroupInfo[]
+}
 
 export default function DataGroupPage() {
-  const { t } = useTranslation('core/dataGroup')
   const { t: ct } = useTranslation('common')
-
-  const [data, setData] = useState([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [total, setTotal] = useState(0)
-  const [groupInfo, setGroupInfo] = useState(null)
-
-  const [infoModalVisible, setInfoModalVisible] = useState(false)
-  const [permissionModalVisible, setPermissionModalVisible] = useState(false)
-  const getDataGroups = () => {
-    getDataGroupsApi({
-      currentPage: currentPage,
-      pageSize: pageSize,
-    }).then((res) => {
-      setData(res.dataGroupList)
-      setTotal(res.total)
-    })
-  }
-  const changePagination = (pagination) => {
-    setPageSize(pagination.pageSize)
-    setCurrentPage(pagination.current)
-  }
-  useEffect(() => {
-    getDataGroups()
-  }, [currentPage, pageSize])
-  const closeInfoModal = () => {
+  const { t } = useTranslation('core/dataGroup')
+  const [groupInfo, setGroupInfo] = useState<DataGroupInfo | null>(null)
+  const [parentGroupInfo, setParentGroupInfo] = useState<DataGroupInfo | null>(null)
+  const [infoModalVisible, setInfoModalVisible] = useState<boolean>(false)
+  const [permissionModalVisible, setPermissionModalVisible] = useState<boolean>(false)
+  const [infoGroupId, setInfoGroupId] = useState<number | null>(null)
+  const [refreshKey, setRefreshKey] = useState<number>(0)
+  const dataGroup = useDataGroupContext((ctx) => ctx.dataGroup)
+  const getDataGroup = useDataGroupContext((ctx) => ctx.getDataGroup)
+  const closeInfoModal = useCallback(() => {
     setInfoModalVisible(false)
     setGroupInfo(null)
-  }
-  const closePermissionModal = () => {
+  }, [])
+
+  const closePermissionModal = useCallback(() => {
     setPermissionModalVisible(false)
     setGroupInfo(null)
-  }
-  const refresh = () => {
+  }, [])
+
+  const refresh = useCallback(() => {
     closeInfoModal()
     closePermissionModal()
-    getDataGroups()
-  }
-  const deleteDataGroup = (groupId: string) => {
-    deleteDataGroupApi(groupId).then((res) => {
-      notify({
-        type: 'success',
-        message: ct('deleteSuccess'),
-      })
-      getDataGroups()
-    })
-  }
-  const columns = [
-    {
-      title: 'groupId',
-      dataIndex: 'groupId',
-      key: 'groupId',
-      hidden: true,
-    },
-    {
-      title: t('dataGroupName'),
-      dataIndex: 'groupName',
-      width: 200,
+    getDataGroup()
+    setRefreshKey((prev) => prev + 1)
+  }, [closeInfoModal, closePermissionModal, getDataGroup])
 
-      key: 'groupName',
+  useEffect(() => {
+    getDataGroup()
+  }, [])
+
+  const deleteDataGroup = useCallback(
+    (groupInfo: DataGroupInfo) => {
+      if (groupInfo.subGroups && groupInfo.subGroups.length > 0) {
+        notify({
+          type: 'error',
+          message: t('deleteGroupError'),
+        })
+        return
+      } else {
+        deleteDataGroupApiV2(groupInfo.groupId)
+          .then(() => {
+            notify({
+              type: 'success',
+              message: ct('deleteSuccess'),
+            })
+            // getDataGroup()
+          })
+          .finally(() => {
+            getDataGroup()
+          })
+      }
     },
-    {
-      title: t('dataGroupDes'),
-      width: 200,
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: t('datasource'),
-      dataIndex: 'datasourceList',
-      key: 'datasourceList',
-      render: (value) => {
-        return (
-          <Paragraph
-            className="m-0"
-            ellipsis={{
-              expandable: true,
-              rows: 3,
-            }}
-          >
-            {value?.map((item) => <DatasourceTag type={item.type} datasource={item.datasource} />)}
-          </Paragraph>
-        )
-      },
-    },
-    {
-      title: ct('operation'),
-      dataIndex: 'operation',
-      key: 'operation',
-      width: 350,
-      render: (_, record) => {
-        return (
-          <Flex align="center" justify="space-evenly">
-            <Button
-              type="text"
-              onClick={() => {
-                setInfoModalVisible(true)
-                setGroupInfo(record)
-              }}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
-            >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
-                {t('edit')}
-              </span>
-            </Button>
-            <Popconfirm
-              title={t('confirmDelete', {
-                groupName: record.groupName,
-              })}
-              onConfirm={() => deleteDataGroup(record.groupId)}
-              okText={ct('confirm')}
-              cancelText={ct('cancel')}
-            >
-              <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                {ct('delete')}
-              </Button>
-            </Popconfirm>
-            <Button
-              color="primary"
-              variant="outlined"
-              icon={<LuShieldCheck />}
-              onClick={() => {
-                setPermissionModalVisible(true)
-                setGroupInfo(record)
-              }}
-            >
-              {t('authorize')}
-            </Button>
-          </Flex>
-        )
-      },
-    },
-  ]
+    [t, ct, getDataGroup],
+  )
+
+  const openAddModal = useCallback((groupId: number) => {
+    setInfoGroupId(groupId)
+    setInfoModalVisible(true)
+  }, [])
+
+  const openEditModal = useCallback((record: DataGroupInfo) => {
+    setGroupInfo(record)
+    setInfoModalVisible(true)
+  }, [])
+
+  const openPermissionModal = useCallback((record: DataGroupInfo) => {
+    setGroupInfo(record)
+    setPermissionModalVisible(true)
+  }, [])
+
+  const openAddModalForTable = useCallback(() => {
+    setInfoGroupId(parentGroupInfo?.groupId)
+    setInfoModalVisible(true)
+  }, [parentGroupInfo])
+
   return (
-    <BasicCard>
-      <BasicCard.Header>
-        <div className="w-full flex justify-between mt-2">
-          {/* <DataGroupFilter /> */}
-          <div></div>
-          <Button type="primary" onClick={() => setInfoModalVisible(true)}>
-            {t('add')}
-          </Button>
+    <>
+      <BasicCard>
+        <div className="w-full h-full">
+          <Splitter style={{ height: '100%' }}>
+            <Splitter.Panel defaultSize="25%" className="h-full overflow-hidden w-full">
+              <DataGroupTree
+                dataGroups={dataGroup}
+                setParentGroupInfo={(data) => {
+                  setParentGroupInfo(data)
+                }}
+                openAddModal={openAddModal}
+                openEditModal={openEditModal}
+                openPermissionModal={openPermissionModal}
+                deleteDataGroup={deleteDataGroup}
+              />
+            </Splitter.Panel>
+            <Splitter.Panel className="ml-2">
+              <DataGroupInfoPanel
+                info={parentGroupInfo}
+                openAddModal={openAddModalForTable}
+                openEditModal={openEditModal}
+                openPermissionModal={openPermissionModal}
+                deleteDataGroup={deleteDataGroup}
+                refreshKey={refreshKey}
+              />
+            </Splitter.Panel>
+          </Splitter>
         </div>
-      </BasicCard.Header>
-
-      <BasicCard.Table>
-        <Table
-          dataSource={data}
-          columns={columns}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: total,
-            hideOnSinglePage: true,
-          }}
-          onChange={changePagination}
-          scroll={{ y: 'calc(100vh - 240px)' }}
-          className="overflow-auto"
-        ></Table>
-      </BasicCard.Table>
-
+      </BasicCard>
       <InfoModal
         open={infoModalVisible}
         closeModal={closeInfoModal}
-        groupInfo={groupInfo}
+        groupInfo={groupInfo as any}
         refresh={refresh}
+        groupId={infoGroupId}
       />
       <PermissionModal
         open={permissionModalVisible}
         closeModal={closePermissionModal}
-        groupInfo={groupInfo}
+        groupInfo={groupInfo as any}
         refresh={refresh}
       />
-    </BasicCard>
+    </>
   )
 }

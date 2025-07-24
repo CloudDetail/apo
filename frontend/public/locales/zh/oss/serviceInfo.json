@@ -175,7 +175,9 @@
     "container": "容器相关"
   },
   "moreNode": {
-    "seeMore": "查看更多上下游"
+    "seeMore": "查看更多上下游",
+    "outOfGroup": "不属于当前数据组",
+    "more": "更多下游依赖"
   },
   "topology": {
     "clickToReturn": "点击回退上级入口",

@@ -57,7 +57,7 @@ type handler struct {
 func New(logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo, jaegerRepo jaeger.JaegerRepo, promRepo prometheus.Repo, k8sRepo kubernetes.Repo) Handler {
 	return &handler{
 		logger:       logger,
-		traceService: trace.New(chRepo, jaegerRepo, logger),
+		traceService: trace.New(chRepo, dbRepo, jaegerRepo, logger),
 		dataService:  data.New(dbRepo, promRepo, chRepo, k8sRepo),
 	}
 }

@@ -238,6 +238,29 @@ func (repo *promRepo) GetServiceEndPointListByPQLFilter(ctx core.Context, startT
 	return result, nil
 }
 
+// GetServiceEndPointList to query the service Endpoint list. The service name can be empty.
+func (repo *promRepo) GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error) {
+	queryCondition := ""
+	if serviceName != "" {
+		queryCondition = fmt.Sprintf("svc_name='%s'", serviceName)
+	}
+	query := fmt.Sprintf(TEMPLATE_GET_ENDPOINTS, queryCondition, VecFromS2E(startTime, endTime))
+	value, _, err := repo.GetApi().Query(ctx.GetContext(), query, time.UnixMicro(endTime))
+
+	if err != nil {
+		return nil, err
+	}
+	result := make([]string, 0)
+	vector, ok := value.(prometheus_model.Vector)
+	if !ok {
+		return result, nil
+	}
+	for _, sample := range vector {
+		result = append(result, string(sample.Metric["content_key"]))
+	}
+	return result, nil
+}
+
 func (repo *promRepo) GetActiveInstanceListByPQLFilter(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) (*model.ServiceInstances, error) {
 	res, err := repo.QueryData(ctx,
 		time.UnixMicro(endTime),

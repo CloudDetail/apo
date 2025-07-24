@@ -4,6 +4,7 @@
 package datagroup
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -21,7 +22,7 @@ const (
 )
 
 type DataGroup struct {
-	GroupID     int64  `gorm:"column:group_id;primary_key;auto_increment" json:"groupId"`
+	GroupID     int64  `gorm:"column:group_id;primary_key" json:"groupId"`
 	GroupName   string `gorm:"column:group_name;type:varchar(110)" json:"groupName"`
 	Description string `gorm:"column:description;type:varchar(50)" json:"description"` // The description of data group.
 
@@ -64,11 +65,23 @@ func (t *DataGroupTreeNode) RecursiveSortSubGroups() {
 }
 
 func (t *DataGroupTreeNode) CloneWithPermission(permGroupIDs []int64) *DataGroupTreeNode {
+	if len(permGroupIDs) == 0 {
+		return &DataGroupTreeNode{
+			DataGroup:      t.DataGroup,
+			SubGroups:      []*DataGroupTreeNode{},
+			PermissionType: DATA_GROUP_PERMISSION_TYPE_KNOWN,
+		}
+	}
+
 	return t.cloneWithPermission(DATA_GROUP_PERMISSION_TYPE_KNOWN, permGroupIDs)
 }
 
 func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []int64) bool {
-	if containsInInt(permGroupIDs, groupID) {
+	if len(permGroupIDs) == 0 {
+		return false
+	}
+
+	if slices.Contains(permGroupIDs, groupID) {
 		return true
 	}
 
@@ -85,7 +98,7 @@ func (t *DataGroupTreeNode) CheckGroupPermission(groupID int64, permGroupIDs []i
 			return -1
 		}
 
-		if containsInInt(permGroupIDs, node.GroupID) {
+		if slices.Contains(permGroupIDs, node.GroupID) {
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
 
@@ -210,17 +223,20 @@ func (t *DataGroupTreeNode) GetFullSubGroupIDs(groupID int64) []int64 {
 }
 
 func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, fromUser, fromTeam []int64) []DataGroup {
-	var permGroups []DataGroup
+	if len(groupIDs) == 0 {
+		return []DataGroup{}
+	}
 
+	var permGroups []DataGroup
 	var dfs func(pPerm string, pSource string, node *DataGroupTreeNode)
 	dfs = func(pPerm string, pSource string, node *DataGroupTreeNode) {
 		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
-			containsInInt(groupIDs, node.GroupID) {
+			slices.Contains(groupIDs, node.GroupID) {
 			group := node.DataGroup
-			if containsInInt(fromUser, node.GroupID) {
+			if slices.Contains(fromUser, node.GroupID) {
 				group.Source = model.DATA_GROUP_SUB_TYP_USER
 				pSource = model.DATA_GROUP_SUB_TYP_USER
-			} else if containsInInt(fromTeam, node.GroupID) {
+			} else if slices.Contains(fromTeam, node.GroupID) {
 				group.Source = model.DATA_GROUP_SUB_TYP_TEAM
 				pSource = model.DATA_GROUP_SUB_TYP_TEAM
 			} else {
@@ -240,12 +256,16 @@ func (t *DataGroupTreeNode) GetFullPermissionGroupWithSource(groupIDs []int64, f
 }
 
 func (t *DataGroupTreeNode) GetFullPermissionGroup(groupIDs []int64) []DataGroup {
+	if len(groupIDs) == 0 {
+		return []DataGroup{}
+	}
+
 	var permGroups []DataGroup
 
 	var dfs func(pPerm string, node *DataGroupTreeNode)
 	dfs = func(pPerm string, node *DataGroupTreeNode) {
 		if pPerm == DATA_GROUP_PERMISSION_TYPE_VIEW ||
-			containsInInt(groupIDs, node.GroupID) {
+			slices.Contains(groupIDs, node.GroupID) {
 			permGroups = append(permGroups, node.DataGroup)
 			pPerm = DATA_GROUP_PERMISSION_TYPE_VIEW
 		}
@@ -270,13 +290,4 @@ func checkPermission(pPerm string, groupsIDs []int64, groupID int64) string {
 		}
 	}
 	return DATA_GROUP_PERMISSION_TYPE_IGNORE
-}
-
-func containsInInt(options []int64, input int64) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }

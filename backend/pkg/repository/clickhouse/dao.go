@@ -14,6 +14,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
@@ -73,6 +74,7 @@ type Repo interface {
 	queryRowsData(ctx core.Context, sql string) ([]map[string]any, error)
 
 	QueryAllLogs(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error)
+	QueryAllLogsInOrder(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error)
 	QueryLogContext(ctx core.Context, req *request.LogQueryContextRequest) ([]map[string]any, []map[string]any, error)
 	GetLogChart(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, int64, error)
 	GetLogIndex(ctx core.Context, req *request.LogIndexRequest) (map[string]uint64, uint64, error)
@@ -130,6 +132,16 @@ type Repo interface {
 	GetAlertEventFilterLabelKeys(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) ([]string, error)
 	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 
+	// Dataplane
+	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]*model.Service, error)
+	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
+	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
+	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
+	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
+	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
+	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
+	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
+
 	integration.Input
 }
 
@@ -145,6 +157,9 @@ type chRepo struct {
 func New(logger *zap.Logger, address []string, database string, username string, password string) (Repo, error) {
 	settings := clickhouse.Settings{}
 
+	// Get connection pool settings
+	maxOpenConns, maxIdleConns, connMaxLifetime, dialTimeout := config.GetClickHouseConnPoolConfig()
+
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr:     address,
 		Settings: settings,
@@ -153,7 +168,10 @@ func New(logger *zap.Logger, address []string, database string, username string,
 			Username: username,
 			Password: password,
 		},
-		DialTimeout: time.Duration(5) * time.Second,
+		DialTimeout:     dialTimeout,
+		MaxOpenConns:    maxOpenConns,
+		MaxIdleConns:    maxIdleConns,
+		ConnMaxLifetime: connMaxLifetime,
 	})
 	if err != nil {
 		return nil, err

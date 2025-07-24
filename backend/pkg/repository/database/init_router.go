@@ -25,7 +25,7 @@ var validRouters = []Router{
 	{RouterTo: "/system/menu-manage", HideTimeSelector: true},
 	{RouterTo: "/trace/fault-site", HideTimeSelector: true},
 	{RouterTo: "/trace/full", HideTimeSelector: true},
-	{RouterTo: "/system/data-group", HideTimeSelector: true},
+	// {RouterTo: "/", HideTimeSelector: true},
 	{RouterTo: "/system/team", HideTimeSelector: true},
 	{RouterTo: "/alerts/events", HideTimeSelector: false},
 	{RouterTo: "/alerts/events/detail/:alertID/:eventID", HideTimeSelector: false},
@@ -34,6 +34,7 @@ var validRouters = []Router{
 	{RouterTo: "/service/info", HideTimeSelector: false},
 	{RouterTo: "/integration/data/settings", HideTimeSelector: true},
 	{RouterTo: "/user", HideTimeSelector: true},
+	{RouterTo: "/demo/service-config", HideTimeSelector: true},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required

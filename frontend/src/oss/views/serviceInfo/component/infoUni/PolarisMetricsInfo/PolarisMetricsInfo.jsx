@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CAccordionBody, CImage } from '@coreui/react'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { getPolarisInferApi } from 'core/api/serviceInfo'
 import { usePropsContext } from 'src/core/contexts/PropsContext'
@@ -19,7 +18,7 @@ import i18next from 'i18next'
 function PolarisMetricsInfo() {
   const [image, setImage] = useState()
   const [inferCause, setInferCause] = useState()
-  const { serviceName, endpoint } = usePropsContext()
+  const { serviceName, endpoint, clusterIds } = usePropsContext()
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
   const [loading, setLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
@@ -27,6 +26,7 @@ function PolarisMetricsInfo() {
   const global = window
   const language = i18next.language
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
 
   const getData = () => {
     if (startTime && endTime) {
@@ -39,6 +39,8 @@ function PolarisMetricsInfo() {
         step: getStep(startTime, endTime),
         language: language,
         timezone: timeZone,
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           setImage(res?.inferMetricsPng)
@@ -59,10 +61,12 @@ function PolarisMetricsInfo() {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getData()
+      }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint],
+    [startTime, endTime, serviceName, endpoint, dataGroupId],
   )
   return (
     // {

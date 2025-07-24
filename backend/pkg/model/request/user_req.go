@@ -20,6 +20,8 @@ type CreateUserRequest struct {
 	RoleList        []int   `json:"roleList" form:"roleList"` // Role id list
 	TeamList        []int64 `json:"teamList" form:"teamList"`
 	//DataGroupPermissions []DataGroupPermission `json:"dataGroupPermission" form:"dataGroupPermission"`
+
+	GroupIDs []int64 `json:"groupIds" form:"groupIds"`
 }
 
 type LogoutRequest struct {

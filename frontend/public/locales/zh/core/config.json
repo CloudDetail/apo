@@ -1,0 +1,7 @@
+{
+  "serviceAlias": {
+    "userService": "用户服务",
+    "orderService": "订单服务",
+    "paymentService": "支付服务"
+  }
+}

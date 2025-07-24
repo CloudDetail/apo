@@ -182,7 +182,7 @@ func (s *service) executeTargets(ctx core.Context, groupId int, target *Target, 
 
 		varSpec, find := queryDict.GetVarSpec(groupId, variable)
 		if !find {
-			varMap[variable] = ""
+			varMap[variable] = ".*"
 			continue
 		}
 		varSpecs = append(varSpecs, *varSpec)
@@ -192,7 +192,7 @@ func (s *service) executeTargets(ctx core.Context, groupId int, target *Target, 
 	for {
 		if retry <= 0 {
 			for i := 0; i < len(varSpecs); i++ {
-				varMap[varSpecs[i].Name] = ""
+				varMap[varSpecs[i].Name] = ".*"
 			}
 			break
 		}

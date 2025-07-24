@@ -182,8 +182,7 @@ func (ch *chRepo) ListServiceTopologys(ctx core.Context, req *request.QueryTopol
 	startTime := req.StartTime / 1000000
 	endTime := req.EndTime / 1000000
 	queryBuilder := NewQueryBuilder().
-		Between("timestamp", startTime, endTime).
-		Equals("service", req.ServiceName)
+		Between("timestamp", startTime, endTime)
 	results := []ServiceRelation{}
 	sql := fmt.Sprintf(SQL_GET_SERVICE_TOPOLOGY, ch.database, queryBuilder.String(), startTime, endTime)
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &results, sql, queryBuilder.values...); err != nil {
@@ -522,15 +521,15 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 		var parentNode *model.ServiceToplogyNode
 		var childNode *model.ServiceToplogyNode
 		if relation.ParentService != "" {
-			parentNode = result.AddTopologyNode(relation.ParentService, "application")
+			parentNode = result.AddTopologyNode(relation.ParentService, "application", false)
 		}
 		if relation.Service != "" {
-			childNode = result.AddTopologyNode(relation.Service, "application")
+			childNode = result.AddTopologyNode(relation.Service, "application", false)
 		}
 		if relation.ClientGroup == model.GROUP_MQ {
 			// MQ data A -> MQ -> B, two nodes MQ and B need to be generated
 			if relation.ClientPeer != "" {
-				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq")
+				mqNode := result.AddTopologyNode(relation.ClientPeer, "mq", false)
 				if parentNode != nil {
 					parentNode.AddChild(mqNode)
 				}
@@ -553,7 +552,7 @@ func getServiceTopologyNodes(relations []ServiceRelation) *model.ServiceTopology
 		if relation.ParentService != "" && relation.ClientPeer != "" {
 			if _, found := externalMap[relation.ClientPeer]; !found {
 				parentNode := result.Nodes[relation.ParentService]
-				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup)
+				externalNode := result.AddTopologyNode(relation.ClientPeer, relation.ClientGroup, false)
 				parentNode.AddChild(externalNode)
 			}
 		}

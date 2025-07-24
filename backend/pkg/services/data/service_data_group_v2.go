@@ -5,6 +5,7 @@ package data
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -40,11 +41,14 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 	}
 
 	var subGroups = make([]datagroup.DataGroupWithScopes, 0)
+
+	clusterNameMap, _ := s.dbRepo.ListClusterName(ctx)
 	for _, subGroup := range group.SubGroups {
 		scopes, err := s.dbRepo.GetScopesByGroupIDAndCat(ctx, subGroup.GroupID, "")
 		if err != nil {
 			return nil, err
 		}
+		scopes = datagroup.FillWithClusterName(scopes, clusterNameMap)
 		subGroups = append(subGroups, datagroup.DataGroupWithScopes{
 			DataGroup:      subGroup.DataGroup,
 			PermissionType: subGroup.PermissionType,
@@ -56,6 +60,7 @@ func (s *service) GetGroupDetailWithSubGroup(ctx core.Context, groupID int64) (*
 	if err != nil {
 		return nil, err
 	}
+	scopes = datagroup.FillWithClusterName(scopes, clusterNameMap)
 	return &response.SubGroupDetailResponse{
 		Datasources: scopes,
 		SubGroups:   subGroups,
@@ -76,7 +81,7 @@ func (s *service) CreateDataGroupV2(ctx core.Context, req *request.CreateDataGro
 
 	fullPermissionScope := common.DataGroupStorage.GetFullPermissionScopeList(selected)
 	for _, id := range req.DataScopeIDs {
-		if !containsInStr(fullPermissionScope, id) {
+		if !slices.Contains(fullPermissionScope, id) {
 			scope := common.DataGroupStorage.GetScopeRef(id)
 			if scope == nil {
 				return fmt.Errorf("scope %s not found", id)
@@ -129,7 +134,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 		return err
 	}
 	for _, id := range req.DataScopeIDs {
-		if !containsInStr(fullParentOptions, id) {
+		if !slices.Contains(fullParentOptions, id) {
 			return core.Error(code.UpdateDataGroupError, fmt.Sprintf("unauthorized datasource: %s", id))
 		}
 	}
@@ -142,7 +147,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 	oldPermScopeIDs := common.DataGroupStorage.GetFullPermissionScopeList(oldSelected)
 	existedNewScopes := []string{}
 	for _, id := range req.DataScopeIDs {
-		if containsInStr(oldSelected, id) {
+		if slices.Contains(oldSelected, id) {
 			existedNewScopes = append(existedNewScopes, id)
 		}
 	}
@@ -150,7 +155,7 @@ func (s *service) UpdateDataGroupV2(ctx core.Context, req *request.UpdateDataGro
 
 	removedScopeIDs := []string{}
 	for _, id := range oldPermScopeIDs {
-		if !containsInStr(newPermScopeIDs, id) {
+		if !slices.Contains(newPermScopeIDs, id) {
 			removedScopeIDs = append(removedScopeIDs, id)
 		}
 	}
@@ -224,22 +229,4 @@ func (s *service) DeleteDataGroupV2(ctx core.Context, req *request.DeleteDataGro
 
 	common.DataGroupStorage.DataGroupTreeNode = newGroupTree
 	return nil
-}
-
-func containsInStr(options []string, input string) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
-}
-
-func containsInInt(options []int64, input int64) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }

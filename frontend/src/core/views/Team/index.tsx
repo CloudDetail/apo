@@ -64,7 +64,9 @@ function TeamPage() {
                 setInfoModalVisible(true)
                 setTeamInfo(record)
               }}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
               <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
                 {ct('edit')}
@@ -82,17 +84,19 @@ function TeamPage() {
                 {ct('delete')}
               </Button>
             </Popconfirm>
-            <Button
-              color="primary"
-              variant="outlined"
-              icon={<LuShieldCheck />}
-              onClick={() => {
-                setPermissionModalVisible(true)
-                setTeamInfo(record)
-              }}
-            >
-              {t('authorize')}
-            </Button>
+            {import.meta.env.VITE_APP_CODE_VERSION !== 'CE' && (
+              <Button
+                color="primary"
+                variant="outlined"
+                icon={<LuShieldCheck />}
+                onClick={() => {
+                  setPermissionModalVisible(true)
+                  setTeamInfo(record)
+                }}
+              >
+                {t('authorize')}
+              </Button>
+            )}
           </Flex>
         )
       },

@@ -5,8 +5,11 @@ package data
 
 import (
 	"fmt"
+	"slices"
+	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -32,6 +35,11 @@ func (s *service) ListDataScopeByGroupID(ctx core.Context, req *request.DGScopeL
 		scopes = common.DataGroupStorage.CloneScopeWithPermission(options, selected)
 	}
 
+	clusterNameMap, err := s.dbRepo.ListClusterName(ctx)
+	if err == nil && clusterNameMap != nil {
+		scopes.FillWithClusterName(clusterNameMap)
+	}
+
 	return &response.ListDataScopesResponse{
 		Scopes:      scopes,
 		DataSources: selected,
@@ -44,7 +52,14 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		return nil, err
 	}
 
+	if len(scopeIDs) == 0 {
+		return &response.ListDataScopeFilterResponse{
+			Scopes: &datagroup.DataScopeTreeNode{},
+		}, nil
+	}
+
 	scopes, leafs := common.DataGroupStorage.CloneWithCategory(scopeIDs, req.Category)
+
 	filter := common.ConvertScopeNodeToPQLFilter(scopes)
 
 	switch req.Extra {
@@ -60,6 +75,10 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		}
 
 		for _, metric := range series {
+			if metric.Metric.Namespace == "" {
+				metric.Metric.Namespace = "VM_NS"
+			}
+
 			label := datagroup.ScopeLabels{
 				ClusterID: metric.Metric.ClusterID,
 				Namespace: metric.Metric.Namespace,
@@ -81,7 +100,7 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 	case "instance":
 		series, err := s.promRepo.QueryMetricsWithPQLFilter(
 			ctx,
-			prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+			prometheus.LogCountSeriesCombineSvcInfoWithPQLFilter,
 			req.StartTime, req.EndTime,
 			"cluster_id,namespace,svc_name,pod,node_name,pid,container_id", filter,
 		)
@@ -91,6 +110,10 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 		}
 
 		for _, metric := range series {
+			if metric.Metric.Namespace == "" {
+				metric.Metric.Namespace = "VM_NS"
+			}
+
 			label := datagroup.ScopeLabels{
 				ClusterID: metric.Metric.ClusterID,
 				Namespace: metric.Metric.Namespace,
@@ -103,7 +126,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 				if len(metric.Metric.POD) > 0 {
 					extraName = metric.Metric.POD
 				} else {
-					extraName = fmt.Sprintf("%s#%s", metric.Metric.NodeName, metric.Metric.ContainerID)
+					extraName = fmt.Sprintf("%s@%s@%s", metric.Metric.SvcName, metric.Metric.NodeName, metric.Metric.PID)
+				}
+
+				pid, err := strconv.Atoi(metric.Metric.PID)
+				if err != nil {
+					pid = 0
 				}
 
 				node.ExtraChildren = append(node.ExtraChildren, &datagroup.ExtraChild{
@@ -113,12 +141,18 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 					ContainerID: metric.Metric.ContainerID,
 					POD:         metric.Metric.POD,
 					Node:        metric.Metric.NodeName,
-					Pid:         metric.Metric.PID,
+					Pid:         pid,
 					Service:     metric.Metric.SvcName,
 				})
 			}
 		}
 	}
+
+	clusterNameMap, err := s.dbRepo.ListClusterName(ctx)
+	if err != nil {
+		return nil, err
+	}
+	scopes.FillWithClusterName(clusterNameMap)
 
 	return &response.ListDataScopeFilterResponse{
 		Scopes: scopes,
@@ -126,7 +160,12 @@ func (s *service) GetFilterByGroupID(ctx core.Context, req *request.DGFilterRequ
 }
 
 func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean bool) (*response.CleanExpiredDataScopeResponse, error) {
-	realTimeScopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, 24*time.Hour)
+	cfg := config.Get().DataGroup
+	if cfg.InitLookBackDays <= 0 {
+		cfg.InitLookBackDays = 3
+	}
+
+	realTimeScopeIDs, err := common.ScanScope(ctx, s.promRepo, s.chRepo, s.dbRepo, time.Duration(cfg.InitLookBackDays)*24*time.Hour)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +216,7 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 	var toCleanScopes, protectedScopes []datagroup.DataScopeWithFullName
 	var toCleanScopeIDs []string
 	for _, scope := range needCleanScopes {
-		if containsInStr(noPermScopes, scope.ScopeID) {
+		if slices.Contains(noPermScopes, scope.ScopeID) {
 			protectedScopes = append(protectedScopes, datagroup.DataScopeWithFullName{
 				DataScope: scope,
 				FullName:  scope.FullName(),
@@ -205,8 +244,9 @@ func (s *service) CleanExpiredDataScope(ctx core.Context, groupID int64, clean b
 			return nil, err
 		}
 
+		common.DataGroupStorage.CleanScopes()
 		// Refresh ScopeTree
-		_ = common.DataGroupStorage.Refresh(ctx, s.promRepo, s.chRepo, s.dbRepo, 10*time.Minute)
+		_, _ = common.DataGroupStorage.Refresh(ctx, s.promRepo, s.chRepo, s.dbRepo, 10*time.Minute)
 		newScopeTree, err := s.dbRepo.LoadScopes(ctx)
 		if err == nil {
 			common.DataGroupStorage.DataScopeTree = newScopeTree

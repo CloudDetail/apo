@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 )
 
@@ -100,5 +101,25 @@ func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) e
 		return s.dbRepo.GrantRoleWithUser(ctx, user.UserID, req.RoleList)
 	}
 
-	return s.dbRepo.Transaction(ctx, createUserFunc, createDifyUserFunc, grantRoleFunc, assignTeamFunc)
+	var assignGroupFunc = func(ctx core.Context) error {
+		// TODO Check permission
+		authGroups := make([]database.AuthDataGroup, 0, len(req.GroupIDs))
+		for _, groupId := range req.GroupIDs {
+			authGroups = append(authGroups, database.AuthDataGroup{
+				SubjectID:   user.UserID,
+				SubjectType: model.DATA_GROUP_SUB_TYP_USER,
+				GroupID:     groupId,
+				Type:        "view",
+			})
+		}
+		return s.dbRepo.AssignDataGroup(ctx, authGroups)
+	}
+
+	return s.dbRepo.Transaction(ctx,
+		createUserFunc,
+		createDifyUserFunc,
+		grantRoleFunc,
+		assignTeamFunc,
+		assignGroupFunc,
+	)
 }

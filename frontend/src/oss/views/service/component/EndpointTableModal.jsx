@@ -15,21 +15,23 @@ import { getStep } from 'src/core/utils/step'
 import { useTranslation } from 'react-i18next'
 import { useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
+import { useSelector } from 'react-redux'
 
 function EndpointTableModal(props) {
   const { i18n, t } = useTranslation('oss/service')
-  const { visible, serviceName, closeModal, timeRange } = props
+  const { visible, serviceName, closeModal, timeRange, clusterIds } = props
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState([])
   const navigate = useNavigate()
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
 
   const currentLanguage = i18n.language
 
   useEffect(() => {
-    if (visible && serviceName) {
+    if (visible && serviceName && dataGroupId !== null) {
       setLoading(true)
       // 记录请求的时间范围，以便后续趋势图补0
       getEndpointTableApi({
@@ -38,6 +40,8 @@ function EndpointTableModal(props) {
         step: getStep(timeRange.startTime, timeRange.endTime),
         serviceName: serviceName,
         sortRule: 1,
+        groupId: dataGroupId,
+        clusterIds,
       })
         .then((res) => {
           if (res && res?.length > 0) {
@@ -173,7 +177,7 @@ function EndpointTableModal(props) {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)
     const endpointList = paginatedData.map((item) => item.endpoint)
 
-    await getChartsData([serviceName], endpointList)
+    await getChartsData([serviceName], endpointList, dataGroupId, clusterIds)
   }
   const tableProps = useMemo(() => {
     const paginatedData = data.slice((pageIndex - 1) * pageSize, pageIndex * pageSize)

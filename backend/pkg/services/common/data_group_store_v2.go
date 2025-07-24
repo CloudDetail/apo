@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -26,21 +27,35 @@ type DataGroupStore struct {
 
 func InitDataGroupStorage(promRepo prometheus.Repo, chRepo clickhouse.Repo, dbRepo database.Repo) {
 	once.Do(func() {
-		storage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo)
+		cfg := config.Get().DataGroup
+
+		if cfg.InitLookBackDays <= 0 {
+			cfg.InitLookBackDays = 3
+		}
+		if cfg.RefreshSeconds <= 0 {
+			cfg.RefreshSeconds = 10 * 60 // 10min
+		}
+
+		storage, err := NewDatasourceStoreMap(promRepo, chRepo, dbRepo, time.Duration(cfg.InitLookBackDays)*24*time.Hour)
 		if err != nil {
 			log.Fatalf("failed to init DataGroupStorage: %v", err)
 		}
 
 		DataGroupStorage = storage
-		DataGroupStorage.Refresh(core.EmptyCtx(), promRepo, chRepo, dbRepo, -48*time.Hour)
-		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, 10*time.Minute)
+		go DataGroupStorage.KeepWatchScope(core.EmptyCtx(), promRepo, chRepo, dbRepo, time.Duration(cfg.RefreshSeconds)*time.Second)
 	})
 }
 
-func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo) (*DataGroupStore, error) {
+func NewDatasourceStoreMap(prom prometheus.Repo, ch clickhouse.Repo, db database.Repo, initLookBack time.Duration) (*DataGroupStore, error) {
 	dgStore := &DataGroupStore{
 		ExistedScope: make(map[datagroup.DataScope]struct{}),
 		stopCh:       make(chan struct{}),
+	}
+
+	dgStore.Refresh(core.EmptyCtx(), prom, ch, db, initLookBack)
+	err := db.InitRootGroup(core.EmptyCtx())
+	if err != nil {
+		return nil, err
 	}
 
 	dgTree, err := db.LoadDataGroupTree(core.EmptyCtx())
@@ -71,7 +86,14 @@ func (m *DataGroupStore) KeepWatchScope(
 	for {
 		select {
 		case <-ticker.C:
-			m.Refresh(ctx, promRepo, chRepo, dbRepo, interval)
+			newScope, _ := m.Refresh(ctx, promRepo, chRepo, dbRepo, 2*interval)
+			if len(newScope) > 0 {
+				scopeTree, err := dbRepo.LoadScopes(core.EmptyCtx())
+				if err != nil {
+					log.Printf("failed to load scopes: %v", err)
+				}
+				m.DataScopeTree = scopeTree
+			}
 		case <-m.stopCh:
 			return
 		}
@@ -86,7 +108,7 @@ func ScanScope(
 	interval time.Duration,
 ) (map[string]struct{}, error) {
 	now := time.Now()
-	start := now.Add(-2 * interval)
+	start := now.Add(-1 * interval)
 
 	scopeIDs := map[string]struct{}{}
 
@@ -121,7 +143,7 @@ func ScanScope(
 	}
 
 	metricRes, err = promRepo.QueryMetricsWithPQLFilter(ctx,
-		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		prometheus.LogCountSeriesCombineSvcInfoWithPQLFilter,
 		start.UnixMicro(), now.UnixMicro(), "cluster_id,namespace,svc_name", nil,
 	)
 
@@ -154,35 +176,39 @@ func ScanScope(
 		scopeIDs[scopeLabels.ToScopeID()] = struct{}{}
 	}
 
-	scopes, err := chRepo.GetAlertDataScope(
-		ctx,
-		start,
-		now,
-	)
-	if err != nil {
-		return nil, err
-	}
-	for i := 0; i < len(scopes); i++ {
-		labels := scopes[i].ScopeLabels
+	// scopes, err := chRepo.GetAlertDataScope(
+	// 	ctx,
+	// 	start,
+	// 	now,
+	// )
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// for i := 0; i < len(scopes); i++ {
+	// 	labels := scopes[i].ScopeLabels
 
-		fillEmptyLabel(&labels, scopes[i].Type)
+	// 	fillEmptyLabel(&labels, scopes[i].Type)
 
-		scopeIDs[labels.ToScopeID()] = struct{}{}
-		if scopes[i].Type == datagroup.DATASOURCE_TYP_SERVICE {
-			labels.Service = ""
-			scopes[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
+	// 	scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	if scopes[i].Type == datagroup.DATASOURCE_TYP_SERVICE {
+	// 		labels.Service = ""
+	// 		scopes[i].Type = datagroup.DATASOURCE_TYP_NAMESPACE
 
-			scopeIDs[labels.ToScopeID()] = struct{}{}
-		}
+	// 		scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	}
 
-		if scopes[i].Type == datagroup.DATASOURCE_TYP_NAMESPACE {
-			labels.Namespace = ""
-			scopes[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
-			scopeIDs[labels.ToScopeID()] = struct{}{}
-		}
-	}
+	// 	if scopes[i].Type == datagroup.DATASOURCE_TYP_NAMESPACE {
+	// 		labels.Namespace = ""
+	// 		scopes[i].Type = datagroup.DATASOURCE_TYP_CLUSTER
+	// 		scopeIDs[labels.ToScopeID()] = struct{}{}
+	// 	}
+	// }
 
 	return scopeIDs, nil
+}
+
+func (m *DataGroupStore) CleanScopes() {
+	m.ExistedScope = map[datagroup.DataScope]struct{}{}
 }
 
 func (m *DataGroupStore) Refresh(
@@ -191,9 +217,9 @@ func (m *DataGroupStore) Refresh(
 	chRepo clickhouse.Repo,
 	dbRepo database.Repo,
 	interval time.Duration,
-) error {
+) ([]datagroup.DataScope, error) {
 	now := time.Now()
-	start := now.Add(-2 * interval)
+	start := now.Add(-1 * interval)
 
 	var errs []error
 
@@ -203,18 +229,23 @@ func (m *DataGroupStore) Refresh(
 	}
 	promScopes := generateParent(scopes)
 
-	scopes, err = m.scanInCH(ctx, chRepo, start.UnixMicro(), now.UnixMicro())
-	if err != nil {
+	// scopes, err = m.scanInCH(ctx, chRepo, start.UnixMicro(), now.UnixMicro())
+	// if err != nil {
+	// 	errs = append(errs, err)
+	// }
+	// chScopes := generateParent(scopes)
+
+	// scopes = append(promScopes, chScopes...)
+
+	if len(promScopes) == 0 {
+		return nil, errors.Join(errs...)
+
+	}
+	if err := dbRepo.SaveScopes(ctx, promScopes); err != nil {
 		errs = append(errs, err)
 	}
-	chScopes := generateParent(scopes)
 
-	scopes = append(promScopes, chScopes...)
-	if err := dbRepo.SaveScopes(ctx, scopes); err != nil {
-		errs = append(errs, err)
-	}
-
-	return errors.Join(errs...)
+	return promScopes, errors.Join(errs...)
 }
 
 func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, startTime, endTime int64) ([]datagroup.DataScope, error) {
@@ -244,11 +275,12 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		if _, find := m.ExistedScope[ds]; find {
 			continue
 		}
+		m.ExistedScope[ds] = struct{}{}
 		newScope = append(newScope, ds)
 	}
 
 	metricRes, err = prom.QueryMetricsWithPQLFilter(ctx,
-		prometheus.LogErrorCountSeriesCombineSvcInfoWithPQLFilter,
+		prometheus.LogCountSeriesCombineSvcInfoWithPQLFilter,
 		startTime, endTime, "cluster_id,namespace,svc_name", nil,
 	)
 	if err != nil {
@@ -273,6 +305,7 @@ func (m *DataGroupStore) scanInProm(ctx core.Context, prom prometheus.Repo, star
 		if _, find := m.ExistedScope[ds]; find {
 			continue
 		}
+		m.ExistedScope[ds] = struct{}{}
 		newScope = append(newScope, ds)
 	}
 
@@ -295,13 +328,14 @@ func (m *DataGroupStore) scanInCH(ctx core.Context, ch clickhouse.Repo, startTim
 		if _, find := m.ExistedScope[scopes[i]]; find {
 			continue
 		}
+		m.ExistedScope[scopes[i]] = struct{}{}
 		newScope = append(newScope, scopes[i])
 	}
 	return newScope, nil
 }
 
 func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
-	parentScopeTmp := make(map[datagroup.ScopeLabels]struct{})
+	parentScopeTmp := make(map[string]map[datagroup.ScopeLabels]struct{})
 	extraScopes := make([]datagroup.DataScope, 0)
 
 	for _, scope := range scopes {
@@ -309,18 +343,18 @@ func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
 		case datagroup.DATASOURCE_TYP_SERVICE:
 			nsLabels := scope.ScopeLabels
 			nsLabels.Service = ""
-			if addIfNotExists(nsLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, nsLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createNamespaceScope(scope, nsLabels))
 			}
 
 			clusterLabels := datagroup.ScopeLabels{ClusterID: scope.ClusterID}
-			if addIfNotExists(clusterLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, clusterLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createClusterScope(scope, clusterLabels))
 			}
 
 		case datagroup.DATASOURCE_TYP_NAMESPACE:
 			clusterLabels := datagroup.ScopeLabels{ClusterID: scope.ClusterID}
-			if addIfNotExists(clusterLabels, parentScopeTmp) {
+			if addIfNotExists(scope.Category, clusterLabels, parentScopeTmp) {
 				extraScopes = append(extraScopes, createClusterScope(scope, clusterLabels))
 			}
 		}
@@ -329,12 +363,15 @@ func generateParent(scopes []datagroup.DataScope) []datagroup.DataScope {
 	return append(scopes, extraScopes...)
 }
 
-func addIfNotExists(labels datagroup.ScopeLabels, seen map[datagroup.ScopeLabels]struct{}) bool {
-	if _, exists := seen[labels]; exists {
-		return false
+func addIfNotExists(category string, labels datagroup.ScopeLabels, seen map[string]map[datagroup.ScopeLabels]struct{}) bool {
+	if _, exists := seen[category]; !exists {
+		seen[category] = make(map[datagroup.ScopeLabels]struct{})
 	}
-	seen[labels] = struct{}{}
-	return true
+	if _, exists := seen[category][labels]; !exists {
+		seen[category][labels] = struct{}{}
+		return true
+	}
+	return false
 }
 
 func createNamespaceScope(serviceScope datagroup.DataScope, labels datagroup.ScopeLabels) datagroup.DataScope {
@@ -360,25 +397,12 @@ func createClusterScope(baseScope datagroup.DataScope, labels datagroup.ScopeLab
 func fillEmptyLabel(s *datagroup.ScopeLabels, typ string) {
 	switch typ {
 	case datagroup.DATASOURCE_TYP_SERVICE:
-		if s.Service == "" {
-			s.Service = "unknown"
-		}
 		if s.Namespace == "" {
-			s.Namespace = "unknown"
-		}
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
+			s.Namespace = "VM_NS"
 		}
 	case datagroup.DATASOURCE_TYP_NAMESPACE:
 		if s.Namespace == "" {
-			s.Namespace = "unknown"
-		}
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
-		}
-	case datagroup.DATASOURCE_TYP_CLUSTER:
-		if s.ClusterID == "" {
-			s.ClusterID = "unknown"
+			s.Namespace = "VM_NS"
 		}
 	}
 }

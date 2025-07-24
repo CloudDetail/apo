@@ -37,6 +37,44 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/topology [get]
 	QueryTopology() core.HandlerFunc
+	// CreateCustomTopology Create custom topology.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/customtopology/create [post]
+	CreateCustomTopology() core.HandlerFunc
+	// ListCustomTopology List custom topology.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/customtopology/list [get]
+	ListCustomTopology() core.HandlerFunc
+	// DeleteCustomTopology Delete custom topology.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/customtopology/delete [post]
+	DeleteCustomTopology() core.HandlerFunc
+	// CheckServiceNameRule Check servicename rule.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/checkRule [post]
+	CheckServiceNameRule() core.HandlerFunc
+	// SetServiceNameRule Create or update servicename rule.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/upsertRule [post]
+	SetServiceNameRule() core.HandlerFunc
+	// ListServiceNameRule List servicename rule.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/listRule [get]
+	ListServiceNameRule() core.HandlerFunc
+	// DeleteServiceNameRule Delete servicename rule.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/deleteRule [post]
+	DeleteServiceNameRule() core.HandlerFunc
+
+	// QueryAPPInfoTags Get app info tags.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/appinfo/tags [get]
+	QueryAPPInfoTags() core.HandlerFunc
+
+	// QueryAPPInfoTagValues Get app info tag values.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/appinfo/tags/values [get]
+	QueryAPPInfoTagValues() core.HandlerFunc
 }
 
 type handler struct {

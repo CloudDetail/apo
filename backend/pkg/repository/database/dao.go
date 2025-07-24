@@ -131,6 +131,7 @@ type Repo interface {
 	GetDataGroupTeams(ctx core.Context, groupID int64) ([]AuthDataGroup, error)
 	CheckGroupPermission(ctx core.Context, userID, groupID int64, typ string) (bool, error)
 	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
+	DropDataGroupDatasourceConstraint(ctx core.Context) error
 	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
 
 	// GetContextDB Gets transaction form ctx.
@@ -146,6 +147,17 @@ type Repo interface {
 
 	CheckAMReceiverCount(ctx core.Context) int64
 	MigrateAMReceiver(ctx core.Context, receivers []amconfig.Receiver) ([]amconfig.Receiver, error)
+
+	CreateCustomServiceTopology(ctx core.Context, topology *CustomServiceTopology) error
+	ListCustomServiceTopology(ctx core.Context) ([]CustomServiceTopology, error)
+	DeleteCustomServiceTopology(ctx core.Context, id int) error
+
+	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
+	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
+	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
+	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+	ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error)
+	DeleteServiceNameRule(ctx core.Context, ruleId int) error
 
 	integration.ObservabilityInputManage
 	DaoDataScope
@@ -295,5 +307,8 @@ func migrateTable(db *gorm.DB) error {
 		&profile.UserTeam{},
 		&datagroup.DataScope{},
 		&datagroup.DataGroup2Scope{},
+		&ServiceNameRule{},
+		&ServiceNameRuleCondition{},
+		&CustomServiceTopology{},
 	)
 }

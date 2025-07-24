@@ -1,4 +1,5 @@
 global:
+  clusterId: {{ default ._cluster_id "default"}}
   edition: ee
   image:
     # kindlingx official mirror repository: registry.cn-hangzhou.aliyuncs.com/kindlingx
@@ -26,48 +27,11 @@ global:
   apoOtelCollectorGatewayK8SPort: {{ default .apoCollector.ports.apoOtelCollectorGatewayK8s 30319 }}
   apoVectorLogPort: {{ default .apoCollector.ports.apoVector 30310 }}
 
-  # -- Pod's node selector. Ref: [https://kubernetes.io/docs/user-guide/node-selection/](https://kubernetes.io/docs/user-guide/node-selection/)
-  nodeSelector: {}
-  # nodeSelector:
-  #   kubernetes.io/hostname: demo-node
-
-  # -- Pod affinity
-  affinity: {}
-  # affinity:
-  #   nodeAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       nodeSelectorTerms:
-  #       - matchExpressions:
-  #         - key: topology.kubernetes.io/zone
-  #           operator: In
-  #           values:
-  #           - antarctica-east1
-
-  # -- Node tolerations for server scheduling to nodes with taints. Ref: [https://kubernetes.io/docs/concepts/configuration/assign-pod-node/](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
-  tolerations: []
-  # tolerations:
-  # - key: "key"
-  #   operator: "Equal|Exists"
-  #   value: "value"
-  #   effect: "NoSchedule|PreferNoSchedule"
-
-nameOverride: ""
-podAnnotations: {}
-dnsPolicy: "ClusterFirstWithHostNet"
-podSecurityContext: {}
-
 apoOneAgent:
   enabled: true
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/ebpf-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   config:
     apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
     apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
@@ -76,26 +40,12 @@ apoNodeAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/node-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   apoOtelCollectorUrl: "apo-otel-collector-svc:8080"
 
 apoIlogtail:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/ilogtail" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   apoOtelCollectorGrpcUrl: "apo-otel-collector-svc:4317"
   apoVectorLogUrl: "{{ "{{ .Values.global.apoServerIP }}:{{ .Values.global.apoVectorLogPort }}" }}"
 
@@ -103,29 +53,12 @@ grafanaAlloy:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/grafana-alloy" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 2048Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  config:
-    apoOtelCollectorGrpcUrl: "apo-otel-collector-svc:4317"
-    apoOtelCollectorHttpUrl: "apo-otel-collector-svc:4318"
 
 grafanaBeyla:
   enabled: false
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-beyla" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   config:
     k8sNamespace: "{{ "^/(/?/!{{ .Release.Namespace }}$).*" }}"
 
@@ -133,13 +66,6 @@ odiglet:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-odiglet" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 200m
-      memory: 200Mi
-    requests:
-      cpu: 10m
-      memory: 64Mi
   apoOtelCollectorGrpcUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4317" }}"
   apoOtelCollectorHttpUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:4318" }}"
   apoOtelCollectorSkywalkingUrl: "{{ "apo-otel-collector-svc.{{ .Release.Namespace }}:11800" }}"
@@ -148,13 +74,6 @@ apoOtelCollectorAgent:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
   config:
     apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
     apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
@@ -165,13 +84,6 @@ originxGcAgent:
   image:
     repository: "{{ "{{ .Values.global.image.eeRepository }}/originx-gc-agent" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  resources:
-    limits:
-      cpu: 1000m
-      memory: 1024Mi
-    requests:
-      cpu: 10m
-      memory: 64Mi
   config:
     apoCollectorUrl: "{{ "{{ .Values.global.apoProxyUrl }}" }}"
     apoCollectorPort: "{{ "{{ .Values.global.apoProxyPort }}" }}"
@@ -182,13 +94,6 @@ odigos:
     image:
       repository: "{{ "{{ .Values.global.image.repository }}/apo-odigos-instrumentor" }}"
       imagePullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 1024Mi
-      requests:
-        cpu: 10m
-        memory: 64Mi
     # targetNamespace
     # name: Target namespace
     # value:
@@ -226,13 +131,6 @@ apo-nginx-proxy:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/nginx" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-  # resources:
-  #   limits:
-  #     cpu: 1000m
-  #     memory: 1024Mi
-  #   requests:
-  #     cpu: 10m
-  #     memory: 64Mi
   config:
     apoCollectorUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
     apoCollectorPort: "{{ "{{ .Values.global.apoCollectorPort }}" }}"
@@ -249,51 +147,3 @@ apo-otel-collector:
     apoOtelCollectorGatewayGRPCPort: "{{ "{{ .Values.global.apoOtelCollectorGatewayGRPCPort }}" }}"
     apoOtelCollectorGatewayK8SPort: "{{ "{{ .Values.global.apoOtelCollectorGatewayK8SPort }}" }}"
     clusterID: "{{ .name }}"
-  service:
-    ports:
-    - name: query
-      protocol: TCP
-      port: 8080
-      targetPort: 8080
-    - name: metric
-      protocol: TCP
-      port: 9500
-      targetPort: 9500
-    - name: otlpgrpc
-      protocol: TCP
-      port: 4317
-      targetPort: 4317
-    - name: otlphttp
-      protocol: TCP
-      port: 4318
-      targetPort: 4318
-    - name: pmremotewrite
-      protocol: TCP
-      port: 4321
-      targetPort: 4321
-    - name: sk-receiver
-      protocol: TCP
-      port: 11800
-      targetPort: 11800
-    type: ClusterIP
-  resources:
-    limits:
-      cpu: 3000m
-      memory: 3072Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-  rbac:
-    create: true
-
-serviceAccount:
-  name: null
-  additionalLabels: {}
-  # -- Annotations to add to the created service account.
-  annotations: {}
-  # -- The name of the existing service account to use when
-  # serviceAccount.create is false.a
-
-nodeSelector: {}
-affinity: {}
-tolerations: []

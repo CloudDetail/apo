@@ -1,11 +1,13 @@
 {
   "group": "数据组",
   "deleteSuccess": "删除成功",
+  "deleteGroupError": "无法删除包含子组的数据组",
   "dataGroupName": "数据组名",
   "dataGroupDes": "数据组描述",
   "datasource": "数据源",
   "operation": "操作",
   "confirmDelete": "是否确定删除数据组{{groupName}}?",
+  "confirmDeleteWithDatasources": "删除数据组{{groupName}}将同时清理以下数据源：{{datasources}}。是否确定删除？",
   "confirm": "确定",
   "cancel": "取消",
   "delete": "删除",
@@ -24,5 +26,31 @@
   "nested": "服务名所属的命名空间",
   "nsViewAlert1": "整体监控：选中命名空间节点，自动监控该命名空间下的所有服务，服务变化时自动更新。",
   "nsViewAlert2": "精细监控：可单独选择服务节点，仅监控该服务。",
-  "appAlert": "仅监控所选服务，独立于命名空间。"
+  "appAlert": "仅监控所选服务，独立于命名空间。",
+  "datasourceType": {
+    "system": "所有数据源",
+    "cluster": "集群",
+    "namespace": "命名空间",
+    "service": "服务"
+  },
+  "clearAll": "清空",
+  "groupNameLabel": "数据组名：",
+  "datasourceLabel": "数据源：",
+  "availableDatasource": "可选数据源",
+  "selectedDatasource": "已选数据源",
+  "dataGroupPlaceholder": "请选择数据组",
+  "modifyAlertRuleModal": {
+    "dataGroup": "数据组",
+    "alertGroup": "告警分组"
+  },
+  "dataGroup": "数据组",
+  "clearInvalidDatasource": "清空无效数据源",
+  "toBeCleanedData": "即将被清理的数据源：",
+  "protectedDataSources": "以下无效数据源存在于其他数据组，无法直接刷新删除",
+  "noInvalidDatasource": "该数据组及其子组下不存在无效数据源",
+  "clearSuccess": "清除无效数据源成功",
+  "refreshSuccess": "刷新数据源成功",
+  "refresh": "刷新",
+  "subGroups": "{{groupName}}的直属子数据组",
+  "addSubGroup": "添加子数据组"
 }

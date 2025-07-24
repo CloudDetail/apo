@@ -9,9 +9,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLogPageListRequest) (*response.GetFaultLogPageListResponse, error) {
+	for i := 0; i < len(req.Namespaces); i++ {
+		if req.Namespaces[i] == "VM_NS" {
+			req.Namespaces[i] = ""
+		}
+	}
+
 	// Paging query fault site logs
 	query := &clickhouse.FaultLogQuery{
 		StartTime:      req.StartTime,
@@ -29,6 +36,26 @@ func (s *service) GetFaultLogPageList(ctx core.Context, req *request.GetFaultLog
 		Pod:            req.Pod,
 		ClusterIDs:     req.ClusterIDs,
 	}
+
+	if req.GroupID > 0 && len(query.MultiServices) == 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return nil, err
+		}
+		permSvcList := common.DataGroupStorage.GetFullPermissionSvcList(selected)
+		if len(permSvcList) == 0 {
+			return &response.GetFaultLogPageListResponse{
+				Pagination: &model.Pagination{
+					Total:       0,
+					CurrentPage: req.PageNum,
+					PageSize:    req.PageSize,
+				},
+				List: []clickhouse.FaultLogResult{},
+			}, nil
+		}
+		query.MultiServices = permSvcList
+	}
+
 	list, total, err := s.chRepo.GetFaultLogPageList(ctx, query)
 	if err != nil {
 		return nil, err

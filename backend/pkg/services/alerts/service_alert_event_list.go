@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -16,10 +17,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/google/uuid"
 )
 
 func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
+	if req.GroupID > 0 {
+		subGroupIDs := common.DataGroupStorage.GetFullSubGroupIDs(req.GroupID)
+		for _, id := range subGroupIDs {
+			req.SubGroupIDs = append(req.SubGroupIDs, strconv.FormatInt(id, 10))
+		}
+		req.SubGroupIDs = append(req.SubGroupIDs, strconv.FormatInt(req.GroupID, 10))
+	}
+
 	events, count, err := s.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, s.difyRepo.GetCacheMinutes())
 	if err != nil {
 		return nil, err
@@ -129,7 +139,6 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		startTime = record.EndTime.Add(-15 * time.Minute)
 		endTime = record.EndTime
 		record.Duration = formatDuration(record.EndTime.Sub(record.CreateTime))
-		record.ID, _ = uuid.Parse(record.Input)
 	} else {
 		if record.Validity != "unknown" && record.Validity != "skipped" {
 			startTime = record.LastCheckAt.Add(-15 * time.Minute)
@@ -139,6 +148,10 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 			endTime = record.UpdateTime
 		}
 		record.Duration = formatDuration(time.Since(record.CreateTime))
+	}
+
+	if len(record.Input) > 0 {
+		// replace EventID by checkedEvent
 		record.ID, _ = uuid.Parse(record.Input)
 	}
 

@@ -75,8 +75,10 @@ export const useUserActions = () => {
     const userDataReady = {
       ...userData,
       roleList: [userData.roleId],
+      groupIds: userData.groupIds,
     }
     await api.create.sendRequest(userDataReady, {
+      useURLSearchParams: false,
       onSuccess: () => {
         notify({ message: t('index.addSuccess'), type: 'success' })
       },

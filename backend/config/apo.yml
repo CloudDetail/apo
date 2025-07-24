@@ -35,6 +35,11 @@ clickhouse:
   username: admin
   password: admin
   database: apo
+  # Connection pool settings (optional, defaults are provided)
+  max_open_conns: 20 # Max open connections. Default: 20. Env: APO_CH_MAX_OPEN_CONNS
+  max_idle_conns: 10 # Max idle connections. Default: 10. Env: APO_CH_MAX_IDLE_CONNS
+  conn_max_lifetime_minutes: 60 # Connection max lifetime (minutes). Env: APO_CH_CONN_MAX_LIFETIME_MINUTES
+  dial_timeout_seconds: 5 # Connection dial timeout (seconds). Env: APO_CH_DIAL_TIMEOUT_SECONDS
   cluster:
   replica: false
 promethues:
@@ -59,6 +64,9 @@ meta_server:
     exporter:
       enable_fetch_server: true
 
+dataplane:
+  address: "http://localhost:8089"
+
 jaeger:
   address: "http://apo-jaeger-collector-svc:16686"
 
@@ -68,6 +76,7 @@ deepflow:
   ch_address:
   ch_username:
   ch_password:
+
 
 user:
   anonymous_user:
@@ -82,6 +91,6 @@ dify:
   auto_analyze: false
   api_keys:
     alert_check:
-  flow_ids: 
+  flow_ids:
     alert_check:
     alert_event_analyze:

@@ -20,7 +20,7 @@ function safeCall(fn, ...args) {
 }
 
 function ErrorCell(props) {
-  const { data, instance, canClickTo = true, update } = props
+  const { data, instance, canClickTo = true, update, clusterIds, groupId } = props
   const [options, setOptions] = useState([])
   const [visible, setVisible] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
@@ -49,9 +49,7 @@ function ErrorCell(props) {
   }, [data])
   const PreCom = (value) => (
     <div className="relative max-h-14 overflow-auto mb-1">
-      <pre className="text-xs p-2 bg-[var(--ant-color-fill-quaternary)] text-wrap">
-        {value}
-      </pre>
+      <pre className="text-xs p-2 bg-[var(--ant-color-fill-quaternary)] text-wrap">{value}</pre>
     </div>
   )
   return options && options.length > 0 ? (
@@ -128,6 +126,8 @@ function ErrorCell(props) {
                       instance={instance}
                       chartId={chartId}
                       canClickTo={canClickTo}
+                      clusterIds={clusterIds}
+                      groupId={groupId}
                     />
                   </div>
                 </div>

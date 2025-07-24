@@ -21,7 +21,10 @@ func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIn
 		return nil, errors.New("cluster name already exists")
 	}
 
-	cluster.ID = uuid.NewString()
+	if len(cluster.ID) == 0 {
+		cluster.ID = uuid.NewString()
+	}
+
 	cluster.APOCollector.RemoveHttpPrefix()
 	err = s.dbRepo.CreateCluster(ctx, &cluster.Cluster)
 	if err != nil {

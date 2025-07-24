@@ -28,6 +28,8 @@ type ObservabilityInputManage interface {
 	GetCluster(ctx core.Context, clusterID string) (integration.Cluster, error)
 	CheckClusterNameExisted(ctx core.Context, clusterName string) (bool, error)
 
+	ListClusterName(ctx core.Context) (map[string]string, error)
+
 	SaveIntegrationConfig(ctx core.Context, iConfig integration.ClusterIntegration) error
 	GetIntegrationConfig(ctx core.Context, clusterID string) (*integration.ClusterIntegration, error)
 	DeleteIntegrationConfig(ctx core.Context, clusterID string) error

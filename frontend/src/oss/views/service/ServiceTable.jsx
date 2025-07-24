@@ -17,16 +17,16 @@ import { DelaySourceTimeUnit } from 'src/constants'
 import { convertTime } from 'src/core/utils/time'
 import EndpointTableModal from './component/EndpointTableModal'
 import LoadingSpinner from 'src/core/components/Spinner'
-import { Card, Space, Tooltip } from 'antd'
+import { Tooltip } from 'antd'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useDebounce } from 'react-use'
-import TableFilter from 'src/core/components/Filter/TableFilter'
 import { useTranslation } from 'react-i18next'
 import React from 'react'
 import { ChartsProvider, useChartsContext } from 'src/core/contexts/ChartsContext'
 import ChartTempCell from 'src/core/components/Chart/ChartTempCell'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
-const ServiceTable = React.memo(({ groupId, height }) => {
+import DataSourceFilter from 'src/core/components/Filter/DataSourceFilter'
+const ServiceTable = React.memo(() => {
   const { t, i18n } = useTranslation('oss/service')
   const navigate = useNavigate()
   const [data, setData] = useState([])
@@ -37,13 +37,14 @@ const ServiceTable = React.memo(({ groupId, height }) => {
     startTime: null,
     endTime: null,
   })
+  const [cluster, setCluster] = useState(null)
   const [serviceName, setServiceName] = useState(null)
   const [endpoint, setEndpoint] = useState(null)
   const [namespace, setNamespace] = useState(null)
-
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const { startTime, endTime } = useSelector(selectSecondsTimeRange)
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const getChartsData = useChartsContext((ctx) => ctx.getChartsData)
   const [sortBy, setSortBy] = useState()
   const column = [
@@ -64,9 +65,12 @@ const ServiceTable = React.memo(({ groupId, height }) => {
         const serviceName = props.cell.row.values.serviceName
         const endpoint = props.trs.endpoint
         const namespace = props.cell.row.values.namespaces
-        // TODO encode
+        // cluster 变量就是 clusterIds
+        const clusterIdsParam = cluster
+          ? `&clusterIds=${encodeURIComponent(Array.isArray(cluster) ? cluster.join(',') : cluster)}`
+          : ''
         navigate(
-          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}`,
+          `/service/info?service-name=${encodeURIComponent(serviceName)}&endpoint=${encodeURIComponent(endpoint)}&breadcrumb-name=${encodeURIComponent(serviceName)}&namespace=${encodeURIComponent(namespace)}&groupId=${dataGroupId}${clusterIdsParam}`,
         )
       },
       showMore: (original) => {
@@ -200,7 +204,7 @@ const ServiceTable = React.memo(({ groupId, height }) => {
       api: async (props) => {
         const { serviceName } = props
         try {
-          const result = await getServicesAlert([serviceName])
+          const result = await getServicesAlert(serviceName)
           return { data: result, error: null }
         } catch (error) {
           console.error('Error calling getServicesAlert:', error)
@@ -299,7 +303,8 @@ const ServiceTable = React.memo(({ groupId, height }) => {
         endpointName: endpoint ?? undefined,
         namespace: namespace ?? undefined,
         sortRule: sortRule,
-        groupId: groupId,
+        groupId: dataGroupId,
+        clusterIds: cluster ?? undefined,
       })
         .then((res) => {
           if (res && res?.length > 0) {
@@ -320,18 +325,22 @@ const ServiceTable = React.memo(({ groupId, height }) => {
   //防抖避免跳转使用旧时间
   useDebounce(
     () => {
-      getTableData()
+      if (startTime && endTime && dataGroupId !== null) {
+        getTableData()
+      }
     },
     300, // 延迟时间 300ms
-    [startTime, endTime, serviceName, endpoint, namespace, groupId, sortBy],
+    [startTime, endTime, serviceName, endpoint, namespace, dataGroupId, sortBy, cluster],
   )
-  const getServicesAlert = (serviceNames, returnData) => {
+  const getServicesAlert = (serviceName, returnData) => {
     return getServicesAlertApi({
       startTime: startTime,
       endTime: endTime,
       step: getStep(startTime, endTime),
-      serviceNames: serviceNames,
+      serviceName: serviceName,
       returnData: returnData,
+      groupId: dataGroupId,
+      clusterIds: cluster ?? undefined,
     })
       .then((res) => {
         if (res && res?.length > 0) {
@@ -359,7 +368,7 @@ const ServiceTable = React.memo(({ groupId, height }) => {
         endpointList.push(endpoint.endpoint)
       })
     })
-    getChartsData(serviceList, endpointList)
+    getChartsData(serviceList, endpointList, dataGroupId, cluster)
   }
   const handleTableChange = (pageIndex, pageSize) => {
     if (pageSize && pageIndex) {
@@ -433,17 +442,28 @@ const ServiceTable = React.memo(({ groupId, height }) => {
     }
   }, [data, pageIndex, pageSize, i18n.language])
   return (
-    <BasicCard bodyStyle={height && { height: height }}>
+    <BasicCard>
       <LoadingSpinner loading={loading} />
 
       <BasicCard.Header>
-        <TableFilter
-          groupId={groupId}
+        <DataSourceFilter
+          setServiceName={setServiceName}
+          setEndpoint={setEndpoint}
+          setNamespace={setNamespace}
+          setCluster={setCluster}
+          startTime={startTime}
+          endTime={endTime}
+          className="mb-2"
+          category="apm"
+          extra="endpoint"
+        />
+        {/* <TableFilter
+          dataGroupId={dataGroupId}
           setServiceName={setServiceName}
           setEndpoint={setEndpoint}
           setNamespace={setNamespace}
           className="mb-2"
-        />
+        /> */}
       </BasicCard.Header>
 
       <BasicCard.Table>
@@ -455,6 +475,7 @@ const ServiceTable = React.memo(({ groupId, height }) => {
           visible={modalVisible}
           serviceName={modalServiceName}
           timeRange={requestTimeRange}
+          clusterIds={cluster}
           closeModal={() => setModalVisible(false)}
         />
       </ChartsProvider>

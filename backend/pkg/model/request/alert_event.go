@@ -18,6 +18,8 @@ type AlertEventSearchRequest struct {
 	Filter AlertEventSearchFilter `json:"filter" form:"filter"`
 
 	GroupID int64 `json:"groupId" form:"groupId"`
+
+	SubGroupIDs []string `json:"-"`
 }
 
 type GetAlertDetailRequest struct {

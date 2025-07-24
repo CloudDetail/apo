@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button, Modal, Statistic, Image, Card, Tag, theme, Result } from 'antd'
+import { Button, Modal, Statistic, Image, Card, Tag, theme, Result, Tooltip } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
@@ -192,7 +192,7 @@ const AlertEventsPage = () => {
   const [firingCounts, setFiringCounts] = useState(0)
   const [resolvedCounts, setResolvedCounts] = useState(0)
   const timerRef = useRef(null)
-
+  const { dataGroupId } = useSelector((state) => state.dataGroupReducer)
   const [keys, setKeys] = useState([])
   const [labelKeys, setLabelKeys] = useState([])
   const [filters, setFilters] = useState([
@@ -226,6 +226,7 @@ const AlertEventsPage = () => {
         matchExpr: item?.matchExpr,
         selected: item?.selected,
       })),
+      groupId: dataGroupId,
     })
       .then((res) => {
         const totalPages = Math.ceil(res.pagination.total / pagination.pageSize)
@@ -256,14 +257,14 @@ const AlertEventsPage = () => {
   }
   useDebounce(
     () => {
-      if (startTime && endTime) {
+      if (startTime && endTime && dataGroupId !== null) {
         setLoading(true)
 
         getAlertEvents()
       }
     },
     300,
-    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters],
+    [pagination.pageIndex, pagination.pageSize, startTime, endTime, filters, dataGroupId],
   )
 
   async function openWorkflowModal(workflowParams, group, name) {
@@ -380,6 +381,33 @@ const AlertEventsPage = () => {
             openResultModal={() => openResultModal(row.original.workflowRunId)}
             workflowRunId={row.original.workflowRunId}
           />
+        )
+      },
+    },
+    {
+      title: t('alertDirection'),
+      accessor: 'alertDirection',
+      customWidth: 130,
+      Cell: (props) => {
+        const { value, row } = props
+        return value ? (
+          <Tooltip title={t('viewReport')}>
+            <div
+              onClick={() => {
+                window.open(
+                  `/#/report?alertEventId=${encodeURIComponent(row.original.id)}&startTime=${startTime}&endTime=${endTime}`,
+                  '_blank',
+                )
+              }}
+              className="border-l-4 border-red-500 pl-2 py-2 bg-[var(--custom-alert-error-bg)] rounded-r-md cursor-pointer"
+            >
+              <div className="text-[var(--ant-color-text)] text-xs">
+                {value} , {t('viewReport')}
+              </div>
+            </div>
+          </Tooltip>
+        ) : (
+          <span className="text-[var(--ant-color-text-secondary)]">{t('unknown')}</span>
         )
       },
     },

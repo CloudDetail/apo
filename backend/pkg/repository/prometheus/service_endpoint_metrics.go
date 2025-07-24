@@ -1,16 +1,19 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package prometheus
 
 type ServiceEndpointMetrics struct {
 	EndpointKey
 
-	REDMetrics REDMetrics
+	REDMetrics    REDMetrics
 	LatencyData   []Points
 	ErrorRateData []Points
 	TPMData       []Points
 }
 
 func (e *ServiceEndpointMetrics) InitEmptyGroup(key ConvertFromLabels) MetricGroup {
-	return &ServiceEndpointMetrics {
+	return &ServiceEndpointMetrics{
 		EndpointKey: key.(EndpointKey),
 	}
 }
@@ -22,7 +25,6 @@ func (e *ServiceEndpointMetrics) AppendGroupIfNotExist(_ MGroupName, metricName 
 func (e *ServiceEndpointMetrics) SetValue(metricGroup MGroupName, metricName MName, value float64) {
 	e.REDMetrics.SetValue(metricGroup, metricName, value)
 }
-
 
 func (e *ServiceEndpointMetrics) SetValues(_ MGroupName, metricName MName, points []Points) {
 	var data = make([]Points, len(points))

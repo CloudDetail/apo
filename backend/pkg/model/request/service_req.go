@@ -294,4 +294,7 @@ type GetServiceREDChartsRequest struct {
 	Step         int64    `json:"step"`
 	ServiceList  []string `json:"serviceList"`
 	EndpointList []string `json:"endpointList"`
+
+	GroupID    int64    `form:"groupId" json:"groupId"`
+	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 }

@@ -47,7 +47,7 @@ func NewFilter() *AndFilter {
 }
 
 func (f *AndFilter) EqualIfNotEmpty(k, v string) PQLFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	if len(v) == 0 || len(k) == 0 {
 		return f
 	}
@@ -56,25 +56,25 @@ func (f *AndFilter) EqualIfNotEmpty(k, v string) PQLFilter {
 }
 
 func (f *AndFilter) Equal(k, v string) PQLFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	f.Filters = append(f.Filters, k+`="`+v+`"`)
 	return f
 }
 
 func (f *AndFilter) NotEqual(k, v string) PQLFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	f.Filters = append(f.Filters, k+`!="`+v+`"`)
 	return f
 }
 
 func (f *AndFilter) RegexMatch(k, regexPattern string) PQLFilter {
-	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
+	regexPattern = strings.ReplaceAll(regexPattern, `VM_NS`, ``)
 	f.Filters = append(f.Filters, k+`=~"`+regexPattern+`"`)
 	return f
 }
 
 func (f *AndFilter) AddPatternFilter(pattern, v string) PQLFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	f.Filters = append(f.Filters, pattern+`"`+v+`"`)
 	return f
 }
@@ -159,10 +159,17 @@ func Or(filters ...PQLFilter) *OrFilter {
 			}
 		}
 	}
+
+	if len(options) == 0 {
+		return &OrFilter{
+			Filters: []AndFilter{*AlwaysFalseFilter},
+		}
+	}
+
 	return &OrFilter{Filters: options}
 }
 
-func And(filters ...PQLFilter) *OrFilter {
+func And(filters ...PQLFilter) PQLFilter {
 	var options []AndFilter
 	for _, filter := range filters {
 		if filter == nil {
@@ -199,6 +206,10 @@ func And(filters ...PQLFilter) *OrFilter {
 				options[i].Filters = append(options[i].Filters, f.Filters...)
 			}
 		}
+	}
+
+	if len(options) == 0 {
+		return &AndFilter{Filters: []string{}}
 	}
 	return &OrFilter{Filters: options}
 }
@@ -285,7 +296,7 @@ func (o *OrFilter) SplitFilters(keys []string) (PQLFilter, PQLFilter) {
 
 // Fast Filter
 func EqualFilter(k, v string) *AndFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{k + `="` + v + `"`}}
 }
 
@@ -293,17 +304,17 @@ func EqualIfNotEmptyFilter(k, v string) *AndFilter {
 	if len(v) == 0 {
 		return nil
 	}
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{k + `="` + v + `"`}}
 }
 
 func NotEqualFilter(k, v string) *AndFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{k + `!="` + v + `"`}}
 }
 
 func RegexMatchFilter(k, regexPattern string) *AndFilter {
-	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
+	regexPattern = strings.ReplaceAll(regexPattern, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{k + `=~"` + regexPattern + `"`}}
 }
 
@@ -311,12 +322,12 @@ func RegexMatchIfNotEmptyFilter(k, regexPattern string) *AndFilter {
 	if len(regexPattern) == 0 {
 		return nil
 	}
-	regexPattern = strings.ReplaceAll(regexPattern, `unknown`, ``)
+	regexPattern = strings.ReplaceAll(regexPattern, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{k + `=~"` + regexPattern + `"`}}
 }
 
 func PatternFilter(pattern, v string) *AndFilter {
-	v = strings.ReplaceAll(v, `unknown`, ``)
+	v = strings.ReplaceAll(v, `VM_NS`, ``)
 	return &AndFilter{Filters: []string{pattern + `"` + v + `"`}}
 }
 

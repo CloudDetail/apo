@@ -175,7 +175,9 @@
     "container": "Container Related"
   },
   "moreNode": {
-    "seeMore": "More"
+    "seeMore": "More",
+    "outOfGroup": "Not in the current data group",
+    "more": "More"
   },
   "topology": {
     "clickToReturn": "Click back to the upper entry ",

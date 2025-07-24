@@ -4,6 +4,7 @@
 package datagroup
 
 import (
+	"slices"
 	"sort"
 	"strings"
 )
@@ -34,6 +35,8 @@ type DataScope struct {
 
 	// Special Labels for this Scope
 	ScopeLabels
+
+	ClusterName string `gorm:"-" json:"clusterName"`
 }
 
 type DataScopeWithFullName struct {
@@ -50,7 +53,7 @@ type ExtraChild struct {
 	ContainerID string `json:"containerId" gorm:"-"`
 	POD         string `json:"pod" gorm:"-"`
 	Node        string `json:"node" gorm:"-"`
-	Pid         string `json:"pid" gorm:"-"`
+	Pid         int    `json:"pid" gorm:"-"`
 	Endpoint    string `json:"endpoint" gorm:"-"`
 	Service     string `json:"service" gorm:"-"`
 }
@@ -138,12 +141,53 @@ func (t *DataScopeTreeNode) GetScopeRef(scopeID string) *DataScopeTreeNode {
 	return nil
 }
 
+func FillWithClusterName(scopes []DataScope, clusterNameMap map[string]string) []DataScope {
+	if clusterNameMap == nil {
+		return scopes
+	}
+	for i := 0; i < len(scopes); i++ {
+		if name, find := clusterNameMap[scopes[i].ClusterID]; find {
+			scopes[i].ClusterName = name
+		} else if len(scopes[i].ClusterID) == 0 {
+			scopes[i].ClusterName = "DEFAULT"
+		} else {
+			scopes[i].ClusterName = scopes[i].ClusterID
+		}
+	}
+	return scopes
+}
+
+func (t *DataScopeTreeNode) FillWithClusterName(clusterNameMap map[string]string) {
+	if clusterNameMap == nil {
+		return
+	}
+
+	if t == nil {
+		return
+	}
+
+	if name, find := clusterNameMap[t.ClusterID]; find {
+		t.ClusterName = name
+	} else if len(t.ClusterID) == 0 {
+		t.ClusterName = "DEFAULT"
+	} else {
+		t.ClusterName = t.ClusterID
+	}
+
+	for i := 0; i < len(t.Children); i++ {
+		t.Children[i].FillWithClusterName(clusterNameMap)
+	}
+}
+
 func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []string {
+	if len(permScopeIDs) == 0 {
+		return []string{}
+	}
 	optionsMap := make(map[string]struct{})
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
-		if pPerm == checked || containsInStr(permScopeIDs, node.ScopeID) {
+		if pPerm == checked || slices.Contains(permScopeIDs, node.ScopeID) {
 			optionsMap[node.Service] = struct{}{}
 			pPerm = checked
 		}
@@ -164,6 +208,10 @@ func (t *DataScopeTreeNode) GetFullPermissionSvcList(permScopeIDs []string) []st
 }
 
 func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []string {
+	if len(options) == 0 {
+		return []string{}
+	}
+
 	optionsMap := make(map[string]bool)
 	for _, id := range options {
 		optionsMap[id] = true
@@ -171,7 +219,7 @@ func (t *DataScopeTreeNode) GetFullPermissionScopeList(options []string) []strin
 
 	var dfs func(pPerm scopeStatus, node *DataScopeTreeNode)
 	dfs = func(pPerm scopeStatus, node *DataScopeTreeNode) {
-		if pPerm == checked || containsInStr(options, node.ScopeID) {
+		if pPerm == checked || slices.Contains(options, node.ScopeID) {
 			optionsMap[node.ScopeID] = true
 			pPerm = checked
 		}
@@ -243,19 +291,23 @@ func (t *DataScopeTreeNode) cloneWithPermission(pPerm scopeStatus, options []str
 }
 
 func (t *DataScopeTree) CloneWithCategory(selected []string, category string) (*DataScopeTreeNode, map[ScopeLabels]*DataScopeTreeNode) {
+	if len(selected) == 0 {
+		return nil, nil
+	}
+
 	var dfs func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode
 
 	var leafs = make(map[ScopeLabels]*DataScopeTreeNode, 0)
-	categoryIDs, find := t.CategoryIDs[category]
-	if !find {
-		return nil, leafs
+	categoryIDs := t.CategoryIDs[category]
+	if categoryIDs == nil {
+		categoryIDs = make([]string, 0)
 	}
 
 	dfs = func(node *DataScopeTreeNode, pStatus scopeStatus, selected []string, category string) *DataScopeTreeNode {
 		var selfStatus scopeStatus = ignored
-		if containsInStr(selected, node.ScopeID) {
+		if slices.Contains(selected, node.ScopeID) {
 			selfStatus = checked
-		} else if pStatus == checked && containsInStr(categoryIDs, node.ScopeID) {
+		} else if pStatus != ignored && slices.Contains(categoryIDs, node.ScopeID) {
 			selfStatus = notChecked
 		}
 
@@ -338,13 +390,4 @@ func checkScopePerm(pPerm scopeStatus, options []string, selected []string, scop
 	}
 
 	return ignored
-}
-
-func containsInStr(options []string, input string) bool {
-	for _, v := range options {
-		if v == input {
-			return true
-		}
-	}
-	return false
 }
