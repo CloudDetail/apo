@@ -198,3 +198,8 @@ export const SlowErrorType = {
   disk_io_time: t('common:slowCauseType.diskIoTime'),
   scheduling_time: t('common:slowCauseType.scheduleTime'),
 }
+
+export const contentHeight =
+  import.meta.env.VITE_APP_CODE_VERSION === 'CE'
+    ? 'var(--ce-app-content-height)'
+    : 'var(--ee-app-content-height)'

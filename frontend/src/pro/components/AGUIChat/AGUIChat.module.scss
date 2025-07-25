@@ -1,0 +1,658 @@
+/**
+ * Copyright 2025 CloudDetail
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+// 容器样式
+.container {
+  @apply h-full font-sans;
+  background-color: var(--ant-color-bg-container);
+}
+
+// 头部样式
+.header {
+  @apply flex items-center h-14 justify-between px-6;
+  background-color: var(--ant-color-bg-container);
+  color: var(--ant-color-text);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.headerLeft {
+  @apply flex items-center gap-4;
+}
+
+.siderTrigger {
+  @apply text-base p-1 rounded transition-colors duration-200;
+  color: var(--ant-color-text);
+
+  &:hover {
+    background-color: var(--ant-color-bg-text-hover);
+  }
+}
+
+.headerTitle {
+  @apply m-0 text-xl font-semibold;
+  color: var(--ant-color-text);
+}
+
+.headerActions {
+  @apply flex gap-2;
+}
+
+.iconBtn {
+  @apply bg-transparent border-none cursor-pointer p-2 rounded text-base transition-colors duration-200;
+  color: var(--ant-color-text);
+
+  &:hover {
+    background-color: var(--ant-color-bg-text-hover);
+  }
+}
+
+// 聊天内容区域
+.content {
+  @apply h-full overflow-hidden;
+  height: calc(100vh - 272px);
+}
+
+// 聊天主体
+.main {
+  @apply flex flex-col overflow-hidden;
+  background-color: var(--ant-color-bg-container);
+}
+
+// 错误提示
+.errorAlert {
+  @apply p-3 mx-4 rounded border-l-4 flex items-center justify-between;
+  background-color: var(--custom-alert-error-bg);
+  color: var(--ant-color-error);
+  border-left-color: var(--ant-color-error);
+}
+
+.errorClose {
+  @apply bg-transparent border-none cursor-pointer p-1 rounded text-base transition-colors duration-200;
+  color: var(--ant-color-error);
+
+  &:hover {
+    background-color: rgba(var(--ant-color-error-rgb), 0.1);
+  }
+}
+
+// 会话信息头部
+.sessionInfoHeader {
+  @apply p-4 border-b flex-shrink-0;
+  background-color: var(--ant-color-bg-container);
+  border-bottom-color: var(--ant-color-border);
+}
+
+.sessionInfoTitle {
+  @apply m-0 text-lg;
+  color: var(--ant-color-text);
+}
+
+// 消息区域
+.messagesArea {
+  @apply flex-1 overflow-y-auto p-2;
+  background-color: var(--ant-color-bg-container);
+}
+
+// 消息样式
+.message {
+  @apply flex mb-4;
+
+  &.user {
+    @apply justify-end;
+  }
+
+  &.assistant {
+    @apply justify-start flex-col;
+  }
+
+  &.currentMessage {
+    opacity: 0.8;
+  }
+}
+
+.messageContent {
+  max-width: 80%;
+  @apply p-2 rounded-2xl break-words;
+
+  .user & {
+    background-color: var(--ant-color-primary);
+    color: var(--ant-color-text);
+  }
+
+  .assistant & {
+    background-color: var(--ant-color-bg-container);
+    color: var(--ant-color-text);
+    margin-left: 8px;
+    // border: 1px solid var(--ant-color-border);
+  }
+}
+
+// .messageText {
+//   @apply whitespace-pre-wrap;
+//   // line-height: 1.625;
+// }
+
+.messageMeta {
+  @apply text-xs opacity-70 mt-1;
+}
+
+// 加载指示器
+.loadingIndicator {
+  @apply my-4 text-center;
+}
+
+.loadingBar {
+  @apply w-full h-1 rounded overflow-hidden relative;
+  background-color: var(--ant-color-border);
+
+  &::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-full;
+    background-color: var(--ant-color-primary);
+    animation: loading 1.5s infinite;
+  }
+}
+
+@keyframes loading {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.loadingText {
+  @apply text-center mt-2 text-sm;
+  color: var(--ant-color-text-secondary);
+}
+
+// 输入区域
+.inputArea {
+  @apply flex items-end gap-3 p-4 border-t flex-shrink-0;
+  background-color: var(--ant-color-bg-container);
+  border-top-color: var(--ant-color-border);
+}
+
+.messageInput {
+  @apply flex-1 p-3 border rounded-lg resize-none text-sm;
+  font-family: inherit;
+  line-height: 1.625;
+  min-height: 2.75rem;
+  max-height: 7.5rem;
+  border-color: var(--ant-color-border);
+  background-color: var(--ant-color-bg-container);
+  color: var(--ant-color-text);
+
+  &:focus {
+    @apply outline-none;
+    border-color: var(--ant-color-primary);
+  }
+
+  &:disabled {
+    background-color: var(--ant-color-bg-layout);
+    cursor: not-allowed;
+  }
+}
+
+.controlBtn {
+  @apply p-3 border-none rounded-lg cursor-pointer text-base transition-all duration-200 flex items-center justify-center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+
+  &.sendBtn {
+    background-color: var(--ant-color-primary);
+    color: var(--ant-color-primary-text);
+
+    &:hover:not(:disabled) {
+      background-color: var(--ant-color-primary-hover);
+    }
+
+    &:disabled {
+      background-color: var(--ant-color-border);
+      cursor: not-allowed;
+    }
+  }
+
+  &.stopBtn {
+    background-color: var(--ant-color-error);
+    color: var(--ant-color-error-text);
+
+    &:hover {
+      background-color: var(--ant-color-error-hover);
+    }
+  }
+}
+
+// 空状态
+.emptyState {
+  @apply flex items-center justify-center h-full text-center p-6;
+  color: var(--ant-color-text-secondary);
+}
+
+.emptyStateContent {
+  @apply text-center w-full;
+  max-width: 42rem;
+}
+
+.emptyStateTitle {
+  @apply text-4xl font-bold m-0 mb-2;
+  background: linear-gradient(135deg, var(--ant-color-primary), var(--ant-color-primary-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.emptyStateSubtitle {
+  @apply text-base m-0 mb-8;
+  line-height: 1.625;
+  color: var(--ant-color-text-secondary);
+}
+
+.quickQuestions {
+  @apply my-8;
+}
+
+.quickQuestionsTitle {
+  @apply text-lg font-semibold m-0 mb-4;
+}
+
+.questionGrid {
+  @apply grid gap-3 mx-auto;
+  max-width: 56rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.questionItem {
+  @apply flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all duration-200 ease-in-out shadow-sm;
+  background-color: var(--ant-color-bg-container);
+  border-color: var(--ant-color-border);
+
+  &:hover {
+    border-color: var(--ant-color-primary);
+    box-shadow: 0 2px 8px rgba(var(--ant-color-primary-rgb), 0.15);
+    transform: translateY(-1px);
+  }
+
+  span:first-child {
+    @apply text-sm font-medium;
+    color: var(--ant-color-text);
+  }
+
+  .ellipsis {
+    @apply font-bold text-xl opacity-70;
+    color: var(--ant-color-primary);
+  }
+}
+
+.emptyStateFooter {
+  @apply mt-8 pt-4 border-t;
+  border-top-color: var(--ant-color-border);
+
+  p {
+    @apply text-sm m-0;
+    color: var(--ant-color-text-tertiary);
+  }
+}
+
+// 工具调用样式
+.toolCallCard {
+  @apply bg-gray-50 border rounded-lg my-2 overflow-hidden;
+  background-color: var(--ant-color-bg-layout);
+  border-color: var(--ant-color-border);
+
+  &.pending {
+    border-color: var(--ant-color-warning);
+  }
+
+  &.completed {
+    border-color: var(--ant-color-success);
+  }
+
+  &.error {
+    border-color: var(--ant-color-error);
+  }
+
+  &.current {
+    border-color: var(--ant-color-primary);
+    box-shadow: 0 0 0 2px rgba(var(--ant-color-primary-rgb), 0.25);
+  }
+}
+
+.toolCallHeader {
+  @apply flex items-center p-3 border-b;
+  background-color: var(--ant-color-bg-layout);
+  border-bottom-color: var(--ant-color-border);
+}
+
+.toolCallIcon {
+  @apply mr-2 text-base;
+}
+
+.toolCallName {
+  @apply font-medium flex-1;
+  color: var(--ant-color-text);
+}
+
+.toolCallStatus {
+  @apply px-2 py-1 rounded-full text-xs font-medium;
+
+  &.pending {
+    background-color: var(--ant-color-warning-bg);
+    color: var(--ant-color-warning);
+  }
+
+  &.completed {
+    background-color: var(--ant-color-success-bg);
+    color: var(--ant-color-success);
+  }
+
+  &.error {
+    background-color: var(--ant-color-error-bg);
+    color: var(--ant-color-error);
+  }
+}
+
+.toolCallError {
+  @apply p-3 border-t;
+  background-color: var(--ant-color-error-bg);
+  color: var(--ant-color-error);
+  border-top-color: var(--ant-color-error-border);
+}
+
+.errorMessage {
+  @apply font-medium;
+}
+
+.toolCallArgs,
+.toolCallResult {
+  @apply p-3;
+}
+
+.toolCallSectionTitle {
+  @apply font-medium mb-2 text-sm;
+  color: var(--ant-color-text);
+}
+
+.toolCallCode {
+  @apply p-2 rounded font-mono text-xs overflow-x-auto whitespace-pre-wrap;
+  background-color: var(--ant-color-bg-layout);
+  border: 1px solid var(--ant-color-border);
+}
+
+// 步骤状态样式
+.stepStatus {
+  @apply my-4 p-3 rounded-lg border-l-4;
+  background-color: var(--ant-color-primary-bg);
+  border-left-color: var(--ant-color-primary);
+}
+
+.stepIndicator {
+  @apply flex items-center gap-2;
+}
+
+.stepDot {
+  @apply w-2 h-2 rounded-full;
+  background-color: var(--ant-color-primary);
+  animation: pulse 2s infinite;
+}
+
+.stepText {
+  @apply text-sm font-medium;
+  color: var(--ant-color-primary);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// 运行状态样式
+.runStatus {
+  @apply my-4 p-3 rounded-lg border-l-4;
+  background-color: var(--ant-color-warning-bg);
+  border-left-color: var(--ant-color-warning);
+}
+
+.runIndicator {
+  @apply flex items-center gap-2;
+}
+
+.runSpinner {
+  @apply w-4 h-4 border-2 border-transparent rounded-full;
+  border-top-color: var(--ant-color-warning);
+  animation: spin 1s linear infinite;
+}
+
+.runText {
+  @apply text-sm font-medium;
+  color: var(--ant-color-warning);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+// 状态信息样式
+.stateInfo {
+  @apply mt-3 p-3 rounded;
+  background-color: var(--ant-color-bg-layout);
+}
+
+.stateTitle {
+  @apply text-sm font-medium mb-2;
+  color: var(--ant-color-text);
+}
+
+.stateChips {
+  @apply flex flex-wrap gap-1;
+}
+
+.stateChip {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs gap-1;
+  background-color: var(--ant-color-bg-container);
+  color: var(--ant-color-text-secondary);
+}
+
+.stateKey {
+  @apply font-medium;
+}
+
+.stateValue {
+  @apply font-mono;
+}
+
+// 连接状态样式
+.connectionStatus {
+  @apply mx-4 p-3 rounded border-l-4;
+  background-color: var(--ant-color-error-bg);
+  border-left-color: var(--ant-color-error);
+}
+
+.connectionIndicator {
+  @apply flex items-center gap-2;
+
+  &.error {
+    color: var(--ant-color-error);
+  }
+}
+
+.connectionIcon {
+  @apply text-base;
+}
+
+.connectionText {
+  @apply text-sm font-medium;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .sessionItem {
+    @apply p-4;
+  }
+
+  .inputArea {
+    @apply p-3;
+  }
+}
+
+@media (max-width: 640px) {
+  .chatMain {
+    @apply ml-0;
+  }
+}
+
+// 当前消息样式
+.currentMessage .typingIndicator {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+// QuickQuestions 组件样式
+.quickQuestionsContainer {
+  @apply flex-1 overflow-y-auto p-6;
+  background-color: var(--ant-color-bg-container);
+}
+
+.quickQuestionsHeader {
+  @apply text-center mb-6;
+}
+
+.quickQuestionsTitle {
+  @apply flex items-center justify-center gap-2 mb-3;
+  color: var(--ant-color-primary);
+}
+
+.titleIcon {
+  @apply text-5xl;
+  color: var(--ant-color-primary);
+}
+
+.quickQuestionsSubtitle {
+  @apply text-base max-w-2xl mx-auto;
+  color: var(--ant-color-text-secondary);
+}
+
+.quickQuestionsGrid {
+  @apply grid gap-3 max-w-4xl mx-auto;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.questionItem {
+  @apply flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all duration-200;
+  background-color: var(--ant-color-bg-container);
+  border-color: var(--ant-color-border);
+
+  &:hover {
+    border-color: var(--ant-color-primary);
+    background-color: var(--ant-color-bg-layout);
+    box-shadow: 0 2px 8px rgba(var(--ant-color-primary-rgb), 0.1);
+    transform: translateY(-1px);
+  }
+}
+
+.questionText {
+  @apply text-sm font-medium;
+  color: var(--ant-color-text);
+}
+
+.questionArrow {
+  @apply text-lg font-bold opacity-60 transition-opacity duration-200;
+  color: var(--ant-color-primary);
+}
+
+.questionItem:hover .questionArrow {
+  opacity: 1;
+}
+
+.quickQuestionsFooter {
+  @apply text-center mt-6 pt-4 border-t;
+  border-top-color: var(--ant-color-border);
+}
+
+.footerText {
+  @apply text-sm;
+  color: var(--ant-color-text-tertiary);
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .quickQuestionsContainer {
+    @apply p-4;
+  }
+
+  .quickQuestionsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.typingIndicator {
+  animation: blink 1s steps(1) infinite;
+  margin-left: 4px;
+  font-weight: bold;
+  color: #888;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.loadingDots {
+  margin-bottom: 10px;
+  margin-left: 16px;
+  height: 40px;
+}
+.loadingDots span {
+  font-size: 50px;
+  animation: blinkDot 1.4s infinite;
+  opacity: 0.2;
+  margin-left: 4px;
+}
+
+.loadingDots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.loadingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loadingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blinkDot {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}

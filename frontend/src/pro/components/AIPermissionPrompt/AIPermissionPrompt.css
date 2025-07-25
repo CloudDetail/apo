@@ -1,0 +1,177 @@
+.ai-permission-prompt {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.ai-permission-card {
+    max-width: 800px;
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.ai-permission-content {
+    padding: 40px;
+}
+
+.ai-permission-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.ai-icon {
+    font-size: 64px;
+    color: #1890ff;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.ai-title {
+    margin: 0 !important;
+    color: #262626;
+    font-weight: 600;
+}
+
+.ai-permission-description {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.description-text {
+    font-size: 16px;
+    color: #595959;
+    line-height: 1.6;
+    margin: 0 !important;
+}
+
+.ai-permission-alert {
+    margin-bottom: 30px;
+}
+
+.alert-description {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.guide-link {
+    color: #1890ff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.guide-link:hover {
+    color: #40a9ff;
+}
+
+.ai-permission-actions {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.ai-permission-features {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 30px;
+}
+
+.ai-permission-features h4 {
+    text-align: center;
+    margin-bottom: 24px !important;
+    color: #262626;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+.feature-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.feature-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.feature-content .ant-typography {
+    margin: 0 !important;
+}
+
+.ai-permission-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.loading-text {
+    color: white;
+    font-size: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .ai-permission-content {
+        padding: 20px;
+    }
+
+    .ai-icon {
+        font-size: 48px;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-permission-actions .ant-space {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .ai-permission-actions .ant-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-permission-prompt {
+        padding: 10px;
+    }
+
+    .ai-permission-content {
+        padding: 16px;
+    }
+
+    .ai-title {
+        font-size: 20px !important;
+    }
+
+    .description-text {
+        font-size: 14px;
+    }
+}

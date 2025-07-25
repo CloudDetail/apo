@@ -1,0 +1,11 @@
+{
+  "intentRecognition": "Intent Recognition",
+  "dataScope": "Data Scope",
+  "processDefinition": "Troubleshooting Process Definition",
+  "abnormalityDetection": "Abnormality Detection",
+  "anomalyCausalChain": "Anomaly Causal Chain",
+  "result": "Conclusion Overview",
+  "filterCausal": "Anomaly Causal Chain",
+  "ebpfEvidence": "Anomaly Causal Chain —— ebpf evidence",
+  "causalChain": "Causal Chain"
+}

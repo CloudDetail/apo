@@ -9,6 +9,8 @@
     "start": "vite --host --mode development"
   },
   "dependencies": {
+    "@ag-ui/client": "^0.0.35",
+    "@ag-ui/core": "^0.0.34",
     "@coreui/chartjs": "4.0.0",
     "@coreui/coreui": "5.2.0",
     "@coreui/icons": "^3.0.1",

@@ -1,0 +1,124 @@
+import React from 'react'
+import { Layout } from 'antd'
+import MessageList from './MessageList'
+import InputArea from './InputArea'
+import StatusIndicators from './StatusIndicators'
+import QuickQuestions from './QuickQuestions'
+import styles from '../AGUIChat.module.scss'
+
+const { Content } = Layout
+
+interface Session {
+  id: string
+  title: string
+  updatedAt: Date | string
+}
+
+interface Message {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp?: Date | string
+  metadata?: {
+    model?: string
+  }
+  toolCalls?: any[]
+}
+
+interface ChatMainProps {
+  currentSession: Session | null
+  messages: Message[]
+  currentMessage: Message | null
+  loading: boolean
+  currentToolCall: any
+  isRunning: boolean
+  runId: string | null
+  currentStep: string | null
+  error: string | null
+  isConnected: boolean
+  state: Record<string, any> | null
+  inputText: string
+  onInputChange: (text: string) => void
+  onSendMessage: () => void
+  onCancelRun: () => void
+  onClearError: () => void
+  onCreateSession?: () => void
+}
+
+// 控制会话功能的开关
+const ENABLE_SESSION_MANAGEMENT = false
+
+const ChatMain: React.FC<ChatMainProps> = ({
+  messages,
+  currentMessage,
+  loading,
+  currentToolCall,
+  isRunning,
+  runId,
+  currentStep,
+  error,
+  isConnected,
+  state,
+  inputText,
+  onInputChange,
+  onSendMessage,
+  onCancelRun,
+  onClearError,
+  onCreateSession,
+}) => {
+  // 快捷问答处理函数
+  const handleQuickQuestion = (question: string) => {
+    if (ENABLE_SESSION_MANAGEMENT && onCreateSession) {
+      onCreateSession()
+      // 延迟设置输入文本并发送，确保会话已创建
+      setTimeout(() => {
+        onInputChange(question)
+        onSendMessage()
+      }, 100)
+    } else {
+      // 直接设置输入文本并发送
+      onInputChange(question)
+      onSendMessage()
+    }
+  }
+
+  return (
+    <Content className={styles.main}>
+      <StatusIndicators
+        error={error}
+        isConnected={isConnected}
+        currentStep={currentStep}
+        isRunning={isRunning}
+        runId={runId}
+        state={state}
+        onClearError={onClearError}
+      />
+
+      {/* 消息区域或快捷问答 */}
+      {messages.length === 0 ? (
+        <QuickQuestions onQuestionClick={handleQuickQuestion} />
+      ) : (
+        <MessageList
+          messages={messages}
+          currentMessage={currentMessage}
+          loading={loading}
+          currentToolCall={currentToolCall}
+          isRunning={isRunning}
+        />
+      )}
+
+      {/* 输入区域 */}
+      <InputArea
+        inputText={inputText}
+        loading={loading}
+        isRunning={isRunning}
+        runId={runId}
+        onInputChange={onInputChange}
+        onSendMessage={onSendMessage}
+        onCancelRun={onCancelRun}
+      />
+    </Content>
+  )
+}
+
+export default ChatMain

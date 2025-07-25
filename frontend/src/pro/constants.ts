@@ -1,5 +1,10 @@
 import { t } from 'i18next'
-
+import apo from 'src/core/assets/images/logo.svg'
+import datadog from 'src/pro/assets/datadog.png'
+import newrelic from 'src/pro/assets/newrelic.png'
+import dynatrace from 'src/pro/assets/dynatrace.png'
+import nginx from 'src/pro/assets/nginx.png'
+import arms from 'src/pro/assets/arms.png'
 export const anormalTypesOptions = [
   {
     value: 'unknown',
@@ -52,4 +57,40 @@ export const anormalTypes = [
   'error',
   'appInstance',
   'middleware',
+]
+export const dataplaneIconMap = {
+  'apo': apo,
+  'datadog': datadog,
+  'NewRelic': newrelic,
+  'Dynatrace': dynatrace,
+  'nginxLog': nginx,
+  'arms': arms,
+}
+export const datasourceOptions = [
+  {
+    value: 'APO',
+    label: 'APO',
+    icon: apo,
+    dataTypes: ['RED Metrics', 'Service Topology', 'Basic Metrics', 'Logs', 'Traces', 'Alerts',],
+  },
+  {
+    value: 'datadog',
+    label: 'datadog',
+    icon: datadog,
+    dataTypes: ['RED Metrics', 'Service Topology', 'Basic Metrics', 'Logs', 'Traces', 'Alerts'],
+
+  },
+  {
+    value: 'NewRelic',
+    label: 'NewRelic',
+    icon: newrelic,
+    dataTypes: ['RED Metrics', 'Service Topology', 'Basic Metrics', 'Logs', 'Traces', 'Issues',],
+  },
+  {
+    value: 'Dynatrace',
+    label: 'Dynatrace',
+    icon: dynatrace,
+    dataTypes: ['RED Metrics', 'Service Topology', 'Basic Metrics', 'Logs', 'Traces', 'Problems'],
+
+  }
 ]

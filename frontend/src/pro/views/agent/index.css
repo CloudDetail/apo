@@ -1,0 +1,49 @@
+.agent-page {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.agent-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 告警事件卡片样式 */
+.alert-event-card {
+    transition: all 0.2s ease;
+}
+
+.alert-event-card:hover {
+    transform: translateY(-1px);
+}
+
+/* 分割器样式优化 */
+.ant-splitter {}
+
+.ant-splitter-trigger {
+    background-color: var(--ant-color-bg-container);
+}
+
+.ant-splitter-trigger:hover {
+    background-color: var(--ant-color-fill-tertiary);
+}
+
+/* 滚动条样式 */
+.alert-event-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.alert-event-list::-webkit-scrollbar-track {
+    background: var(--ant-color-fill-tertiary);
+    border-radius: 3px;
+}
+
+.alert-event-list::-webkit-scrollbar-thumb {
+    background: var(--ant-color-border);
+    border-radius: 3px;
+}
+
+.alert-event-list::-webkit-scrollbar-thumb:hover {
+    background: var(--ant-color-text-secondary);
+}

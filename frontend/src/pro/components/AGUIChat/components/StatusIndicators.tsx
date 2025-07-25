@@ -1,0 +1,114 @@
+import React from 'react'
+import { Button } from 'antd'
+import { WarningOutlined, CloseOutlined } from '@ant-design/icons'
+import styles from '../AGUIChat.module.scss'
+
+interface StatusIndicatorsProps {
+  error: string | null
+  isConnected: boolean
+  currentStep: string | null
+  isRunning: boolean
+  runId: string | null
+  state: Record<string, any> | null
+  onClearError: () => void
+}
+
+const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
+  error,
+  isConnected,
+  currentStep,
+  isRunning,
+  runId,
+  state,
+  onClearError,
+}) => {
+  // 渲染连接状态
+  const renderConnectionStatus = () => {
+    if (isConnected) return null
+
+    return (
+      <div className={styles.connectionStatus}>
+        <div className={`${styles.connectionIndicator} ${styles.error}`}>
+          <WarningOutlined className={styles.connectionIcon} />
+          <span className={styles.connectionText}>连接断开</span>
+        </div>
+      </div>
+    )
+  }
+
+  // 渲染错误提示
+  const renderErrorAlert = () => {
+    if (!error) return null
+
+    return (
+      <div className={styles.errorAlert}>
+        {error}
+        <Button
+          type="text"
+          icon={<CloseOutlined />}
+          onClick={onClearError}
+          className={styles.errorClose}
+        />
+      </div>
+    )
+  }
+
+  // 渲染步骤状态
+  const renderStepStatus = () => {
+    if (!currentStep) return null
+
+    return (
+      <div className={styles.stepStatus}>
+        <div className={styles.stepIndicator}>
+          <div className={styles.stepDot}></div>
+          <div className={styles.stepText}>当前步骤: {currentStep}</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 渲染运行状态
+  const renderRunStatus = () => {
+    if (!isRunning) return null
+
+    return (
+      <div className={styles.runStatus}>
+        <div className={styles.runIndicator}>
+          <div className={styles.runSpinner}></div>
+          <div className={styles.runText}>运行中 </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 渲染状态信息
+  const renderStateInfo = () => {
+    if (!state || Object.keys(state).length === 0) return null
+
+    return (
+      <div className={styles.stateInfo}>
+        <div className={styles.stateTitle}>会话状态:</div>
+        <div className={styles.stateChips}>
+          {Object.entries(state).map(([key, value]) => (
+            <span key={key} className={styles.stateChip}>
+              <span className={styles.stateKey}>{key}:</span>
+              <span className={styles.stateValue}>{JSON.stringify(value)}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {renderErrorAlert()}
+      {renderConnectionStatus()}
+      {renderStepStatus()}
+      {renderRunStatus()}
+      {renderStateInfo()}
+    </>
+  )
+}
+
+export default StatusIndicators
