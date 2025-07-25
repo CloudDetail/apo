@@ -43,6 +43,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 		alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 		alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
 		alertEvent.ReceivedTime = receivedTime
+		alertEvent.SetPayloadRef(promAlertList)
 		alertEvents = append(alertEvents, *alertEvent)
 	}
 

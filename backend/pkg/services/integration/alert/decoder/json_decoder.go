@@ -35,6 +35,7 @@ func (d JsonDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.A
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
 	alertEvent.ReceivedTime = time.Now()
+	alertEvent.SetPayloadRef(event)
 	return []alert.AlertEvent{*alertEvent}, nil
 }
 
@@ -59,25 +60,39 @@ func (d JsonDecoder) convertAlertEvent(rawMap map[string]any) (*alert.AlertEvent
 }
 
 func ToTimeHookFunc() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Type,
-		t reflect.Type,
-		data interface{}) (interface{}, error) {
+	return func(_ reflect.Type, t reflect.Type, data interface{}) (interface{}, error) {
 		if t != reflect.TypeOf(time.Time{}) {
 			return data, nil
 		}
 
-		switch f.Kind() {
-		case reflect.String:
-			return time.Parse(time.RFC3339, data.(string))
-		case reflect.Float64:
-			return time.Unix(0, int64(data.(float64))*int64(time.Millisecond)), nil
-		case reflect.Int64:
-			return time.Unix(0, data.(int64)*int64(time.Millisecond)), nil
+		switch v := data.(type) {
+		case string:
+			if ts, err := time.ParseInLocation(time.DateTime, v, time.Local); err == nil {
+				return ts, nil
+			}
+			return time.Parse(time.RFC3339, v)
+		case float64:
+			return inferTimeFromNumber(int64(v))
+		case int64:
+			return inferTimeFromNumber(v)
 		default:
 			return data, nil
 		}
-		// Convert it by parsing
+	}
+}
+
+func inferTimeFromNumber(v int64) (time.Time, error) {
+	switch {
+	case v > 1e18:
+		return time.Unix(0, v), nil
+	case v > 1e15:
+		return time.UnixMicro(v), nil
+	case v > 1e12:
+		return time.Unix(0, v*int64(time.Millisecond)), nil
+	case v > 1e9:
+		return time.Unix(v, 0), nil
+	default:
+		return time.Unix(v, 0), nil
 	}
 }
 

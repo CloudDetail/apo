@@ -5,13 +5,16 @@ package router
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/jaeger"
 	"github.com/CloudDetail/apo/backend/pkg/services/common/alertbus"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/incident"
 
 	"go.uber.org/zap"
 
@@ -143,31 +146,9 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	jaegerRepo, err := jaeger.New()
 	r.jaegerRepo = jaegerRepo
 
-	difyConfig := config.Get().Dify
-	receiverConfig := config.Get().AlertReceiver
-
-	if len(difyConfig.APIKeys.AlertCheck) == 0 && receiverConfig.Enabled {
-		extraHandler := alertbus.InitExtraEventHandler(r.logger, 300)
-		extraHandler.RegisterHandler(r.receivers.HandleAlertEvent)
-	} else {
-		extraHandler := alertbus.InitExtraEventHandler(r.logger, difyConfig.TimeoutSecond*4)
-
-		difyRepo, records, err := dify.New(r.prom, r.logger)
-		if err != nil {
-			logger.Fatal("new dify err", zap.Error(err))
-		}
-		r.dify = difyRepo
-		extraHandler.RegisterHandler(difyRepo.SubmitAlertEvents)
-		if receiverConfig.Enabled {
-			go dify.HandleRecords(r.logger, records,
-				r.ch.AddWorkflowRecord,
-				r.receivers.HandleAlertCheckRecord,
-			)
-		} else {
-			go dify.HandleRecords(r.logger, records,
-				r.ch.AddWorkflowRecord,
-			)
-		}
+	err = setupAlertBUS(r)
+	if err != nil {
+		logger.Fatal("setup alert bus err", zap.Error(err))
 	}
 
 	dataplaneConf := config.Get().Dataplane
@@ -188,4 +169,83 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 	s := new(Server)
 	s.Mux = mux
 	return s, nil
+}
+
+func setupAlertBUS(r *resource) error {
+	incidentConfig := config.Get().Incident
+	difyConfig := config.Get().Dify
+	receiverConfig := config.Get().AlertReceiver
+
+	difyEnabled := len(difyConfig.APIKeys.AlertCheck) > 0
+
+	timeoutTs := 300
+	handlers := make([]alertbus.EventsHandler, 0)
+
+	if incidentConfig.Enabled {
+		// Load Incident / AlertEvent From DB/CH
+
+		incidents, err := r.pkg_db.LoadResolvedIncidents(core.EmptyCtx())
+		if err != nil {
+
+		}
+
+		incidents, err = r.ch.LoadAlertEventsFromIncidents(core.EmptyCtx(), incidents)
+		if err != nil {
+
+		}
+
+		temps, err := r.pkg_db.LoadIncidentTemplates(core.EmptyCtx())
+		if err != nil {
+
+		}
+
+		// TODO
+		incidentMemCache := incident.NewIncidentMemCache(incidents, temps).
+			OnCreate(func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
+				err := r.pkg_db.CreateIncident(ctx, incident)
+				if err != nil {
+					return err
+				}
+				err = r.ch.InsertIncident2AlertEvent(ctx, incident.ID, event.ID.String())
+				return err
+			}).
+			OnUpdate(func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
+				err := r.pkg_db.UpdateIncident(ctx, incident)
+				if err != nil {
+					return err
+				}
+				err = r.ch.InsertIncident2AlertEvent(ctx, incident.ID, event.ID.String())
+				return err
+			})
+		go incidentMemCache.KeepClean(core.EmptyCtx())
+		handlers = append(handlers, incidentMemCache.HandlerAlertEvents)
+	}
+
+	if difyEnabled {
+		timeoutTs = difyConfig.TimeoutSecond * 4 // 4 times of dify timeout
+		difyRepo, records, err := dify.New(r.prom, r.logger)
+		if err != nil {
+			return fmt.Errorf("new dify err: %w", err)
+		}
+		r.dify = difyRepo
+
+		recordHandler := []dify.Handle{r.ch.AddWorkflowRecord}
+		if receiverConfig.Enabled {
+			recordHandler = append(recordHandler, r.receivers.HandleAlertCheckRecord)
+		}
+		go dify.HandleRecords(r.logger, records, recordHandler...)
+
+		handlers = append(handlers, difyRepo.SubmitAlertEvents)
+	}
+
+	if !difyEnabled && receiverConfig.Enabled {
+		handlers = append(handlers, r.receivers.HandleAlertEvent)
+	}
+
+	extraHandler := alertbus.InitExtraEventHandler(r.logger, timeoutTs)
+	for _, handler := range handlers {
+		extraHandler.RegisterHandler(handler)
+	}
+
+	return nil
 }

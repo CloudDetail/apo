@@ -14,6 +14,10 @@ import (
 	"github.com/itchyny/gojq"
 )
 
+const (
+	FromPayload = ".__Payload"
+)
+
 type TagEnricher struct {
 	ID    string
 	Order int
@@ -94,7 +98,15 @@ func getTargetTag(tags []alert.TargetTag, id int) string {
 }
 
 func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
-	iter := e.JQParser.Run(map[string]any(alertEvent.Tags))
+	var iter gojq.Iter
+	if strings.HasPrefix(e.FromField, FromPayload) {
+		// EnrichTag from Payload // FromField { .__Payload.xxx } With JQ { .xxx }
+		iter = e.JQParser.Run(alertEvent.Payload())
+	} else {
+		// Default EnrichTag from Label // FromField { .xxx } With JQ { .xxx }
+		iter = e.JQParser.Run(map[string]any(alertEvent.Tags))
+	}
+
 	v, ok := iter.Next()
 	if !ok || v == nil {
 		return
@@ -149,6 +161,7 @@ func (e *TagEnricher) RuleOrder() int {
 }
 
 type JQParser struct {
+	FromField        string
 	FromJQExpression string // JQ expression composed of condition and fromField
 	*gojq.Query
 }
@@ -174,11 +187,18 @@ func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {
 		conditions = append(conditions, jqCondition)
 	}
 
+	var fromField string
+	if strings.HasPrefix(enrichRule.FromField, FromPayload) {
+		fromField = strings.Replace(enrichRule.FromField, FromPayload, "", 1)
+	} else {
+		fromField = enrichRule.FromField
+	}
+
 	var jqExpression string
 	if len(conditions) > 0 {
-		jqExpression = fmt.Sprintf(`if %s then %s else null end`, strings.Join(conditions, " and "), enrichRule.FromField)
+		jqExpression = fmt.Sprintf(`if %s then %s else null end`, strings.Join(conditions, " and "), fromField)
 	} else {
-		jqExpression = fmt.Sprintf(` %s `, enrichRule.FromField)
+		jqExpression = fmt.Sprintf(` %s `, fromField)
 	}
 
 	jqParser, err := gojq.Parse(jqExpression)
@@ -187,6 +207,7 @@ func newJQEnricher(enrichRule alert.AlertEnrichRuleVO) (*JQParser, error) {
 	}
 
 	return &JQParser{
+		FromField:        enrichRule.FromField,
 		FromJQExpression: jqExpression,
 		Query:            jqParser,
 	}, nil

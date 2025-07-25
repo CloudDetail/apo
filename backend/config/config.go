@@ -105,6 +105,9 @@ type Config struct {
 		InitLookBackDays int `mapstructure:"init_look_back_days"`
 		RefreshSeconds   int `mapstructure:"refresh_seconds"`
 	} `mapstructure:"data_group"`
+	Incident struct {
+		Enabled bool `mapstructure:"enabled"`
+	} `mapstructure:"incident"`
 }
 
 type AnonymousUser struct {

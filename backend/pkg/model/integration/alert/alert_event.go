@@ -30,6 +30,8 @@ type AlertEvent struct {
 
 	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
 	Status   string `json:"status" ch:"status" mapstructure:"status"`
+
+	payload map[string]any `json:"-" ch:"-" mapstructure:"-"` // inner use only
 }
 
 // calculate AlertID based on alertName and raw_tag
@@ -109,4 +111,13 @@ func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
 		UpdatedAt: e.UpdateTime,
 		Timeout:   timeout,
 	}
+}
+
+func (e *AlertEvent) SetPayloadRef(payload map[string]any) {
+	e.payload = payload
+}
+
+// ReadOnly
+func (e *AlertEvent) Payload() map[string]any {
+	return e.payload
 }
