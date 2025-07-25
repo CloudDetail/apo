@@ -103,6 +103,20 @@ func TestCheckRouterMatch(t *testing.T) {
 			want:         true,
 			errorMessage: "含点路径应精确匹配",
 		},
+		{
+			name:         "前置/",
+			checkRouter:  "/user/list",
+			matchRouter:  "user/list",
+			want:         true,
+			errorMessage: "前置/需要忽略",
+		},
+		{
+			name:         "后置/",
+			checkRouter:  "user/list/",
+			matchRouter:  "user/list",
+			want:         true,
+			errorMessage: "后置/需要忽略",
+		},
 	}
 
 	for _, tt := range tests {
