@@ -57,6 +57,11 @@ type AlertInput interface {
 	AddAlertSlience(ctx core.Context, slience *sc.AlertSlienceConfig) error
 	UpdateAlertSlience(ctx core.Context, slience *sc.AlertSlienceConfig) error
 	DeleteAlertSlience(ctx core.Context, id int) error
+
+	LoadResolvedIncidents(ctx core.Context) ([]alert.Incident, error)
+	LoadIncidentTemplates(ctx core.Context) ([]alert.IncidentKeyTemp, error)
+	CreateIncident(ctx core.Context, incident *alert.Incident) error
+	UpdateIncident(ctx core.Context, incident *alert.Incident) error
 }
 
 type subRepo struct {
