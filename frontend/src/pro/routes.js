@@ -10,6 +10,9 @@ const ServiceHealthy = React.lazy(() => import('src/pro/views/serviceHealthy/ind
 const MysqlDashboard = React.lazy(() => import('src/pro/views/MysqlDashboard/index'))
 const ChatAIPage = React.lazy(() => import('src/pro/views/chatAI/index'))
 const SlowReportPage = React.lazy(() => import('src/pro/views/report/index'))
+const AgentDataplanePage = React.lazy(() => import('src/pro/views/agentDataplane/index'))
+const AgentPage = React.lazy(() => import('src/pro/views/agent/index'))
+const ProbeInstallerPage = React.lazy(() => import('src/pro/views/probeInstaller'))
 
 let proRoutes = [
   {
@@ -56,11 +59,27 @@ let proRoutes = [
     element: SlowReportPage,
     hideSystemTimeRangePicker: true,
   },
+  {
+    path: '/agent-dataplane',
+    name: '智能体数据接入',
+    element: AgentDataplanePage,
+    hideSystemTimeRangePicker: true,
+  },
   // {
   //   path: '/report/error',
   //   name: <TranslationCom text="errorReport" space={namespace} />,
   //   element: ErrorReportPage,
   //   hideSystemTimeRangePicker: true,
   // },
+  {
+    path: 'agent',
+    name: 'Agent',
+    element: AgentPage,
+  },
+  {
+    path: 'probe-installer',
+    name: 'ProbeInstaller',
+    element: ProbeInstallerPage,
+  },
 ]
 export default proRoutes
