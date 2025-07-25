@@ -4,13 +4,12 @@
  */
 
 import { Card, ConfigProvider, Tabs, TabsProps } from 'antd'
-import IntegrationDoc from './Document'
 import SettingsForm from './SettingsForm'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import InstallCmd from './InstallCmd'
 import styles from './index.module.scss'
+import InstallCmd from 'src/core/components/InstallCmd'
 import { getClusterIntegrationInfoApi, getIntegrationConfigApi } from 'src/core/api/integration'
 export default function IntegrationSettings() {
   const { t } = useTranslation('core/dataIntegration')
