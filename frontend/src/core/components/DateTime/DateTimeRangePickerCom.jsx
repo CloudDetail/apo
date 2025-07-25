@@ -48,7 +48,7 @@ const TypeUrlParamMap = {
 }
 export default function DateTimeRangePickerCom(props) {
   const { t } = useTranslation('core/dateTime')
-  const { type } = props
+  const { type, defaultTimerange = null } = props
   const [searchParams, setSearchParams] = useSearchParams()
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const { setStartTime, setEndTime } = useLogsTraceFilterContext((ctx) => ctx)
@@ -68,22 +68,24 @@ export default function DateTimeRangePickerCom(props) {
   })
   // yyyy-mm-dd hh:mm:ss 时间输入
   const updataUrlTimeRange = (fromString, toString) => {
-    const params = new URLSearchParams(searchParams)
-    const from = searchParams.get(type + '-from')
-    const to = searchParams.get(type + '-to')
-    let needChangeUrl = false
-    const fromStringToISO = DateToISO(fromString)
-    const toStringToISO = DateToISO(toString)
-    if (fromStringToISO !== from) {
-      params.set(type + '-from', fromStringToISO)
-      needChangeUrl = true
-    }
-    if (toStringToISO !== to) {
-      params.set(type + '-to', toStringToISO)
-      needChangeUrl = true
-    }
-    if (needChangeUrl) {
-      setSearchParams(params, { replace: true })
+    if (type) {
+      const params = new URLSearchParams(searchParams)
+      const from = searchParams.get(type + '-from')
+      const to = searchParams.get(type + '-to')
+      let needChangeUrl = false
+      const fromStringToISO = DateToISO(fromString)
+      const toStringToISO = DateToISO(toString)
+      if (fromStringToISO !== from) {
+        params.set(type + '-from', fromStringToISO)
+        needChangeUrl = true
+      }
+      if (toStringToISO !== to) {
+        params.set(type + '-to', toStringToISO)
+        needChangeUrl = true
+      }
+      if (needChangeUrl) {
+        setSearchParams(params, { replace: true })
+      }
     }
   }
   const confirmTimeRange = (event) => {
@@ -92,8 +94,8 @@ export default function DateTimeRangePickerCom(props) {
       event.stopPropagation()
       return
     }
-    setStartTime(new Date(inputStartTime).getTime() * 1000)
-    setEndTime(new Date(inputEndTime).getTime() * 1000)
+    setStartTime?.(new Date(inputStartTime).getTime() * 1000)
+    setEndTime?.(new Date(inputEndTime).getTime() * 1000)
     setDropdownVisible(false)
     const fromISO = DateToISO(inputStartTime)
     const toISO = DateToISO(inputEndTime)
@@ -125,8 +127,8 @@ export default function DateTimeRangePickerCom(props) {
     setInputEndTime(toString)
     setDropdownVisible(false)
     updataUrlTimeRange(fromString, toString)
-    setStartTime(new Date(fromString).getTime() * 1000)
-    setEndTime(new Date(toString).getTime() * 1000)
+    setStartTime?.(new Date(fromString).getTime() * 1000)
+    setEndTime?.(new Date(toString).getTime() * 1000)
   }
   const validStartTime = () => {
     let feedback = t('dateTimeRangePicker.selectCorrectTimeRangeFeedback')
@@ -181,7 +183,9 @@ export default function DateTimeRangePickerCom(props) {
     const from = searchParams.get(type + '-from')
     const to = searchParams.get(type + '-to')
     // console.log(type,'url',from,to)
-
+    if (defaultTimerange) {
+      return
+    }
     if ((!from || !to) && (!inputStartTime || !inputEndTime)) {
       initTimeRange()
       return
@@ -202,7 +206,16 @@ export default function DateTimeRangePickerCom(props) {
       initTimeRange()
     }
   }, [searchParams])
-
+  useEffect(() => {
+    if (defaultTimerange) {
+      const fromString = convertTime(defaultTimerange[0], 'yyyy-mm-dd hh:mm:ss')
+      const toString = convertTime(defaultTimerange[1], 'yyyy-mm-dd hh:mm:ss')
+      setInputStartTime(fromString)
+      setInputEndTime(toString)
+      // setStartTime(new Date(fromString).getTime() * 1000)
+      // setEndTime(new Date(toString).getTime() * 1000)
+    }
+  }, [defaultTimerange])
   useEffect(() => {
     const startTimeValid = validStartTime()
     const endTimeValid = validEndTime()
