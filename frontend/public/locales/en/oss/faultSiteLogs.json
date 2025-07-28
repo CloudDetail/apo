@@ -7,6 +7,6 @@
     "endpoint": "Endpoint",
     "timeOfFailure": "Time",
     "specificLogInformation": "Specific log information",
-    "enterSWTraceId": "Enter the SkyWalking traceid, it will be automatically converted"
+    "enterSWTraceId": "Enter the SkyWalking Trace ID, it will be automatically converted"
   }
 }

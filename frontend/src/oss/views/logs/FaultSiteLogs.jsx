@@ -252,19 +252,19 @@ function FaultSiteLogs(props) {
                   <div className="flex-grow-0 flex-shrink-0">
                     <CCard className="mx-0 mb-2 p-2 font-bold">
                       <CRow className="my-1 ">
-                        <CCol sm="2" className="text-gray-400 font-bold">
-                          Trace Id
+                        <CCol sm="2" className="text-[var(--ant-color-text-secondary)] font-bold">
+                          Trace ID
                         </CCol>
                         <CCol sm="auto">{logsPageList[activeItemKey]?.traceId}</CCol>
                       </CRow>
                       <CRow className="my-1">
-                        <CCol sm="2" className="text-gray-400 font-bold">
+                        <CCol sm="2" className="text-[var(--ant-color-text-secondary)] font-bold">
                           {t('faultSiteLogs.endpoint')}
                         </CCol>
                         <CCol sm="auto">{logsPageList[activeItemKey]?.endpoint}</CCol>
                       </CRow>
                       <CRow className="my-1">
-                        <CCol sm="2" className="text-gray-400 font-bold">
+                        <CCol sm="2" className="text-[var(--ant-color-text-secondary)] font-bold">
                           {t('faultSiteLogs.timeOfFailure')}
                         </CCol>
                         <CCol sm="auto">

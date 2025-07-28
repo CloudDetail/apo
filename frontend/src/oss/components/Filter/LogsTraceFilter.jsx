@@ -16,7 +16,7 @@ import { swTraceIDToTraceID } from 'src/core/utils/trace'
 const LogsTraceFilter = React.memo(({ type }) => {
   const { t } = useTranslation(['common', 'oss/trace'])
   const [searchParams, setSearchParams] = useSearchParams()
-  const [traceType, setTraceType] = useState('TraceID')
+  const [traceType, setTraceType] = useState('Trace ID')
   const [inputSWTraceId, setInputSWTraceId] = useState('')
   const [convertTraceId, setConvertSWTraceId] = useState('')
   const {
@@ -119,12 +119,12 @@ const LogsTraceFilter = React.memo(({ type }) => {
               </div>
               <div className="flex flex-row items-center w-[280px] text-sm mr-5 mb-1">
                 {type === 'trace' ? (
-                  <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
+                  <Segmented options={['Trace ID', 'SWTrace ID']} onChange={setTraceType} />
                 ) : (
-                  <span className="text-nowrap text-sm">TraceId：</span>
+                  <span className="text-nowrap text-sm">Trace ID：</span>
                 )}
                 ：
-                {traceType === 'TraceID' ? (
+                {traceType === 'Trace ID' ? (
                   <Input
                     placeholder={t('logsTraceFilter.search')}
                     value={traceId}
