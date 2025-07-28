@@ -163,10 +163,10 @@ function K8sInfo() {
                 >
                   {item.counts.current ?? 0}
                 </div>
-                <div className="text-xs mb-1" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
+                <div className="text-xs mb-1 text-[var(--ant-color-text-secondary)]">
                   {t('K8sInfo.timesIn7Days')}:{item.counts.lastWeek}
                 </div>
-                <div className="text-xs" style={{ color: 'rgba(248, 249, 250, 0.45)' }}>
+                <div className="text-xs text-[var(--ant-color-text-secondary)]">
                   {t('K8sInfo.timesIn30Days')}:{item.counts.lastMonth}
                 </div>
               </CCol>
