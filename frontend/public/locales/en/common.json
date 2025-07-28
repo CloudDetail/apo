@@ -22,8 +22,8 @@
     "status": "Status：",
     "toText": "To",
     "search": "Search",
-    "enterSWTraceId": "Enter the SkyWalking traceid, it will be automatically converted",
-    "autoConvert": "Auto convert to TraceID:"
+    "enterSWTraceId": "Enter the SkyWalking Trace ID, it will be automatically converted",
+    "autoConvert": "Auto convert to Trace ID:"
   },
   "traceErrorType": {
     "error": "Error",
@@ -45,7 +45,8 @@
     "app": "Application Metrics",
     "infra": "Host Related",
     "network": "Network Related",
-    "container": "Container Related"
+    "container": "Container Related",
+    "middleware": "Middleware"
   },
   "slowCauseType": {
     "networkTime": "Time spent on external service calls and any database and middleware, DNS and other network operations",
