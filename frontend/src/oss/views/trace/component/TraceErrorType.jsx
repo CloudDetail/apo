@@ -46,41 +46,42 @@ export default function TraceErrorType({ type }) {
       </div> */}
       <div className="px-2 rounded-xl py-1 text-xs border text-[var(--ant-color-text-secondary)] border-[var(--ant-colorBorderSecondary)]">
         {' '}
-        {type !== 'slowAndError'
-        ? (<>
-          <span
-            className="rounded-full w-2 h-2 inline-block mr-2"
-            style={{
-              background: ErrorTypeMap[type].color,
-              color: ErrorTypeMap[type].border,
-            }}
-          ></span>
-          <span>{ErrorTypeMap[type].name}</span>
-        </>)
-        : (
-        <div className='flex justify-start items-center gap-2'>
-          <div>
-            <span
-            className="rounded-full w-2 h-2 inline-block mr-2"
-            style={{
-              background: ErrorTypeMap['slow'].color,
-              color: ErrorTypeMap['slow'].border,
-            }}
-            ></span>
-            <span>{ErrorTypeMap['slow'].name}</span>
-          </div>
-          &
-          <div>
+        {type !== 'slowAndError' ? (
+          <>
             <span
               className="rounded-full w-2 h-2 inline-block mr-2"
               style={{
-                background: ErrorTypeMap['error'].color,
-                color: ErrorTypeMap['error'].border,
+                background: ErrorTypeMap[type].color,
+                color: ErrorTypeMap[type].border,
               }}
             ></span>
-            <span>{ErrorTypeMap['error'].name}</span>
+            <span>{ErrorTypeMap[type].name}</span>
+          </>
+        ) : (
+          <div className="flex justify-start items-center gap-2">
+            <div>
+              <span
+                className="rounded-full w-2 h-2 inline-block mr-2"
+                style={{
+                  background: ErrorTypeMap['slow'].color,
+                  color: ErrorTypeMap['slow'].border,
+                }}
+              ></span>
+              <span>{ErrorTypeMap['slow'].name}</span>
+            </div>
+            &
+            <div>
+              <span
+                className="rounded-full w-2 h-2 inline-block mr-2"
+                style={{
+                  background: ErrorTypeMap['error'].color,
+                  color: ErrorTypeMap['error'].border,
+                }}
+              ></span>
+              <span>{ErrorTypeMap['error'].name}</span>
+            </div>
           </div>
-        </div>)}
+        )}
       </div>
     </>
   )

@@ -79,7 +79,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
   return (
     <>
       <div className="flex flex-row mb-2 justify-between">
-        <div className="flex flex-row  flex-wrap">
+        <div className="flex flex-row flex-wrap flex-1 items-center">
           <DataSourceFilter
             category={type === 'logs' ? 'log' : 'apm'}
             setCluster={(value) => setClusterIds(value)}
@@ -98,7 +98,7 @@ const LogsTraceFilter = React.memo(({ type }) => {
           />
 
           {type === 'logs' && (
-            <div className="flex flex-row items-center  min-w-[200px]">
+            <div className="flex flex-row items-center  min-w-[280px] mr-5 mb-1">
               <span className="text-nowrap ">{t('oss/trace:trace.traceId')}：</span>
               <Input
                 placeholder={t('logsTraceFilter.search')}
@@ -107,42 +107,9 @@ const LogsTraceFilter = React.memo(({ type }) => {
               />
             </div>
           )}
-        </div>
-        <div className="flex-grow-0 flex-shrink-0 flex">
-          <DateTimeRangePickerCom type={type} />
-        </div>
-      </div>
-      {type === 'trace' && (
-        <>
-          <div className="text-xs flex flex-row  flex-wrap w-full mb-2 items-center">
-            <div className="flex flex-row items-center  ">
-              <span className="text-nowrap">{t('logsTraceFilter.durationLabel')}：</span>
-              <div className="flex-1 flex flex-row items-center mr-2">
-                <div className="pr-2">
-                  <InputNumber
-                    addonBefore="MIN"
-                    addonAfter="ms"
-                    min={0}
-                    value={minDuration}
-                    onChange={onChangeMinDuration}
-                    className=" w-[150px]"
-                  />
-                </div>
-                {t('logsTraceFilter.toText')}
-                <div className="pl-2">
-                  <InputNumber
-                    addonBefore="MAX"
-                    addonAfter="ms"
-                    min={0}
-                    value={maxDuration}
-                    onChange={onChangeMaxDuration}
-                    className=" w-[150px]"
-                  />
-                </div>
-              </div>
-            </div>
-            {type === 'trace' && (
-              <div className="flex flex-row items-center  w-[150px]">
+          {type === 'trace' && (
+            <>
+              <div className="flex flex-row items-center w-[280px] mr-5 mb-1">
                 <span className="text-nowrap ">{t('logsTraceFilter.endpointLabel')}：</span>
                 <Input
                   placeholder={t('logsTraceFilter.search')}
@@ -150,49 +117,77 @@ const LogsTraceFilter = React.memo(({ type }) => {
                   onChange={(e) => setEndpoint(e.target.value)}
                 />
               </div>
-            )}
-          </div>
-          <div className="flex">
-            <div className="flex flex-row items-center mr-2 w-[300px] text-sm">
-              {type === 'trace' ? (
-                <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
-              ) : (
-                <span className="text-nowrap text-sm">TraceId：</span>
-              )}
-              ：
-              {traceType === 'TraceID' ? (
-                <Input
-                  placeholder={t('logsTraceFilter.search')}
-                  value={traceId}
-                  onChange={(e) => setTraceId(e.target.value)}
-                />
-              ) : (
-                <Tooltip
-                  title={
-                    convertTraceId
-                      ? t('logsTraceFilter.autoConvert') + convertTraceId
-                      : t('logsTraceFilter.enterSWTraceId')
-                  }
-                >
+              <div className="flex flex-row items-center w-[280px] text-sm mr-5 mb-1">
+                {type === 'trace' ? (
+                  <Segmented options={['TraceID', 'SWTraceId']} onChange={setTraceType} />
+                ) : (
+                  <span className="text-nowrap text-sm">TraceId：</span>
+                )}
+                ：
+                {traceType === 'TraceID' ? (
                   <Input
                     placeholder={t('logsTraceFilter.search')}
-                    value={inputSWTraceId}
-                    onChange={onChangeSWTraceId}
+                    value={traceId}
+                    onChange={(e) => setTraceId(e.target.value)}
                   />
-                </Tooltip>
-              )}
-            </div>
-            <div className="flex flex-row items-center text-xs  mr-2">
-              <span className="text-nowrap">{t('logsTraceFilter.status')}</span>
-              <Checkbox.Group
-                onChange={(value) => setFaultTypeList(value)}
-                options={options}
-                value={faultTypeList}
-              ></Checkbox.Group>
-            </div>
-          </div>
-        </>
-      )}
+                ) : (
+                  <Tooltip
+                    title={
+                      convertTraceId
+                        ? t('logsTraceFilter.autoConvert') + convertTraceId
+                        : t('logsTraceFilter.enterSWTraceId')
+                    }
+                  >
+                    <Input
+                      placeholder={t('logsTraceFilter.search')}
+                      value={inputSWTraceId}
+                      onChange={onChangeSWTraceId}
+                    />
+                  </Tooltip>
+                )}
+              </div>
+
+              <div className="flex flex-row items-center mr-1 mb-1 ">
+                <span className="text-nowrap">{t('logsTraceFilter.durationLabel')}：</span>
+                <div className="flex-1 flex flex-row items-center mr-2">
+                  <div className="pr-2">
+                    <InputNumber
+                      addonBefore="MIN"
+                      addonAfter="ms"
+                      min={0}
+                      value={minDuration}
+                      onChange={onChangeMinDuration}
+                      className=" w-[150px]"
+                    />
+                  </div>
+                  {t('logsTraceFilter.toText')}
+                  <div className="pl-2">
+                    <InputNumber
+                      addonBefore="MAX"
+                      addonAfter="ms"
+                      min={0}
+                      value={maxDuration}
+                      onChange={onChangeMaxDuration}
+                      className=" w-[150px]"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-row items-center text-sm  mb-2">
+                <span className="text-nowrap">{t('logsTraceFilter.status')}</span>
+                <Checkbox.Group
+                  onChange={(value) => setFaultTypeList(value)}
+                  options={options}
+                  value={faultTypeList}
+                ></Checkbox.Group>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="flex-grow-0 flex-shrink-0 flex items-start">
+          <DateTimeRangePickerCom type={type} />
+        </div>
+      </div>
     </>
   )
 })
