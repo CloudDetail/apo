@@ -313,5 +313,6 @@ func migrateTable(db *gorm.DB) error {
 		&CustomServiceTopology{},
 		&alert.IncidentKeyTemp{},
 		&alert.IncidentCondition{},
+		&alert.Incident{},
 	)
 }
