@@ -11,6 +11,8 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
@@ -49,6 +51,10 @@ type Service interface {
 	GetDefaultAlertEnrichRule(ctx core.Context, sourceType string) (string, []alert.AlertEnrichRuleVO)
 	ClearDefaultAlertEnrichRule(ctx core.Context, sourceType string) (bool, error)
 	SetDefaultAlertEnrichRule(ctx core.Context, sourceType string, tagEnrichRules []alert.AlertEnrichRuleVO) error
+
+	SetIncidentTempBySource(ctx core.Context, req *request.SetIncidentTempBySourceRequest) error
+	GetIncidentTempBySource(ctx core.Context, req *request.GetIncidentTempBySourceRequest) (*response.GetIncidentTempBySourceResponse, error)
+	ClearIncidentTempBySource(ctx core.Context, req *request.ClearIncidentTempBySourceRequest) error
 }
 
 type service struct {

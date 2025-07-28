@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/prometheus/common/model"
 )
 
@@ -230,3 +231,17 @@ type CheckAlertRuleRequest struct {
 }
 
 type ForwardToDingTalkRequest InputAlertManagerRequest
+
+type SetIncidentTempBySourceRequest struct {
+	SourceID string                   `json:"source_id" form:"source_id"`
+	ITemps   []*alert.IncidentKeyTemp `json:"incidentTemps" form:"incidentTemps"`
+}
+
+type GetIncidentTempBySourceRequest struct {
+	SourceID  string `json:"source_id" form:"source_id" binding:"required"`
+	NeedFresh bool   `json:"needFresh" form:"needFresh"`
+}
+
+type ClearIncidentTempBySourceRequest struct {
+	SourceID string `json:"source_id" form:"source_id"`
+}

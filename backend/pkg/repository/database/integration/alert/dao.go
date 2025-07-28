@@ -62,6 +62,11 @@ type AlertInput interface {
 	LoadIncidentTemplates(ctx core.Context) ([]alert.IncidentKeyTemp, error)
 	CreateIncident(ctx core.Context, incident *alert.Incident) error
 	UpdateIncident(ctx core.Context, incident *alert.Incident) error
+
+	CreateIncidentTemplates(ctx core.Context, temp []*alert.IncidentKeyTemp) error
+	DeleteIncidentTemplates(ctx core.Context, tempIDs []string) error
+	UpdateIncidentTemplates(ctx core.Context, temps []*alert.IncidentKeyTemp) error
+	GetIncidentTemplatesBySourceId(ctx core.Context, sourceId string) ([]*alert.IncidentKeyTemp, error)
 }
 
 type subRepo struct {

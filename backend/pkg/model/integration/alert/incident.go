@@ -2,10 +2,12 @@ package alert
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"strings"
 	"text/template"
 
+	"github.com/google/uuid"
 	"github.com/itchyny/gojq"
 )
 
@@ -72,17 +74,77 @@ func (t *IncidentKeyTemp) TableName() string {
 	return "incident_key_temp"
 }
 
-func (t *IncidentKeyTemp) Compile() {
-	var err error
+func (t *IncidentKeyTemp) Compile() error {
+	var errs []error
+
+	if len(t.ID) == 0 {
+		t.ID = uuid.New().String()
+	}
+
+	for i := 0; i < len(t.Conditions); i++ {
+		t.Conditions[i].IncidentTempID = t.ID
+	}
 
 	if len(t.Conditions) > 0 {
-		t.ConditionJQParser, err = buildJQConditionExpr(t.Conditions)
-		if err != nil {
-			t.CompiledErr = err
+		var conditionErr error
+		t.ConditionJQParser, conditionErr = buildJQConditionExpr(t.Conditions)
+		if conditionErr != nil {
+			errs = append(errs, conditionErr)
 		}
 	}
 
-	t.CompiledTemp, t.CompiledErr = template.New("incidentKey").Parse(t.IncidentKeyTemplate)
+	if len(t.IncidentKeyTemplate) == 0 {
+		errs = append(errs, errors.New("incident key template is empty"))
+		return errors.Join(errs...)
+	}
+
+	var compileErr error
+	t.CompiledTemp, compileErr = template.New("incidentKey").Parse(t.IncidentKeyTemplate)
+	if compileErr != nil {
+		errs = append(errs, compileErr)
+	}
+
+	if len(errs) > 0 {
+		t.CompiledErr = fmt.Errorf("compile incident key template failed: %w", errors.Join(errs...))
+	}
+	return t.CompiledErr
+}
+
+func (t *IncidentKeyTemp) IsValid() (bool, error) {
+	if err := t.Compile(); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (t *IncidentKeyTemp) Equal(other *IncidentKeyTemp) bool {
+	if t.ID != other.ID {
+		return false
+	}
+
+	if t.Order != other.Order {
+		return false
+	}
+
+	if t.IncidentKeyTemplate != other.IncidentKeyTemplate {
+		return false
+	}
+
+	if t.AlertSourceID != other.AlertSourceID {
+		return false
+	}
+
+	if len(t.Conditions) != len(other.Conditions) {
+		return false
+	}
+
+	for i := range t.Conditions {
+		if t.Conditions[i] != other.Conditions[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (t *IncidentKeyTemp) CheckConditions(data map[string]any) (bool, error) {
@@ -136,6 +198,26 @@ type IncidentCondition struct {
 
 func (c IncidentCondition) TableName() string {
 	return "incident_condition"
+}
+
+func (c IncidentCondition) Equal(other IncidentCondition) bool {
+	if c.IncidentTempID != other.IncidentTempID {
+		return false
+	}
+
+	if c.FromField != other.FromField {
+		return false
+	}
+
+	if c.Operation != other.Operation {
+		return false
+	}
+
+	if c.Expr != other.Expr {
+		return false
+	}
+
+	return true
 }
 
 func buildJQConditionExpr(conditions []IncidentCondition) (*gojq.Query, error) {

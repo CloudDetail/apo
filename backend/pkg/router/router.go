@@ -199,8 +199,7 @@ func setupAlertBUS(r *resource) error {
 
 		}
 
-		// TODO
-		incidentMemCache := incident.NewIncidentMemCache(incidents, temps).
+		incidentMemCache := incident.InitIncidentMemCache(incidents, temps).
 			OnCreate(func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
 				err := r.pkg_db.CreateIncident(ctx, incident)
 				if err != nil {

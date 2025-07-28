@@ -6,6 +6,7 @@ package response
 import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
@@ -36,4 +37,8 @@ type GetMetricPQLResponse struct {
 
 type CheckAlertRuleResponse struct {
 	Available bool `json:"available"`
+}
+
+type GetIncidentTempBySourceResponse struct {
+	ITemps []*alert.IncidentKeyTemp `json:"incidentTemps"`
 }

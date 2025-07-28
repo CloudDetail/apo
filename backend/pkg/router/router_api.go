@@ -291,6 +291,10 @@ func setApiRouter(r *resource) {
 		alertInputApi.GET("/source/enrich/default/clear", handler.ClearDefaultAlertEnrichRule())
 		alertInputApi.GET("/source/enrich/default/get", handler.GetDefaultAlertEnrichRule())
 		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
+
+		alertInputApi.POST("/incident/temp/set", handler.SetIncidentTempBySource())
+		alertInputApi.GET("/incident/temp/get", handler.GetIncidentTempBySource())
+		alertInputApi.POST("/incident/temp/clear", handler.ClearIncidentTempBySource())
 	}
 
 	integrationAPI := r.mux.Group("/api/integration")

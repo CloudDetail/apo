@@ -14,17 +14,30 @@ import (
 	"github.com/google/uuid"
 )
 
+var IncidentMemCacheInstance *IncidentMemCache
+
 type IncidentMemCache struct {
 	// Source -> IncidentTemps
-	Temps map[string][]alert.IncidentKeyTemp
+	*templateMap // Read Only
 
 	// IncidentKey -> Incident
 	Incidents map[string]*alert.Incident
-
-	iMutex sync.RWMutex
+	iMutex    sync.RWMutex // Incidents Lock
 
 	createHandler CreateIncidentFunc
 	updateHandler UpdateIncidentFunc
+}
+
+type templateMap struct {
+	data   map[string][]*alert.IncidentKeyTemp
+	mMutex sync.RWMutex // data Lock
+}
+
+func (m *templateMap) GetTemps(sourceID string) ([]*alert.IncidentKeyTemp, bool) {
+	m.mMutex.RLock()
+	defer m.mMutex.RUnlock()
+	temps, find := m.data[sourceID]
+	return temps, find
 }
 
 type CreateIncidentFunc func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error
@@ -32,16 +45,27 @@ type CreateIncidentFunc func(ctx core.Context, incident *alert.Incident, event *
 type UpdateIncidentFunc func(
 	ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error
 
-func NewIncidentMemCache(incidents []alert.Incident, temps []alert.IncidentKeyTemp) *IncidentMemCache {
-	var tempMap = make(map[string][]alert.IncidentKeyTemp)
-	for i := 0; i < len(temps); i++ {
-		tempMap[temps[i].AlertSourceID] = append(tempMap[temps[i].AlertSourceID], temps[i])
+func InitIncidentMemCache(incidents []alert.Incident, temps []alert.IncidentKeyTemp) *IncidentMemCache {
+	if IncidentMemCacheInstance != nil {
+		// TODO reload incidents and temps or return error
 	}
 
-	return &IncidentMemCache{
-		Temps:     tempMap,
-		Incidents: make(map[string]*alert.Incident),
+	var tempMap = make(map[string][]*alert.IncidentKeyTemp)
+	for i := 0; i < len(temps); i++ {
+		tempMap[temps[i].AlertSourceID] = append(tempMap[temps[i].AlertSourceID], &temps[i])
 	}
+
+	IncidentMemCacheInstance = &IncidentMemCache{
+		templateMap: &templateMap{data: tempMap},
+		Incidents:   make(map[string]*alert.Incident),
+	}
+	return IncidentMemCacheInstance
+}
+
+func (c *IncidentMemCache) UpdateIncidentTemp(sourceID string, temps []*alert.IncidentKeyTemp) {
+	c.templateMap.mMutex.Lock()
+	defer c.templateMap.mMutex.Unlock()
+	c.templateMap.data[sourceID] = temps
 }
 
 func (c *IncidentMemCache) OnCreate(handler CreateIncidentFunc) *IncidentMemCache {
@@ -59,8 +83,8 @@ func (c *IncidentMemCache) HandlerAlertEvents(ctx core.Context, events []alert.A
 	for i := 0; i < len(events); i++ {
 		event := events[i]
 
-		temps := c.Temps[event.SourceID]
-		if len(temps) == 0 {
+		temps, find := c.GetTemps(event.SourceID)
+		if !find || len(temps) == 0 {
 			continue
 		}
 
@@ -75,7 +99,7 @@ func (c *IncidentMemCache) HandlerAlertEvents(ctx core.Context, events []alert.A
 	return errors.Join(errs...)
 }
 
-func incidentKey(temps []alert.IncidentKeyTemp, event alert.AlertEvent) (string, error) {
+func incidentKey(temps []*alert.IncidentKeyTemp, event alert.AlertEvent) (string, error) {
 	data := map[string]any{
 		"payload":   event.Payload(),
 		"rawLabels": event.Tags,

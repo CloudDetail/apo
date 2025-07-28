@@ -138,6 +138,21 @@ type Handler interface {
 	// @Tags API.alertinput
 	// @Router /api/alertinput/schema/listwithcolumns [get]
 	ListSchemaWithColumns() core.HandlerFunc
+
+	// SetIncidentTempBySource SetIncidentTempBySource
+	// @Tags API.alertinput
+	// @Router /api/alertinput/incident/temp/set [post]
+	SetIncidentTempBySource() core.HandlerFunc
+
+	// GetIncidentTempBySource GetIncidentTempBySource
+	// @Tags API.alertinput
+	// @Router /api/alertinput/incident/temp/get [get]
+	GetIncidentTempBySource() core.HandlerFunc
+
+	// ClearIncidentTempBySource ClearIncidentTempBySource
+	// @Tags API.alertinput
+	// @Router /api/alertinput/incident/temp/clear [get]
+	ClearIncidentTempBySource() core.HandlerFunc
 }
 
 type handler struct {
