@@ -12,6 +12,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 
@@ -310,5 +311,7 @@ func migrateTable(db *gorm.DB) error {
 		&ServiceNameRule{},
 		&ServiceNameRuleCondition{},
 		&CustomServiceTopology{},
+		&alert.IncidentKeyTemp{},
+		&alert.IncidentCondition{},
 	)
 }
