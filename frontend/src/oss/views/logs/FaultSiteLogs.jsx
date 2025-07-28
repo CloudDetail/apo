@@ -9,7 +9,6 @@ import { convertTime } from 'src/core/utils/time'
 import { getLogContentApi, getLogPageListApi } from 'core/api/logs'
 import { CustomSelect } from 'src/core/components/Select'
 import LogContent from './component/LogContent'
-import CustomPagination from 'src/core/components/Pagination/CustomPagination'
 import Empty from 'src/core/components/Empty/Empty'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { IoMdInformationCircleOutline } from 'react-icons/io'
@@ -19,6 +18,7 @@ import LogsTraceFilter from 'src/oss/components/Filter/LogsTraceFilter'
 import { useLogsTraceFilterContext } from 'src/oss/contexts/LogsTraceFilterContext'
 import { useDebounce } from 'react-use'
 import { useSelector } from 'react-redux'
+import { Pagination } from 'antd'
 // import DataSourceFilter from 'src/core/components/Filter/DataSourceFilter'
 function FaultSiteLogs(props) {
   const { t, i18n } = useTranslation('oss/faultSiteLogs')
@@ -213,15 +213,19 @@ function FaultSiteLogs(props) {
                           ref={(el) => (refs.current[index] = el)}
                           onClick={() => changeActiveItemKey(index)}
                         >
-                          {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}{' '}
-                          {t('faultSiteLogs.faultLogsText')}
+                          <div className="flex flex-col items-center text-xs w-full overflow-hidden">
+                            <span className="text-xs w-[170px]">
+                              {convertTime(logs.startTime, 'yyyy-mm-dd hh:mm:ss.SSS')}
+                            </span>
+                            <span className="text-xs">{t('faultSiteLogs.faultLogsText')}</span>
+                          </div>
                         </CTab>
                       )
                     })}
                 </div>
 
                 <div className="w-full overflow-hidden flex-grow-0 flex items-end justify-end">
-                  <CustomPagination
+                  {/* <CustomPagination
                     pageIndex={pageIndex}
                     pageSize={pageSize}
                     total={total}
@@ -229,15 +233,24 @@ function FaultSiteLogs(props) {
                     nextPage={() => setPageIndex(pageIndex + 1)}
                     gotoPage={(index) => setPageIndex(index)}
                     maxButtons={2}
+                  /> */}
+                  <Pagination
+                    simple
+                    showSizeChanger={false}
+                    size="small"
+                    current={pageIndex}
+                    total={total}
+                    pageSize={pageSize}
+                    onChange={(index) => setPageIndex(index)}
                   />
                 </div>
               </CTabList>
 
               {logsPageList[activeItemKey] && (
-                <div className="p-3 w-full h-full overflow-hidden flex flex-col relative">
+                <div className="px-3 w-full h-full overflow-hidden flex flex-col relative">
                   <LoadingSpinner loading={logContentLoading} />
                   <div className="flex-grow-0 flex-shrink-0">
-                    <CCard className="mx-4 my-2 p-2 font-bold">
+                    <CCard className="mx-0 mb-2 p-2 font-bold">
                       <CRow className="my-1 ">
                         <CCol sm="2" className="text-gray-400 font-bold">
                           Trace Id
@@ -266,7 +279,7 @@ function FaultSiteLogs(props) {
                   <div className="text-base font-bold mb-2">
                     {t('faultSiteLogs.specificLogInformation')}
                   </div>
-                  <div className="flex flex-row items-center">
+                  <div className="flex flex-row items-center text-xs">
                     <span className="text-nowrap">Source：</span>
                     <CustomSelect
                       options={logContent?.sources ?? []}

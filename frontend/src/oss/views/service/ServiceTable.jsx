@@ -446,17 +446,18 @@ const ServiceTable = React.memo(() => {
       <LoadingSpinner loading={loading} />
 
       <BasicCard.Header>
-        <DataSourceFilter
-          setServiceName={setServiceName}
-          setEndpoint={setEndpoint}
-          setNamespace={setNamespace}
-          setCluster={setCluster}
-          startTime={startTime}
-          endTime={endTime}
-          className="mb-2"
-          category="apm"
-          extra="endpoint"
-        />
+        <div className={`flex flex-row w-full mb-2 flex-wrap`}>
+          <DataSourceFilter
+            setServiceName={setServiceName}
+            setEndpoint={setEndpoint}
+            setNamespace={setNamespace}
+            setCluster={setCluster}
+            startTime={startTime}
+            endTime={endTime}
+            category="apm"
+            extra="endpoint"
+          />
+        </div>
         {/* <TableFilter
           dataGroupId={dataGroupId}
           setServiceName={setServiceName}

@@ -453,96 +453,94 @@ const DataSourceFilter = (props: DataSourceFilterProps) => {
   )
   return (
     <>
-      <div className={`flex flex-row w-full ${className} flex-wrap`}>
-        <FilterSelector
-          mode={category === 'log' ? null : 'multiple'}
-          label={t('tableFilter.clusterLabel')}
-          placeholder={t('tableFilter.clusterPlaceholder')}
-          value={searchCluster}
-          onChange={(e) => {
-            updateFilteredOptions(
-              e,
-              searchNamespace,
-              searchServiceName,
-              searchEndpointName,
-              searchPods,
-              searchInstances,
-            )
-          }}
-          options={clusterOptions}
-          id="cluster"
-        />
+      <FilterSelector
+        mode={category === 'log' ? null : 'multiple'}
+        label={t('tableFilter.clusterLabel')}
+        placeholder={t('tableFilter.clusterPlaceholder')}
+        value={searchCluster}
+        onChange={(e) => {
+          updateFilteredOptions(
+            e,
+            searchNamespace,
+            searchServiceName,
+            searchEndpointName,
+            searchPods,
+            searchInstances,
+          )
+        }}
+        options={clusterOptions}
+        id="cluster"
+      />
 
-        <FilterSelector
-          mode={category === 'log' ? null : 'multiple'}
-          label={t('tableFilter.namespacesLabel')}
-          placeholder={t('tableFilter.namespacePlaceholder')}
-          value={searchNamespace}
-          onChange={(e) => {
-            updateFilteredOptions(
-              searchCluster,
-              e,
-              searchServiceName,
-              searchEndpointName,
-              searchPods,
-              searchInstances,
-            )
-          }}
-          options={namespaceOptions}
-          id="namespace"
-        />
-        <FilterSelector
-          label={t('tableFilter.applicationsLabel')}
-          placeholder={t('tableFilter.applicationsPlaceholder')}
-          value={searchServiceName}
-          onChange={(e) => {
-            updateFilteredOptions(
-              searchCluster,
-              searchNamespace,
-              e,
-              searchEndpointName,
-              searchPods,
-              searchInstances,
-            )
-          }}
-          options={serviceNameOptions}
-          id="serviceName"
-        />
-        {extra === 'endpoint' ? (
-          <>
-            {' '}
-            <FilterSelector
-              label={t('tableFilter.endpointsLabel')}
-              placeholder={t('tableFilter.endpointsPlaceholder')}
-              value={searchEndpointName}
-              onChange={(e) => setSearchEndpointName(e)}
-              options={endpointNameOptions}
-              id="endpointName"
-            />
-          </>
-        ) : (
-          // <FilterSelector
-          //   mode={null}
-          //   label={t('tableFilter.podsLabel')}
-          //   placeholder={t('tableFilter.podsPlaceholder')}
-          //   value={searchPods}
-          //   onChange={(e) => setSearchPods(e)}
-          //   options={podOptions}
-          //   id="podName"
-          // />
+      <FilterSelector
+        mode={category === 'log' ? null : 'multiple'}
+        label={t('tableFilter.namespacesLabel')}
+        placeholder={t('tableFilter.namespacePlaceholder')}
+        value={searchNamespace}
+        onChange={(e) => {
+          updateFilteredOptions(
+            searchCluster,
+            e,
+            searchServiceName,
+            searchEndpointName,
+            searchPods,
+            searchInstances,
+          )
+        }}
+        options={namespaceOptions}
+        id="namespace"
+      />
+      <FilterSelector
+        label={t('tableFilter.applicationsLabel')}
+        placeholder={t('tableFilter.applicationsPlaceholder')}
+        value={searchServiceName}
+        onChange={(e) => {
+          updateFilteredOptions(
+            searchCluster,
+            searchNamespace,
+            e,
+            searchEndpointName,
+            searchPods,
+            searchInstances,
+          )
+        }}
+        options={serviceNameOptions}
+        id="serviceName"
+      />
+      {extra === 'endpoint' ? (
+        <>
+          {' '}
           <FilterSelector
-            mode={null}
-            label={t('tableFilter.instancesLabel')}
-            placeholder={t('tableFilter.instancesPlaceholder')}
-            value={searchInstances}
-            onChange={(e) => setSearchInstances(e)}
-            options={instanceOptions}
-            id="instanceName"
+            label={t('tableFilter.endpointsLabel')}
+            placeholder={t('tableFilter.endpointsPlaceholder')}
+            value={searchEndpointName}
+            onChange={(e) => setSearchEndpointName(e)}
+            options={endpointNameOptions}
+            id="endpointName"
           />
-        )}
+        </>
+      ) : (
+        // <FilterSelector
+        //   mode={null}
+        //   label={t('tableFilter.podsLabel')}
+        //   placeholder={t('tableFilter.podsPlaceholder')}
+        //   value={searchPods}
+        //   onChange={(e) => setSearchPods(e)}
+        //   options={podOptions}
+        //   id="podName"
+        // />
+        <FilterSelector
+          mode={null}
+          label={t('tableFilter.instancesLabel')}
+          placeholder={t('tableFilter.instancesPlaceholder')}
+          value={searchInstances}
+          onChange={(e) => setSearchInstances(e)}
+          options={instanceOptions}
+          id="instanceName"
+        />
+      )}
 
-        <div>{/* <ThresholdCofigModal /> */}</div>
-      </div>
+      <div>{/* <ThresholdCofigModal /> */}</div>
     </>
   )
 }
