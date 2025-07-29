@@ -11,6 +11,8 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/google/uuid"
 )
 
@@ -197,5 +199,35 @@ func (c *IncidentMemCache) autoResolvedIncidents(ctx core.Context) {
 
 	for i := 0; i < len(toRemoved); i++ {
 		delete(c.Incidents, toRemoved[i])
+	}
+}
+
+func CreateIncident(db database.Repo, ch clickhouse.Repo) CreateIncidentFunc {
+	return func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
+		err := db.CreateIncident(ctx, incident)
+		if err != nil {
+			return err
+		}
+		err = ch.InsertIncident2AlertEvent(ctx, &alert.Incident2Alert{
+			IncidentId:   incident.ID,
+			AlertEventID: event.ID.String(),
+			Timestamp:    event.ReceivedTime,
+		})
+		return err
+	}
+}
+
+func UpdateIncident(db database.Repo, ch clickhouse.Repo) UpdateIncidentFunc {
+	return func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
+		err := db.UpdateIncident(ctx, incident)
+		if err != nil {
+			return err
+		}
+		err = ch.InsertIncident2AlertEvent(ctx, &alert.Incident2Alert{
+			IncidentId:   incident.ID,
+			AlertEventID: event.ID.String(),
+			Timestamp:    event.ReceivedTime,
+		})
+		return err
 	}
 }

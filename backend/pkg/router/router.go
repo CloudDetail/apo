@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/receiver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/cache"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
@@ -183,39 +182,25 @@ func setupAlertBUS(r *resource) error {
 
 	if incidentConfig.Enabled {
 		// Load Incident / AlertEvent From DB/CH
-
 		incidents, err := r.pkg_db.LoadResolvedIncidents(core.EmptyCtx())
 		if err != nil {
-
+			return fmt.Errorf("load resolved incidents err: %w", err)
 		}
 
 		incidents, err = r.ch.LoadAlertEventsFromIncidents(core.EmptyCtx(), incidents)
 		if err != nil {
-
+			return fmt.Errorf("load alert events from incidents err: %w", err)
 		}
 
 		temps, err := r.pkg_db.LoadIncidentTemplates(core.EmptyCtx())
 		if err != nil {
-
+			return fmt.Errorf("load incident templates err: %w", err)
 		}
 
 		incidentMemCache := incident.InitIncidentMemCache(incidents, temps).
-			OnCreate(func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
-				err := r.pkg_db.CreateIncident(ctx, incident)
-				if err != nil {
-					return err
-				}
-				err = r.ch.InsertIncident2AlertEvent(ctx, incident.ID, event.ID.String())
-				return err
-			}).
-			OnUpdate(func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
-				err := r.pkg_db.UpdateIncident(ctx, incident)
-				if err != nil {
-					return err
-				}
-				err = r.ch.InsertIncident2AlertEvent(ctx, incident.ID, event.ID.String())
-				return err
-			})
+			OnCreate(incident.CreateIncident(r.pkg_db, r.ch)).
+			OnUpdate(incident.UpdateIncident(r.pkg_db, r.ch))
+
 		go incidentMemCache.KeepClean(core.EmptyCtx())
 		handlers = append(handlers, incidentMemCache.HandlerAlertEvents)
 	}

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/itchyny/gojq"
@@ -49,8 +50,9 @@ func (in *Incident) GetFiringAlertCount() int {
 }
 
 type Incident2Alert struct {
-	IncidentId   string `json:"incidentId" ch:"incident_id"`
-	AlertEventID string `json:"alertEventId" ch:"alert_event_id"`
+	IncidentId   string    `json:"incidentId" ch:"incident_id"`
+	AlertEventID string    `json:"alertEventId" ch:"alert_event_id"`
+	Timestamp    time.Time `json:"timestamp" ch:"timestamp"`
 }
 
 func (in Incident2Alert) TableName() string {
