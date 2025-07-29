@@ -45,7 +45,11 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
       render: (text, record) => {
         return (
           <div className="flex items-center gap-2">
-            <span className="w-[150px]">{record.from}</span>
+            <span
+              className={`w-[150px]  ${columns?.includes('analysis') && record?.deleteService?.includes(record.from) ? 'line-through text-[var(--ant-color-text-tertiary)]' : ''}`}
+            >
+              {record.from}
+            </span>
             <div className="mx-4">
               {record.isTrue ? (
                 <TbArrowNarrowRight className="text-[var(--ant-color-primary)]" size={30} />
@@ -56,16 +60,20 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
                 />
               )}
             </div>
-            <span>{record.to}</span>
+            <span
+              className={`w-[150px]  ${columns?.includes('analysis') && record?.deleteService?.includes(record.to) ? 'line-through text-[var(--ant-color-text-tertiary)]' : ''}`}
+            >
+              {record.to}
+            </span>
           </div>
         )
       },
     },
-    {
-      title: '存在自身异常的节点',
-      dataIndex: 'service',
-      width: 150,
-    },
+    // {
+    //   title: '存在自身异常的节点',
+    //   dataIndex: 'service',
+    //   width: 150,
+    // },
     {
       title: '置信度',
       dataIndex: 'confidence',
@@ -82,9 +90,9 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
         ...(columns?.includes('analysis') ? [Table.EXPAND_COLUMN] : []),
       ]}
       dataSource={data}
-      rowClassName={(record, index) => {
-        return columns?.includes('analysis') && record.isDelete ? 'line-through' : ''
-      }}
+      // rowClassName={(record, index) => {
+      //   return
+      // }}
       expandable={{
         expandedRowKeys: expandedRowKeys,
         onExpandedRowsChange: (keys) => {

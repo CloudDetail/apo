@@ -122,7 +122,7 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
         <Typography.Title level={5}>{t('list')}</Typography.Title>
       </Typography>
       {/* <Search  className="mb-3" /> */}
-      <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 220px)' }} />
+      <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 260px)' }} />
     </div>
   )
 }

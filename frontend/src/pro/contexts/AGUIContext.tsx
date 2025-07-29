@@ -37,6 +37,11 @@ interface ExtendedAGUIMessage extends AGUIMessage {
     result?: any
     status: 'pending' | 'render' | 'completed' | 'error'
   }>
+  agentToolDisplay?: Array<{
+    toolName: string
+    title: string
+    content: string
+  }>
 }
 
 interface AGUIContextValue {
@@ -427,7 +432,30 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   }, [])
 
   const onCustomEvent = useCallback((event: CustomEvent) => {
-    console.log('Custom event:', event.name, event.value)
+    if (event.name === 'AgentToolDisplay') {
+      const toolCallName = event.value.toolCallName
+      const content = event.value.content
+      const title = event.value.title
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages]
+        const lastMessage = updatedMessages[updatedMessages.length - 1]
+
+        if (lastMessage && lastMessage.role === 'assistant') {
+          const toolCall = {
+            toolName: toolCallName,
+            title: title,
+            content: content,
+          }
+
+          lastMessage.agentToolDisplay = lastMessage.agentToolDisplay || []
+          lastMessage.agentToolDisplay.push(toolCall)
+
+          console.log('Added tool call to message:', toolCall)
+        }
+
+        return updatedMessages
+      })
+    }
   }, [])
 
   // 主事件处理器

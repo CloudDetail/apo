@@ -63,7 +63,7 @@ const AlertEventList: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector((state: any) => state.timeRange)
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
-
+  const [total, setTotal] = useState(0)
   const fetchAlertEvents = async () => {
     if (!startTime || !endTime || dataGroupId === null) return
 
@@ -74,7 +74,7 @@ const AlertEventList: React.FC = () => {
         endTime,
         pagination: {
           currentPage: 1,
-          pageSize: 20,
+          pageSize: 51,
         },
         filters: [
           {
@@ -92,6 +92,7 @@ const AlertEventList: React.FC = () => {
       })
 
       setAlertEvents((response as any)?.events || [])
+      setTotal((response as any)?.pagination?.total || 0)
     } catch (error) {
       console.error('Failed to fetch alert events:', error)
       setAlertEvents([])
@@ -114,7 +115,7 @@ const AlertEventList: React.FC = () => {
         <>
           告警事件{' '}
           <div className="text-xs text-gray-500">
-            {t('showing')} {alertEvents.length} {t('activeAlerts')}
+            {t('当前时间段有')} {total} {t('activeAlerts')}
           </div>
         </>
       }
@@ -131,14 +132,21 @@ const AlertEventList: React.FC = () => {
               <Spin size="large" />
             </div>
           ) : alertEvents.length > 0 ? (
-            <List
-              dataSource={alertEvents}
-              renderItem={(event) => (
-                <List.Item className="p-0 border-none">
-                  <AlertEventCard event={event} />
-                </List.Item>
+            <>
+              <List
+                dataSource={alertEvents}
+                renderItem={(event) => (
+                  <List.Item className="p-0 border-none">
+                    <AlertEventCard event={event} />
+                  </List.Item>
+                )}
+              />
+              {alertEvents.length > 50 && (
+                <Button type="link" onClick={() => navigate('/alerts/events')}>
+                  {t('当前只展示前五十条，点击查看所有')}
+                </Button>
               )}
-            />
+            </>
           ) : (
             <Empty
               description={t('noAlertEvents')}

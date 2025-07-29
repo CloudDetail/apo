@@ -1,8 +1,9 @@
-import React, { useLayoutEffect, useRef } from 'react'
-import ToolRender from '../ToolRender'
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react'
+import ToolRender from './ToolRender'
 import styles from '../AGUIChat.module.scss'
 import { useSelector } from 'react-redux'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
+import AgentToolDisplay from './AgentToolDisplay'
 
 interface Message {
   id: string
@@ -13,6 +14,7 @@ interface Message {
     model?: string
   }
   toolCalls?: any[]
+  agentToolDisplay?: any[]
 }
 
 interface MessageListProps {
@@ -34,47 +36,86 @@ const MessageList: React.FC<MessageListProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
-  // 检查用户是否在底部（增加容差）
-  const isUserAtBottom = () => {
-    if (!messagesContainerRef.current) return true
-    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+  const [userScrolledUp, setUserScrolledUp] = useState(false)
+  const [hasMounted, setHasMounted] = useState(false)
 
-    return scrollTop + clientHeight >= scrollHeight - 500 // 容差加大
-  }
+  // 初始化完成后再允许判断滚动
+  useEffect(() => {
+    const timer = setTimeout(() => setHasMounted(true), 300)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // 用户主动交互行为，标记为“用户滚动过了”
+  useEffect(() => {
+    const el = messagesContainerRef.current
+    if (!el) return
+
+    const onUserScroll = () => {
+      if (!hasMounted) return
+      const { scrollTop, scrollHeight, clientHeight } = el
+      if (scrollHeight - scrollTop - clientHeight > 50) {
+        setUserScrolledUp(true)
+      } else {
+        setUserScrolledUp(false)
+      }
+    }
+
+    const markUserInteracted = () => {
+      setUserScrolledUp(true)
+    }
+
+    el.addEventListener('scroll', onUserScroll)
+    el.addEventListener('wheel', markUserInteracted, { passive: true })
+    el.addEventListener('touchstart', markUserInteracted, { passive: true })
+    el.addEventListener('mousedown', markUserInteracted)
+
+    return () => {
+      el.removeEventListener('scroll', onUserScroll)
+      el.removeEventListener('wheel', markUserInteracted)
+      el.removeEventListener('touchstart', markUserInteracted)
+      el.removeEventListener('mousedown', markUserInteracted)
+    }
+  }, [hasMounted])
 
   // 自动滚动到底部
   const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      })
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // 监听内容变化后滚动
   useLayoutEffect(() => {
-    const container = messagesContainerRef.current
-    if (!container) return
+    if (!messagesContainerRef.current) return
 
-    const handleChange = () => {
-      if (isUserAtBottom()) {
+    const el = messagesContainerRef.current
+
+    const tryScroll = () => {
+      if (!userScrolledUp) {
         scrollToBottom()
       }
     }
 
-    // ResizeObserver 监听容器内容尺寸变化（比如 Markdown 高亮加载）
-    const resizeObserver = new ResizeObserver(handleChange)
-    resizeObserver.observe(container)
+    const resizeObserver = new ResizeObserver(() => {
+      tryScroll()
+    })
+    resizeObserver.observe(el)
 
-    // MutationObserver 监听子元素变化（比如消息 DOM 加载完）
-    const mutationObserver = new MutationObserver(handleChange)
-    mutationObserver.observe(container, { childList: true, subtree: true })
+    const mutationObserver = new MutationObserver(() => {
+      tryScroll()
+    })
+    mutationObserver.observe(el, { childList: true, subtree: true })
 
     return () => {
       resizeObserver.disconnect()
       mutationObserver.disconnect()
     }
-  }, [messages.length])
+  }, [messages.length, userScrolledUp])
+
+  // 每次新消息也尝试滚动
+  useEffect(() => {
+    if (!userScrolledUp) {
+      scrollToBottom()
+    }
+  }, [messages, currentMessage])
 
   const renderMessage = (message: Message) => {
     const messageClass = `${styles.message} ${message.role === 'user' ? styles.user : styles.assistant}`
@@ -95,13 +136,24 @@ const MessageList: React.FC<MessageListProps> = ({
             ))}
           </div>
         )}
+        {message.agentToolDisplay?.length > 0 && (
+          <div className="message-tool-calls">
+            {message.agentToolDisplay.map((toolCall: any, index: number) => (
+              <AgentToolDisplay
+                key={toolCall.toolName + index}
+                toolName={toolCall.toolName}
+                title={toolCall.title}
+                content={toolCall.content}
+              />
+            ))}
+          </div>
+        )}
       </div>
     )
   }
 
   const renderCurrentMessage = () => {
     if (!currentMessage) return null
-
     return (
       <div className={`${styles.message} ${styles.assistant} ${styles.currentMessage}`}>
         <div className={styles.messageContent}>
@@ -117,7 +169,6 @@ const MessageList: React.FC<MessageListProps> = ({
 
   const renderLoadingIndicator = () => {
     if (!isRunning) return null
-
     return (
       <div className="h-6">
         <span className={styles.loadingDots}>
