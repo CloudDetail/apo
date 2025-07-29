@@ -197,9 +197,10 @@ func setupAlertBUS(r *resource) error {
 			return fmt.Errorf("load incident templates err: %w", err)
 		}
 
+		// TODO add handlerChain to notify
 		incidentMemCache := incident.InitIncidentMemCache(incidents, temps).
-			OnCreate(incident.CreateIncident(r.pkg_db, r.ch)).
-			OnUpdate(incident.UpdateIncident(r.pkg_db, r.ch))
+			OnCreate(incident.CreateIncidentRecord(r.pkg_db, r.ch)).
+			OnUpdate(incident.UpdateIncidentRecord(r.pkg_db, r.ch))
 
 		go incidentMemCache.KeepClean(core.EmptyCtx())
 		handlers = append(handlers, incidentMemCache.HandlerAlertEvents)

@@ -83,20 +83,13 @@ func (c *IncidentMemCache) OnUpdate(handler UpdateIncidentFunc) *IncidentMemCach
 func (c *IncidentMemCache) HandlerAlertEvents(ctx core.Context, events []alert.AlertEvent) error {
 	var errs []error
 	for i := 0; i < len(events); i++ {
-		event := events[i]
-
-		temps, find := c.GetTemps(event.SourceID)
-		if !find || len(temps) == 0 {
-			continue
-		}
-
-		groupKey, err := incidentKey(temps, event)
+		temps, _ := c.GetTemps(events[i].SourceID) // Create incident by alertID if incidentKey not defined
+		groupKey, err := incidentKey(temps, events[i])
 		if err != nil {
 			errs = append(errs, fmt.Errorf("failed to generate incident key: %s", err.Error()))
 			continue
 		}
-
-		c.handlerAlertEvent(ctx, groupKey, event)
+		c.handlerAlertEvent(ctx, groupKey, events[i])
 	}
 	return errors.Join(errs...)
 }
@@ -128,7 +121,6 @@ func (c *IncidentMemCache) handlerAlertEvent(ctx core.Context, groupKey string, 
 		c.CreateIncident(ctx, groupKey, event)
 		return
 	}
-
 	c.UpdateIncident(ctx, groupKey, incident, &event)
 }
 
@@ -202,7 +194,7 @@ func (c *IncidentMemCache) autoResolvedIncidents(ctx core.Context) {
 	}
 }
 
-func CreateIncident(db database.Repo, ch clickhouse.Repo) CreateIncidentFunc {
+func CreateIncidentRecord(db database.Repo, ch clickhouse.Repo) CreateIncidentFunc {
 	return func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
 		err := db.CreateIncident(ctx, incident)
 		if err != nil {
@@ -217,7 +209,7 @@ func CreateIncident(db database.Repo, ch clickhouse.Repo) CreateIncidentFunc {
 	}
 }
 
-func UpdateIncident(db database.Repo, ch clickhouse.Repo) UpdateIncidentFunc {
+func UpdateIncidentRecord(db database.Repo, ch clickhouse.Repo) UpdateIncidentFunc {
 	return func(ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error {
 		err := db.UpdateIncident(ctx, incident)
 		if err != nil {
