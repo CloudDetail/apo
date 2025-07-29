@@ -548,7 +548,7 @@ type availableFilters struct {
 func (f *availableFilters) SetAvailableFilters(filters []request.SpanTraceFilter, updateTime time.Time) {
 	f.Filters = filters
 	f.Keys = make([]string, 0)
-	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']")
+	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']", "labels['namespace']")
 	for _, filter := range filters {
 		var field string
 		if len(filter.ParentField) > 0 {
