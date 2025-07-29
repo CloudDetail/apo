@@ -271,6 +271,8 @@ const DelayLineChart = ({ data, timeRange, type, allowTimeBrush = true, needFill
           }
         }
       })
+    } else {
+      chartRef.current?.getEchartsInstance().resize()
     }
   }
   return (
