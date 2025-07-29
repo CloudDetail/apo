@@ -10,7 +10,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
+var allowedRouters = []string{
+	"/agent-dataplane",
+	"agent",
+	"probe-installer",
+}
+
 func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo string) (bool, error) {
+	for _, allowedRouter := range allowedRouters {
+		if checkRouterMatch(routerTo, allowedRouter) {
+			return true, nil
+		}
+	}
+
 	features, err := s.getUserFeatureIDs(ctx, userID)
 	if err != nil {
 		return false, err
