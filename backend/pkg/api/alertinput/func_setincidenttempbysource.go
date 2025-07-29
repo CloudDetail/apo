@@ -10,8 +10,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// TODO move to model/request package
-
 // SetIncidentTempBySource SetIncidentTempBySource
 // @Summary
 // @Description

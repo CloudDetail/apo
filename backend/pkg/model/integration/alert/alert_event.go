@@ -117,7 +117,22 @@ func (e *AlertEvent) SetPayloadRef(payload map[string]any) {
 	e.payload = payload
 }
 
-// ReadOnly
-func (e *AlertEvent) Payload() map[string]any {
+func (e *AlertEvent) RawPayloadRef() map[string]any {
 	return e.payload
+}
+
+// ReadOnly
+func (e *AlertEvent) FullPayload() map[string]any {
+	// HACK gojq (used in condition) only support map[string]any
+	// have to copy e.EnrichTags to eTags
+	var eTags = make(map[string]any)
+	for k, v := range e.EnrichTags {
+		eTags[k] = v
+	}
+
+	return map[string]any{
+		"payload":   e.payload,
+		"rawLabels": e.Tags,
+		"labels":    eTags,
+	}
 }

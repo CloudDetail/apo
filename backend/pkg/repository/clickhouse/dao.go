@@ -142,7 +142,7 @@ type Repo interface {
 	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
 	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
 
-	LoadAlertEventsFromIncidents(ctx core.Context, incidents []alert.Incident) ([]alert.Incident, error)
+	LoadAlertEventsByIncidents(ctx core.Context, incidents []alert.Incident) ([]alert.Incident, error)
 
 	integration.Input
 }

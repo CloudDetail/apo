@@ -37,5 +37,6 @@ func (s *service) ProcessAlertEvents(ctx core.Context, source alert.SourceFrom, 
 	if alertbus.ExtraHandlers != nil {
 		alertbus.ExtraHandlers.HandleEvents(ctx, events)
 	}
+
 	return s.ckRepo.InsertAlertEvent(ctx, events, source)
 }

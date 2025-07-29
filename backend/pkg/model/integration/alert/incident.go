@@ -38,7 +38,7 @@ func (in Incident) TableName() string {
 func (in *Incident) GetFiringAlertCount() int {
 	var seen = make(map[string]struct{})
 	firingCount := 0
-	for i := len(in.AlertEvents) - 1; i >= 0; i++ {
+	for i := len(in.AlertEvents) - 1; i >= 0; i-- {
 		if _, find := seen[in.AlertEvents[i].AlertID]; !find {
 			seen[in.AlertEvents[i].AlertID] = struct{}{}
 			if in.AlertEvents[i].Status == StatusFiring {
@@ -60,19 +60,15 @@ func (in Incident2Alert) TableName() string {
 }
 
 type IncidentKeyTemp struct {
-	ID string `json:"id" gorm:"id;primaryKey"`
+	ID            string              `json:"id" gorm:"id;primaryKey"`
+	Order         int                 `json:"order" gorm:"order"`
+	Template      string              `json:"template" gorm:"template"`
+	Conditions    []IncidentCondition `json:"conditions" gorm:"-"`
+	AlertSourceID string              `json:"alertSourceId" gorm:"alert_source_id"`
 
-	Order int `json:"order" gorm:"order"`
-	// payload；
-	// generated_labels;
-	// labels;
-	IncidentKeyTemplate string              `json:"incidentKeyTemplate" gorm:"incidentKeyTemplate"`
-	CompiledTemp        *template.Template  `json:"-" gorm:"-"`
-	CompiledErr         error               `json:"-" gorm:"-"`
-	Conditions          []IncidentCondition `json:"conditions" gorm:"-"`
-	ConditionJQParser   *gojq.Query         `json:"-" gorm:"-"`
-
-	AlertSourceID string `json:"alertSourceId" gorm:"alert_source_id"`
+	compiledTemp      *template.Template `json:"-" gorm:"-"`
+	compiledErr       error              `json:"-" gorm:"-"`
+	conditionJQParser *gojq.Query        `json:"-" gorm:"-"`
 }
 
 func (t *IncidentKeyTemp) TableName() string {
@@ -92,34 +88,27 @@ func (t *IncidentKeyTemp) Compile() error {
 
 	if len(t.Conditions) > 0 {
 		var conditionErr error
-		t.ConditionJQParser, conditionErr = buildJQConditionExpr(t.Conditions)
+		t.conditionJQParser, conditionErr = buildJQConditionExpr(t.Conditions)
 		if conditionErr != nil {
 			errs = append(errs, conditionErr)
 		}
 	}
 
-	if len(t.IncidentKeyTemplate) == 0 {
+	if len(t.Template) == 0 {
 		errs = append(errs, errors.New("incident key template is empty"))
 		return errors.Join(errs...)
 	}
 
 	var compileErr error
-	t.CompiledTemp, compileErr = template.New("incidentKey").Parse(t.IncidentKeyTemplate)
+	t.compiledTemp, compileErr = template.New("incidentKey").Parse(t.Template)
 	if compileErr != nil {
 		errs = append(errs, compileErr)
 	}
 
 	if len(errs) > 0 {
-		t.CompiledErr = fmt.Errorf("compile incident key template failed: %w", errors.Join(errs...))
+		t.compiledErr = fmt.Errorf("compile incident key template failed: %w", errors.Join(errs...))
 	}
-	return t.CompiledErr
-}
-
-func (t *IncidentKeyTemp) IsValid() (bool, error) {
-	if err := t.Compile(); err != nil {
-		return false, err
-	}
-	return true, nil
+	return t.compiledErr
 }
 
 func (t *IncidentKeyTemp) Equal(other *IncidentKeyTemp) bool {
@@ -131,7 +120,7 @@ func (t *IncidentKeyTemp) Equal(other *IncidentKeyTemp) bool {
 		return false
 	}
 
-	if t.IncidentKeyTemplate != other.IncidentKeyTemplate {
+	if t.Template != other.Template {
 		return false
 	}
 
@@ -153,11 +142,11 @@ func (t *IncidentKeyTemp) Equal(other *IncidentKeyTemp) bool {
 }
 
 func (t *IncidentKeyTemp) CheckConditions(data map[string]any) (bool, error) {
-	if t.ConditionJQParser == nil {
+	if t.conditionJQParser == nil {
 		return true, nil
 	}
 
-	iter := t.ConditionJQParser.Run(data)
+	iter := t.conditionJQParser.Run(data)
 	v, ok := iter.Next()
 	if !ok {
 		return false, nil
@@ -179,12 +168,12 @@ func (t *IncidentKeyTemp) CheckConditions(data map[string]any) (bool, error) {
 }
 
 func (t *IncidentKeyTemp) GenerateIncidentKey(data map[string]any) (string, error) {
-	if t.CompiledErr != nil {
-		return "", t.CompiledErr
+	if t.compiledErr != nil {
+		return "", t.compiledErr
 	}
 
 	var buf bytes.Buffer
-	err := t.CompiledTemp.Execute(&buf, data)
+	err := t.compiledTemp.Execute(&buf, data)
 	if err != nil {
 		return "", err
 	}

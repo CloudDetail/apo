@@ -101,7 +101,7 @@ func (e *TagEnricher) Enrich(alertEvent *alert.AlertEvent) {
 	var iter gojq.Iter
 	if strings.HasPrefix(e.FromField, FromPayload) {
 		// EnrichTag from Payload // FromField { .__Payload.xxx } With JQ { .xxx }
-		iter = e.JQParser.Run(alertEvent.Payload())
+		iter = e.JQParser.Run(alertEvent.RawPayloadRef())
 	} else {
 		// Default EnrichTag from Label // FromField { .xxx } With JQ { .xxx }
 		iter = e.JQParser.Run(map[string]any(alertEvent.Tags))

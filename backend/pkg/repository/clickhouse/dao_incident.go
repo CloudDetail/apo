@@ -15,7 +15,7 @@ const (
 		i2a.incident_id,
 		ae.*
 	FROM incident2alert i2a
-	INNER JOIN alert_event ae ON i2a.alert_event_id = ae.id
+	INNER JOIN alert_event ae ON i2a.alert_event_id = toString(ae.id)
 	%s`
 )
 
@@ -24,24 +24,20 @@ type AlertEventWithIncidentID struct {
 	alert.AlertEvent
 }
 
-func (ch *chRepo) LoadAlertEventsFromIncidents(ctx core.Context, incidents []alert.Incident) ([]alert.Incident, error) {
+func (ch *chRepo) LoadAlertEventsByIncidents(ctx core.Context, incidents []alert.Incident) ([]alert.Incident, error) {
 	incidentsIDs := make([]string, len(incidents))
 
-	var from, to int64
+	var from int64
 	for _, incident := range incidents {
 		incidentsIDs = append(incidentsIDs, incident.ID)
 		if from == 0 || incident.CreateTime < from {
 			from = incident.CreateTime
 		}
-
-		if to == 0 || incident.UpdateTime > to {
-			to = incident.UpdateTime
-		}
 	}
 
 	qb := NewQueryBuilder().
 		In("i2a.incident_id", incidentsIDs).
-		Between("ae.update_time", from/1e6, to/1e6) // unixMicro -> unix
+		NotLessThan("ae.update_time", from/1e6)
 
 	sql := fmt.Sprintf(SQL_LOAD_ALERT_EVENTS_FROM_INCIDENTS, qb.String())
 

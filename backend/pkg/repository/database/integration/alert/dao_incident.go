@@ -8,7 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
-func (repo *subRepo) LoadResolvedIncidents(ctx core.Context) ([]alert.Incident, error) {
+func (repo *subRepo) LoadFiringIncidents(ctx core.Context) ([]alert.Incident, error) {
 	var incidents []alert.Incident
 	err := repo.GetContextDB(ctx).Model(&alert.Incident{}).
 		Where("status = ?", alert.StatusFiring).
@@ -34,27 +34,24 @@ func (repo *subRepo) LoadIncidentTemplates(ctx core.Context) ([]alert.IncidentKe
 	var res []IncidentTempConditionWithTemp
 
 	err := repo.GetContextDB(ctx).Table("incident_key_temp as ikt").
-		Joins("LEFT JOIN incident_condition as ic ON ikt.id = ic.incident_temp_id").
+		Select("ikt.*,ic.*").
+		Joins("LEFT JOIN incident_condition ic ON ikt.id = ic.incident_temp_id").
 		Find(&res).Error
-
 	if err != nil {
 		return nil, err
 	}
 
 	var incidentKeyTemps []alert.IncidentKeyTemp
-	var incidentKeyMap = make(map[string]int)
+	var incidentKeyIdxMap = make(map[string]int)
 	for _, cond := range res {
-		idx, find := incidentKeyMap[cond.IncidentTempID]
+		idx, find := incidentKeyIdxMap[cond.IncidentTempID]
 		if !find {
-			incidentKeyMap[cond.IncidentTempID] = len(incidentKeyTemps)
-
+			incidentKeyIdxMap[cond.IncidentTempID] = len(incidentKeyTemps)
 			incidentKeyTemp := cond.IncidentKeyTemp
 			incidentKeyTemp.Conditions = append(incidentKeyTemp.Conditions, cond.IncidentCondition)
-
 			incidentKeyTemps = append(incidentKeyTemps, incidentKeyTemp)
 			continue
 		}
-
 		incidentKeyTemps[idx].Conditions = append(incidentKeyTemps[idx].Conditions, cond.IncidentCondition)
 	}
 	return incidentKeyTemps, nil

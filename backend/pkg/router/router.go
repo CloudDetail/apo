@@ -182,12 +182,12 @@ func setupAlertBUS(r *resource) error {
 
 	if incidentConfig.Enabled {
 		// Load Incident / AlertEvent From DB/CH
-		incidents, err := r.pkg_db.LoadResolvedIncidents(core.EmptyCtx())
+		incidents, err := r.pkg_db.LoadFiringIncidents(core.EmptyCtx())
 		if err != nil {
 			return fmt.Errorf("load resolved incidents err: %w", err)
 		}
 
-		incidents, err = r.ch.LoadAlertEventsFromIncidents(core.EmptyCtx(), incidents)
+		incidents, err = r.ch.LoadAlertEventsByIncidents(core.EmptyCtx(), incidents)
 		if err != nil {
 			return fmt.Errorf("load alert events from incidents err: %w", err)
 		}
@@ -198,7 +198,12 @@ func setupAlertBUS(r *resource) error {
 		}
 
 		// TODO add handlerChain to notify
-		incidentMemCache := incident.InitIncidentMemCache(incidents, temps).
+		incidentMemCache, err := incident.InitIncidentMemCache(incidents, temps)
+		if err != nil {
+			return fmt.Errorf("init incident mem cache err: %w", err)
+		}
+
+		incidentMemCache.
 			OnCreate(incident.CreateIncidentRecord(r.pkg_db, r.ch)).
 			OnUpdate(incident.UpdateIncidentRecord(r.pkg_db, r.ch))
 

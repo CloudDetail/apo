@@ -32,7 +32,7 @@ func (s *service) GetIncidentTempBySource(ctx core.Context, req *request.GetInci
 func (s *service) SetIncidentTempBySource(ctx core.Context, req *request.SetIncidentTempBySourceRequest) error {
 	for _, temp := range req.ITemps {
 		temp.AlertSourceID = req.SourceID
-		if _, err := temp.IsValid(); err != nil {
+		if err := temp.Compile(); err != nil {
 			return err
 		}
 	}

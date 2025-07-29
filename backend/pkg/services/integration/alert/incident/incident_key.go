@@ -47,21 +47,27 @@ type CreateIncidentFunc func(ctx core.Context, incident *alert.Incident, event *
 type UpdateIncidentFunc func(
 	ctx core.Context, incident *alert.Incident, event *alert.AlertEvent) error
 
-func InitIncidentMemCache(incidents []alert.Incident, temps []alert.IncidentKeyTemp) *IncidentMemCache {
-	if IncidentMemCacheInstance != nil {
-		// TODO reload incidents and temps or return error
-	}
-
+func InitIncidentMemCache(incidents []alert.Incident, temps []alert.IncidentKeyTemp) (*IncidentMemCache, error) {
 	var tempMap = make(map[string][]*alert.IncidentKeyTemp)
 	for i := 0; i < len(temps); i++ {
+		if err := temps[i].Compile(); err != nil {
+			return nil, err
+		}
 		tempMap[temps[i].AlertSourceID] = append(tempMap[temps[i].AlertSourceID], &temps[i])
 	}
 
-	IncidentMemCacheInstance = &IncidentMemCache{
+	cacheInstance := &IncidentMemCache{
 		templateMap: &templateMap{data: tempMap},
 		Incidents:   make(map[string]*alert.Incident),
 	}
-	return IncidentMemCacheInstance
+
+	for i := 0; i < len(incidents); i++ {
+		cacheInstance.Incidents[incidents[i].IncidentKey] = &incidents[i]
+	}
+
+	// Init Global Instance
+	IncidentMemCacheInstance = cacheInstance
+	return cacheInstance, nil
 }
 
 func (c *IncidentMemCache) UpdateIncidentTemp(sourceID string, temps []*alert.IncidentKeyTemp) {
@@ -95,11 +101,7 @@ func (c *IncidentMemCache) HandlerAlertEvents(ctx core.Context, events []alert.A
 }
 
 func incidentKey(temps []*alert.IncidentKeyTemp, event alert.AlertEvent) (string, error) {
-	data := map[string]any{
-		"payload":   event.Payload(),
-		"rawLabels": event.Tags,
-		"labels":    event.EnrichTags,
-	}
+	data := event.FullPayload()
 	for j := 0; j < len(temps); j++ {
 		if ok, _ := temps[j].CheckConditions(data); !ok {
 			continue
@@ -215,6 +217,12 @@ func UpdateIncidentRecord(db database.Repo, ch clickhouse.Repo) UpdateIncidentFu
 		if err != nil {
 			return err
 		}
+
+		if event == nil {
+			// Incident auto resolved, the last active alert was closed 5 minutes ago
+			return nil
+		}
+
 		err = ch.InsertIncident2AlertEvent(ctx, &alert.Incident2Alert{
 			IncidentId:   incident.ID,
 			AlertEventID: event.ID.String(),
