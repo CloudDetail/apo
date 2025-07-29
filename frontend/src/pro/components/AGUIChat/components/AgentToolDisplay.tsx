@@ -9,6 +9,8 @@ import ProcessDefinition from './ToolRender/ProcessDefinition'
 import AbnormalityDetection from './ToolRender/AbnormalityDetection'
 import AnomalyCausalChainTable from './ToolRender/AnomalyCausalChainTable'
 import Result from './ToolRender/Result'
+import Logs from './ToolRender/Logs'
+import Metrics from './ToolRender/Metrics'
 
 interface ToolRenderProps {
   toolName: string
@@ -23,7 +25,7 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content 
 
   // 监听完成状态，3 秒后自动关闭
   useEffect(() => {
-    if (content) {
+    if (content && toolName !== 'result') {
       const timer = setTimeout(() => {
         setActiveKey(null)
       }, 5000)
@@ -77,6 +79,10 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content 
                       return <AnomalyCausalChainTable args={content} />
                     case 'result':
                       return <Result args={content} />
+                    case 'logs':
+                      return <Logs args={content} />
+                    case 'metrics':
+                      return <Metrics args={content} />
                     default:
                       return <MarkdownRender content={content} />
                   }
