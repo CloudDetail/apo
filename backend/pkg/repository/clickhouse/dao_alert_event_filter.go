@@ -460,7 +460,7 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 	},
 	"workflow.alert_direction": {
 		AlertEventFilter: request.AlertEventFilter{Name: "故障方向"},
-		Name_EN:          "Alert Direction",
+		Name_EN:          "Reason Direction",
 	},
 }
 
