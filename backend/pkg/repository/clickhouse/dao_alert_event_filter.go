@@ -254,6 +254,21 @@ func applyFilter(filters []request.AlertEventFilter, resultFilter *QueryBuilder,
 		} else if filter.Key == "status" {
 			resultFilter.InStrings("status", filter.Selected)
 			continue
+		} else if strings.HasPrefix(filter.Key, "workflow.") {
+			rawFieldKey := filter.Key[9:]
+			if allowFilterKey.MatchString(rawFieldKey) {
+				if len(filter.MatchExpr) > 0 {
+					if filter.MatchExpr == "*" {
+						resultFilter.NotEquals(rawFieldKey, "").
+							NotEquals(rawFieldKey, "failed: status: failed, output: null")
+					} else {
+						resultFilter.Like(rawFieldKey, strings.Replace(filter.MatchExpr, "*", "%", -1))
+					}
+				} else {
+					resultFilter.InStrings(rawFieldKey, filter.Selected)
+				}
+			}
+			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
 		if err != nil {
