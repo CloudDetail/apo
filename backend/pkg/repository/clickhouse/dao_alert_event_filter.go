@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -145,6 +146,14 @@ func init() {
 		}
 		alertFilters_en = append(alertFilters_en, filter_en)
 	}
+
+	// Keep the order of the filter keys
+	slices.SortStableFunc(alertFilters, func(a, b request.AlertEventFilter) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	slices.SortStableFunc(alertFilters_en, func(a, b request.AlertEventFilter) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 }
 
 func (ch *chRepo) GetStaticFilterKeys(ctx core.Context) []request.AlertEventFilter {
@@ -194,6 +203,8 @@ func (ch *chRepo) GetAlertEventFilterLabelKeys(
 		}
 		result = append(result, fmt.Sprintf("labels.%s", filterKey))
 	}
+
+	slices.Sort(result)
 	return result, nil
 }
 
@@ -448,7 +459,7 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 		Name_EN:          "Process PID",
 	},
 	"workflow.alert_direction": {
-		AlertEventFilter: request.AlertEventFilter{Name: "告警方向"},
+		AlertEventFilter: request.AlertEventFilter{Name: "故障方向"},
 		Name_EN:          "Alert Direction",
 	},
 }
