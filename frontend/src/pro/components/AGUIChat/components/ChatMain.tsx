@@ -2,7 +2,6 @@ import React from 'react'
 import { Layout } from 'antd'
 import MessageList from './MessageList'
 import InputArea from './InputArea'
-import StatusIndicators from './StatusIndicators'
 import QuickQuestions from './QuickQuestions'
 import styles from '../AGUIChat.module.scss'
 
@@ -77,14 +76,13 @@ const ChatMain: React.FC<ChatMainProps> = ({
       }, 100)
     } else {
       // 直接设置输入文本并发送
-      onInputChange(question)
-      onSendMessage()
+      onSendMessage(question)
     }
   }
 
   return (
     <Content className={styles.main}>
-      <StatusIndicators
+      {/* <StatusIndicators
         error={error}
         isConnected={isConnected}
         currentStep={currentStep}
@@ -92,7 +90,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
         runId={runId}
         state={state}
         onClearError={onClearError}
-      />
+      /> */}
 
       {/* 消息区域或快捷问答 */}
       {messages.length === 0 ? (

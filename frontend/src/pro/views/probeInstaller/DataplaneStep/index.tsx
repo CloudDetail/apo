@@ -3,6 +3,7 @@ import { useState } from 'react'
 import DataplaneRadioList from './DataplaneRadioList'
 import { DataplaneTypeItem } from 'src/pro/types/datasource'
 import DataplaneConfigForm from 'src/pro/components/Dataplane/DataplaneConfigForm'
+import { useTranslation } from 'react-i18next'
 
 const DataplaneStep = ({
   probeParams,
@@ -10,9 +11,10 @@ const DataplaneStep = ({
   readonly,
 }: {
   probeParams: any
-  onSave: () => void
+  onSave: (apoConfig: any) => void
   readonly: boolean
 }) => {
+  const { t } = useTranslation('core/dataIntegration')
   const [checkedDataplane, setCheckedDataplane] = useState<DataplaneTypeItem | null>(null)
 
   return (
@@ -28,11 +30,13 @@ const DataplaneStep = ({
         <>
           <Divider></Divider>
           <Typography.Title level={5}>{checkedDataplane.typeName} 配置</Typography.Title>
+
           <div className="flex-1 overflow-hidden h-0">
             <DataplaneConfigForm
               readonly={readonly}
               dataplaneParams={checkedDataplane}
               onSave={onSave}
+              showApoConfig={checkedDataplane.typeName === 'apo'}
             />
           </div>
         </>

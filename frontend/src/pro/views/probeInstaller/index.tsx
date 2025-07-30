@@ -17,8 +17,14 @@ const ProbeInstallerPage = () => {
   const [form] = Form.useForm()
   const [installStep, setInstallStep] = useState<any>(null) // 安装完成步骤（可选）
 
-  const onSave = () => {
-    createDataIntegrationApi(probeParams).then((res) => {
+  const onSave = (apoConfig?: any) => {
+    const params = { ...probeParams }
+    if (apoConfig) {
+      Object.keys(apoConfig).forEach((key) => {
+        params[key] = apoConfig[key]
+      })
+    }
+    createDataIntegrationApi(params).then((res) => {
       setReadonly(true)
       setCurrent(2)
       setInstallStep({

@@ -97,14 +97,14 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
   }
 
   // 消息处理函数
-  const handleSendMessage = async () => {
-    if (!inputText.trim()) return
+  const handleSendMessage = async (question?: string) => {
+    if (!inputText.trim() && !question) return
 
     // 如果启用了会话管理，需要检查当前会话
     if (ENABLE_SESSION_MANAGEMENT && !currentSession) return
 
     try {
-      sendMessage(inputText)
+      sendMessage(question || inputText)
       setInputText('')
     } catch (err) {
       console.error('发送消息失败:', err)

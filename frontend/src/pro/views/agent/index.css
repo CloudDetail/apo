@@ -10,13 +10,13 @@
 }
 
 /* 告警事件卡片样式 */
-.alert-event-card {
+/* .alert-event-card {
     transition: all 0.2s ease;
 }
 
 .alert-event-card:hover {
     transform: translateY(-1px);
-}
+} */
 
 /* 分割器样式优化 */
 .ant-splitter {}

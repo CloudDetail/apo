@@ -4,6 +4,7 @@ import styles from '../AGUIChat.module.scss'
 import { useSelector } from 'react-redux'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 import AgentToolDisplay from './AgentToolDisplay'
+import { useTranslation } from 'react-i18next'
 
 interface Message {
   id: string
@@ -25,14 +26,9 @@ interface MessageListProps {
   isRunning: boolean
 }
 
-const MessageList: React.FC<MessageListProps> = ({
-  messages,
-  currentMessage,
-  loading,
-  currentToolCall,
-  isRunning,
-}) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isRunning }) => {
   const { theme } = useSelector((state: any) => state.settingReducer)
+  const { t } = useTranslation('pro/agent')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
@@ -161,7 +157,7 @@ const MessageList: React.FC<MessageListProps> = ({
             <MarkdownRender content={currentMessage.content} theme={theme} />
             <span className={styles.typingIndicator}>▎</span>
           </div>
-          <div className={styles.messageMeta}>正在输入...</div>
+          <div className={styles.messageMeta}>{t('inputArea.typingIndicator')}</div>
         </div>
       </div>
     )

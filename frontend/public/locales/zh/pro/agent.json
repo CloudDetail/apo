@@ -7,5 +7,29 @@
   "result": "结论总览",
   "filterCausal": "异常因果关系链",
   "ebpfEvidence": "异常因果关系链 —— ebpf证据",
-  "causalChain": "因果关系链"
+  "causalChain": "因果关系链",
+  "alertIntelligentAnalysisReport": "告警智能分析报告",
+  "clickCardToViewReport": "点击卡片查看报告",
+  "viewAll": "查看全部",
+  "viewAlertDetails": "查看告警详情",
+  "viewReport": "查看报告",
+  "noAlertEvents": "暂无告警事件",
+  "showingFirstFifty": "当前只展示前五十条，点击查看所有",
+  "inputArea": {
+    "placeholder": "输入消息...",
+    "typingIndicator": "正在输入..."
+  },
+  "settings": {
+    "title": "AG-UI 设置",
+    "cancel": "取消",
+    "save": "保存",
+    "baseUrl": "Base URL",
+    "apiKey": "API Key",
+    "baseUrlPlaceholder": "请输入Base URL",
+    "apiKeyPlaceholder": "请输入API Key",
+    "baseUrlRequired": "请输入Base URL",
+    "baseUrlInvalid": "请输入有效的URL",
+    "apiKeyRequired": "请输入API Key",
+    "formValidationFailed": "表单验证失败"
+  }
 }

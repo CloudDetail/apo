@@ -1,69 +1,109 @@
 import React, { useState, useEffect } from 'react'
-import { Card, List, Tag, Spin, Empty, Button } from 'antd'
+import { Card, List, Spin, Empty, Button, Tag } from 'antd'
 import { getAlertEventsApi } from 'src/core/api/alerts'
 import { useSelector } from 'react-redux'
 import { convertUTCToLocal } from 'src/core/utils/time'
 import { useTranslation } from 'react-i18next'
-import { AlertLevel, AlertStatus } from 'src/oss/views/alertEvents/components/AlertInfoCom'
-import { useNavigate } from 'react-router-dom'
+import styles from './AlertEventList.module.scss'
+import { FaAngleRight } from 'react-icons/fa'
+import { AlertLevel } from 'src/oss/views/alertEvents/components/AlertInfoCom'
+import { LuClock2, LuTag } from 'react-icons/lu'
+import { FaMagnifyingGlass } from 'react-icons/fa6'
 
 const AlertEventCard: React.FC<{ event: any }> = ({ event }) => {
-  const navigate = useNavigate()
+  const { t } = useTranslation('pro/agent')
 
-  const handleCardClick = () => {
+  const { startTime, endTime } = useSelector((state: any) => state.timeRange)
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
     // 跳转到告警事件详情页面
-    navigate(
-      `/alerts/events/detail/${encodeURIComponent(event.alertId || event.id)}/${encodeURIComponent(event.id)}`,
+    window.open(
+      `/#/alerts/events/detail/${encodeURIComponent(event.alertId || event.id)}/${encodeURIComponent(event.id)}`,
+      '_blank',
+    )
+  }
+  const handleCardClick = () => {
+    window.open(
+      `/#/report?alertEventId=${encodeURIComponent(event.id)}&startTime=${startTime}&endTime=${endTime}`,
+      '_blank',
     )
   }
 
   return (
     <Card
       size="small"
-      className="mb-2 cursor-pointer hover:shadow-md transition-shadow alert-event-card w-full"
+      className={`group mb-2 cursor-pointer hover:shadow-md transition-shadow w-full ${styles.alertEventCard}
+`}
       onClick={handleCardClick}
     >
       <div className="flex items-start justify-between mb-2 min-w-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <AlertLevel level={event.severity} />
-          <span className="font-medium text-sm truncate" title={event.name}>
+          <span
+            className="font-medium text-sm truncate group-hover:text-[var(--ant-color-info-text-hover)] transition-colors duration-200"
+            title={event.name}
+          >
             {event.name}
           </span>
         </div>
-        <AlertStatus status={event.status} />
+
+        <AlertLevel level={event.severity} />
       </div>
 
-      <div className="text-xs text-gray-500 mb-2">{convertUTCToLocal(event.createTime)}</div>
+      <div className="text-xs text-[var(--ant-color-text-secondary)] mb-2 flex items-center gap-1">
+        <FaMagnifyingGlass className="mr-3" />
+        <span>故障方向：</span>
+        <span className="text-[var(--ant-color-text-heading)]">{event.alertDirection}</span>
+      </div>
+      <div className="text-xs text-[var(--ant-color-text-secondary)] mb-2 flex items-center gap-3">
+        <LuClock2 className="text-sm" /> {convertUTCToLocal(event.createTime)}
+      </div>
 
       {event.tagsDisplay && event.tagsDisplay.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {event.tagsDisplay.slice(0, 3).map((tag, index) => (
-            <Tag key={index} className="text-xs">
-              {tag.name} = {tag.value}
-            </Tag>
-          ))}
-          {event.tagsDisplay.length > 3 && (
-            <Tag className="text-xs">+{event.tagsDisplay.length - 3}</Tag>
-          )}
+        <div className="flex gap-2 items-start">
+          <LuTag className="shrink-0 mt-1 text-[var(--ant-color-text-secondary)]" />
+          <div className="flex flex-wrap gap-1 mb-2 w-0 flex-1 overflow-hidden">
+            {event.tagsDisplay.slice(0, 3).map((tag, index) => (
+              <Tag
+                key={index}
+                className="text-xs text-[var(--ant-color-text-secondary)] truncate"
+                bordered={false}
+              >
+                {tag.value}
+              </Tag>
+            ))}
+            {event.tagsDisplay.length > 3 && (
+              <Tag className="text-xs text-[var(--ant-color-text-secondary)]" bordered={false}>
+                +{event.tagsDisplay.length - 3}
+              </Tag>
+            )}
+          </div>
         </div>
       )}
 
-      {event.detail && (
+      {/* {event.detail && (
         <div className="text-xs text-gray-600 truncate" title={event.detail}>
           {event.detail}
         </div>
-      )}
+      )} */}
+      <div className="flex justify-between">
+        <Button size="small" type="link" onClick={handleButtonClick} className="text-xs">
+          {t('viewAlertDetails')}
+        </Button>
+        <div className="flex items-center gap-1.5 text-gray-400 group-hover:text-gray-300 transition-colors duration-200">
+          <span className="text-xs">{t('viewReport')}</span>
+          <FaAngleRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform duration-200" />
+        </div>
+      </div>
     </Card>
   )
 }
 
 const AlertEventList: React.FC = () => {
-  const { t } = useTranslation('oss/alertEvents')
+  const { t } = useTranslation('pro/agent')
   const [alertEvents, setAlertEvents] = useState([])
   const [loading, setLoading] = useState(false)
   const { startTime, endTime } = useSelector((state: any) => state.timeRange)
   const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
-  const [total, setTotal] = useState(0)
   const fetchAlertEvents = async () => {
     if (!startTime || !endTime || dataGroupId === null) return
 
@@ -80,19 +120,20 @@ const AlertEventList: React.FC = () => {
           {
             key: 'status',
             selected: ['firing'],
-            name: t('status'),
           },
           {
             key: 'validity',
             selected: ['valid', 'other'],
-            name: t('alertValidity'),
+          },
+          {
+            key: 'workflow.alert_direction',
+            matchExpr: '*',
           },
         ],
         groupId: dataGroupId,
       })
 
       setAlertEvents((response as any)?.events || [])
-      setTotal((response as any)?.pagination?.total || 0)
     } catch (error) {
       console.error('Failed to fetch alert events:', error)
       setAlertEvents([])
@@ -104,7 +145,6 @@ const AlertEventList: React.FC = () => {
   useEffect(() => {
     fetchAlertEvents()
   }, [startTime, endTime, dataGroupId])
-  const navigate = useNavigate()
 
   return (
     <Card
@@ -113,14 +153,12 @@ const AlertEventList: React.FC = () => {
       styles={{ body: { height: 'calc(100% - 60px)' } }}
       title={
         <>
-          告警事件{' '}
-          <div className="text-xs text-gray-500">
-            {t('当前时间段有')} {total} {t('activeAlerts')}
-          </div>
+          {t('alertIntelligentAnalysisReport')}
+          <div className="text-xs text-gray-500">{t('clickCardToViewReport')}</div>
         </>
       }
       extra={
-        <Button type="link" onClick={() => navigate('/alerts/events')}>
+        <Button type="link" onClick={() => window.open('/#/alerts/events', '_blank')}>
           {t('viewAll')}
         </Button>
       }
@@ -142,8 +180,8 @@ const AlertEventList: React.FC = () => {
                 )}
               />
               {alertEvents.length > 50 && (
-                <Button type="link" onClick={() => navigate('/alerts/events')}>
-                  {t('当前只展示前五十条，点击查看所有')}
+                <Button type="link" onClick={() => window.open('/alerts/events', '_blank')}>
+                  {t('showingFirstFifty')}
                 </Button>
               )}
             </>

@@ -10,14 +10,15 @@ const AgentPage: React.FC = () => {
   return (
     <AGUIProvider
       initialConfig={{
-        baseUrl: (import.meta as any).env?.VITE_AGUI_BASE_URL || '/ai/api/v1/srechat',
+        baseUrl:
+          (import.meta as any).env?.VITE_AGUI_BASE_URL || 'http://localhost:4000/api/v1/srechat',
         // 'http://localhost:8081/mock',
         apiKey: (import.meta as any).env?.VITE_AGUI_API_KEY || '',
       }}
     >
       <div className="overflow-hidden" style={{ height: contentHeight }}>
         <Splitter
-          style={{ height: 'calc(100vh - 120px)', overflow: 'hidden' }}
+          style={{ height: 'calc(100vh - 100px )', overflow: 'hidden' }}
           onResize={(sizes) => {
             console.log('Splitter resized:', sizes)
           }}

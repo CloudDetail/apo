@@ -1,24 +1,10 @@
-import {
-  Form,
-  Segmented,
-  Input,
-  Typography,
-  Collapse,
-  Button,
-  Checkbox,
-  Alert,
-  FormInstance,
-} from 'antd'
-import MetricsFormItem from 'src/core/components/Integration/MetricsFormItem'
-import TraceFormItem from 'src/core/components/Integration/TraceFormItem'
-import LogsFormItem from 'src/core/components/Integration/LogsFormItem'
+import { Form, Segmented, Input, Button, FormInstance } from 'antd'
 import { useTranslation } from 'react-i18next'
 import APOCollectorFormItem from 'src/core/components/Integration/APOCollectorFormItem'
 import { portsDefault } from 'src/core/views/IntegrationCenter/constant'
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 // 类型定义
-type ConfigType = 'trace' | 'metric' | 'log'
 
 interface ProbeFormProps {
   onNext: (formParams: any) => void
@@ -48,7 +34,6 @@ interface FormValues {
 
 const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
   const { t } = useTranslation('core/dataIntegration')
-  const [apoConfig, setApoConfig] = useState<ConfigType[]>([])
 
   // 集群类型选项
   const clusterTypeOptions = useMemo(
@@ -65,35 +50,6 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
     [t],
   )
 
-  // 数据源配置项
-  const dataSourceConfigs = useMemo(
-    () => [
-      {
-        key: 'trace' as const,
-        label: t('traceIntegration'),
-        component: TraceFormItem,
-      },
-      {
-        key: 'metric' as const,
-        label: t('metricsIntegration'),
-        component: MetricsFormItem,
-      },
-      {
-        key: 'log' as const,
-        label: t('logsIntegration'),
-        component: LogsFormItem,
-      },
-    ],
-    [t],
-  )
-
-  // 处理配置切换
-  const handleConfigToggle = useCallback((type: ConfigType) => {
-    setApoConfig((prev) =>
-      prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type],
-    )
-  }, [])
-
   // 处理表单提交
   const handleSubmit = useCallback(async () => {
     try {
@@ -108,12 +64,6 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
         }, {})
       }
 
-      dataSourceConfigs.map(({ key, component: Component }) => {
-        if (!apoConfig.includes(key)) {
-          delete params[key]
-        }
-      })
-
       onNext(params)
       console.log('Form submitted:', params)
     } catch (errorInfo: any) {
@@ -122,41 +72,12 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
         form.scrollToField(errorInfo.errorFields[0].name[0])
       }
     }
-  }, [form, onNext, apoConfig])
-
-  // Collapse 额外内容组件
-  const CollapseExtra = useCallback(
-    ({ type }: { type: ConfigType }) => (
-      <Checkbox
-        checked={apoConfig.includes(type)}
-        onClick={(e) => {
-          e.stopPropagation()
-          handleConfigToggle(type)
-        }}
-      >
-        配置
-      </Checkbox>
-    ),
-    [apoConfig, handleConfigToggle],
-  )
+  }, [form, onNext])
 
   // 表单初始值
   const initialValues = useMemo(
     () => ({
       clusterType: 'k8s' as const,
-      metric: {
-        dsType: 'self-collector',
-        mode: 'pql',
-        name: 'APO-DEFAULT-VM',
-      },
-      log: {
-        dbType: 'self-collector',
-        mode: 'sql',
-        name: 'APO-DEFAULT-CH',
-      },
-      apoCollector: {
-        collectorAddr: 'apo-nginx-proxy-svc',
-      },
     }),
     [],
   )
@@ -187,7 +108,7 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
         </Form.Item>
 
         <APOCollectorFormItem />
-        <Alert
+        {/* <Alert
           className="mb-2"
           showIcon
           message="默认仅采集核心关键数据，您可以通过配置允许探针采集更多数据，增强智能分析效果"
@@ -198,24 +119,7 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
           <span className="text-xs ml-2 text-[var(--ant-color-text-secondary)]">
             {t('(推荐在没有其他可观测性数据源时使用）')}
           </span>
-        </Typography.Title>
-
-        {/* 数据源配置折叠面板 */}
-        {dataSourceConfigs.map(({ key, label, component: Component }) => (
-          <Collapse
-            key={key}
-            className="mb-2"
-            items={[
-              {
-                forceRender: true,
-                key,
-                label,
-                children: <Component />,
-                extra: <CollapseExtra type={key} />,
-              },
-            ]}
-          />
-        ))}
+        </Typography.Title> */}
       </Form>
       {!readonly && (
         <div className="flex justify-end mt-2">

@@ -28,20 +28,19 @@ const DataplaneRadioList = ({
       <div className="grid gap-2 w-full grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
         {dataplaneList.map((option) => {
           const isSelected = checkedDataplane?.typeName === option.typeName
-          const isApo = option.typeName === 'apo'
-          const isDisabled = isApo && !apoCanCheck
-
+          console.log(apoCanCheck, 'apoCanCheck')
+          console.log(isSelected, 'isSelected')
           const cardContent = (
             <div
               key={option.typeName}
               onClick={() => {
-                if (!isDisabled && !readonly) {
+                if (!apoCanCheck && !readonly) {
                   onChange(option)
                 }
               }}
               className={`
                 ${isSelected ? 'border-2 border-blue-500 bg-white/20 rounded-xl' : 'border-2 border-transparent'}
-                ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                ${apoCanCheck ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 transition-all duration-300
               `}
             >
@@ -49,7 +48,7 @@ const DataplaneRadioList = ({
             </div>
           )
 
-          return isDisabled ? (
+          return apoCanCheck ? (
             <Tooltip
               key={option.typeName}
               title="若想选择APO数据源请返回第一步【探针安装】，至少选择配置APO数据源配置中的一项"

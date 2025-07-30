@@ -7,5 +7,29 @@
   "result": "Conclusion Overview",
   "filterCausal": "Anomaly Causal Chain",
   "ebpfEvidence": "Anomaly Causal Chain —— ebpf evidence",
-  "causalChain": "Causal Chain"
+  "causalChain": "Causal Chain",
+  "alertIntelligentAnalysisReport": "Alert Intelligent Analysis Report",
+  "clickCardToViewReport": "Click card to view report",
+  "viewAll": "View All",
+  "viewAlertDetails": "View Alert Details",
+  "viewReport": "View Report",
+  "noAlertEvents": "No alert events",
+  "showingFirstFifty": "Currently showing first 50 items, click to view all",
+  "inputArea": {
+    "placeholder": "Enter message...",
+    "typingIndicator": "Typing..."
+  },
+  "settings": {
+    "title": "AG-UI Settings",
+    "cancel": "Cancel",
+    "save": "Save",
+    "baseUrl": "Base URL",
+    "apiKey": "API Key",
+    "baseUrlPlaceholder": "Please enter Base URL",
+    "apiKeyPlaceholder": "Please enter API Key",
+    "baseUrlRequired": "Please enter Base URL",
+    "baseUrlInvalid": "Please enter a valid URL",
+    "apiKeyRequired": "Please enter API Key",
+    "formValidationFailed": "Form validation failed"
+  }
 }

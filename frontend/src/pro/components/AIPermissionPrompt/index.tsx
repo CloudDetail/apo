@@ -68,12 +68,7 @@ const AIPermissionPrompt: React.FC<AIPermissionPromptProps> = ({
           </div>
 
           <div className="ai-permission-description">
-            <Paragraph className="description-text">
-              {t(
-                'aiDescription',
-                '智能运维助手，为您提供专业的SRE支持，包括系统性能分析、告警根因分析、故障排查等功能。',
-              )}
-            </Paragraph>
+            <Paragraph className="description-text">🚀让 AI 极速解决系统问题</Paragraph>
           </div>
 
           <div className="ai-permission-alert">
