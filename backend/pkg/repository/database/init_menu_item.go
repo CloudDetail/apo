@@ -36,7 +36,7 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "integration", Order: 33}},
 	{MenuItem: MenuItem{Key: "dataIntegration", Order: 35}, RouterKey: "/integration/data"},
 	{MenuItem: MenuItem{Key: "alertsIntegration", Order: 37}, RouterKey: "/integration/alerts"},
-	{MenuItem: MenuItem{Key: "dataplane", Order: 38}, RouterKey: "/agent-dataplane"},
+	{MenuItem: MenuItem{Key: "dataplane", Order: 38}, RouterKey: "/dataplane"},
 	{MenuItem: MenuItem{Key: "config", Order: 39}, RouterKey: "/config"},
 	{MenuItem: MenuItem{Key: "manage", Order: 41}},
 	{MenuItem: MenuItem{Key: "userManage", Order: 43}, RouterKey: "/system/user-manage"},
