@@ -11,7 +11,7 @@ interface InputAreaProps {
   isRunning: boolean
   runId: string | null
   onInputChange: (text: string) => void
-  onSendMessage: () => void
+  onSendMessage: (props?: { question?: string }) => void
   onCancelRun: () => void
 }
 
@@ -33,6 +33,11 @@ const InputArea: React.FC<InputAreaProps> = ({
       e.preventDefault()
       onSendMessage()
     }
+  }
+
+  // 处理发送按钮点击
+  const handleSendClick = () => {
+    onSendMessage()
   }
 
   return (
@@ -59,7 +64,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           type="text"
           icon={<SendOutlined />}
           className="flex-shrink-0 text-blue-500 hover:text-blue-600 hover:bg-blue-50 disabled:text-gray-400 disabled:hover:bg-transparent"
-          onClick={onSendMessage}
+          onClick={handleSendClick}
           disabled={!inputText.trim() || loading}
         />
       )}

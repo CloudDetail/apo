@@ -324,9 +324,11 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   // 运行状态事件处理器
   const onRunStarted = useCallback((event: RunStartedEvent) => {
+    console.log('运行开始:', event.runId)
     setIsRunning(true)
     setCurrentRunId(event.runId)
     setLoading(false)
+    setError(null) // 清除之前的错误
   }, [])
 
   const onRunFinished = useCallback((event: RunFinishedEvent) => {
@@ -687,6 +689,20 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       console.log('content', content)
       // if (!currentSession) return
 
+      // 先清理之前的状态，确保没有残留的运行状态
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+
+      // 重置运行相关状态
+      setIsRunning(false)
+      setCurrentRunId(undefined)
+      setCurrentStep(undefined)
+      setCurrentMessage(undefined)
+      setCurrentToolCall(undefined)
+      setError(null)
+
       const userMessage: ExtendedAGUIMessage = {
         id: generateMessageId(),
         role: 'user',
@@ -697,7 +713,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
       setMessages((prev) => [...prev, userMessage])
       setLoading(true)
-      setError(null)
 
       // 保存用户消息到会话 (简化实现)
       if (currentSession) {
@@ -731,10 +746,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       const runId = generateRunId()
       setCurrentRunId(runId)
 
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current()
-      }
-
+      // 订阅新的运行事件
       unsubscribeRef.current = client.subscribeToRun(
         {
           threadId,
@@ -754,19 +766,28 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   // 取消运行
   const cancelRun = useCallback(() => {
     if (currentRunId) {
+      // 先重置状态，避免UI卡住
+      setIsRunning(false)
+      setCurrentRunId(undefined)
+      setCurrentStep(undefined)
+      setCurrentMessage(undefined)
+      setCurrentToolCall(undefined)
+      setLoading(false)
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+
+      // 然后调用客户端的取消方法
       client
         .cancelRun(currentRunId)
         .then(() => {
-          setIsRunning(false)
-          setCurrentRunId(undefined)
-          setCurrentStep(undefined)
-          setCurrentMessage(undefined)
-          setCurrentToolCall(undefined)
-          setLoading(false)
+          console.log('运行已成功取消')
         })
         .catch((error) => {
           console.error('取消运行失败:', error)
-          setError('取消运行失败')
+          // 不设置错误状态，因为取消操作本身不应该被视为错误
+          // setError('取消运行失败')
         })
     }
   }, [client, currentRunId])

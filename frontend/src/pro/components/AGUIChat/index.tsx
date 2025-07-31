@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Layout } from 'antd'
 import { useAGUIChat, useAGUISession, useAGUIState } from '../../contexts/AGUIContext'
 import { ChatHeader, ChatMain, SettingsModal } from './components'
-import { ClientConfig } from './types'
+import { ClientConfig } from './types/index'
 import useAIPermission from '../../hooks/useAIPermission'
 import AIPermissionPrompt from '../AIPermissionPrompt'
 import styles from './AGUIChat.module.scss'
@@ -97,13 +97,16 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
   }
 
   // 消息处理函数
-  const handleSendMessage = async (question?: string) => {
+  const handleSendMessage = async (props?: { question?: string }) => {
+    const { question } = props || {}
+    console.log('handleSendMessage', question)
     if (!inputText.trim() && !question) return
 
     // 如果启用了会话管理，需要检查当前会话
     if (ENABLE_SESSION_MANAGEMENT && !currentSession) return
 
     try {
+      console.log('sendMessage', question || inputText)
       sendMessage(question || inputText)
       setInputText('')
     } catch (err) {

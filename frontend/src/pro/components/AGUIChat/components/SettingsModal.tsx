@@ -1,6 +1,6 @@
 import React from 'react'
 import { Modal, Form, Input, Button } from 'antd'
-import { ClientConfig } from '../types'
+import { ClientConfig } from '../types/index'
 
 interface SettingsModalProps {
   open: boolean

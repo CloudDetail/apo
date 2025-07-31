@@ -38,7 +38,7 @@ interface ChatMainProps {
   state: Record<string, any> | null
   inputText: string
   onInputChange: (text: string) => void
-  onSendMessage: () => void
+  onSendMessage: (props?: { question?: string }) => void
   onCancelRun: () => void
   onClearError: () => void
   onCreateSession?: () => void
@@ -66,17 +66,17 @@ const ChatMain: React.FC<ChatMainProps> = ({
   onCreateSession,
 }) => {
   // 快捷问答处理函数
-  const handleQuickQuestion = (question: string) => {
+  const handleQuickQuestion = (question?: string) => {
     if (ENABLE_SESSION_MANAGEMENT && onCreateSession) {
       onCreateSession()
       // 延迟设置输入文本并发送，确保会话已创建
       setTimeout(() => {
-        onInputChange(question)
-        onSendMessage()
+        onInputChange(question || '')
+        onSendMessage({ question })
       }, 100)
     } else {
       // 直接设置输入文本并发送
-      onSendMessage(question)
+      onSendMessage({ question })
     }
   }
 

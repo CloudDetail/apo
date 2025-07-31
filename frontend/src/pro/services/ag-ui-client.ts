@@ -30,10 +30,12 @@ export class AGUIClient {
                 'Authorization': `Bearer ${this.config.apiKey}`
             } : {},
         });
+        this.agent.abortController = this.abortController;
     }
 
     // 开始运行Agent (适配我们的接口到官方SDK)
     async startRun(request: AGUIRunRequest): Promise<AGUIRunResponse> {
+        console.log('startRun', request)
         try {
             // 转换我们的请求格式到官方格式
             const runInput = {
@@ -68,7 +70,7 @@ export class AGUIClient {
         try {
             // 创建AbortController用于取消
             this.abortController = new AbortController();
-
+            this.agent.abortController = this.abortController;
             // 转换请求格式
             const runInput = {
                 threadId: request.threadId,
@@ -129,15 +131,23 @@ export class AGUIClient {
         try {
             console.log(`取消运行: ${runId}`);
 
+            // 先中止当前的AbortController
             if (this.abortController) {
                 this.abortController.abort();
+                this.abortController = undefined; // 重置abortController
             }
 
-            // 使用HttpAgent的abortRun方法
-            await this.agent.abortRun();
+            // 然后调用HttpAgent的abortRun方法
+            try {
+                await this.agent.abortRun();
+            } catch (abortError) {
+                // 忽略abortRun的错误，因为可能已经被AbortController中止了
+                console.log('HttpAgent abortRun被忽略:', abortError);
+            }
         } catch (error) {
             console.error('取消运行失败:', error);
-            throw new Error(`取消运行失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            // 不要抛出错误，因为取消操作本身不应该被视为错误
+            // throw new Error(`取消运行失败: ${error instanceof Error ? error.message : '未知错误'}`);
         }
     }
 

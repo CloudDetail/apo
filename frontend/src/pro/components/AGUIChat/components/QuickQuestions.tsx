@@ -42,10 +42,18 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
       <div className="flex flex-col items-center justify-center">
         <div className="items-center text-center text-lg font-bold my-2">🎯 我能做什么？</div>
         <div className="flex flex-col justify-center w-3/4 text-base text-[var(--ant-color-text-heading)]">
-          <div className="my-1">🔍 找出最近延时升高的服务和原因</div>
-          <div className="my-1">📉 分析错误率突增的根因</div>
-          <div className="my-1">🔄 分析系统资源告警的深层原因</div>
-          <div className="my-1">🧠 对话式查看日志、指标、调用链</div>
+          <div className="my-1">
+            <span className="mx-2">🔍</span> 找出最近延时升高的服务和原因
+          </div>
+          <div className="my-1">
+            <span className="mx-2">📉</span> 分析错误率突增的根因
+          </div>
+          <div className="my-1">
+            <span className="mx-2">🔄</span> 分析系统资源告警的深层原因
+          </div>
+          <div className="my-1">
+            <span className="mx-2">🧠</span> 对话式查看日志、指标、调用链
+          </div>
         </div>
       </div>
       <div className="flex flex-col items-center justify-center ">
