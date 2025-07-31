@@ -698,7 +698,7 @@
 .markdown-body table th,
 .markdown-body table td {
   padding: 6px 13px;
-  border: 1px solid var(--borderColor-default);
+  /* border: 1px solid var(--borderColor-default); */
 }
 
 .markdown-body table td>:last-child {
@@ -711,7 +711,7 @@
 }
 
 .markdown-body table tr:nth-child(2n) {
-  background-color: var(--bgColor-muted);
+  /* background-color: var(--bgColor-muted); */
 }
 
 .markdown-body table img {

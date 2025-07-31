@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown'
 import { Hash, Quote, CheckSquare, ExternalLink } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
-
+import remarkGfm from 'remark-gfm'
 const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 'dark' }) => {
   const components = {
     // Headers with icons
@@ -140,17 +140,13 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
 
     thead: ({ children }: any) => <thead className="">{children}</thead>,
 
-    th: ({ children }: any) => (
-      <th className="px-4 py-3 text-left font-semibold border-b">{children}</th>
-    ),
+    th: ({ children }: any) => <th className="px-4 py-3 text-left font-semibold ">{children}</th>,
 
     tbody: ({ children }: any) => <tbody>{children}</tbody>,
 
     tr: ({ children }: any) => <tr className=" transition-colors">{children}</tr>,
 
-    td: ({ children }: any) => (
-      <td className="px-4 py-3  border-b border-gray-100 dark:border-gray-600">{children}</td>
-    ),
+    td: ({ children }: any) => <td className="px-4 py-3  ">{children}</td>,
 
     // Paragraphs
     p: ({ children }: any) => <p className="mb-2  leading-relaxed">{children}</p>,
@@ -170,12 +166,15 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
       <del className="line-through text-[var(--ant-color-text-secondary)]">{children}</del>
     ),
   }
+  if (typeof content !== 'string' || !content.trim()) {
+    return <div className="text-[var(--ant-color-text-tertiary)] italic">暂无内容</div>
+  }
   return (
     <div
       className="markdown-body "
       style={{ fontSize: 14, background: 'transparent', minHeight: 0, fontWeight: 'normal' }}
     >
-      <ReactMarkdown remarkPlugins={[remarkBreaks]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkBreaks, remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>
     </div>
