@@ -149,7 +149,9 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
     td: ({ children }: any) => <td className="px-4 py-3  ">{children}</td>,
 
     // Paragraphs
-    p: ({ children }: any) => <p className="mb-2  leading-relaxed">{children}</p>,
+    p: ({ children }: any) => (
+      <p className="text-[var(--ant-color-text)] mb-2  leading-relaxed">{children}</p>
+    ),
 
     // Horizontal rules
     hr: () => <hr className="my-8 border-gray-300 dark:border-gray-600" />,

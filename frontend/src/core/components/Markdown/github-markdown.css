@@ -21,7 +21,6 @@
     /* dark */
     color-scheme: dark;
     --focus-outlineColor: #1f6feb;
-    --fgColor-default: #f0f6fc;
     --fgColor-muted: #9198a1;
     --fgColor-accent: #4493f8;
     --fgColor-success: #3fb950;
@@ -79,7 +78,7 @@
     /* light */
     color-scheme: light;
     --focus-outlineColor: #0969da;
-    --fgColor-default: #1f2328;
+    --ant-color-text: #1f2328;
     --fgColor-muted: #59636e;
     --fgColor-accent: #0969da;
     --fgColor-success: #1a7f37;
@@ -135,7 +134,7 @@
   -ms-text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
   margin: 0;
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
   background-color: var(--bgColor-default);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   font-size: 16px;
@@ -209,7 +208,7 @@
 
 .markdown-body mark {
   background-color: var(--bgColor-attention-muted);
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
 }
 
 .markdown-body small {
@@ -384,7 +383,7 @@
   padding: var(--base-size-4);
   font: 11px var(--fontStack-monospace, ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace);
   line-height: 10px;
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
   vertical-align: middle;
   background-color: var(--bgColor-muted);
   border: solid 1px var(--borderColor-neutral-muted);
@@ -565,7 +564,7 @@
 .markdown-body h4 .octicon-link,
 .markdown-body h5 .octicon-link,
 .markdown-body h6 .octicon-link {
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
   vertical-align: middle;
   visibility: hidden;
 }
@@ -756,7 +755,7 @@
   display: block;
   padding: 5px 0 0;
   clear: both;
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
 }
 
 .markdown-body span.align-center {
@@ -871,7 +870,7 @@
   overflow: auto;
   font-size: 85%;
   line-height: 1.45;
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
   background-color: var(--bgColor-muted);
   border-radius: 6px;
 }
@@ -957,7 +956,7 @@
 }
 
 .markdown-body .footnotes li:target {
-  color: var(--fgColor-default);
+  color: var(--ant-color-text);
 }
 
 .markdown-body .footnotes .data-footnote-backref g-emoji {
