@@ -15,6 +15,7 @@
   "viewReport": "查看报告",
   "noAlertEvents": "暂无告警事件",
   "showingFirstFifty": "当前只展示前五十条，点击查看所有",
+  "reasonDirection": "故障方向",
   "inputArea": {
     "placeholder": "输入消息...",
     "typingIndicator": "正在输入..."
@@ -31,5 +32,22 @@
     "baseUrlInvalid": "请输入有效的URL",
     "apiKeyRequired": "请输入API Key",
     "formValidationFailed": "表单验证失败"
+  },
+  "quickQuestions": {
+    "title": "Agent SRE",
+    "subtitle": "🚀 让 AI 极速解决系统问题",
+    "capabilitiesTitle": "🎯 我能做什么？",
+    "capabilities": {
+      "latencyAnalysis": "找出最近延时升高的服务和原因",
+      "errorAnalysis": "分析错误率突增的根因",
+      "resourceAnalysis": "分析系统资源告警的深层原因",
+      "conversationalAnalysis": "对话式查看日志、指标、调用链"
+    },
+    "quickQuestionsTitle": "✨ 快速提问",
+    "questions": {
+      "latencyCheck": "检查最近15分钟系统中是否存在应用响应变慢或延时异常的情况，并分析原因。",
+      "errorCheck": "分析最近15分钟系统中是否存在应用异常或错误问题，并分析可能原因。",
+      "cpuUsage": "node-16主机的CPU使用率超过80%，这是怎么回事？"
+    }
   }
 }

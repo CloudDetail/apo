@@ -97,7 +97,7 @@
 
 // 消息样式
 .message {
-  @apply flex mb-4;
+  @apply flex mb-2;
 
   &.user {
     @apply justify-end;
@@ -654,5 +654,30 @@
   }
   50% {
     opacity: 1;
+  }
+}
+
+.toolCallCollapse {
+  margin: 4px 16px 8px 16px;
+  :global(.ant-collapse-header) {
+    padding: 0 !important;
+  }
+  :global(.ant-collapse-content-box) {
+    padding: 0 !important;
+  }
+  :global(.ant-pagination) {
+    margin: 8px 0 0 0 !important;
+  }
+}
+.AGUItoolCallCollapse {
+  margin: 4px 16px;
+  :global(.ant-collapse-header) {
+    padding: 0 !important;
+  }
+  :global(.ant-collapse-content-box) {
+    padding: 0 !important;
+  }
+  :global(p) {
+    color: var(--ant-color-text-tertiary) !important;
   }
 }

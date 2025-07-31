@@ -13,7 +13,11 @@ const Result = ({ args }: { args: any }) => {
         items={fields?.map((item) => ({
           label: item.label,
           key: item.key,
-          children: <MarkdownRender content={item.children} theme={theme} />,
+          children: (
+            <div className="max-h-[500px] overflow-y-auto px-2">
+              <MarkdownRender content={item.children} theme={theme} />
+            </div>
+          ),
         }))}
       />
     </>

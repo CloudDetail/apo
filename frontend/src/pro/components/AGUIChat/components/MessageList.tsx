@@ -1,29 +1,29 @@
 import React, { useLayoutEffect, useRef, useState, useEffect } from 'react'
-import ToolRender from './ToolRender'
+import ToolRender from './AGUITool'
 import styles from '../AGUIChat.module.scss'
 import { useSelector } from 'react-redux'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 import AgentToolDisplay from './AgentToolDisplay'
 import { useTranslation } from 'react-i18next'
-
-interface Message {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  timestamp?: Date | string
-  metadata?: {
-    model?: string
-  }
-  toolCalls?: any[]
-  agentToolDisplay?: any[]
-}
+import { ExtendedAGUIMessage } from 'src/pro/contexts/AGUIContext'
+import { PiShareFatBold } from 'react-icons/pi'
+import { FaRegCopy } from 'react-icons/fa'
 
 interface MessageListProps {
-  messages: Message[]
-  currentMessage: Message | null
+  messages: ExtendedAGUIMessage[]
+  currentMessage: ExtendedAGUIMessage | null
   loading: boolean
   currentToolCall: any
   isRunning: boolean
+}
+
+const FinalMessageSuffix = () => {
+  return (
+    <div className="flex items-center justify-start ml-5 gap-3 text-[var(--ant-color-text-secondary)]">
+      <FaRegCopy />
+      <PiShareFatBold />
+    </div>
+  )
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isRunning }) => {
@@ -56,20 +56,20 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
       }
     }
 
-    const markUserInteracted = () => {
-      setUserScrolledUp(true)
-    }
+    // const markUserInteracted = () => {
+    //   setUserScrolledUp(true)
+    // }
 
     el.addEventListener('scroll', onUserScroll)
-    el.addEventListener('wheel', markUserInteracted, { passive: true })
-    el.addEventListener('touchstart', markUserInteracted, { passive: true })
-    el.addEventListener('mousedown', markUserInteracted)
+    // el.addEventListener('wheel', markUserInteracted, { passive: true })
+    // el.addEventListener('touchstart', markUserInteracted, { passive: true })
+    // el.addEventListener('mousedown', markUserInteracted)
 
     return () => {
       el.removeEventListener('scroll', onUserScroll)
-      el.removeEventListener('wheel', markUserInteracted)
-      el.removeEventListener('touchstart', markUserInteracted)
-      el.removeEventListener('mousedown', markUserInteracted)
+      //   el.removeEventListener('wheel', markUserInteracted)
+      //   el.removeEventListener('touchstart', markUserInteracted)
+      //   el.removeEventListener('mousedown', markUserInteracted)
     }
   }, [hasMounted])
 
@@ -126,14 +126,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
           </div>
         </div>
         {message.toolCalls?.length > 0 && (
-          <div className="message-tool-calls">
+          <div className="message-tool-calls ml-6 ">
             {message.toolCalls.map((toolCall: any) => (
               <ToolRender key={toolCall.id} toolCall={toolCall} />
             ))}
           </div>
         )}
         {message.agentToolDisplay?.length > 0 && (
-          <div className="message-tool-calls">
+          <div className="message-tool-calls ml-6">
             {message.agentToolDisplay.map((toolCall: any, index: number) => (
               <AgentToolDisplay
                 key={toolCall.toolName + index}
@@ -144,6 +144,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
             ))}
           </div>
         )}
+        {message.isFinal && <FinalMessageSuffix />}
       </div>
     )
   }

@@ -19,7 +19,7 @@ const AbnormalityDetection = ({ args }: { args: any }) => {
             {value?.map((item, index) => (
               <Popover
                 content={
-                  <div className="h-52 w-64">
+                  <div className="text-center">
                     <span>{t(record.type)}</span>
                     {type.map((key) => {
                       return (

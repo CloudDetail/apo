@@ -16,9 +16,9 @@ import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
 import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
-import { FiDatabase } from 'react-icons/fi'
 import { BsBezier2 } from 'react-icons/bs'
 import { t } from 'i18next'
+import { RiRobot3Line } from 'react-icons/ri'
 
 const namespace = 'core/routes'
 const commercialNav = [
@@ -26,7 +26,8 @@ const commercialNav = [
     key: 'alertAnalyze',
     icon: <IoIosTrendingUp />,
     label: (
-      <>{t('pro/routes:alertAnalyze')}
+      <>
+        {t('pro/routes:alertAnalyze')}
         <CBadge color="info" className="ml-2">
           {t('pro/routes:free')}
         </CBadge>
@@ -175,5 +176,6 @@ const navIcon = {
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
   workflows: <LuWorkflow />,
+  agent: <RiRobot3Line />,
 }
 export { _nav, commercialNav, navIcon }

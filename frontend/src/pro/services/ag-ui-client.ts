@@ -9,6 +9,7 @@ import {
     AGUIRunRequest,
     AGUIRunResponse,
 } from '../types/ag-ui';
+import i18next from 'i18next';
 
 // 包装HttpAgent以提供我们需要的接口
 export class AGUIClient {
@@ -27,7 +28,7 @@ export class AGUIClient {
         this.agent = new HttpAgent({
             url: this.config.baseUrl,
             headers: this.config.apiKey ? {
-                'Authorization': `Bearer ${this.config.apiKey}`
+                'Authorization': `Bearer ${this.config.apiKey}`,
             } : {},
         });
         this.agent.abortController = this.abortController;
@@ -68,6 +69,7 @@ export class AGUIClient {
     // 订阅运行事件 (使用流式API)
     subscribeToRun(request: AGUIRunRequest, callback: (event: Event) => void): () => void {
         try {
+            this.agent.headers['Accept-Language'] = i18next.language;
             // 创建AbortController用于取消
             this.abortController = new AbortController();
             this.agent.abortController = this.abortController;

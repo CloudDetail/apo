@@ -15,6 +15,7 @@
   "viewReport": "View Report",
   "noAlertEvents": "No alert events",
   "showingFirstFifty": "Currently showing first 50 items, click to view all",
+  "reasonDirection": "Reason Direction",
   "inputArea": {
     "placeholder": "Enter message...",
     "typingIndicator": "Typing..."
@@ -31,5 +32,22 @@
     "baseUrlInvalid": "Please enter a valid URL",
     "apiKeyRequired": "Please enter API Key",
     "formValidationFailed": "Form validation failed"
+  },
+  "quickQuestions": {
+    "title": "Agent SRE",
+    "subtitle": "🚀 Let AI solve system problems instantly",
+    "capabilitiesTitle": "🎯 What can I do?",
+    "capabilities": {
+      "latencyAnalysis": "Find services with recent latency increases and their causes",
+      "errorAnalysis": "Analyze root causes of error rate spikes",
+      "resourceAnalysis": "Analyze deep causes of system resource alerts",
+      "conversationalAnalysis": "Conversationally view logs, metrics, and call chains"
+    },
+    "quickQuestionsTitle": "✨ Quick Questions",
+    "questions": {
+      "latencyCheck": "Check if there are any application response slowdowns or latency anomalies in the system in the last 15 minutes, and analyze the causes.",
+      "errorCheck": "Analyze if there are any application anomalies or error issues in the system in the last 15 minutes, and analyze possible causes.",
+      "cpuUsage": "The CPU usage of node-16 host exceeds 80%, what's happening?"
+    }
   }
 }

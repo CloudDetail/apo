@@ -51,7 +51,7 @@ const AlertEventCard: React.FC<{ event: any }> = ({ event }) => {
 
       <div className="text-xs text-[var(--ant-color-text-secondary)] mb-2 flex items-center gap-1">
         <FaMagnifyingGlass className="mr-3" />
-        <span>故障方向：</span>
+        <span>{t('reasonDirection')}：</span>
         <span className="text-[var(--ant-color-text-heading)]">{event.alertDirection}</span>
       </div>
       <div className="text-xs text-[var(--ant-color-text-secondary)] mb-2 flex items-center gap-3">

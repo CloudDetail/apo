@@ -29,7 +29,7 @@ import {
 } from '../types/ag-ui'
 
 // 扩展AGUIMessage类型以支持工具调用
-interface ExtendedAGUIMessage extends AGUIMessage {
+export interface ExtendedAGUIMessage extends AGUIMessage {
   toolCalls?: Array<{
     id: string
     name: string
@@ -42,6 +42,7 @@ interface ExtendedAGUIMessage extends AGUIMessage {
     title: string
     content: string
   }>
+  isFinal?: boolean
 }
 
 interface AGUIContextValue {
@@ -352,6 +353,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           })
         }
       })
+      updatedMessages[updatedMessages.length - 1].isFinal = true
       return updatedMessages
     })
   }, [])
@@ -377,6 +379,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           })
         }
       })
+      updatedMessages[updatedMessages.length - 1].isFinal = true
       return updatedMessages
     })
   }, [])

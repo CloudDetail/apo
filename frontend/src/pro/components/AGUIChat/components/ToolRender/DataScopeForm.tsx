@@ -1,6 +1,6 @@
 import { Button, Checkbox, Form, Input, Radio, Select } from 'antd'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const DataScopeForm = ({ args, status }: { args: any; status: string }) => {
   const [form] = Form.useForm()
@@ -31,25 +31,39 @@ const DataScopeForm = ({ args, status }: { args: any; status: string }) => {
   useEffect(() => {
     form.setFieldsValue(initialValues)
   }, [initialValues])
+  const [countdown, setCountdown] = useState<number>(5)
+  const [executed, setExecuted] = useState(false)
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
+  useEffect(() => {
+    // 初始化后自动开始倒计时
+    if (countdown === 0) {
+      console.log('自动执行:', args)
+      setExecuted(true)
+      return
+    }
+
+    timerRef.current = setTimeout(() => {
+      setCountdown((prev) => prev - 1)
+    }, 1000)
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [countdown, args])
   return (
     <>
-      <Form layout="vertical" form={form} initialValues={initialValues}>
+      <Form layout="vertical" form={form} initialValues={initialValues} disabled={executed}>
         {fields?.map((item) => (
           <Form.Item label={item.label} name={item.name} key={item.name}>
             {RenderFormItem(item)}
           </Form.Item>
         ))}
-        <div className="text-right mt-2">
-          <Button
-            type="primary"
-            onClick={() => {
-              console.log(args)
-            }}
-          >
-            5s 自动执行
-          </Button>
-        </div>
+        {!executed && (
+          <div className="text-right mt-2">
+            <Button type="primary">{countdown}s 后自动执行</Button>
+          </div>
+        )}
       </Form>
     </>
   )
