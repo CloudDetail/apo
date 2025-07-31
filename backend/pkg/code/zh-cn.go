@@ -229,4 +229,6 @@ var zhCnText = map[string]string{
 	ServiceNameRuleNotExistsError: "服务名匹配规则不存在",
 	QueryAPPInfoTagsError:         "查询APP信息标签失败",
 	QueryAPPInfoValuesError:       "查询APP信息值失败",
+
+	QueryPodsError: "获取Pod列表失败",
 }

@@ -314,6 +314,7 @@ func setApiRouter(r *resource) {
 		handler := metric.New(r.logger, r.prom)
 		metricAPI.GET("/list", handler.ListMetrics())
 		metricAPI.POST("/query", handler.QueryMetrics())
+		metricAPI.POST("/queryPods", handler.QueryPods())
 	}
 
 	dataplaneAPI := r.mux.Group("/api/dataplane")

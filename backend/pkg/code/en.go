@@ -227,4 +227,6 @@ var enText = map[string]string{
 	ServiceNameRuleNotExistsError: "service name rule not exists",
 	QueryAPPInfoTagsError:         "Failed to query APP info tags",
 	QueryAPPInfoValuesError:       "Failed to query APP info values",
+
+	QueryPodsError: "Failed to get pod list",
 }

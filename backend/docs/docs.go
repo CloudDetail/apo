@@ -4516,6 +4516,45 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/metric/queryPods": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryPodsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryPodsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/network/podmap": {
             "get": {
                 "description": "query pod network call topology and call metrics",
@@ -11264,6 +11303,20 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Pod": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "pod": {
+                    "type": "string"
+                }
+            }
+        },
         "model.Service": {
             "type": "object",
             "properties": {
@@ -12314,6 +12367,12 @@ const docTemplate = `{
         "request.GetServiceREDChartsRequest": {
             "type": "object",
             "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "endTime": {
                     "type": "integer"
                 },
@@ -12322,6 +12381,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "groupId": {
+                    "type": "integer"
                 },
                 "serviceList": {
                     "type": "array",
@@ -12709,6 +12771,35 @@ const docTemplate = `{
                 },
                 "startTime": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.QueryPodsRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "namespace": {
+                    "description": "query namespace",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "query node name",
+                    "type": "string"
+                },
+                "pod": {
+                    "description": "query pod name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
                 }
             }
         },
@@ -14725,6 +14816,17 @@ const docTemplate = `{
                 },
                 "unit": {
                     "type": "string"
+                }
+            }
+        },
+        "response.QueryPodsResponse": {
+            "type": "object",
+            "properties": {
+                "pods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Pod"
+                    }
                 }
             }
         },
