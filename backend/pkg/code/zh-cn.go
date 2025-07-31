@@ -237,4 +237,6 @@ var zhCnText = map[string]string{
 	ListDataPlaneError:     "列出数据平面失败",
 	ListDataPlaneTypeError: "列出数据平面类型失败",
 	UpdateDataPlaneError:   "更新数据平面失败",
+
+	QueryPodsError: "获取Pod列表失败",
 }

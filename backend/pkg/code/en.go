@@ -235,4 +235,6 @@ var enText = map[string]string{
 	ListDataPlaneError:     "Failed to list data plane",
 	ListDataPlaneTypeError: "Failed to list data plane type",
 	UpdateDataPlaneError:   "Failed to update data plane",
+
+	QueryPodsError: "Failed to get pod list",
 }

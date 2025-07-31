@@ -278,6 +278,9 @@ const (
 	DataPlaneTypeNotExistError      = "B1817"
 	DataPlaneParamInvalidError      = "B1818"
 	CheckMinimalDataPlaneExistError = "B1819"
+
+	// Metric
+	QueryPodsError = "B1901"
 )
 
 func Text(lang string, code string) string {

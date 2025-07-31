@@ -21,6 +21,11 @@ type Handler interface {
 	// @Tags API.metric
 	// @Router /api/metric/query [post]
 	QueryMetrics() core.HandlerFunc
+
+	// QueryPods
+	// @Tags API.metric
+	// @Router /api/metric/queryPods [post]
+	QueryPods() core.HandlerFunc
 }
 
 type handler struct {

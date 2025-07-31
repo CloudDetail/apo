@@ -101,6 +101,8 @@ type Repo interface {
 
 	GetMinimalAgentExisted(ctx core.Context, endTime time.Time, duration time.Duration) ([]string, error)
 
+	GetPodList(ctx core.Context, startTime int64, endTime int64, nodeName string, namespace string, podName string) ([]*model.Pod, error)
+
 	QueryWithPQLFilter
 }
 
