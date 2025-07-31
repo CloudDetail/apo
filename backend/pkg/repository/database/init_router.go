@@ -40,8 +40,8 @@ var validRouters = []Router{
 	{RouterTo: "/system/data-group", HideTimeSelector: true},
 	{RouterTo: "/report", HideTimeSelector: true},
 	{RouterTo: "/agent-dataplane", HideTimeSelector: true},
-	{RouterTo: "agent", HideTimeSelector: true},
-	{RouterTo: "probe-installer", HideTimeSelector: true},
+	{RouterTo: "/agent", HideTimeSelector: true},
+	{RouterTo: "/probe-installer", HideTimeSelector: true},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required

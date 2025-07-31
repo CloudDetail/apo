@@ -30,6 +30,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		FeatureName string
 		MenuKey     string
 	}{
+		{"智能体", "agent"},
 		{"服务概览", "service"},
 		{"故障现场日志", "faultSite"},
 		{"全量日志", "full"},
@@ -46,6 +47,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"告警事件", "alertEvents"},
 		{"数据接入", "dataIntegration"},
 		{"告警接入", "alertsIntegration"},
+		{"数据采集", "dataplane"},
 		{"工作流", "workflows"},
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},

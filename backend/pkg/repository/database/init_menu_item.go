@@ -13,6 +13,7 @@ var validMenuItemMappings = []struct {
 	MenuItem
 	RouterKey string
 }{
+	{MenuItem: MenuItem{Key: "agent", Order: 0}, RouterKey: "/agent"},
 	{MenuItem: MenuItem{Key: "service", Order: 1}, RouterKey: "/service"},
 	{MenuItem: MenuItem{Key: "workflows", Order: 3}, RouterKey: "/workflows"},
 	{MenuItem: MenuItem{Key: "alerts", Order: 4}},
@@ -35,6 +36,7 @@ var validMenuItemMappings = []struct {
 	{MenuItem: MenuItem{Key: "integration", Order: 33}},
 	{MenuItem: MenuItem{Key: "dataIntegration", Order: 35}, RouterKey: "/integration/data"},
 	{MenuItem: MenuItem{Key: "alertsIntegration", Order: 37}, RouterKey: "/integration/alerts"},
+	{MenuItem: MenuItem{Key: "dataplane", Order: 38}, RouterKey: "/agent-dataplane"},
 	{MenuItem: MenuItem{Key: "config", Order: 39}, RouterKey: "/config"},
 	{MenuItem: MenuItem{Key: "manage", Order: 41}},
 	{MenuItem: MenuItem{Key: "userManage", Order: 43}, RouterKey: "/system/user-manage"},
@@ -84,6 +86,7 @@ func (repo *daoRepo) initMenuItems(ctx core.Context) error {
 			"alertsNotify":      "alerts",
 			"dataIntegration":   "integration",
 			"alertsIntegration": "integration",
+			"dataplane":         "integration",
 			"dataGroup":         "manage",
 			"team":              "manage",
 			"alertEvents":       "alerts",

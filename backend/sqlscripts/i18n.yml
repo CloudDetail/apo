@@ -14,6 +14,18 @@ service:
       field_name: "abbreviation"
       entity_type: "menu"
 
+agent:
+  key: "agent"
+  i18n:
+    - language: "en"
+      translation: "Agent"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "智能体"
+      field_name: "label"
+      entity_type: "menu"
+
 workflows:
   key: "workflows"
   i18n:
@@ -280,6 +292,18 @@ alertsIntegration:
     - language: "en"
       translation: "Alerts"
       field_name: "abbreviation"
+      entity_type: "menu"
+
+dataplane:
+  key: "dataplane"
+  i18n:
+    - language: "en"
+      translation: "Data Ingestion"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "数据采集"
+      field_name: "label"
       entity_type: "menu"
 
 config:
@@ -797,7 +821,7 @@ MySQL大盘:
   key: "服务别名配置"
   i18n:
   - language: "en"
-    translation: "Service "
+    translation: "Service"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
@@ -813,5 +837,27 @@ MySQL大盘:
     field_name: "featureName"
   - language: "zh"
     translation: "服务概览"
+    entity_type: "feature"
+    field_name: "featureName"
+智能体:
+  key: "智能体"
+  i18n:
+  - language: "en"
+    translation: "Agent"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "智能体"
+    entity_type: "feature"
+    field_name: "featureName"
+数据采集:
+  key: "数据采集"
+  i18n:
+  - language: "en"
+    translation: "Data Ingestion"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "数据采集"
     entity_type: "feature"
     field_name: "featureName"
