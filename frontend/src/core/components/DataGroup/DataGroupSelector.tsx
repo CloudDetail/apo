@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import DataGroupTreeSelector from './DataGroupTreeSelector'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 
-const DataGroupSelector = ({ readonly = false }) => {
+const DataGroupSelector = ({ readonly = false, hidden = false }) => {
   const { t } = useTranslation('core/dataGroup')
   const flattenedAvailableNodes = useDataGroupContext((ctx) => ctx.flattenedAvailableNodes)
   const availableNodeIds = useDataGroupContext((ctx) => ctx.availableNodeIds)
@@ -82,7 +82,7 @@ const DataGroupSelector = ({ readonly = false }) => {
     navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
   }
 
-  return import.meta.env.VITE_APP_CODE_VERSION !== 'CE' ? (
+  return import.meta.env.VITE_APP_CODE_VERSION !== 'CE' && !hidden ? (
     <div className="w-[200px]">
       <DataGroupTreeSelector
         onChange={onChange}

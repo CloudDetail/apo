@@ -109,9 +109,10 @@ const AppHeader = ({ type = 'default' }) => {
               <AppBreadcrumb />
             </CHeaderNav>
           )}
-          {currentRoute?.showDataGroup && (
-            <DataGroupSelector readonly={currentRoute?.showDataGroup === 'view'} />
-          )}
+          <DataGroupSelector
+            readonly={currentRoute?.showDataGroup === 'view'}
+            hidden={!currentRoute?.showDataGroup}
+          />
         </div>
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
