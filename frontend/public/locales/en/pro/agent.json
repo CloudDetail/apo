@@ -17,7 +17,7 @@
   "showingFirstFifty": "Currently showing first 50 items, click to view all",
   "reasonDirection": "Reason Direction",
   "inputArea": {
-    "placeholder": "Enter message...",
+    "placeholder": "Ask SRE Agent",
     "typingIndicator": "Typing..."
   },
   "settings": {
@@ -33,8 +33,9 @@
     "apiKeyRequired": "Please enter API Key",
     "formValidationFailed": "Form validation failed"
   },
+  "autoExecute": "Auto Execute",
   "quickQuestions": {
-    "title": "Agent SRE",
+    "title": "SRE Agent",
     "subtitle": "🚀 Let AI solve system problems instantly",
     "capabilitiesTitle": "🎯 What can I do?",
     "capabilities": {

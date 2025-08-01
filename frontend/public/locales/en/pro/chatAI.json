@@ -2,7 +2,7 @@
   "aiDialogue": "AI Dialogue",
   "dataAndRules": "Data and Rules Explanation",
   "confirmRootCause": "Confirm Root Cause Node, View Data",
-  "aiAssistant": "Agent SRE",
+  "aiAssistant": "SRE Agent",
   "aiDescription": "Intelligent operations assistant providing professional SRE support, including system performance analysis, alert root cause analysis, and troubleshooting.",
   "checkingPermission": "Checking permissions...",
   "permissionCheckError": "Permission check failed",

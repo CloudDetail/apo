@@ -2,5 +2,31 @@
   "list": "Configured Data Sources",
   "sourceType": "Data Source Type",
   "sourceName": "Data Source Name",
-  "operation": "Operation"
+  "operation": "Operation",
+  "steps": {
+    "probeInstall": "Probe Installation",
+    "dataSource": "Connect Data Source",
+    "installComplete": "Installation Complete"
+  },
+  "buttons": {
+    "backToAgent": "Back to SRE Agent",
+    "next": "Next"
+  },
+  "tooltips": {
+    "apoDataSourceRequired": "To select APO data source, please return to step 1 [Probe Installation] and configure at least one item in APO data source configuration"
+  },
+  "messages": {
+    "defaultCollectionInfo": "By default, only core critical data is collected. You can configure the probe to collect more data to enhance intelligent analysis",
+    "connectSuccess": "Connection successful"
+  },
+  "optionalConfig": {
+    "title": "Optional Data Collection Configuration",
+    "subtitle": "(Recommended when no other observability data sources are available)"
+  },
+  "dataIntegrationSettings": "Data Integration Settings",
+  "form": {
+    "dataSourceName": "Data Source Name",
+    "config": "Configure",
+    "connect": "Connect"
+  }
 }

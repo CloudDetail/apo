@@ -17,7 +17,7 @@
   "showingFirstFifty": "当前只展示前五十条，点击查看所有",
   "reasonDirection": "故障方向",
   "inputArea": {
-    "placeholder": "输入消息...",
+    "placeholder": "询问 SRE 智能助手",
     "typingIndicator": "正在输入..."
   },
   "settings": {
@@ -33,8 +33,9 @@
     "apiKeyRequired": "请输入API Key",
     "formValidationFailed": "表单验证失败"
   },
+  "autoExecute": "自动执行",
   "quickQuestions": {
-    "title": "Agent SRE",
+    "title": "SRE Agent",
     "subtitle": "🚀 让 AI 极速解决系统问题",
     "capabilitiesTitle": "🎯 我能做什么？",
     "capabilities": {

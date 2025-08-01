@@ -1,0 +1,31 @@
+{
+  "session": {
+    "newConversation": "新对话",
+    "sessionNotFound": "会话不存在",
+    "loadSessionFailed": "加载会话失败",
+    "deleteSessionFailed": "删除会话失败",
+    "refreshSessionsFailed": "刷新会话列表失败",
+    "saveMessageFailed": "保存消息失败"
+  },
+  "run": {
+    "runStarted": "运行开始",
+    "runCancelled": "运行已成功取消",
+    "cancelRunFailed": "取消运行失败",
+    "runtimeError": "运行时发生错误"
+  },
+  "toolCall": {
+    "addedToolCall": "已添加工具调用到消息",
+    "updatedToolCallArgs": "已更新工具调用参数",
+    "toolCallCompleted": "工具调用已完成",
+    "toolCallError": "工具调用出错"
+  },
+  "message": {
+    "userMessage": "用户消息",
+    "assistantMessage": "助手消息"
+  },
+  "error": {
+    "unknownEventType": "未处理的事件类型",
+    "rawEvent": "原始事件",
+    "customEvent": "自定义事件"
+  }
+}

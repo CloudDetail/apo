@@ -34,6 +34,7 @@ interface FormValues {
 
 const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
   const { t } = useTranslation('core/dataIntegration')
+  const { t: tProbe } = useTranslation('pro/agentDatasource')
 
   // 集群类型选项
   const clusterTypeOptions = useMemo(
@@ -124,7 +125,7 @@ const ProbeForm = ({ onNext, form, readonly = false }: ProbeFormProps) => {
       {!readonly && (
         <div className="flex justify-end mt-2">
           <Button type="primary" onClick={handleSubmit}>
-            {t('下一步')}
+            {tProbe('buttons.next')}
           </Button>
         </div>
       )}

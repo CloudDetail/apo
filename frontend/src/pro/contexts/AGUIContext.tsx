@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AGUIClient } from '../services/ag-ui-client'
 import {
   AGUISession,
@@ -105,6 +106,8 @@ export interface AGUIProviderProps {
 }
 
 export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialConfig = {} }) => {
+  const { t } = useTranslation('pro/agui')
+
   // 默认配置
   const defaultConfig: AGUIClientConfig = {
     baseUrl: (import.meta as any).env?.VITE_AGUI_BASE_URL || 'http://localhost:3001',
@@ -213,7 +216,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
               localStorage.setItem('agui_sessions', JSON.stringify(updatedSessions))
               setSessions(updatedSessions)
             } catch (e) {
-              console.warn('保存消息失败:', e)
+              console.warn(t('session.saveMessageFailed'), e)
             }
           }
         }
@@ -241,7 +244,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
         lastMessage.toolCalls = lastMessage.toolCalls || []
         lastMessage.toolCalls.push(toolCall)
 
-        console.log('Added tool call to message:', toolCall)
+        console.log(t('toolCall.addedToolCall'), toolCall)
       }
 
       return updatedMessages
@@ -325,7 +328,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   // 运行状态事件处理器
   const onRunStarted = useCallback((event: RunStartedEvent) => {
-    console.log('运行开始:', event.runId)
+    console.log(t('run.runStarted'), event.runId)
     setIsRunning(true)
     setCurrentRunId(event.runId)
     setLoading(false)
@@ -359,7 +362,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   }, [])
 
   const onRunError = useCallback((event: RunErrorEvent) => {
-    setError(event.message || '运行时发生错误')
+    setError(event.message || t('run.runtimeError'))
     setIsRunning(false)
     setCurrentRunId(undefined)
     setCurrentStep(undefined)
@@ -433,7 +436,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   // Raw事件和自定义事件处理器
   const onRawEvent = useCallback((event: RawEvent) => {
-    console.log('Raw event:', event.event)
+    console.log(t('error.rawEvent'), event.event)
   }, [])
 
   const onCustomEvent = useCallback((event: CustomEvent) => {
@@ -455,7 +458,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           lastMessage.agentToolDisplay = lastMessage.agentToolDisplay || []
           lastMessage.agentToolDisplay.push(toolCall)
 
-          console.log('Added tool call to message:', toolCall)
+          console.log(t('toolCall.addedToolCall'), toolCall)
         }
 
         return updatedMessages
@@ -521,7 +524,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           onCustomEvent(event as CustomEvent)
           break
         default:
-          console.log('未处理的事件类型:', (event as any).type)
+          console.log(t('error.unknownEventType'), (event as any).type)
       }
     },
     [
@@ -569,7 +572,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     const sessionId = `session_${Date.now()}`
     const newSession: AGUISession = {
       id: sessionId,
-      title: title || `新对话 ${new Date().toLocaleString()}`,
+      title: title || `${t('session.newConversation')} ${new Date().toLocaleString()}`,
       messages: [],
       state: {},
       createdAt: new Date(),
@@ -604,7 +607,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
         // 简化实现：从sessions状态中查找
         const session = sessions.find((s) => s.id === sessionId)
         if (!session) {
-          throw new Error('会话不存在')
+          throw new Error(t('session.sessionNotFound'))
         }
 
         setCurrentSession(session)
@@ -624,8 +627,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
         setError(null)
       } catch (error) {
-        console.error('加载会话失败:', error)
-        setError('加载会话失败')
+        console.error(t('session.loadSessionFailed'), error)
+        setError(t('session.loadSessionFailed'))
       }
     },
     [sessions],
@@ -650,11 +653,11 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           const filtered = allSessions.filter((s: AGUISession) => s.id !== sessionId)
           localStorage.setItem('agui_sessions', JSON.stringify(filtered))
         } catch (e) {
-          console.warn('删除会话失败:', e)
+          console.warn(t('session.deleteSessionFailed'), e)
         }
       } catch (error) {
-        console.error('删除会话失败:', error)
-        setError('删除会话失败')
+        console.error(t('session.deleteSessionFailed'), error)
+        setError(t('session.deleteSessionFailed'))
       }
     },
     [currentSession],
@@ -681,8 +684,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
       setSessions(sessionsWithDates)
     } catch (error) {
-      console.error('刷新会话列表失败:', error)
-      setError('刷新会话列表失败')
+      console.error(t('session.refreshSessionsFailed'), error)
+      setError(t('session.refreshSessionsFailed'))
     }
   }, [])
 
@@ -734,7 +737,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           localStorage.setItem('agui_sessions', JSON.stringify(updatedSessions))
           setSessions(updatedSessions)
         } catch (e) {
-          console.warn('保存消息失败:', e)
+          console.warn(t('session.saveMessageFailed'), e)
         }
       }
 
@@ -785,12 +788,12 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       client
         .cancelRun(currentRunId)
         .then(() => {
-          console.log('运行已成功取消')
+          console.log(t('run.runCancelled'))
         })
         .catch((error) => {
-          console.error('取消运行失败:', error)
+          console.error(t('run.cancelRunFailed'), error)
           // 不设置错误状态，因为取消操作本身不应该被视为错误
-          // setError('取消运行失败')
+          // setError(t('run.cancelRunFailed'))
         })
     }
   }, [client, currentRunId])

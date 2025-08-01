@@ -1,0 +1,31 @@
+{
+  "session": {
+    "newConversation": "New Conversation",
+    "sessionNotFound": "Session not found",
+    "loadSessionFailed": "Failed to load session",
+    "deleteSessionFailed": "Failed to delete session",
+    "refreshSessionsFailed": "Failed to refresh session list",
+    "saveMessageFailed": "Failed to save message"
+  },
+  "run": {
+    "runStarted": "Run started",
+    "runCancelled": "Run successfully cancelled",
+    "cancelRunFailed": "Failed to cancel run",
+    "runtimeError": "Runtime error occurred"
+  },
+  "toolCall": {
+    "addedToolCall": "Added tool call to message",
+    "updatedToolCallArgs": "Updated tool call arguments",
+    "toolCallCompleted": "Tool call completed",
+    "toolCallError": "Tool call error"
+  },
+  "message": {
+    "userMessage": "User message",
+    "assistantMessage": "Assistant message"
+  },
+  "error": {
+    "unknownEventType": "Unhandled event type",
+    "rawEvent": "Raw event",
+    "customEvent": "Custom event"
+  }
+}

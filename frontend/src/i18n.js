@@ -29,6 +29,7 @@ const proNsList = [
   'routes',
   'agent',
   'agentDatasource',
+  'agui',
 ]
 const getNsList = (folder, nsList) => {
   return nsList.map((ns) => `${folder}/${ns}`)

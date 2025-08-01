@@ -30,7 +30,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             className={styles.siderTrigger}
           />
         </Tooltip> */}
-        <h2 className={styles.headerTitle}>Agent SRE Chat</h2>
+        <h2 className={styles.headerTitle}>SRE Agent Chat</h2>
       </div>
       <div className={styles.headerActions}>
         {/* <Tooltip title="设置">
@@ -42,7 +42,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           />
         </Tooltip> */}
         {/* 会话刷新按钮 - 仅在启用会话管理时显示 */}
-        <Tooltip title="刷新会话">
+        <Tooltip title="Refresh">
           <Button
             type="text"
             icon={<ReloadOutlined />}

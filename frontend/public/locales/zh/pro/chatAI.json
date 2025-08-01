@@ -2,7 +2,7 @@
   "aiDialogue": "大模型对话",
   "dataAndRules": "数据与规则说明",
   "confirmRootCause": "确认根因节点、查看数据",
-  "aiAssistant": "Agent SRE",
+  "aiAssistant": "SRE Agent",
   "aiDescription": "智能运维助手，为您提供专业的SRE支持，包括系统性能分析、告警根因分析、故障排查等功能。",
   "checkingPermission": "正在检查运行条件...",
   "permissionCheckError": "权限检查失败",

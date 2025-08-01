@@ -1,8 +1,10 @@
 import { Button, Checkbox, Form, Input, Radio, Select } from 'antd'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
-const DataScopeForm = ({ args, status }: { args: any; status: string }) => {
+const DataScopeForm = ({ args }: { args: any }) => {
+  const { t } = useTranslation('pro/agent')
   const [form] = Form.useForm()
   const { fields } = args
 
@@ -33,7 +35,7 @@ const DataScopeForm = ({ args, status }: { args: any; status: string }) => {
   }, [initialValues])
   const [countdown, setCountdown] = useState<number>(5)
   const [executed, setExecuted] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     // 初始化后自动开始倒计时
@@ -61,7 +63,9 @@ const DataScopeForm = ({ args, status }: { args: any; status: string }) => {
         ))}
         {!executed && (
           <div className="text-right mt-2">
-            <Button type="primary">{countdown}s 后自动执行</Button>
+            <Button type="primary">
+              {countdown}s {t('autoExecute')}
+            </Button>
           </div>
         )}
       </Form>

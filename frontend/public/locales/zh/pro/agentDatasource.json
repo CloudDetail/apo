@@ -2,5 +2,31 @@
   "list": "已配置数据源",
   "sourceType": "数据源类型",
   "sourceName": "数据源名称",
-  "operation": "操作"
+  "operation": "操作",
+  "steps": {
+    "probeInstall": "探针安装",
+    "dataSource": "接入数据源",
+    "installComplete": "安装完成"
+  },
+  "buttons": {
+    "backToAgent": "返回SRE Agent",
+    "next": "下一步"
+  },
+  "tooltips": {
+    "apoDataSourceRequired": "若想选择APO数据源请返回第一步【探针安装】，至少选择配置APO数据源配置中的一项"
+  },
+  "messages": {
+    "defaultCollectionInfo": "默认仅采集核心关键数据，您可以通过配置允许探针采集更多数据，增强智能分析效果",
+    "connectSuccess": "接入成功"
+  },
+  "optionalConfig": {
+    "title": "可选数据采集配置",
+    "subtitle": "(推荐在没有其他可观测性数据源时使用）"
+  },
+  "dataIntegrationSettings": "选择数据源",
+  "form": {
+    "dataSourceName": "接入数据源名称",
+    "config": "配置",
+    "connect": "接入"
+  }
 }

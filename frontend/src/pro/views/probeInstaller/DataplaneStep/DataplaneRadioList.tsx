@@ -3,6 +3,7 @@ import { getDataplaneTypeListApi } from 'src/pro/api/dataplane'
 import DataplaneCard from 'src/pro/components/Dataplane/DataplaneCard'
 import { DataplaneTypeItem } from 'src/pro/types/datasource'
 import { Tooltip } from 'antd'
+import { useTranslation } from 'react-i18next'
 
 const DataplaneRadioList = ({
   onChange,
@@ -15,14 +16,14 @@ const DataplaneRadioList = ({
   apoCanCheck: boolean
   readonly: boolean
 }) => {
+  const { t } = useTranslation('pro/agentDatasource')
   const [dataplaneList, setDataplaneList] = useState<DataplaneTypeItem[]>([])
 
   useEffect(() => {
     getDataplaneTypeListApi().then((res) => {
-      setDataplaneList(res.dpTypes)
+      setDataplaneList(res?.dpTypes || [])
     })
   }, [])
-
   return (
     <div className="w-full p-1">
       <div className="grid gap-2 w-full grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
@@ -44,15 +45,12 @@ const DataplaneRadioList = ({
                 transition-all duration-300
               `}
             >
-              <DataplaneCard info={isSelected ? { ...option, isSelected: true } : option} />
+              <DataplaneCard info={option} />
             </div>
           )
 
           return apoCanCheck ? (
-            <Tooltip
-              key={option.typeName}
-              title="若想选择APO数据源请返回第一步【探针安装】，至少选择配置APO数据源配置中的一项"
-            >
+            <Tooltip key={option.typeName} title={t('tooltips.apoDataSourceRequired')}>
               {cardContent}
             </Tooltip>
           ) : (

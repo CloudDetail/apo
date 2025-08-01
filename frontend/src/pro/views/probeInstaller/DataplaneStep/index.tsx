@@ -14,12 +14,12 @@ const DataplaneStep = ({
   onSave: (apoConfig: any) => void
   readonly: boolean
 }) => {
-  const { t } = useTranslation('core/dataIntegration')
+  const { t } = useTranslation('pro/agentDatasource')
   const [checkedDataplane, setCheckedDataplane] = useState<DataplaneTypeItem | null>(null)
 
   return (
     <div className="flex flex-col h-full">
-      <Typography.Title level={5}>选择接入数据源</Typography.Title>
+      <Typography.Title level={5}>{t('dataIntegrationSettings')}</Typography.Title>
       <DataplaneRadioList
         readonly={readonly}
         onChange={setCheckedDataplane}
@@ -29,7 +29,9 @@ const DataplaneStep = ({
       {checkedDataplane && (
         <>
           <Divider></Divider>
-          <Typography.Title level={5}>{checkedDataplane.typeName} 配置</Typography.Title>
+          <Typography.Title level={5}>
+            {checkedDataplane.typeName} {t('form.config')}
+          </Typography.Title>
 
           <div className="flex-1 overflow-hidden h-0">
             <DataplaneConfigForm

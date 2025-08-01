@@ -21,8 +21,13 @@ const DataplaneConfigForm = ({
   showApoConfig: boolean
 }) => {
   const { t } = useTranslation('core/dataIntegration')
+  const { t: tAgent } = useTranslation('pro/agentDatasource')
 
-  const { paramSpec, typeName, capabilitySpec, capability, params, name, id } = dataplaneParams
+  const { paramSpec, typeName, capabilitySpec } = dataplaneParams
+  const capability = 'capability' in dataplaneParams ? dataplaneParams.capability : []
+  const params = 'params' in dataplaneParams ? dataplaneParams.params : '{}'
+  const name = 'name' in dataplaneParams ? dataplaneParams.name : ''
+  const id = 'id' in dataplaneParams ? dataplaneParams.id : undefined
   const [form] = Form.useForm()
   const [apoConfig, setApoConfig] = useState<ConfigType[]>([])
 
@@ -35,7 +40,7 @@ const DataplaneConfigForm = ({
     api(values).then((res) => {
       console.log(res)
       notify({
-        message: '接入成功',
+        message: tAgent('messages.connectSuccess'),
         type: 'success',
       })
     })
@@ -101,7 +106,7 @@ const DataplaneConfigForm = ({
           handleConfigToggle(type)
         }}
       >
-        配置
+        {tAgent('form.config')}
       </Checkbox>
     ),
     [apoConfig, handleConfigToggle],
@@ -144,7 +149,7 @@ const DataplaneConfigForm = ({
           <Form.Item name="typ" hidden rules={[{ required: true }]}>
             <Input defaultValue={typeName} />
           </Form.Item>
-          <Form.Item name="name" label="接入数据源名称" rules={[{ required: true }]}>
+          <Form.Item name="name" label={tAgent('form.dataSourceName')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           {paramSpec?.children?.map((item) => (
@@ -185,7 +190,7 @@ const DataplaneConfigForm = ({
       {!readonly && (
         <div className="flex justify-end  flex-0">
           <Button type="primary" onClick={saveForm}>
-            接入
+            {tAgent('form.connect')}
           </Button>
         </div>
       )}

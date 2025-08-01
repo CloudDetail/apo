@@ -10,7 +10,7 @@ import InstallCmd from 'src/core/components/InstallCmd'
 
 const ProbeInstallerPage = () => {
   const navigate = useNavigate()
-  const { t } = useTranslation('pro/probeInstaller')
+  const { t } = useTranslation('pro/agentDatasource')
   const [current, setCurrent] = useState(0)
   const [readonly, setReadonly] = useState(false)
   const [probeParams, setProbeParams] = useState<any>(null)
@@ -29,13 +29,13 @@ const ProbeInstallerPage = () => {
       setCurrent(2)
       setInstallStep({
         key: 'third',
-        title: '安装完成',
+        title: t('steps.installComplete'),
         content: (
           <div className="flex flex-col h-full">
             <div className="flex-1 h-0">
               <InstallCmd
-                clusterId={res.id}
-                clusterType={res.clusterType}
+                clusterId={res.data?.id}
+                clusterType={res.data?.clusterType}
                 apoCollector={probeParams?.apoCollector}
               />
             </div>
@@ -46,7 +46,7 @@ const ProbeInstallerPage = () => {
                   navigate('/agent')
                 }}
               >
-                返回Agent SRE
+                {t('buttons.backToAgent')}
               </Button>
             </div>
           </div>
@@ -64,12 +64,12 @@ const ProbeInstallerPage = () => {
     const baseSteps = [
       {
         key: 'first',
-        title: '探针安装',
+        title: t('steps.probeInstall'),
         content: <ProbeForm onNext={onNext} form={form} readonly={readonly} />,
       },
       {
         key: 'second',
-        title: '接入数据源',
+        title: t('steps.dataSource'),
         content: <DataplaneStep probeParams={probeParams} onSave={onSave} readonly={readonly} />,
       },
     ]
