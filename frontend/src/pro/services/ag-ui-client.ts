@@ -10,6 +10,7 @@ import {
     AGUIRunResponse,
 } from '../types/ag-ui';
 import i18next from 'i18next';
+import dayjs from 'dayjs';
 
 // 包装HttpAgent以提供我们需要的接口
 export class AGUIClient {
@@ -74,6 +75,12 @@ export class AGUIClient {
             this.abortController = new AbortController();
             this.agent.abortController = this.abortController;
             // 转换请求格式
+            // request.context ??= []
+            // request.context.push({
+            //     clientDate: dayjs().format('YYYY-MM-DDTHH:mm:ssZ')
+            // })
+            request.forwardedProps ??= {}
+            request.forwardedProps.clientDate = dayjs().format('YYYY-MM-DDTHH:mm:ssZ')
             const runInput = {
                 threadId: request.threadId,
                 runId: request.runId,
@@ -86,6 +93,7 @@ export class AGUIClient {
                 tools: request.tools || [],
                 context: request.context || [],
                 forwardedProps: request.forwardedProps,
+
             };
 
             // 使用HttpAgent的run方法进行流式处理
