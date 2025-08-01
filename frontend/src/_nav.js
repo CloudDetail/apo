@@ -18,7 +18,8 @@ import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { BsBezier2 } from 'react-icons/bs'
 import { t } from 'i18next'
-import { RiRobot3Line } from 'react-icons/ri'
+import { ReactSVG } from 'react-svg'
+import agentIcon from 'src/pro/assets/agent.svg'
 
 const namespace = 'core/routes'
 const commercialNav = [
@@ -176,6 +177,18 @@ const navIcon = {
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
   workflows: <LuWorkflow />,
-  agent: <RiRobot3Line />,
+  agent: (
+    <ReactSVG
+      src={agentIcon}
+      beforeInjection={(svg) => {
+        svg.setAttribute('width', '26')
+        svg.setAttribute('height', '26')
+        const paths = svg.querySelectorAll('path')
+        paths.forEach((path) => {
+          path.setAttribute('fill', 'currentColor')
+        })
+      }}
+    />
+  ),
 }
 export { _nav, commercialNav, navIcon }

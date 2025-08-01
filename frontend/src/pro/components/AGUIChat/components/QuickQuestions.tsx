@@ -1,6 +1,5 @@
 import React from 'react'
 import { Typography } from 'antd'
-import { RobotOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import styles from '../AGUIChat.module.scss'
 import { AiOutlineBarChart } from 'react-icons/ai'
@@ -8,6 +7,8 @@ import { IoMdHelp } from 'react-icons/io'
 import { IoAlertCircleOutline } from 'react-icons/io5'
 import ShinyText from '../../Animation/ShinyText'
 import AnimatedContent from '../../Animation/AnimatedContent'
+import { ReactSVG } from 'react-svg'
+import agentIcon from 'src/pro/assets/agent.svg'
 
 const { Paragraph } = Typography
 
@@ -69,7 +70,14 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
     <div className="h-full  overflow-hidden justify-around flex flex-col relative">
       <div className={styles.quickQuestionsHeader} style={{ zIndex: 1, marginTop: '20px' }}>
         <div className=" flex items-center justify-center w-full text-4xl font-semibold  my-4  gap-2">
-          <RobotOutlined className="text-5xl text-[var(--ant-color-primary)]" />
+          {/* <RobotOutlined className="text-5xl text-[var(--ant-color-primary)]" /> */}
+          <ReactSVG
+            src={agentIcon}
+            beforeInjection={(svg) => {
+              svg.setAttribute('width', '64')
+              svg.setAttribute('height', '64')
+            }}
+          />
           <ShinyText text={t('quickQuestions.title')} speed={3} />
         </div>
         <Paragraph className="mb-2 text-base text-[var(--ant-color-text-heading)]">
