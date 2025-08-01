@@ -5,6 +5,7 @@ package dify
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 	"time"
 
@@ -207,6 +208,10 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			} else {
 				record.AnalyzeRunID = resp.WorkflowRunID()
 				record.AlertDirection = resp.getOutput("")
+				if strings.HasSuffix(record.AlertDirection, "failed") {
+					record.AnalyzeErr = record.AlertDirection
+					record.AlertDirection = ""
+				}
 			}
 		}
 	}
