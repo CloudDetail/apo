@@ -30,6 +30,8 @@ type AlertEvent struct {
 
 	Severity string `json:"severity" ch:"severity" mapstructure:"severity"`
 	Status   string `json:"status" ch:"status" mapstructure:"status"`
+
+	payload map[string]any `json:"-" ch:"-" mapstructure:"-"` // inner use only
 }
 
 // calculate AlertID based on alertName and raw_tag
@@ -108,5 +110,29 @@ func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
 		},
 		UpdatedAt: e.UpdateTime,
 		Timeout:   timeout,
+	}
+}
+
+func (e *AlertEvent) SetPayloadRef(payload map[string]any) {
+	e.payload = payload
+}
+
+func (e *AlertEvent) RawPayloadRef() map[string]any {
+	return e.payload
+}
+
+// ReadOnly
+func (e *AlertEvent) FullPayload() map[string]any {
+	// HACK gojq (used in condition) only support map[string]any
+	// have to copy e.EnrichTags to eTags
+	var eTags = make(map[string]any)
+	for k, v := range e.EnrichTags {
+		eTags[k] = v
+	}
+
+	return map[string]any{
+		"payload":   e.payload,
+		"rawLabels": e.Tags,
+		"labels":    eTags,
 	}
 }

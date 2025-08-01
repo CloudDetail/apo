@@ -11,7 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/robfig/cron/v3"
@@ -23,22 +24,16 @@ var _ asyncAlertCheck = &sampleWithFirstRecord{}
 var _ asyncAlertCheck = &sampleWithLastRecord{}
 
 type asyncAlertCheck interface {
-	Run(ctx context.Context, client *DifyClient) (<-chan *model.WorkflowRecord, error)
-	AddEvents(events []alert.AlertEvent)
+	Run(ctx context.Context, client *DifyClient) (<-chan *WorkflowRecordWithCtx, error)
+	AddEvents(ctx core.Context, events []alert.AlertEvent)
 }
 
 type AlertCheckConfig struct {
-	FlowId        string
-	FlowName      string
-	APIKey        string
-	Authorization string
-	AnalyzeAuth   string
+	config.DifyConfig
 
-	User string
-
-	Sampling       string
-	CacheMinutes   int
-	MaxConcurrency int
+	AlertCheckAuth string
+	AnalyzeAuth    string
+	User           string
 
 	Prom prometheus.Repo
 }
@@ -55,7 +50,7 @@ func newAsyncAlertCheck(cfg *AlertCheckConfig, logger *zap.Logger) asyncAlertChe
 		return &sampleWithLastRecord{
 			logger:           logger,
 			AlertCheckConfig: cfg,
-			prepareToRun:     make(map[string]alert.AlertEvent),
+			prepareToRun:     make(map[string]EventWithCtx),
 			eventInput:       newInputChan(),
 		}
 	default:
@@ -75,8 +70,8 @@ type checkWorkers struct {
 	eventInput *inputChan
 }
 
-func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *WorkflowRecordWithCtx, error) {
+	rChan := make(chan *WorkflowRecordWithCtx, MAX_CACHE_SIZE+10)
 	var wg sync.WaitGroup
 	for i := 0; i < c.MaxConcurrency; i++ {
 		wg.Add(1)
@@ -92,7 +87,7 @@ func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *mod
 	return rChan, nil
 }
 
-func (c *checkWorkers) AddEvents(events []alert.AlertEvent) {
+func (c *checkWorkers) AddEvents(ctx core.Context, events []alert.AlertEvent) {
 	if c.eventInput.IsShutDown {
 		return
 	}
@@ -103,7 +98,7 @@ func (c *checkWorkers) AddEvents(events []alert.AlertEvent) {
 			continue
 		}
 		remainSize++
-		c.eventInput.Ch <- &events[i]
+		c.eventInput.Ch <- &EventWithCtx{AlertEvent: &events[i], ctx: ctx}
 	}
 }
 
@@ -122,8 +117,8 @@ type sampleWithFirstRecord struct {
 func (s *sampleWithFirstRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
-) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+) (<-chan *WorkflowRecordWithCtx, error) {
+	rChan := make(chan *WorkflowRecordWithCtx, MAX_CACHE_SIZE+10)
 
 	var wg sync.WaitGroup
 	now := time.Now()
@@ -162,7 +157,7 @@ func (s *sampleWithFirstRecord) cleanCache() {
 	}
 }
 
-func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
+func (s *sampleWithFirstRecord) AddEvents(ctx core.Context, events []alert.AlertEvent) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -181,7 +176,7 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 		}
 		s.checkedAlert[events[i].AlertID] = struct{}{}
 		remainSize++
-		s.eventInput.Ch <- &events[i]
+		s.eventInput.Ch <- &EventWithCtx{AlertEvent: &events[i], ctx: ctx}
 	}
 }
 
@@ -191,7 +186,7 @@ type sampleWithLastRecord struct {
 
 	eventInput *inputChan
 
-	prepareToRun map[string]alert.AlertEvent
+	prepareToRun map[string]EventWithCtx
 	mutex        sync.Mutex
 
 	workers []*worker
@@ -200,8 +195,8 @@ type sampleWithLastRecord struct {
 func (s *sampleWithLastRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
-) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+) (<-chan *WorkflowRecordWithCtx, error) {
+	rChan := make(chan *WorkflowRecordWithCtx, MAX_CACHE_SIZE+10)
 
 	var wg sync.WaitGroup
 	for i := 0; i < s.MaxConcurrency; i++ {
@@ -226,7 +221,7 @@ func (s *sampleWithLastRecord) Run(
 	return rChan, nil
 }
 
-func (s *sampleWithLastRecord) AddEvents(events []alert.AlertEvent) {
+func (s *sampleWithLastRecord) AddEvents(ctx core.Context, events []alert.AlertEvent) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -240,17 +235,17 @@ func (s *sampleWithLastRecord) AddEvents(events []alert.AlertEvent) {
 				continue
 			}
 		}
-		s.prepareToRun[event.AlertID] = event
+		s.prepareToRun[event.AlertID] = EventWithCtx{AlertEvent: &event, ctx: ctx}
 	}
 }
 
 func (s *sampleWithLastRecord) submit() {
 	s.mutex.Lock()
-	var cachedEvents []alert.AlertEvent
+	var cachedEvents []EventWithCtx
 	for _, event := range s.prepareToRun {
 		cachedEvents = append(cachedEvents, event)
 	}
-	s.prepareToRun = make(map[string]alert.AlertEvent)
+	s.prepareToRun = make(map[string]EventWithCtx)
 	s.mutex.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*time.Duration(s.CacheMinutes-1))
@@ -271,7 +266,7 @@ var runner atomic.Int32
 func waitForShutDown(
 	ctx context.Context,
 	eventInput *inputChan,
-	rChan chan *model.WorkflowRecord,
+	rChan chan *WorkflowRecordWithCtx,
 	wg *sync.WaitGroup,
 	logger *zap.Logger,
 ) {

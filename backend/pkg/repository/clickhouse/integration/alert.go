@@ -11,6 +11,15 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
+func (ch *chRepo) InsertIncident2AlertEvent(ctx core.Context, record *alert.Incident2Alert) error {
+	return ch.GetContextDB(ctx).Exec(ctx.GetContext(),
+		"INSERT INTO incident2alert (incident_id, alert_event_id,timestamp) VALUES (?, ?,?)",
+		record.IncidentId,
+		record.AlertEventID,
+		record.Timestamp,
+	)
+}
+
 func (ch *chRepo) InsertAlertEvent(ctx core.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error {
 	batch, err := ch.GetContextDB(ctx).PrepareBatch(ctx.GetContext(), `
 		INSERT INTO alert_event (id,name,group,severity, status, detail, alert_id, raw_tags, tags,create_time, update_time, end_time, received_time, source_id, source)

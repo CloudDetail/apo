@@ -12,6 +12,8 @@ import (
 
 type Input interface {
 	InsertAlertEvent(ctx core.Context, alertEvents []alert.AlertEvent, sourceFrom alert.SourceFrom) error
+
+	InsertIncident2AlertEvent(ctx core.Context, record *alert.Incident2Alert) error
 }
 
 var _ Input = &chRepo{}

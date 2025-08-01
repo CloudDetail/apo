@@ -226,6 +226,138 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alertinput/incident/temp/clear": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ClearIncidentTempBySourceRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/incident/temp/get": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetIncidentTempBySourceRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetIncidentTempBySourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/incident/temp/set": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetIncidentTempBySourceRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alertinput/schema/column/get": {
             "get": {
                 "description": "GetSchemaColumns",
@@ -9638,6 +9770,45 @@ const docTemplate = `{
                 }
             }
         },
+        "alert.IncidentCondition": {
+            "type": "object",
+            "properties": {
+                "expr": {
+                    "description": "Regex",
+                    "type": "string"
+                },
+                "fromField": {
+                    "type": "string"
+                },
+                "operation": {
+                    "description": "support match,not match,gt,lt,ge,le,eq",
+                    "type": "string"
+                }
+            }
+        },
+        "alert.IncidentKeyTemp": {
+            "type": "object",
+            "properties": {
+                "alertSourceId": {
+                    "type": "string"
+                },
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.IncidentCondition"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                },
+                "template": {
+                    "type": "string"
+                }
+            }
+        },
         "alert.ListAlertSourceResponse": {
             "type": "object",
             "properties": {
@@ -11892,6 +12063,14 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ClearIncidentTempBySourceRequest": {
+            "type": "object",
+            "properties": {
+                "sourceId": {
+                    "type": "string"
+                }
+            }
+        },
         "request.ComplexSpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -12360,6 +12539,20 @@ const docTemplate = `{
                 },
                 "traceId": {
                     "description": "TraceId",
+                    "type": "string"
+                }
+            }
+        },
+        "request.GetIncidentTempBySourceRequest": {
+            "type": "object",
+            "required": [
+                "sourceId"
+            ],
+            "properties": {
+                "needFresh": {
+                    "type": "boolean"
+                },
+                "sourceId": {
                     "type": "string"
                 }
             }
@@ -12879,6 +13072,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "forDuration": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.SetIncidentTempBySourceRequest": {
+            "type": "object",
+            "properties": {
+                "incidentTemps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.IncidentKeyTemp"
+                    }
+                },
+                "sourceId": {
                     "type": "string"
                 }
             }
@@ -13763,6 +13970,17 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetIncidentTempBySourceResponse": {
+            "type": "object",
+            "properties": {
+                "incidentTemps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.IncidentKeyTemp"
                     }
                 }
             }
