@@ -7,11 +7,11 @@ const AbnormalityDetection = ({ args }: { args: any }) => {
   const { t } = useTranslation('pro/agent')
   const defaultColumns = [
     {
-      title: t('abnormalityDetectionTable.type'),
+      title: t('abnormalityDetection.type'),
       dataIndex: 'type',
     },
     {
-      title: t('abnormalityDetectionTable.serviceList'),
+      title: t('abnormalityDetection.serviceList'),
       dataIndex: 'services',
       render: (value, record) => {
         return (

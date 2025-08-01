@@ -49,5 +49,9 @@
       "errorCheck": "分析最近15分钟系统中是否存在应用异常或错误问题，并分析可能原因。",
       "cpuUsage": "node-16主机的CPU使用率超过80%，这是怎么回事？"
     }
+  },
+  "abnormalityDetection": {
+    "type": "类型",
+    "serviceList": "服务列表"
   }
 }

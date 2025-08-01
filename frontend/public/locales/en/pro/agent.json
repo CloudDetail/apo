@@ -49,5 +49,9 @@
       "errorCheck": "Analyze if there are any application anomalies or error issues in the system in the last 15 minutes, and analyze possible causes.",
       "cpuUsage": "The CPU usage of node-16 host exceeds 80%, what's happening?"
     }
+  },
+  "abnormalityDetection": {
+    "type": "Type",
+    "serviceList": "Service List"
   }
 }
