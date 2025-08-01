@@ -95,5 +95,14 @@
   "selectRootCauseNode": "Please select the root cause node first",
   "confirmSuspectedNode": "I confirm that the suspected node {{service}} ({{endpoint}}) is the root cause node. Please provide data for {{typeTitle}}.",
   "aiResponse": "Okay, here is the relevant data for the root cause node you confirmed.",
-  "ebpfExplanation": "Using eBPF technology, we have decomposed latency into several components. The change in latency must be caused by one or more of these factors."
+  "ebpfExplanation": "Using eBPF technology, we have decomposed latency into several components. The change in latency must be caused by one or more of these factors.",
+  "anomalyCausalChain": {
+    "title": "Causal Chain",
+    "traceChain": "Causal Chain",
+    "realTraceConnection": "Real Trace Connection",
+    "nonRealConnection": "Non-Real Connection",
+    "confidence": "Confidence",
+    "ebpfEvidence": "eBPF Evidence",
+    "collapse": "Collapse"
+  }
 }

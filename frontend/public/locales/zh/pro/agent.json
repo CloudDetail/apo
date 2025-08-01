@@ -2,7 +2,6 @@
   "intentRecognition": "意图识别",
   "dataScope": "数据范围",
   "processDefinition": "排查流程定义",
-  "abnormalityDetection": "异常检测",
   "anomalyCausalChain": "异常因果关系链",
   "result": "结论总览",
   "filterCausal": "异常因果关系链",

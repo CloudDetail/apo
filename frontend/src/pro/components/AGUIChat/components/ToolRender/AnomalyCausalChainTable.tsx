@@ -2,12 +2,14 @@ import { Button, Table } from 'antd'
 import { useState } from 'react'
 import { TbArrowNarrowRight, TbArrowNarrowRightDashed, TbChevronDown } from 'react-icons/tb'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
+import { useTranslation } from 'react-i18next'
 
 const AnomalyCausalChainTable = ({ args }: { args: any }) => {
-  const { columns, data, title = null } = args
+  const { t } = useTranslation('pro/chatAI')
+  const { columns, data } = args
   const defaultColumns = [
     {
-      title: '因果关系链',
+      title: t('anomalyCausalChain.title'),
       dataIndex: 'chain',
       width: 300,
       render: (text, record) => {
@@ -26,16 +28,17 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
       title: () => {
         return (
           <div className="flex items-center">
-            因果关系链
-            <div className="flex items-center text-xs">
+            {t('anomalyCausalChain.traceChain')}
+            <div className="flex ml-4 items-center text-xs text-[var(--ant-color-text-secondary)]">
               {'('}
               <TbArrowNarrowRight className="text-[var(--ant-color-primary)]" size={15} />
-              存在真实Trace连接
+              {t('anomalyCausalChain.realTraceConnection')}
               <TbArrowNarrowRightDashed
                 className="text-[var(--ant-color-text-secondary)] ml-2"
                 size={15}
               />
-              非真实连接{')'}
+              {t('anomalyCausalChain.nonRealConnection')}
+              {')'}
             </div>
           </div>
         )
@@ -75,7 +78,7 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
     //   width: 150,
     // },
     {
-      title: '置信度',
+      title: t('anomalyCausalChain.confidence'),
       dataIndex: 'confidence',
       width: 100,
     },
@@ -96,13 +99,13 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
       expandable={{
         expandedRowKeys: expandedRowKeys,
         onExpandedRowsChange: (keys) => {
-          setExpandedRowKeys(keys)
+          setExpandedRowKeys([...keys])
         },
-        expandedRowRender: (record) => <MarkdownRender content={record.analysis} />,
+        expandedRowRender: (record) => <MarkdownRender content={record.analysis} theme="light" />,
         rowExpandable: () => true,
         expandRowByClick: true,
         showExpandColumn: columns?.includes('analysis'),
-        expandIcon: ({ expanded, onExpand, record }) => (
+        expandIcon: ({ expanded, record }) => (
           <Button
             type="link"
             onClick={(e) => {
@@ -116,7 +119,7 @@ const AnomalyCausalChainTable = ({ args }: { args: any }) => {
             }}
             icon={<TbChevronDown size={15} />}
           >
-            {expanded ? '收起' : 'eBPF证据'}
+            {expanded ? t('anomalyCausalChain.collapse') : t('anomalyCausalChain.ebpfEvidence')}
           </Button>
         ),
       }}

@@ -95,5 +95,14 @@
   "selectRootCauseNode": "请先选择根因节点",
   "confirmSuspectedNode": "我确认疑似节点{{service}} ({{endpoint}}) 为根因节点，请给出关于此节点的 {{typeTitle}} 数据",
   "aiResponse": "好的，以下是您确认的根因节点的相关数据",
-  "ebpfExplanation": "通过 eBPF 技术，我们已将延时分解为以下几个部分，延时的变化必然由以下某一项或多项因素构成。"
+  "ebpfExplanation": "通过 eBPF 技术，我们已将延时分解为以下几个部分，延时的变化必然由以下某一项或多项因素构成。",
+  "anomalyCausalChain": {
+    "title": "因果关系链",
+    "traceChain": "因果关系链",
+    "realTraceConnection": "存在真实Trace连接",
+    "nonRealConnection": "非真实连接",
+    "confidence": "置信度",
+    "ebpfEvidence": "eBPF证据",
+    "collapse": "收起"
+  }
 }
