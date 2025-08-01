@@ -166,7 +166,7 @@ const convertMetricsData = (data) => {
 }
 const Metrics = ({ args }: { args: any }) => {
   return (
-    <div className="grid grid-cols-3 gap-4 max-h-[500px] overflow-y-auto">
+    <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-4 max-h-[500px] overflow-y-auto">
       {args?.map((item) => (
         <div
           className="h-[260px] flex flex-col bg-[var(--ant-color-fill-quaternary)] p-2 rounded-xl "
