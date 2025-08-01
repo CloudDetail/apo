@@ -89,8 +89,8 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	}
 	avgLatency := groupMetrics.GetAvgLatency()
 	results = append(results, &response.QueryChartResult{
-		Title: "平均响应时间",
-		Unit:  "ms",
+		Title: "Response Time",
+		Unit:  "us",
 		Timeseries: []*response.Timeseries{
 			{
 				Legend:       req.ServiceName,
@@ -111,7 +111,7 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	})
 	errorRate := groupMetrics.GetErrorRate()
 	results = append(results, &response.QueryChartResult{
-		Title: "错误率",
+		Title: "Error Rate",
 		Unit:  "%",
 		Timeseries: []*response.Timeseries{
 			{
@@ -133,8 +133,8 @@ func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServic
 	})
 	tpm := groupMetrics.GetTpm()
 	results = append(results, &response.QueryChartResult{
-		Title: "吞吐量",
-		Unit:  "次/分",
+		Title: "Tpm",
+		Unit:  "requests/minute",
 		Timeseries: []*response.Timeseries{
 			{
 				Legend:       req.ServiceName,
@@ -249,8 +249,8 @@ func (s *service) getServiceRedChartsByApo(ctx core.Context, req *request.QueryS
 			latencyTempChartObject.ChartData = FillChart(startTime, endTime, stepMicros)
 		}
 		results = append(results, &response.QueryChartResult{
-			Title: "平均响应时间",
-			Unit:  "ms",
+			Title: "Response Time",
+			Unit:  "us",
 			Timeseries: []*response.Timeseries{
 				{
 					Legend:       req.ServiceName,
@@ -280,7 +280,7 @@ func (s *service) getServiceRedChartsByApo(ctx core.Context, req *request.QueryS
 			errorTempChartObject.ChartData = FillChart(startTime, endTime, stepMicros)
 		}
 		results = append(results, &response.QueryChartResult{
-			Title: "错误率",
+			Title: "Error Rate",
 			Unit:  "%",
 			Timeseries: []*response.Timeseries{
 				{
@@ -308,8 +308,8 @@ func (s *service) getServiceRedChartsByApo(ctx core.Context, req *request.QueryS
 			tpmTempChartObject.ChartData = FillChart(startTime, endTime, stepMicros)
 		}
 		results = append(results, &response.QueryChartResult{
-			Title: "吞吐量",
-			Unit:  "次/分",
+			Title: "Tpm",
+			Unit:  "requests/minute",
 			Timeseries: []*response.Timeseries{
 				{
 					Legend:       req.ServiceName,
