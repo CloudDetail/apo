@@ -49,7 +49,7 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content 
             key: toolName,
             label: (
               <div
-                className="flex items-center "
+                className="flex items-start "
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
