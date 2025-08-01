@@ -25,7 +25,7 @@ const DataScopeForm = ({ args }: { args: any }) => {
       case 'CheckBox':
         return <Checkbox.Group options={item.options} />
       case 'timerange':
-        return <DateTimeRangePickerCom defaultTimerange={item.defaultValue} />
+        return <DateTimeRangePickerCom defaultTimerange={item.defaultValue} readOnly={executed} />
       default:
         return null
     }
