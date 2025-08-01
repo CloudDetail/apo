@@ -1,4 +1,4 @@
-FROM node:22.3.0-alpine3.19 as build
+FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/node:22.3.0-alpine3.19 as build
 
 WORKDIR /app/
 
@@ -17,7 +17,7 @@ ARG VITE_SHOW_MYSQL_HEALTH
 ENV NODE_OPTIONS="--max-old-space-size=6144"
 RUN yarn build
 
-FROM nginx:alpine
+FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/nginx
 
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
