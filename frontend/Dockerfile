@@ -17,7 +17,7 @@ ARG VITE_SHOW_MYSQL_HEALTH
 ENV NODE_OPTIONS="--max-old-space-size=6144"
 RUN yarn build
 
-FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/nginx
+FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/nginx:alpine
 
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
