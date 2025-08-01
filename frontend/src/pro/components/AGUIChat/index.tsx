@@ -144,12 +144,14 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
   return (
     <Layout className={styles.container}>
       {/* 头部 */}
-      <ChatHeader
-        siderCollapsed={siderCollapsed}
-        onToggleSider={() => setSiderCollapsed(!siderCollapsed)}
-        onOpenSettings={() => setSettingsOpen(true)}
-        onRefreshSessions={handleRefresh}
-      />
+      {messages.length > 0 && (
+        <ChatHeader
+          siderCollapsed={siderCollapsed}
+          onToggleSider={() => setSiderCollapsed(!siderCollapsed)}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onRefreshSessions={handleRefresh}
+        />
+      )}
 
       <Layout className={styles.content}>
         {/* 聊天主体 */}

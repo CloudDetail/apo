@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { ExtendedAGUIMessage } from 'src/pro/contexts/AGUIContext'
 import { PiShareFatBold } from 'react-icons/pi'
 import { FaRegCopy } from 'react-icons/fa'
+import { FiThumbsDown, FiThumbsUp } from 'react-icons/fi'
+import { Button } from 'antd'
 
 interface MessageListProps {
   messages: ExtendedAGUIMessage[]
@@ -19,9 +21,23 @@ interface MessageListProps {
 
 const FinalMessageSuffix = () => {
   return (
-    <div className="flex items-center justify-start ml-5 gap-3 text-[var(--ant-color-text-secondary)]">
-      <FaRegCopy />
-      <PiShareFatBold />
+    <div className="flex items-center justify-start ml-5 mt-3  text-[var(--ant-color-text-secondary)]">
+      <Button type="text" icon={<FaRegCopy />} className="text-[var(--ant-color-text-secondary)]" />
+      <Button
+        type="text"
+        icon={<PiShareFatBold />}
+        className="text-[var(--ant-color-text-secondary)]"
+      />
+      <Button
+        type="text"
+        icon={<FiThumbsUp />}
+        className="text-[var(--ant-color-text-secondary)]"
+      />
+      <Button
+        type="text"
+        icon={<FiThumbsDown />}
+        className="text-[var(--ant-color-text-secondary)]"
+      />
     </div>
   )
 }
@@ -111,7 +127,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
     if (!userScrolledUp) {
       scrollToBottom()
     }
-  }, [messages, currentMessage])
+  }, [messages])
 
   const renderMessage = (message: Message) => {
     const messageClass = `${styles.message} ${message.role === 'user' ? styles.user : styles.assistant}`
@@ -119,7 +135,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
       <div key={message.id} className={messageClass}>
         <div className={styles.messageContent}>
           <div className={styles.messageText}>
-            <MarkdownRender content={message.content} theme={theme} />
+            {message.role === 'user' ? (
+              message.content
+            ) : (
+              <MarkdownRender content={message.content} theme={theme} />
+            )}
           </div>
           <div className={styles.messageMeta}>
             {message.metadata?.model && `· ${message.metadata.model}`}

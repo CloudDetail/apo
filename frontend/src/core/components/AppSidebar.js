@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 
 // sidebar nav config
 import { navIcon } from 'src/_nav'
-import { ConfigProvider, Menu } from 'antd'
+import { ConfigProvider, Divider, Menu } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
 import { useSelector } from 'react-redux'
@@ -22,6 +22,8 @@ const AppSidebarMenuIcon = (menuItem) => {
     </div>
   )
 }
+const agentKeys = ['agent', 'integration']
+
 const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
   const { theme } = useSelector((state) => state.settingReducer)
@@ -65,7 +67,9 @@ const AppSidebar = () => {
   }
 
   useEffect(() => {
-    const items = menuItems?.length ? menuItems.map(prepareMenu) : []
+    const items = menuItems?.length
+      ? menuItems.filter((item) => !agentKeys.includes(item.key)).map(prepareMenu)
+      : []
     setMenuList(items)
   }, [menuItems])
 
@@ -73,8 +77,10 @@ const AppSidebar = () => {
     navigate(item.props.to)
   }
   const getItemKey = (navList) => {
+    if (!navList) return []
     let result = []
-    navList.forEach((item) => {
+    navList?.forEach((item) => {
+      console.log(item)
       if (location.pathname.startsWith(item.to)) {
         result.push(item.key)
       }
@@ -89,9 +95,19 @@ const AppSidebar = () => {
   }
   useEffect(() => {
     const result = getItemKey(menuList)
-    setSelectedKeys(result)
+    const agentResult = getItemKey(agentMenuList())
+    setSelectedKeys([...result, ...agentResult])
   }, [location.pathname, menuList])
+  const agentMenuList = () => {
+    return agentKeys
+      .map((key) => {
+        const item = menuItems?.find((item) => item.key === key)
+        return item ? prepareMenu(item) : null
+      })
+      .filter(Boolean) // 去掉 null、undefined、false
+  }
 
+  console.log(selectedKeys)
   return (
     <ConfigProvider
       theme={{
@@ -106,17 +122,40 @@ const AppSidebar = () => {
         },
       }}
     >
-      <Menu
-        mode="inline"
-        theme={theme}
-        inlineCollapsed={true}
-        items={menuList}
-        onClick={onClick}
-        selectedKeys={selectedKeys}
-        openKeys={openKeys}
-        onOpenChange={onOpenChange}
-        className={styles.sidebarMenu}
-      ></Menu>
+      <div className="flex flex-col items-center justify-center ">
+        <Menu
+          mode="inline"
+          theme={theme}
+          inlineCollapsed={true}
+          items={agentMenuList()}
+          onClick={onClick}
+          selectedKeys={selectedKeys}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          className={styles.sidebarMenu}
+          style={{
+            backgroundColor: 'transparent',
+            width: 70,
+          }}
+        ></Menu>
+        <Divider className="my-2" />
+
+        <Menu
+          mode="inline"
+          theme={theme}
+          inlineCollapsed={true}
+          items={menuList}
+          onClick={onClick}
+          selectedKeys={selectedKeys}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          className={styles.sidebarMenu}
+          style={{
+            backgroundColor: 'transparent',
+            width: 70,
+          }}
+        ></Menu>
+      </div>
     </ConfigProvider>
   )
 }

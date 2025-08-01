@@ -5,7 +5,7 @@ import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 import styles from '../AGUIChat.module.scss'
 import ToolCollapseIcon from './ToolCollapseIcon'
 import { useState } from 'react'
-
+import ShinyText from 'src/pro/components/Animation/ShinyText'
 interface ToolRenderProps {
   toolCall?: {
     id: string
@@ -49,13 +49,17 @@ const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, isCurrent = false }) 
               >
                 <span className="mr-2">🛠️</span>
                 <span className="text-[var(--ant-color-text-tertiary)] text-">
-                  {displayToolCall.name}
+                  <ShinyText
+                    text={displayToolCall.name}
+                    disabled={displayToolCall.status !== 'pending'}
+                    speed={3}
+                  />
                 </span>
               </div>
             ),
             children: (
               <div className="m-[6px] px-3 relative border-l-2 border-[var(--ant-color-border)] ">
-                <div className="bg-[var(--ant-color-bg-elevated)] rounded-2xl p-3">
+                <div className="bg-[var(--ant-color-bg-elevated)] rounded-2xl p-3 max-h-[500px] overflow-y-auto">
                   <MarkdownRender content={displayToolCall.args} />
                 </div>
               </div>

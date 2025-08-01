@@ -100,7 +100,7 @@
   @apply flex mb-2;
 
   &.user {
-    @apply justify-end;
+    @apply justify-end text-white;
   }
 
   &.assistant {
@@ -118,7 +118,7 @@
 
   .user & {
     background-color: var(--ant-color-primary);
-    color: var(--ant-color-text);
+    color: white;
   }
 
   .assistant & {
@@ -679,5 +679,6 @@
   }
   :global(p) {
     color: var(--ant-color-text-tertiary) !important;
+    font-size: 12px !important;
   }
 }
