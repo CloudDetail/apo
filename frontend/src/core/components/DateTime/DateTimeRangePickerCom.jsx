@@ -48,7 +48,7 @@ const TypeUrlParamMap = {
 }
 export default function DateTimeRangePickerCom(props) {
   const { t } = useTranslation('core/dateTime')
-  const { type, defaultTimerange = null } = props
+  const { type, defaultTimerange = null, readOnly = false } = props
   const [searchParams, setSearchParams] = useSearchParams()
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const { setStartTime, setEndTime } = useLogsTraceFilterContext((ctx) => ctx)
@@ -234,7 +234,7 @@ export default function DateTimeRangePickerCom(props) {
       onShow={() => setDropdownVisible(true)}
       onHide={() => setDropdownVisible(false)}
     >
-      <CDropdownToggle className="" size="sm" onClick={() => setDropdownVisible(true)}>
+      <CDropdownToggle className="" size="sm" onClick={() => !readOnly && setDropdownVisible(true)}>
         <CIcon icon={cilClock} className="mr-2" />
         <span className="text-sm">
           {inputStartTime} to {inputEndTime}
