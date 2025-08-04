@@ -22,8 +22,8 @@ func (ch *chRepo) ModifyTableTTL(ctx core.Context, mapResult []model.ModifyTable
 		go func(table model.ModifyTableTTLMap) {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Printf("Panic occurred while modifying TTL for table %s: %v\n", table.Name, r)
-					debug.PrintStack()
+					stackInfo := string(debug.Stack())
+					log.Printf("Panic occurred while modifying TTL for table %s: %v\n%s\n", table.Name, r, stackInfo)
 				}
 			}()
 
