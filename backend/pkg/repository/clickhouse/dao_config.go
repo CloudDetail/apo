@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 
 	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -16,9 +17,16 @@ func (ch *chRepo) ModifyTableTTL(ctx core.Context, mapResult []model.ModifyTable
 	if len(mapResult) == 0 {
 		return nil
 	}
-
+	cloneCtx := ctx.Clone()
 	for _, table := range mapResult {
 		go func(table model.ModifyTableTTLMap) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("Panic occurred while modifying TTL for table %s: %v\n", table.Name, r)
+					debug.PrintStack()
+				}
+			}()
+
 			cluster := config.GetCHCluster()
 			escapedTableName := fmt.Sprintf("`%s`", table.Name)
 			var finalQuery string
@@ -35,7 +43,7 @@ func (ch *chRepo) ModifyTableTTL(ctx core.Context, mapResult []model.ModifyTable
 					escapedTableName, table.TTLExpression)
 			}
 
-			if err := ch.GetContextDB(ctx).Exec(ctx.GetContext(), finalQuery); err != nil {
+			if err := ch.GetContextDB(cloneCtx).Exec(cloneCtx.GetContext(), finalQuery); err != nil {
 				log.Printf("failed to modify TTL for table %s: %v\n\n", table.Name, err)
 			}
 		}(table)
