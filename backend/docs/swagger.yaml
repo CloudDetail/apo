@@ -276,6 +276,32 @@ definitions:
           $ref: '#/definitions/alert.TargetTag'
         type: array
     type: object
+  alert.IncidentCondition:
+    properties:
+      expr:
+        description: Regex
+        type: string
+      fromField:
+        type: string
+      operation:
+        description: support match,not match,gt,lt,ge,le,eq
+        type: string
+    type: object
+  alert.IncidentKeyTemp:
+    properties:
+      alertSourceId:
+        type: string
+      conditions:
+        items:
+          $ref: '#/definitions/alert.IncidentCondition'
+        type: array
+      id:
+        type: string
+      order:
+        type: integer
+      template:
+        type: string
+    type: object
   alert.ListAlertSourceResponse:
     properties:
       alertSources:
@@ -1795,6 +1821,11 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.ClearIncidentTempBySourceRequest:
+    properties:
+      sourceId:
+        type: string
+    type: object
   request.ComplexSpanTraceFilter:
     properties:
       dataType:
@@ -2111,6 +2142,15 @@ definitions:
         type: string
     required:
     - endTime
+    type: object
+  request.GetIncidentTempBySourceRequest:
+    properties:
+      needFresh:
+        type: boolean
+      sourceId:
+        type: string
+    required:
+    - sourceId
     type: object
   request.GetServiceREDChartsRequest:
     properties:
@@ -2467,6 +2507,15 @@ definitions:
       alertId:
         type: string
       forDuration:
+        type: string
+    type: object
+  request.SetIncidentTempBySourceRequest:
+    properties:
+      incidentTemps:
+        items:
+          $ref: '#/definitions/alert.IncidentKeyTemp'
+        type: array
+      sourceId:
         type: string
     type: object
   request.SetServiceNameRuleConditionRequest:
@@ -3064,6 +3113,13 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetIncidentTempBySourceResponse:
+    properties:
+      incidentTemps:
+        items:
+          $ref: '#/definitions/alert.IncidentKeyTemp'
+        type: array
     type: object
   response.GetK8sEventsResponse:
     properties:
@@ -4198,6 +4254,90 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Receive data based on alarm source configuration
+      tags:
+      - API.alertinput
+  /api/alertinput/incident/temp/clear:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ClearIncidentTempBySourceRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alertinput
+  /api/alertinput/incident/temp/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetIncidentTempBySourceRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetIncidentTempBySourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alertinput
+  /api/alertinput/incident/temp/set:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetIncidentTempBySourceRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.alertinput
   /api/alertinput/schema/column/get:

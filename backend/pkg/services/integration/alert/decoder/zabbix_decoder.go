@@ -55,6 +55,7 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 	alertEvent.Tags["severity"] = alertEvent.Severity
 	alertEvent.Tags["status"] = alertEvent.Status
 	alertEvent.Tags["group"] = alertEvent.Group
+	alertEvent.SetPayloadRef(event)
 
 	return []alert.AlertEvent{*alertEvent}, err
 }

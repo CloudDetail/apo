@@ -96,25 +96,7 @@ type Config struct {
 	User struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
-	Dify struct {
-		User    string `mapstructure:"user"`
-		URL     string `mapstructure:"url"`
-		APIKeys struct {
-			AlertCheck    string `mapstructure:"alert_check"`
-			AlertClassify string `mapstructure:"alert_classify"`
-			AlertAnalyze  string `mapstructure:"alert_analyze"`
-		} `mapstructure:"api_keys"`
-		FlowIDs struct {
-			AlertCheck        string `mapstructure:"alert_check"`
-			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
-		} `mapstructure:"flow_ids"`
-		MaxConcurrency int    `mapstructure:"max_concurrency"`
-		CacheMinutes   int    `mapstructure:"cache_minutes"`
-		TimeoutSecond  int    `mapstructure:"timeout_second"`
-		Sampling       string `mapstructure:"sampling"`
-		AutoCheck      bool   `mapstructure:"auto_check"`
-		AutoAnalyze    bool   `mapstructure:"auto_analyze"`
-	} `mapstructure:"dify"`
+	Dify          DifyConfig `mapstructure:"dify"`
 	AlertReceiver struct {
 		Enabled     bool   `mapstructure:"enabled"`
 		ExternalURL string `mapstructure:"external_url"`
@@ -123,6 +105,9 @@ type Config struct {
 		InitLookBackDays int `mapstructure:"init_look_back_days"`
 		RefreshSeconds   int `mapstructure:"refresh_seconds"`
 	} `mapstructure:"data_group"`
+	Incident struct {
+		Enabled bool `mapstructure:"enabled"`
+	} `mapstructure:"incident"`
 }
 
 type AnonymousUser struct {
@@ -140,6 +125,27 @@ type MetadataSettings struct {
 	AlertManagerFileName string `mapstructure:"alert_manager_file_name"`
 	VectorCMName         string `mapstructure:"vector_configmap"`
 	VectorFileName       string `mapstructure:"vector_file_name"`
+}
+
+type DifyConfig struct {
+	User    string `mapstructure:"user"`
+	URL     string `mapstructure:"url"`
+	APIKeys struct {
+		AlertCheck    string `mapstructure:"alert_check"`
+		AlertClassify string `mapstructure:"alert_classify"`
+		AlertAnalyze  string `mapstructure:"alert_analyze"`
+	} `mapstructure:"api_keys"`
+	FlowIDs struct {
+		AlertCheck        string `mapstructure:"alert_check"`
+		AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
+	} `mapstructure:"flow_ids"`
+	MaxConcurrency int    `mapstructure:"max_concurrency"`
+	CacheMinutes   int    `mapstructure:"cache_minutes"`
+	TimeoutSecond  int    `mapstructure:"timeout_second"`
+	Sampling       string `mapstructure:"sampling"`
+	AutoCheck      bool   `mapstructure:"auto_check"`
+	AutoAnalyze    bool   `mapstructure:"auto_analyze"`
+	Retry          bool   `mapstructure:"retry"`
 }
 
 func Get() *Config {
