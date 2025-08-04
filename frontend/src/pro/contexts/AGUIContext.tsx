@@ -28,6 +28,7 @@ import {
   generateRunId,
   generateMessageId,
 } from '../types/ag-ui'
+import dayjs from 'dayjs'
 
 // 扩展AGUIMessage类型以支持工具调用
 export interface ExtendedAGUIMessage extends AGUIMessage {
@@ -761,7 +762,9 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           messages: [...messages, userMessage],
           tools: [],
           context: [],
-          forwardedProps: {},
+          forwardedProps: {
+            clientDate: dayjs().format('YYYY-MM-DDTHH:mm:ssZ'),
+          },
         },
         handleEvent,
       )
