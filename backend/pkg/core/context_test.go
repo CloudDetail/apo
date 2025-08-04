@@ -1,3 +1,6 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
 package core
 
 import (
@@ -16,8 +19,8 @@ func TestContext_Clone(t *testing.T) {
 
 	clonedCtx := originalCtx.Clone()
 
-	assert.NotNil(t, clonedCtx, "克隆后的上下文不应为 nil")
-	assert.NotSame(t, originalCtx, clonedCtx, "克隆后的上下文应该是一个新对象")
+	assert.NotNil(t, clonedCtx, "cloned context should not be nil")
+	assert.NotSame(t, originalCtx, clonedCtx, "cloned context should be a new struct")
 
 	originalUserID, _ := originalCtx.Get("user_id")
 	originalIsAdmin, _ := originalCtx.Get("is_admin")
@@ -25,15 +28,15 @@ func TestContext_Clone(t *testing.T) {
 	clonedUserID, _ := clonedCtx.Get("user_id")
 	clonedIsAdmin, _ := clonedCtx.Get("is_admin")
 
-	assert.Equal(t, originalUserID, clonedUserID, "克隆对象的 user_id 应该与原始对象相同")
-	assert.Equal(t, originalIsAdmin, clonedIsAdmin, "克隆对象的 is_admin 应该与原始对象相同")
+	assert.Equal(t, originalUserID, clonedUserID, "cloned context should have the same user_id")
+	assert.Equal(t, originalIsAdmin, clonedIsAdmin, "cloned context should have the same is_admin")
 
 	clonedCtx.Set("user_id", 456)
 	clonedCtx.Set("new_key", "test")
 
 	modifiedOriginalUserID, _ := originalCtx.Get("user_id")
-	assert.Equal(t, originalUserID, modifiedOriginalUserID, "修改克隆对象不应影响原始对象")
+	assert.Equal(t, originalUserID, modifiedOriginalUserID, "")
 
 	_, exists := originalCtx.Get("new_key")
-	assert.False(t, exists, "原始对象中不应该有新添加的键")
+	assert.False(t, exists, "There should be no newly added keys in the original object")
 }
