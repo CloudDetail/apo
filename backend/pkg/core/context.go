@@ -5,6 +5,7 @@ package core
 
 import (
 	"errors"
+	"maps"
 	"net/http"
 	"strings"
 	"sync"
@@ -107,6 +108,8 @@ type Context interface {
 	UserID() int64
 
 	ErrMessage(errCode string) string
+
+	Clone() Context
 }
 
 type context struct {
@@ -285,4 +288,14 @@ func (c *context) UserID() int64 {
 		return 0
 	}
 	return id
+}
+
+func (c *context) Clone() Context {
+	keys := make(map[string]any)
+	maps.Copy(keys, c.ctx.Keys)
+	return &context{
+		ctx: &gin.Context{
+			Keys: keys,
+		},
+	}
 }
