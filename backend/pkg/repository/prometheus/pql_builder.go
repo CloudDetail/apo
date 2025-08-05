@@ -131,7 +131,7 @@ func PQLAvgLatencyWithPQLFilter(rng string, gran string, filter PQLFilter, offse
 }
 
 func PQLAvgSQLLatencyWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
-	durationSum := sumBy(gran, increase(rangeVec(SPAN_TRACE_COUNT, filter, rng, offset)))
+	durationSum := sumBy(gran, increase(rangeVec(SPAN_DB_DURATION_SUM, filter, rng, offset)))
 	requestCount := sumBy(gran, increase(rangeVec(SPAN_DB_COUNT, filter, rng, offset)))
 	return div(durationSum, requestCount)
 }

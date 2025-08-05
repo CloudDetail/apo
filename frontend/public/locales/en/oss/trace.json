@@ -14,7 +14,7 @@
     "noFault": "OK: Normal sampled data",
     "responseTime": "Duration",
     "occurTime": "Time",
-    "traceId": "TraceID",
+    "traceId": "Trace ID",
     "operation": "Action",
     "viewLogs": "View Logs"
   }

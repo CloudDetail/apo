@@ -117,6 +117,10 @@ func (repo *daoRepo) DeleteG2SByGroupsIDsAndScopeIDs(ctx core.Context, groupIDs 
 }
 
 func (repo *daoRepo) GetScopeIDsOptionByGroupID(ctx core.Context, groupID int64) (options []string, err error) {
+	if groupID == 0 {
+		return []string{"APO_ALL_DATA"}, nil
+	}
+
 	err = repo.GetContextDB(ctx).Table("data_group as dg").
 		Joins("RIGHT JOIN data_group_2_scope dgs ON dg.parent_group_id = dgs.group_id").
 		Where("dg.group_id = ?", groupID).

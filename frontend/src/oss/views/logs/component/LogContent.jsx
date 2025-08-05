@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { CustomSelect } from 'src/core/components/Select'
+import React, { useMemo } from 'react'
 import BasicTable from 'src/core/components/Table/basicTable'
 import { convertTime } from 'src/core/utils/time'
 
@@ -37,10 +36,9 @@ const LogContent = (props) => {
     }
   }, [data])
   return (
-    <>
-      {/* <div className="flex-grow flex-shrink overflow-hidden"></div> */}
+    <div className="text-xs">
       <BasicTable {...tableProps} />
-    </>
+    </div>
   )
 }
 export default LogContent

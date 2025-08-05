@@ -22,8 +22,8 @@
     "status": "故障状态：",
     "toText": "至",
     "search": "检索",
-    "enterSWTraceId": "输入SkyWalking的traceid将自动转换",
-    "autoConvert": "自动转换为TraceID："
+    "enterSWTraceId": "输入SkyWalking的Trace ID将自动转换",
+    "autoConvert": "自动转换为Trace ID："
   },
   "traceErrorType": {
     "error": "错误故障",
@@ -45,7 +45,8 @@
     "app": "应用指标",
     "infra": "主机相关",
     "network": "网络相关",
-    "container": "容器相关"
+    "container": "容器相关",
+    "middleware": "中间件"
   },
   "slowCauseType": {
     "networkTime": "耗时为对外的服务调用和任何数据库和中间件，DNS等网络操作耗时",

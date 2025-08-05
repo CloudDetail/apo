@@ -111,6 +111,7 @@ export const RuleGroupMap = {
   infra: t('common:ruleGroupMap.infra'),
   network: t('common:ruleGroupMap.network'),
   container: t('common:ruleGroupMap.container'),
+  middleware: t('common:ruleGroupMap.middleware'),
 }
 
 export const AlertSeverityMapList = [

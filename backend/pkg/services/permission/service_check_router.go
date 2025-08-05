@@ -65,6 +65,8 @@ func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo
 }
 
 func checkRouterMatch(checkRouter, matchRouter string) bool {
+	checkRouter = strings.Trim(checkRouter, "/")
+	matchRouter = strings.Trim(matchRouter, "/")
 	checkParts := strings.Split(checkRouter, "/")
 	matchParts := strings.Split(matchRouter, "/")
 

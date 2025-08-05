@@ -336,25 +336,26 @@ const ImpactList = () => {
   return (
     <>
       <div className="flex flex-col h-full  text-xs">
-        <div className="text-base px-2 pt-2 font-bold flex justify-center items-center">
-          <span className="shrink-0 text-sm">{t(`${i18nKey}.affectedBusinessEntry`)}</span>
+        <div className="text-base px-2  font-bold flex justify-center items-center">
+          <div className="shrink-0 text-sm mb-1 mr-3">{t(`${i18nKey}.affectedBusinessEntry`)}</div>
           {/* <TableFilter
             className="px-4 mb-0"
             setServiceName={setServiceName}
             setEndpoint={setEndpoint}
             setNamespace={setNamespace}
           /> */}
-          <DataSourceFilter
-            setServiceName={setServiceName}
-            setEndpoint={setEndpoint}
-            setNamespace={setNamespace}
-            setCluster={setCluster}
-            startTime={startTime}
-            endTime={endTime}
-            className="mb-2"
-            category="apm"
-            extra="endpoint"
-          />
+          <div className={`flex flex-row w-full m-1 ml-5 flex-wrap text-xs`}>
+            <DataSourceFilter
+              setServiceName={setServiceName}
+              setEndpoint={setEndpoint}
+              setNamespace={setNamespace}
+              setCluster={setCluster}
+              startTime={startTime}
+              endTime={endTime}
+              category="apm"
+              extra="endpoint"
+            />
+          </div>
         </div>
         <BasicTable {...tableProps} />
         <Pagination
