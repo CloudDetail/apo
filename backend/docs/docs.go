@@ -3682,6 +3682,33 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/data/check": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CheckMinimalDataPlaneResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/delete": {
             "post": {
                 "consumes": [
@@ -5597,6 +5624,45 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/metric.QueryMetricsResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/metric/queryPods": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "API.metric"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.QueryPodsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.QueryPodsResponse"
                         }
                     },
                     "400": {
@@ -12637,6 +12703,20 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Pod": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "pod": {
+                    "type": "string"
+                }
+            }
+        },
         "model.PredefinedMetricExpr": {
             "type": "object",
             "properties": {
@@ -13266,6 +13346,21 @@ const docTemplate = `{
                     }
                 },
                 "value": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "request.CreateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -13918,6 +14013,12 @@ const docTemplate = `{
         "request.GetServiceREDChartsRequest": {
             "type": "object",
             "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "endTime": {
                     "type": "integer"
                 },
@@ -13926,6 +14027,9 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "groupId": {
+                    "type": "integer"
                 },
                 "serviceList": {
                     "type": "array",
@@ -14316,6 +14420,35 @@ const docTemplate = `{
                 }
             }
         },
+        "request.QueryPodsRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "namespace": {
+                    "description": "query namespace",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "query node name",
+                    "type": "string"
+                },
+                "pod": {
+                    "description": "query pod name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "request.QueryServiceNameRequest": {
             "type": "object",
             "required": [
@@ -14539,6 +14672,21 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateCustomRequest": {
+            "type": "object",
+            "properties": {
+                "customName": {
+                    "description": "UserName   string   ` + "`" + `json:\"userName\"` + "`" + `\nGroupName  string   ` + "`" + `json:\"groupName\"` + "`" + `",
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.UpdateDataPlaneRequest": {
             "type": "object",
             "properties": {
@@ -14711,6 +14859,29 @@ const docTemplate = `{
             "properties": {
                 "available": {
                     "type": "boolean"
+                }
+            }
+        },
+        "response.CheckMinimalDataPlaneResponse": {
+            "type": "object",
+            "properties": {
+                "agentReady": {
+                    "type": "boolean"
+                },
+                "clusters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dataPlaneExist": {
+                    "type": "boolean"
+                },
+                "dataSource": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -16613,6 +16784,17 @@ const docTemplate = `{
                 },
                 "unit": {
                     "type": "string"
+                }
+            }
+        },
+        "response.QueryPodsResponse": {
+            "type": "object",
+            "properties": {
+                "pods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Pod"
+                    }
                 }
             }
         },

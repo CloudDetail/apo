@@ -141,8 +141,6 @@ apo-otel-collector:
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/apo-otel-collector" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "v1.0.1"
   config:
     apoBackendUrl: "{{ "{{ .Values.global.apoServerIP }}" }}"
     apoBackendPort: "{{ "{{ .Values.global.apoBackendPort }}" }}"

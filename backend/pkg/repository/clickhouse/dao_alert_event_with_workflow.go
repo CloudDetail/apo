@@ -20,7 +20,7 @@ const SQL_GET_ALERTEVENT_WITH_WORKFLOW_RECORD_COUNT = `WITH lastEvent AS (
   ORDER BY received_time DESC LIMIT 1 BY alert_id
 ),
 filtered_workflows AS (
-  SELECT ref,output,
+  SELECT ref,output,alert_direction,
   CASE
     WHEN output = 'false' THEN 2
     WHEN output = 'true' THEN 1
@@ -32,7 +32,7 @@ filtered_workflows AS (
 )
 SELECT count(1) FROM
   (
-    SELECT ae.alert_id,ae.status,
+    SELECT ae.alert_id,ae.status,fw.alert_direction,
       CASE
         WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
         WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
@@ -116,7 +116,7 @@ SELECT
   fw.workflow_name,
   fw.importance,
   fw.created_at as last_check_at,
-	fw.input,
+  fw.input,
   fw.output,
   fw.alert_direction,
   fw.analyze_run_id,

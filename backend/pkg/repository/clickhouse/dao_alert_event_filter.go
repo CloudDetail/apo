@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -49,6 +50,43 @@ SELECT
 FROM combined_data
 ORDER BY filter_key desc
 `
+
+const SQL_SEARCH_ALERT_FILTER_VALUES_FROM_WORKFLOW = `WITH lastEvent AS (
+  SELECT alert_id,status
+  FROM alert_event ae
+  %s
+  ORDER BY received_time DESC LIMIT 1 BY alert_id
+),
+filtered_workflows AS (
+  SELECT ref,output, %s as filterValue,
+  CASE
+    WHEN output = 'false' THEN 2
+    WHEN output = 'true' THEN 1
+    ELSE 0
+  END as importance
+  FROM workflow_records
+  %s
+  ORDER BY created_at DESC LIMIT 1 BY ref
+),
+combined_data AS (
+  SELECT filterValue,
+  CASE
+    WHEN fw.importance = 0 and fw.output != '' THEN 'failed'
+    WHEN fw.importance = 0 and ae.status = 'firing'  THEN 'unknown'
+    WHEN fw.importance = 0 and ae.status = 'resolved' THEN 'skipped'
+    WHEN fw.importance = 1 THEN 'invalid'
+    WHEN fw.importance = 2 THEN 'valid'
+  END as validity
+  FROM lastEvent ae
+  LEFT JOIN filtered_workflows fw ON ae.alert_id = fw.ref
+  %s
+)
+SELECT
+  count(1) as count,
+  filterValue
+FROM combined_data
+GROUP BY filterValue
+ORDER BY count desc`
 
 const SQL_SEARCH_ALERT_FILTER_VALUES = `WITH lastEvent AS (
   SELECT alert_id,status, %s as filterValue
@@ -108,6 +146,14 @@ func init() {
 		}
 		alertFilters_en = append(alertFilters_en, filter_en)
 	}
+
+	// Keep the order of the filter keys
+	slices.SortStableFunc(alertFilters, func(a, b request.AlertEventFilter) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	slices.SortStableFunc(alertFilters_en, func(a, b request.AlertEventFilter) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 }
 
 func (ch *chRepo) GetStaticFilterKeys(ctx core.Context) []request.AlertEventFilter {
@@ -157,6 +203,8 @@ func (ch *chRepo) GetAlertEventFilterLabelKeys(
 		}
 		result = append(result, fmt.Sprintf("labels.%s", filterKey))
 	}
+
+	slices.Sort(result)
 	return result, nil
 }
 
@@ -200,14 +248,29 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 			return nil, fmt.Errorf("filter key %s not allowed", req.SearchKey)
 		}
 		targetKey = fmt.Sprintf(`tags['%s']`, tagKey)
+	} else if strings.HasPrefix(req.SearchKey, "workflow.") {
+		rawFieldKey := req.SearchKey[9:]
+		if allowFilterKey.MatchString(rawFieldKey) {
+			targetKey = rawFieldKey
+		}
 	}
 
-	sql := fmt.Sprintf(SQL_SEARCH_ALERT_FILTER_VALUES,
-		targetKey,
-		alertFilter.String(),
-		recordFilter.String(),
-		resultFilter.String(),
-	)
+	var sql string
+	if strings.HasPrefix(req.SearchKey, "workflow.") {
+		sql = fmt.Sprintf(SQL_SEARCH_ALERT_FILTER_VALUES_FROM_WORKFLOW,
+			alertFilter.String(),
+			targetKey,
+			recordFilter.String(),
+			resultFilter.String(),
+		)
+	} else {
+		sql = fmt.Sprintf(SQL_SEARCH_ALERT_FILTER_VALUES,
+			targetKey,
+			alertFilter.String(),
+			recordFilter.String(),
+			resultFilter.String(),
+		)
+	}
 
 	values := make([]any, 0)
 	values = append(values, alertFilter.values...)
@@ -228,6 +291,11 @@ func (ch *chRepo) GetAlertEventFilterValues(ctx core.Context, req *request.Searc
 		if filterValue.Value == "" {
 			continue
 		}
+
+		if filterValue.Value == "failed: status: failed, output: null" {
+			filterValue.Value = "failed"
+		}
+
 		res.Options = append(res.Options, request.AlertEventFilterOption{
 			Value:   filterValue.Value,
 			Display: filterValue.Value,
@@ -253,6 +321,21 @@ func applyFilter(filters []request.AlertEventFilter, resultFilter *QueryBuilder,
 			continue
 		} else if filter.Key == "status" {
 			resultFilter.InStrings("status", filter.Selected)
+			continue
+		} else if strings.HasPrefix(filter.Key, "workflow.") {
+			rawFieldKey := filter.Key[9:]
+			if allowFilterKey.MatchString(rawFieldKey) {
+				if len(filter.MatchExpr) > 0 {
+					if filter.MatchExpr == "*" {
+						resultFilter.NotEquals(rawFieldKey, "").
+							NotEquals(rawFieldKey, "failed: status: failed, output: null")
+					} else {
+						resultFilter.Like(rawFieldKey, strings.Replace(filter.MatchExpr, "*", "%", -1))
+					}
+				} else {
+					resultFilter.InStrings(rawFieldKey, filter.Selected)
+				}
+			}
 			continue
 		}
 		subSql, err := extractAlertEventFilter(&filter)
@@ -374,6 +457,10 @@ var staticFilters map[string]_staticFilters = map[string]_staticFilters{
 	"tags.pid": {
 		AlertEventFilter: request.AlertEventFilter{Name: "进程PID"},
 		Name_EN:          "Process PID",
+	},
+	"workflow.alert_direction": {
+		AlertEventFilter: request.AlertEventFilter{Name: "故障方向"},
+		Name_EN:          "Reason Direction",
 	},
 }
 
