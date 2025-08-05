@@ -144,6 +144,7 @@ const AlertEventList: React.FC = () => {
 
   useEffect(() => {
     fetchAlertEvents()
+    localStorage.setItem('refreshKey', '1m')
   }, [startTime, endTime, dataGroupId])
 
   return (
