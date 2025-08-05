@@ -138,7 +138,7 @@ func buildSpanTraceQuery(baseQuery string, fieldSql string, bySql string, builde
 
 func (ch *chRepo) GetTracePageList(ctx core.Context, req *request.GetTracePageListRequest) ([]QueryTraceResult, int64, error) {
 	queryBuilder := NewQueryBuilder().
-		Between("toUnixTimestamp(timestamp)", req.StartTime/1000000, req.EndTime/1000000).
+		Between("timestamp", time.UnixMicro(req.StartTime), time.UnixMicro(req.EndTime)).
 		EqualsNotEmpty("labels['content_key']", req.EndPoint).
 		EqualsNotEmpty("labels['instance_id']", req.Instance).
 		EqualsNotEmpty("labels['node_name']", req.NodeName).
@@ -298,9 +298,11 @@ func (af *availableFilters) extractSpanFilter(f *request.ComplexSpanTraceFilter)
 	case request.OpNotIn:
 		return notIn(key, param)
 	case request.OpLike:
-		return like(key, param[0])
+		v := param[0]
+		return like(key, fmt.Sprintf("%%%s%%", v))
 	case request.OpNotLike:
-		return notLike(key, param[0])
+		v := param[0]
+		return notLike(key, fmt.Sprintf("%%%s%%", v))
 	case request.OpExists:
 		return exists(key)
 	case request.OpNotExists:
@@ -546,7 +548,7 @@ type availableFilters struct {
 func (f *availableFilters) SetAvailableFilters(filters []request.SpanTraceFilter, updateTime time.Time) {
 	f.Filters = filters
 	f.Keys = make([]string, 0)
-	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']")
+	f.Keys = append(f.Keys, "flags['is_error']", "flags['is_slow']", "labels['namespace']")
 	for _, filter := range filters {
 		var field string
 		if len(filter.ParentField) > 0 {

@@ -81,7 +81,7 @@ export default function RefreshDateTime() {
   }
 
   useEffect(() => {
-    let time = items.find((item) => item.key === refreshKey)?.value
+    let time = items[0].children.find((item) => item.key === refreshKey)?.value
     let intervalId
     if (time) {
       intervalId = setInterval(() => {

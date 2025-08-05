@@ -260,6 +260,9 @@ const (
 	ServiceNameRuleNotExistsError = "B1808"
 	QueryAPPInfoTagsError         = "B1809"
 	QueryAPPInfoValuesError       = "B1810"
+
+	// Metric
+	QueryPodsError = "B1901"
 )
 
 func Text(lang string, code string) string {

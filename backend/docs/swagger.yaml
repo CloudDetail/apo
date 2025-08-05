@@ -1404,6 +1404,15 @@ definitions:
         description: total number of records
         type: integer
     type: object
+  model.Pod:
+    properties:
+      namespace:
+        type: string
+      nodeName:
+        type: string
+      pod:
+        type: string
+    type: object
   model.Service:
     properties:
       clusterId:
@@ -2105,12 +2114,18 @@ definitions:
     type: object
   request.GetServiceREDChartsRequest:
     properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
       endTime:
         type: integer
       endpointList:
         items:
           type: string
         type: array
+      groupId:
+        type: integer
       serviceList:
         items:
           type: string
@@ -2379,6 +2394,27 @@ definitions:
         type: integer
       startTime:
         type: integer
+    type: object
+  request.QueryPodsRequest:
+    properties:
+      endTime:
+        description: query end time
+        type: integer
+      namespace:
+        description: query namespace
+        type: string
+      nodeName:
+        description: query node name
+        type: string
+      pod:
+        description: query pod name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
     type: object
   request.QueryServiceNameRequest:
     properties:
@@ -3722,6 +3758,13 @@ definitions:
         type: string
       unit:
         type: string
+    type: object
+  response.QueryPodsResponse:
+    properties:
+      pods:
+        items:
+          $ref: '#/definitions/model.Pod'
+        type: array
     type: object
   response.QueryServiceEndpointsResponse:
     properties:
@@ -6948,6 +6991,31 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/metric.QueryMetricsResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.metric
+  /api/metric/queryPods:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.QueryPodsRequest'
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.QueryPodsResponse'
         "400":
           description: Bad Request
           schema:

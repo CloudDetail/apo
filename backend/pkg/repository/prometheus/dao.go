@@ -94,6 +94,7 @@ type Repo interface {
 	GetDataplaneServiceList(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.Service, error)
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceName string) ([]*model.ServiceInstance, error)
 
+	GetPodList(ctx core.Context, startTime int64, endTime int64, nodeName string, namespace string, podName string) ([]*model.Pod, error)
 	QueryWithPQLFilter
 }
 

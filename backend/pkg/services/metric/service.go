@@ -5,6 +5,8 @@ package metric
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
@@ -14,6 +16,7 @@ type Service interface {
 	ListPreDefinedMetrics(ctx core.Context) []QueryInfo
 	ListQuerys(ctx core.Context) []Query
 	QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *QueryMetricsResult
+	QueryPods(ctx core.Context, req *request.QueryPodsRequest) (*response.QueryPodsResponse, error)
 }
 
 type service struct {
