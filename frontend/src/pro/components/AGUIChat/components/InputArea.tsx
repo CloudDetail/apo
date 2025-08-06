@@ -43,7 +43,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     }
   }
   return (
-    <div className="flex items-center gap-2  p-4 ">
+    <div className="flex items-center gap-2  p-2 ">
       <div className="flex flex-col rounded-2xl flex-1 p-2    bg-[var(--ant-color-bg-elevated)]">
         <TextArea
           ref={inputRef}
