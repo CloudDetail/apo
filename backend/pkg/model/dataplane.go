@@ -5,6 +5,7 @@ package model
 
 import (
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -63,4 +64,47 @@ func (app *AppInfo) CheckIps(ips []string) bool {
 		}
 	}
 	return true
+}
+
+func (app *AppInfo) GetInstanceName(serviceName string) string {
+	if podName, ok := app.Labels["pod_name"]; ok && podName != "" {
+		return podName
+	}
+	svcName := app.Labels["service_name"]
+	if svcName == "" {
+		svcName = serviceName
+	}
+	if app.ContainerId != "" {
+		return svcName + "@" + app.Labels["node_name"] + "@" + app.ContainerId
+	}
+	return svcName + "@" + app.Labels["node_name"] + "@" + strconv.FormatInt(int64(app.HostPid), 10)
+}
+
+func (app *AppInfo) GetSource() string {
+	if ruleId, ok := app.Labels["rule_id"]; ok && ruleId != "" {
+		return "Rule"
+	}
+	if source, ok := app.Labels["source"]; ok && source != "" {
+		return "Source-" + app.Labels["source"]
+	}
+	return ""
+}
+
+func (app *AppInfo) GetService() string {
+	serviceName := app.Labels["service_name"];
+	return serviceName
+}
+
+type MatchServiceInstance struct {
+	ServiceName  string `json:"serviceName"`
+	InstanceName string `json:"instanceName"`
+	Source       string `json:"source"`
+}
+
+func NewMatchServiceInstance(serviceName string, app *AppInfo) *MatchServiceInstance {
+	return &MatchServiceInstance{
+		ServiceName: app.GetService(),
+		InstanceName: app.GetInstanceName(serviceName),
+		Source: app.GetSource(),
+	}
 }

@@ -23,14 +23,15 @@ func (ch *chRepo) GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error) {
 		return nil, err
 	}
 
+	result := make([]*model.AppInfo, 0)
 	relatedApp := make(map[string]*model.AppInfo)
 	for _, app := range apps {
 		if app.Labels["service_name"] != "" {
+			result = append(result, &app)
 			relatedApp[fmt.Sprintf("%s-%s-%s-%d-%d", app.Labels["node_ip"], app.Labels["node_name"], app.Labels["cluster_id"], app.StartTime, app.HostPid)] = &app
 		}
 	}
 
-	result := make([]*model.AppInfo, 0)
 	for _, app := range apps {
 		if _, ok := relatedApp[fmt.Sprintf("%s-%s-%s-%d-%d", app.Labels["node_ip"], app.Labels["node_name"], app.Labels["cluster_id"], app.StartTime, app.HostPid)]; !ok {
 			result = append(result, &app)
