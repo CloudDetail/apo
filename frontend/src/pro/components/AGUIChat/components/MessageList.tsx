@@ -9,7 +9,7 @@ import { ExtendedAGUIMessage } from 'src/pro/contexts/AGUIContext'
 import { PiShareFatBold } from 'react-icons/pi'
 import { FaRegCopy } from 'react-icons/fa'
 import { FiThumbsDown, FiThumbsUp } from 'react-icons/fi'
-import { Button } from 'antd'
+import { Alert, Button } from 'antd'
 
 interface MessageListProps {
   messages: ExtendedAGUIMessage[]
@@ -135,10 +135,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
       <div key={message.id} className={messageClass}>
         <div className={styles.messageContent}>
           <div className={styles.messageText}>
-            {message.role === 'user' ? (
-              message.content
-            ) : (
+            {message.role === 'assistant' && message.content ? (
               <MarkdownRender content={message.content} theme={theme} />
+            ) : (
+              message.content
             )}
           </div>
           <div className={styles.messageMeta}>
@@ -163,6 +163,13 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
               />
             ))}
           </div>
+        )}
+        {message.errorMessage && (
+          <Alert
+            message={message.errorMessage}
+            type="error"
+            className="mx-4 mt-2 text-[var(--ant-color-text-secondary)]"
+          />
         )}
         {message.isFinal && <FinalMessageSuffix />}
       </div>

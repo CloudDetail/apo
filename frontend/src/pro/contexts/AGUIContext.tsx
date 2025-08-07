@@ -45,6 +45,7 @@ export interface ExtendedAGUIMessage extends AGUIMessage {
     content: string
   }>
   isFinal?: boolean
+  errorMessage?: string
 }
 
 interface AGUIContextValue {
@@ -357,7 +358,18 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           })
         }
       })
-      updatedMessages[updatedMessages.length - 1].isFinal = true
+      const lastMessage = updatedMessages[updatedMessages.length - 1]
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.isFinal = true
+      } else {
+        updatedMessages.push({
+          id: generateMessageId(),
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          isFinal: true,
+        })
+      }
       return updatedMessages
     })
   }, [])
@@ -383,7 +395,21 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           })
         }
       })
-      updatedMessages[updatedMessages.length - 1].isFinal = true
+      const lastMessage = updatedMessages[updatedMessages.length - 1]
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.isFinal = true
+        lastMessage.errorMessage = event.message
+      } else {
+        updatedMessages.push({
+          id: generateMessageId(),
+          role: 'assistant',
+          content: '',
+          timestamp: new Date(),
+          errorMessage: event.message,
+          isFinal: true,
+        })
+      }
+
       return updatedMessages
     })
   }, [])
@@ -782,6 +808,32 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       setCurrentMessage(undefined)
       setCurrentToolCall(undefined)
       setLoading(false)
+      // 将pending状态的工具调用标记为error
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages]
+        updatedMessages.forEach((message) => {
+          if (message.toolCalls) {
+            message.toolCalls.forEach((toolCall) => {
+              if (toolCall.status !== 'completed') {
+                toolCall.status = 'error'
+              }
+            })
+          }
+        })
+        const lastMessage = updatedMessages[updatedMessages.length - 1]
+        if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.isFinal = true
+        } else {
+          updatedMessages.push({
+            id: generateMessageId(),
+            role: 'assistant',
+            content: '',
+            timestamp: new Date(),
+            isFinal: true,
+          })
+        }
+        return updatedMessages
+      })
       if (unsubscribeRef.current) {
         unsubscribeRef.current()
         unsubscribeRef.current = null
