@@ -28,12 +28,14 @@ type Service interface {
 	ListCustomTopology(ctx core.Context, req *request.ListCustomTopologyRequest) (*response.ListCustomTopologyResponse, error)
 	CheckServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) (*response.CheckServiceNameRuleResponse, error)
 	SetServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) error
-	ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error)
+	ListServiceNameRule(ctx core.Context, req *request.ListServiceNameRuleRequest) (*response.ListServiceNameRuleResponse, error)
 	DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error
 	ListAPPInfoLabelsKeys(ctx core.Context, req *request.QueryAPPInfoTagsRequest) (*response.QueryAPPInfoTagsResponse, error)
 	ListAPPInfoLabelValues(ctx core.Context, req *request.QueryAPPInfoTagValuesRequest) (*response.QueryAPPInfoTagValuesResponse, error)
 
 	DPService
+	GetDatasources(ctx core.Context, req *request.GetDatasourcesRequest) (response.GetDatasourcesResponse, error)
+	GetServiceWithInstances(ctx core.Context, req *request.GetServiceWithInstancesRequest) (response.GetServiceWithInstancesResponse, error)
 }
 
 type service struct {

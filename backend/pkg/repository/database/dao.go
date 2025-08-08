@@ -160,9 +160,9 @@ type Repo interface {
 	DeleteCustomServiceTopology(ctx core.Context, id int) error
 
 	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
-	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
+	ListServiceNameRule(ctx core.Context, servieName string) ([]ServiceNameRule, error)
 	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
-	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+	ListServiceNameRuleCondition(ctx core.Context, ruleIds []int) ([]ServiceNameRuleCondition, error)
 	ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error)
 	DeleteServiceNameRule(ctx core.Context, ruleId int) error
 	ListDataPlaneType(ctx core.Context) ([]mi.DataPlaneType, error)
@@ -172,6 +172,7 @@ type Repo interface {
 	CheckDataPlaneExist(ctx core.Context, id int) (bool, error)
 	UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error
 	DeleteDataPlane(ctx core.Context, id int) error
+	GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error)
 
 	integration.ObservabilityInputManage
 	DaoDataScope

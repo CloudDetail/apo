@@ -24,18 +24,18 @@ func (condition *ServiceNameRuleCondition) Match(labels map[string]string) bool 
 		return false
 	}
 	switch condition.MatchType {
-		case "equals":
-			return labelValue == condition.Value
-		case "startsWith":
-			return strings.HasPrefix(labelValue, condition.Value)
-		case "endsWith":
-			return strings.HasSuffix(labelValue, condition.Value)
-		case "contains":
-			return strings.Contains(labelValue, condition.Value)
-		case "has":
-			return slices.Contains(strings.Split(labelValue, ","), condition.Value)
-		default:
-			return false
+	case "equals":
+		return labelValue == condition.Value
+	case "startsWith":
+		return strings.HasPrefix(labelValue, condition.Value)
+	case "endsWith":
+		return strings.HasSuffix(labelValue, condition.Value)
+	case "contains":
+		return strings.Contains(labelValue, condition.Value)
+	case "has":
+		return slices.Contains(strings.Split(labelValue, ","), condition.Value)
+	default:
+		return false
 	}
 }
 
@@ -50,11 +50,14 @@ func (repo *daoRepo) UpsertServiceNameRuleCondition(ctx core.Context, condition 
 	return repo.GetContextDB(ctx).Create(condition).Error
 }
 
-func (repo *daoRepo) ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error) {
+func (repo *daoRepo) ListServiceNameRuleCondition(ctx core.Context, ruleIds []int) ([]ServiceNameRuleCondition, error) {
 	var conditions []ServiceNameRuleCondition
-	err := repo.GetContextDB(ctx).
+	query := repo.GetContextDB(ctx).
 		Model(&ServiceNameRuleCondition{}).
-		Order("rule_id ASC").
-		Scan(&conditions).Error
+		Order("rule_id ASC")
+	if ruleIds != nil {
+		query = query.Where("rule_id IN ?", ruleIds)
+	}
+	err := query.Scan(&conditions).Error
 	return conditions, err
 }

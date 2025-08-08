@@ -16,7 +16,7 @@ func (s *service) GetServiceInstances(ctx core.Context, req *request.QueryServic
 	filter := prometheus.NewFilter()
 	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
 	filter.EqualIfNotEmpty("service_name", req.ServiceName)
-	instances, err := s.promRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, req.ServiceName, filter.String())
+	instances, err := s.promRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, filter.String())
 	if err != nil {
 		return &response.QueryServiceInstancesResponse{
 			Msg: "query service instances failed: " + err.Error(),

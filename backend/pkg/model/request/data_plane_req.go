@@ -9,6 +9,7 @@ type QueryServicesRequest struct {
 	Cluster   string `form:"cluster"`                                      // query Cluster
 	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
 	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	*PageParam
 }
 
 type QueryServiceRedChartsRequest struct {
@@ -110,4 +111,21 @@ type UpdateDataPlaneRequest struct {
 
 type DeleteDataPlaneRequest struct {
 	ID int `form:"id" json:"id" binding:"required"`
+}
+
+type GetDatasourcesRequest struct {
+	Cluster   string `form:"cluster" json:"cluster"`
+	StartTime int64  `form:"startTime" json:"startTime" binding:"required"`
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetServiceWithInstancesRequest struct {
+	Cluster   string `form:"cluster" json:"cluster"`
+	StartTime int64  `form:"startTime" json:"startTIme" binding:"required"`
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+	*PageParam
+}
+
+type ListServiceNameRuleRequest struct {
+	Service string `form:"service" json:"service"`
 }

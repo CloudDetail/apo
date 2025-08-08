@@ -20,6 +20,8 @@ import (
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
 // @Param cluster query string false "Query cluster name"
+// @Param currentPage query int false "Current page"
+// @Param pageSize query int false "Page size"
 // @Success 200 {object} response.QueryServicesResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/dataplane/services [get]
@@ -33,6 +35,12 @@ func (h *handler) QueryServices() core.HandlerFunc {
 				err,
 			)
 			return
+		}
+		if req.PageParam == nil {
+			req.PageParam = &request.PageParam{
+				CurrentPage: 1,
+				PageSize:    10,
+			}
 		}
 		c.Payload(h.dataplaneService.GetServices(c, req))
 	}

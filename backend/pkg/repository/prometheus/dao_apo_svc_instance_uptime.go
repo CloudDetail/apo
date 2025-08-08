@@ -47,8 +47,8 @@ func (repo *promRepo) GetDataplaneServiceList(ctx core.Context, startTime int64,
 	return result, nil
 }
 
-func (repo *promRepo) GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, serviceName string, filter string) ([]*model.ServiceInstance, error) {
-	query := `group by (node_ip, node_name, pid, container_id, pod_name) (apo_svc_instance_uptime{` + filter + `}[` + VecFromS2E(startTime, endTime) + `])`
+func (repo *promRepo) GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.ServiceInstance, error) {
+	query := `group by (node_ip, node_name, pid, container_id, pod_name, service_name) (apo_svc_instance_uptime{` + filter + `}[` + VecFromS2E(startTime, endTime) + `])`
 	value, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
@@ -69,7 +69,7 @@ func (repo *promRepo) GetDataplaneServiceInstances(ctx core.Context, startTime i
 		pid := string(sample.Metric["pid"])
 		containerId := string(sample.Metric["container_id"])
 		podName := string(sample.Metric["pod_name"])
-
+		serviceName := string(sample.Metric["service_name"])
 		var pidVal int64 = 0
 		if pid != "" {
 			pidVal, err = strconv.ParseInt(pid, 10, 64)

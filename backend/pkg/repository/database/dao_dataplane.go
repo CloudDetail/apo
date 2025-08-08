@@ -5,6 +5,7 @@ package database
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	mi "github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
@@ -78,4 +79,16 @@ func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
 	return repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
 		Where("id = ?", id).
 		Update("is_deleted", true).Error
+}
+
+func (repo *daoRepo) GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error) {
+	var results []model.DatasourceCount
+	if err := repo.DB.Table("data_plane").
+		Select("typ, COUNT(*) AS record_count").
+		Group("typ").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

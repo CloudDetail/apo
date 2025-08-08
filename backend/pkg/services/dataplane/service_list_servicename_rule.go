@@ -4,13 +4,16 @@
 package dataplane
 
 import (
+	"strconv"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 )
 
-func (s *service) ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error) {
-	serviceRules, err := s.dbRepo.ListAllServiceNameRule(ctx)
+func (s *service) ListServiceNameRule(ctx core.Context, req *request.ListServiceNameRuleRequest) (*response.ListServiceNameRuleResponse, error) {
+	serviceRules, err := s.dbRepo.ListServiceNameRule(ctx, req.Service)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +23,11 @@ func (s *service) ListServiceNameRule(ctx core.Context) (*response.ListServiceNa
 		}, nil
 	}
 
-	serviceRuleConditions, err := s.dbRepo.ListAllServiceNameRuleCondition(ctx)
+	ruleIds := make([]int, len(serviceRules))
+	for i := range serviceRules {
+		ruleIds[i] = serviceRules[i].ID
+	}
+	serviceRuleConditions, err := s.dbRepo.ListServiceNameRuleCondition(ctx, ruleIds)
 	if err != nil {
 		return nil, err
 	}
@@ -44,9 +51,31 @@ func (s *service) ListServiceNameRule(ctx core.Context) (*response.ListServiceNa
 			Id:          serviceRule.ID,
 			ServiceName: serviceRule.Service,
 			Conditions:  conditions,
+			ClusterId:   serviceRule.ClusterId,
 		})
 	}
+
+	ruleIdStr := make([]string, 0, len(ruleIds))
+	for _, ruleId := range ruleIds {
+		ruleIdStr = append(ruleIdStr, strconv.Itoa(ruleId))
+	}
+	apps, err := s.chRepo.GetResolvedApps(ctx, ruleIdStr)
+	if err != nil {
+		return nil, err
+	}
+
+	instanceMap := make(map[string]struct{})
+	instanceNames := make([]string, 0, len(apps))
+	for _, app := range apps {
+		instanceName := app.GetInstanceName(req.Service)
+		if _, exist := instanceMap[instanceName]; !exist {
+			instanceNames = append(instanceNames, instanceName)
+			instanceMap[instanceName] = struct{}{}
+		}
+	}
+
 	return &response.ListServiceNameRuleResponse{
-		Rules: rules,
+		Rules:     rules,
+		Instances: instanceNames,
 	}, nil
 }

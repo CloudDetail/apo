@@ -90,8 +90,13 @@ func (app *AppInfo) GetSource() string {
 	return ""
 }
 
+type DatasourceCount struct {
+	Type  string `json:"type" gorm:"column:typ"`
+	Count int    `json:"count" gorm:"column:record_count"`
+}
+
 func (app *AppInfo) GetService() string {
-	serviceName := app.Labels["service_name"];
+	serviceName := app.Labels["service_name"]
 	return serviceName
 }
 
@@ -103,8 +108,8 @@ type MatchServiceInstance struct {
 
 func NewMatchServiceInstance(serviceName string, app *AppInfo) *MatchServiceInstance {
 	return &MatchServiceInstance{
-		ServiceName: app.GetService(),
+		ServiceName:  app.GetService(),
 		InstanceName: app.GetInstanceName(serviceName),
-		Source: app.GetSource(),
+		Source:       app.GetSource(),
 	}
 }

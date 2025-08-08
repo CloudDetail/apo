@@ -156,7 +156,8 @@ type Repo interface {
 	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 
 	// Dataplane
-	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]*model.Service, error)
+	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, size int) ([]*model.Service, uint64, error)
+	QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string) (uint64, error)
 	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
 	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
 	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
@@ -164,7 +165,8 @@ type Repo interface {
 	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
 	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
 	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
-
+	GetInstancesLabels(ctx core.Context, startTime, endTime int64, instances []*model.ServiceInstance) (map[string]map[string]string, error)
+	GetResolvedApps(ctx core.Context, ruleIds []string) ([]*model.AppInfo, error)
 	integration.Input
 }
 

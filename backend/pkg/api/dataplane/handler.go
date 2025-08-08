@@ -105,6 +105,16 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/data/check [get]
 	CheckDataPlane() core.HandlerFunc
+
+	// GetDatasources
+	// @Tags API.dataplane
+	// @Router /api/dataplane/datasources [get]
+	GetDatasources() core.HandlerFunc
+
+	// GGetServiceWithInstances
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicesWithInstances [get]
+	GetServiceWithInstances() core.HandlerFunc
 }
 
 type handler struct {

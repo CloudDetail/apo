@@ -9,15 +9,25 @@ import (
 	"strings"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 )
 
-const SQL_LIST_APP_INFO_LABEL_KEYS = `SELECT DISTINCT arrayJoin(mapKeys(labels)) AS key
+const (
+	SQL_LIST_APP_INFO_LABEL_KEYS = `SELECT DISTINCT arrayJoin(mapKeys(labels)) AS key
 FROM originx_app_info
 %s`
-
-const SQL_LIST_APP_INFO_LABEL_VALUES = `SELECT DISTINCT %s
+	SQL_LIST_APP_INFO_LABEL_VALUES = `SELECT DISTINCT %s
 FROM originx_app_info
 %s`
+	SQL_GET_APP_INFO_LABELS = `SELECT 
+		labels,
+		labels['pod_name'] as pod_name,
+		labels['service_name'] as service_name, 
+		labels['node_name'] as node_name,
+		container_id,
+		host_pid
+	FROM originx_app_info %s ORDER BY timestamp`
+)
 
 func (repo *chRepo) ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error) {
 	qb := NewQueryBuilder().
@@ -77,5 +87,80 @@ func (repo *chRepo) ListAppInfoLabelValues(ctx core.Context, startTime, endTime 
 		}
 		result = append(result, labelsValue)
 	}
+	return result, nil
+}
+
+func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int64, instances []*model.ServiceInstance) (map[string]map[string]string, error) {
+	if len(instances) == 0 {
+		return make(map[string]map[string]string), nil
+	}
+
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", startTime/1e6, endTime/1e6)
+
+	podNames := make([]string, 0, len(instances))
+	serviceNames := make([]string, 0, len(instances))
+	nodeNames := make([]string, 0, len(instances))
+	containerIds := make([]string, 0, len(instances))
+
+	for _, instance := range instances {
+		if instance.PodName != "" {
+			podNames = append(podNames, instance.PodName)
+		}
+		if instance.ServiceName != "" {
+			serviceNames = append(serviceNames, instance.ServiceName)
+		}
+		if instance.NodeName != "" {
+			nodeNames = append(nodeNames, instance.NodeName)
+		}
+		if instance.ContainerId != "" {
+			containerIds = append(containerIds, instance.ContainerId)
+		}
+	}
+
+	if len(podNames) > 0 {
+		queryBuilder.In("labels['pod_name']", podNames)
+	}
+	if len(serviceNames) > 0 {
+		queryBuilder.In("labels['service_name']", serviceNames)
+	}
+	if len(nodeNames) > 0 {
+		queryBuilder.In("labels['node_name']", nodeNames)
+	}
+	if len(containerIds) > 0 {
+		queryBuilder.In("container_id", containerIds)
+	}
+
+	type QueryResult struct {
+		Labels      map[string]string `ch:"labels"`
+		PodName     string            `ch:"pod_name"`
+		ServiceName string            `ch:"service_name"`
+		NodeName    string            `ch:"node_name"`
+		ContainerId string            `ch:"container_id"`
+		HostPid     uint32            `ch:"host_pid"`
+	}
+
+	res := []QueryResult{}
+	sql := fmt.Sprintf(SQL_GET_APP_INFO_LABELS, queryBuilder.String())
+
+	err := repo.GetContextDB(ctx).Select(ctx.GetContext(), &res, sql, queryBuilder.values...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]map[string]string)
+
+	for _, row := range res {
+		key := fmt.Sprintf("%s-%s-%s-%s-%d", row.ServiceName, row.PodName, row.NodeName, row.ContainerId, row.HostPid)
+
+		for _, instance := range instances {
+			instanceKey := fmt.Sprintf("%s-%s-%s-%s-%d", instance.ServiceName, instance.PodName, instance.NodeName, instance.ContainerId, instance.Pid)
+			if instanceKey == key {
+				result[instanceKey] = row.Labels
+				break
+			}
+		}
+	}
+
 	return result, nil
 }
