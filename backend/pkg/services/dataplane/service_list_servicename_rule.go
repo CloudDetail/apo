@@ -27,32 +27,15 @@ func (s *service) ListServiceNameRule(ctx core.Context, req *request.ListService
 	for i := range serviceRules {
 		ruleIds[i] = serviceRules[i].ID
 	}
+
 	serviceRuleConditions, err := s.dbRepo.ListServiceNameRuleCondition(ctx, ruleIds)
 	if err != nil {
 		return nil, err
 	}
 	conditionMap := make(map[int][]*database.ServiceNameRuleCondition)
-	for _, condition := range serviceRuleConditions {
-		existConditions, exist := conditionMap[condition.RuleID]
-		if !exist {
-			existConditions = make([]*database.ServiceNameRuleCondition, 0)
-		}
-		existConditions = append(existConditions, &condition)
-		conditionMap[condition.RuleID] = existConditions
-	}
-
-	rules := make([]*response.ListServiceNameRule, 0)
-	for _, serviceRule := range serviceRules {
-		conditions, ok := conditionMap[serviceRule.ID]
-		if !ok {
-			conditions = []*database.ServiceNameRuleCondition{}
-		}
-		rules = append(rules, &response.ListServiceNameRule{
-			Id:          serviceRule.ID,
-			ServiceName: serviceRule.Service,
-			Conditions:  conditions,
-			ClusterId:   serviceRule.ClusterId,
-		})
+	for i := range serviceRuleConditions {
+		condition := serviceRuleConditions[i]
+		conditionMap[condition.RuleID] = append(conditionMap[condition.RuleID], &condition)
 	}
 
 	ruleIdStr := make([]string, 0, len(ruleIds))
@@ -64,18 +47,46 @@ func (s *service) ListServiceNameRule(ctx core.Context, req *request.ListService
 		return nil, err
 	}
 
-	instanceMap := make(map[string]struct{})
-	instanceNames := make([]string, 0, len(apps))
+	instanceMapByRuleID := make(map[string]map[string]struct{})
 	for _, app := range apps {
-		instanceName := app.GetInstanceName(req.Service)
-		if _, exist := instanceMap[instanceName]; !exist {
-			instanceNames = append(instanceNames, instanceName)
-			instanceMap[instanceName] = struct{}{}
+		ruleID, ok := app.Labels["rule_id"]
+		if !ok {
+			continue
 		}
+
+		if _, exist := instanceMapByRuleID[ruleID]; !exist {
+			instanceMapByRuleID[ruleID] = make(map[string]struct{})
+		}
+
+		instanceName := app.GetInstanceName(req.Service)
+		instanceMapByRuleID[ruleID][instanceName] = struct{}{}
+	}
+
+	rules := make([]*response.ListServiceNameRule, 0, len(serviceRules))
+	for _, serviceRule := range serviceRules {
+		conditions := conditionMap[serviceRule.ID]
+
+		instanceSet, ok := instanceMapByRuleID[strconv.Itoa(serviceRule.ID)]
+		var instances []string
+		if ok && len(instanceSet) > 0 {
+			instances = make([]string, 0, len(instanceSet))
+			for name := range instanceSet {
+				instances = append(instances, name)
+			}
+		} else {
+			instances = make([]string, 0)
+		}
+
+		rules = append(rules, &response.ListServiceNameRule{
+			Id:          serviceRule.ID,
+			ServiceName: serviceRule.Service,
+			Conditions:  conditions,
+			ClusterId:   serviceRule.ClusterId,
+			Instances:   instances,
+		})
 	}
 
 	return &response.ListServiceNameRuleResponse{
-		Rules:     rules,
-		Instances: instanceNames,
+		Rules: rules,
 	}, nil
 }

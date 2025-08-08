@@ -64,8 +64,7 @@ type ListCustomTopologyResponse struct {
 }
 
 type ListServiceNameRuleResponse struct {
-	Rules     []*ListServiceNameRule `json:"rules"`
-	Instances []string               `json:"instances"`
+	Rules []*ListServiceNameRule `json:"rules"`
 }
 
 type ListServiceNameRule struct {
@@ -73,6 +72,7 @@ type ListServiceNameRule struct {
 	ServiceName string                               `json:"serviceName"`
 	ClusterId   string                               `json:"clusterId"`
 	Conditions  []*database.ServiceNameRuleCondition `json:"conditions"`
+	Instances   []string                             `json:"instances"`
 }
 
 type CheckServiceNameRuleResponse struct {
