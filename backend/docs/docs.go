@@ -4187,7 +4187,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Service name",
-                        "name": "service",
+                        "name": "serviceName",
                         "in": "query",
                         "required": true
                     },

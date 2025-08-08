@@ -127,5 +127,5 @@ type GetServiceWithInstancesRequest struct {
 }
 
 type ListServiceNameRuleRequest struct {
-	Service string `form:"service" json:"service"`
+	Service string `form:"serviceName" json:"serviceName"`
 }

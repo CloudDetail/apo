@@ -7507,7 +7507,7 @@ paths:
       parameters:
       - description: Service name
         in: query
-        name: service
+        name: serviceName
         required: true
         type: string
       - description: Bearer accessToken

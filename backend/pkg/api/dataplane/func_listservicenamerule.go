@@ -16,7 +16,7 @@ import (
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param service query string true "Service name"
+// @Param serviceName query string true "Service name"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ListServiceNameRuleResponse
 // @Failure 400 {object} code.Failure
