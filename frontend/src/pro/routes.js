@@ -60,10 +60,10 @@ let proRoutes = [
     hideSystemTimeRangePicker: true,
   },
   {
-    path: '/agent-dataplane',
+    path: '/dataplane',
     name: '智能体数据接入',
     element: AgentDataplanePage,
-    hideSystemTimeRangePicker: true,
+    // hideSystemTimeRangePicker: true,
   },
   // {
   //   path: '/report/error',
