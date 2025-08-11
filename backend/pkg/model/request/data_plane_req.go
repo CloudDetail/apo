@@ -121,13 +121,13 @@ type GetDatasourcesRequest struct {
 
 type GetServiceWithInstancesRequest struct {
 	Cluster   string `form:"cluster" json:"cluster"`
-	StartTime int64  `form:"startTime" json:"startTIme" binding:"required"`
+	StartTime int64  `form:"startTime" json:"startTIme" binding:"min=0"`
 	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
 	*PageParam
 }
 
 type ListServiceNameRuleRequest struct {
 	Service   string `form:"serviceName" json:"serviceName"`
-	StartTime int64  `form:"startTime" json:"startTime" binding:"required"`
+	StartTime int64  `form:"startTime" json:"startTime" binding:"min=0"`
 	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
 }
