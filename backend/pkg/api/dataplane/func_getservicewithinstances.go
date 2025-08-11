@@ -20,6 +20,7 @@ import (
 // @Param cluster query string false "Cluseter id"
 // @Param startTime query int64 true "Start time"
 // @Param endTime query int64 true "End time"
+// @Param services query []string false "Services" collectionFormat(multi)
 // @Param currentPage query int false "Current page"
 // @Param pageSize query int false "Page size"
 // @Param Authorization header string false "Bearer accessToken"

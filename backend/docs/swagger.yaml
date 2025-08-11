@@ -4456,21 +4456,12 @@ definitions:
     type: object
   response.QueryServicesResponse:
     properties:
-      currentPage:
-        description: current page number
-        type: integer
       msg:
         type: string
-      pageSize:
-        description: number of entries per page
-        type: integer
       results:
         items:
           $ref: '#/definitions/model.Service'
         type: array
-      total:
-        description: total number of records
-        type: integer
     type: object
   response.QueryTopologyResponse:
     properties:
@@ -7588,14 +7579,6 @@ paths:
         in: query
         name: cluster
         type: string
-      - description: Current page
-        in: query
-        name: currentPage
-        type: integer
-      - description: Page size
-        in: query
-        name: pageSize
-        type: integer
       produces:
       - application/json
       responses:
@@ -7631,6 +7614,13 @@ paths:
         name: endTime
         required: true
         type: integer
+      - collectionFormat: multi
+        description: Services
+        in: query
+        items:
+          type: string
+        name: services
+        type: array
       - description: Current page
         in: query
         name: currentPage

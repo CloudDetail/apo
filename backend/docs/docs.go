@@ -4305,18 +4305,6 @@ const docTemplate = `{
                         "description": "Query cluster name",
                         "name": "cluster",
                         "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Current page",
-                        "name": "currentPage",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page size",
-                        "name": "pageSize",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4368,6 +4356,16 @@ const docTemplate = `{
                         "name": "endTime",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Services",
+                        "name": "services",
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -17269,26 +17267,14 @@ const docTemplate = `{
         "response.QueryServicesResponse": {
             "type": "object",
             "properties": {
-                "currentPage": {
-                    "description": "current page number",
-                    "type": "integer"
-                },
                 "msg": {
                     "type": "string"
-                },
-                "pageSize": {
-                    "description": "number of entries per page",
-                    "type": "integer"
                 },
                 "results": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.Service"
                     }
-                },
-                "total": {
-                    "description": "total number of records",
-                    "type": "integer"
                 }
             }
         },

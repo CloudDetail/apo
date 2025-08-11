@@ -5,6 +5,7 @@ package dataplane
 
 import (
 	"fmt"
+	"sort"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -15,19 +16,19 @@ import (
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
 	// Get the list of service
-	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize)
+	services, _, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, 0, 0, nil)
 	if err != nil {
 		return &response.QueryServicesResponse{
 			Msg: "query service failed: " + err.Error(),
 		}
 	}
+
+	sort.Slice(services, func(i, j int) bool {
+		return services[i].Name < services[j].Name
+	})
+
 	return &response.QueryServicesResponse{
 		Results: services,
-		Pagination: model.Pagination{
-			PageSize:    req.PageSize,
-			CurrentPage: req.CurrentPage,
-			Total:       int64(count),
-		},
 	}
 }
 
@@ -56,7 +57,7 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	resp := response.GetServiceWithInstancesResponse{
 		Services: make([]response.ServiceWithInstances, 0),
 	}
-	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize)
+	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize, req.Services)
 	if err != nil {
 		return resp, err
 	}
@@ -123,6 +124,9 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 		servicesWithInstances = append(servicesWithInstances, serviceWithInstances)
 	}
 
+	sort.Slice(servicesWithInstances, func(i, j int) bool {
+		return servicesWithInstances[i].Service.Name < servicesWithInstances[j].Service.Name
+	})
 	resp.Services = servicesWithInstances
 	resp.PageSize = req.PageSize
 	resp.CurrentPage = req.CurrentPage

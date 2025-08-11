@@ -12,7 +12,6 @@ import (
 type QueryServicesResponse struct {
 	Msg     string           `json:"msg"`
 	Results []*model.Service `json:"results"`
-	model.Pagination
 }
 
 type QueryServiceRedChartsResponse struct {

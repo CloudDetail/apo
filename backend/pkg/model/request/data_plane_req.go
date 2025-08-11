@@ -9,7 +9,6 @@ type QueryServicesRequest struct {
 	Cluster   string `form:"cluster"`                                      // query Cluster
 	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
 	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
-	*PageParam
 }
 
 type QueryServiceRedChartsRequest struct {
@@ -120,9 +119,10 @@ type GetDatasourcesRequest struct {
 }
 
 type GetServiceWithInstancesRequest struct {
-	Cluster   string `form:"cluster" json:"cluster"`
-	StartTime int64  `form:"startTime" json:"startTIme" binding:"min=0"`
-	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+	Cluster   string   `form:"cluster" json:"cluster"`
+	StartTime int64    `form:"startTime" json:"startTIme" binding:"min=0"`
+	EndTime   int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+	Services  []string `form:"services" json:"services"`
 	*PageParam
 }
 

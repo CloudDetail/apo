@@ -13,9 +13,15 @@ import (
 const (
 	TEMPLATE_QUERY_GROUP_RED_METRIC = "SELECT floor(toUnixTimestamp(timestamp) / %d) as time_bucket, sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s group by time_bucket"
 	TEMPLATE_QUERY_RED_METRIC_VALUE = "SELECT sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s"
-	TEMPLATE_QUERY_SERVICES         = "SELECT cluster_id, source, service_name, service_id FROM service_red_metric %s GROUP BY cluster_id, source, service_name, service_id %s"
-	TEMPLATE_QUERY_ENDPOINTS        = "SELECT endpoint FROM service_red_metric %s GROUP BY endpoint"
-	TEMPLATE_QUERY_SERVICES_COUNT   = "SELECT COUNT(*) FROM (SELECT cluster_id FROM service_red_metric %s GROUP BY cluster_id, source, service_name, service_id) AS grouped_services"
+	TEMPLATE_QUERY_SERVICES         = `
+		SELECT cluster_id, source, service_name, service_id 
+		FROM (
+			SELECT DISTINCT cluster_id, source, service_name, service_id
+			FROM service_red_metric %s
+		) AS distinct_services
+		%s`
+	TEMPLATE_QUERY_ENDPOINTS      = "SELECT endpoint FROM service_red_metric %s GROUP BY endpoint"
+	TEMPLATE_QUERY_SERVICES_COUNT = "SELECT COUNT(*) FROM (SELECT cluster_id FROM service_red_metric %s GROUP BY cluster_id, source, service_name, service_id) AS grouped_services"
 )
 
 func (ch *chRepo) QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error) {
@@ -56,10 +62,13 @@ func (ch *chRepo) QueryGroupServiceRedMetricValue(ctx core.Context, startTime in
 	return metric, nil
 }
 
-func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, pageSize int) ([]*model.Service, uint64, error) {
+func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, pageSize int, services []string) ([]*model.Service, uint64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("toUnixTimestamp(timestamp)", startTime/1000000, endTime/1000000).
 		EqualsNotEmpty("cluster_id", clusterId)
+	if len(services) > 0 {
+		queryBuilder.In("service_name", services)
+	}
 
 	var count uint64
 	countQuery := fmt.Sprintf(TEMPLATE_QUERY_SERVICES_COUNT, queryBuilder.String())
@@ -70,17 +79,22 @@ func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64
 	}
 
 	byLimitBuilder := NewByLimitBuilder().
-		Limit(pageSize).
-		Offset((currentPage-1)*pageSize).
-		OrderBy("MAX(timestamp)", false)
+		OrderBy("cluster_id, source, service_name, service_id", true)
+
+	if currentPage > 0 && pageSize > 0 {
+		byLimitBuilder = byLimitBuilder.Limit(pageSize).
+			Offset((currentPage - 1) * pageSize)
+	}
+
 	query := fmt.Sprintf(TEMPLATE_QUERY_SERVICES, queryBuilder.String(), byLimitBuilder.String())
-	services := []GroupService{}
-	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &services, query, queryBuilder.values...)
+	serviceRes := []GroupService{}
+	err = ch.GetContextDB(ctx).Select(ctx.GetContext(), &serviceRes, query, queryBuilder.values...)
 	if err != nil {
 		return nil, 0, err
 	}
+
 	result := make([]*model.Service, 0)
-	for _, service := range services {
+	for _, service := range serviceRes {
 		result = append(result, &model.Service{
 			ClusterId: service.ClusterId,
 			Source:    service.Source,
