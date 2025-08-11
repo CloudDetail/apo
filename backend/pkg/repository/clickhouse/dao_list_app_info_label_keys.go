@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -96,7 +97,7 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 	}
 
 	queryBuilder := NewQueryBuilder().
-		Between("toUnixTimestamp(timestamp)", startTime/1e6, endTime/1e6)
+		Between("toUnixTimestamp(timestamp)", time.UnixMicro(startTime), time.UnixMicro(endTime))
 
 	podNamesSet := make(map[string]bool)
 	serviceNamesSet := make(map[string]bool)
@@ -105,21 +106,12 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 	pidSet := make(map[uint32]bool)
 
 	for _, instance := range instances {
-		if instance.PodName != "" {
-			podNamesSet[instance.PodName] = true
-		}
-		if instance.ServiceName != "" {
-			serviceNamesSet[instance.ServiceName] = true
-		}
-		if instance.NodeName != "" {
-			nodeNamesSet[instance.NodeName] = true
-		}
-		if instance.ContainerId != "" {
-			containerIdsSet[instance.ContainerId] = true
-		}
-		if instance.Pid > 0 {
-			pidSet[uint32(instance.Pid)] = true
-		}
+		podNamesSet[instance.PodName] = true
+		serviceNamesSet[instance.ServiceName] = true
+		nodeNamesSet[instance.NodeName] = true
+		containerIdsSet[instance.ContainerId] = true
+		pidSet[uint32(instance.Pid)] = true
+
 	}
 
 	if len(podNamesSet) > 0 {
@@ -181,15 +173,16 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 
 	result := make(map[string]map[string]string)
 
+	instanceMap := make(map[string]*model.ServiceInstance, len(instances))
+	for _, inst := range instances {
+		key := fmt.Sprintf("%s-%s-%s-%s-%d", inst.ServiceName, inst.PodName, inst.NodeName, inst.ContainerId, inst.Pid)
+		instanceMap[key] = inst
+	}
+
 	for _, row := range res {
 		key := fmt.Sprintf("%s-%s-%s-%s-%d", row.ServiceName, row.PodName, row.NodeName, row.ContainerId, row.HostPid)
-
-		for _, instance := range instances {
-			instanceKey := fmt.Sprintf("%s-%s-%s-%s-%d", instance.ServiceName, instance.PodName, instance.NodeName, instance.ContainerId, instance.Pid)
-			if instanceKey == key {
-				result[instanceKey] = row.Labels
-				break
-			}
+		if _, ok := instanceMap[key]; ok {
+			result[key] = row.Labels
 		}
 	}
 
