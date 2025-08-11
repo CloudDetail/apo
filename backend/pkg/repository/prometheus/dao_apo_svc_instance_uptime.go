@@ -48,11 +48,11 @@ func (repo *promRepo) GetDataplaneServiceList(ctx core.Context, startTime int64,
 }
 
 func (repo *promRepo) GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.ServiceInstance, error) {
-	query := `group by (node_ip, node_name, pid, container_id, pod_name, service_name) (apo_svc_instance_uptime{` + filter + `}[` + VecFromS2E(startTime, endTime) + `])`
+	query := `group by (node_ip, node_name, pid, container_id, pod_name, service_name) (apo_svc_instance_uptime{` + filter + `})`
 	value, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, v1.Range{
 		Start: time.UnixMicro(startTime),
 		End:   time.UnixMicro(endTime),
-		Step:  time.Duration(endTime-startTime) * time.Microsecond,
+		Step:  time.Duration(endTime-startTime) * 1e3,
 	})
 	if err != nil {
 		return nil, err

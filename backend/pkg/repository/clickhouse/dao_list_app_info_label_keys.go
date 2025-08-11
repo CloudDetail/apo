@@ -96,12 +96,13 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 	}
 
 	queryBuilder := NewQueryBuilder().
-		Between("timestamp", startTime/1e6, endTime/1e6)
+		Between("toUnixTimestamp(timestamp)", startTime/1e6, endTime/1e6)
 
 	podNamesSet := make(map[string]bool)
 	serviceNamesSet := make(map[string]bool)
 	nodeNamesSet := make(map[string]bool)
 	containerIdsSet := make(map[string]bool)
+	pidSet := make(map[uint32]bool)
 
 	for _, instance := range instances {
 		if instance.PodName != "" {
@@ -115,6 +116,9 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 		}
 		if instance.ContainerId != "" {
 			containerIdsSet[instance.ContainerId] = true
+		}
+		if instance.Pid > 0 {
+			pidSet[uint32(instance.Pid)] = true
 		}
 	}
 
@@ -148,6 +152,14 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 			containerIds = append(containerIds, containerId)
 		}
 		queryBuilder.In("container_id", containerIds)
+	}
+
+	if len(pidSet) > 0 {
+		pids := make([]uint32, 0, len(containerIdsSet))
+		for pid := range pidSet {
+			pids = append(pids, pid)
+		}
+		queryBuilder.In("host_pid", pids)
 	}
 
 	type QueryResult struct {
