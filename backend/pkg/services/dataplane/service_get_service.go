@@ -5,7 +5,6 @@ package dataplane
 
 import (
 	"fmt"
-	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -54,12 +53,6 @@ func (s *service) queryServicesByApo(ctx core.Context, req *request.QueryService
 }
 
 func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServiceWithInstancesRequest) (response.GetServiceWithInstancesResponse, error) {
-	now := time.Now()
-	startOfDay := now.Truncate(24 * time.Hour)
-	endOfDay := startOfDay.Add(24 * time.Hour).Add(-time.Nanosecond)
-	startOfDayTimestamp := startOfDay.UnixMicro()
-	endOfDayTimestamp := endOfDay.UnixMicro()
-
 	resp := response.GetServiceWithInstancesResponse{
 		Services: make([]response.ServiceWithInstances, 0),
 	}
@@ -83,17 +76,22 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 		return resp, err
 	}
 
-	instancesLabels, err := s.chRepo.GetInstancesLabels(ctx, startOfDayTimestamp, endOfDayTimestamp, instances)
+	instancesLabels, err := s.chRepo.GetInstancesLabels(ctx, req.StartTime, req.EndTime, instances)
 	if err != nil {
 		return resp, err
 	}
 
 	servicesWithInstances := make([]response.ServiceWithInstances, 0, len(services))
 
-	// 按服务名分组instances
-	instancesByService := make(map[string][]model.ServiceInstance)
+	instancesByService := make(map[string]map[string]model.ServiceInstance)
 	for _, instance := range instances {
-		instancesByService[instance.ServiceName] = append(instancesByService[instance.ServiceName], *instance)
+		instanceName := instance.GetInstanceId()
+
+		if instancesByService[instance.ServiceName] == nil {
+			instancesByService[instance.ServiceName] = make(map[string]model.ServiceInstance)
+		}
+
+		instancesByService[instance.ServiceName][instanceName] = *instance
 	}
 
 	for _, service := range services {
@@ -102,10 +100,8 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 			Instances: make([]response.InstanceWithSource, 0),
 		}
 
-		// 获取该服务的所有实例
-		if serviceInstances, exists := instancesByService[service.Name]; exists {
-			for _, instance := range serviceInstances {
-				// 生成instance labels的key: serviceName-podName-nodeName-containerId
+		if serviceInstancesMap, exists := instancesByService[service.Name]; exists {
+			for instanceName, instance := range serviceInstancesMap {
 				labelKey := fmt.Sprintf("%s-%s-%s-%s-%d",
 					instance.ServiceName,
 					instance.PodName,
@@ -116,8 +112,8 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 
 				instanceWithSource := response.InstanceWithSource{
 					ServiceInstance: instance,
-					InstanceName:    instance.GetInstanceId(),
-					InstanceSource:  determineInstanceSource(instance, instancesLabels[labelKey]),
+					InstanceName:    instanceName,
+					InstanceSource:  determineInstanceSource(instancesLabels[labelKey]),
 				}
 
 				serviceWithInstances.Instances = append(serviceWithInstances.Instances, instanceWithSource)
@@ -135,7 +131,7 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	return resp, nil
 }
 
-func determineInstanceSource(instance model.ServiceInstance, labels map[string]string) (instanceSource response.InstanceSource) {
+func determineInstanceSource(labels map[string]string) (instanceSource response.InstanceSource) {
 	ruleId, exit := labels["rule_id"]
 	if exit {
 		instanceSource.Type = "rule"

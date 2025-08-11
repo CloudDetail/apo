@@ -166,7 +166,7 @@ type Repo interface {
 	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
 	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
 	GetInstancesLabels(ctx core.Context, startTime, endTime int64, instances []*model.ServiceInstance) (map[string]map[string]string, error)
-	GetResolvedApps(ctx core.Context, ruleIds []string) ([]*model.AppInfo, error)
+	GetResolvedApps(ctx core.Context, ruleIds []string, startTime int64, endTime int64) ([]*model.AppInfo, error)
 	integration.Input
 }
 

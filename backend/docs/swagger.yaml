@@ -4142,15 +4142,15 @@ definitions:
         type: array
       id:
         type: integer
+      instances:
+        items:
+          type: string
+        type: array
       serviceName:
         type: string
     type: object
   response.ListServiceNameRuleResponse:
     properties:
-      instances:
-        items:
-          type: string
-        type: array
       rules:
         items:
           $ref: '#/definitions/response.ListServiceNameRule'
@@ -7510,6 +7510,18 @@ paths:
         name: serviceName
         required: true
         type: string
+      - description: Start time
+        format: int64
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        format: int64
+        in: query
+        name: endTime
+        required: true
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization

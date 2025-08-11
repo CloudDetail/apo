@@ -17,6 +17,8 @@ import (
 // @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param serviceName query string true "Service name"
+// @Param startTime query int64 true "Start time"
+// @Param endTime query int64 true "End time"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ListServiceNameRuleResponse
 // @Failure 400 {object} code.Failure

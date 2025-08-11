@@ -26,7 +26,7 @@ FROM originx_app_info
 		labels['node_name'] as node_name,
 		container_id,
 		host_pid
-	FROM originx_app_info %s ORDER BY timestamp`
+	FROM originx_app_info %s ORDER BY timestamp DESC`
 )
 
 func (repo *chRepo) ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error) {
@@ -98,36 +98,55 @@ func (repo *chRepo) GetInstancesLabels(ctx core.Context, startTime, endTime int6
 	queryBuilder := NewQueryBuilder().
 		Between("timestamp", startTime/1e6, endTime/1e6)
 
-	podNames := make([]string, 0, len(instances))
-	serviceNames := make([]string, 0, len(instances))
-	nodeNames := make([]string, 0, len(instances))
-	containerIds := make([]string, 0, len(instances))
+	podNamesSet := make(map[string]bool)
+	serviceNamesSet := make(map[string]bool)
+	nodeNamesSet := make(map[string]bool)
+	containerIdsSet := make(map[string]bool)
 
 	for _, instance := range instances {
 		if instance.PodName != "" {
-			podNames = append(podNames, instance.PodName)
+			podNamesSet[instance.PodName] = true
 		}
 		if instance.ServiceName != "" {
-			serviceNames = append(serviceNames, instance.ServiceName)
+			serviceNamesSet[instance.ServiceName] = true
 		}
 		if instance.NodeName != "" {
-			nodeNames = append(nodeNames, instance.NodeName)
+			nodeNamesSet[instance.NodeName] = true
 		}
 		if instance.ContainerId != "" {
-			containerIds = append(containerIds, instance.ContainerId)
+			containerIdsSet[instance.ContainerId] = true
 		}
 	}
 
-	if len(podNames) > 0 {
+	if len(podNamesSet) > 0 {
+		podNames := make([]string, 0, len(podNamesSet))
+		for podName := range podNamesSet {
+			podNames = append(podNames, podName)
+		}
 		queryBuilder.In("labels['pod_name']", podNames)
 	}
-	if len(serviceNames) > 0 {
+
+	if len(serviceNamesSet) > 0 {
+		serviceNames := make([]string, 0, len(serviceNamesSet))
+		for serviceName := range serviceNamesSet {
+			serviceNames = append(serviceNames, serviceName)
+		}
 		queryBuilder.In("labels['service_name']", serviceNames)
 	}
-	if len(nodeNames) > 0 {
+
+	if len(nodeNamesSet) > 0 {
+		nodeNames := make([]string, 0, len(nodeNamesSet))
+		for nodeName := range nodeNamesSet {
+			nodeNames = append(nodeNames, nodeName)
+		}
 		queryBuilder.In("labels['node_name']", nodeNames)
 	}
-	if len(containerIds) > 0 {
+
+	if len(containerIdsSet) > 0 {
+		containerIds := make([]string, 0, len(containerIdsSet))
+		for containerId := range containerIdsSet {
+			containerIds = append(containerIds, containerId)
+		}
 		queryBuilder.In("container_id", containerIds)
 	}
 

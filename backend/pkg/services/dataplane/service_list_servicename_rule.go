@@ -42,7 +42,7 @@ func (s *service) ListServiceNameRule(ctx core.Context, req *request.ListService
 	for _, ruleId := range ruleIds {
 		ruleIdStr = append(ruleIdStr, strconv.Itoa(ruleId))
 	}
-	apps, err := s.chRepo.GetResolvedApps(ctx, ruleIdStr)
+	apps, err := s.chRepo.GetResolvedApps(ctx, ruleIdStr, req.StartTime, req.EndTime)
 	if err != nil {
 		return nil, err
 	}

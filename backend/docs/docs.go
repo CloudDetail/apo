@@ -4192,6 +4192,22 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
@@ -16772,6 +16788,12 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "serviceName": {
                     "type": "string"
                 }
@@ -16780,12 +16802,6 @@ const docTemplate = `{
         "response.ListServiceNameRuleResponse": {
             "type": "object",
             "properties": {
-                "instances": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "rules": {
                     "type": "array",
                     "items": {

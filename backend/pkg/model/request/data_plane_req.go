@@ -127,5 +127,7 @@ type GetServiceWithInstancesRequest struct {
 }
 
 type ListServiceNameRuleRequest struct {
-	Service string `form:"serviceName" json:"serviceName"`
+	Service   string `form:"serviceName" json:"serviceName"`
+	StartTime int64  `form:"startTime" json:"startTime" binding:"required"`
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
 }
