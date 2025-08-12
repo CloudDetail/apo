@@ -28,6 +28,9 @@ type DPService interface {
 
 func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTypeResponse, error) {
 	dpTypes, err := s.dbRepo.ListDataPlaneType(ctx)
+	for i := 0; i < len(dpTypes); i++ {
+		dpTypes[i].UseLang(ctx.LANG())
+	}
 	return &response.ListDataPlaneTypeResponse{
 		DPTypes: dpTypes,
 	}, err
@@ -49,6 +52,11 @@ func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlane
 
 func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneResponse, error) {
 	res, err := s.dbRepo.ListDataPlane(ctx)
+
+	for i := 0; i < len(res); i++ {
+		res[i].UseLang(ctx.LANG())
+	}
+
 	return &response.ListDataPlaneResponse{
 		DataPlanes: res,
 	}, err
