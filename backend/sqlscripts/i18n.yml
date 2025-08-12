@@ -266,16 +266,12 @@ dataIntegration:
   key: "dataIntegration"
   i18n:
     - language: "en"
-      translation: "Data Integrations"
+      translation: "Core Data Ingestion"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
-      translation: "数据接入"
+      translation: "探针安装"
       field_name: "label"
-      entity_type: "menu"
-    - language: "en"
-      translation: "Data"
-      field_name: "abbreviation"
       entity_type: "menu"
 
 alertsIntegration:
@@ -298,11 +294,11 @@ dataplane:
   key: "dataplane"
   i18n:
     - language: "en"
-      translation: "Data Ingestion"
+      translation: "External Data Sources"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
-      translation: "数据采集"
+      translation: "外部数据源"
       field_name: "label"
       entity_type: "menu"
 
@@ -850,14 +846,25 @@ MySQL大盘:
     translation: "智能体"
     entity_type: "feature"
     field_name: "featureName"
-数据采集:
-  key: "数据采集"
+探针安装:
+  key: "探针安装"
   i18n:
   - language: "en"
-    translation: "Data Ingestion"
+    translation: "Core Data Ingestion"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
-    translation: "数据采集"
+    translation: "探针安装"
+    entity_type: "feature"
+    field_name: "featureName"
+外部数据:
+  key: "外部数据"
+  i18n:
+  - language: "en"
+    translation: "External Data Sources"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "外部数据源"
     entity_type: "feature"
     field_name: "featureName"

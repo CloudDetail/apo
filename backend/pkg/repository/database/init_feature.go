@@ -20,7 +20,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "应用指标大盘"},
 	{FeatureName: "中间件大盘"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
-	{FeatureName: "接入中心"}, {FeatureName: "数据接入"}, {FeatureName: "告警接入"}, {FeatureName: "数据采集"},
+	{FeatureName: "接入中心"}, {FeatureName: "探针安装"}, {FeatureName: "告警接入"}, {FeatureName: "外部数据"},
 	{FeatureName: "配置中心"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
@@ -72,7 +72,7 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 			"链路追踪": {"故障现场链路", "全量链路"},
 			"系统管理": {"用户管理", "菜单管理", "数据组管理", "团队管理", "角色管理"},
 			"告警管理": {"告警规则", "告警通知", "告警事件", "告警事件详情"},
-			"接入中心": {"数据接入", "告警接入", "数据采集"},
+			"接入中心": {"探针安装", "告警接入", "外部数据"},
 		}
 		for parentName, childNames := range parentChildMapping {
 			var parent profile.Feature
