@@ -15,6 +15,9 @@ func (s *service) GetDatasources(ctx core.Context, req *request.GetDatasourcesRe
 	if err != nil {
 		return resp, err
 	}
+	if len(datasourceCount) == 0 {
+		return resp, nil
+	}
 
 	count, err := s.chRepo.QueryServiceCount(ctx, req.StartTime, req.EndTime, req.Cluster)
 	if err != nil {

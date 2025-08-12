@@ -86,7 +86,9 @@ func (repo *daoRepo) GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCo
 	if err := repo.DB.Table("data_plane").
 		Select("typ, COUNT(*) AS record_count").
 		Group("typ").
-		Find(&results).Error; err != nil {
+		Where("is_deleted", false).
+		Find(&results).
+		Error; err != nil {
 		return nil, err
 	}
 
