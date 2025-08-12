@@ -120,7 +120,7 @@ export default function UserManage() {
 
       const traverseAndFilter = (items: any[]) => {
         items.forEach((item) => {
-          if (item.permissionType && item.permissionType !== 'know' && item.groupId) {
+          if (item.permissionType && item.permissionType !== 'know' && item.groupId !== null) {
             filteredIds.push(item.groupId)
           }
           if (item.subGroups && Array.isArray(item.subGroups)) {

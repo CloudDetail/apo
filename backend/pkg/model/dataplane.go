@@ -113,3 +113,15 @@ func NewMatchServiceInstance(serviceName string, app *AppInfo) *MatchServiceInst
 		Source:       app.GetSource(),
 	}
 }
+
+type CheckDataSourceRequest struct {
+	Datasource   string   `json:"dataSource" binding:"required"` // query Datasource
+	Attributes   string   `json:"attributes" binding:"required"` // query attributes
+	Capabilities []string `json:"enabledCapabilities"`           // query capabilities
+}
+
+type CheckDataSourceResponse struct {
+	Message string `json:"message,omitempty"`
+	Success bool   `json:"success"`
+}
+

@@ -14,6 +14,7 @@ import (
 )
 
 type DataplaneRepo interface {
+	CheckDataSource(request *model.CheckDataSourceRequest) (*model.CheckDataSourceResponse, error)
 	QueryServices(providerId int, startTime int64, endTime int64) ([]*model.Service, error)
 	QueryApmServiceInstances(providerId int, startTime int64, endTime int64, service *model.Service) ([]*model.ApmServiceInstance, error)
 	QueryServiceRedCharts(providerId int, startTime int64, endTime int64, service *model.Service, step int64) (map[string]*model.RedCharts, error)
@@ -22,10 +23,10 @@ type DataplaneRepo interface {
 }
 
 type dataplaneRepo struct {
-	address               string
-	client                *http.Client
-	ch                    clickhouse.Repo
-	db                    database.Repo
+	address string
+	client  *http.Client
+	ch      clickhouse.Repo
+	db      database.Repo
 }
 
 func New(ch clickhouse.Repo, db database.Repo) (DataplaneRepo, error) {
@@ -35,8 +36,7 @@ func New(ch clickhouse.Repo, db database.Repo) (DataplaneRepo, error) {
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		ch:                    ch,
-		db:                    db,
+		ch: ch,
+		db: db,
 	}, nil
 }
-
