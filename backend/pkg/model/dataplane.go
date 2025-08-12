@@ -91,7 +91,7 @@ func (app *AppInfo) GetSource() string {
 }
 
 func (app *AppInfo) GetService() string {
-	serviceName := app.Labels["service_name"];
+	serviceName := app.Labels["service_name"]
 	return serviceName
 }
 
@@ -103,8 +103,19 @@ type MatchServiceInstance struct {
 
 func NewMatchServiceInstance(serviceName string, app *AppInfo) *MatchServiceInstance {
 	return &MatchServiceInstance{
-		ServiceName: app.GetService(),
+		ServiceName:  app.GetService(),
 		InstanceName: app.GetInstanceName(serviceName),
-		Source: app.GetSource(),
+		Source:       app.GetSource(),
 	}
+}
+
+type CheckDataSourceRequest struct {
+	Datasource   string   `json:"dataSource" binding:"required"` // query Datasource
+	Attributes   string   `json:"attributes" binding:"required"` // query attributes
+	Capabilities []string `json:"enabledCapabilities"`           // query capabilities
+}
+
+type CheckDataSourceResponse struct {
+	Message string `json:"message,omitempty"`
+	Success bool   `json:"success"`
 }

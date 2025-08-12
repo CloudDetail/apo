@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	dp "github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/dataplane"
 	"go.uber.org/zap"
@@ -37,6 +38,10 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/topology [get]
 	QueryTopology() core.HandlerFunc
+	// CheckDataSource check datasource is valid.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/checkDataSource [post]
+	CheckDataSource() core.HandlerFunc
 	// CreateCustomTopology Create custom topology.
 	// @Tags API.dataplane
 	// @Router /api/dataplane/customtopology/create [post]
@@ -82,9 +87,9 @@ type handler struct {
 	dataplaneService dataplane.Service
 }
 
-func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, dbRepo database.Repo) Handler {
+func New(logger *zap.Logger, chRepo clickhouse.Repo, promRepo prometheus.Repo, dbRepo database.Repo, dataplaneRepo dp.DataplaneRepo) Handler {
 	return &handler{
 		logger:           logger,
-		dataplaneService: dataplane.New(chRepo, promRepo, dbRepo),
+		dataplaneService: dataplane.New(chRepo, promRepo, dbRepo, dataplaneRepo),
 	}
 }
