@@ -23,6 +23,8 @@ func (s *service) GetDatasources(ctx core.Context, req *request.GetDatasourcesRe
 	for _, datasource := range datasourceCount {
 		sources = append(sources, datasource.Type)
 	}
+	// source is empty means service is based on service rule
+	sources = append(sources, "")
 	count, err := s.chRepo.QueryServiceCount(ctx, req.StartTime, req.EndTime, req.Cluster, sources)
 	if err != nil {
 		return resp, err

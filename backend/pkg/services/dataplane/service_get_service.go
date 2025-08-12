@@ -76,7 +76,8 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	for _, service := range services {
 		found := false
 		for _, datasource := range datasources {
-			if service.Source == datasource.Type {
+			// source is empty means service is based on service rule
+			if service.Source == datasource.Type || service.Source == "" {
 				found = true
 				break
 			}
