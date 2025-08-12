@@ -57,18 +57,38 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	resp := response.GetServiceWithInstancesResponse{
 		Services: make([]response.ServiceWithInstances, 0),
 	}
+	datasources, err := s.dbRepo.GetDatapalenDsCount(ctx)
+	if err != nil {
+		return resp, err
+	}
+
+	if len(datasources) == 0 {
+		return resp, nil
+	}
 	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize, req.Services)
 	if err != nil {
 		return resp, err
 	}
 
-	serviceNames := make([]string, 0, len(services))
-	serviceMap := make(map[string]*model.Service)
+	filteredServices := make([]*model.Service, 0, len(services))
+	serviceNames := make([]string, 0)
+
 	for _, service := range services {
-		serviceNames = append(serviceNames, service.Name)
-		serviceMap[service.Name] = service
+		found := false
+		for _, datasource := range datasources {
+			if service.Source == datasource.Type {
+				found = true
+				break
+			}
+		}
+
+		if found {
+			filteredServices = append(filteredServices, service)
+			serviceNames = append(serviceNames, service.Name)
+		}
 	}
 
+	services = filteredServices
 	filter := prometheus.NewFilter()
 	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
 	filter.RegexMatch("service_name", prometheus.RegexMultipleValue(serviceNames...))

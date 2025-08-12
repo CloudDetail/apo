@@ -14,8 +14,8 @@ type DataPlane struct {
 	ID   int    `gorm:"id;primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"name" json:"name"`
 
-	Note       string              `gorm:"note" json:"note"`
-	
+	Note string `gorm:"note" json:"note"`
+
 	Typ        string              `gorm:"typ" json:"typ"`
 	Params     string              `gorm:"params" json:"params"`         // JSONStr
 	Capability JSONField[[]string] `gorm:"capability" json:"capability"` // Str Slice

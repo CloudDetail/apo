@@ -176,10 +176,13 @@ type Endpoint struct {
 	Endpoint string `ch:"endpoint"`
 }
 
-func (ch *chRepo) QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string) (uint64, error) {
+func (ch *chRepo) QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string, sources []string) (uint64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("toUnixTimestamp(timestamp)", startTime/1000000, endTime/1000000).
 		EqualsNotEmpty("cluster_id", clusterId)
+	if len(sources) > 0 {
+		queryBuilder = queryBuilder.In("source", sources)
+	}
 	query := fmt.Sprintf(TEMPLATE_QUERY_SERVICES_COUNT, queryBuilder.String())
 	var count uint64
 	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), query, queryBuilder.values...).Scan(&count)

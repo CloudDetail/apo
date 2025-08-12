@@ -19,7 +19,11 @@ func (s *service) GetDatasources(ctx core.Context, req *request.GetDatasourcesRe
 		return resp, nil
 	}
 
-	count, err := s.chRepo.QueryServiceCount(ctx, req.StartTime, req.EndTime, req.Cluster)
+	sources := make([]string, 0, len(datasourceCount))
+	for _, datasource := range datasourceCount {
+		sources = append(sources, datasource.Type)
+	}
+	count, err := s.chRepo.QueryServiceCount(ctx, req.StartTime, req.EndTime, req.Cluster, sources)
 	if err != nil {
 		return resp, err
 	}
