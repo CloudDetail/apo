@@ -18,7 +18,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
-	"github.com/google/uuid"
 )
 
 func (s *service) AlertEventList(ctx core.Context, req *request.AlertEventSearchRequest) (*response.AlertEventSearchResponse, error) {
@@ -152,7 +151,8 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 
 	if len(record.Input) > 0 {
 		// replace EventID by checkedEvent
-		record.ID, _ = uuid.Parse(record.Input)
+		// record.ID, _ = uuid.Parse(record.Input)
+		record.EventID = record.Input
 	}
 
 	record.WorkflowParams = alert.WorkflowParams{

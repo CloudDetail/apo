@@ -12,7 +12,7 @@ import (
 )
 
 func (r *InnerReceivers) GetSlienceConfigByAlertID(ctx core.Context, alertID string) (*sc.AlertSlienceConfig, error) {
-	if cfgPtr, find := r.slientCFGMap.Load(alertID); find {
+	if cfgPtr, find := r.silentCFGMap.Load(alertID); find {
 		return cfgPtr.(*sc.AlertSlienceConfig), nil
 	}
 	return nil, nil
@@ -29,33 +29,33 @@ func (r *InnerReceivers) SetSlienceConfigByAlertID(ctx core.Context, alertID str
 	}
 
 	now := time.Now()
-	slienceconfig := &sc.AlertSlienceConfig{
+	silenceConfig := &sc.AlertSlienceConfig{
 		AlertID: alertID,
 		For:     forDuration,
 		StartAt: time.Now(),
 		EndAt:   now.Add(duration),
 	}
 
-	if oldCFGPtr, find := r.slientCFGMap.Swap(alertID, slienceconfig); find {
+	if oldCFGPtr, find := r.silentCFGMap.Swap(alertID, silenceConfig); find {
 		cfg := oldCFGPtr.(*sc.AlertSlienceConfig)
-		slienceconfig.ID = cfg.ID
-		slienceconfig.AlertName = cfg.AlertName
-		slienceconfig.Group = cfg.Group
-		slienceconfig.Tags = cfg.Tags
-		return r.database.UpdateAlertSlience(ctx, slienceconfig)
+		silenceConfig.ID = cfg.ID
+		silenceConfig.AlertName = cfg.AlertName
+		silenceConfig.Group = cfg.Group
+		silenceConfig.Tags = cfg.Tags
+		return r.database.UpdateAlertSlience(ctx, silenceConfig)
 	} else {
 		event, err := r.ch.GetLatestAlertEventByAlertID(ctx, alertID)
 		if err == nil && event != nil {
-			slienceconfig.AlertName = event.Name
-			slienceconfig.Tags = event.EnrichTags
-			slienceconfig.Group = event.Group
+			silenceConfig.AlertName = event.Name
+			silenceConfig.Tags = event.EnrichTags
+			silenceConfig.Group = event.Group
 		}
-		return r.database.AddAlertSlience(ctx, slienceconfig)
+		return r.database.AddAlertSlience(ctx, silenceConfig)
 	}
 }
 
 func (r *InnerReceivers) RemoveSlienceConfigByAlertID(ctx core.Context, alertID string) error {
-	if cfgPtr, loaded := r.slientCFGMap.LoadAndDelete(alertID); loaded {
+	if cfgPtr, loaded := r.silentCFGMap.LoadAndDelete(alertID); loaded {
 		cfg := cfgPtr.(*sc.AlertSlienceConfig)
 		return r.database.DeleteAlertSlience(ctx, cfg.ID)
 	}

@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -76,7 +77,7 @@ func New(
 		ckRepo:   chRepo,
 	}
 
-	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
+	alertSources, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)
 		return service
@@ -100,6 +101,26 @@ func New(
 			continue
 		}
 		service.dispatcher.AddAlertSource(source, enricher)
+	}
+
+	for _, source := range alertSources {
+		if !source.EnabledPull {
+			continue
+		}
+
+		fetchTemp, find := providerMap[source.SourceType]
+		if !find {
+			log.Printf("failed to init fetcherFor AlertSource,err: %v", err)
+			continue
+		}
+
+		fetcher := fetchTemp(source.SourceFrom, source.Params.Obj)
+		go service.KeepPullAlert(
+			core.EmptyCtx(),
+			source,
+			time.Minute,
+			fetcher,
+		)
 	}
 
 	service.difyRepo = difyRepo

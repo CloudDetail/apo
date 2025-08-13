@@ -46,14 +46,14 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx core.Context, record *model.
 }
 
 func (r *InnerReceivers) sendAlert(ctx core.Context, alert *alert.AlertEvent) error {
-	if _, find := r.slientCFGMap.Load(alert.AlertID); find {
+	if _, find := r.silentCFGMap.Load(alert.AlertID); find {
 		return nil
 	}
 
 	notifyRecord := &model.AlertNotifyRecord{
 		AlertID:   alert.AlertID,
 		CreatedAt: time.Now().UnixMicro(),
-		EventID:   alert.ID.String(),
+		EventID:   alert.EventID,
 	}
 
 	var fails []string

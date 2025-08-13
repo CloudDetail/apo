@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	"github.com/google/uuid"
 )
 
 func TestJsonDecoder_Decode(t *testing.T) {
@@ -69,7 +68,7 @@ func TestJsonDecoder_Decode(t *testing.T) {
 							"node":      "larger-server-6",
 						},
 					},
-					ID:           uuid.UUID{},
+					EventID:      "",
 					Detail:       "服务出现异常",
 					CreateTime:   createTime,
 					UpdateTime:   time.UnixMilli(1737514800000),
@@ -87,7 +86,7 @@ func TestJsonDecoder_Decode(t *testing.T) {
 			d := JsonDecoder{}
 			got, err := d.Decode(tt.args.sourceFrom, tt.args.data)
 			for i := range got {
-				got[i].ID = uuid.UUID{}
+				got[i].EventID = ""
 				got[i].ReceivedTime = time.Unix(0, 0)
 			}
 

@@ -10,7 +10,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
-	"github.com/google/uuid"
 	"go.uber.org/multierr"
 )
 
@@ -38,7 +37,8 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 		if len(alertEvent.AlertID) == 0 {
 			alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 		}
-		alertEvent.ID = uuid.New()
+		// alertEvent.ID = uuid.New()
+		alertEvent.EventID = alertEvent.AlertID
 		alertEvent.SourceID = sourceFrom.SourceID
 		alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 		alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)

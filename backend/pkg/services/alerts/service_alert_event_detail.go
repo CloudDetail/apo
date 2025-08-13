@@ -36,7 +36,7 @@ func (s *service) AlertDetail(ctx core.Context, req *request.GetAlertDetailReque
 	req.Pagination.Total = total
 	var localIndex int
 	for idx, event := range releatedEvents {
-		if event.ID.String() == req.EventID {
+		if event.EventID == req.EventID {
 			localIndex = idx
 		}
 	}

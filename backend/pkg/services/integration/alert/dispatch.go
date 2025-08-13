@@ -53,6 +53,18 @@ func (d *Dispatcher) DispatchEvents(
 	return events, err
 }
 
+func (d *Dispatcher) DispatchDecodedEvents(
+	source *alert.SourceFrom, events []alert.AlertEvent,
+) error {
+	enricherPtr, find := d.EnricherMap.Load(source.SourceID)
+	if !find {
+		return alert.ErrAlertSourceNotExist{}
+	}
+
+	enricher := enricherPtr.(*enrich.AlertEnricher)
+	return enricher.Enrich(events)
+}
+
 // AddOrUpdateAlertSourceRule
 func (d *Dispatcher) AddOrUpdateAlertSourceRule(
 	source alert.SourceFrom, enricher *enrich.AlertEnricher,
