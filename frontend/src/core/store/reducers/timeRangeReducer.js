@@ -57,9 +57,26 @@ export function getTimestampRange(rangeTypeKey, convertToSecond = false) {
         endTime = endOfYesterday * 1000
         break
       case 'thisWeek':
-        const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay())).setHours(0, 0, 0, 0)
-        startTime = startOfWeek * 1000
+        const day = now.getDay() // 周日=0...周六=6
+        const offsetToMon = (day + 6) % 7 // 距离周一的天数
+        const mondayMs = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - offsetToMon,
+          0, 0, 0, 0
+        ).getTime()
+        startTime = mondayMs * 1000
         break
+      case 'last7Days': { // 最近 7 天（包括今天）
+        const startOfLast7Days = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() - 6, // 往前推 6 天，加上今天共 7 天
+          0, 0, 0, 0
+        ).getTime()
+        startTime = startOfLast7Days * 1000
+        break
+      }
       default:
         throw new Error('Unknown range type')
     }
@@ -128,9 +145,9 @@ export const selectProcessedTimeRange = createSelector([selectTimeRangeState], (
   return rangeType
     ? getTimestampRange(rangeType)
     : {
-        startTime: startTime,
-        endTime: endTime,
-      }
+      startTime: startTime,
+      endTime: endTime,
+    }
 })
 //返回整秒的微妙时间戳，用于步长传参
 export const selectSecondsTimeRange = createSelector([selectTimeRangeState], (timeRangeState) => {
@@ -139,9 +156,9 @@ export const selectSecondsTimeRange = createSelector([selectTimeRangeState], (ti
   return rangeType
     ? getTimestampRange(rangeType, true)
     : {
-        startTime: toNearestSecond(startTime),
-        endTime: toNearestSecond(endTime),
-      }
+      startTime: toNearestSecond(startTime),
+      endTime: toNearestSecond(endTime),
+    }
 })
 
 // 转微秒级时间戳为整秒的微秒时间戳
@@ -274,4 +291,8 @@ export const timeRangeMap = {
     from: 'now/w',
     to: 'now/w',
   },
+  last7Days: {
+    name: 'Last 7 Days',
+    rangeType: 'last7Days',
+  }
 }

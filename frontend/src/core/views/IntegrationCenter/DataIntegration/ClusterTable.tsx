@@ -22,7 +22,7 @@ const ClusterTable = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [clusterInfo, setClusterInfo] = useState(null)
   const deleteClusterIntegration = (id: string) => {
-    deleteClusterIntegrationApi(id).then((res) => {
+    deleteClusterIntegrationApi(id).then(() => {
       notify({
         type: 'success',
         message: ct('deleteSuccess'),
@@ -59,9 +59,13 @@ const ClusterTable = () => {
                 // setGroupInfo(record)
                 toSettingPage(record.id, record.clusterType)
               }}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{ct('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {ct('edit')}
+              </span>
             </Button>
             <Popconfirm
               title={t('confirmDelete', {
@@ -93,11 +97,13 @@ const ClusterTable = () => {
   ]
   const getData = () => {
     getIntegrationClusterListApi().then((res) => {
-      setData(res.clusters || [])
+      const clusters = (res as any)?.clusters ?? []
+      setData(clusters)
     })
   }
   const toSettingPage = (clusterId?: string, clusterType?: 'k8s' | 'vm') => {
-    let url = '/integration/data/settings'
+    let url = 'settings'
+
     if (clusterId && clusterType) {
       url +=
         '?clusterId=' +
