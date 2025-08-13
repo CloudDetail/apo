@@ -3,6 +3,7 @@ import { Button, Input } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { StopOutlined } from '@ant-design/icons'
 import { TbSend2 } from 'react-icons/tb'
+import DataStatus from './DataStatus'
 
 const { TextArea } = Input
 
@@ -62,6 +63,7 @@ const InputArea: React.FC<InputAreaProps> = ({
             borderRadius: '0',
           }}
         />
+        <DataStatus />
         {/* <div className="flex justify-end">
           <Button
             type="primary"

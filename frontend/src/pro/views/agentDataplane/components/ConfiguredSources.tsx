@@ -16,6 +16,7 @@ import Capability from 'src/pro/components/Dataplane/Capability'
 
 const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key: number }) => {
   const { t } = useTranslation('pro/agentDatasource')
+  const { t: ct } = useTranslation('common')
   const [data, setData] = useState([])
 
   const getDataplaneList = () => {
@@ -61,16 +62,16 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
       width: 150,
     },
     {
-      title: t('desc'),
-      dataIndex: 'desc',
-      key: 'desc',
+      title: t('form.note'),
+      dataIndex: 'note',
+      key: 'note',
       width: 150,
     },
     {
       title: t('capabilitySpec'),
-      dataIndex: 'capabilitySpec',
-      key: 'capabilitySpec',
-      render: (text: string[]) => <Capability capabilitySpec={text} />,
+      dataIndex: 'capability',
+      key: 'capability',
+      render: (text: string[]) => <Capability capability={text} />,
     },
     {
       title: t('operation'),
@@ -86,7 +87,7 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
               }
             >
               <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
-                {t('edit')}
+                {ct('edit')}
               </span>
             </Button>
             <Popconfirm
@@ -105,7 +106,7 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
               cancelText={t('cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
-                {t('delete')}
+                {ct('delete')}
               </Button>
             </Popconfirm>
           </>
@@ -122,7 +123,12 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
         <Typography.Title level={5}>{t('list')}</Typography.Title>
       </Typography>
       {/* <Search  className="mb-3" /> */}
-      <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 260px)' }} />
+      <Table
+        columns={columns}
+        size="small"
+        dataSource={data}
+        scroll={{ y: 'calc(100vh - 300px)' }}
+      />
     </div>
   )
 }

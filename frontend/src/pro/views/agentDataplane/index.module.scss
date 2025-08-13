@@ -1,0 +1,23 @@
+.dataplane {
+  width: 100%;
+  height: 100%;
+
+  :global(.ant-tabs-tab) {
+    flex-shrink: 0;
+  }
+  :global(.ant-tabs-content) {
+    height: 100%;
+  }
+  :global(.ant-tabs-tabpane) {
+    height: 100%;
+  }
+  :global(.ant-tabs-nav) {
+  }
+  :global(.ant-tabs-tab) {
+    display: flex;
+    align-items: center;
+  }
+  :global(.ant-tabs-nav::before) {
+    display: none !important;
+  }
+}

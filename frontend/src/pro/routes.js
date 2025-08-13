@@ -1,19 +1,23 @@
 import { t } from 'i18next'
 import React from 'react'
+import AuthRouter from 'src/core/components/AuthRouter'
 
 // 商业版
-const AlertAnalyzePage = React.lazy(() => import('src/pro/views/alertAnalyze/index'))
-const ServiceAnalyzePage = React.lazy(() => import('src/pro/views/serviceAnalyze/index'))
-const CauseReportPage = React.lazy(() => import('src/pro/views/causeReport/index'))
+const AlertAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/alertAnalyze/index')))
+const ServiceAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/serviceAnalyze/index')))
+const CauseReportPage = AuthRouter(React.lazy(() => import('src/pro/views/causeReport/index')))
 
-const ServiceHealthy = React.lazy(() => import('src/pro/views/serviceHealthy/index'))
-const MysqlDashboard = React.lazy(() => import('src/pro/views/MysqlDashboard/index'))
-const ChatAIPage = React.lazy(() => import('src/pro/views/chatAI/index'))
-const SlowReportPage = React.lazy(() => import('src/pro/views/report/index'))
-const AgentDataplanePage = React.lazy(() => import('src/pro/views/agentDataplane/index'))
-const AgentPage = React.lazy(() => import('src/pro/views/agent/index'))
-const ProbeInstallerPage = React.lazy(() => import('src/pro/views/probeInstaller'))
+const ServiceHealthy = AuthRouter(React.lazy(() => import('src/pro/views/serviceHealthy/index')))
+const MysqlDashboard = AuthRouter(React.lazy(() => import('src/pro/views/MysqlDashboard/index')))
+const ChatAIPage = AuthRouter(React.lazy(() => import('src/pro/views/chatAI/index')))
+const SlowReportPage = AuthRouter(React.lazy(() => import('src/pro/views/report/index')))
+const AgentDataplanePage = AuthRouter(React.lazy(() => import('src/pro/views/agentDataplane/index')))
+const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index')))
+const ProbeManagementPage = AuthRouter(React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')))
 
+const IntegrationSettings = AuthRouter(
+  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
+)
 let proRoutes = [
   {
     path: '/alert-analyze',
@@ -61,9 +65,9 @@ let proRoutes = [
   },
   {
     path: '/dataplane',
-    name: '智能体数据接入',
+    name: '外部数据源',
     element: AgentDataplanePage,
-    // hideSystemTimeRangePicker: true,
+    hideSystemTimeRangePicker: true,
   },
   // {
   //   path: '/report/error',
@@ -72,14 +76,19 @@ let proRoutes = [
   //   hideSystemTimeRangePicker: true,
   // },
   {
-    path: 'agent',
+    path: '/agent',
     name: 'Agent',
     element: AgentPage,
   },
   {
-    path: 'probe-installer',
+    path: '/probe-management',
     name: 'ProbeInstaller',
-    element: ProbeInstallerPage,
+    element: ProbeManagementPage,
+  },
+
+  {
+    path: '/probe-management/settings',
+    element: IntegrationSettings,
   },
 ]
 export default proRoutes

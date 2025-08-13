@@ -6,7 +6,6 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
-import { CBadge } from '@coreui/react'
 import { PiPath } from 'react-icons/pi'
 import { LuFileText, LuWorkflow } from 'react-icons/lu'
 import { AiOutlineDashboard } from 'react-icons/ai'
@@ -17,25 +16,24 @@ import { TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { BsBezier2 } from 'react-icons/bs'
-import { t } from 'i18next'
 import { ReactSVG } from 'react-svg'
 import agentIcon from 'src/pro/assets/agent.svg'
 
 const namespace = 'core/routes'
 const commercialNav = [
-  {
-    key: 'alertAnalyze',
-    icon: <IoIosTrendingUp />,
-    label: (
-      <>
-        {t('pro/routes:alertAnalyze')}
-        <CBadge color="info" className="ml-2">
-          {t('pro/routes:free')}
-        </CBadge>
-      </>
-    ),
-    to: '/alert-analyze',
-  },
+  // {
+  //   key: 'alertAnalyze',
+  //   icon: <IoIosTrendingUp />,
+  //   label: (
+  //     <>
+  //       {t('pro/routes:alertAnalyze')}
+  //       <CBadge color="info" className="ml-2">
+  //         {t('pro/routes:free')}
+  //       </CBadge>
+  //     </>
+  //   ),
+  //   to: '/alert-analyze',
+  // },
 ]
 
 const VITE_SHOW_MIDWARE_HEALTH = import.meta.env.VITE_SHOW_MYSQL_HEALTH === 'special'
@@ -190,5 +188,6 @@ const navIcon = {
       }}
     />
   ),
+  alertAnalyze: <IoIosTrendingUp />
 }
 export { _nav, commercialNav, navIcon }

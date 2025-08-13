@@ -1,34 +1,25 @@
 import React from 'react'
-import { Typography } from 'antd'
+import { Alert, Button, Typography } from 'antd'
 import { useTranslation } from 'react-i18next'
 import styles from '../AGUIChat.module.scss'
 import { AiOutlineBarChart } from 'react-icons/ai'
 import { IoMdHelp } from 'react-icons/io'
-import { IoAlertCircleOutline } from 'react-icons/io5'
+import { IoAlertCircleOutline, IoWarningOutline } from 'react-icons/io5'
 import ShinyText from '../../Animation/ShinyText'
 import AnimatedContent from '../../Animation/AnimatedContent'
 import { ReactSVG } from 'react-svg'
 import agentIcon from 'src/pro/assets/agent.svg'
+import { useAIPermission } from 'src/pro/hooks/useAIPermission'
+import { SettingOutlined } from '@ant-design/icons'
 
 const { Paragraph } = Typography
 
 interface QuickQuestionsProps {
   onQuestionClick: (question: string) => void
 }
-const CustomCard = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="relative drop-shadow-xl w-[500px] h-[300px] overflow-hidden rounded-2xl bg-transparent">
-      <div
-        className="absolute flex items-center justify-center text-white z-[1]  rounded-2xl inset-0.5 
-      bg-[#131313]  border  border-[var(--ant-color-border)]"
-      >
-        {children}
-      </div>
-      <div className="absolute w-56 h-48 bg-white blur-[50px] -left-1/3 -top-1/2"></div>
-    </div>
-  )
-}
+
 const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
+  const { hasPermission, isLoading: permissionLoading, dataPlaneExist } = useAIPermission()
   const { t } = useTranslation('pro/agent')
 
   const quickQuestions = [
@@ -67,7 +58,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
     },
   ]
   return (
-    <div className="h-full  overflow-hidden justify-around flex flex-col relative">
+    <div className="h-full  overflow-y-scroll justify-around flex flex-col relative">
       <div className={styles.quickQuestionsHeader} style={{ zIndex: 1, marginTop: '20px' }}>
         <div className=" flex items-center justify-center w-full text-4xl font-semibold  my-4  gap-2">
           {/* <RobotOutlined className="text-5xl text-[var(--ant-color-primary)]" /> */}
@@ -99,78 +90,93 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
           </AnimatedContent>
         </div>
       </div>
-
-      {/* <div className="flex items-center justify-center w-full gap-11 z-20">
-        <CustomCard>
-          <div className="flex flex-col items-center w-full h-full">
-            <div className="items-center text-center text-lg font-bold mt-4 my-0">
-              <SplitText text={t('quickQuestions.capabilitiesTitle')} splitType="lines" />
-            </div>
-            <div className="flex flex-col w-full justify-around flex-1">
-              {capabilities.map((capability, index) => (
-                <div
-                  className="flex items-center m-2 p-2  rounded-xl bg-[#1b1b1b] text-[var(--ant-color-text)]"
-                  key={index}
-                >
-                  <span className="mx-2">{capability.icon}</span>
-                  <span>{capability.title}</span>
-                </div>
-              ))}
-            </div>
+      {!permissionLoading && hasPermission && dataPlaneExist && (
+        <div className="flex flex-col items-center justify-center z-10  ">
+          <div className="items-center text-center text-lg font-bold my-2">
+            {t('quickQuestions.quickQuestionsTitle')}
           </div>
-        </CustomCard>
-        <CustomCard>
-          <div className="flex flex-col items-center w-full h-full">
-            <div className="items-center text-center text-lg font-bold mt-4 my-0">
-              <SplitText text={t('quickQuestions.quickQuestionsTitle')} splitType="lines" />
-            </div>
-            <div className="flex flex-col justify-around flex-1">
-              {quickQuestions.map((capability, index) => (
+          <div className="w-3/4">
+            <AnimatedContent>
+              {quickQuestions.map((question, index) => (
                 <div
-                  className="z-40 flex items-center m-2 p-2 group justify-between  rounded-2xl bg-[#1b1b1b] cursor-pointer text-[var(--ant-color-text)]"
                   key={index}
-                  onClick={() => onQuestionClick(capability.question)}
+                  className="w-full bg-[var(--ant-color-fill-secondary)] group my-2 pl-2 pr-4 py-2 rounded-md flex items-center justify-between hover:bg-[var(--ant-color-fill)] cursor-pointer"
+                  onClick={() => onQuestionClick(question.question)}
                 >
-                  <div className="flex items-center">
-                    <span className="mx-2">{capability.icon}</span>
-                    <span>{capability.question}</span>
+                  <div className="flex items-center text-sm font-medium group-hover:text-[var(--ant-color-info-text-hover)] transition-colors duration-200">
+                    <div className="text-lg font-bold opacity-60 text-blue-400 mr-2 ">
+                      {question.icon}
+                    </div>
+                    {question.question}
                   </div>
-                  <span className="text-lg mr-2 font-bold opacity-60 text-[var(--ant-color-primary)] group-hover:translate-x-1 transition-transform duration-200 cursor-pointer">
+                  <span className="text-lg font-bold opacity-60 text-[var(--ant-color-primary)] group-hover:translate-x-1 transition-transform duration-200">
                     →
                   </span>
                 </div>
               ))}
-            </div>
+            </AnimatedContent>
           </div>
-        </CustomCard>
-      </div> */}
-
-      <div className="flex flex-col items-center justify-center z-10  ">
-        <div className="items-center text-center text-lg font-bold my-2">
-          {t('quickQuestions.quickQuestionsTitle')}
         </div>
-        <div className="w-3/4">
-          <AnimatedContent>
-            {quickQuestions.map((question, index) => (
-              <div
-                key={index}
-                className="w-full bg-[var(--ant-color-fill-secondary)] group my-2 pl-2 pr-4 py-2 rounded-md flex items-center justify-between hover:bg-[var(--ant-color-fill)] cursor-pointer"
-                onClick={() => onQuestionClick(question.question)}
-              >
-                <div className="flex items-center text-sm font-medium group-hover:text-[var(--ant-color-info-text-hover)] transition-colors duration-200">
-                  <div className="text-lg font-bold opacity-60 text-blue-400 mr-2 ">
-                    {question.icon}
-                  </div>
-                  {question.question}
+      )}
+      {!hasPermission && (
+        <>
+          {' '}
+          <div className="ai-permission-alert flex items-center justify-center">
+            <Alert
+              message={t('quickQuestions.alerts.agentNotInstalledTitle')}
+              description={
+                <div className="alert-description">
+                  {t('quickQuestions.alerts.agentNotInstalledDesc')}
                 </div>
-                <span className="text-lg font-bold opacity-60 text-[var(--ant-color-primary)] group-hover:translate-x-1 transition-transform duration-200">
-                  →
-                </span>
+              }
+              type="error"
+              className="items-center w-3/4"
+              showIcon
+              icon={<IoWarningOutline size={30} />}
+              action={
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<SettingOutlined />}
+                  onClick={() => {
+                    window.open('/#/integration/data/settings', '_blank')
+                  }}
+                >
+                  {t('installNow', '立即安装')}
+                </Button>
+              }
+            />
+          </div>
+        </>
+      )}
+      {!dataPlaneExist && (
+        <div className="ai-permission-alert  flex items-center justify-center ">
+          <Alert
+            message={t('quickQuestions.alerts.dataSourceNotConnectedTitle')}
+            description={
+              <div className="alert-description">
+                {t('quickQuestions.alerts.dataSourceNotConnectedDesc')}
               </div>
-            ))}
-          </AnimatedContent>
+            }
+            type="warning"
+            className="items-center w-3/4"
+            showIcon
+            icon={<IoWarningOutline size={30} />}
+            action={
+              <Button
+                type="primary"
+                size="large"
+                icon={<SettingOutlined />}
+                onClick={() => {
+                  window.open('/#/dataplane', '_blank')
+                }}
+              >
+                {t('connectNow', '立即接入')}
+              </Button>
+            }
+          />
         </div>
-      </div>
+      )}
       {/* <div
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}
       >

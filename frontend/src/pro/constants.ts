@@ -4,12 +4,14 @@ import datadog from 'src/pro/assets/datadog.png'
 import newrelic from 'src/pro/assets/newrelic.png'
 import dynatrace from 'src/pro/assets/dynatrace.png'
 import nginx from 'src/pro/assets/nginx.png'
-import arms from 'src/pro/assets/arms.png'
+import aliyun from 'src/core/assets/dataCollector/aliyun.svg'
 import prometheus from 'src/core/assets/dataCollector/prometheus.svg'
 import loki from 'src/core/assets/dataCollector/loki.svg'
-import tempo from 'src/pro/assets/tempo.png'
+import tempo from 'src/pro/assets/tempo.svg'
 import openobserve from 'src/pro/assets/openobserve.png'
-import signoz from 'src/pro/assets/signoz.png'
+import signoz from 'src/pro/assets/signoz.svg'
+import skywalking from 'src/core/assets/dataCollector/skywalking.svg'
+
 export const anormalTypesOptions = [
   {
     value: 'unknown',
@@ -71,12 +73,16 @@ export const dataplaneIconMap = {
   'NewRelic': newrelic,
   'Dynatrace': dynatrace,
   'nginxLog': nginx,
-  'arms': arms,
+  'arms': aliyun,
   'Prometheus': prometheus,
+  'prometheus': prometheus,
   'Loki': loki,
   'Tempo': tempo,
+  'tempo': tempo,
   'OpenObserve': openobserve,
   'SigNoz': signoz,
+  'signoz': signoz,
+  'skywalking': skywalking,
 }
 export const datasourceOptions = [
   {

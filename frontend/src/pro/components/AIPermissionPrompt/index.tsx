@@ -1,10 +1,12 @@
 import React from 'react'
 import { Card, Button, Alert, Spin, Typography } from 'antd'
-import { RobotOutlined, SettingOutlined } from '@ant-design/icons'
+import { SettingOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import './AIPermissionPrompt.css'
 import { IoWarningOutline } from 'react-icons/io5'
 import { useNavigate } from 'react-router-dom'
+import { ReactSVG } from 'react-svg'
+import agentIcon from 'src/pro/assets/agent.svg'
 
 const { Title, Paragraph, Text } = Typography
 
@@ -61,7 +63,16 @@ const AIPermissionPrompt: React.FC<AIPermissionPromptProps> = ({
       <Card className="ai-permission-card">
         <div className="ai-permission-content">
           <div className="ai-permission-header">
-            <RobotOutlined className="ai-icon" />
+            {/* <RobotOutlined className="ai-icon" /> */}
+            <div className="w-full flex items-center justify-center">
+              <ReactSVG
+                src={agentIcon}
+                beforeInjection={(svg) => {
+                  svg.setAttribute('width', '64')
+                  svg.setAttribute('height', '64')
+                }}
+              />
+            </div>
             <Title level={2} className="ai-title">
               {t('aiAssistant', 'AI 智能助手')}
             </Title>
@@ -75,9 +86,7 @@ const AIPermissionPrompt: React.FC<AIPermissionPromptProps> = ({
             <Alert
               message={t('未安装minimal-agent')}
               description={
-                <div className="alert-description">
-                  minimal-agent为智能体运行的基础，轻松两步安装
-                </div>
+                <div className="alert-description">minimal-agent为智能体运行的基础，轻松安装</div>
               }
               type="warning"
               className="items-center"
@@ -95,7 +104,28 @@ const AIPermissionPrompt: React.FC<AIPermissionPromptProps> = ({
               }
             />
           </div>
-
+          <div className="ai-permission-alert">
+            <Alert
+              message={'未接入数据源'}
+              description={
+                <div className="alert-description">未接入数据源，SRE Agent缺少可分析数据</div>
+              }
+              type="warning"
+              className="items-center"
+              showIcon
+              icon={<IoWarningOutline size={30} />}
+              action={
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<SettingOutlined />}
+                  onClick={onConfigure}
+                >
+                  立即接入
+                </Button>
+              }
+            />
+          </div>
           {/* <div className="ai-permission-actions">
             <Space size="middle">
               <Button type="primary" size="large" icon={<SettingOutlined />} onClick={onConfigure}>

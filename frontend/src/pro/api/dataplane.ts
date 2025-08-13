@@ -36,8 +36,8 @@ export function upsertServiceNameRuleApi(params: any) {
 }
 
 // 获取服务匹配规则列表
-export function listServiceNameRuleApi() {
-    return get('/api/dataplane/servicename/listRule');
+export function listServiceNameRuleApi(params: any) {
+    return get('/api/dataplane/servicename/listRule', params);
 }
 
 // 删除服务匹配规则
@@ -83,4 +83,31 @@ export function deleteCustomTopologyApi(params: any) {
 
 export function checkDataplaneDataApi() {
     return get('/api/dataplane/data/check');
+}
+
+
+export function getServiceNameRuleApi(params: any) {
+    return get('/api/dataplane/appinfo/tags', params);
+}
+
+export function getServiceValuesRuleApi(params: any) {
+    return get('/api/dataplane/appinfo/tags/values', params);
+}
+export function saveServiceRuleApi(params: any) {
+    return post('/api/dataplane/servicename/upsertRule', params);
+}
+export function deleteServiceRuleApi(params: any) {
+    return post('/api/dataplane/servicename/deleteRule', params);
+}
+
+
+export function getServiceWithIstanceApi(params: any) {
+    return get('/api/dataplane/servicesWithInstances', params);
+}
+export function getDataplaneDatasourcesApi(params: any) {
+    return get('/api/dataplane/datasources', params);
+}
+
+export function checkDataplaneDatasourceApi(params: any) {
+    return post('/api/dataplane/checkDataSource', params);
 }

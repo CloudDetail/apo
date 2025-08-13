@@ -2,9 +2,7 @@ import React from 'react'
 import { Button, Tooltip } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import styles from '../AGUIChat.module.scss'
-
-// 控制会话功能的开关
-const ENABLE_SESSION_MANAGEMENT = false
+import { useTranslation } from 'react-i18next'
 
 interface ChatHeaderProps {
   siderCollapsed: boolean
@@ -13,12 +11,9 @@ interface ChatHeaderProps {
   onRefreshSessions: () => void
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({
-  siderCollapsed,
-  onToggleSider,
-  onOpenSettings,
-  onRefreshSessions,
-}) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({ onRefreshSessions }) => {
+  const { t } = useTranslation('pro/agent')
+
   return (
     <div className={styles.header}>
       <div className={styles.headerLeft}>
@@ -30,7 +25,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             className={styles.siderTrigger}
           />
         </Tooltip> */}
-        <h2 className={styles.headerTitle}>SRE Agent Chat</h2>
+        <h2 className={styles.headerTitle}>{t('header.title')}</h2>
       </div>
       <div className={styles.headerActions}>
         {/* <Tooltip title="设置">
@@ -41,8 +36,10 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             className={styles.iconBtn}
           />
         </Tooltip> */}
+
         {/* 会话刷新按钮 - 仅在启用会话管理时显示 */}
-        <Tooltip title="Refresh">
+
+        <Tooltip title={t('header.refresh')}>
           <Button
             type="text"
             icon={<ReloadOutlined />}

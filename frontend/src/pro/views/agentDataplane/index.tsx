@@ -1,54 +1,97 @@
-import { Divider, Flex } from 'antd'
-import { useState } from 'react'
+import { Tabs } from 'antd'
+import DataplanePage from './DataplanePage'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
-import DataplaneList from 'src/pro/components/Dataplane/DataplaneList'
-import ConfiguredSources from './components/ConfiguredSources'
-import ConfigDrawer from './ConfigDrawer'
-import { DataplaneItem, DataplaneTypeItem } from 'src/pro/types/datasource'
-
+import ServiceMatcherPage from './ServiceMatcherPage'
+import { getTimestampRange } from 'src/core/store/reducers/timeRangeReducer'
+import { useState, useEffect } from 'react'
+import DateTimeRangePickerCom from './components/DateTimeRangePickerCom'
+import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
+import styles from './index.module.scss'
 const AgentDataplanePage = () => {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [dataplaneConfigInfo, setDatasourceConfigInfo] = useState<
-    DataplaneItem | DataplaneTypeItem | null
-  >(null)
-  const [key, setKey] = useState(0)
-  const openAddDrawer = (dataplaneConfigInfo: DataplaneTypeItem) => {
-    setDrawerOpen(true)
-    setDatasourceConfigInfo(dataplaneConfigInfo)
+  const { t } = useTranslation('pro/dataplane')
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // 从URL参数获取tab key，默认为'dataplane'
+  const getInitialTabKey = () => {
+    const tabKey = searchParams.get('tab')
+    return tabKey === 'serviceMatcher' ? 'serviceMatcher' : 'dataplane'
   }
-  const openEditDrawer = (dataplaneConfigInfo: DataplaneItem) => {
-    setDrawerOpen(true)
-    setDatasourceConfigInfo(dataplaneConfigInfo)
+
+  const [key, setKey] = useState(getInitialTabKey)
+
+  // 当URL参数变化时更新tab key
+  useEffect(() => {
+    const newTabKey = getInitialTabKey()
+    if (newTabKey !== key) {
+      setKey(newTabKey)
+    }
+  }, [searchParams])
+
+  const defaultTimerange = {
+    startTime: getTimestampRange('last7Days').startTime,
+    endTime: getTimestampRange('last7Days').endTime,
+    rangeType: 'last7Days',
   }
-  const closeDrawer = () => {
-    setKey((prevKey) => prevKey + 1)
-    setDrawerOpen(false)
-    setDatasourceConfigInfo(null)
+  const [timeRange, setTimeRange] = useState(defaultTimerange)
+
+  const refreshTimeRange = () => {
+    if (timeRange.rangeType) {
+      setTimeRange({
+        startTime: getTimestampRange(timeRange.rangeType).startTime,
+        endTime: getTimestampRange(timeRange.rangeType).endTime,
+        rangeType: timeRange.rangeType,
+      })
+    }
   }
+
+  const tabItems = [
+    {
+      key: 'dataplane',
+      label: t('dataSourceAccess'),
+      children: <DataplanePage />,
+    },
+    {
+      key: 'serviceMatcher',
+      label: t('monitoringServiceList'),
+      children: <ServiceMatcherPage timeRange={timeRange} refreshTimeRange={refreshTimeRange} />,
+    },
+  ]
+
+  const changeTimeRange = (timeRange) => {
+    setTimeRange(timeRange)
+  }
+
+  // 处理tab切换，更新URL参数
+  const handleTabChange = (newKey) => {
+    setKey(newKey)
+    const newParams = new URLSearchParams(searchParams)
+    if (newKey === 'dataplane') {
+      newParams.delete('tab')
+    } else {
+      newParams.set('tab', newKey)
+    }
+    setSearchParams(newParams, { replace: true })
+  }
+
   return (
     <>
       <BasicCard>
-        <Flex
-          style={{
-            // boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
-            // padding: 10,
-            height: '100%',
-          }}
-        >
-          <div className="h-full w-[310px] px-1 flex-shrink-0">
-            <DataplaneList onClick={openAddDrawer} />
-          </div>
-          <Divider type="vertical" className="h-full text-[var(--ant-color-border)]" />
-          <div className="px-4 flex-1 overflow-hidden">
-            <ConfiguredSources openDrawer={openEditDrawer} key={key} />
-          </div>
-        </Flex>
+        <Tabs
+          activeKey={key}
+          onChange={handleTabChange}
+          items={tabItems}
+          className={styles.dataplane}
+          tabBarExtraContent={
+            key === 'serviceMatcher' && (
+              <DateTimeRangePickerCom
+                changeTimeRange={changeTimeRange}
+                defaultTimerange={timeRange}
+              />
+            )
+          }
+        />
       </BasicCard>
-      <ConfigDrawer
-        drawerOpen={drawerOpen}
-        closeDrawer={closeDrawer}
-        dataplaneConfigInfo={dataplaneConfigInfo}
-      />
     </>
   )
 }
