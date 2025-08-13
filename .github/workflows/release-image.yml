@@ -21,6 +21,7 @@ env:
   BACKEND_DEPLOYMENT_NAME: apo-backend
   FRONTEND_CONTAINER_NAME: apo-front
   FRONTEND_DEPLOYMENT_NAME: apo-front
+  REGISTRY_USERNAME_ARM: originx
   NAMESPACE: apo
 
 jobs:
@@ -53,9 +54,9 @@ jobs:
       run: |
         echo "IMAGE_TAG_NAME=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
         echo "BACKEND_IMAGE_FULL_TAG_AMD64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-        echo "BACKEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.BACKEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}-arm64" >> $GITHUB_ENV
+        echo "BACKEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ env.REGISTRY_USERNAME_ARM }}/${{ env.BACKEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
         echo "FRONTEND_IMAGE_FULL_TAG_AMD64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-        echo "FRONTEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ secrets.REGISTRY_USERNAME }}/${{ env.FRONTEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}-arm64" >> $GITHUB_ENV
+        echo "FRONTEND_IMAGE_FULL_TAG_ARM64=${{ env.REGISTRY_HOST }}/${{ env.REGISTRY_USERNAME_ARM }}/${{ env.FRONTEND_CONTAINER_NAME }}:${{ github.event.inputs.tag }}" >> $GITHUB_ENV
 
     - name: Backend Build and push AMD64 image
       uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
@@ -72,6 +73,22 @@ jobs:
         platforms: linux/amd64
         push: true
         tags: ${{ env.FRONTEND_IMAGE_FULL_TAG_AMD64 }}
+
+    - name: Backend Build and push ARM64 image
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
+      with:
+        context: ./backend
+        platforms: linux/arm64
+        push: true
+        tags: ${{ env.BACKEND_IMAGE_FULL_TAG_ARM64 }}
+
+    - name: Frontend Build and push ARM64 image
+      uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1
+      with:
+        context: ./frontend
+        platforms: linux/arm64
+        push: true
+        tags: ${{ env.FRONTEND_IMAGE_FULL_TAG_ARM64 }}
 
     - name: push tag
       uses: anothrNick/github-tag-action@v1
