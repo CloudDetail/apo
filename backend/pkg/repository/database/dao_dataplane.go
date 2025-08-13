@@ -24,6 +24,10 @@ func (repo *daoRepo) CreateDataPlane(ctx core.Context, d *mi.DataPlane) error {
 	return repo.GetContextDB(ctx).Create(d).Error
 }
 
+func (repo *daoRepo) CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error {
+	return repo.GetContextDB(ctx).Create(c2dp).Error
+}
+
 func (repo *daoRepo) ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterIDs, error) {
 	var dps []mi.DataPlaneWithType
 
@@ -78,4 +82,10 @@ func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
 	return repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
 		Where("id = ?", id).
 		Update("is_deleted", true).Error
+}
+
+func (repo *daoRepo) DeleteCluster2DataPlane(ctx core.Context, id int) error {
+	return repo.GetContextDB(ctx).Model(&mi.Cluster2DataPlane{}).
+		Where("data_plane_id = ?", id).
+		Delete(&mi.Cluster2DataPlane{}).Error
 }
