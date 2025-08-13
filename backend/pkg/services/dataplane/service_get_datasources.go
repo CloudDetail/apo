@@ -15,9 +15,6 @@ func (s *service) GetDatasources(ctx core.Context, req *request.GetDatasourcesRe
 	if err != nil {
 		return resp, err
 	}
-	if len(datasourceCount) == 0 {
-		return resp, nil
-	}
 
 	sources := make([]string, 0, len(datasourceCount))
 	for _, datasource := range datasourceCount {
