@@ -10,9 +10,11 @@ import (
 )
 
 type DataPlaneType struct {
-	TypeName string     `gorm:"type_name;primary_key" json:"typeName"`
-	Desc     CompressMD `gorm:"desc;type:text" json:"desc"`
-	DescEN   CompressMD `gorm:"desc_en;type:text" json:"-"`
+	TypeName string `gorm:"type_name;primary_key" json:"typeName"`
+
+	TypeDisplayName string     `gorm:"type_display_name;" json:"typeDisplayName"`
+	Desc            CompressMD `gorm:"desc;type:text" json:"desc"`
+	DescEN          CompressMD `gorm:"desc_en;type:text" json:"-"`
 
 	ParamSpec      JSONField[ParamSpec] `gorm:"param_spec" json:"paramSpec"`           // JSONStr
 	CapabilitySpec JSONField[[]string]  `gorm:"capability_spec" json:"capabilitySpec"` // Str Slice
