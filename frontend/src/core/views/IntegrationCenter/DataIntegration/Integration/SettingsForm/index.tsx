@@ -12,7 +12,7 @@ import MetricsFormItem from './MetricsFormItem'
 import LogsFormItem from './LogsFormItem'
 import styles from './index.module.scss'
 import APOCollectorFormItem from './APOCollectorFormItem'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useLocation } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
 import { notify } from 'src/core/utils/notify'
 
@@ -31,6 +31,8 @@ const SettingsForm = ({ formInitValues }) => {
   ]
   const [form] = Form.useForm()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { pathname } = useLocation()
+  const shouldShow = pathname === '/integration/data/settings'
 
   const saveIntegration = (params) => {
     delete params?.traceAPI
@@ -58,6 +60,7 @@ const SettingsForm = ({ formInitValues }) => {
             return map
           }, {})
         }
+        params.isMinimal = !shouldShow
         saveIntegration(params)
       })
       .catch((errorInfo) => {
@@ -108,39 +111,43 @@ const SettingsForm = ({ formInitValues }) => {
             <Segmented options={clusterTypeOptions} />
           </Form.Item>
           <APOCollectorFormItem />
-          <Card type="inner" title={t('traceIntegration')} size="small">
-            <TraceFormItem />
-          </Card>
-          <Card
-            type="inner"
-            title={
-              <Space>
-                {t('metricsIntegration')}
-                <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                  {t('metricsHint')}
-                </span>
-              </Space>
-            }
-            size="small"
-            className="mt-2"
-          >
-            <MetricsFormItem />
-          </Card>
-          <Card
-            type="inner"
-            title={
-              <Space>
-                {t('logsIntegration')}
-                <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                  {t('logHint')}
-                </span>
-              </Space>
-            }
-            size="small"
-            className="mt-2"
-          >
-            <LogsFormItem />
-          </Card>
+          {shouldShow && (
+            <>
+              <Card type="inner" title={t('traceIntegration')} size="small">
+                <TraceFormItem />
+              </Card>
+              <Card
+                type="inner"
+                title={
+                  <Space>
+                    {t('metricsIntegration')}
+                    <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                      {t('metricsHint')}
+                    </span>
+                  </Space>
+                }
+                size="small"
+                className="mt-2"
+              >
+                <MetricsFormItem />
+              </Card>
+              <Card
+                type="inner"
+                title={
+                  <Space>
+                    {t('logsIntegration')}
+                    <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                      {t('logHint')}
+                    </span>
+                  </Space>
+                }
+                size="small"
+                className="mt-2"
+              >
+                <LogsFormItem />
+              </Card>
+            </>
+          )}
           <Form.Item name="traceAPI"></Form.Item>
         </Form>
       </div>

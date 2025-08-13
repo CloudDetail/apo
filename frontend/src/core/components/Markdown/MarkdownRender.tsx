@@ -5,7 +5,7 @@
 import remarkBreaks from 'remark-breaks'
 import './github-markdown.css'
 import ReactMarkdown from 'react-markdown'
-import { Hash, Quote, CheckSquare, ExternalLink } from 'lucide-react'
+import { Quote, CheckSquare, ExternalLink } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
@@ -14,19 +14,19 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
     // Headers with icons
     h1: ({ children }: any) => (
       <h1 className="text-4xl font-bold mb-6 flex items-center gap-3 group">
-        <Hash className="w-8 h-8 text-blue-500 group-hover:text-blue-600 transition-colors" />
+        {/* <Hash className="w-8 h-8 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h1>
     ),
     h2: ({ children }: any) => (
       <h2 className="text-3xl font-semibold mb-4 mt-8 flex items-center gap-2 group">
-        <Hash className="w-6 h-6 text-blue-500 group-hover:text-blue-600 transition-colors" />
+        {/* <Hash className="w-6 h-6 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
       <h3 className="text-2xl font-semibold mb-3 mt-6 flex items-center gap-2 group">
-        <Hash className="w-5 h-5 text-blue-500 group-hover:text-blue-600 transition-colors" />
+        {/* <Hash className="w-5 h-5 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h3>
     ),
