@@ -4,6 +4,7 @@
 package dataplane
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -42,8 +43,26 @@ func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlane
 		return core.Error(code.DataPlaneTypeNotExistError, "data plane type not exist")
 	}
 
+	if len(req.Capability.Obj) == 0 {
+		// Full capability
+		req.Capability.Obj = dpType.CapabilitySpec.Obj
+	}
+
 	if err := integration.CheckInvalid(&req.DataPlane, dpType); err != nil {
 		return core.Error(code.DataPlaneParamInvalidError, err.Error())
+	}
+
+	// HACK prometheus Prometheus 数据平面特殊处理
+	if dpType.TypeName == "prometheus" {
+		var paramsJson map[string]any
+		err := json.Unmarshal([]byte(req.DataPlane.Params), &paramsJson)
+		if err != nil {
+			return core.Error(code.DataPlaneParamInvalidError, err.Error())
+		}
+
+		paramsJson["promStorage"] = "prom"
+		updatedParams, _ := json.Marshal(paramsJson)
+		req.DataPlane.Params = string(updatedParams)
 	}
 
 	req.DataPlane.IsDeleted = false
