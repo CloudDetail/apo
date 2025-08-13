@@ -174,6 +174,9 @@ type Repo interface {
 	DeleteDataPlane(ctx core.Context, id int) error
 	GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error)
 
+	CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error
+	DeleteCluster2DataPlane(ctx core.Context, id int) error
+
 	integration.ObservabilityInputManage
 	DaoDataScope
 	DaoDataGroupNew

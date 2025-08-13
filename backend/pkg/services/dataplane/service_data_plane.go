@@ -66,6 +66,22 @@ func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlane
 	}
 
 	req.DataPlane.IsDeleted = false
+
+	if len(req.DataPlane.ClusterID) > 0 {
+		var createDataPlane = func(ctx core.Context) error {
+			return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
+		}
+
+		var createCluster2DataPlane = func(ctx core.Context) error {
+			return s.dbRepo.CreateCluster2DataPlane(ctx, &integration.Cluster2DataPlane{
+				ClusterID:   req.DataPlane.ClusterID,
+				DataPlaneID: req.DataPlane.ID,
+			})
+		}
+
+		return s.dbRepo.Transaction(ctx, createDataPlane, createCluster2DataPlane)
+	}
+
 	return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
 }
 
@@ -103,7 +119,13 @@ func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlane
 		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
 	}
 
-	return s.dbRepo.DeleteDataPlane(ctx, req.ID)
+	var deleteCluster2DataPlane = func(ctx core.Context) error {
+		return s.dbRepo.DeleteCluster2DataPlane(ctx, req.ID)
+	}
+	var deleteDataPlane = func(ctx core.Context) error {
+		return s.dbRepo.DeleteDataPlane(ctx, req.ID)
+	}
+	return s.dbRepo.Transaction(ctx, deleteCluster2DataPlane, deleteDataPlane)
 }
 
 func (s *service) CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error) {
