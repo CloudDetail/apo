@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	"github.com/google/uuid"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -30,7 +29,8 @@ func (d JsonDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.A
 	if len(alertEvent.AlertID) == 0 {
 		alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
-	alertEvent.ID = uuid.New()
+	// alertEvent.ID = uuid.New()
+	alertEvent.EventID = alertEvent.AlertID
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)

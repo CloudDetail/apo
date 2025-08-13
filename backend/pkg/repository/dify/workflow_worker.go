@@ -117,7 +117,7 @@ func (w *worker) getAlertClassify(c *DifyClient, event *alert.AlertEvent) model.
 
 func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
 	w.logger.Error("alert event is expired, skip alert check",
-		zap.String("event_id", event.ID.String()),
+		zap.String("event_id", event.EventID),
 		zap.Int64("expired_ts", w.expiredTS),
 		zap.Int64("event_ts", endTime),
 	)
@@ -131,7 +131,7 @@ func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, end
 		WorkflowID:    classify.WorkflowId,
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
-		Input:         event.ID.String(),
+		Input:         event.EventID,
 		Output:        "failed: alert check too late, could be too many event to check or last check cost too much time, skipped",
 		CreatedAt:     roundedTime.UnixMicro(),
 		RoundedTime:   roundedTime.UnixMicro(),
@@ -160,7 +160,7 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			WorkflowID:    classify.WorkflowId,
 			WorkflowName:  w.FlowName,
 			Ref:           event.AlertID,
-			Input:         event.ID.String(),
+			Input:         event.EventID,
 			Output:        "failed: workflow execution failed due to API call failure",
 			CreatedAt:     roundedTime.UnixMicro(),
 			RoundedTime:   roundedTime.UnixMicro(),
@@ -179,8 +179,8 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		WorkflowID:    classify.WorkflowId,
 		WorkflowName:  w.FlowName,
 		Ref:           event.AlertID,
-		Input:         event.ID.String(), // TODO record input param
-		Output:        output,            // 'false' means valid alert
+		Input:         event.EventID, // TODO record input param
+		Output:        output,        // 'false' means valid alert
 		CreatedAt:     resp.CreatedAt(),
 		RoundedTime:   roundedTime.UnixMicro(),
 
@@ -252,7 +252,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		ContainerID:  event.GetContainerIDTag(),
 		Tags:         event.EnrichTags,
 		RawTags:      event.Tags,
-		AlertEventId: event.ID.String(),
+		AlertEventId: event.EventID,
 	}
 
 	if len(services) == 1 {

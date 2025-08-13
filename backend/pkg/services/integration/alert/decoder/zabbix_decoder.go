@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-	"github.com/google/uuid"
 )
 
 type ZabbixDecoder struct {
@@ -44,7 +43,8 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 	}
 
 	alertEvent, err := d.jsDecoder.convertAlertEvent(event)
-	alertEvent.ID = uuid.New()
+	// alertEvent.ID = uuid.New()
+	alertEvent.EventID = alertEvent.AlertID
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
