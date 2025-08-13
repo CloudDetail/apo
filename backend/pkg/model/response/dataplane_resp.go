@@ -66,7 +66,7 @@ type ListServiceNameRule struct {
 }
 
 type CheckServiceNameRuleResponse struct {
-	Apps []*model.AppInfo `json:"apps"`
+	Instances []*model.MatchServiceInstance `json:"instances"`
 }
 
 type QueryAPPInfoTagsResponse struct {

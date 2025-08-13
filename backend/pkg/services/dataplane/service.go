@@ -5,10 +5,12 @@ package dataplane
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
@@ -22,6 +24,7 @@ type Service interface {
 	GetServiceInstances(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse
 	GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse
 	GetServiceTopology(ctx core.Context, req *request.QueryTopologyRequest) *response.QueryTopologyResponse
+	CheckDataSource(ctx core.Context, req *model.CheckDataSourceRequest) *model.CheckDataSourceResponse
 
 	CreateCustomTopology(ctx core.Context, req *request.CreateCustomTopologyRequest) error
 	DeleteCustomTopology(ctx core.Context, req *request.DeleteCustomTopologyRequest) error
@@ -35,19 +38,22 @@ type Service interface {
 }
 
 type service struct {
-	chRepo   clickhouse.Repo
-	promRepo prometheus.Repo
-	dbRepo   database.Repo
+	chRepo        clickhouse.Repo
+	promRepo      prometheus.Repo
+	dbRepo        database.Repo
+	dataplaneRepo dataplane.DataplaneRepo
 }
 
 func New(
 	chRepo clickhouse.Repo,
 	promRepo prometheus.Repo,
 	dbRepo database.Repo,
+	dataplaneRepo dataplane.DataplaneRepo,
 ) Service {
 	return &service{
-		chRepo:   chRepo,
-		promRepo: promRepo,
-		dbRepo:   dbRepo,
+		chRepo:        chRepo,
+		promRepo:      promRepo,
+		dbRepo:        dbRepo,
+		dataplaneRepo: dataplaneRepo,
 	}
 }

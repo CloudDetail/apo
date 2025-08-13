@@ -25,14 +25,20 @@ func (s *service) CheckServiceNameRule(ctx core.Context, req *request.SetService
 			Value:     condition.Value,
 		})
 	}
-	result := make([]*model.AppInfo, 0)
+
+	instances := map[string]bool{}
+	result := make([]*model.MatchServiceInstance, 0)
 	for _, app := range apps {
-		if req.ClusterId == app.Labels["cluster_id"] && checkMatch(app, conditions) {
-			result = append(result, app)
+		if checkMatch(app, conditions) {
+			instanceName := app.GetInstanceName(req.ServiceName)
+			if _, ok := instances[instanceName]; !ok {
+				instances[instanceName] = true
+				result = append(result, model.NewMatchServiceInstance(req.ServiceName, app))
+			}
 		}
 	}
 	return &response.CheckServiceNameRuleResponse{
-		Apps: result,
+		Instances: result,
 	}, nil
 }
 
