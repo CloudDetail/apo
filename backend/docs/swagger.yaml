@@ -641,6 +641,7 @@ definitions:
         type: object
       metrics:
         additionalProperties:
+          format: int64
           type: integer
         type: object
       mutatedValue:
@@ -1098,6 +1099,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
         description: JSONStr
+      typeDisplayName:
+        type: string
       typeName:
         type: string
     type: object
@@ -1111,6 +1114,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       clusterIds:
         items:
           type: string
@@ -1121,6 +1126,8 @@ definitions:
         type: integer
       name:
         type: string
+      note:
+        type: string
       paramSpec:
         allOf:
         - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
@@ -1129,6 +1136,8 @@ definitions:
         description: JSONStr
         type: string
       typ:
+        type: string
+      typeDisplayName:
         type: string
       typeName:
         type: string
@@ -1287,6 +1296,10 @@ definitions:
         items:
           $ref: '#/definitions/integration.ParamSpec'
         type: array
+      desc:
+        type: string
+      desc_en:
+        type: string
       name:
         type: string
       optional:
@@ -1454,6 +1467,15 @@ definitions:
       AnormalTypeAlertNet: 网络告警         => group=net
       AnormalTypeError: 错误事件告警 => 来自JavaException等
       AnormalTypeUnknown: 未定义的告警类型
+    x-enum-descriptions:
+    - 未定义的告警类型
+    - 应用接口告警     => group=app
+    - 容器告警         => group=container
+    - 基础设施告警     => group=infra
+    - 网络告警         => group=net
+    - 错误事件告警 => 来自JavaException等
+    - 应用实例告警     => group=appInstance
+    - 数据库告警       => group=middleware
     x-enum-varnames:
     - AnormalTypeUnknown
     - AnormalTypeAlertApp
@@ -1463,25 +1485,6 @@ definitions:
     - AnormalTypeError
     - AnormalTypeAlertAppInstance
     - AnormalTypeAlertDatabase
-  model.AppInfo:
-    properties:
-      agentInstanceId:
-        type: string
-      containerId:
-        type: string
-      containerPid:
-        type: integer
-      hostPid:
-        type: integer
-      labels:
-        additionalProperties:
-          type: string
-        type: object
-      startTime:
-        type: integer
-      timestamp:
-        type: string
-    type: object
   model.Datasource:
     properties:
       category:
@@ -1553,6 +1556,15 @@ definitions:
       endpoint:
         type: string
       serviceName:
+        type: string
+    type: object
+  model.MatchServiceInstance:
+    properties:
+      instanceName:
+        type: string
+      serviceName:
+        type: string
+      source:
         type: string
     type: object
   model.Modifier:
@@ -1682,6 +1694,7 @@ definitions:
     - 2
     - 3
     - 4
+    format: int32
     type: integer
     x-enum-varnames:
     - SeverityLevelUnknown
@@ -1693,6 +1706,7 @@ definitions:
     enum:
     - 0
     - 1
+    format: int32
     type: integer
     x-enum-varnames:
     - StatusResolved
@@ -2044,9 +2058,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       id:
         type: integer
       name:
+        type: string
+      note:
         type: string
       params:
         description: JSONStr
@@ -2942,9 +2960,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       id:
         type: integer
       name:
+        type: string
+      note:
         type: string
       params:
         description: JSONStr
@@ -3035,6 +3057,7 @@ definitions:
         type: string
       counts:
         additionalProperties:
+          format: int64
           type: integer
         type: object
       events:
@@ -3066,9 +3089,9 @@ definitions:
     type: object
   response.CheckServiceNameRuleResponse:
     properties:
-      apps:
+      instances:
         items:
-          $ref: '#/definitions/model.AppInfo'
+          $ref: '#/definitions/model.MatchServiceInstance'
         type: array
     type: object
   response.ClusterScopedDatasource:
@@ -3126,6 +3149,7 @@ definitions:
     properties:
       anormalCounts:
         additionalProperties:
+          format: int64
           type: integer
         type: object
       endpoint:
@@ -3223,6 +3247,7 @@ definitions:
         type: string
       logs:
         additionalProperties:
+          format: float64
           type: number
         description: log alarm
         type: object
@@ -3626,16 +3651,19 @@ definitions:
         type: string
       errorRate:
         additionalProperties:
+          format: float64
           type: number
         description: error rate
         type: object
       latency:
         additionalProperties:
+          format: float64
           type: number
         description: delay P90
         type: object
       logs:
         additionalProperties:
+          format: float64
           type: number
         description: log alarm
         type: object
@@ -3843,16 +3871,19 @@ definitions:
         type: string
       errorRate:
         additionalProperties:
+          format: float64
           type: number
         description: error rate
         type: object
       latency:
         additionalProperties:
+          format: float64
           type: number
         description: delay P90
         type: object
       logs:
         additionalProperties:
+          format: float64
           type: number
         description: log alarm
         type: object
@@ -4420,14 +4451,17 @@ definitions:
     properties:
       errorRate:
         additionalProperties:
+          format: float64
           type: number
         type: object
       latency:
         additionalProperties:
+          format: float64
           type: number
         type: object
       tps:
         additionalProperties:
+          format: float64
           type: number
         type: object
     type: object
@@ -4580,6 +4614,7 @@ definitions:
     properties:
       chartData:
         additionalProperties:
+          format: float64
           type: number
         description: ChartData chart data
         type: object
@@ -5254,11 +5289,13 @@ paths:
       description: get alarm events
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -5472,11 +5509,13 @@ paths:
       description: 获取下游故障贡献度
       parameters:
       - description: 查询开始时间
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         in: query
         name: endTime
         required: true
@@ -5492,6 +5531,7 @@ paths:
         required: true
         type: string
       - description: 查询步长(us)
+        format: int64
         in: query
         name: step
         required: true
@@ -5529,16 +5569,19 @@ paths:
       description: 获取下游告警事件
       parameters:
       - description: 查询开始时间
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: 查询步长(us)
+        format: int64
         in: query
         name: step
         required: true
@@ -5579,11 +5622,13 @@ paths:
       description: 获取下游告警事件
       parameters:
       - description: 查询开始时间
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         in: query
         name: endTime
         required: true
@@ -5780,16 +5825,19 @@ paths:
         name: eventId
         type: string
       - description: 查询开始时间
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: 查询步长(us)
+        format: int64
         in: query
         name: step
         required: true
@@ -6673,6 +6721,7 @@ paths:
       description: Get group's datasource.
       parameters:
       - description: Data group's id
+        format: int64
         in: query
         name: groupId
         type: integer
@@ -6736,6 +6785,7 @@ paths:
       description: Get subject's assigned data group.
       parameters:
       - description: The id of authorized subject
+        format: int64
         in: query
         name: subjectId
         required: true
@@ -6780,6 +6830,7 @@ paths:
         name: Authorization
         type: string
       - description: data group's id
+        format: int64
         in: query
         name: groupId
         required: true
@@ -6841,6 +6892,7 @@ paths:
       description: Get user's assigned data group.
       parameters:
       - description: user's id
+        format: int64
         in: query
         name: userId
         required: true
@@ -6933,6 +6985,7 @@ paths:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Creates a new dataplane.
       parameters:
       - description: Request information
         in: body
@@ -6955,6 +7008,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Creates a new dataplane.
       tags:
       - API.dataplane
   /api/dataplane/customtopology/create:
@@ -7035,11 +7089,13 @@ paths:
       description: List custom topology.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7062,6 +7118,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Check if the minimum probe is installed.
       produces:
       - application/json
       responses:
@@ -7073,12 +7130,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Check if the minimum probe is installed.
       tags:
       - API.dataplane
   /api/dataplane/delete:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Deletes a dataplane.
       parameters:
       - description: Request information
         in: body
@@ -7101,6 +7160,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Deletes a dataplane.
       tags:
       - API.dataplane
   /api/dataplane/endpoints:
@@ -7110,11 +7170,13 @@ paths:
       description: Get service's endpoints.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7149,11 +7211,13 @@ paths:
       description: Get service's instances.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7185,6 +7249,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Gets all dataplane.
       parameters:
       - description: Bearer accessToken
         in: header
@@ -7201,6 +7266,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Gets all dataplane.
       tags:
       - API.dataplane
   /api/dataplane/redcharts:
@@ -7210,11 +7276,13 @@ paths:
       description: Get service's redcharts.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7381,11 +7449,13 @@ paths:
       description: Get all services.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7415,11 +7485,13 @@ paths:
       description: Get service's topology.
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7451,6 +7523,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Gets all supported dataplane types.
       parameters:
       - description: Bearer accessToken
         in: header
@@ -7467,12 +7540,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Gets all supported dataplane types.
       tags:
       - API.dataplane
   /api/dataplane/update:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Updates a dataplane.
       parameters:
       - description: Request information
         in: body
@@ -7495,6 +7570,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Updates a dataplane.
       tags:
       - API.dataplane
   /api/health:
@@ -8362,11 +8438,13 @@ paths:
       description: query pod network call topology and call metrics
       parameters:
       - description: Start time, in microseconds
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time, in microseconds
+        format: int64
         in: query
         name: endTime
         required: true
@@ -8426,6 +8504,7 @@ paths:
       description: Get user's menu config.
       parameters:
       - description: User's id
+        format: int64
         in: query
         name: userId
         required: true
@@ -8521,6 +8600,7 @@ paths:
       description: Grant or revoke user's permission(feature).
       parameters:
       - description: The id of authorized subject
+        format: int64
         in: formData
         name: subjectId
         required: true
@@ -8596,6 +8676,7 @@ paths:
         name: language
         type: string
       - description: The id of authorized subject
+        format: int64
         in: query
         name: subjectId
         required: true
@@ -8704,6 +8785,7 @@ paths:
       description: Grants permission to user
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         type: integer
@@ -8812,6 +8894,7 @@ paths:
       description: Get user's role.
       parameters:
       - description: User's id
+        format: int64
         in: query
         name: userId
         required: true
@@ -8839,11 +8922,13 @@ paths:
       description: get alarm events
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -8912,11 +8997,13 @@ paths:
       description: get sampling alarm events
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -8975,11 +9062,13 @@ paths:
       description: get the delay curve data of all downstream services
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -8995,6 +9084,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9034,11 +9124,13 @@ paths:
       description: get the dependent node delay correlation degree
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9054,6 +9146,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9097,11 +9190,13 @@ paths:
       description: get the list of service EndPoint
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9137,20 +9232,24 @@ paths:
       description: get the list of endpoints services
       parameters:
       - description: data group id
+        format: int64
         in: query
         name: groupId
         type: integer
       - description: start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         in: query
         name: step
         required: true
@@ -9206,11 +9305,13 @@ paths:
       description: get the service entry Endpoint list
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9226,6 +9327,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9261,11 +9363,13 @@ paths:
       description: get the error instance
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9281,6 +9385,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9318,11 +9423,13 @@ paths:
       description: get the error instance failure site log
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9350,6 +9457,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         in: query
         name: pid
         type: integer
@@ -9416,11 +9524,13 @@ paths:
       description: get the list of service instances
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9457,11 +9567,13 @@ paths:
       description: get the drop-down list of service instances
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9499,11 +9611,13 @@ paths:
       description: get the list of service instances
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9540,16 +9654,19 @@ paths:
       description: get the URL instance corresponding to the service
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         in: query
         name: step
         required: true
@@ -9588,11 +9705,13 @@ paths:
       description: get K8s events
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9627,11 +9746,13 @@ paths:
       description: get the list of services
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9670,11 +9791,13 @@ paths:
       description: get Log fault site log
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9702,6 +9825,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         in: query
         name: pid
         type: integer
@@ -9732,11 +9856,13 @@ paths:
       description: get log related metrics
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9752,6 +9878,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9791,11 +9918,13 @@ paths:
       description: get the service status monitored by kuma
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9825,16 +9954,19 @@ paths:
       description: get more url list of services
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         in: query
         name: step
         required: true
@@ -9876,11 +10008,13 @@ paths:
       description: Get monitored namespaces.
       parameters:
       - description: start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -9906,16 +10040,19 @@ paths:
       description: Get Polaris metric Analysis
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -9985,11 +10122,13 @@ paths:
       description: the call relationship between the upstream and downstream service
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10037,11 +10176,13 @@ paths:
       description: get traffic light results
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10083,16 +10224,19 @@ paths:
       description: get the log alarm and status light information of the Service
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         in: query
         name: step
         required: true
@@ -10150,21 +10294,25 @@ paths:
         name: endpoint
         type: string
       - description: YoY Delay
+        format: float64
         in: formData
         name: latency
         required: true
         type: number
       - description: YoY Error Rate
+        format: float64
         in: formData
         name: errorRate
         required: true
         type: number
       - description: Number of requests compared with the same period last year
+        format: float64
         in: formData
         name: tps
         required: true
         type: number
       - description: year-on-year log alarm
+        format: float64
         in: formData
         name: log
         required: true
@@ -10192,11 +10340,13 @@ paths:
       description: get SQL metrics
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10207,6 +10357,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -10249,11 +10400,13 @@ paths:
       description: get the upstream and downstream topology of the service
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10301,11 +10454,13 @@ paths:
       description: get trace fault site log
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10333,6 +10488,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         in: query
         name: pid
         type: integer
@@ -10363,11 +10519,13 @@ paths:
       description: get Trace related metrics
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10383,6 +10541,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         in: query
         name: step
         required: true
@@ -10531,6 +10690,7 @@ paths:
       description: Assigns a user to teams or removes a user from teams.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -10539,6 +10699,7 @@ paths:
         description: The list of team id.
         in: formData
         items:
+          format: int64
           type: integer
         name: teamList
         type: array
@@ -10597,6 +10758,7 @@ paths:
       description: Get team's users.
       parameters:
       - description: Team's id
+        format: int64
         in: query
         name: teamId
         required: true
@@ -10628,6 +10790,7 @@ paths:
       description: Assigns users to a team or remove users from a team.
       parameters:
       - description: Team's id
+        format: int64
         in: formData
         name: teamId
         required: true
@@ -10636,6 +10799,7 @@ paths:
         description: The list of users' id.
         in: formData
         items:
+          format: int64
           type: integer
         name: userList
         type: array
@@ -10670,11 +10834,13 @@ paths:
         required: true
         type: string
       - description: process id
+        format: int64
         in: query
         name: pid
         required: true
         type: integer
       - description: thread id
+        format: int64
         in: query
         name: tid
         required: true
@@ -10684,11 +10850,13 @@ paths:
         name: nodeName
         type: string
       - description: start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -10725,20 +10893,24 @@ paths:
       description: get and integrate process-level flame graph data
       parameters:
       - description: Limit number of nodes
+        format: int64
         in: query
         name: maxNodes
         type: integer
       - description: start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: process id
+        format: int64
         in: query
         name: pid
         required: true
@@ -10802,16 +10974,19 @@ paths:
       description: get span execution consumption
       parameters:
       - description: start time, unit nanosecond
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time, unit nanosecond
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: process id
+        format: int32
         in: query
         name: pid
         required: true
@@ -10898,11 +11073,13 @@ paths:
       description: the available filters for querying the Trace list
       parameters:
       - description: query start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -11166,6 +11343,7 @@ paths:
         name: Authorization
         type: string
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11191,6 +11369,7 @@ paths:
       description: Reset user's password.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11231,6 +11410,7 @@ paths:
       description: Get user's team.
       parameters:
       - description: User's is
+        format: int64
         in: query
         name: userId
         required: true
@@ -11262,6 +11442,7 @@ paths:
       description: Update email.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11297,6 +11478,7 @@ paths:
       description: Update user's info.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11346,6 +11528,7 @@ paths:
       description: Update password.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11391,6 +11574,7 @@ paths:
       description: Update phone number
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11426,6 +11610,7 @@ paths:
       description: Update self info.
       parameters:
       - description: User's id
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11468,6 +11653,7 @@ paths:
       description: Delete the data group.
       parameters:
       - description: Data group's id
+        format: int64
         in: formData
         name: groupId
         required: true
