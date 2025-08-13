@@ -60,7 +60,7 @@ type InnerReceivers struct {
 	logger      *slog.Logger
 
 	// alertID -> slienceconfig.AlertSlienceConfig
-	slientCFGMap sync.Map
+	silentCFGMap sync.Map
 }
 
 func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo, chRepo clickhouse.Repo) (Receivers, error) {
@@ -94,16 +94,16 @@ func SetupReceiver(externalURL string, logger *zap.Logger, dbRepo database.Repo,
 	}
 
 	// ctx
-	slienceCfgs, err := dbRepo.GetAlertSlience(nil)
+	silenceCFGs, err := dbRepo.GetAlertSlience(nil)
 	if err != nil {
 		return nil, err
 	}
 
-	for i := 0; i < len(slienceCfgs); i++ {
-		amReceiver.slientCFGMap.Store(slienceCfgs[i].AlertID, &slienceCfgs[i])
+	for i := 0; i < len(silenceCFGs); i++ {
+		amReceiver.silentCFGMap.Store(silenceCFGs[i].AlertID, &silenceCFGs[i])
 	}
 
-	go amReceiver.cleanupSlience(context.Background(), time.Minute)
+	go amReceiver.cleanupSilence(context.Background(), time.Minute)
 	return amReceiver, err
 }
 
@@ -209,18 +209,18 @@ func buildReceiverIntegrations(nc amconfig.Receiver, tmpl *template.Template, lo
 	return integrations, nil
 }
 
-func (r *InnerReceivers) cleanupSlience(ctx context.Context, interval time.Duration) {
+func (r *InnerReceivers) cleanupSilence(ctx context.Context, interval time.Duration) {
 	cleanupTicker := time.NewTicker(interval)
 	for {
 		select {
 		case <-cleanupTicker.C:
 			now := time.Now()
-			r.slientCFGMap.Range(func(key, value any) bool {
+			r.silentCFGMap.Range(func(key, value any) bool {
 				val := value.(*slienceconfig.AlertSlienceConfig)
 				if now.After(val.EndAt) {
 					// ctx
 					if err := r.database.DeleteAlertSlience(core.EmptyCtx(), val.ID); err == nil {
-						r.slientCFGMap.Delete(key)
+						r.silentCFGMap.Delete(key)
 					}
 				}
 				return true

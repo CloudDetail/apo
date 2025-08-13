@@ -46,7 +46,7 @@ func (r *InnerReceivers) HandleAlertCheckRecord(ctx core.Context, record *model.
 }
 
 func (r *InnerReceivers) sendAlert(ctx core.Context, alert *alert.AlertEvent) error {
-	if _, find := r.slientCFGMap.Load(alert.AlertID); find {
+	if _, find := r.silentCFGMap.Load(alert.AlertID); find {
 		return nil
 	}
 
