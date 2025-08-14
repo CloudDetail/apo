@@ -15,7 +15,7 @@ const SQL_LIST_APP_INFO_LABEL_KEYS = `SELECT DISTINCT arrayJoin(mapKeys(labels))
 FROM originx_app_info
 %s`
 
-const SQL_LIST_APP_INFO_LABEL_VALUES = `SELECT DISTINCT %s AS value
+const SQL_LIST_APP_INFO_LABEL_VALUES = `SELECT DISTINCT %s
 FROM originx_app_info
 %s`
 

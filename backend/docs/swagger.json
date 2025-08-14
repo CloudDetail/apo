@@ -921,6 +921,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -928,6 +929,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -1252,6 +1254,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1259,6 +1262,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1280,6 +1284,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -1336,6 +1341,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1343,6 +1349,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1350,6 +1357,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -1409,6 +1417,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1416,6 +1425,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1716,6 +1726,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1723,6 +1734,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1730,6 +1742,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -3096,6 +3109,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
                         "in": "query"
@@ -3191,6 +3205,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
@@ -3257,6 +3272,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "data group's id",
                         "name": "groupId",
                         "in": "query",
@@ -3350,6 +3366,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "user's id",
                         "name": "userId",
                         "in": "query",
@@ -3481,6 +3498,7 @@
         },
         "/api/dataplane/create": {
             "post": {
+                "description": "Creates a new dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3490,6 +3508,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Creates a new dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -3645,6 +3664,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3652,6 +3672,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -3676,6 +3697,7 @@
         },
         "/api/dataplane/data/check": {
             "get": {
+                "description": "Check if the minimum probe is installed.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3685,6 +3707,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Check if the minimum probe is installed.",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3703,6 +3726,7 @@
         },
         "/api/dataplane/delete": {
             "post": {
+                "description": "Deletes a dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3712,6 +3736,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Deletes a dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -3761,6 +3786,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3768,6 +3794,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -3819,6 +3846,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3826,6 +3854,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -3863,6 +3892,7 @@
         },
         "/api/dataplane/list": {
             "get": {
+                "description": "Gets all dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3872,6 +3902,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Gets all dataplane.",
                 "parameters": [
                     {
                         "type": "string",
@@ -3912,6 +3943,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3919,6 +3951,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4173,6 +4206,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4180,6 +4214,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4224,6 +4259,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4231,6 +4267,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4268,6 +4305,7 @@
         },
         "/api/dataplane/type/list": {
             "get": {
+                "description": "Gets all supported dataplane types.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4277,6 +4315,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Gets all supported dataplane types.",
                 "parameters": [
                     {
                         "type": "string",
@@ -4303,6 +4342,7 @@
         },
         "/api/dataplane/update": {
             "post": {
+                "description": "Updates a dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4312,6 +4352,7 @@
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Updates a dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -5682,6 +5723,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time, in microseconds",
                         "name": "startTime",
                         "in": "query",
@@ -5689,6 +5731,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time, in microseconds",
                         "name": "endTime",
                         "in": "query",
@@ -5778,6 +5821,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "query",
@@ -5922,6 +5966,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "formData",
@@ -6034,6 +6079,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
@@ -6196,6 +6242,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData"
@@ -6358,6 +6405,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "query",
@@ -6399,6 +6447,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6406,6 +6455,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6508,6 +6558,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6515,6 +6566,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6602,6 +6654,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6609,6 +6662,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6630,6 +6684,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -6689,6 +6744,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6696,6 +6752,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6717,6 +6774,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -6782,6 +6840,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6789,6 +6848,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6842,12 +6902,14 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "data group id",
                         "name": "groupId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -6855,6 +6917,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -6862,6 +6925,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -6943,6 +7007,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6950,6 +7015,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -6971,6 +7037,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7024,6 +7091,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7031,6 +7099,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7052,6 +7121,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7108,6 +7178,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7115,6 +7186,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7154,6 +7226,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -7254,6 +7327,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7261,6 +7335,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7315,6 +7390,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7322,6 +7398,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7377,6 +7454,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7384,6 +7462,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7438,6 +7517,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7445,6 +7525,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7452,6 +7533,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -7509,6 +7591,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7516,6 +7599,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7567,6 +7651,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7574,6 +7659,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7631,6 +7717,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7638,6 +7725,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7677,6 +7765,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -7723,6 +7812,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7730,6 +7820,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7751,6 +7842,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7810,6 +7902,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7817,6 +7910,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7861,6 +7955,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7868,6 +7963,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7875,6 +7971,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -7936,6 +8033,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -7943,6 +8041,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -7981,6 +8080,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7988,6 +8088,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7995,6 +8096,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8099,6 +8201,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8106,6 +8209,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8176,6 +8280,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8183,6 +8288,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8245,6 +8351,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8252,6 +8359,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8259,6 +8367,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -8343,6 +8452,7 @@
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "YoY Delay",
                         "name": "latency",
                         "in": "formData",
@@ -8350,6 +8460,7 @@
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "YoY Error Rate",
                         "name": "errorRate",
                         "in": "formData",
@@ -8357,6 +8468,7 @@
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "Number of requests compared with the same period last year",
                         "name": "tps",
                         "in": "formData",
@@ -8364,6 +8476,7 @@
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "year-on-year log alarm",
                         "name": "log",
                         "in": "formData",
@@ -8405,6 +8518,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8412,6 +8526,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8426,6 +8541,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8489,6 +8605,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8496,6 +8613,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8566,6 +8684,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8573,6 +8692,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8612,6 +8732,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -8658,6 +8779,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8665,6 +8787,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8686,6 +8809,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8910,6 +9034,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -8918,7 +9043,8 @@
                     {
                         "type": "array",
                         "items": {
-                            "type": "integer"
+                            "type": "integer",
+                            "format": "int64"
                         },
                         "collectionFormat": "multi",
                         "description": "The list of team id.",
@@ -9010,6 +9136,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "query",
@@ -9057,6 +9184,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "formData",
@@ -9065,7 +9193,8 @@
                     {
                         "type": "array",
                         "items": {
-                            "type": "integer"
+                            "type": "integer",
+                            "format": "int64"
                         },
                         "collectionFormat": "multi",
                         "description": "The list of users' id.",
@@ -9118,6 +9247,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9125,6 +9255,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "thread id",
                         "name": "tid",
                         "in": "query",
@@ -9138,6 +9269,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -9145,6 +9277,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -9197,12 +9330,14 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Limit number of nodes",
                         "name": "maxNodes",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -9210,6 +9345,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -9217,6 +9353,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9312,6 +9449,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time, unit nanosecond",
                         "name": "startTime",
                         "in": "query",
@@ -9319,6 +9457,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time, unit nanosecond",
                         "name": "endTime",
                         "in": "query",
@@ -9326,6 +9465,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9457,6 +9597,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9464,6 +9605,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -9858,6 +10000,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -9896,6 +10039,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -9955,6 +10099,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's is",
                         "name": "userId",
                         "in": "query",
@@ -10002,6 +10147,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10054,6 +10200,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10127,6 +10274,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10193,6 +10341,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10245,6 +10394,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10308,6 +10458,7 @@
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
                         "in": "formData",
@@ -11303,7 +11454,8 @@
                 "metrics": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "mutatedValue": {
@@ -11955,6 +12107,9 @@
                         }
                     ]
                 },
+                "typeDisplayName": {
+                    "type": "string"
+                },
                 "typeName": {
                     "type": "string"
                 }
@@ -11979,6 +12134,9 @@
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "clusterIds": {
                     "type": "array",
                     "items": {
@@ -11994,6 +12152,9 @@
                 "name": {
                     "type": "string"
                 },
+                "note": {
+                    "type": "string"
+                },
                 "paramSpec": {
                     "description": "JSONStr",
                     "allOf": [
@@ -12007,6 +12168,9 @@
                     "type": "string"
                 },
                 "typ": {
+                    "type": "string"
+                },
+                "typeDisplayName": {
                     "type": "string"
                 },
                 "typeName": {
@@ -12248,6 +12412,12 @@
                     "items": {
                         "$ref": "#/definitions/integration.ParamSpec"
                     }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "desc_en": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -12497,6 +12667,16 @@
                 "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
                 "AnormalTypeUnknown": "未定义的告警类型"
             },
+            "x-enum-descriptions": [
+                "未定义的告警类型",
+                "应用接口告警     =\u003e group=app",
+                "容器告警         =\u003e group=container",
+                "基础设施告警     =\u003e group=infra",
+                "网络告警         =\u003e group=net",
+                "错误事件告警 =\u003e 来自JavaException等",
+                "应用实例告警     =\u003e group=appInstance",
+                "数据库告警       =\u003e group=middleware"
+            ],
             "x-enum-varnames": [
                 "AnormalTypeUnknown",
                 "AnormalTypeAlertApp",
@@ -12507,35 +12687,6 @@
                 "AnormalTypeAlertAppInstance",
                 "AnormalTypeAlertDatabase"
             ]
-        },
-        "model.AppInfo": {
-            "type": "object",
-            "properties": {
-                "agentInstanceId": {
-                    "type": "string"
-                },
-                "containerId": {
-                    "type": "string"
-                },
-                "containerPid": {
-                    "type": "integer"
-                },
-                "hostPid": {
-                    "type": "integer"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "string"
-                }
-            }
         },
         "model.Datasource": {
             "type": "object",
@@ -12635,6 +12786,20 @@
                     "type": "string"
                 },
                 "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MatchServiceInstance": {
+            "type": "object",
+            "properties": {
+                "instanceName": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -12817,6 +12982,7 @@
         },
         "model.SeverityLevel": {
             "type": "integer",
+            "format": "int32",
             "enum": [
                 0,
                 1,
@@ -12834,6 +13000,7 @@
         },
         "model.Status": {
             "type": "integer",
+            "format": "int32",
             "enum": [
                 0,
                 1
@@ -13371,10 +13538,16 @@
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "note": {
                     "type": "string"
                 },
                 "params": {
@@ -14690,10 +14863,16 @@
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "note": {
                     "type": "string"
                 },
                 "params": {
@@ -14832,7 +15011,8 @@
                 "counts": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "events": {
@@ -14880,10 +15060,10 @@
         "response.CheckServiceNameRuleResponse": {
             "type": "object",
             "properties": {
-                "apps": {
+                "instances": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.AppInfo"
+                        "$ref": "#/definitions/model.MatchServiceInstance"
                     }
                 }
             }
@@ -14972,7 +15152,8 @@
                 "anormalCounts": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "endpoint": {
@@ -15114,7 +15295,8 @@
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -15713,21 +15895,24 @@
                     "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "logs": {
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -16044,21 +16229,24 @@
                     "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "logs": {
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -16917,19 +17105,22 @@
                 "errorRate": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "tps": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 }
             }
@@ -17172,7 +17363,8 @@
                     "description": "ChartData chart data",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "ratio": {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 const initialState = {
-  dataGroupId: '',
+  dataGroupId: null,
 }
 
 export default function dataGroupReducer(state = initialState, action) {

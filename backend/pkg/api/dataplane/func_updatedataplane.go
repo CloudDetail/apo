@@ -10,9 +10,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// UpdateDataPlane
-// @Summary
-// @Description
+// UpdateDataPlane Updates a dataplane.
+// @Summary Updates a dataplane.
+// @Description Updates a dataplane.
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json

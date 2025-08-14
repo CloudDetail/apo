@@ -10,9 +10,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// CreateDataPlane
-// @Summary
-// @Description
+// CreateDataPlane Creates a new dataplane.
+// @Summary Creates a new dataplane.
+// @Description Creates a new dataplane.
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json
