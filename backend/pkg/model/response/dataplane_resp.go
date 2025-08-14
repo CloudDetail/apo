@@ -69,7 +69,9 @@ type ListServiceNameRuleResponse struct {
 type ListServiceNameRule struct {
 	Id          int                                  `json:"id"`
 	ServiceName string                               `json:"serviceName"`
+	ClusterId   string                               `json:"clusterId"`
 	Conditions  []*database.ServiceNameRuleCondition `json:"conditions"`
+	Instances   []string                             `json:"instances"`
 }
 
 type CheckServiceNameRuleResponse struct {
@@ -98,4 +100,31 @@ type CheckMinimalDataPlaneResponse struct {
 	Clusters       []string `json:"clusters"`
 	DataPlaneExist bool     `json:"dataPlaneExist"`
 	DataSource     []string `json:"dataSource"`
+}
+
+type GetDatasourcesResponse struct {
+	ServiceCount uint64                  `json:"serviceCount"`
+	Status       string                  `json:"status"`
+	Datasources  []model.DatasourceCount `json:"datasources"`
+}
+
+type GetServiceWithInstancesResponse struct {
+	Services         []ServiceWithInstances `json:"services"`
+	model.Pagination `json:",inline"`
+}
+
+type InstanceWithSource struct {
+	model.ServiceInstance `json:",inline"`
+	InstanceName          string `json:"instanceName"`
+	InstanceSource        `json:"source"`
+}
+
+type InstanceSource struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+}
+
+type ServiceWithInstances struct {
+	model.Service `json:",inline"`
+	Instances     []InstanceWithSource `json:"instances"`
 }
