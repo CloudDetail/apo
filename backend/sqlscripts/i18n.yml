@@ -18,12 +18,16 @@ agent:
   key: "agent"
   i18n:
     - language: "en"
-      translation: "Agent"
+      translation: "SRE Agent"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
       translation: "智能体"
       field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "SRE Agent"
+      field_name: "abbreviation"
       entity_type: "menu"
 
 workflows:
@@ -250,15 +254,15 @@ integration:
   key: "integration"
   i18n:
     - language: "en"
-      translation: "Integration Center"
+      translation: "Data Ingestion"
       field_name: "label"
       entity_type: "menu"
     - language: "en"
-      translation: "IC"
+      translation: "Ingestion"
       field_name: "abbreviation"
       entity_type: "menu"
     - language: "zh"
-      translation: "接入中心"
+      translation: "数据接入"
       field_name: "label"
       entity_type: "menu"
 
@@ -266,11 +270,11 @@ dataIntegration:
   key: "dataIntegration"
   i18n:
     - language: "en"
-      translation: "Core Data Ingestion"
+      translation: "Probes Management"
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
-      translation: "探针安装"
+      translation: "探针管理"
       field_name: "label"
       entity_type: "menu"
 
@@ -282,7 +286,7 @@ alertsIntegration:
       field_name: "label"
       entity_type: "menu"
     - language: "zh"
-      translation: "告警接入"
+      translation: "告警集成"
       field_name: "label"
       entity_type: "menu"
     - language: "en"
@@ -455,6 +459,21 @@ serviceConfig:
       entity_type: "menu"
     - language: "en"
       translation: "Config"
+      field_name: "abbreviation"
+      entity_type: "menu"
+analysis:
+  key: "analysis"
+  i18n:
+    - language: "en"
+      translation: "Alert Analysis"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "告警分析"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Analysis"
       field_name: "abbreviation"
       entity_type: "menu"
 故障报告:
@@ -662,39 +681,27 @@ serviceConfig:
     field_name: "featureName"
     entity_type: "feature"
 
-接入中心:
-  key: "接入中心"
-  i18n:
-    - language: "en"
-      translation: "Integrations"
-      field_name: "featureName"
-      entity_type: "feature"
-    - language: "zh"
-      translation: "接入中心"
-      field_name: "featureName"
-      entity_type: "feature"
-
 数据接入:
   key: "数据接入"
   i18n:
     - language: "en"
       translation: "Data Integrations"
-      field_name: "label"
-      entity_type: "menu"
+      field_name: "featureName"
+      entity_type: "feature"
     - language: "zh"
       translation: "数据接入"
-      field_name: "label"
-      entity_type: "menu"
+      field_name: "featureName"
+      entity_type: "feature"
 
-告警接入:
-  key: "告警接入"
+告警集成:
+  key: "告警集成"
   i18n:
     - language: "en"
       translation: "Alerts Integrations"
       field_name: "featureName"
       entity_type: "feature"
     - language: "zh"
-      translation: "告警接入"
+      translation: "告警集成"
       field_name: "featureName"
       entity_type: "feature"
 
@@ -839,22 +846,22 @@ MySQL大盘:
   key: "智能体"
   i18n:
   - language: "en"
-    translation: "Agent"
+    translation: "SRE Agent"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
     translation: "智能体"
     entity_type: "feature"
     field_name: "featureName"
-探针安装:
-  key: "探针安装"
+探针管理:
+  key: "探针管理"
   i18n:
   - language: "en"
-    translation: "Core Data Ingestion"
+    translation: "Probes Management"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
-    translation: "探针安装"
+    translation: "探针管理"
     entity_type: "feature"
     field_name: "featureName"
 外部数据:
@@ -866,5 +873,16 @@ MySQL大盘:
     field_name: "featureName"
   - language: "zh"
     translation: "外部数据源"
+    entity_type: "feature"
+    field_name: "featureName"
+告警分析:
+  key: "告警分析"
+  i18n:
+  - language: "en"
+    translation: "Alert Analysis"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "告警分析"
     entity_type: "feature"
     field_name: "featureName"

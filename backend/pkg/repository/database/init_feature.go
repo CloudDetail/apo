@@ -4,6 +4,8 @@
 package database
 
 import (
+	"os"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"gorm.io/gorm"
@@ -13,6 +15,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "智能体"},
 	{FeatureName: "服务概览"},
 	{FeatureName: "工作流"},
+	{FeatureName: "告警分析"},
 	{FeatureName: "日志检索"}, {FeatureName: "故障现场日志"}, {FeatureName: "全量日志"},
 	{FeatureName: "链路追踪"}, {FeatureName: "故障现场链路"}, {FeatureName: "全量链路"},
 	{FeatureName: "全局资源大盘"},
@@ -20,7 +23,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "应用指标大盘"},
 	{FeatureName: "中间件大盘"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
-	{FeatureName: "接入中心"}, {FeatureName: "探针安装"}, {FeatureName: "告警接入"}, {FeatureName: "外部数据"},
+	{FeatureName: "数据接入"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 	{FeatureName: "配置中心"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
@@ -28,6 +31,12 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "服务健康状态"},
 	{FeatureName: "服务别名配置"},
 	{FeatureName: "故障报告"},
+}
+
+var sreFeatures = []profile.Feature{
+	{FeatureName: "智能体"},
+	{FeatureName: "告警管理"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
+	{FeatureName: "数据接入"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 }
 
 func (repo *daoRepo) initFeature(ctx core.Context) error {
@@ -42,12 +51,17 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 			existingFeatureMap[feature.FeatureName] = feature.FeatureID
 		}
 
+		productMode := os.Getenv("PRODUCT_MODE")
+		productFeatures := validFeatures
+		if productMode == "sre_agent" {
+			productFeatures = sreFeatures
+		}
 		newFeatureMap := make(map[string]struct{})
-		for _, feature := range validFeatures {
+		for _, feature := range productFeatures {
 			newFeatureMap[feature.FeatureName] = struct{}{}
 		}
 
-		for _, feature := range validFeatures {
+		for _, feature := range productFeatures {
 			// Add new feature.
 			if _, exists := existingFeatureMap[feature.FeatureName]; exists {
 				continue
@@ -72,12 +86,15 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 			"链路追踪": {"故障现场链路", "全量链路"},
 			"系统管理": {"用户管理", "菜单管理", "数据组管理", "团队管理", "角色管理"},
 			"告警管理": {"告警规则", "告警通知", "告警事件", "告警事件详情"},
-			"接入中心": {"探针安装", "告警接入", "外部数据"},
+			"数据接入": {"探针管理", "告警集成", "外部数据"},
 		}
 		for parentName, childNames := range parentChildMapping {
 			var parent profile.Feature
-			if err := tx.Where("feature_name = ?", parentName).First(&parent).Error; err != nil {
+			if err := tx.Where("feature_name = ?", parentName).Find(&parent).Error; err != nil {
 				return err
+			}
+			if parent.FeatureID == 0 {
+				continue
 			}
 			for _, childName := range childNames {
 				if err := tx.Model(&profile.Feature{}).Where("feature_name = ?", childName).Update("parent_id", parent.FeatureID).Error; err != nil {
