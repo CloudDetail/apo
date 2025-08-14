@@ -26,7 +26,7 @@ agent:
       field_name: "label"
       entity_type: "menu"
     - language: "en"
-      translation: "SRE Agent"
+      translation: "SRE"
       field_name: "abbreviation"
       entity_type: "menu"
 
