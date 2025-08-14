@@ -23,6 +23,27 @@ func (ch *chRepo) GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error) {
 		return nil, err
 	}
 
+	result := filterApps(apps)
+	return result, nil
+}
+
+func (ch *chRepo) GetResolvedApps(ctx core.Context, ruleIds []string, startTime int64, endTime int64) ([]*model.AppInfo, error) {
+	query := "SELECT * FROM originx_app_info %s"
+	queryBuilder := NewQueryBuilder().
+		In("labels['rule_id']", ruleIds).
+		Between("toUnixTimestamp(timestamp)", startTime/1e6, endTime/1e6)
+	sql := fmt.Sprintf(query, queryBuilder.String())
+	apps := []model.AppInfo{}
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &apps, sql, queryBuilder.values...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := filterApps(apps)
+	return result, nil
+}
+
+func filterApps(apps []model.AppInfo) []*model.AppInfo {
 	result := make([]*model.AppInfo, 0)
 	relatedApp := make(map[string]*model.AppInfo)
 	for _, app := range apps {
@@ -37,6 +58,5 @@ func (ch *chRepo) GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error) {
 			result = append(result, &app)
 		}
 	}
-
-	return result, nil
+	return result
 }

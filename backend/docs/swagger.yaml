@@ -1063,6 +1063,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       name:
         type: string
     type: object
@@ -1074,6 +1076,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       log:
         $ref: '#/definitions/integration.LogIntegration'
       metric:
@@ -1485,6 +1489,30 @@ definitions:
     - AnormalTypeError
     - AnormalTypeAlertAppInstance
     - AnormalTypeAlertDatabase
+  model.CheckDataSourceRequest:
+    properties:
+      attributes:
+        description: query attributes
+        type: string
+      dataSource:
+        description: query Datasource
+        type: string
+      enabledCapabilities:
+        description: query capabilities
+        items:
+          type: string
+        type: array
+    required:
+    - attributes
+    - dataSource
+    type: object
+  model.CheckDataSourceResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
   model.Datasource:
     properties:
       category:
@@ -1501,6 +1529,13 @@ definitions:
         type: array
       type:
         description: namespace or service
+        type: string
+    type: object
+  model.DatasourceCount:
+    properties:
+      count:
+        type: integer
+      type:
         type: string
     type: object
   model.DetectExprPart:
@@ -3414,6 +3449,17 @@ definitions:
           $ref: '#/definitions/model.Datasource'
         type: array
     type: object
+  response.GetDatasourcesResponse:
+    properties:
+      datasources:
+        items:
+          $ref: '#/definitions/model.DatasourceCount'
+        type: array
+      serviceCount:
+        type: integer
+      status:
+        type: string
+    type: object
   response.GetDefectDetectExecListResponse:
     properties:
       mutatedRule:
@@ -3813,6 +3859,22 @@ definitions:
           type: string
         type: object
     type: object
+  response.GetServiceWithInstancesResponse:
+    properties:
+      currentPage:
+        description: current page number
+        type: integer
+      pageSize:
+        description: number of entries per page
+        type: integer
+      services:
+        items:
+          $ref: '#/definitions/response.ServiceWithInstances'
+        type: array
+      total:
+        description: total number of records
+        type: integer
+    type: object
   response.GetTTLResponse:
     properties:
       k8s:
@@ -4027,6 +4089,39 @@ definitions:
       service:
         type: string
     type: object
+  response.InstanceSource:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  response.InstanceWithSource:
+    properties:
+      clusterId:
+        type: string
+      containerId:
+        description: container ID
+        type: string
+      instanceName:
+        type: string
+      nodeIp:
+        type: string
+      nodeName:
+        description: hostname
+        type: string
+      pid:
+        description: process number
+        type: integer
+      podName:
+        description: Pod name
+        type: string
+      service:
+        description: service name
+        type: string
+      source:
+        $ref: '#/definitions/response.InstanceSource'
+    type: object
   response.InstancesRes:
     properties:
       data:
@@ -4087,12 +4182,18 @@ definitions:
     type: object
   response.ListServiceNameRule:
     properties:
+      clusterId:
+        type: string
       conditions:
         items:
           $ref: '#/definitions/database.ServiceNameRuleCondition'
         type: array
       id:
         type: integer
+      instances:
+        items:
+          type: string
+        type: array
       serviceName:
         type: string
     type: object
@@ -4605,6 +4706,21 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/response.RYGStatus'
+    type: object
+  response.ServiceWithInstances:
+    properties:
+      clusterId:
+        type: string
+      id:
+        type: string
+      instances:
+        items:
+          $ref: '#/definitions/response.InstanceWithSource'
+        type: array
+      name:
+        type: string
+      source:
+        type: string
     type: object
   response.SpanSegmentMetricsResponse:
     additionalProperties:
@@ -6981,6 +7097,32 @@ paths:
       summary: Get app info tag values.
       tags:
       - API.dataplane
+  /api/dataplane/checkDataSource:
+    post:
+      consumes:
+      - application/json
+      description: check datasource is valid.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CheckDataSourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CheckDataSourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: check datasource is valid.
+      tags:
+      - API.dataplane
   /api/dataplane/create:
     post:
       consumes:
@@ -7131,6 +7273,44 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Check if the minimum probe is installed.
+      tags:
+      - API.dataplane
+  /api/dataplane/datasources:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Cluseter id
+        in: query
+        name: cluster
+        type: string
+      - description: Start time
+        format: int64
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        format: int64
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDatasourcesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.dataplane
   /api/dataplane/delete:
@@ -7398,6 +7578,23 @@ paths:
       - application/x-www-form-urlencoded
       description: List servicename rule.
       parameters:
+      - description: Service name
+        in: query
+        name: serviceName
+        required: true
+        type: string
+      - description: Start time
+        format: int64
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        format: int64
+        in: query
+        name: endTime
+        required: true
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7476,6 +7673,59 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get all services.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicesWithInstances:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Cluseter id
+        in: query
+        name: cluster
+        type: string
+      - description: Start time
+        format: int64
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        format: int64
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: Services
+        in: query
+        items:
+          type: string
+        name: services
+        type: array
+      - description: Current page
+        in: query
+        name: currentPage
+        type: integer
+      - description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceWithInstancesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.dataplane
   /api/dataplane/topology:
