@@ -22,7 +22,8 @@ const AppSidebarMenuIcon = (menuItem) => {
     </div>
   )
 }
-const agentKeys = ['agent', 'integration']
+
+const agentKeys = import.meta.env.VITE_APP_CODE_VERSION !== 'EE' ? ['agent', 'alerts', 'probe', 'integration'] : []
 
 const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
@@ -80,7 +81,6 @@ const AppSidebar = () => {
     if (!navList) return []
     let result = []
     navList?.forEach((item) => {
-      console.log(item)
       if (location.pathname.startsWith(item.to)) {
         result.push(item.key)
       }
@@ -104,10 +104,9 @@ const AppSidebar = () => {
         const item = menuItems?.find((item) => item.key === key)
         return item ? prepareMenu(item) : null
       })
-      .filter(Boolean) // 去掉 null、undefined、false
+      .filter(Boolean)
   }
 
-  console.log(selectedKeys)
   return (
     <ConfigProvider
       theme={{
@@ -123,22 +122,26 @@ const AppSidebar = () => {
       }}
     >
       <div className="flex flex-col items-center justify-center ">
-        <Menu
-          mode="inline"
-          theme={theme}
-          inlineCollapsed={true}
-          items={agentMenuList()}
-          onClick={onClick}
-          selectedKeys={selectedKeys}
-          openKeys={openKeys}
-          onOpenChange={onOpenChange}
-          className={styles.sidebarMenu}
-          style={{
-            backgroundColor: 'transparent',
-            width: 70,
-          }}
-        ></Menu>
-        <Divider className="my-2" />
+        {
+          agentKeys?.length > 0 &&
+          <> <Menu
+            mode="inline"
+            theme={theme}
+            inlineCollapsed={true}
+            items={agentMenuList()}
+            onClick={onClick}
+            selectedKeys={selectedKeys}
+            openKeys={openKeys}
+            onOpenChange={onOpenChange}
+            className={styles.sidebarMenu}
+            style={{
+              backgroundColor: 'transparent',
+              width: 70,
+            }}
+          ></Menu>
+            {menuList?.length > 0 && <Divider className="my-2" />}
+          </>
+        }
 
         <Menu
           mode="inline"
