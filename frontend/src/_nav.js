@@ -188,6 +188,6 @@ const navIcon = {
       }}
     />
   ),
-  alertAnalyze: <IoIosTrendingUp />
+  analysis: <IoIosTrendingUp />
 }
 export { _nav, commercialNav, navIcon }
