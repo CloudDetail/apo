@@ -1063,6 +1063,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       name:
         type: string
     type: object
@@ -1074,6 +1076,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       log:
         $ref: '#/definitions/integration.LogIntegration'
       metric:
@@ -1485,6 +1489,30 @@ definitions:
     - AnormalTypeError
     - AnormalTypeAlertAppInstance
     - AnormalTypeAlertDatabase
+  model.CheckDataSourceRequest:
+    properties:
+      attributes:
+        description: query attributes
+        type: string
+      dataSource:
+        description: query Datasource
+        type: string
+      enabledCapabilities:
+        description: query capabilities
+        items:
+          type: string
+        type: array
+    required:
+    - attributes
+    - dataSource
+    type: object
+  model.CheckDataSourceResponse:
+    properties:
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
   model.Datasource:
     properties:
       category:
@@ -1563,15 +1591,6 @@ definitions:
       endpoint:
         type: string
       serviceName:
-        type: string
-    type: object
-  model.MatchServiceInstance:
-    properties:
-      instanceName:
-        type: string
-      serviceName:
-        type: string
-      source:
         type: string
     type: object
   model.MatchServiceInstance:
@@ -3106,9 +3125,7 @@ definitions:
   response.CheckServiceNameRuleResponse:
     properties:
       instances:
-      instances:
         items:
-          $ref: '#/definitions/model.MatchServiceInstance'
           $ref: '#/definitions/model.MatchServiceInstance'
         type: array
     type: object
@@ -7268,11 +7285,13 @@ paths:
         name: cluster
         type: string
       - description: Start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7292,7 +7311,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
-      summary: Check if the minimum probe is installed.
       tags:
       - API.dataplane
   /api/dataplane/delete:
@@ -7566,11 +7584,13 @@ paths:
         required: true
         type: string
       - description: Start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         in: query
         name: endTime
         required: true
@@ -7665,11 +7685,13 @@ paths:
         name: cluster
         type: string
       - description: Start time
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         in: query
         name: endTime
         required: true

@@ -3792,6 +3792,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -3799,6 +3800,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4239,6 +4241,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4246,6 +4249,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4387,6 +4391,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4394,6 +4399,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -12249,6 +12255,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "isMinimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -12265,6 +12274,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isMinimal": {
+                    "type": "boolean"
                 },
                 "log": {
                     "$ref": "#/definitions/integration.LogIntegration"
@@ -12889,6 +12901,41 @@ const docTemplate = `{
                 "AnormalTypeAlertDatabase"
             ]
         },
+        "model.CheckDataSourceRequest": {
+            "type": "object",
+            "required": [
+                "attributes",
+                "dataSource"
+            ],
+            "properties": {
+                "attributes": {
+                    "description": "query attributes",
+                    "type": "string"
+                },
+                "dataSource": {
+                    "description": "query Datasource",
+                    "type": "string"
+                },
+                "enabledCapabilities": {
+                    "description": "query capabilities",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.CheckDataSourceResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "model.Datasource": {
             "type": "object",
             "properties": {
@@ -12998,20 +13045,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "serviceName": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.MatchServiceInstance": {
-            "type": "object",
-            "properties": {
-                "instanceName": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "source": {
                     "type": "string"
                 }
             }
@@ -15287,10 +15320,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "instances": {
-                "instances": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.MatchServiceInstance"
                         "$ref": "#/definitions/model.MatchServiceInstance"
                     }
                 }

@@ -3784,6 +3784,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -3791,6 +3792,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4231,6 +4233,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4238,6 +4241,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4379,6 +4383,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4386,6 +4391,7 @@
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -12241,6 +12247,9 @@
                 "id": {
                     "type": "string"
                 },
+                "isMinimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -12257,6 +12266,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "isMinimal": {
+                    "type": "boolean"
                 },
                 "log": {
                     "$ref": "#/definitions/integration.LogIntegration"
@@ -12881,6 +12893,41 @@
                 "AnormalTypeAlertDatabase"
             ]
         },
+        "model.CheckDataSourceRequest": {
+            "type": "object",
+            "required": [
+                "attributes",
+                "dataSource"
+            ],
+            "properties": {
+                "attributes": {
+                    "description": "query attributes",
+                    "type": "string"
+                },
+                "dataSource": {
+                    "description": "query Datasource",
+                    "type": "string"
+                },
+                "enabledCapabilities": {
+                    "description": "query capabilities",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "model.CheckDataSourceResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
+        },
         "model.Datasource": {
             "type": "object",
             "properties": {
@@ -12990,20 +13037,6 @@
                     "type": "string"
                 },
                 "serviceName": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.MatchServiceInstance": {
-            "type": "object",
-            "properties": {
-                "instanceName": {
-                    "type": "string"
-                },
-                "serviceName": {
-                    "type": "string"
-                },
-                "source": {
                     "type": "string"
                 }
             }
@@ -15279,2547 +15312,2546 @@
             "type": "object",
             "properties": {
                 "instances": {
-                    "instances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.MatchServiceInstance"
+                    }
+                }
+            }
+        },
+        "response.ClusterScopedDatasource": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "clusterName": {
+                    "type": "string"
+                },
+                "namespaceMap": {
+                    "description": "namespace: services",
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/definitions/model.MatchServiceInstance""$ref": "#/definitions/model.MatchServiceInstance"
+                            "type": "string"
                         }
                     }
-                }
-            },
-            "response.ClusterScopedDatasource": {
-                "type": "object",
-                "properties": {
-                    "clusterId": {
-                        "type": "string"
-                    },
-                    "clusterName": {
-                        "type": "string"
-                    },
-                    "namespaceMap": {
-                        "description": "namespace: services",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "serviceMap": {
-                        "description": "service: endpoints",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "response.Column": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.CustonType": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "type": {
+                },
+                "serviceMap": {
+                    "description": "service: endpoints",
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     }
                 }
-            },
-            "response.DBInfo": {
-                "type": "object",
-                "properties": {
-                    "dataBase": {
-                        "type": "string"
-                    },
-                    "tables": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogTableInfo"
-                        }
-                    }
+            }
+        },
+        "response.Column": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
-            },
-            "response.DeleteOtherTableResponse": {
-                "type": "object",
-                "properties": {
-                    "error": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.DescendantAnormalCounts": {
-                "type": "object",
-                "properties": {
-                    "anormalCounts": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "integer",
-                            "format": "int64"
-                        }
-                    },
-                    "endpoint": {
-                        "type": "string"
-                    },
-                    "serviceName": {
+            }
+        },
+        "response.CustonType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
                 }
-            },
-            "response.DescendantAnormalEventRecord": {
-                "type": "object",
-                "properties": {
-                    "alertKey": {
-                        "type": "string"
-                    },
-                    "anormalMsg": {
-                        "type": "string"
-                    },
-                    "anormalObject": {
-                        "type": "string"
-                    },
-                    "anormalReason": {
-                        "type": "string"
-                    },
-                    "anormalStatus": {
-                        "description": "startFiring / updatedFiring / resolved",
-                        "type": "string"
-                    },
-                    "anormalType": {
-                        "$ref": "#/definitions/model.AnormalType"
-                    },
-                    "endpoint": {
-                        "type": "string"
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "integer"
+            }
+        },
+        "response.DBInfo": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogTableInfo"
                     }
                 }
-            },
-            "response.Duration": {
-                "type": "object",
-                "properties": {
-                    "endTime": {
-                        "description": "Timestamp of the response network packet, in microseconds",
-                        "type": "integer"
-                    },
-                    "responseDuration": {
-                        "description": "Response delay",
-                        "type": "integer"
-                    },
-                    "startTime": {
-                        "description": "The timestamp of the request network packet, in microseconds.",
-                        "type": "integer"
+            }
+        },
+        "response.DeleteOtherTableResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DescendantAnormalCounts": {
+            "type": "object",
+            "properties": {
+                "anormalCounts": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.DescendantAnormalEventRecord": {
+            "type": "object",
+            "properties": {
+                "alertKey": {
+                    "type": "string"
+                },
+                "anormalMsg": {
+                    "type": "string"
+                },
+                "anormalObject": {
+                    "type": "string"
+                },
+                "anormalReason": {
+                    "type": "string"
+                },
+                "anormalStatus": {
+                    "description": "startFiring / updatedFiring / resolved",
+                    "type": "string"
+                },
+                "anormalType": {
+                    "$ref": "#/definitions/model.AnormalType"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.Duration": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "description": "Timestamp of the response network packet, in microseconds",
+                    "type": "integer"
+                },
+                "responseDuration": {
+                    "description": "Response delay",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "The timestamp of the request network packet, in microseconds.",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.EntryInstanceData": {
+            "type": "object",
+            "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "application alarm",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "container alarm",
+                    "type": "string"
+                },
+                "endpointCount": {
+                    "type": "integer"
+                },
+                "infrastructureStatus": {
+                    "description": "infrastructure alarm",
+                    "type": "string"
+                },
+                "k8sStatus": {
+                    "description": "K8s status alarm",
+                    "type": "string"
+                },
+                "logs": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "log metric alarm",
+                    "type": "string"
+                },
+                "namespaces": {
+                    "description": "The namespace of the application. It may be empty",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "netStatus": {
+                    "description": "network alarm",
+                    "type": "string"
+                },
+                "serviceDetails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceDetail"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ErrorInfo": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "error message",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "error type",
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorInstance": {
+            "type": "object",
+            "properties": {
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "logs": {
+                    "description": "log alarm",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "name": {
+                    "description": "Bad instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "propations": {
+                    "description": "error propagation info",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ErrorPropation"
                     }
                 }
-            },
-            "response.EntryInstanceData": {
-                "type": "object",
-                "properties": {
-                    "alertReason": {
-                        "$ref": "#/definitions/model.AlertReason"
-                    },
-                    "appStatus": {
-                        "description": "application alarm",
-                        "type": "string"
-                    },
-                    "containerStatus": {
-                        "description": "container alarm",
-                        "type": "string"
-                    },
-                    "endpointCount": {
-                        "type": "integer"
-                    },
-                    "infrastructureStatus": {
-                        "description": "infrastructure alarm",
-                        "type": "string"
-                    },
-                    "k8sStatus": {
-                        "description": "K8s status alarm",
-                        "type": "string"
-                    },
-                    "logs": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "logsStatus": {
-                        "description": "log metric alarm",
-                        "type": "string"
-                    },
-                    "namespaces": {
-                        "description": "The namespace of the application. It may be empty",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "netStatus": {
-                        "description": "network alarm",
-                        "type": "string"
-                    },
-                    "serviceDetails": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ServiceDetail"
-                        }
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "integer"
+            }
+        },
+        "response.ErrorPropation": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "description": "downstream node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceNode"
                     }
-                }
-            },
-            "response.ErrorInfo": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "description": "error message",
-                        "type": "string"
-                    },
-                    "type": {
-                        "description": "error type",
-                        "type": "string"
-                    }
-                }
-            },
-            "response.ErrorInstance": {
-                "type": "object",
-                "properties": {
-                    "containerId": {
-                        "description": "container ID",
-                        "type": "string"
-                    },
-                    "logs": {
-                        "description": "log alarm",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "name": {
-                        "description": "Bad instance name",
-                        "type": "string"
-                    },
-                    "nodeName": {
-                        "description": "hostname",
-                        "type": "string"
-                    },
-                    "pid": {
-                        "description": "process number",
-                        "type": "integer"
-                    },
-                    "propations": {
-                        "description": "error propagation info",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ErrorPropation"
-                        }
-                    }
-                }
-            },
-            "response.ErrorPropation": {
-                "type": "object",
-                "properties": {
-                    "children": {
-                        "description": "downstream node list",
-                        "type": "array",
-                        "items": {
+                },
+                "current": {
+                    "description": "current node",
+                    "allOf": [
+                        {
                             "$ref": "#/definitions/response.InstanceNode"
                         }
-                    },
-                    "current": {
-                        "description": "current node",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.InstanceNode"
-                            }
-                        ]
-                    },
-                    "errors": {
-                        "description": "error message",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ErrorInfo"
-                        }
-                    },
-                    "parents": {
-                        "description": "upstream node list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.InstanceNode"
-                        }
-                    },
-                    "timestamp": {
-                        "description": "timestamp",
-                        "type": "integer"
-                    },
-                    "traceId": {
-                        "description": "TraceId",
-                        "type": "string"
+                    ]
+                },
+                "errors": {
+                    "description": "error message",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ErrorInfo"
                     }
+                },
+                "parents": {
+                    "description": "upstream node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceNode"
+                    }
+                },
+                "timestamp": {
+                    "description": "timestamp",
+                    "type": "integer"
+                },
+                "traceId": {
+                    "description": "TraceId",
+                    "type": "string"
                 }
-            },
-            "response.GetAlertDetailResponse": {
-                "type": "object",
-                "properties": {
-                    "alertCheckId": {
-                        "type": "string"
-                    },
-                    "alertEventAnalyzeWorkflowId": {
-                        "type": "string"
-                    },
-                    "currentEvent": {
+            }
+        },
+        "response.GetAlertDetailResponse": {
+            "type": "object",
+            "properties": {
+                "alertCheckId": {
+                    "type": "string"
+                },
+                "alertEventAnalyzeWorkflowId": {
+                    "type": "string"
+                },
+                "currentEvent": {
+                    "$ref": "#/definitions/alert.AEventWithWRecord"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/alert.AEventWithWRecord"
-                    },
-                    "events": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/alert.AEventWithWRecord"
-                        }
-                    },
-                    "locateIndex": {
-                        "type": "integer"
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
                     }
+                },
+                "locateIndex": {
+                    "type": "integer"
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
                 }
-            },
-            "response.GetAlertEventReportResponse": {
-                "type": "object",
-                "properties": {
-                    "reportData": {},
-                    "reportType": {
-                        "type": "string"
+            }
+        },
+        "response.GetAlertEventReportResponse": {
+            "type": "object",
+            "properties": {
+                "reportData": {},
+                "reportType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetAlertEventsResponse": {
+            "type": "object",
+            "properties": {
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEvent"
                     }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "totalCount": {
+                    "type": "integer"
                 }
-            },
-            "response.GetAlertEventsResponse": {
-                "type": "object",
-                "properties": {
-                    "events": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/alert.AlertEvent"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    },
-                    "totalCount": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetAlertEventsSampleResponse": {
-                "type": "object",
-                "properties": {
-                    "events": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/clickhouse.AlertEventSample"
-                                }
-                            }
-                        }
-                    },
-                    "status": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetAlertManagerConfigReceiverResponse": {
-                "type": "object",
-                "properties": {
-                    "amConfigReceivers": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/amconfig.Receiver"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetAlertRuleFileResponse": {
-                "type": "object",
-                "properties": {
-                    "alertRules": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetAlertRulesResponse": {
-                "type": "object",
-                "properties": {
-                    "alertRules": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/request.AlertRule"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetAlertSlienceConfigResponse": {
-                "type": "object",
-                "properties": {
-                    "slience": {
-                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
-                    }
-                }
-            },
-            "response.GetAnomalySpanResponse": {
-                "type": "object",
-                "properties": {
-                    "list": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/clickhouse.QueryTraceResult"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetCustomResponse": {
-                "type": "object",
-                "properties": {
-                    "customs": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.CustonType"
-                        }
-                    }
-                }
-            },
-            "response.GetDataGroupResponse": {
-                "type": "object",
-                "properties": {
-                    "currentPage": {
-                        "description": "current page number",
-                        "type": "integer"
-                    },
-                    "dataGroupList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/datagroup.DataGroup"
-                        }
-                    },
-                    "pageSize": {
-                        "description": "number of entries per page",
-                        "type": "integer"
-                    },
-                    "total": {
-                        "description": "total number of records",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetDatasourceResponse": {
-                "type": "object",
-                "properties": {
-                    "namespaceList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.Datasource"
-                        }
-                    },
-                    "serviceList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.Datasource"
-                        }
-                    }
-                }
-            },
-            "response.GetDatasourcesResponse": {
-                "type": "object",
-                "properties": {
-                    "datasources": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.DatasourceCount"
-                        }
-                    },
-                    "serviceCount": {
-                        "type": "integer"
-                    },
-                    "status": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetDefectDetectExecListResponse": {
-                "type": "object",
-                "properties": {
-                    "mutatedRule": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.DetectMutation"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetDefectDetectRuleListResponse": {
-                "type": "object",
-                "properties": {
-                    "alertRule": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.DetectMutation"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetDescendantAlertContributationResponse": {
-                "type": "object",
-                "properties": {
-                    "contributationMap": {
+            }
+        },
+        "response.GetAlertEventsSampleResponse": {
+            "type": "object",
+            "properties": {
+                "events": {
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "object",
                         "additionalProperties": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.EndpointKey"
+                                "$ref": "#/definitions/clickhouse.AlertEventSample"
                             }
                         }
-                    },
-                    "latencyContributationList": {
-                        "description": "延时曲线相似度前三的节点",
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetAlertManagerConfigReceiverResponse": {
+            "type": "object",
+            "properties": {
+                "amConfigReceivers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/amconfig.Receiver"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertRuleFileResponse": {
+            "type": "object",
+            "properties": {
+                "alertRules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetAlertRulesResponse": {
+            "type": "object",
+            "properties": {
+                "alertRules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.AlertRule"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "slience": {
+                    "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
+                }
+            }
+        },
+        "response.GetAnomalySpanResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetCustomResponse": {
+            "type": "object",
+            "properties": {
+                "customs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.CustonType"
+                    }
+                }
+            }
+        },
+        "response.GetDataGroupResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "dataGroupList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/datagroup.DataGroup"
+                    }
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                },
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Datasource"
+                    }
+                }
+            }
+        },
+        "response.GetDatasourcesResponse": {
+            "type": "object",
+            "properties": {
+                "datasources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DatasourceCount"
+                    }
+                },
+                "serviceCount": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetDefectDetectExecListResponse": {
+            "type": "object",
+            "properties": {
+                "mutatedRule": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DetectMutation"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDefectDetectRuleListResponse": {
+            "type": "object",
+            "properties": {
+                "alertRule": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DetectMutation"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDescendantAlertContributationResponse": {
+            "type": "object",
+            "properties": {
+                "contributationMap": {
+                    "type": "object",
+                    "additionalProperties": {
                         "type": "array",
                         "items": {
                             "$ref": "#/definitions/model.EndpointKey"
                         }
                     }
-                }
-            },
-            "response.GetDescendantAnormalEventResponse": {
-                "type": "object",
-                "properties": {
-                    "alertEvents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/alert.AlertEvent"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetDescendantDeltaAnormalEventResponse": {
-                "type": "object",
-                "properties": {
-                    "alertTriggeredCounts": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalCounts"
-                        }
-                    },
-                    "anormalCount": {
-                        "description": "AnormalEvents []model.AnormalEvent `json:\"anormalEvents\"`\nAnormalEvents map[int64][]model.AnormalEvent `json:\"anormalEvents\"`",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.TempChartObject"
-                            }
-                        ]
-                    },
-                    "deltaAnormalEvents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalEventRecord"
-                        }
-                    },
-                    "finalAnormalCounts": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalCounts"
-                        }
-                    },
-                    "finalAnormalEvents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalEventRecord"
-                        }
-                    },
-                    "originAnormalCounts": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalCounts"
-                        }
-                    },
-                    "originAnormalEvents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DescendantAnormalEventRecord"
-                        }
-                    }
-                }
-            },
-            "response.GetDescendantMetricsResponse": {
-                "type": "object",
-                "properties": {
-                    "endpoint": {
-                        "description": "Endpoint",
-                        "type": "string"
-                    },
-                    "latencyP90": {
-                        "description": "P90 curve value",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/prometheus.MetricsPoint"
-                        }
-                    },
-                    "serviceName": {
-                        "description": "service name",
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetDescendantRelevanceResponse": {
-                "type": "object",
-                "properties": {
-                    "REDStatus": {
-                        "description": "RED metric alarm",
-                        "type": "string"
-                    },
-                    "alertReason": {
-                        "$ref": "#/definitions/model.AlertReason"
-                    },
-                    "appStatus": {
-                        "description": "application alarm",
-                        "type": "string"
-                    },
-                    "containerStatus": {
-                        "description": "container alarm",
-                        "type": "string"
-                    },
-                    "delaySource": {
-                        "description": "main source of delay unknown/self/dependency",
-                        "type": "string"
-                    },
-                    "distance": {
-                        "description": "delay curve difference",
-                        "type": "number"
-                    },
-                    "distanceType": {
-                        "description": "delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed",
-                        "type": "string"
-                    },
-                    "endpoint": {
-                        "description": "Endpoint",
-                        "type": "string"
-                    },
-                    "group": {
-                        "description": "service type",
-                        "type": "string"
-                    },
-                    "infrastructureStatus": {
-                        "description": "infrastructure alarm",
-                        "type": "string"
-                    },
-                    "isTraced": {
-                        "description": "whether to trace",
-                        "type": "boolean"
-                    },
-                    "k8sStatus": {
-                        "description": "K8s status alarm",
-                        "type": "string"
-                    },
-                    "logsStatus": {
-                        "description": "log metric alarm",
-                        "type": "string"
-                    },
-                    "netStatus": {
-                        "description": "network alarm",
-                        "type": "string"
-                    },
-                    "serviceName": {
-                        "description": "service name",
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "description": "Last deployment time",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetErrorInstanceResponse": {
-                "type": "object",
-                "properties": {
-                    "instances": {
-                        "description": "error instance list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ErrorInstance"
-                        }
-                    },
-                    "status": {
-                        "description": "Bad instance status",
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetFaultLogContentResponse": {
-                "type": "object",
-                "properties": {
-                    "logContents": {
-                        "$ref": "#/definitions/clickhouse.Logs"
-                    },
-                    "sources": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetFaultLogPageListResponse": {
-                "type": "object",
-                "properties": {
-                    "list": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/clickhouse.FaultLogResult"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetFlameDataResponse": {
-                "type": "object",
-                "properties": {
-                    "endTime": {
-                        "type": "integer"
-                    },
-                    "flameBearer": {
-                        "type": "string"
-                    },
-                    "labels": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    },
-                    "pid": {
-                        "type": "integer"
-                    },
-                    "sampleRate": {
-                        "type": "integer"
-                    },
-                    "sampleType": {
-                        "type": "string"
-                    },
-                    "startTime": {
-                        "type": "integer"
-                    },
-                    "tid": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetGroupDatasourceResponse": {
-                "type": "object",
-                "properties": {
-                    "clusterScoped": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ClusterScopedDatasource"
-                        }
-                    },
-                    "namespaceMap": {
-                        "description": "namespace: services",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "serviceMap": {
-                        "description": "service: endpoints",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "response.GetGroupListResponse": {
-                "type": "object",
-                "properties": {
-                    "groupsLabel": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetK8sEventsResponse": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "$ref": "#/definitions/response.K8sEventStatistics"
-                        }
-                    },
-                    "reasons": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "status": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetLogMetricsResponse": {
-                "type": "object",
-                "properties": {
-                    "containerId": {
-                        "description": "container ID",
-                        "type": "string"
-                    },
-                    "errorRate": {
-                        "description": "error rate",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "latency": {
-                        "description": "delay P90",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "logs": {
-                        "description": "log alarm",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "name": {
-                        "description": "Instance name",
-                        "type": "string"
-                    },
-                    "nodeName": {
-                        "description": "hostname",
-                        "type": "string"
-                    },
-                    "pid": {
-                        "description": "process number",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetMetricPQLResponse": {
-                "type": "object",
-                "properties": {
-                    "alertMetricsData": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/database.AlertMetricsData"
-                        }
-                    }
-                }
-            },
-            "response.GetMonitorStatusResponse": {
-                "type": "object",
-                "properties": {
-                    "monitorList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.MonitorStatus"
-                        }
-                    }
-                }
-            },
-            "response.GetOnOffCPUResponse": {
-                "type": "object",
-                "properties": {
-                    "profilingEvent": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/clickhouse.ProfilingEvent"
-                        }
-                    }
-                }
-            },
-            "response.GetPolarisInferResponse": {
-                "type": "object",
-                "properties": {
-                    "inferCause": {
-                        "type": "string"
-                    },
-                    "inferMetricsPng": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetPredefinedDetectExprResponse": {
-                "type": "object",
-                "properties": {
-                    "metrics": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.PredefinedMetricExpr"
-                        }
-                    }
-                }
-            },
-            "response.GetProcessFlameGraphResponse": {
-                "type": "object",
-                "properties": {
-                    "endTime": {
-                        "type": "integer"
-                    },
-                    "flameBearer": {
-                        "type": "string"
-                    },
-                    "labels": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    },
-                    "pid": {
-                        "type": "integer"
-                    },
-                    "sampleRate": {
-                        "type": "integer"
-                    },
-                    "sampleType": {
-                        "type": "string"
-                    },
-                    "startTime": {
-                        "type": "integer"
-                    },
-                    "tid": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetSQLMetricsResponse": {
-                "type": "object",
-                "properties": {
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    },
-                    "sqlOperationDetails": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.SQLOperationDetail"
-                        }
-                    }
-                }
-            },
-            "response.GetServiceEndpointRelationResponse": {
-                "type": "object",
-                "properties": {
-                    "childRelations": {
-                        "description": "downstream node call relationship list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.TopologyRelation"
-                        }
-                    },
-                    "current": {
-                        "description": "current service",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/model.TopologyNode"
-                            }
-                        ]
-                    },
-                    "parents": {
-                        "description": "upstream node list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.TopologyNode"
-                        }
-                    },
-                    "topologyExternalClientCall": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.TopologyExternalClientCall"
-                        }
-                    },
-                    "topologyLevels": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.TopologyNodeLevel"
-                        }
-                    }
-                }
-            },
-            "response.GetServiceEndpointTopologyResponse": {
-                "type": "object",
-                "properties": {
-                    "children": {
-                        "description": "downstream node list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.TopologyNode"
-                        }
-                    },
-                    "current": {
-                        "description": "current service",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/model.TopologyNode"
-                            }
-                        ]
-                    },
-                    "parents": {
-                        "description": "upstream node list",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.TopologyNode"
-                        }
-                    }
-                }
-            },
-            "response.GetServiceEntryEndpointsResponse": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.EntryInstanceData"
-                        }
-                    },
-                    "status": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetServiceNamespaceListResponse": {
-                "type": "object",
-                "properties": {
-                    "namespaceList": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetServiceREDChartsResponse": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/response.RedCharts"
-                    }
-                }
-            },
-            "response.GetServiceRouteResponse": {
-                "type": "object",
-                "properties": {
-                    "routeRule": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetServiceWithInstancesResponse": {
-                "type": "object",
-                "properties": {
-                    "currentPage": {
-                        "description": "current page number",
-                        "type": "integer"
-                    },
-                    "pageSize": {
-                        "description": "number of entries per page",
-                        "type": "integer"
-                    },
-                    "services": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ServiceWithInstances"
-                        }
-                    },
-                    "total": {
-                        "description": "total number of records",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetTTLResponse": {
-                "type": "object",
-                "properties": {
-                    "k8s": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ModifyTableTTLMap"
-                        }
-                    },
-                    "logs": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ModifyTableTTLMap"
-                        }
-                    },
-                    "other": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ModifyTableTTLMap"
-                        }
-                    },
-                    "topology": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ModifyTableTTLMap"
-                        }
-                    },
-                    "trace": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ModifyTableTTLMap"
-                        }
-                    }
-                }
-            },
-            "response.GetTeamResponse": {
-                "type": "object",
-                "properties": {
-                    "currentPage": {
-                        "description": "current page number",
-                        "type": "integer"
-                    },
-                    "pageSize": {
-                        "description": "number of entries per page",
-                        "type": "integer"
-                    },
-                    "teamList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Team"
-                        }
-                    },
-                    "total": {
-                        "description": "total number of records",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetTraceFilterValueResponse": {
-                "type": "object",
-                "properties": {
-                    "traceFilterOptions": {
-                        "$ref": "#/definitions/clickhouse.SpanTraceOptions"
-                    }
-                }
-            },
-            "response.GetTraceFiltersResponse": {
-                "type": "object",
-                "properties": {
-                    "traceFilters": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/request.SpanTraceFilter"
-                        }
-                    }
-                }
-            },
-            "response.GetTraceMetricsResponse": {
-                "type": "object",
-                "properties": {
-                    "containerId": {
-                        "description": "container ID",
-                        "type": "string"
-                    },
-                    "errorRate": {
-                        "description": "error rate",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "latency": {
-                        "description": "delay P90",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "logs": {
-                        "description": "log alarm",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "name": {
-                        "description": "Instance name",
-                        "type": "string"
-                    },
-                    "nodeName": {
-                        "description": "hostname",
-                        "type": "string"
-                    },
-                    "pid": {
-                        "description": "process number",
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.GetTracePageListResponse": {
-                "type": "object",
-                "properties": {
-                    "list": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/clickhouse.QueryTraceResult"
-                        }
-                    },
-                    "pagination": {
-                        "$ref": "#/definitions/model.Pagination"
-                    }
-                }
-            },
-            "response.GetUserConfigResponse": {
-                "type": "object",
-                "properties": {
-                    "menuItem": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/database.MenuItem"
-                        }
-                    },
-                    "routes": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.GetUserInfoResponse": {
-                "type": "object",
-                "properties": {
-                    "corporation": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string"
-                    },
-                    "featureList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Feature"
-                        }
-                    },
-                    "phone": {
-                        "type": "string"
-                    },
-                    "roleList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Role"
-                        }
-                    },
-                    "teamList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Team"
-                        }
-                    },
-                    "userId": {
-                        "type": "integer"
-                    },
-                    "username": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.GetUserListResponse": {
-                "type": "object",
-                "properties": {
-                    "currentPage": {
-                        "description": "current page number",
-                        "type": "integer"
-                    },
-                    "pageSize": {
-                        "description": "number of entries per page",
-                        "type": "integer"
-                    },
-                    "total": {
-                        "description": "total number of records",
-                        "type": "integer"
-                    },
-                    "users": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.User"
-                        }
-                    }
-                }
-            },
-            "response.IndexItem": {
-                "type": "object",
-                "properties": {
-                    "count": {
-                        "type": "integer"
-                    },
-                    "indexName": {
-                        "type": "string"
-                    },
-                    "percent": {
-                        "type": "number"
-                    }
-                }
-            },
-            "response.Instance": {
-                "type": "object",
-                "properties": {
-                    "dataBases": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.DBInfo"
-                        }
-                    },
-                    "instanceName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.InstanceData": {
-                "type": "object",
-                "properties": {
-                    "alertReason": {
-                        "$ref": "#/definitions/model.AlertReason"
-                    },
-                    "appStatus": {
-                        "description": "application alarm",
-                        "type": "string"
-                    },
-                    "containerStatus": {
-                        "description": "container alarm",
-                        "type": "string"
-                    },
-                    "errorRate": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "infrastructureStatus": {
-                        "description": "infrastructure alarm",
-                        "type": "string"
-                    },
-                    "k8sStatus": {
-                        "description": "K8s status alarm",
-                        "type": "string"
-                    },
-                    "latency": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "logs": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "logsStatus": {
-                        "description": "log metric alarm",
-                        "type": "string"
-                    },
-                    "name": {
-                        "description": "Instance name",
-                        "type": "string"
-                    },
-                    "namespace": {
-                        "type": "string"
-                    },
-                    "netStatus": {
-                        "description": "network alarm",
-                        "type": "string"
-                    },
-                    "nodeIP": {
-                        "type": "string"
-                    },
-                    "nodeName": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "integer"
-                    },
-                    "tps": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    }
-                }
-            },
-            "response.InstanceNode": {
-                "type": "object",
-                "properties": {
-                    "instance": {
-                        "type": "string"
-                    },
-                    "isTraced": {
-                        "type": "boolean"
-                    },
-                    "service": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.InstanceSource": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    },
-                    "type": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.InstanceWithSource": {
-                "type": "object",
-                "properties": {
-                    "clusterId": {
-                        "type": "string"
-                    },
-                    "containerId": {
-                        "description": "container ID",
-                        "type": "string"
-                    },
-                    "instanceName": {
-                        "type": "string"
-                    },
-                    "nodeIp": {
-                        "type": "string"
-                    },
-                    "nodeName": {
-                        "description": "hostname",
-                        "type": "string"
-                    },
-                    "pid": {
-                        "description": "process number",
-                        "type": "integer"
-                    },
-                    "podName": {
-                        "description": "Pod name",
-                        "type": "string"
-                    },
-                    "service": {
-                        "description": "service name",
-                        "type": "string"
-                    },
-                    "source": {
-                        "$ref": "#/definitions/response.InstanceSource"
-                    }
-                }
-            },
-            "response.InstancesRes": {
-                "type": "object",
-                "properties": {
-                    "data": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.InstanceData"
-                        }
-                    },
-                    "status": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.K8sEventCountValues": {
-                "type": "object",
-                "properties": {
-                    "current": {
-                        "type": "integer"
-                    },
-                    "lastMonth": {
-                        "type": "integer"
-                    },
-                    "lastWeek": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.K8sEventStatistics": {
-                "type": "object",
-                "properties": {
-                    "counts": {
-                        "$ref": "#/definitions/response.K8sEventCountValues"
-                    },
-                    "displayName": {
-                        "type": "string"
-                    },
-                    "eventName": {
-                        "type": "string"
-                    },
-                    "severity": {
-                        "description": "Normal or Warning",
-                        "type": "string"
-                    }
-                }
-            },
-            "response.ListAlertSlienceConfigResponse": {
-                "type": "object",
-                "properties": {
-                    "sliences": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
-                        }
-                    }
-                }
-            },
-            "response.ListCustomTopologyResponse": {
-                "type": "object",
-                "properties": {
-                    "topologies": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/database.CustomServiceTopology"
-                        }
-                    }
-                }
-            },
-            "response.ListDataPlaneResponse": {
-                "type": "object",
-                "properties": {
-                    "dataPlanes": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/integration.DataPlaneWithClusterIDs"
-                        }
-                    }
-                }
-            },
-            "response.ListDataPlaneTypeResponse": {
-                "type": "object",
-                "properties": {
-                    "dpTypes": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/integration.DataPlaneType"
-                        }
-                    }
-                }
-            },
-            "response.ListServiceNameRule": {
-                "type": "object",
-                "properties": {
-                    "clusterId": {
-                        "type": "string"
-                    },
-                    "conditions": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/database.ServiceNameRuleCondition"
-                        }
-                    },
-                    "id": {
-                        "type": "integer"
-                    },
-                    "instances": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.ListServiceNameRuleResponse": {
-                "type": "object",
-                "properties": {
-                    "rules": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ListServiceNameRule"
-                        }
-                    }
-                }
-            },
-            "response.LogChartResponse": {
-                "type": "object",
-                "properties": {
-                    "count": {
-                        "type": "integer"
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "histograms": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogHistogram"
-                        }
-                    },
-                    "progress": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.LogHistogram": {
-                "type": "object",
-                "properties": {
-                    "count": {
-                        "type": "integer"
-                    },
-                    "from": {
-                        "type": "integer"
-                    },
-                    "progress": {
-                        "type": "string"
-                    },
-                    "to": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.LogIndexResponse": {
-                "type": "object",
-                "properties": {
-                    "indexs": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.IndexItem"
-                        }
-                    }
-                }
-            },
-            "response.LogItem": {
-                "type": "object",
-                "properties": {
-                    "content": {},
-                    "logFields": {
-                        "type": "object",
-                        "additionalProperties": true
-                    },
-                    "tags": {
-                        "type": "object",
-                        "additionalProperties": true
-                    },
-                    "timestamp": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.LogParseResponse": {
-                "type": "object",
-                "properties": {
-                    "isStructured": {
-                        "type": "boolean"
-                    },
-                    "parseInfo": {
-                        "type": "string"
-                    },
-                    "parseName": {
-                        "type": "string"
-                    },
-                    "parseRule": {
-                        "type": "string"
-                    },
-                    "routeRule": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    },
-                    "serviceName": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "tableFields": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/request.Field"
-                        }
-                    }
-                }
-            },
-            "response.LogQueryContextResponse": {
-                "type": "object",
-                "properties": {
-                    "back": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogItem"
-                        }
-                    },
-                    "front": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogItem"
-                        }
-                    }
-                }
-            },
-            "response.LogQueryResponse": {
-                "type": "object",
-                "properties": {
-                    "cost": {
-                        "type": "integer"
-                    },
-                    "defaultFields": {
-                        "description": "tag field",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "hiddenFields": {
-                        "description": "log field",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "limited": {
-                        "type": "integer"
-                    },
-                    "logs": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.LogItem"
-                        }
-                    },
-                    "query": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.LogTableInfo": {
-                "type": "object",
-                "properties": {
-                    "cluster": {
-                        "type": "string"
-                    },
-                    "logField": {
-                        "type": "string"
-                    },
-                    "tableName": {
-                        "type": "string"
-                    },
-                    "timeField": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.LogTableInfoResponse": {
-                "type": "object",
-                "properties": {
-                    "instances": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.Instance"
-                        }
-                    },
-                    "parses": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.Parse"
-                        }
-                    }
-                }
-            },
-            "response.LoginResponse": {
-                "type": "object",
-                "properties": {
-                    "accessToken": {
-                        "description": "accessToken is used to call the interface get resources",
-                        "type": "string"
-                    },
-                    "corporation": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string"
-                    },
-                    "featureList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Feature"
-                        }
-                    },
-                    "phone": {
-                        "type": "string"
-                    },
-                    "refreshToken": {
-                        "description": "refreshToken for refreshing accessToken",
-                        "type": "string"
-                    },
-                    "roleList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Role"
-                        }
-                    },
-                    "teamList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/profile.Team"
-                        }
-                    },
-                    "userId": {
-                        "type": "integer"
-                    },
-                    "username": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.MonitorStatus": {
-                "type": "object",
-                "properties": {
-                    "isAlive": {
-                        "type": "boolean"
-                    },
-                    "monitorName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.OtherDB": {
-                "type": "object",
-                "properties": {
-                    "dataBase": {
-                        "type": "string"
-                    },
-                    "tables": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.OtherTable"
-                        }
-                    }
-                }
-            },
-            "response.OtherTable": {
-                "type": "object",
-                "properties": {
-                    "tableName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.OtherTableInfoResponse": {
-                "type": "object",
-                "properties": {
-                    "columns": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.Column"
-                        }
-                    },
-                    "error": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.OtherTableResponse": {
-                "type": "object",
-                "properties": {
-                    "otherTables": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.OtherDB"
-                        }
-                    }
-                }
-            },
-            "response.Parse": {
-                "type": "object",
-                "properties": {
-                    "dataBase": {
-                        "type": "string"
-                    },
-                    "parseInfo": {
-                        "type": "string"
-                    },
-                    "parseName": {
-                        "type": "string"
-                    },
-                    "tableName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.PodMapResponse": {
-                "type": "object",
-                "properties": {
-                    "columns": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "schemas": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "label_type": {
-                                    "type": "string"
-                                },
-                                "pre_as": {
-                                    "type": "string"
-                                },
-                                "type": {
-                                    "type": "integer"
-                                },
-                                "unit": {
-                                    "type": "string"
-                                },
-                                "value_type": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "values": {
-                        "type": "array",
-                        "items": {
-                            "type": "array",
-                            "items": {}
-                        }
-                    }
-                }
-            },
-            "response.QueryAPPInfoTagValuesResponse": {
-                "type": "object",
-                "properties": {
-                    "label": {
-                        "type": "string"
-                    },
-                    "values": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.QueryAPPInfoTagsResponse": {
-                "type": "object",
-                "properties": {
-                    "labels": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.QueryChartResult": {
-                "type": "object",
-                "properties": {
-                    "timeseries": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.Timeseries"
-                        }
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "unit": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.QueryPodsResponse": {
-                "type": "object",
-                "properties": {
-                    "pods": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.Pod"
-                        }
-                    }
-                }
-            },
-            "response.QueryServiceEndpointsResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "response.QueryServiceInstancesResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ServiceInstance"
-                        }
-                    }
-                }
-            },
-            "response.QueryServiceNameResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "result": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.QueryServiceRedChartsResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.QueryChartResult"
-                        }
-                    }
-                }
-            },
-            "response.QueryServicesResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.Service"
-                        }
-                    }
-                }
-            },
-            "response.QueryTopologyResponse": {
-                "type": "object",
-                "properties": {
-                    "msg": {
-                        "type": "string"
-                    },
-                    "results": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.ServiceToplogyNode"
-                        }
-                    }
-                }
-            },
-            "response.RYGScoreDetail": {
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "type": "string"
-                    },
-                    "key": {
-                        "type": "string"
-                    },
-                    "score": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.RYGStatus": {
-                "type": "string",
-                "enum": [
-                    "red",
-                    "yellow",
-                    "green"
-                ],
-                "x-enum-varnames": [
-                    "RED",
-                    "YELLOW",
-                    "GREEN"
-                ]
-            },
-            "response.Ratio": {
-                "type": "object",
-                "properties": {
-                    "dayOverDay": {
-                        "description": "Day-over-Day Growth Rate",
-                        "type": "number"
-                    },
-                    "weekOverDay": {
-                        "description": "Week-over-Week Growth Rate",
-                        "type": "number"
-                    }
-                }
-            },
-            "response.RedCharts": {
-                "type": "object",
-                "properties": {
-                    "errorRate": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "latency": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "tps": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    }
-                }
-            },
-            "response.RefreshTokenResponse": {
-                "type": "object",
-                "properties": {
-                    "accessToken": {
-                        "description": "accessToken is used to call the interface get resources",
-                        "type": "string"
-                    }
-                }
-            },
-            "response.SQLOperationDetail": {
-                "type": "object",
-                "properties": {
-                    "dbName": {
-                        "description": "DBName -\u003e ${database}",
-                        "type": "string"
-                    },
-                    "dbOperation": {
-                        "description": "DBOperation -\u003e ${operation} ${table}, e.g: SELECT trip",
-                        "type": "string"
-                    },
-                    "dbSystem": {
-                        "description": "DBSystem -\u003e ${SQL Type}, e.g: Mysql",
-                        "type": "string"
-                    },
-                    "dbUrl": {
-                        "type": "string"
-                    },
-                    "errorRate": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "latency": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "service": {
-                        "type": "string"
-                    },
-                    "tps": {
-                        "description": "FIXME Tps name is tps, actual requests per minute",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.TempChartObject"
-                            }
-                        ]
-                    }
-                }
-            },
-            "response.SegmentLatency": {
-                "type": "object",
-                "properties": {
-                    "clientK8SNodeNic": {
-                        "description": "Request and response time collected at the client host NIC",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    },
-                    "clientNic": {
-                        "description": "Request and response time collected at the client NIC",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    },
-                    "clientProcess": {
-                        "description": "Request and response times collected at the client process",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    },
-                    "serverK8SNodeNic": {
-                        "description": "Request and response time collected at the server host NIC",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    },
-                    "serverNic": {
-                        "description": "Request and response time collected at the server NIC",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    },
-                    "serverProcess": {
-                        "description": "Request and response time collected at the server process",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Duration"
-                            }
-                        ]
-                    }
-                }
-            },
-            "response.ServiceAlertRes": {
-                "type": "object",
-                "properties": {
-                    "alertReason": {
-                        "$ref": "#/definitions/model.AlertReason"
-                    },
-                    "appStatus": {
-                        "description": "application alarm",
-                        "type": "string"
-                    },
-                    "containerStatus": {
-                        "description": "container alarm",
-                        "type": "string"
-                    },
-                    "infrastructureStatus": {
-                        "description": "infrastructure alarm",
-                        "type": "string"
-                    },
-                    "k8sStatus": {
-                        "description": "K8s status alarm",
-                        "type": "string"
-                    },
-                    "logs": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "logsStatus": {
-                        "description": "log metric alarm",
-                        "type": "string"
-                    },
-                    "netStatus": {
-                        "description": "network alarm",
-                        "type": "string"
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "integer"
-                    }
-                }
-            },
-            "response.ServiceDetail": {
-                "type": "object",
-                "properties": {
-                    "delaySource": {
-                        "type": "string"
-                    },
-                    "endpoint": {
-                        "type": "string"
-                    },
-                    "errorRate": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "latency": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "tps": {
-                        "description": "FIXME name is tps, actual requests per minute",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.TempChartObject"
-                            }
-                        ]
-                    }
-                }
-            },
-            "response.ServiceEndPointsRes": {
-                "type": "object",
-                "properties": {
-                    "endpointCount": {
-                        "type": "integer"
-                    },
-                    "namespaces": {
-                        "description": "The namespace of the application. It may be empty",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "serviceDetails": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ServiceDetail"
-                        }
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.ServiceRYGLightRes": {
-                "type": "object",
-                "properties": {
-                    "serviceList": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.ServiceRYGResult"
-                        }
-                    }
-                }
-            },
-            "response.ServiceRYGResult": {
-                "type": "object",
-                "properties": {
-                    "percentScore": {
-                        "description": "percentage total score",
-                        "type": "integer"
-                    },
-                    "score": {
-                        "description": "total score",
-                        "type": "integer"
-                    },
-                    "scoreDetail": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.RYGScoreDetail"
-                        }
-                    },
-                    "serviceName": {
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/definitions/response.RYGStatus"
-                    }
-                }
-            },
-            "response.ServiceWithInstances": {
-                "type": "object",
-                "properties": {
-                    "clusterId": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "instances": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/response.InstanceWithSource"
-                        }
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "source": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.SpanSegmentMetricsResponse": {
-                "type": "object",
-                "additionalProperties": {
-                    "$ref": "#/definitions/response.SegmentLatency"
-                }
-            },
-            "response.TempChartObject": {
-                "type": "object",
-                "properties": {
-                    "chartData": {
-                        "description": "ChartData chart data",
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "number",
-                            "format": "float64"
-                        }
-                    },
-                    "ratio": {
-                        "description": "Ratio metric Day-over-Day Growth Rate rate",
-                        "allOf": [
-                            {
-                                "$ref": "#/definitions/response.Ratio"
-                            }
-                        ]
-                    },
-                    "value": {
-                        "description": "Value metric average",
-                        "type": "number"
-                    }
-                }
-            },
-            "response.Timeseries": {
-                "type": "object",
-                "properties": {
-                    "chart": {
-                        "$ref": "#/definitions/response.TempChartObject"
-                    },
-                    "labels": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    },
-                    "legend": {
-                        "type": "string"
-                    },
-                    "legendFormat": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.TopologyExternalClientCall": {
-                "type": "object",
-                "properties": {
-                    "childs": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/model.TopologyNode"
-                        }
-                    },
-                    "endpoint": {
-                        "type": "string"
-                    },
-                    "group": {
-                        "type": "string"
-                    },
-                    "isTraced": {
-                        "type": "boolean"
-                    },
-                    "outOfGroup": {
-                        "type": "boolean"
-                    },
-                    "service": {
-                        "type": "string"
-                    },
-                    "system": {
-                        "type": "string"
-                    }
-                }
-            },
-            "response.TopologyNodeLevel": {
-                "type": "object",
-                "properties": {
-                    "depth": {
-                        "type": "integer"
-                    },
-                    "endpoint": {
-                        "type": "string"
-                    },
-                    "outOfGroup": {
-                        "type": "boolean"
-                    },
-                    "service": {
-                        "type": "string"
-                    }
-                }
-            },
-            "slienceconfig.AlertSlienceConfig": {
-                "type": "object",
-                "properties": {
-                    "alertId": {
-                        "type": "string"
-                    },
-                    "alertName": {
-                        "type": "string"
-                    },
-                    "endAt": {
-                        "type": "string"
-                    },
-                    "for": {
-                        "type": "string"
-                    },
-                    "group": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "integer"
-                    },
-                    "startAt": {
-                        "type": "string"
-                    },
-                    "tags": {
-                        "$ref": "#/definitions/slienceconfig.TagsStr"
-                    }
-                }
-            },
-            "slienceconfig.TagsStr": {
-                "type": "object",
-                "additionalProperties": {
+                },
+                "latencyContributationList": {
+                    "description": "延时曲线相似度前三的节点",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EndpointKey"
+                    }
+                }
+            }
+        },
+        "response.GetDescendantAnormalEventResponse": {
+            "type": "object",
+            "properties": {
+                "alertEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.AlertEvent"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetDescendantDeltaAnormalEventResponse": {
+            "type": "object",
+            "properties": {
+                "alertTriggeredCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "anormalCount": {
+                    "description": "AnormalEvents []model.AnormalEvent `json:\"anormalEvents\"`\nAnormalEvents map[int64][]model.AnormalEvent `json:\"anormalEvents\"`",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
+                },
+                "deltaAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
+                    }
+                },
+                "finalAnormalCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "finalAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
+                    }
+                },
+                "originAnormalCounts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalCounts"
+                    }
+                },
+                "originAnormalEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DescendantAnormalEventRecord"
+                    }
+                }
+            }
+        },
+        "response.GetDescendantMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "endpoint": {
+                    "description": "Endpoint",
+                    "type": "string"
+                },
+                "latencyP90": {
+                    "description": "P90 curve value",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/prometheus.MetricsPoint"
+                    }
+                },
+                "serviceName": {
+                    "description": "service name",
                     "type": "string"
                 }
             }
+        },
+        "response.GetDescendantRelevanceResponse": {
+            "type": "object",
+            "properties": {
+                "REDStatus": {
+                    "description": "RED metric alarm",
+                    "type": "string"
+                },
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "application alarm",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "container alarm",
+                    "type": "string"
+                },
+                "delaySource": {
+                    "description": "main source of delay unknown/self/dependency",
+                    "type": "string"
+                },
+                "distance": {
+                    "description": "delay curve difference",
+                    "type": "number"
+                },
+                "distanceType": {
+                    "description": "delay curve difference calculation method, there are four types of euclidean/pearson/dtw/failed/net_failed",
+                    "type": "string"
+                },
+                "endpoint": {
+                    "description": "Endpoint",
+                    "type": "string"
+                },
+                "group": {
+                    "description": "service type",
+                    "type": "string"
+                },
+                "infrastructureStatus": {
+                    "description": "infrastructure alarm",
+                    "type": "string"
+                },
+                "isTraced": {
+                    "description": "whether to trace",
+                    "type": "boolean"
+                },
+                "k8sStatus": {
+                    "description": "K8s status alarm",
+                    "type": "string"
+                },
+                "logsStatus": {
+                    "description": "log metric alarm",
+                    "type": "string"
+                },
+                "netStatus": {
+                    "description": "network alarm",
+                    "type": "string"
+                },
+                "serviceName": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "timestamp": {
+                    "description": "Last deployment time",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetErrorInstanceResponse": {
+            "type": "object",
+            "properties": {
+                "instances": {
+                    "description": "error instance list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ErrorInstance"
+                    }
+                },
+                "status": {
+                    "description": "Bad instance status",
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetFaultLogContentResponse": {
+            "type": "object",
+            "properties": {
+                "logContents": {
+                    "$ref": "#/definitions/clickhouse.Logs"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetFaultLogPageListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.FaultLogResult"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetFlameDataResponse": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "flameBearer": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "sampleType": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetGroupDatasourceResponse": {
+            "type": "object",
+            "properties": {
+                "clusterScoped": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ClusterScopedDatasource"
+                    }
+                },
+                "namespaceMap": {
+                    "description": "namespace: services",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "serviceMap": {
+                    "description": "service: endpoints",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "response.GetGroupListResponse": {
+            "type": "object",
+            "properties": {
+                "groupsLabel": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetK8sEventsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/response.K8sEventStatistics"
+                    }
+                },
+                "reasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetLogMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "errorRate": {
+                    "description": "error rate",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "latency": {
+                    "description": "delay P90",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "logs": {
+                    "description": "log alarm",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "name": {
+                    "description": "Instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetMetricPQLResponse": {
+            "type": "object",
+            "properties": {
+                "alertMetricsData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.AlertMetricsData"
+                    }
+                }
+            }
+        },
+        "response.GetMonitorStatusResponse": {
+            "type": "object",
+            "properties": {
+                "monitorList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.MonitorStatus"
+                    }
+                }
+            }
+        },
+        "response.GetOnOffCPUResponse": {
+            "type": "object",
+            "properties": {
+                "profilingEvent": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.ProfilingEvent"
+                    }
+                }
+            }
+        },
+        "response.GetPolarisInferResponse": {
+            "type": "object",
+            "properties": {
+                "inferCause": {
+                    "type": "string"
+                },
+                "inferMetricsPng": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetPredefinedDetectExprResponse": {
+            "type": "object",
+            "properties": {
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PredefinedMetricExpr"
+                    }
+                }
+            }
+        },
+        "response.GetProcessFlameGraphResponse": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "flameBearer": {
+                    "type": "string"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "sampleRate": {
+                    "type": "integer"
+                },
+                "sampleType": {
+                    "type": "string"
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "tid": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetSQLMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                },
+                "sqlOperationDetails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.SQLOperationDetail"
+                    }
+                }
+            }
+        },
+        "response.GetServiceEndpointRelationResponse": {
+            "type": "object",
+            "properties": {
+                "childRelations": {
+                    "description": "downstream node call relationship list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyRelation"
+                    }
+                },
+                "current": {
+                    "description": "current service",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.TopologyNode"
+                        }
+                    ]
+                },
+                "parents": {
+                    "description": "upstream node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "topologyExternalClientCall": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TopologyExternalClientCall"
+                    }
+                },
+                "topologyLevels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.TopologyNodeLevel"
+                    }
+                }
+            }
+        },
+        "response.GetServiceEndpointTopologyResponse": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "description": "downstream node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "current": {
+                    "description": "current service",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.TopologyNode"
+                        }
+                    ]
+                },
+                "parents": {
+                    "description": "upstream node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                }
+            }
+        },
+        "response.GetServiceEntryEndpointsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.EntryInstanceData"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetServiceNamespaceListResponse": {
+            "type": "object",
+            "properties": {
+                "namespaceList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetServiceREDChartsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/definitions/response.RedCharts"
+                }
+            }
+        },
+        "response.GetServiceRouteResponse": {
+            "type": "object",
+            "properties": {
+                "routeRule": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetServiceWithInstancesResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceWithInstances"
+                    }
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetTTLResponse": {
+            "type": "object",
+            "properties": {
+                "k8s": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "other": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "topology": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                },
+                "trace": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModifyTableTTLMap"
+                    }
+                }
+            }
+        },
+        "response.GetTeamResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Team"
+                    }
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetTraceFilterValueResponse": {
+            "type": "object",
+            "properties": {
+                "traceFilterOptions": {
+                    "$ref": "#/definitions/clickhouse.SpanTraceOptions"
+                }
+            }
+        },
+        "response.GetTraceFiltersResponse": {
+            "type": "object",
+            "properties": {
+                "traceFilters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.SpanTraceFilter"
+                    }
+                }
+            }
+        },
+        "response.GetTraceMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "errorRate": {
+                    "description": "error rate",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "latency": {
+                    "description": "delay P90",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "logs": {
+                    "description": "log alarm",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "name": {
+                    "description": "Instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.GetTracePageListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.QueryTraceResult"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetUserConfigResponse": {
+            "type": "object",
+            "properties": {
+                "menuItem": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.MenuItem"
+                    }
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetUserInfoResponse": {
+            "type": "object",
+            "properties": {
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Team"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GetUserListResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.User"
+                    }
+                }
+            }
+        },
+        "response.IndexItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "indexName": {
+                    "type": "string"
+                },
+                "percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "response.Instance": {
+            "type": "object",
+            "properties": {
+                "dataBases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.DBInfo"
+                    }
+                },
+                "instanceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.InstanceData": {
+            "type": "object",
+            "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "application alarm",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "container alarm",
+                    "type": "string"
+                },
+                "errorRate": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "infrastructureStatus": {
+                    "description": "infrastructure alarm",
+                    "type": "string"
+                },
+                "k8sStatus": {
+                    "description": "K8s status alarm",
+                    "type": "string"
+                },
+                "latency": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logs": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "log metric alarm",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Instance name",
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "netStatus": {
+                    "description": "network alarm",
+                    "type": "string"
+                },
+                "nodeIP": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                },
+                "tps": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                }
+            }
+        },
+        "response.InstanceNode": {
+            "type": "object",
+            "properties": {
+                "instance": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.InstanceSource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.InstanceWithSource": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "instanceName": {
+                    "type": "string"
+                },
+                "nodeIp": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "podName": {
+                    "description": "Pod name",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/response.InstanceSource"
+                }
+            }
+        },
+        "response.InstancesRes": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceData"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.K8sEventCountValues": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "integer"
+                },
+                "lastMonth": {
+                    "type": "integer"
+                },
+                "lastWeek": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.K8sEventStatistics": {
+            "type": "object",
+            "properties": {
+                "counts": {
+                    "$ref": "#/definitions/response.K8sEventCountValues"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "eventName": {
+                    "type": "string"
+                },
+                "severity": {
+                    "description": "Normal or Warning",
+                    "type": "string"
+                }
+            }
+        },
+        "response.ListAlertSlienceConfigResponse": {
+            "type": "object",
+            "properties": {
+                "sliences": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/slienceconfig.AlertSlienceConfig"
+                    }
+                }
+            }
+        },
+        "response.ListCustomTopologyResponse": {
+            "type": "object",
+            "properties": {
+                "topologies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.CustomServiceTopology"
+                    }
+                }
+            }
+        },
+        "response.ListDataPlaneResponse": {
+            "type": "object",
+            "properties": {
+                "dataPlanes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataPlaneWithClusterIDs"
+                    }
+                }
+            }
+        },
+        "response.ListDataPlaneTypeResponse": {
+            "type": "object",
+            "properties": {
+                "dpTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataPlaneType"
+                    }
+                }
+            }
+        },
+        "response.ListServiceNameRule": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "conditions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/database.ServiceNameRuleCondition"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ListServiceNameRuleResponse": {
+            "type": "object",
+            "properties": {
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ListServiceNameRule"
+                    }
+                }
+            }
+        },
+        "response.LogChartResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "histograms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogHistogram"
+                    }
+                },
+                "progress": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LogHistogram": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "from": {
+                    "type": "integer"
+                },
+                "progress": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.LogIndexResponse": {
+            "type": "object",
+            "properties": {
+                "indexs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.IndexItem"
+                    }
+                }
+            }
+        },
+        "response.LogItem": {
+            "type": "object",
+            "properties": {
+                "content": {},
+                "logFields": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.LogParseResponse": {
+            "type": "object",
+            "properties": {
+                "isStructured": {
+                    "type": "boolean"
+                },
+                "parseInfo": {
+                    "type": "string"
+                },
+                "parseName": {
+                    "type": "string"
+                },
+                "parseRule": {
+                    "type": "string"
+                },
+                "routeRule": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "serviceName": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tableFields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.Field"
+                    }
+                }
+            }
+        },
+        "response.LogQueryContextResponse": {
+            "type": "object",
+            "properties": {
+                "back": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogItem"
+                    }
+                },
+                "front": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogItem"
+                    }
+                }
+            }
+        },
+        "response.LogQueryResponse": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "type": "integer"
+                },
+                "defaultFields": {
+                    "description": "tag field",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "error": {
+                    "type": "string"
+                },
+                "hiddenFields": {
+                    "description": "log field",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limited": {
+                    "type": "integer"
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.LogItem"
+                    }
+                },
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LogTableInfo": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "string"
+                },
+                "logField": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                },
+                "timeField": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.LogTableInfoResponse": {
+            "type": "object",
+            "properties": {
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Instance"
+                    }
+                },
+                "parses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Parse"
+                    }
+                }
+            }
+        },
+        "response.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "accessToken is used to call the interface get resources",
+                    "type": "string"
+                },
+                "corporation": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "featureList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Feature"
+                    }
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "refreshToken": {
+                    "description": "refreshToken for refreshing accessToken",
+                    "type": "string"
+                },
+                "roleList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Role"
+                    }
+                },
+                "teamList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/profile.Team"
+                    }
+                },
+                "userId": {
+                    "type": "integer"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.MonitorStatus": {
+            "type": "object",
+            "properties": {
+                "isAlive": {
+                    "type": "boolean"
+                },
+                "monitorName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OtherDB": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "tables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OtherTable"
+                    }
+                }
+            }
+        },
+        "response.OtherTable": {
+            "type": "object",
+            "properties": {
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OtherTableInfoResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Column"
+                    }
+                },
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.OtherTableResponse": {
+            "type": "object",
+            "properties": {
+                "otherTables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.OtherDB"
+                    }
+                }
+            }
+        },
+        "response.Parse": {
+            "type": "object",
+            "properties": {
+                "dataBase": {
+                    "type": "string"
+                },
+                "parseInfo": {
+                    "type": "string"
+                },
+                "parseName": {
+                    "type": "string"
+                },
+                "tableName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PodMapResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schemas": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "label_type": {
+                                "type": "string"
+                            },
+                            "pre_as": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "integer"
+                            },
+                            "unit": {
+                                "type": "string"
+                            },
+                            "value_type": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    }
+                }
+            }
+        },
+        "response.QueryAPPInfoTagValuesResponse": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.QueryAPPInfoTagsResponse": {
+            "type": "object",
+            "properties": {
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.QueryChartResult": {
+            "type": "object",
+            "properties": {
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.Timeseries"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QueryPodsResponse": {
+            "type": "object",
+            "properties": {
+                "pods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Pod"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceEndpointsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceInstancesResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceInstance"
+                    }
+                }
+            }
+        },
+        "response.QueryServiceNameResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.QueryServiceRedChartsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.QueryChartResult"
+                    }
+                }
+            }
+        },
+        "response.QueryServicesResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Service"
+                    }
+                }
+            }
+        },
+        "response.QueryTopologyResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceToplogyNode"
+                    }
+                }
+            }
+        },
+        "response.RYGScoreDetail": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "score": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.RYGStatus": {
+            "type": "string",
+            "enum": [
+                "red",
+                "yellow",
+                "green"
+            ],
+            "x-enum-varnames": [
+                "RED",
+                "YELLOW",
+                "GREEN"
+            ]
+        },
+        "response.Ratio": {
+            "type": "object",
+            "properties": {
+                "dayOverDay": {
+                    "description": "Day-over-Day Growth Rate",
+                    "type": "number"
+                },
+                "weekOverDay": {
+                    "description": "Week-over-Week Growth Rate",
+                    "type": "number"
+                }
+            }
+        },
+        "response.RedCharts": {
+            "type": "object",
+            "properties": {
+                "errorRate": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "latency": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "tps": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                }
+            }
+        },
+        "response.RefreshTokenResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "accessToken is used to call the interface get resources",
+                    "type": "string"
+                }
+            }
+        },
+        "response.SQLOperationDetail": {
+            "type": "object",
+            "properties": {
+                "dbName": {
+                    "description": "DBName -\u003e ${database}",
+                    "type": "string"
+                },
+                "dbOperation": {
+                    "description": "DBOperation -\u003e ${operation} ${table}, e.g: SELECT trip",
+                    "type": "string"
+                },
+                "dbSystem": {
+                    "description": "DBSystem -\u003e ${SQL Type}, e.g: Mysql",
+                    "type": "string"
+                },
+                "dbUrl": {
+                    "type": "string"
+                },
+                "errorRate": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "latency": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "tps": {
+                    "description": "FIXME Tps name is tps, actual requests per minute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.SegmentLatency": {
+            "type": "object",
+            "properties": {
+                "clientK8SNodeNic": {
+                    "description": "Request and response time collected at the client host NIC",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "clientNic": {
+                    "description": "Request and response time collected at the client NIC",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "clientProcess": {
+                    "description": "Request and response times collected at the client process",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverK8SNodeNic": {
+                    "description": "Request and response time collected at the server host NIC",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverNic": {
+                    "description": "Request and response time collected at the server NIC",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                },
+                "serverProcess": {
+                    "description": "Request and response time collected at the server process",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Duration"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.ServiceAlertRes": {
+            "type": "object",
+            "properties": {
+                "alertReason": {
+                    "$ref": "#/definitions/model.AlertReason"
+                },
+                "appStatus": {
+                    "description": "application alarm",
+                    "type": "string"
+                },
+                "containerStatus": {
+                    "description": "container alarm",
+                    "type": "string"
+                },
+                "infrastructureStatus": {
+                    "description": "infrastructure alarm",
+                    "type": "string"
+                },
+                "k8sStatus": {
+                    "description": "K8s status alarm",
+                    "type": "string"
+                },
+                "logs": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "logsStatus": {
+                    "description": "log metric alarm",
+                    "type": "string"
+                },
+                "netStatus": {
+                    "description": "network alarm",
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ServiceDetail": {
+            "type": "object",
+            "properties": {
+                "delaySource": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "errorRate": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "latency": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "tps": {
+                    "description": "FIXME name is tps, actual requests per minute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
+                }
+            }
+        },
+        "response.ServiceEndPointsRes": {
+            "type": "object",
+            "properties": {
+                "endpointCount": {
+                    "type": "integer"
+                },
+                "namespaces": {
+                    "description": "The namespace of the application. It may be empty",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceDetails": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceDetail"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ServiceRYGLightRes": {
+            "type": "object",
+            "properties": {
+                "serviceList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceRYGResult"
+                    }
+                }
+            }
+        },
+        "response.ServiceRYGResult": {
+            "type": "object",
+            "properties": {
+                "percentScore": {
+                    "description": "percentage total score",
+                    "type": "integer"
+                },
+                "score": {
+                    "description": "total score",
+                    "type": "integer"
+                },
+                "scoreDetail": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.RYGScoreDetail"
+                    }
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/response.RYGStatus"
+                }
+            }
+        },
+        "response.ServiceWithInstances": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceWithSource"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.SpanSegmentMetricsResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/response.SegmentLatency"
+            }
+        },
+        "response.TempChartObject": {
+            "type": "object",
+            "properties": {
+                "chartData": {
+                    "description": "ChartData chart data",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "number",
+                        "format": "float64"
+                    }
+                },
+                "ratio": {
+                    "description": "Ratio metric Day-over-Day Growth Rate rate",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.Ratio"
+                        }
+                    ]
+                },
+                "value": {
+                    "description": "Value metric average",
+                    "type": "number"
+                }
+            }
+        },
+        "response.Timeseries": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "legend": {
+                    "type": "string"
+                },
+                "legendFormat": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TopologyExternalClientCall": {
+            "type": "object",
+            "properties": {
+                "childs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TopologyNode"
+                    }
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "isTraced": {
+                    "type": "boolean"
+                },
+                "outOfGroup": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.TopologyNodeLevel": {
+            "type": "object",
+            "properties": {
+                "depth": {
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "outOfGroup": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "type": "string"
+                }
+            }
+        },
+        "slienceconfig.AlertSlienceConfig": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "alertName": {
+                    "type": "string"
+                },
+                "endAt": {
+                    "type": "string"
+                },
+                "for": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "startAt": {
+                    "type": "string"
+                },
+                "tags": {
+                    "$ref": "#/definitions/slienceconfig.TagsStr"
+                }
+            }
+        },
+        "slienceconfig.TagsStr": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
         }
     }
+}
