@@ -33,6 +33,8 @@
     "formValidationFailed": "表单验证失败"
   },
   "autoExecute": "自动执行",
+  "installNow": "立即安装",
+  "connectNow": "立即接入",
   "quickQuestions": {
     "title": "SRE Agent",
     "subtitle": "🚀 让 AI 极速解决系统问题",
@@ -48,10 +50,33 @@
       "latencyCheck": "检查最近15分钟系统中是否存在应用响应变慢或延时异常的情况，并分析原因。",
       "errorCheck": "分析最近15分钟系统中是否存在应用异常或错误问题，并分析可能原因。",
       "cpuUsage": "node-16主机的CPU使用率超过80%，这是怎么回事？"
+    },
+    "alerts": {
+      "agentNotInstalledTitle": "未安装 minimal-agent",
+      "agentNotInstalledDesc": "minimal-agent 为 SRE Agent 运行的基础，点击轻松安装",
+      "dataSourceNotConnectedTitle": "未接入数据源",
+      "dataSourceNotConnectedDesc": "未接入数据源，SRE Agent 缺少可分析数据"
     }
   },
   "abnormalityDetection": {
     "type": "类型",
     "serviceList": "服务列表"
+  },
+  "header": {
+    "title": "SRE Agent Chat",
+    "refresh": "刷新",
+    "badges": {
+      "datasource": "数据源",
+      "services": "监控服务"
+    },
+    "datasourceStatus": {
+      "title": "SRE Agent Chat 可用数据来源状态",
+      "noDatasource": "当前未接入数据源",
+      "currentDatasources": "当前接入数据源"
+    },
+    "serviceStatus": {
+      "noService": "未监控任何服务",
+      "currentServices": "当前监控服务"
+    }
   }
 }

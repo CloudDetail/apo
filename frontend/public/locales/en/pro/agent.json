@@ -33,6 +33,8 @@
     "formValidationFailed": "Form validation failed"
   },
   "autoExecute": "Auto Execute",
+  "installNow": "Install Now",
+  "connectNow": "Connect Now",
   "quickQuestions": {
     "title": "SRE Agent",
     "subtitle": "🚀 Let AI solve system problems instantly",
@@ -48,10 +50,33 @@
       "latencyCheck": "Check if there are any application response slowdowns or latency anomalies in the system in the last 15 minutes, and analyze the causes.",
       "errorCheck": "Analyze if there are any application anomalies or error issues in the system in the last 15 minutes, and analyze possible causes.",
       "cpuUsage": "The CPU usage of node-16 host exceeds 80%, what's happening?"
+    },
+    "alerts": {
+      "agentNotInstalledTitle": "Minimal agent is not installed",
+      "agentNotInstalledDesc": "Minimal agent is required to run SRE Agent. Click to install.",
+      "dataSourceNotConnectedTitle": "No data source connected",
+      "dataSourceNotConnectedDesc": "No data source connected. SRE Agent lacks data to analyze."
     }
   },
   "abnormalityDetection": {
     "type": "Type",
     "serviceList": "Service List"
+  },
+  "header": {
+    "title": "SRE Agent Chat",
+    "refresh": "Refresh",
+    "badges": {
+      "datasource": "Data Sources",
+      "services": "Monitored Services"
+    },
+    "datasourceStatus": {
+      "title": "SRE Agent Chat Data Sources Status",
+      "noDatasource": "No data source connected",
+      "currentDatasources": "Current data sources"
+    },
+    "serviceStatus": {
+      "noService": "No services monitored",
+      "currentServices": "Current services"
+    }
   }
 }

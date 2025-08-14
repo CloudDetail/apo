@@ -3,6 +3,11 @@
   "sourceType": "Data Source Type",
   "sourceName": "Data Source Name",
   "operation": "Operation",
+  "typ": "Type",
+  "name": "Name",
+  "desc": "Description",
+  "capabilitySpec": "Capability Specification",
+  "confirmDelete": "Are you sure you want to delete data source {{sourceName}}?",
   "steps": {
     "probeInstall": "Probe Installation",
     "dataSource": "Connect Data Source",
@@ -17,7 +22,9 @@
   },
   "messages": {
     "defaultCollectionInfo": "By default, only core critical data is collected. You can configure the probe to collect more data to enhance intelligent analysis",
-    "connectSuccess": "Connection successful"
+    "connectSuccess": "Connection successful",
+    "testSuccess": "Test connection successful",
+    "testFailed": "Test connection failed"
   },
   "optionalConfig": {
     "title": "Optional Data Collection Configuration",
@@ -26,6 +33,8 @@
   "dataIntegrationSettings": "Data Integration Settings",
   "form": {
     "dataSourceName": "Data Source Name",
+    "note": "Comment",
+    "test": "Test",
     "config": "Configure",
     "connect": "Connect"
   }

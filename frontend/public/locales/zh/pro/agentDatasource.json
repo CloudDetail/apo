@@ -3,6 +3,11 @@
   "sourceType": "数据源类型",
   "sourceName": "数据源名称",
   "operation": "操作",
+  "typ": "类型",
+  "name": "名称",
+  "desc": "描述",
+  "capabilitySpec": "能力规格",
+  "confirmDelete": "确认删除数据源 {{sourceName}} 吗？",
   "steps": {
     "probeInstall": "探针安装",
     "dataSource": "接入数据源",
@@ -17,7 +22,9 @@
   },
   "messages": {
     "defaultCollectionInfo": "默认仅采集核心关键数据，您可以通过配置允许探针采集更多数据，增强智能分析效果",
-    "connectSuccess": "接入成功"
+    "connectSuccess": "接入成功",
+    "testSuccess": "测试连接成功",
+    "testFailed": "测试连接失败"
   },
   "optionalConfig": {
     "title": "可选数据采集配置",
@@ -26,6 +33,8 @@
   "dataIntegrationSettings": "选择数据源",
   "form": {
     "dataSourceName": "接入数据源名称",
+    "note": "备注",
+    "test": "测试",
     "config": "配置",
     "connect": "接入"
   }
