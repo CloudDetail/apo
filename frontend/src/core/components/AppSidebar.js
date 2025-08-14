@@ -23,7 +23,7 @@ const AppSidebarMenuIcon = (menuItem) => {
   )
 }
 
-const agentKeys = import.meta.env.VITE_APP_CODE_VERSION !== 'EE' ? ['agent', 'alerts', 'probe', 'integration'] : []
+const agentKeys = import.meta.env.VITE_APP_CODE_VERSION === 'EE' ? ['agent', 'alerts', 'probe', 'integration'] : []
 
 const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
