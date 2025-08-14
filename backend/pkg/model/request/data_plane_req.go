@@ -111,3 +111,23 @@ type UpdateDataPlaneRequest struct {
 type DeleteDataPlaneRequest struct {
 	ID int `form:"id" json:"id" binding:"required"`
 }
+
+type GetDatasourcesRequest struct {
+	Cluster   string `form:"cluster" json:"cluster"`
+	StartTime int64  `form:"startTime" json:"startTime" binding:"required"`
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+}
+
+type GetServiceWithInstancesRequest struct {
+	Cluster   string   `form:"cluster" json:"cluster"`
+	StartTime int64    `form:"startTime" json:"startTIme" binding:"min=0"`
+	EndTime   int64    `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+	Services  []string `form:"services" json:"services"`
+	*PageParam
+}
+
+type ListServiceNameRuleRequest struct {
+	Service   string `form:"serviceName" json:"serviceName"`
+	StartTime int64  `form:"startTime" json:"startTime" binding:"min=0"`
+	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
+}

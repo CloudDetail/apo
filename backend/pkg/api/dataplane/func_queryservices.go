@@ -34,6 +34,7 @@ func (h *handler) QueryServices() core.HandlerFunc {
 			)
 			return
 		}
+
 		c.Payload(h.dataplaneService.GetServices(c, req))
 	}
 }

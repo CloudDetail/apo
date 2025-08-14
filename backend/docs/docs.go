@@ -3504,6 +3504,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/checkDataSource": {
+            "post": {
+                "description": "check datasource is valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "check datasource is valid.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/create": {
             "post": {
                 "description": "Creates a new dataplane.",
@@ -3721,6 +3761,61 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.CheckMinimalDataPlaneResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/datasources": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluseter id",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDatasourcesResponse"
                         }
                     },
                     "400": {
@@ -4137,6 +4232,27 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "Service name",
+                        "name": "serviceName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"
@@ -4240,6 +4356,83 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.QueryServicesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicesWithInstances": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluseter id",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Services",
+                        "name": "services",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Current page",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceWithInstancesResponse"
                         }
                     },
                     "400": {
@@ -12720,6 +12913,17 @@ const docTemplate = `{
                 }
             }
         },
+        "model.DatasourceCount": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "model.DetectExprPart": {
             "type": "object",
             "properties": {
@@ -12794,6 +12998,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MatchServiceInstance": {
+            "type": "object",
+            "properties": {
+                "instanceName": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -15069,8 +15287,10 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "instances": {
+                "instances": {
                     "type": "array",
                     "items": {
+                        "$ref": "#/definitions/model.MatchServiceInstance"
                         "$ref": "#/definitions/model.MatchServiceInstance"
                     }
                 }
@@ -15551,6 +15771,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.Datasource"
                     }
+                }
+            }
+        },
+        "response.GetDatasourcesResponse": {
+            "type": "object",
+            "properties": {
+                "datasources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DatasourceCount"
+                    }
+                },
+                "serviceCount": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -16149,6 +16386,29 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetServiceWithInstancesResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceWithInstances"
+                    }
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetTTLResponse": {
             "type": "object",
             "properties": {
@@ -16465,6 +16725,54 @@ const docTemplate = `{
                 }
             }
         },
+        "response.InstanceSource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.InstanceWithSource": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "instanceName": {
+                    "type": "string"
+                },
+                "nodeIp": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "podName": {
+                    "description": "Pod name",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/response.InstanceSource"
+                }
+            }
+        },
         "response.InstancesRes": {
             "type": "object",
             "properties": {
@@ -16558,6 +16866,9 @@ const docTemplate = `{
         "response.ListServiceNameRule": {
             "type": "object",
             "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
                 "conditions": {
                     "type": "array",
                     "items": {
@@ -16566,6 +16877,12 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "serviceName": {
                     "type": "string"
@@ -17355,6 +17672,29 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/response.RYGStatus"
+                }
+            }
+        },
+        "response.ServiceWithInstances": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceWithSource"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
                 }
             }
         },

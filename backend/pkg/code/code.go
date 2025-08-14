@@ -278,6 +278,8 @@ const (
 	DataPlaneTypeNotExistError      = "B1817"
 	DataPlaneParamInvalidError      = "B1818"
 	CheckMinimalDataPlaneExistError = "B1819"
+	GetDatasourcesError             = "B1820"
+	GetServiceWithInstancesError    = "B1821"
 
 	// Metric
 	QueryPodsError = "B1901"

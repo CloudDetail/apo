@@ -230,11 +230,13 @@ var enText = map[string]string{
 	QueryAPPInfoTagsError:         "Failed to query APP info tags",
 	QueryAPPInfoValuesError:       "Failed to query APP info values",
 
-	CreateDataPlaneError:   "Failed to create data plane",
-	DeleteDataPlaneError:   "Failed to delete data plane",
-	ListDataPlaneError:     "Failed to list data plane",
-	ListDataPlaneTypeError: "Failed to list data plane type",
-	UpdateDataPlaneError:   "Failed to update data plane",
+	CreateDataPlaneError:         "Failed to create data plane",
+	DeleteDataPlaneError:         "Failed to delete data plane",
+	ListDataPlaneError:           "Failed to list data plane",
+	ListDataPlaneTypeError:       "Failed to list data plane type",
+	UpdateDataPlaneError:         "Failed to update data plane",
+	GetDatasourcesError:          "Failed to get datasources",
+	GetServiceWithInstancesError: "Failed to get monitored services",
 
 	QueryPodsError: "Failed to get pod list",
 }
