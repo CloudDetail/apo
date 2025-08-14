@@ -37,6 +37,8 @@ var sreFeatures = []profile.Feature{
 	{FeatureName: "智能体"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
 	{FeatureName: "数据接入"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
+	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
+	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
 }
 
 func (repo *daoRepo) initFeature(ctx core.Context) error {

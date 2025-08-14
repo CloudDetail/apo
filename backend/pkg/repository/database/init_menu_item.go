@@ -60,6 +60,12 @@ var sreMenuItemMappings = []menuMapping{
 	{MenuItem: MenuItem{Key: "alerts", Order: 4}},
 	{MenuItem: MenuItem{Key: "alertsNotify", Order: 29}, RouterKey: "/alerts/notify"},
 	{MenuItem: MenuItem{Key: "alertEvents", Order: 31}, RouterKey: "/alerts/events"},
+	{MenuItem: MenuItem{Key: "manage", Order: 41}},
+	{MenuItem: MenuItem{Key: "userManage", Order: 43}, RouterKey: "/system/user-manage"},
+	{MenuItem: MenuItem{Key: "menuManage", Order: 45}, RouterKey: "/system/menu-manage"},
+	{MenuItem: MenuItem{Key: "team", Order: 51}, RouterKey: "/system/team"},
+	{MenuItem: MenuItem{Key: "role", Order: 52}, RouterKey: "/system/role-manage"},
+	{MenuItem: MenuItem{Key: "dataGroup", Order: 49}, RouterKey: "/system/data-group"},
 }
 
 func (repo *daoRepo) initMenuItems(ctx core.Context) error {
