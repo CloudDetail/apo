@@ -36,7 +36,7 @@ func (ch *chRepo) QueryAllLogsInOrder(ctx core.Context, req *request.LogQueryReq
 	bySql := NewByLimitBuilder().
 		OrderBy(fmt.Sprintf("`%s`", req.TimeField), true).
 		Limit(req.PageSize).
-		Offset(req.PageNum).
+		Offset(0).
 		String()
 	sql := buildAllLogsQuery(logsBaseQuery, req, condition, bySql)
 
