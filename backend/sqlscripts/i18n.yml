@@ -254,11 +254,11 @@ integration:
   key: "integration"
   i18n:
     - language: "en"
-      translation: "Integration Center"
+      translation: "Data Ingestion"
       field_name: "label"
       entity_type: "menu"
     - language: "en"
-      translation: "IC"
+      translation: "Ingestion"
       field_name: "abbreviation"
       entity_type: "menu"
     - language: "zh"
@@ -685,7 +685,7 @@ analysis:
   key: "接入中心"
   i18n:
     - language: "en"
-      translation: "Integration Center"
+      translation: "Data Ingestion"
       field_name: "featureName"
       entity_type: "feature"
     - language: "zh"

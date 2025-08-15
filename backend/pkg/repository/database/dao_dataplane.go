@@ -104,3 +104,44 @@ func (repo *daoRepo) DeleteCluster2DataPlane(ctx core.Context, id int) error {
 		Where("data_plane_id = ?", id).
 		Delete(&mi.Cluster2DataPlane{}).Error
 }
+
+func (repo *daoRepo) InitAPODataplane(ctx core.Context) error {
+	var count int64
+	err := repo.GetContextDB(ctx).Model(&mi.DataPlaneType{}).Where("type_name = ?", "apo").Count(&count).Error
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		apoDataplaneType := &mi.DataPlaneType{
+			TypeName:        "apo",
+			ParamSpec:       mi.JSONField[mi.ParamSpec]{Obj: mi.ParamSpec{Name: "root", Type: "object"}},
+			CapabilitySpec:  mi.JSONField[[]string]{Obj: []string{"RedMetric", "ServiceInstance", "Topology", "Log", "Trace", "Metrics"}},
+			TypeDisplayName: "APO",
+		}
+		err = repo.GetContextDB(ctx).Create(apoDataplaneType).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	err = repo.GetContextDB(ctx).Model(&mi.DataPlane{}).Where("name = ?", "apo").Count(&count).Error
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		apoDataplane := &mi.DataPlane{
+			Name:       "apo",
+			Typ:        "apo",
+			Capability: mi.JSONField[[]string]{Obj: []string{"RedMetric", "ServiceInstance", "Topology", "Log", "Trace", "Metrics"}},
+			Params:     "{}",
+		}
+		err = repo.GetContextDB(ctx).Create(apoDataplane).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
