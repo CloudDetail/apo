@@ -9,6 +9,8 @@ import { FaAngleRight } from 'react-icons/fa'
 import { AlertLevel } from 'src/oss/views/alertEvents/components/AlertInfoCom'
 import { LuClock2, LuTag } from 'react-icons/lu'
 import { FaMagnifyingGlass } from 'react-icons/fa6'
+import DateTimeRangePicker from 'src/core/components/DateTime/DateTimeRangePicker'
+import RefreshDateTime from 'src/core/components/DateTime/RefreshDateTime'
 
 const AlertEventCard: React.FC<{ event: any }> = ({ event }) => {
   const { t } = useTranslation('pro/agent')
@@ -146,17 +148,20 @@ const AlertEventList: React.FC = () => {
     fetchAlertEvents()
     localStorage.setItem('refreshKey', '1m')
   }, [startTime, endTime, dataGroupId])
-
+  const { rangeTypeKey } = useSelector((state) => state.timeRange)
   return (
     <Card
       className="h-full overflow-hidden"
       classNames={{ body: 'p-0 overflow-y-auto flex flex-col' }}
       styles={{ body: { height: 'calc(100% - 60px)' } }}
       title={
-        <>
+        <div className="relative">
           {t('alertIntelligentAnalysisReport')}
-          <div className="text-xs text-gray-500">{t('clickCardToViewReport')}</div>
-        </>
+          <div className="flex items-center gap-2">
+            <DateTimeRangePicker size="small" />
+            {rangeTypeKey && <RefreshDateTime size="small" />}
+          </div>
+        </div>
       }
       extra={
         <Button type="link" onClick={() => window.open('/#/alerts/events', '_blank')}>
