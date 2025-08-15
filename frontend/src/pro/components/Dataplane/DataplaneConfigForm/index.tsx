@@ -1,4 +1,4 @@
-import { Alert, Button, Collapse, Form, Input } from 'antd'
+import { Alert, Button, Form, Input } from 'antd'
 import {
   checkDataplaneDatasourceApi,
   createDataplaneApi,
@@ -11,7 +11,6 @@ import LogsFormItem from 'src/core/components/Integration/LogsFormItem'
 import MetricsFormItem from 'src/core/components/Integration/MetricsFormItem'
 import TraceFormItem from 'src/core/components/Integration/TraceFormItem'
 import { useTranslation } from 'react-i18next'
-import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 import i18n from 'src/i18n'
 
 const DataplaneConfigForm = ({
@@ -146,7 +145,7 @@ const DataplaneConfigForm = ({
         />
       )}
 
-      <Collapse
+      {/* <Collapse
         defaultActiveKey={['1']}
         className="my-2"
         items={[
@@ -156,7 +155,7 @@ const DataplaneConfigForm = ({
             children: <MarkdownRender content={desc} theme="light" />,
           },
         ]}
-      />
+      /> */}
       {dataplaneParams && (
         <Form
           layout="vertical"

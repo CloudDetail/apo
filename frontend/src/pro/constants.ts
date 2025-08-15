@@ -11,6 +11,8 @@ import tempo from 'src/pro/assets/tempo.svg'
 import openobserve from 'src/pro/assets/openobserve.png'
 import signoz from 'src/pro/assets/signoz.svg'
 import skywalking from 'src/core/assets/dataCollector/skywalking.svg'
+import grafana from 'src/pro/assets/grafana.svg'
+import jaeger from 'src/pro/assets/jaeger.svg'
 
 export const anormalTypesOptions = [
   {
@@ -83,6 +85,8 @@ export const dataplaneIconMap = {
   'SigNoz': signoz,
   'signoz': signoz,
   'skywalking': skywalking,
+  'jaeger': jaeger,
+  'grafanaPrometheus': grafana,
 }
 export const datasourceOptions = [
   {
