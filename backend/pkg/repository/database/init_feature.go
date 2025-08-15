@@ -38,7 +38,7 @@ var sreFeatures = []profile.Feature{
 	{FeatureName: "告警管理"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
 	{FeatureName: "接入中心"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
-	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
+	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"}, {FeatureName: "工作流故障报告"},
 }
 
 func (repo *daoRepo) initFeature(ctx core.Context) error {
