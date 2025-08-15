@@ -30,5 +30,9 @@
   "serviceMatchInstanceRules": "{{serviceName}} Match Instance Rules",
   "test": "Test",
   "conditions": "Conditions",
-  "instances": "Instances"
+  "instances": "Instances",
+  "capabilityTooltip": {
+    "RedMetric": "Request count, Error count and Duration",
+    "ServiceInstance": "Identifies service names and maps them to their instances (e.g., Pods)."
+  }
 }

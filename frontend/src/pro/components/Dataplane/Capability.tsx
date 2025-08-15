@@ -1,6 +1,12 @@
-import { Tag } from 'antd'
+import { Tag, Tooltip } from 'antd'
+import { useTranslation } from 'react-i18next'
+const tooltipKeyMap = {
+  RedMetric: 'capabilityTooltip.RedMetric',
+  ServiceInstance: 'capabilityTooltip.ServiceInstance',
+}
 
 const Capability = ({ capability }: { capability: string[] }) => {
+  const { t } = useTranslation('pro/dataplane')
   return (
     <div className="flex flex-wrap gap-2">
       {capability?.map((type, index) => (
@@ -10,9 +16,11 @@ const Capability = ({ capability }: { capability: string[] }) => {
         // >
         //   {type}
         // </span>
-        <Tag bordered={false} color="processing" key={index}>
-          {type}
-        </Tag>
+        <Tooltip title={t(tooltipKeyMap[type] || '')} key={index}>
+          <Tag bordered={false} color="processing" key={index}>
+            {type}
+          </Tag>
+        </Tooltip>
       ))}
     </div>
   )

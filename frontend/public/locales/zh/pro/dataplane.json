@@ -30,5 +30,9 @@
   "serviceMatchInstanceRules": "{{serviceName}}匹配实例规则",
   "test": "测试",
   "conditions": "条件",
-  "instances": "实例"
+  "instances": "实例",
+  "capabilityTooltip": {
+    "RedMetric": "请求量、错误数与延时指标",
+    "ServiceInstance": "支持自动识别服务实例，例如Pods名"
+  }
 }
