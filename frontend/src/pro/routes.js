@@ -79,6 +79,8 @@ let proRoutes = [
     path: '/agent',
     name: 'Agent',
     element: AgentPage,
+    hideSystemTimeRangePicker: true,
+
   },
   {
     path: '/probe-management',
