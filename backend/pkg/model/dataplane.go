@@ -124,4 +124,3 @@ type CheckDataSourceResponse struct {
 	Message string `json:"message,omitempty"`
 	Success bool   `json:"success"`
 }
-

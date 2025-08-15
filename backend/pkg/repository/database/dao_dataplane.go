@@ -11,7 +11,7 @@ import (
 
 func (repo *daoRepo) ListDataPlaneType(ctx core.Context) ([]mi.DataPlaneType, error) {
 	var res []mi.DataPlaneType
-	err := repo.GetContextDB(ctx).Find(&res).Error
+	err := repo.GetContextDB(ctx).Find(&res).Order("type_name asc").Error
 	return res, err
 }
 
