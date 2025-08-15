@@ -23,7 +23,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "应用指标大盘"},
 	{FeatureName: "中间件大盘"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警规则"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
-	{FeatureName: "数据接入"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
+	{FeatureName: "接入中心"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 	{FeatureName: "配置中心"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
@@ -36,7 +36,7 @@ var validFeatures = []profile.Feature{
 var sreFeatures = []profile.Feature{
 	{FeatureName: "智能体"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
-	{FeatureName: "数据接入"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
+	{FeatureName: "接入中心"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},
 	{FeatureName: "数据组管理"}, {FeatureName: "团队管理"}, {FeatureName: "角色管理"},
 }
@@ -88,7 +88,7 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 			"链路追踪": {"故障现场链路", "全量链路"},
 			"系统管理": {"用户管理", "菜单管理", "数据组管理", "团队管理", "角色管理"},
 			"告警管理": {"告警规则", "告警通知", "告警事件", "告警事件详情"},
-			"数据接入": {"探针管理", "告警集成", "外部数据"},
+			"接入中心": {"探针管理", "告警集成", "外部数据"},
 		}
 		for parentName, childNames := range parentChildMapping {
 			var parent profile.Feature

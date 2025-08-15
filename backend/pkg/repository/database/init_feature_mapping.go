@@ -136,7 +136,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 	featureRoutes := map[string][]string{
 		"服务概览":   {"/service/info", "/service/overview"},
-		"数据接入":   {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
+		"接入中心":   {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
 		"个人中心":   {"/user", "/profile", "/account"},
 		"告警事件":   {"/alerts/events/detail/:alertID/:eventID"},
 		"服务别名配置": {"/demo/service-config"},
