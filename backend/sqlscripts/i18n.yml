@@ -430,22 +430,6 @@ healthy:
       field_name: "abbreviation"
       entity_type: "menu"
 
-report:
-  key: "report"
-  i18n:
-    - language: "en"
-      translation: "Report"
-      field_name: "label"
-      entity_type: "menu"
-    - language: "zh"
-      translation: "故障报告"
-      field_name: "label"
-      entity_type: "menu"
-    - language: "en"
-      translation: "Report"
-      field_name: "abbreviation"
-      entity_type: "menu"
-
 serviceConfig:
   key: "serviceConfig"
   i18n:
@@ -476,15 +460,15 @@ analysis:
       translation: "Analysis"
       field_name: "abbreviation"
       entity_type: "menu"
-故障报告:
-  key: "故障报告"
+工作流故障报告:
+  key: "工作流故障报告"
   i18n:
   - language: "en"
-    translation: "Report"
+    translation: "Workflow Report"
     entity_type: "feature"
     field_name: "featureName"
   - language: "zh"
-    translation: "故障报告"
+    translation: "工作流故障报告"
     entity_type: "feature"
     field_name: "featureName"
 

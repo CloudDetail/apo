@@ -135,13 +135,14 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 // TODO add mapping of feature "告警分析"
 func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 	featureRoutes := map[string][]string{
-		"服务概览":   {"/service/info", "/service/overview"},
-		"接入中心":   {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
-		"个人中心":   {"/user", "/profile", "/account"},
-		"告警事件":   {"/alerts/events/detail/:alertID/:eventID"},
-		"服务别名配置": {"/demo/service-config"},
-		"故障报告":   {"/report"},
-		"告警分析":   {"/alert-analyze", "/alert-analyze/info", "/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/alert-analyze/chatAI/:service/:endpoint", "/report"},
+		"服务概览":    {"/service/info", "/service/overview"},
+		"接入中心":    {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
+		"个人中心":    {"/user", "/profile", "/account"},
+		"告警事件":    {"/alerts/events/detail/:alertID/:eventID"},
+		"服务别名配置":  {"/demo/service-config"},
+		"工作流故障报告": {"/report"},
+		"告警分析":    {"/alert-analyze", "/alert-analyze/info", "/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/alert-analyze/chatAI/:service/:endpoint", "/report"},
+		"智能体":     {"/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/report"},
 	}
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {

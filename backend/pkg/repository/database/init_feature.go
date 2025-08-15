@@ -30,7 +30,7 @@ var validFeatures = []profile.Feature{
 	{FeatureName: "MySQL大盘"},
 	{FeatureName: "服务健康状态"},
 	{FeatureName: "服务别名配置"},
-	{FeatureName: "故障报告"},
+	{FeatureName: "工作流故障报告"},
 }
 
 var sreFeatures = []profile.Feature{
