@@ -6,9 +6,6 @@
 import { cilCalendar, cilClock } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import {
-  CDropdown,
-  CDropdownMenu,
-  CDropdownToggle,
   CForm,
   CFormFeedback,
   CFormInput,
@@ -25,14 +22,14 @@ import './index.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { timeRangeMap } from 'src/core/store/reducers/timeRangeReducer'
 import { convertTime, ISOToTimestamp, TimestampToISO, timeUtils } from 'src/core/utils/time'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useUpdateEffect } from 'react-use'
 import { useTranslation } from 'react-i18next'
-import { Button, Menu } from 'antd'
+import { Button, Menu, Popover } from 'antd'
+import { IoMdArrowDropdown } from 'react-icons/io'
 
-const DateTimeRangePicker = React.memo((props) => {
+const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
   const { t } = useTranslation('core/dateTime')
-  const location = useLocation()
   const [dropdownVisible, setDropdownVisible] = useState(false)
   const [searchParams, setSearchParams] = useSearchParams()
   const storeTimeRange = useSelector((state) => state.timeRange)
@@ -289,28 +286,11 @@ const DateTimeRangePicker = React.memo((props) => {
 
   return (
     <>
-      <CDropdown
-        // dark
-        autoClose="outside"
-        visible={dropdownVisible}
-        onShow={() => setDropdownVisible(true)}
-        onHide={() => setDropdownVisible(false)}
-      >
-        <CDropdownToggle
-          className="dateTimeRangePicker flex items-center"
-          size="sm"
-          onClick={() => setDropdownVisible(true)}
-        >
-          <CIcon icon={cilClock} className="mr-2" />
-          <span className="text-sm">
-            {storeTimeRange?.rangeTypeKey
-              ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
-              : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
-                ' to ' +
-                convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
-          </span>
-        </CDropdownToggle>
-        <CDropdownMenu className="m-0 p-0">
+      <Popover
+        open={dropdownVisible}
+        onOpenChange={setDropdownVisible}
+        trigger={['click', 'hover']}
+        content={
           <div className="w-[600px] flex">
             <div className="w-3/5 border-r border-r-slate-300  px-3 py-2">
               <CForm noValidate>
@@ -371,6 +351,7 @@ const DateTimeRangePicker = React.memo((props) => {
               <Menu
                 selectedKeys={[storeTimeRange.rangeTypeKey]}
                 onClick={({ key }) => selectTimeRange(key)}
+                className="bg-transparent"
               >
                 {Object.keys(timeRangeMap).map((key) => (
                   <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
@@ -378,8 +359,20 @@ const DateTimeRangePicker = React.memo((props) => {
               </Menu>
             </div>
           </div>
-        </CDropdownMenu>
-      </CDropdown>
+        }
+      >
+        <div className="flex items-center cursor-pointer">
+          <CIcon icon={cilClock} className="mr-2" />
+          <span className={size === 'small' ? 'text-xs' : 'text-sm'}>
+            {storeTimeRange?.rangeTypeKey
+              ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
+              : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
+                ' to ' +
+                convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
+          </span>
+          <IoMdArrowDropdown />
+        </div>
+      </Popover>
     </>
   )
 })

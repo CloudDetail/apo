@@ -10,7 +10,7 @@ import { MdArrowDropDown } from 'react-icons/md'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
-export default function RefreshDateTime() {
+export default function RefreshDateTime({ size = 'normal' }) {
   const { t } = useTranslation('core/dateTime')
   const [refreshKey, setRefreshKey] = useState(null)
   const { refreshTimestamp } = useSelector((state) => state.timeRange)
@@ -101,7 +101,7 @@ export default function RefreshDateTime() {
     }
   }, [])
   return (
-    <div className="mx-1 refresh-date-time">
+    <div className={`mx-1 refresh-date-time ${size === 'small' ? 'text-xs' : ''}`}>
       <Dropdown.Button
         menu={menuProps}
         onClick={handleButtonClick}
@@ -111,6 +111,7 @@ export default function RefreshDateTime() {
             <MdArrowDropDown />
           </div>
         }
+        size={size}
       >
         <Tooltip title={t('refresh')}>
           <LuRefreshCw />
