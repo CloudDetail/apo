@@ -1,4 +1,4 @@
-import { Button, Input } from 'antd'
+import { Input } from 'antd'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -26,14 +26,14 @@ const IntentRecognition = ({ args }: { args: any }) => {
 
   return (
     <>
-      <Input.TextArea value={args} autoSize readOnly={executed} />
-      {!executed && (
+      <Input.TextArea value={args} autoSize readOnly={true} />
+      {/* {!executed && (
         <div className="text-right mt-2">
           <Button type="primary">
             {countdown}s {t('autoExecute')}
           </Button>
         </div>
-      )}
+      )} */}
     </>
   )
 }

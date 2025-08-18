@@ -1,4 +1,4 @@
-import { Button, Checkbox, Form, Input, Radio, Select } from 'antd'
+import { Checkbox, Form, Input, Radio, Select } from 'antd'
 import DateTimeRangePickerCom from 'src/core/components/DateTime/DateTimeRangePickerCom'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -55,19 +55,19 @@ const DataScopeForm = ({ args }: { args: any }) => {
   }, [countdown, args])
   return (
     <>
-      <Form layout="vertical" form={form} initialValues={initialValues} disabled={executed}>
+      <Form layout="vertical" form={form} initialValues={initialValues} disabled={true}>
         {fields?.map((item) => (
           <Form.Item label={item.label} name={item.name} key={item.name}>
             {RenderFormItem(item)}
           </Form.Item>
         ))}
-        {!executed && (
+        {/* {!executed && (
           <div className="text-right mt-2">
             <Button type="primary">
               {countdown}s {t('autoExecute')}
             </Button>
           </div>
-        )}
+        )} */}
       </Form>
     </>
   )
