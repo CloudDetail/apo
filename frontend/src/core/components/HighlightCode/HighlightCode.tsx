@@ -12,7 +12,9 @@ import { Button } from 'antd'
 import { MdArrowDownward, MdArrowUpward } from 'react-icons/md'
 import { ThemeStyle } from 'src/constants'
 import { IoCloudDownloadOutline } from 'react-icons/io5'
+import { useTranslation } from 'react-i18next'
 export default function HighlightCode(props: any) {
+  const { t } = useTranslation('common')
   const rowHeights = useRef<Record<number, number>>({})
 
   const { searchWord, title, rows } = props
@@ -165,7 +167,7 @@ export default function HighlightCode(props: any) {
             onChange={(e) => {
               setSearchWords([e.currentTarget.value])
             }}
-            placeholder="搜索"
+            placeholder={t('search')}
           />
           <Button
             disabled={count === 0 || searchWords.length === 0}
