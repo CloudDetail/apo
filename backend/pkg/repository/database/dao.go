@@ -173,6 +173,7 @@ type Repo interface {
 	UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error
 	DeleteDataPlane(ctx core.Context, id int) error
 	GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error)
+	CheckGetApoMetric(ctx core.Context) (bool, error)
 
 	CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error
 	DeleteCluster2DataPlane(ctx core.Context, id int) error

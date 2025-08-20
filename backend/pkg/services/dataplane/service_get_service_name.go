@@ -25,7 +25,19 @@ func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceName
 			Result: services[0].Name,
 		}
 	}
-	return s.getServiceNameByApo(ctx, req)
+	apo, err := s.dbRepo.CheckGetApoMetric(ctx)
+	if err != nil {
+		return &response.QueryServiceNameResponse{
+			Msg: "query service name failed: " + err.Error(),
+		}
+	}
+	if apo {
+		return s.getServiceNameByApo(ctx, req)
+	} else {
+		return &response.QueryServiceNameResponse{
+			Msg: "Data Not Found",
+		}
+	}
 }
 
 func (s *service) getServiceNameByApo(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {

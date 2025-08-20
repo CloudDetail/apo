@@ -23,7 +23,20 @@ func (s *service) GetServiceInstances(ctx core.Context, req *request.QueryServic
 			Results: instances,
 		}
 	}
-	return s.getServiceInstancesByApo(ctx, req)
+	apo, err := s.dbRepo.CheckGetApoMetric(ctx)
+	if err != nil {
+		return &response.QueryServiceInstancesResponse{
+			Msg: "query service instances failed: " + err.Error(),
+		}
+	}
+	if apo {
+		// Apo Case.
+		return s.getServiceInstancesByApo(ctx, req)
+	} else {
+		return &response.QueryServiceInstancesResponse{
+			Results: []*model.ServiceInstance{},
+		}
+	}
 }
 
 func (s *service) getServiceInstancesByApo(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse {

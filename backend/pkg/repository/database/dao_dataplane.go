@@ -4,6 +4,8 @@
 package database
 
 import (
+	"slices"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	mi "github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -103,4 +105,19 @@ func (repo *daoRepo) DeleteCluster2DataPlane(ctx core.Context, id int) error {
 	return repo.GetContextDB(ctx).Model(&mi.Cluster2DataPlane{}).
 		Where("data_plane_id = ?", id).
 		Delete(&mi.Cluster2DataPlane{}).Error
+}
+
+func (repo *daoRepo) CheckGetApoMetric(ctx core.Context) (bool, error) {
+	var dps []mi.DataPlane
+	err := repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
+		Where("is_deleted = ?", false).Find(&dps).Error
+
+	for _, dp := range dps {
+		if dp.Typ != "apo" {
+			if slices.Contains(dp.Capability.Obj, "ServiceInstance") {
+				return false, nil
+			}
+		}
+	}
+	return true, err
 }
