@@ -26,6 +26,7 @@ const (
 	PodPQLFilter            = "pod="
 	PidPQLFilter            = "pid="
 	NodeNamePQLFilter       = "node_name="
+	ClusterIDPQLFilter      = "cluster_id="
 
 	ContentKeyRegexPQLFilter = "content_key=~"
 	ServiceRegexPQLFilter    = "svc_name=~"

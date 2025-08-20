@@ -138,9 +138,12 @@ type Repo interface {
 	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
 	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
 	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
-	GetToResolveApps(ctx core.Context) ([]*model.AppInfo, error)
+	GetToResolveApps(ctx core.Context) ([]model.AppInfo, error)
 	ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error)
 	ListAppInfoLabelValues(ctx core.Context, startTime, endTime int64, key string) ([]string, error)
+	GetResolvedApps(ctx core.Context, ruleIds []string, startTime int64, endTime int64) ([]model.AppInfo, error)
+	GetDataplaneServiceList(ctx core.Context, req *request.QueryServiceNameRequest) ([]*model.Service, error)
+	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error)
 
 	integration.Input
 }

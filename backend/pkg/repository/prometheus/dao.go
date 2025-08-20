@@ -40,7 +40,7 @@ type Repo interface {
 	// GetInstanceList query service instance list. URL can be empty.
 	GetInstanceList(ctx core.Context, startTime int64, endTime int64, serviceName string, url string) (*model.ServiceInstances, error)
 	// Query the list of active instances
-	GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error)
+	GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceNames []string) (*model.ServiceInstances, error)
 	// Query the service Endpoint list. The service permission is empty.
 	GetServiceEndPointList(ctx core.Context, startTime int64, endTime int64, serviceName string) ([]string, error)
 	// Query the service Endpoint list. The service permission is empty.
@@ -90,9 +90,6 @@ type Repo interface {
 
 	GetNamespaceList(ctx core.Context, startTime int64, endTime int64, filter PQLFilter) ([]string, error)
 	GetNamespaceWithService(ctx core.Context, startTime, endTime int64) (map[string][]string, error)
-
-	GetDataplaneServiceList(ctx core.Context, startTime int64, endTime int64, filter string) ([]*model.Service, error)
-	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceName string) ([]*model.ServiceInstance, error)
 
 	GetPodList(ctx core.Context, startTime int64, endTime int64, nodeName string, namespace string, podName string) ([]*model.Pod, error)
 	QueryWithPQLFilter
