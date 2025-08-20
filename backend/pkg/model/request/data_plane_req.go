@@ -131,3 +131,15 @@ type ListServiceNameRuleRequest struct {
 	StartTime int64  `form:"startTime" json:"startTime" binding:"min=0"`
 	EndTime   int64  `form:"endTime" json:"endTime" binding:"required,gtfield=StartTime"`
 }
+
+type CleanRuleServicesRequest struct {
+	StartTime int64 `json:"startTime" binding:"required"`                 // query start time
+	EndTime   int64 `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	RuleId    int   `json:"ruleId" binding:"required"`
+}
+
+type CleanDataSourceServicesRequest struct {
+	StartTime  int64  `json:"startTime" binding:"required"`                 // query start time
+	EndTime    int64  `json:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	DataSource string `json:"dataSource" binding:"required"`
+}

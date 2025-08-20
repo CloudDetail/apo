@@ -120,6 +120,15 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/servicesWithInstances [get]
 	GetServiceWithInstances() core.HandlerFunc
+
+	// CleanRuleServices clean relate service by ruleId.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/cleanRuleServices [post]
+	CleanRuleServices() core.HandlerFunc
+	// CleanDataSourceServices clean relate service by dataSource.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/servicename/cleanDataSourceServices [post]
+	CleanDataSourceServices() core.HandlerFunc
 }
 
 type handler struct {

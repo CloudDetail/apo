@@ -4,6 +4,7 @@
 package clickhouse
 
 import (
+	"errors"
 	"fmt"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -12,7 +13,15 @@ import (
 )
 
 const (
-	TEMPLATE_QUERY_APP_INFO = "SELECT host_pid, container_id, labels FROM originx_app_info %s"
+	TEMPLATE_QUERY_APP_INFO          = "SELECT host_pid, container_id, labels FROM originx_app_info %s"
+	TEMPLATE_CLEAN_SERVICE_BY_SOURCE = `ALTER TABLE originx_app_info
+		update labels = mapUpdate(labels, map('service_name', '', 'service_id', '', 'source', ''))
+		WHERE labels['source'] = '%s' AND heart_time >= %d AND start_time <= %d
+	`
+	TEMPLATE_CLEAN_SERVICE_BY_RULE_ID = `ALTER TABLE originx_app_info
+		update labels = mapUpdate(labels, map('service_name', '', 'service_id', '', 'rule_id', ''))
+		WHERE labels['rule_id'] = '%d' AND heart_time >= %d AND start_time <= %d
+	`
 )
 
 func (ch *chRepo) GetToResolveApps(ctx core.Context) ([]model.AppInfo, error) {
@@ -100,6 +109,15 @@ func (ch *chRepo) GetDataplaneServiceInstances(ctx core.Context, startTime int64
 			ClusterID:   app.Labels["cluster_id"],
 		})
 	}
-
 	return result, nil
+}
+
+func (ch *chRepo) CleanDataplaneServiceInstance(ctx core.Context, startTime int64, endTime int64, ruleId int, dataSource string) error {
+	if ruleId > 0 {
+		return ch.GetContextDB(ctx).Exec(ctx.GetContext(), fmt.Sprintf(TEMPLATE_CLEAN_SERVICE_BY_RULE_ID, ruleId, startTime/1000000, endTime/1000000))
+	}
+	if dataSource != "" {
+		return ch.GetContextDB(ctx).Exec(ctx.GetContext(), fmt.Sprintf(TEMPLATE_CLEAN_SERVICE_BY_SOURCE, dataSource, startTime/1000000, endTime/1000000))
+	}
+	return errors.New("ruleId or datasource is not specified")
 }

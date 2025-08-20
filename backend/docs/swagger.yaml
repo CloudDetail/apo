@@ -2042,6 +2042,36 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.CleanDataSourceServicesRequest:
+    properties:
+      dataSource:
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      startTime:
+        description: query start time
+        type: integer
+    required:
+    - dataSource
+    - endTime
+    - startTime
+    type: object
+  request.CleanRuleServicesRequest:
+    properties:
+      endTime:
+        description: query end time
+        type: integer
+      ruleId:
+        type: integer
+      startTime:
+        description: query start time
+        type: integer
+    required:
+    - endTime
+    - ruleId
+    - startTime
+    type: object
   request.ComplexSpanTraceFilter:
     properties:
       dataType:
@@ -7492,6 +7522,58 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Check servicename rule.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/cleanDataSourceServices:
+    post:
+      consumes:
+      - application/json
+      description: clean relate service by dataSource.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CleanDataSourceServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: clean relate service by dataSource.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/cleanRuleServices:
+    post:
+      consumes:
+      - application/json
+      description: clean relate service by ruleId.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CleanRuleServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: clean relate service by ruleId.
       tags:
       - API.dataplane
   /api/dataplane/servicename/deleteRule:

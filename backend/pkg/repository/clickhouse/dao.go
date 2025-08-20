@@ -169,7 +169,7 @@ type Repo interface {
 	GetResolvedApps(ctx core.Context, ruleIds []string, startTime int64, endTime int64) ([]model.AppInfo, error)
 	GetDataplaneServiceList(ctx core.Context, req *request.QueryServiceNameRequest) ([]*model.Service, error)
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error)
-
+	CleanDataplaneServiceInstance(ctx core.Context, startTime int64, endTime int64, ruleId int, dataSource string) error
 	integration.Input
 }
 
