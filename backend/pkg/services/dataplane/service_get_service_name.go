@@ -4,7 +4,6 @@
 package dataplane
 
 import (
-	"fmt"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -15,34 +14,25 @@ import (
 )
 
 func (s *service) GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
-	filter := prometheus.NewFilter()
-	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
-	filter.EqualIfNotEmpty("node_name", req.Tags.NodeName)
-	filter.EqualIfNotEmpty("pod_name", req.Tags.PodName)
-	filter.EqualIfNotEmpty("container_id", req.Tags.ContainerId)
-	services, err := s.promRepo.GetDataplaneServiceList(ctx, req.StartTime, req.EndTime, filter.String())
+	services, err := s.chRepo.GetDataplaneServiceList(ctx, req)
 	if err != nil {
 		return &response.QueryServiceNameResponse{
 			Msg: "query service name failed: " + err.Error(),
 		}
 	}
-	if len(services) == 0 {
+	if len(services) > 0 {
 		return &response.QueryServiceNameResponse{
-			Msg: "Data Not Found",
+			Result: services[0].Name,
 		}
 	}
-	// if len(services) > 1 {
-	// 	return &response.QueryServiceNameResponse{
-	// 		Msg: fmt.Sprintf("more than one service name[%v] is found by instance", services),
-	// 	}
-	// }
-	return &response.QueryServiceNameResponse{
-		Result: services[0].Name,
-	}
+	return s.getServiceNameByApo(ctx, req)
 }
 
 func (s *service) getServiceNameByApo(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse {
 	filterKVs := make([]string, 0)
+	if req.Cluster != "" {
+		filterKVs = append(filterKVs, prometheus.ClusterIDPQLFilter, req.Cluster)
+	}
 	if req.Tags.PodName != "" {
 		filterKVs = append(filterKVs, prometheus.PodPQLFilter, req.Tags.PodName)
 	}
@@ -67,11 +57,6 @@ func (s *service) getServiceNameByApo(ctx core.Context, req *request.QueryServic
 	if len(services) == 0 {
 		return &response.QueryServiceNameResponse{
 			Msg: "Data Not Found",
-		}
-	}
-	if len(services) > 1 {
-		return &response.QueryServiceNameResponse{
-			Msg: fmt.Sprintf("more than one service name[%v] is found by instance", services),
 		}
 	}
 	return &response.QueryServiceNameResponse{

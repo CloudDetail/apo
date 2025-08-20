@@ -11,7 +11,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
-	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
@@ -90,10 +89,7 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	}
 
 	services = filteredServices
-	filter := prometheus.NewFilter()
-	filter.EqualIfNotEmpty("cluster_id", req.Cluster)
-	filter.RegexMatch("service_name", prometheus.RegexMultipleValue(serviceNames...))
-	instances, err := s.promRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, filter.String())
+	instances, err := s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, req.Cluster, serviceNames)
 	if err != nil {
 		return resp, err
 	}
