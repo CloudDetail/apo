@@ -5,6 +5,7 @@ package dataplane
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -27,11 +28,39 @@ type DPService interface {
 	CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error)
 }
 
+var specialOrder = map[string]int{
+	"datadog":           0,
+	"jaeger":            1,
+	"prometheus":        2,
+	"tempo":             3,
+	"loki":              4,
+	"grafanaPrometheus": 5,
+	"signoz":            6,
+	"skywalking":        7,
+	"arms":              8,
+}
+
 func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTypeResponse, error) {
 	dpTypes, err := s.dbRepo.ListDataPlaneType(ctx)
 	for i := 0; i < len(dpTypes); i++ {
 		dpTypes[i].UseLang(ctx.LANG())
 	}
+
+	sort.SliceStable(dpTypes, func(i, j int) bool {
+		orderI, findI := specialOrder[dpTypes[i].TypeName]
+		if !findI {
+			orderI = len(specialOrder)
+		}
+		orderJ, findJ := specialOrder[dpTypes[j].TypeName]
+		if !findJ {
+			orderJ = len(specialOrder)
+		}
+		if orderI == orderJ {
+			return dpTypes[i].TypeName < dpTypes[j].TypeName
+		}
+		return orderI < orderJ
+	})
+
 	return &response.ListDataPlaneTypeResponse{
 		DPTypes: dpTypes,
 	}, err
