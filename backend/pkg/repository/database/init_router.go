@@ -69,6 +69,7 @@ var sreRouters = []Router{
 	{RouterTo: "/cause/report/:traceId/:spanId", HideTimeSelector: true},
 	{RouterTo: "/cause/error-report/:traceId", HideTimeSelector: true},
 	{RouterTo: "/report", HideTimeSelector: true},
+	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required
