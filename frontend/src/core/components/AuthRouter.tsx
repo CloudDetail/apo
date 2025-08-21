@@ -37,8 +37,8 @@ const AuthRouter = (WrappedComponent) => {
       )
     }
 
-    // return isAllowed ? <WrappedComponent {...props} /> : <FallbackPage errorInfo={t('routeError')} />
-    return <WrappedComponent {...props} />
+    return isAllowed ? <WrappedComponent {...props} /> : <FallbackPage errorInfo={t('routeError')} />
+    // return <WrappedComponent {...props} />
   }
 }
 

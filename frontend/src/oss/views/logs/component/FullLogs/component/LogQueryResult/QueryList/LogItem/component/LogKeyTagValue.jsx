@@ -10,6 +10,7 @@ import LogTagDropDown from './LogTagDropdown'
 import { useSelector } from 'react-redux'
 import { theme } from 'antd'
 import { useLogsContext } from 'src/core/contexts/LogsContext'
+import DOMPurify from 'dompurify'
 function isJSONString(str) {
   try {
     return typeof JSON.parse(str) === 'object' && JSON.parse(str) !== null
@@ -205,21 +206,20 @@ const LogKeyTagValue = ({ title, description, isHighlighted = false }) => {
                 overscan={1000}
                 data={value}
                 itemContent={(index, paragraph) => (
-                  <div 
-                    key={index} 
-                    dangerouslySetInnerHTML={{ 
+                  <div
+                    dangerouslySetInnerHTML={{
                       __html: title === 'content' && fullTextKeywords.length > 0 
-                        ? highlightText(value[index], fullTextKeywords, currentTheme)
-                        : value[index] 
+                        ? DOMPurify.sanitize(highlightText(value.join('\n'), fullTextKeywords, currentTheme))
+                        : value.join('\n')
                     }}
                   />
                 )}
               />
             ) : (
-              <div 
-                dangerouslySetInnerHTML={{ 
+              <div
+                dangerouslySetInnerHTML={{
                   __html: title === 'content' && fullTextKeywords.length > 0 
-                    ? highlightText(value.join('\n'), fullTextKeywords, currentTheme)
+                    ? DOMPurify.sanitize(highlightText(value.join('\n'), fullTextKeywords, currentTheme))
                     : value.join('\n')
                 }}
               />
@@ -253,7 +253,11 @@ const LogKeyTagValue = ({ title, description, isHighlighted = false }) => {
        })() : {}}
           >
             {title === 'content' && fullTextKeywords.length > 0 ? (
-              <div dangerouslySetInnerHTML={{ __html: highlightText(value[0], fullTextKeywords, currentTheme) }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(highlightText(value[0], fullTextKeywords, currentTheme))
+                }}
+              />
             ) : (
               value[0]
             )}
