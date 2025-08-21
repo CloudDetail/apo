@@ -239,6 +239,7 @@ var zhCnText = map[string]string{
 	UpdateDataPlaneError:         "更新数据平面失败",
 	GetDatasourcesError:          "获取数据源信息失败",
 	GetServiceWithInstancesError: "获取监控服务失败",
+	CleanRelateServiceError:      "清空关联服务名失败",
 
 	QueryPodsError: "获取Pod列表失败",
 }

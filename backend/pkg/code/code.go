@@ -280,6 +280,7 @@ const (
 	CheckMinimalDataPlaneExistError = "B1819"
 	GetDatasourcesError             = "B1820"
 	GetServiceWithInstancesError    = "B1821"
+	CleanRelateServiceError         = "B1822"
 
 	// Metric
 	QueryPodsError = "B1901"

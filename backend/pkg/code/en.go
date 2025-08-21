@@ -237,6 +237,7 @@ var enText = map[string]string{
 	UpdateDataPlaneError:         "Failed to update data plane",
 	GetDatasourcesError:          "Failed to get datasources",
 	GetServiceWithInstancesError: "Failed to get monitored services",
+	CleanRelateServiceError:      "Failed to clean relate service",
 
 	QueryPodsError: "Failed to get pod list",
 }

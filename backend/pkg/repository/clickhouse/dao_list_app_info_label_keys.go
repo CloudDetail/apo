@@ -32,7 +32,8 @@ FROM originx_app_info
 
 func (repo *chRepo) ListAppInfoLabelKeys(ctx core.Context, startTime, endTime int64) ([]string, error) {
 	qb := NewQueryBuilder().
-		Between("timestamp", startTime/1e6, endTime/1e6)
+		NotGreaterThan("start_time", endTime/1000000).
+		NotLessThan("heart_time", startTime/1000000)
 
 	sql := fmt.Sprintf(SQL_LIST_APP_INFO_LABEL_KEYS, qb.String())
 	rows, err := repo.GetConn(ctx).Query(ctx.GetContext(), sql, qb.values...)
@@ -71,7 +72,8 @@ func (repo *chRepo) ListAppInfoLabelValues(ctx core.Context, startTime, endTime 
 		Alias(labelKey, "value")
 
 	qb := NewQueryBuilder().
-		Between("timestamp", startTime/1e6, endTime/1e6)
+		NotGreaterThan("start_time", endTime/1000000).
+		NotLessThan("heart_time", startTime/1000000)
 
 	sql := fmt.Sprintf(SQL_LIST_APP_INFO_LABEL_VALUES, fb.String(), qb.String())
 	rows, err := repo.GetConn(ctx).Query(ctx.GetContext(), sql, qb.values...)

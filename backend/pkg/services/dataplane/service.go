@@ -25,6 +25,8 @@ type Service interface {
 	GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse
 	GetServiceTopology(ctx core.Context, req *request.QueryTopologyRequest) *response.QueryTopologyResponse
 	CheckDataSource(ctx core.Context, req *model.CheckDataSourceRequest) *model.CheckDataSourceResponse
+	CleanRelateServiceByRuleId(ctx core.Context, req *request.CleanRuleServicesRequest) error
+	CleanRelateServiceByDataSource(ctx core.Context, req *request.CleanDataSourceServicesRequest) error
 
 	CreateCustomTopology(ctx core.Context, req *request.CreateCustomTopologyRequest) error
 	DeleteCustomTopology(ctx core.Context, req *request.DeleteCustomTopologyRequest) error

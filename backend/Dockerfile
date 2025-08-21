@@ -11,6 +11,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build go build -v -o apo-backend
 
 FROM debian:bookworm-slim AS runner
 WORKDIR /app
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list.d/debian.sources
 
 RUN apt-get update && \
     apt-get install -y sqlite3 ca-certificates && \

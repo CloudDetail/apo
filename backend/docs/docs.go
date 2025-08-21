@@ -4151,6 +4151,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/servicename/cleanDataSourceServices": {
+            "post": {
+                "description": "clean relate service by dataSource.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "clean relate service by dataSource.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CleanDataSourceServicesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/cleanRuleServices": {
+            "post": {
+                "description": "clean relate service by ruleId.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "clean relate service by ruleId.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CleanRuleServicesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/servicename/deleteRule": {
             "post": {
                 "description": "Delete servicename rule.",
@@ -13577,6 +13657,48 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "numLayers": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.CleanDataSourceServicesRequest": {
+            "type": "object",
+            "required": [
+                "dataSource",
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "dataSource": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.CleanRuleServicesRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "ruleId",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "ruleId": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
                     "type": "integer"
                 }
             }
