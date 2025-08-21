@@ -308,8 +308,11 @@ func (repo *promRepo) GetInstanceList(ctx core.Context, startTime int64, endTime
 }
 
 // GetInstanceListByServicesList
-func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, serviceNames []string) (*model.ServiceInstances, error) {
+func (repo *promRepo) GetActiveInstanceList(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceNames []string) (*model.ServiceInstances, error) {
 	filter := NewFilter()
+	if clusterId != "" {
+		filter.Equal(ClusterIDKey, clusterId)
+	}
 	filter.RegexMatch(ServiceNameKey, RegexMultipleValue(serviceNames...))
 	return repo.GetInstanceListByPQLFilter(ctx, startTime, endTime, filter)
 }

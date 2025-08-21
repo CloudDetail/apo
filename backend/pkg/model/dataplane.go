@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Service struct {
@@ -47,13 +46,9 @@ type ApmServiceInstance struct {
 }
 
 type AppInfo struct {
-	Timestamp       time.Time         `ch:"timestamp" json:"timestamp"`
-	StartTime       uint64            `ch:"start_time" json:"startTime"`
-	AgentInstanceId string            `ch:"agent_instance_id" json:"agentInstanceId"`
-	HostPid         uint32            `ch:"host_pid" json:"hostPid"`
-	ContainerPid    uint32            `ch:"container_pid" json:"containerPid"`
-	ContainerId     string            `ch:"container_id" json:"containerId"`
-	Labels          map[string]string `ch:"labels" json:"labels"`
+	HostPid     uint32            `ch:"host_pid" json:"hostPid"`
+	ContainerId string            `ch:"container_id" json:"containerId"`
+	Labels      map[string]string `ch:"labels" json:"labels"`
 }
 
 func (app *AppInfo) CheckIps(ips []string) bool {

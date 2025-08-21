@@ -39,9 +39,9 @@ type QueryServiceNameRequest struct {
 }
 
 type QueryTopologyRequest struct {
-	Cluster     string `form:"cluster"`                                      // query Cluster
-	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time
-	EndTime     int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+	Cluster   string `form:"cluster"`                                      // query Cluster
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
 }
 
 type QueryServiceNameTag struct {
@@ -65,7 +65,7 @@ type ListCustomTopologyRequest struct {
 }
 
 type DeleteCustomTopologyRequest struct {
-	ID        int   `form:"id" binding:"required"`
+	ID int `form:"id" binding:"required"`
 }
 
 type SetServiceNameRuleRequest struct {
