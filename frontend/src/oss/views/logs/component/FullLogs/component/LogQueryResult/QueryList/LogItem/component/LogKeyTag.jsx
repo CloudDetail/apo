@@ -8,6 +8,11 @@ import React from 'react'
 import LogTagDropDown from './LogTagDropdown'
 import LogKeyTagValue from './LogKeyTagValue'
 
+// 内部组件，能够接收isHighlighted属性
+const KeyTagValueWithHighlight = ({ title, description, isHighlighted = false }) => (
+  <LogKeyTagValue title={title} description={description} isHighlighted={isHighlighted} />
+)
+
 const LogKeyTag = (props) => {
   const { title, description } = props
 
@@ -27,7 +32,7 @@ const LogKeyTag = (props) => {
             objKey={formatValue(title)}
             value={formatValue(description)}
             trigger={['contextMenu']}
-            children={<LogKeyTagValue title={title} description={description} />}
+            children={<KeyTagValueWithHighlight title={title} description={description} />}
           />
         </div>
       ) : null}
