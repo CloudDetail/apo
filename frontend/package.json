@@ -78,6 +78,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "reselect": "^5.1.1",
+    "scheduler": "^0.26.0",
     "simplebar-react": "^3.2.5",
     "tailwindcss": "^3.4.4",
     "typed-css-modules": "^0.9.1",
