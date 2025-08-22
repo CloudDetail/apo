@@ -156,6 +156,7 @@ type GetServiceAlertRequest struct {
 	ServiceNames []string `form:"serviceNames" json:"serviceNames"`
 	ReturnData   []string `form:"returnData" json:"returnData"`
 
+	Namespaces []string `form:"namespaces" json:"namespaces"`
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 	GroupID    int64    `form:"groupId" json:"groupId"`
 }
@@ -261,6 +262,7 @@ type GetServiceEntryEndpointsRequest struct {
 	Step        int64  `form:"step" binding:"required" json:"step"`                         // query step (us)
 	ShowMissTop bool   `form:"showMissTop" json:"showMissTop"`                              // whether to display the lost non-portal service
 
+	Namespaces []string `form:"namespaces" json:"namespaces"`
 	ClusterIDs []string `form:"clusterIds" json:"clusterIds"`
 	GroupID    int64    `form:"groupId" json:"groupId"`
 }

@@ -62,7 +62,7 @@ func (h *handler) GetServicesAlert() core.HandlerFunc {
 		}
 
 		var resp []response.ServiceAlertRes
-		data, err := h.serviceoverview.GetServicesAlert(c, 0, req.ClusterIDs, startTime, endTime, step, req.ServiceNames, returnData)
+		data, err := h.serviceoverview.GetServicesAlert(c, 0, req.ClusterIDs, startTime, endTime, step, req.ServiceNames, req.Namespaces, returnData)
 		if err != nil {
 			c.AbortWithError(
 				http.StatusBadRequest,
