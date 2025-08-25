@@ -259,3 +259,28 @@ func getGroup(attrs *datadogV2.EventAttributes, eventTags []string) string {
 	}
 	return ""
 }
+
+var DatadogParamSpec = ParamSpec{
+	Name: "root",
+	Type: JSONTypeObject,
+	Children: []ParamSpec{
+		{
+			Name:   "site",
+			Type:   JSONTypeString,
+			Desc:   "DataDog地址,示例: datadoghq.com",
+			DescEN: "DataDog site, example: datadoghq.com",
+		},
+		{
+			Name:   "apiKey",
+			Type:   JSONTypeString,
+			Desc:   "DataDog API Key",
+			DescEN: "DataDog API key",
+		},
+		{
+			Name:   "appKey",
+			Type:   JSONTypeString,
+			Desc:   "DataDog APP Key",
+			DescEN: "DataDog APP key",
+		},
+	},
+}

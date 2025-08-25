@@ -13,6 +13,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
 )
@@ -41,14 +42,22 @@ func (s *service) CreateAlertSource(ctx core.Context, source *alertin.AlertSourc
 	_, err = s.initDefaultAlertSource(&source.SourceFrom)
 
 	if err == nil && source.EnabledPull {
-		fetchTemp, find := providerMap[source.SourceType]
+		pType, find := provider.ProviderRegistry[source.SourceType]
 		if !find {
 			log.Printf("failed to init fetcherFor AlertSource,err: %v", err)
 			return nil, err
 		}
 
-		fetcher := fetchTemp(source.SourceFrom, source.Params.Obj)
-		go s.KeepPullAlert(ctx, *source, time.Minute, fetcher)
+		if err = provider.ValidateJSON(source.Params.Obj, pType.ParamSpec); err != nil {
+			log.Printf("failed to init fetcherFor AlertSource,err: %v", err)
+			return nil, err
+		}
+
+		provider := pType.New(source.SourceFrom, source.Params.Obj)
+		if err != nil {
+			return nil, err
+		}
+		go s.KeepPullAlert(ctx, *source, time.Minute, provider)
 	}
 
 	return source, err

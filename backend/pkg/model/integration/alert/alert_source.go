@@ -24,6 +24,8 @@ func (AlertSource) TableName() string {
 
 type AlertSourceParams map[string]any
 
+
+
 type AlertSource2Cluster struct {
 	SourceID  string `gorm:"type:varchar(255);column:source_id"`
 	ClusterID string `gorm:"type:varchar(255);column:cluster_id"`

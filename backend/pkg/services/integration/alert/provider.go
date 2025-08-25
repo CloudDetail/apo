@@ -8,11 +8,21 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider"
 )
 
-var providerMap = map[string]func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) provider.Provider{
-	"datadog": provider.NewDatadogProvider,
+func (s *service) GetAlertProviderParamsSpec(sourceType string) *response.GetAlertProviderParamsSpecResponse {
+	pType, find := provider.ProviderRegistry[sourceType]
+	if !find {
+		return &response.GetAlertProviderParamsSpecResponse{
+			ParamSpec: &provider.ParamSpec{
+				Name: "root",
+				Type: provider.JSONTypeObject,
+			},
+		}
+	}
+	return &response.GetAlertProviderParamsSpecResponse{ParamSpec: &pType.ParamSpec}
 }
 
 func (s *service) KeepPullAlert(ctx core.Context, source alert.AlertSource, interval time.Duration, p provider.Provider) {

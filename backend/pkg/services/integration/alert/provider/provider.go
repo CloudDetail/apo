@@ -3,8 +3,26 @@
 
 package provider
 
-import "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+import (
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+)
+
+type ProviderType struct {
+	Name      string
+	ParamSpec ParamSpec
+	New       ProviderFactory
+}
+
+type ProviderFactory func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider
 
 type Provider interface {
 	GetAlerts(args map[string]any) ([]alert.AlertEvent, error)
+}
+
+var ProviderRegistry = map[string]ProviderType{
+	"datadog": {
+		Name:      "Datadog",
+		ParamSpec: DatadogParamSpec,
+		New:       NewDatadogProvider,
+	},
 }
