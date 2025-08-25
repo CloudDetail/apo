@@ -467,7 +467,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   }, [])
 
   const onCustomEvent = useCallback((event: CustomEvent) => {
-    if (event.name === 'AgentToolDisplay') {
+    if (event.name === 'AgentToolDisplay' && event.value.toolCallName !== 'PING') {
       const toolCallName = event.value.toolCallName
       const content = event.value.content
       const title = event.value.title
