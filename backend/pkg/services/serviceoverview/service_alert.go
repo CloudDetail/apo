@@ -31,7 +31,7 @@ func (s *service) GetServicesAlert(
 	groupID int64, clusterIDs []string,
 	startTime time.Time, endTime time.Time,
 	step time.Duration,
-	serviceNames []string,
+	serviceNames []string, namespaces []string,
 	returnData []string,
 ) (res []response.ServiceAlertRes, err error) {
 	pqlFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", groupID)
@@ -40,6 +40,9 @@ func (s *service) GetServicesAlert(
 	}
 	if len(clusterIDs) > 0 {
 		pqlFilter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(clusterIDs...))
+	}
+	if len(namespaces) > 0 {
+		pqlFilter.RegexMatch(prometheus.NamespaceKey, prometheus.RegexMultipleValue(namespaces...))
 	}
 	pqlFilter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
 

@@ -45,6 +45,7 @@ const (
 	ClusterIDKey   = "cluster_id"
 	ServiceNameKey = "svc_name"
 	ContentKeyKey  = "content_key"
+	NamespaceKey   = "namespace"
 )
 
 type Granularity string
