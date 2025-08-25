@@ -52,7 +52,7 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
                         provider: provider.name,
                         model: model.name,
                         label: `${model.name}`,
-                        value: `${model.name}`,
+                        value: `${provider.name}-${model.name}`,
                     })
                 })
             } else {
@@ -62,7 +62,7 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
                             provider: provider.name,
                             model: model.name,
                             label: `${model.name}`,
-                            value: `${model.name}`,
+                            value: `${provider.name}-${model.name}`,
                         })
                     })
                 }
