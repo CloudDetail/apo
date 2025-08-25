@@ -30,7 +30,9 @@ func (d JsonDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.A
 	if len(alertEvent.AlertID) == 0 {
 		alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 	}
-	alertEvent.ID = uuid.New()
+	if len(alertEvent.EventID) == 0 {
+		alertEvent.EventID = uuid.NewString()
+	}
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
