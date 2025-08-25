@@ -4,6 +4,7 @@
 package alert
 
 import (
+	"log"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -49,22 +50,27 @@ func (s *service) KeepPullAlert(ctx core.Context, source alert.AlertSource, inte
 			events, err := p.PullAlerts(provider.GetAlertParams{
 				From: lastPullTime,
 				To:   now,
-				// UnstructuredParams: map[string]any{},
 			})
 			if err != nil {
+				log.Printf("failed to pull alerts,err: %v", err)
 				continue
 			}
 
 			err = s.dispatcher.DispatchDecodedEvents(&source.SourceFrom, events)
 			if err != nil {
+				log.Printf("failed to dispatch events,err: %v", err)
 				continue
 			}
 
 			lastPullTime = now
 			s.difyRepo.SubmitAlertEvents(events)
-			err = s.ckRepo.InsertAlertEvent(ctx, events, source.SourceFrom)
-			if err == nil {
-				s.dbRepo.UpdateAlertSourceLastPullTime(ctx, source.SourceID, lastPullTime)
+
+			if err = s.ckRepo.InsertAlertEvent(ctx, events, source.SourceFrom); err != nil {
+				log.Printf("failed to insert alert event,err: %v", err)
+				continue
+			}
+			if err = s.dbRepo.UpdateAlertSourceLastPullTime(ctx, source.SourceID, lastPullTime); err != nil {
+				log.Printf("failed to update alert source last pull time,err: %v", err)
 			}
 		}
 	}
