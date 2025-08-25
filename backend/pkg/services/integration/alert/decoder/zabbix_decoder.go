@@ -44,7 +44,10 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 	}
 
 	alertEvent, err := d.jsDecoder.convertAlertEvent(event)
-	alertEvent.ID = uuid.New()
+	if len(alertEvent.EventID) == 0 {
+		alertEvent.EventID = uuid.NewString()
+	}
+
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)

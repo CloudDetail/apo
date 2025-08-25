@@ -19,7 +19,9 @@ import (
 type AlertEvent struct {
 	Alert `mapstructure:",squash"`
 
-	ID uuid.UUID `json:"id" ch:"id"`
+	// Deprecated: use @EventID instead
+	ID      uuid.UUID `json:"-" ch:"id"`
+	EventID string    `json:"id" ch:"event_id"`
 
 	Detail string `json:"detail" ch:"detail" mapstructure:"detail"`
 
@@ -104,7 +106,7 @@ func (e *AlertEvent) ToAMAlert(externalURL string, timeout bool) *types.Alert {
 			Annotations:  convertAnnos,
 			StartsAt:     e.CreateTime,
 			EndsAt:       e.EndTime,
-			GeneratorURL: fmt.Sprintf("%s/#alerts/events/detail/%s/%s", externalURL, e.AlertID, e.ID.String()),
+			GeneratorURL: fmt.Sprintf("%s/#alerts/events/detail/%s/%s", externalURL, e.AlertID, e.EventID),
 		},
 		UpdatedAt: e.UpdateTime,
 		Timeout:   timeout,
