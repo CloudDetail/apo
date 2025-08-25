@@ -36,26 +36,35 @@ func (s *service) KeepPullAlert(ctx core.Context, source alert.AlertSource, inte
 		lastPullTime = now.Add(-15 * 24 * time.Hour)
 	}
 
-	for range ticker.C {
-		now := time.Now()
-		if now.Sub(lastPullTime) < interval {
-			continue
-		}
-		events, err := p.GetAlerts(nil)
-		if err != nil {
-			continue
-		}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			now := time.Now()
+			if now.Sub(lastPullTime) < interval {
+				continue
+			}
+			events, err := p.GetAlerts(provider.GetAlertParams{
+				From: lastPullTime,
+				To:   now,
+				// UnstructuredParams: map[string]any{},
+			})
+			if err != nil {
+				continue
+			}
 
-		err = s.dispatcher.DispatchDecodedEvents(&source.SourceFrom, events)
-		if err != nil {
-			continue
-		}
+			err = s.dispatcher.DispatchDecodedEvents(&source.SourceFrom, events)
+			if err != nil {
+				continue
+			}
 
-		lastPullTime = now
-		s.difyRepo.SubmitAlertEvents(events)
-		err = s.ckRepo.InsertAlertEvent(ctx, events, source.SourceFrom)
-		if err == nil {
-			s.dbRepo.UpdateAlertSourceLastPullTime(ctx, source.SourceID, lastPullTime)
+			lastPullTime = now
+			s.difyRepo.SubmitAlertEvents(events)
+			err = s.ckRepo.InsertAlertEvent(ctx, events, source.SourceFrom)
+			if err == nil {
+				s.dbRepo.UpdateAlertSourceLastPullTime(ctx, source.SourceID, lastPullTime)
+			}
 		}
 	}
 }

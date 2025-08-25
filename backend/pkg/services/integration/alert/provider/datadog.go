@@ -49,15 +49,15 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	}
 }
 
-func (f *DatadogProvider) GetAlerts(args map[string]any) ([]alert.AlertEvent, error) {
-	lastPullTs := args["from"].(time.Time)
-	now := args["to"].(time.Time)
+func (f *DatadogProvider) GetAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
+	start := args.From
+	end := args.To
 
 	resChan, cancel := f.api.ListEventsWithPagination(f.ctx, *datadogV2.NewListEventsOptionalParameters().
 		WithPageLimit(1000).
 		WithSort(datadogV2.EVENTSSORT_TIMESTAMP_ASCENDING).
-		WithFilterFrom(strconv.FormatInt(lastPullTs.UnixMilli(), 10)).
-		WithFilterTo(strconv.FormatInt(now.UnixMilli(), 10)).
+		WithFilterFrom(strconv.FormatInt(start.UnixMilli(), 10)).
+		WithFilterTo(strconv.FormatInt(end.UnixMilli(), 10)).
 		WithFilterQuery("source:alert"),
 	)
 	defer cancel()

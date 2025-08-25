@@ -4,6 +4,8 @@
 package provider
 
 import (
+	"time"
+
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
@@ -16,7 +18,13 @@ type ProviderType struct {
 type ProviderFactory func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider
 
 type Provider interface {
-	GetAlerts(args map[string]any) ([]alert.AlertEvent, error)
+	GetAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
+}
+
+type GetAlertParams struct {
+	From time.Time
+	To   time.Time
+	// UnstructuredParams map[string]any
 }
 
 var ProviderRegistry = map[string]ProviderType{
