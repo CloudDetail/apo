@@ -24,6 +24,11 @@ type Handler interface {
 	// @Router /api/alertinput/event/source [post]
 	SourceHandler() core.HandlerFunc
 
+	// GetAlertProviderParamsSpec Obtain alarm source parameter configuration
+	// @Tags API.alertinput
+	// @Router /api/alertinput/source/paramspec [get]
+	GetAlertProviderParamsSpec() core.HandlerFunc
+
 	// CreateAlertSource Create Alarm Source
 	// @Tags API.alertinput
 	// @Router /api/alertinput/source/create [post]

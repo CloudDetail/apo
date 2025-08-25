@@ -7,19 +7,24 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider"
 )
 
 var _ Service = &service{}
 
 type Service interface {
+	GetAlertProviderParamsSpec(sourceType string) *response.GetAlertProviderParamsSpecResponse
+
 	CreateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
 	GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
 	UpdateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
@@ -76,7 +81,7 @@ func New(
 		ckRepo:   chRepo,
 	}
 
-	_, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
+	alertSources, enrichMaps, err := service.dbRepo.LoadAlertEnrichRule(nil)
 	if err != nil {
 		log.Printf("failed to init alertinput module,err: %v", err)
 		return service
@@ -100,6 +105,34 @@ func New(
 			continue
 		}
 		service.dispatcher.AddAlertSource(source, enricher)
+	}
+
+	for _, source := range alertSources {
+		if !source.EnabledPull {
+			continue
+		}
+
+		pType, find := provider.ProviderRegistry[source.SourceType]
+		if !find {
+			log.Printf("failed to init provider of AlertSource,err: %v", err)
+			continue
+		}
+
+		if !pType.WithPullOptions {
+			continue
+		}
+
+		if err = provider.ValidateJSON(source.Params.Obj, pType.ParamSpec); err != nil {
+			log.Printf("failed to init provider of AlertSource,err: %v", err)
+			continue
+		}
+
+		provider := pType.New(source.SourceFrom, source.Params.Obj)
+		if err != nil {
+			log.Printf("failed to init provider of AlertSource,err: %v", err)
+			continue
+		}
+		go service.KeepPullAlert(core.EmptyCtx(), source, time.Minute, provider)
 	}
 
 	service.difyRepo = difyRepo

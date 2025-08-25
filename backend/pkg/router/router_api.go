@@ -266,6 +266,7 @@ func setApiRouter(r *resource) {
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
+		alertInputApi.GET("/source/paramspec", handler.GetAlertProviderParamsSpec())
 		alertInputApi.POST("/source/update", handler.UpdateAlertSource())
 		alertInputApi.POST("/source/get", handler.GetAlertSource())
 		alertInputApi.POST("/source/delete", handler.DeleteAlertSource())

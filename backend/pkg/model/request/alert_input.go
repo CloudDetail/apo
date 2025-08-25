@@ -230,3 +230,7 @@ type CheckAlertRuleRequest struct {
 }
 
 type ForwardToDingTalkRequest InputAlertManagerRequest
+
+type GetAlertProviderParamsSpecRequest struct {
+	SourceType string `json:"sourceType"`
+}

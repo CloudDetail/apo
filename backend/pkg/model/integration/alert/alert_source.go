@@ -11,9 +11,20 @@ const ApoVMAlertSourceID = "efc91f08-86c4-3696-aba8-570d4a8dc069"
 
 type AlertSource struct {
 	SourceFrom
-
 	Clusters []integration.Cluster `json:"clusters" gorm:"-"`
+
+	Params         integration.JSONField[AlertSourceParams] `json:"params" gorm:"type:varchar(2000);column:params;default:'{}'"`
+	EnabledPull    bool                                     `json:"enabledPull" gorm:"type:bool;column:enabled_pull;default:false"`
+	LastPullMillTS int64                                    `json:"lastPullMillTS" gorm:"type:bigint;column:last_pull_mill_ts;default:0"`
 }
+
+func (AlertSource) TableName() string {
+	return "alert_sources"
+}
+
+type AlertSourceParams map[string]any
+
+
 
 type AlertSource2Cluster struct {
 	SourceID  string `gorm:"type:varchar(255);column:source_id"`

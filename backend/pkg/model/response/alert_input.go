@@ -8,6 +8,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider"
 )
 
 type GetAlertRuleFileResponse struct {
@@ -36,4 +37,10 @@ type GetMetricPQLResponse struct {
 
 type CheckAlertRuleResponse struct {
 	Available bool `json:"available"`
+}
+
+type GetAlertProviderParamsSpecResponse struct {
+	ParamSpec *provider.ParamSpec `json:"paramSpec"`
+
+	WithPullOptions bool `json:"withPullOptions"`
 }
