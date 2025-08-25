@@ -231,26 +231,26 @@ func buildDDDetail(message string, tags map[string]any) string {
 }
 
 func getGroup(attrs *datadogV2.EventAttributes, eventTags []string) string {
+	const prefix = "apo_group:"
+	const plen = len(prefix)
+
 	for _, tag := range eventTags {
-		if strings.HasPrefix(tag, "apo_group:") {
-			return tag[6:]
+		if strings.HasPrefix(tag, prefix) {
+			return tag[plen:]
 		}
 	}
 
 	tags := attrs.GetTags()
-
 	for _, tag := range tags {
-		if strings.HasPrefix(tag, "apo_group:") {
-			return tag[6:]
+		if strings.HasPrefix(tag, prefix) {
+			return tag[plen:]
 		}
 	}
 
-	monitorTags := attrs.GetTags()
-	if len(monitorTags) > 0 {
-		for _, tag := range monitorTags {
-			if strings.HasPrefix(tag, "apo_group:") {
-				return tag[6:]
-			}
+	monitorTags := attrs.GetMonitor().Tags
+	for _, tag := range monitorTags {
+		if strings.HasPrefix(tag, prefix) {
+			return tag[plen:]
 		}
 	}
 
