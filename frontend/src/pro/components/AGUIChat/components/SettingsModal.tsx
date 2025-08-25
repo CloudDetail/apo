@@ -1,5 +1,6 @@
 import React from 'react'
 import { Modal, Form, Input, Button } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { ClientConfig } from '../types/index'
 
 interface SettingsModalProps {
@@ -17,6 +18,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   onConfigChange,
   onSave,
 }) => {
+  const { t } = useTranslation('pro/agent')
   const [form] = Form.useForm()
 
   const handleSave = async () => {
@@ -25,21 +27,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
       onConfigChange(values)
       onSave()
     } catch (error) {
-      console.error('表单验证失败:', error)
+      console.error(t('settings.formValidationFailed'), error)
     }
   }
 
   return (
     <Modal
-      title="AG-UI 设置"
+      title={t('settings.title')}
       open={open}
       onCancel={onClose}
       footer={[
         <Button key="cancel" onClick={onClose}>
-          取消
+          {t('settings.cancel')}
         </Button>,
         <Button key="save" type="primary" onClick={handleSave}>
-          保存
+          {t('settings.save')}
         </Button>,
       ]}
       width={500}
@@ -51,22 +53,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         onValuesChange={(_, allValues) => onConfigChange(allValues)}
       >
         <Form.Item
-          label="Base URL"
+          label={t('settings.baseUrl')}
           name="baseUrl"
           rules={[
-            { required: true, message: '请输入Base URL' },
-            { type: 'url', message: '请输入有效的URL' },
+            { required: true, message: t('settings.baseUrlRequired') },
+            { type: 'url', message: t('settings.baseUrlInvalid') },
           ]}
         >
-          <Input placeholder="请输入Base URL" />
+          <Input placeholder={t('settings.baseUrlPlaceholder')} />
         </Form.Item>
 
         <Form.Item
-          label="API Key"
+          label={t('settings.apiKey')}
           name="apiKey"
-          rules={[{ required: true, message: '请输入API Key' }]}
+          rules={[{ required: true, message: t('settings.apiKeyRequired') }]}
         >
-          <Input.Password placeholder="请输入API Key" />
+          <Input.Password placeholder={t('settings.apiKeyPlaceholder')} />
         </Form.Item>
       </Form>
     </Modal>

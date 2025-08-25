@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { checkDataplaneDataApi } from '../api/dataplane'
+import { ModelOption } from '../components/AGUIChat/types'
+import { Provider } from '../components/AGUIChat/types'
+import { getModelListApi, setDefaultModelApi } from '../api/modelSetting'
+import { Model } from '../components/AGUIChat/types'
 
 interface AIPermissionState {
     hasPermission: boolean | null
@@ -8,11 +12,16 @@ interface AIPermissionState {
     error: string | null
     agentReady: boolean | null
     dataPlaneExist: boolean | null
+    allModels: ModelOption[]
+    originalProviders: Provider[]
+    defaultModel: ModelOption | null
 }
 
 interface AIPermissionActions {
     checkPermission: () => Promise<void>
     refreshPermission: () => Promise<void>
+    refreshModelList: () => Promise<void>
+    changeDefaultModel: ({ provider, model }: { provider: string; model: string }) => void
 }
 
 export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
@@ -22,7 +31,45 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
     const [agentReady, setAgentReady] = useState<boolean | null>(null)
     const [dataPlaneExist, setDataPlaneExist] = useState<boolean | null>(null)
     const { t } = useTranslation('pro/chatAI')
+    const [allModels, setAllModels] = useState<ModelOption[]>([])
+    const [originalProviders, setOriginalProviders] = useState<Provider[]>([])
+    const [defaultModel, setDefaultModel] = useState<ModelOption | null>(null)
+    // 统一的刷新函数：拉取 providers + default + 组装 allModels
+    const fetchModelList = useCallback(async () => {
+        const res = await getModelListApi()
+        const providers: Provider[] = res?.data?.providers || []
+        setOriginalProviders(providers)
 
+        // 可能后端的 default 不是完整的 ModelOption，这里做一次兜底组装
+        const defaultFromApi = res?.data?.default || null
+        setDefaultModel(defaultFromApi)
+
+        const models: ModelOption[] = []
+        providers.forEach((provider: Provider) => {
+            if (provider.name === 'openai-api-compatible') {
+                provider.models.forEach((model: Model) => {
+                    models.push({
+                        provider: provider.name,
+                        model: model.name,
+                        label: `${model.name}`,
+                        value: `${model.name}`,
+                    })
+                })
+            } else {
+                if (provider.setUp) {
+                    provider.models.forEach((model: Model) => {
+                        models.push({
+                            provider: provider.name,
+                            model: model.name,
+                            label: `${model.name}`,
+                            value: `${model.name}`,
+                        })
+                    })
+                }
+            }
+        })
+        setAllModels(models)
+    }, [])
     // 检查AI权限的函数
     const checkPermission = useCallback(async () => {
         setIsLoading(true)
@@ -32,8 +79,6 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
             // 检查数据平面状态
             const dataplaneData = await checkDataplaneDataApi()
             const { agentReady: ready, dataPlaneExist: exist } = dataplaneData.data || dataplaneData
-            // const ready = false
-            // const exist = false
             setAgentReady(ready)
             setDataPlaneExist(exist)
 
@@ -58,16 +103,24 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
             setIsLoading(false)
         }
     }, [t])
-
+    const changeDefaultModel = ({ provider, model }: { provider: string; model: string }) => {
+        setDefaultModelApi({ provider, model }).then(() => {
+            fetchModelList()
+        })
+    }
     // 刷新权限检查
     const refreshPermission = useCallback(async () => {
         await checkPermission()
     }, [checkPermission])
 
+    const refreshModelList = useCallback(async () => {
+        await fetchModelList()
+    }, [fetchModelList])
     // 组件挂载时自动检查权限
     useEffect(() => {
         checkPermission()
-    }, [checkPermission])
+        fetchModelList()
+    }, [checkPermission, fetchModelList])
 
     return {
         hasPermission,
@@ -75,8 +128,13 @@ export const useAIPermission = (): AIPermissionState & AIPermissionActions => {
         error,
         agentReady,
         dataPlaneExist,
+        allModels,
+        originalProviders,
+        defaultModel,
         checkPermission,
         refreshPermission,
+        refreshModelList,
+        changeDefaultModel
     }
 }
 

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { StopOutlined } from '@ant-design/icons'
 import { TbSend2 } from 'react-icons/tb'
 import DataStatus from './DataStatus'
+import AgentModel from './AgentModel'
 
 const { TextArea } = Input
 
@@ -63,7 +64,11 @@ const InputArea: React.FC<InputAreaProps> = ({
             borderRadius: '0',
           }}
         />
-        <DataStatus />
+        <div className="flex items-center gap-2 ml-2">
+          <AgentModel />
+          <DataStatus />
+        </div>
+
         {/* <div className="flex justify-end">
           <Button
             type="primary"

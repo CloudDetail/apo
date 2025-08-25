@@ -1,0 +1,14 @@
+.providerCardActions {
+  li {
+    margin: 0 !important;
+    :global(.ant-collapse-header-text) {
+      flex: none !important;
+    }
+  }
+}
+
+.modelSelect {
+  :global(.ant-select-selector) {
+    border-radius: 8px !important;
+  }
+}

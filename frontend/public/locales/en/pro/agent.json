@@ -55,7 +55,8 @@
       "agentNotInstalledTitle": "Minimal agent is not installed",
       "agentNotInstalledDesc": "Minimal agent is required to run SRE Agent. Click to install.",
       "dataSourceNotConnectedTitle": "No data source connected",
-      "dataSourceNotConnectedDesc": "No data source connected. SRE Agent lacks data to analyze."
+      "dataSourceNotConnectedDesc": "No data source connected. SRE Agent lacks data to analyze.",
+      "defaultModelNotConfiguredTitle": "Default model not configured"
     }
   },
   "abnormalityDetection": {
@@ -78,5 +79,28 @@
       "noService": "No services monitored",
       "currentServices": "Current services"
     }
+  },
+  "modelSettings": {
+    "title": "Model Provider",
+    "configured": "Configured",
+    "unconfigured": "Unconfigured",
+    "noConfiguredProviders": "No configured providers",
+    "noUnconfiguredProviders": "No unconfigured providers",
+    "setDefaultModel": "Set Default Model",
+    "settingModels": "Setting Models",
+    "submit": "Save",
+    "addNewModel": "Add New Model",
+    "deleteSuccess": "Delete Success",
+    "showConfigDetail": "Show Config Detail"
+  },
+  "status": {
+    "connectionDisconnected": "Connection Disconnected",
+    "currentStep": "Current Step",
+    "running": "Running",
+    "sessionStatus": "Session Status"
+  },
+  "sessions": {
+    "newConversation": "New Conversation",
+    "invalidDate": "Invalid Date"
   }
 }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from 'antd'
 import { WarningOutlined, CloseOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import styles from '../AGUIChat.module.scss'
 
 interface StatusIndicatorsProps {
@@ -22,6 +23,8 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
   state,
   onClearError,
 }) => {
+  const { t } = useTranslation('pro/agent')
+
   // 渲染连接状态
   const renderConnectionStatus = () => {
     if (isConnected) return null
@@ -30,7 +33,7 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
       <div className={styles.connectionStatus}>
         <div className={`${styles.connectionIndicator} ${styles.error}`}>
           <WarningOutlined className={styles.connectionIcon} />
-          <span className={styles.connectionText}>连接断开</span>
+          <span className={styles.connectionText}>{t('status.connectionDisconnected')}</span>
         </div>
       </div>
     )
@@ -61,7 +64,9 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
       <div className={styles.stepStatus}>
         <div className={styles.stepIndicator}>
           <div className={styles.stepDot}></div>
-          <div className={styles.stepText}>当前步骤: {currentStep}</div>
+          <div className={styles.stepText}>
+            {t('status.currentStep')}: {currentStep}
+          </div>
         </div>
       </div>
     )
@@ -75,7 +80,7 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
       <div className={styles.runStatus}>
         <div className={styles.runIndicator}>
           <div className={styles.runSpinner}></div>
-          <div className={styles.runText}>运行中 </div>
+          <div className={styles.runText}>{t('status.running')} </div>
         </div>
       </div>
     )
@@ -87,7 +92,7 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
 
     return (
       <div className={styles.stateInfo}>
-        <div className={styles.stateTitle}>会话状态:</div>
+        <div className={styles.stateTitle}>{t('status.sessionStatus')}:</div>
         <div className={styles.stateChips}>
           {Object.entries(state).map(([key, value]) => (
             <span key={key} className={styles.stateChip}>

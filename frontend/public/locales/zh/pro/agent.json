@@ -55,7 +55,8 @@
       "agentNotInstalledTitle": "未安装 minimal-agent",
       "agentNotInstalledDesc": "minimal-agent 为 SRE Agent 运行的基础，点击轻松安装",
       "dataSourceNotConnectedTitle": "未接入数据源",
-      "dataSourceNotConnectedDesc": "未接入数据源，SRE Agent 缺少可分析数据"
+      "dataSourceNotConnectedDesc": "未接入数据源，SRE Agent 缺少可分析数据",
+      "defaultModelNotConfiguredTitle": "未配置默认大模型"
     }
   },
   "abnormalityDetection": {
@@ -78,5 +79,28 @@
       "noService": "未监控任何服务",
       "currentServices": "当前监控服务"
     }
+  },
+  "modelSettings": {
+    "title": "模型提供商",
+    "configured": "已配置",
+    "unconfigured": "未配置",
+    "noConfiguredProviders": "暂无已配置的提供商",
+    "noUnconfiguredProviders": "暂无未配置的提供商",
+    "setDefaultModel": "设置默认模型",
+    "settingModels": "设置模型",
+    "submit": "保存",
+    "addNewModel": "添加新模型",
+    "deleteSuccess": "删除成功",
+    "showConfigDetail": "显示配置详情"
+  },
+  "status": {
+    "connectionDisconnected": "连接断开",
+    "currentStep": "当前步骤",
+    "running": "运行中",
+    "sessionStatus": "会话状态"
+  },
+  "sessions": {
+    "newConversation": "新建对话",
+    "invalidDate": "无效日期"
   }
 }

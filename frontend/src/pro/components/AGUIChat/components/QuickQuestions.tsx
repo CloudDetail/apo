@@ -11,6 +11,7 @@ import { ReactSVG } from 'react-svg'
 import agentIcon from 'src/pro/assets/agent.svg'
 import { useAIPermission } from 'src/pro/hooks/useAIPermission'
 import { SettingOutlined } from '@ant-design/icons'
+import AgentModel from './AgentModel'
 
 const { Paragraph } = Typography
 
@@ -19,7 +20,12 @@ interface QuickQuestionsProps {
 }
 
 const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
-  const { hasPermission, isLoading: permissionLoading, dataPlaneExist } = useAIPermission()
+  const {
+    hasPermission,
+    isLoading: permissionLoading,
+    dataPlaneExist,
+    defaultModel,
+  } = useAIPermission()
   const { t } = useTranslation('pro/agent')
 
   const quickQuestions = [
@@ -40,7 +46,6 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
     {
       icon: '🔍',
       title: t('quickQuestions.capabilities.latencyAnalysis'),
-      description: t('quickQuestions.capabilities.latencyAnalysisDescription'),
     },
     {
       icon: '📉',
@@ -49,12 +54,10 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
     {
       icon: '🔄',
       title: t('quickQuestions.capabilities.resourceAnalysis'),
-      description: t('quickQuestions.capabilities.resourceAnalysisDescription'),
     },
     {
       icon: '🧠',
       title: t('quickQuestions.capabilities.conversationalAnalysis'),
-      description: t('quickQuestions.capabilities.conversationalAnalysisDescription'),
     },
   ]
   return (
@@ -90,7 +93,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
           </AnimatedContent>
         </div>
       </div>
-      {!permissionLoading && hasPermission && dataPlaneExist && (
+      {!permissionLoading && hasPermission && dataPlaneExist && defaultModel && (
         <div className="flex flex-col items-center justify-center z-10  ">
           <div className="items-center text-center text-lg font-bold my-2">
             {t('quickQuestions.quickQuestionsTitle')}
@@ -142,13 +145,14 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
                     window.open('/#/integration/data/settings', '_blank')
                   }}
                 >
-                  {t('installNow', '立即安装')}
+                  {t('installNow')}
                 </Button>
               }
             />
           </div>
         </>
       )}
+
       {!dataPlaneExist && (
         <div className="ai-permission-alert  flex items-center justify-center ">
           <Alert
@@ -171,9 +175,21 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
                   window.open('/#/dataplane', '_blank')
                 }}
               >
-                {t('connectNow', '立即接入')}
+                {t('connectNow')}
               </Button>
             }
+          />
+        </div>
+      )}
+      {!defaultModel && (
+        <div className="ai-permission-alert  flex items-center justify-center ">
+          <Alert
+            message={t('quickQuestions.alerts.defaultModelNotConfiguredTitle')}
+            type="warning"
+            className="items-center w-3/4"
+            showIcon
+            icon={<IoWarningOutline size={30} />}
+            action={<AgentModel />}
           />
         </div>
       )}

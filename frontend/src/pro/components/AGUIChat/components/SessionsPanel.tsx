@@ -1,5 +1,6 @@
 import React from 'react'
 import { Layout } from 'antd'
+import { useTranslation } from 'react-i18next'
 
 const { Sider } = Layout
 
@@ -26,6 +27,8 @@ const SessionsPanel: React.FC<SessionsPanelProps> = ({
   onSelectSession,
   onDeleteSession,
 }) => {
+  const { t } = useTranslation('pro/agent')
+
   // 安全地获取日期字符串
   const getDateString = (timestamp: Date | string) => {
     try {
@@ -34,9 +37,9 @@ const SessionsPanel: React.FC<SessionsPanelProps> = ({
       } else if (timestamp) {
         return new Date(timestamp).toLocaleDateString()
       }
-      return '无效日期'
+      return t('sessions.invalidDate')
     } catch {
-      return '无效日期'
+      return t('sessions.invalidDate')
     }
   }
 
@@ -52,7 +55,7 @@ const SessionsPanel: React.FC<SessionsPanelProps> = ({
       <div className="sessions-panel">
         <div className="sessions-header">
           <button onClick={onCreateSession} className="new-session-btn">
-            ➕ 新建对话
+            ➕ {t('sessions.newConversation')}
           </button>
         </div>
 

@@ -104,7 +104,7 @@ const DataStatus: React.FC = () => {
         </div>
       }
     >
-      <div className={styles.loaderContainer}>
+      <div className={styles.loaderContainer} style={{ width: '300px' }}>
         <div className="flex items-center">
           {dataplane?.reduce((sum, item) => sum + item.count, 0) === 0 ? (
             <IoWarning className="text-yellow-500  mr-1" />
