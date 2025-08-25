@@ -118,6 +118,10 @@ func New(
 			continue
 		}
 
+		if !pType.WithPullOptions {
+			continue
+		}
+
 		if err = provider.ValidateJSON(source.Params.Obj, pType.ParamSpec); err != nil {
 			log.Printf("failed to init provider of AlertSource,err: %v", err)
 			continue

@@ -20,6 +20,7 @@ func (s *service) GetAlertProviderParamsSpec(sourceType string) *response.GetAle
 				Name: "root",
 				Type: provider.JSONTypeObject,
 			},
+			WithPullOptions: false,
 		}
 	}
 	return &response.GetAlertProviderParamsSpecResponse{ParamSpec: &pType.ParamSpec}
@@ -45,7 +46,7 @@ func (s *service) KeepPullAlert(ctx core.Context, source alert.AlertSource, inte
 			if now.Sub(lastPullTime) < interval {
 				continue
 			}
-			events, err := p.GetAlerts(provider.GetAlertParams{
+			events, err := p.PullAlerts(provider.GetAlertParams{
 				From: lastPullTime,
 				To:   now,
 				// UnstructuredParams: map[string]any{},

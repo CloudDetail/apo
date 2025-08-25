@@ -13,12 +13,16 @@ type ProviderType struct {
 	Name      string
 	ParamSpec ParamSpec
 	New       ProviderFactory
+
+	WithPullOptions bool
 }
 
 type ProviderFactory func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider
 
 type Provider interface {
-	GetAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
+	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
+
+	// InstallWebhook() error
 }
 
 type GetAlertParams struct {

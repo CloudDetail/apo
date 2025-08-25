@@ -41,4 +41,6 @@ type CheckAlertRuleResponse struct {
 
 type GetAlertProviderParamsSpecResponse struct {
 	ParamSpec *provider.ParamSpec `json:"paramSpec"`
+
+	WithPullOptions bool `json:"withPullOptions"`
 }

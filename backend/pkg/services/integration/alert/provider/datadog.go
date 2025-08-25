@@ -49,7 +49,7 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	}
 }
 
-func (f *DatadogProvider) GetAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
+func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
 	start := args.From
 	end := args.To
 
