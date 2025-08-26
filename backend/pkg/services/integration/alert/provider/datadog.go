@@ -154,7 +154,11 @@ func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2
 func (f *DatadogProvider) getSeverityFromMonitor(monitor datadogV2.MonitorType) string {
 	var priority = alert.SeverityUnknownLevel
 	if priorityLevel, find := monitor.AdditionalProperties["priority"]; find {
-		if p, find := DDPriorityMap[priorityLevel.(float64)]; find {
+		priority, ok := priorityLevel.(float64)
+		if !ok {
+			return alert.SeverityUnknownLevel
+		}
+		if p, find := DDPriorityMap[priority]; find {
 			return p
 		}
 		return alert.SeverityUnknownLevel
@@ -263,11 +267,12 @@ func getDDStatus(transition any) string {
 		return alert.StatusFiring
 	}
 
-	transitionMap := transition.(map[string]any)
-	if status, find := transitionMap["transition_type"]; find {
-		if status == "alert recovery" {
-			return alert.StatusResolved
-		}
+	transitionMap, ok := transition.(map[string]any)
+	if !ok {
+		return alert.StatusFiring
+	}
+	if status, find := transitionMap["transition_type"]; find && status == "alert recovery" {
+		return alert.StatusResolved
 	}
 	return alert.StatusFiring
 }
