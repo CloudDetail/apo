@@ -6,6 +6,7 @@ export type DataType = 'RED Metrics' | 'Service Topology' | 'Basic Metrics'
 export type DataplaneType = 'APO' | 'Datadog' | 'NewRelic' | 'Dynatrace'
 export interface DataplaneTypeItem {
     typeName: string
+    typeDisplayName: string
     paramSpec: any
     desc: string
     capabilitySpec: string[]

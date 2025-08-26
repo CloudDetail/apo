@@ -22,7 +22,7 @@ const ConfigDrawer = ({
               alt={dataplaneConfigInfo.typeName}
               className="w-6 h-6"
             />
-            {dataplaneConfigInfo.typeName}
+            {dataplaneConfigInfo.typeDisplayName}
           </div>
         )
       }

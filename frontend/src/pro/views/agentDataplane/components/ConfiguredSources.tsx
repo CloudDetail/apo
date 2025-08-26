@@ -48,10 +48,10 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
       dataIndex: 'typ',
       key: 'typ',
       width: 150,
-      render: (text: string) => (
+      render: (text: string, record: any) => (
         <div className="flex">
           <img src={dataplaneIconMap[text]} height={30} width={20} className="mr-2"></img>
-          {text}
+          {record?.typeDisplayName}
         </div>
       ),
     },
