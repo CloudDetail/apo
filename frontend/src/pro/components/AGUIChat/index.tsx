@@ -3,7 +3,6 @@ import { Layout } from 'antd'
 import { useAGUIChat, useAGUISession, useAGUIState } from '../../contexts/AGUIContext'
 import { ChatHeader, ChatMain, SettingsModal } from './components'
 import { ClientConfig } from './types/index'
-import useAIPermission from '../../hooks/useAIPermission'
 import styles from './AGUIChat.module.scss'
 
 // 控制会话功能的开关
@@ -14,13 +13,8 @@ interface AGUIChatProps {
 }
 
 const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
-  // 使用AI权限检查hook
-  const {
-    hasPermission,
-    isLoading: permissionLoading,
-    error: permissionError,
-    refreshPermission,
-  } = useAIPermission()
+  // 使用AI权限检查hook - 目前暂时未使用，但保留以备将来使用
+  // const aiPermission = useAGUIPermission()
 
   // 使用Context hooks
   const {
@@ -125,19 +119,6 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
   const handleConfigChange = (config: ClientConfig) => {
     setClientConfig(config)
   }
-
-  // 如果没有AI权限或正在检查权限，显示权限提示
-  // if (permissionLoading || hasPermission === false) {
-  //   return (
-  //     <Layout className={styles.container}>
-  //       <AIPermissionPrompt
-  //         isLoading={permissionLoading}
-  //         error={permissionError}
-  //         onRefresh={refreshPermission}
-  //       />
-  //     </Layout>
-  //   )
-  // }
 
   // 如果有权限，显示正常的AGUIChat界面
   return (

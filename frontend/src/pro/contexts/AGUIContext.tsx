@@ -29,6 +29,8 @@ import {
   generateMessageId,
 } from '../types/ag-ui'
 import dayjs from 'dayjs'
+import { checkDataplaneDataApi } from '../api/dataplane'
+import { getModelListApi, setDefaultModelApi } from '../api/modelSetting'
 
 // 扩展AGUIMessage类型以支持工具调用
 export interface ExtendedAGUIMessage extends AGUIMessage {
@@ -46,6 +48,34 @@ export interface ExtendedAGUIMessage extends AGUIMessage {
   }>
   isFinal?: boolean
   errorMessage?: string
+}
+
+// AI权限相关的类型定义
+export interface Model {
+  name: string
+}
+
+export interface Config {
+  name: string
+  label: string
+  placeholder: string
+  required?: boolean
+  value?: string
+}
+
+export interface Provider {
+  name: string
+  description: string
+  models: Model[]
+  config: Config[]
+  setUp: boolean
+}
+
+export interface ModelOption {
+  provider: string
+  model: string
+  label?: string
+  value?: string
 }
 
 interface AGUIContextValue {
@@ -82,6 +112,15 @@ interface AGUIContextValue {
   currentRunId?: string
   currentStep?: string
 
+  // AI权限相关状态
+  hasPermission: boolean | null
+  permissionLoading: boolean
+  agentReady: boolean | null
+  dataPlaneExist: boolean | null
+  allModels: ModelOption[]
+  originalProviders: Provider[]
+  defaultModel: ModelOption | null
+
   // 配置管理
   config: AGUIClientConfig
   updateConfig: (newConfig: Partial<AGUIClientConfig>) => void
@@ -96,6 +135,12 @@ interface AGUIContextValue {
   sendMessage: (content: string) => void
   cancelRun: () => void
   clearMessages: () => void
+
+  // AI权限操作
+  checkPermission: () => Promise<void>
+  refreshPermission: () => Promise<void>
+  refreshModelList: () => Promise<void>
+  changeDefaultModel: ({ provider, model }: { provider: string; model: string }) => void
 
   // 错误处理
   clearError: () => void
@@ -152,6 +197,15 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   const [currentThreadId, setCurrentThreadId] = useState<string | undefined>(undefined)
   const [currentRunId, setCurrentRunId] = useState<string | undefined>(undefined)
   const [currentStep, setCurrentStep] = useState<string | undefined>(undefined)
+
+  // AI权限相关状态
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
+  const [permissionLoading, setPermissionLoading] = useState(true)
+  const [agentReady, setAgentReady] = useState<boolean | null>(null)
+  const [dataPlaneExist, setDataPlaneExist] = useState<boolean | null>(null)
+  const [allModels, setAllModels] = useState<ModelOption[]>([])
+  const [originalProviders, setOriginalProviders] = useState<Provider[]>([])
+  const [defaultModel, setDefaultModel] = useState<ModelOption | null>(null)
 
   // 事件订阅引用
   const unsubscribeRef = useRef<(() => void) | null>(null)
@@ -866,10 +920,101 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     setState({})
   }, [])
 
+  // AI权限相关方法
+  const fetchModelList = useCallback(async () => {
+    try {
+      const res = await getModelListApi()
+      const providers: Provider[] = res?.data?.providers || []
+      setOriginalProviders(providers)
+
+      // 可能后端的 default 不是完整的 ModelOption，这里做一次兜底组装
+      const defaultFromApi = res?.data?.default || null
+      setDefaultModel(defaultFromApi)
+
+      const models: ModelOption[] = []
+      providers.forEach((provider: Provider) => {
+        if (provider.name === 'openai-api-compatible') {
+          provider.models.forEach((model: Model) => {
+            models.push({
+              provider: provider.name,
+              model: model.name,
+              label: `${model.name}`,
+              value: `${provider.name}-${model.name}`,
+            })
+          })
+        } else {
+          if (provider.setUp) {
+            provider.models.forEach((model: Model) => {
+              models.push({
+                provider: provider.name,
+                model: model.name,
+                label: `${model.name}`,
+                value: `${provider.name}-${model.name}`,
+              })
+            })
+          }
+        }
+      })
+      setAllModels(models)
+    } catch (error) {
+      console.error('获取模型列表失败:', error)
+    }
+  }, [])
+
+  const checkPermission = useCallback(async () => {
+    setPermissionLoading(true)
+    try {
+      // 检查数据平面状态
+      const dataplaneData = await checkDataplaneDataApi()
+      const { agentReady: ready, dataPlaneExist: exist } = dataplaneData.data || dataplaneData
+      setAgentReady(ready)
+      setDataPlaneExist(exist)
+
+      // 根据数据平面状态决定权限
+      if (!ready) {
+        // agentReady为false，提示未安装minimal
+        setError(t('agentNotReady', 'Agent未就绪，请先安装minimal'))
+        setHasPermission(false)
+      } else if (!exist) {
+        // 只有dataPlaneExist为false，可以正常使用agent，仅提示
+        setHasPermission(true)
+        setError(t('dataPlaneNotExist', '数据平面不存在，但可以正常使用Agent'))
+      } else {
+        // 都正常
+        setHasPermission(true)
+      }
+    } catch (err) {
+      console.error('数据平面状态检查失败:', err)
+      setError(t('dataplaneCheckError', '数据平面状态检查失败，请稍后重试'))
+      setHasPermission(false)
+    } finally {
+      setPermissionLoading(false)
+    }
+  }, [t])
+
+  const refreshPermission = useCallback(async () => {
+    await checkPermission()
+  }, [checkPermission])
+
+  const refreshModelList = useCallback(async () => {
+    await fetchModelList()
+  }, [fetchModelList])
+
+  const changeDefaultModel = useCallback(
+    ({ provider, model }: { provider: string; model: string }) => {
+      setDefaultModelApi({ provider, model }).then(() => {
+        fetchModelList()
+      })
+    },
+    [fetchModelList],
+  )
+
   // 初始化
   useEffect(() => {
     refreshSessions()
-  }, [refreshSessions])
+    checkPermission()
+    fetchModelList()
+  }, [refreshSessions, checkPermission, fetchModelList])
 
   const contextValue: AGUIContextValue = {
     client,
@@ -886,6 +1031,13 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     currentThreadId,
     currentRunId,
     currentStep,
+    hasPermission,
+    permissionLoading,
+    agentReady,
+    dataPlaneExist,
+    allModels,
+    originalProviders,
+    defaultModel,
     config,
     updateConfig,
     createSession,
@@ -895,6 +1047,10 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     sendMessage,
     cancelRun,
     clearMessages,
+    checkPermission,
+    refreshPermission,
+    refreshModelList,
+    changeDefaultModel,
     clearError,
   }
 
@@ -955,6 +1111,28 @@ export const useAGUIState = () => {
     currentThreadId: context.currentThreadId,
     updateConfig: context.updateConfig,
     clearError: context.clearError,
+  }
+}
+
+// Hook for AI permission management
+export const useAGUIPermission = () => {
+  const context = useContext(AGUIContext)
+  if (!context) {
+    throw new Error('useAGUIPermission must be used within an AGUIProvider')
+  }
+
+  return {
+    hasPermission: context.hasPermission,
+    permissionLoading: context.permissionLoading,
+    agentReady: context.agentReady,
+    dataPlaneExist: context.dataPlaneExist,
+    allModels: context.allModels,
+    originalProviders: context.originalProviders,
+    defaultModel: context.defaultModel,
+    checkPermission: context.checkPermission,
+    refreshPermission: context.refreshPermission,
+    refreshModelList: context.refreshModelList,
+    changeDefaultModel: context.changeDefaultModel,
   }
 }
 

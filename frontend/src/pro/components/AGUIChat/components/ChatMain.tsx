@@ -4,7 +4,7 @@ import MessageList from './MessageList'
 import InputArea from './InputArea'
 import QuickQuestions from './QuickQuestions'
 import styles from '../AGUIChat.module.scss'
-import useAIPermission from 'src/pro/hooks/useAIPermission'
+import { useAGUIPermission } from 'src/pro/contexts/AGUIContext'
 
 const { Content } = Layout
 
@@ -67,7 +67,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
   onCreateSession,
 }) => {
   // 快捷问答处理函数
-  const { hasPermission, isLoading: permissionLoading, dataPlaneExist } = useAIPermission()
+  const { hasPermission, permissionLoading, dataPlaneExist, defaultModel } = useAGUIPermission()
 
   const handleQuickQuestion = (question?: string) => {
     if (ENABLE_SESSION_MANAGEMENT && onCreateSession) {
@@ -109,7 +109,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
       )}
 
       {/* 输入区域 */}
-      {!permissionLoading && hasPermission && dataPlaneExist && (
+      {!permissionLoading && hasPermission && dataPlaneExist && defaultModel && (
         <InputArea
           inputText={inputText}
           loading={loading}

@@ -9,7 +9,7 @@ import ShinyText from '../../Animation/ShinyText'
 import AnimatedContent from '../../Animation/AnimatedContent'
 import { ReactSVG } from 'react-svg'
 import agentIcon from 'src/pro/assets/agent.svg'
-import { useAIPermission } from 'src/pro/hooks/useAIPermission'
+import { useAGUIPermission } from 'src/pro/contexts/AGUIContext'
 import { SettingOutlined } from '@ant-design/icons'
 import AgentModel from './AgentModel'
 
@@ -20,14 +20,8 @@ interface QuickQuestionsProps {
 }
 
 const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
-  const {
-    hasPermission,
-    isLoading: permissionLoading,
-    dataPlaneExist,
-    defaultModel,
-  } = useAIPermission()
+  const { hasPermission, permissionLoading, dataPlaneExist, defaultModel } = useAGUIPermission()
   const { t } = useTranslation('pro/agent')
-
   const quickQuestions = [
     {
       icon: <AiOutlineBarChart />,
@@ -121,7 +115,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
           </div>
         </div>
       )}
-      {!hasPermission && (
+      {!permissionLoading && !hasPermission && (
         <>
           {' '}
           <div className="ai-permission-alert flex items-center justify-center">
@@ -153,7 +147,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
         </>
       )}
 
-      {!dataPlaneExist && (
+      {!permissionLoading && !dataPlaneExist && (
         <div className="ai-permission-alert  flex items-center justify-center ">
           <Alert
             message={t('quickQuestions.alerts.dataSourceNotConnectedTitle')}
@@ -181,7 +175,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
           />
         </div>
       )}
-      {!defaultModel && (
+      {!permissionLoading && !defaultModel && (
         <div className="ai-permission-alert  flex items-center justify-center ">
           <Alert
             message={t('quickQuestions.alerts.defaultModelNotConfiguredTitle')}
@@ -189,7 +183,11 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
             className="items-center w-3/4"
             showIcon
             icon={<IoWarningOutline size={30} />}
-            action={<AgentModel />}
+            action={
+              <Button>
+                <AgentModel />
+              </Button>
+            }
           />
         </div>
       )}

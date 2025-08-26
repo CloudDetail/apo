@@ -5,12 +5,12 @@ import { IoSettingsOutline, IoWarning } from 'react-icons/io5'
 import styles from './index.module.scss'
 import { ProviderIcon } from './constants'
 import ProviderCard from './ProviderCard'
-import useAIPermission from 'src/pro/hooks/useAIPermission'
+import { useAGUIPermission } from 'src/pro/contexts/AGUIContext'
 
 const AgentModel = () => {
   const { t } = useTranslation('pro/agent')
   const { allModels, originalProviders, defaultModel, changeDefaultModel, refreshModelList } =
-    useAIPermission()
+    useAGUIPermission()
   const [open, setOpen] = useState(false)
 
   // 分组：已配置 / 未配置
