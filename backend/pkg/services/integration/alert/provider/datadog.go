@@ -10,11 +10,44 @@ import (
 	"strings"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadog"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV2"
 )
+
+var DatadogProviderType = ProviderType{
+	Name: "Datadog",
+	ParamSpec: ParamSpec{
+		Name: "root",
+		Type: JSONTypeObject,
+		Children: []ParamSpec{
+			{
+				Name:   "site",
+				Type:   JSONTypeString,
+				Desc:   "DataDog地址,示例: datadoghq.com",
+				DescEN: "DataDog site, example: datadoghq.com",
+			},
+			{
+				Name:   "apiKey",
+				Type:   JSONTypeString,
+				Desc:   "DataDog API Key",
+				DescEN: "DataDog API key",
+			},
+			{
+				Name:   "appKey",
+				Type:   JSONTypeString,
+				Desc:   "DataDog APP Key",
+				DescEN: "DataDog APP key",
+			},
+		},
+	},
+	factory: NewDatadogProvider,
+
+	SupportPull:           true,
+	SupportWebhookInstall: false, // TODO support webhook installation in datadog
+}
 
 type DatadogProvider struct {
 	api *datadogV2.EventsApi
@@ -30,15 +63,15 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	ctx := context.WithValue(context.Background(),
 		datadog.ContextServerVariables,
 		map[string]string{
-			"site": params["site"].(string),
+			"site": params.GetString("site"),
 		},
 	)
 
 	ctx = context.WithValue(ctx,
 		datadog.ContextAPIKeys,
 		map[string]datadog.APIKey{
-			"apiKeyAuth": {Key: params["apiKey"].(string)},
-			"appKeyAuth": {Key: params["appKey"].(string)},
+			"apiKeyAuth": {Key: params.GetString("apiKey")},
+			"appKeyAuth": {Key: params.GetString("appKey")},
 		},
 	)
 
@@ -47,6 +80,11 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 		ctx:        ctx,
 		sourceFrom: sourceFrom,
 	}
+}
+
+func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string, params alert.AlertSourceParams) error {
+	// TODO support webhook installation in datadog
+	panic("unimplemented")
 }
 
 func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
@@ -72,56 +110,76 @@ func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, e
 			break
 		}
 
-		attrs := item.Item.Attributes
-		nestedAttrs := item.Item.Attributes.Attributes
-
-		monitor := nestedAttrs.GetMonitor()
-		var priority = alert.SeverityUnknownLevel
-		if priorityLevel, find := monitor.AdditionalProperties["priority"]; find {
-			priority = getDDPriority(priorityLevel.(float64))
-		}
-
-		var status = alert.StatusFiring
-		var createTime, endTime time.Time
-		if transition, find := monitor.AdditionalProperties["transition"]; find {
-			status = getDDStatus(transition)
-
-			if status == alert.StatusResolved {
-				endTime = time.UnixMilli(nestedAttrs.GetTimestamp())
-			}
-		}
-		if nestedAttrs.GetDuration() > 0 {
-			createTime = time.UnixMilli(nestedAttrs.GetTimestamp() - nestedAttrs.GetDuration()/1e6)
-		} else {
-			createTime = time.UnixMilli(nestedAttrs.GetTimestamp())
-		}
-
-		tags := buildDDTags(nestedAttrs, attrs.GetTags())
-		group := getGroup(nestedAttrs, attrs.GetTags())
-
-		events = append(events, alert.AlertEvent{
-			Alert: alert.Alert{
-				Source:     f.sourceFrom.SourceName,
-				SourceID:   f.sourceFrom.SourceID,
-				AlertID:    nestedAttrs.GetAggregationKey(),
-				Group:      group,
-				Name:       nestedAttrs.GetTitle(),
-				EnrichTags: make(map[string]string),
-				Tags:       tags,
-			},
-			// ID:           uuid.UUID{},
-			EventID:      item.Item.GetId(),
-			Detail:       buildDDDetail(attrs.GetMessage(), tags),
-			CreateTime:   createTime,
-			UpdateTime:   time.UnixMilli(nestedAttrs.GetTimestamp()),
-			EndTime:      endTime,
-			ReceivedTime: receivedTime,
-			Severity:     priority,
-			Status:       status,
-		})
+		event := f.parseEventItem(item, receivedTime)
+		events = append(events, event)
 	}
 
 	return events, err
+}
+
+func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2.EventResponse], receivedTime time.Time) alert.AlertEvent {
+	attrs := item.Item.Attributes
+	nestedAttrs := item.Item.Attributes.Attributes
+
+	monitor := nestedAttrs.GetMonitor()
+	severity := f.getSeverityFromMonitor(monitor)
+
+	createTime := f.calculateCreateTime(nestedAttrs)
+	status, endTime := f.getStatusAndEndTimeFromMonitor(monitor, nestedAttrs)
+
+	tags := buildDDTags(nestedAttrs, attrs.GetTags())
+	group := getGroup(nestedAttrs, attrs.GetTags())
+
+	return alert.AlertEvent{
+		Alert: alert.Alert{
+			Source:     f.sourceFrom.SourceName,
+			SourceID:   f.sourceFrom.SourceID,
+			AlertID:    nestedAttrs.GetAggregationKey(),
+			Group:      group,
+			Name:       nestedAttrs.GetTitle(),
+			EnrichTags: make(map[string]string),
+			Tags:       tags,
+		},
+		EventID:      item.Item.GetId(),
+		Detail:       buildDDDetail(attrs.GetMessage(), tags),
+		CreateTime:   createTime,
+		UpdateTime:   time.UnixMilli(nestedAttrs.GetTimestamp()),
+		EndTime:      endTime,
+		ReceivedTime: receivedTime,
+		Severity:     severity,
+		Status:       status,
+	}
+}
+
+func (f *DatadogProvider) getSeverityFromMonitor(monitor datadogV2.MonitorType) string {
+	var priority = alert.SeverityUnknownLevel
+	if priorityLevel, find := monitor.AdditionalProperties["priority"]; find {
+		if p, find := DDPriorityMap[priorityLevel.(float64)]; find {
+			return p
+		}
+		return alert.SeverityUnknownLevel
+	}
+	return priority
+}
+
+func (f *DatadogProvider) getStatusAndEndTimeFromMonitor(monitor datadogV2.MonitorType, nestedAttrs *datadogV2.EventAttributes) (string, time.Time) {
+	var status = alert.StatusFiring
+	var endTime time.Time
+	if transition, find := monitor.AdditionalProperties["transition"]; find {
+		status = getDDStatus(transition)
+
+		if status == alert.StatusResolved {
+			endTime = time.UnixMilli(nestedAttrs.GetTimestamp())
+		}
+	}
+	return status, endTime
+}
+
+func (f *DatadogProvider) calculateCreateTime(nestedAttrs *datadogV2.EventAttributes) time.Time {
+	if nestedAttrs.GetDuration() > 0 {
+		return time.UnixMilli(nestedAttrs.GetTimestamp() - nestedAttrs.GetDuration()/1e6)
+	}
+	return time.UnixMilli(nestedAttrs.GetTimestamp())
 }
 
 /*
@@ -190,20 +248,15 @@ func buildDDTags(attrs *datadogV2.EventAttributes, eventTags []string) map[strin
 	return tags
 }
 
-func getDDPriority(priority float64) string {
-	switch priority {
-	case 1:
-		return alert.SeverityCriticalLevel
-	case 2:
-		return alert.SeverityErrorLevel
-	case 3:
-		return alert.SeverityWarnLevel
-	case 4, 5:
-		return alert.SeverityInfoLevel
-	default:
-		return alert.SeverityUnknownLevel
+var (
+	DDPriorityMap = map[float64]string{
+		1: alert.SeverityCriticalLevel,
+		2: alert.SeverityErrorLevel,
+		3: alert.SeverityWarnLevel,
+		4: alert.SeverityInfoLevel,
+		5: alert.SeverityInfoLevel,
 	}
-}
+)
 
 func getDDStatus(transition any) string {
 	if transition == nil {
@@ -258,29 +311,4 @@ func getGroup(attrs *datadogV2.EventAttributes, eventTags []string) string {
 		return string(clickhouse.APP_GROUP)
 	}
 	return ""
-}
-
-var DatadogParamSpec = ParamSpec{
-	Name: "root",
-	Type: JSONTypeObject,
-	Children: []ParamSpec{
-		{
-			Name:   "site",
-			Type:   JSONTypeString,
-			Desc:   "DataDog地址,示例: datadoghq.com",
-			DescEN: "DataDog site, example: datadoghq.com",
-		},
-		{
-			Name:   "apiKey",
-			Type:   JSONTypeString,
-			Desc:   "DataDog API Key",
-			DescEN: "DataDog API key",
-		},
-		{
-			Name:   "appKey",
-			Type:   JSONTypeString,
-			Desc:   "DataDog APP Key",
-			DescEN: "DataDog APP key",
-		},
-	},
 }

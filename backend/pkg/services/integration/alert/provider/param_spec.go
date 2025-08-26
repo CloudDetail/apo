@@ -3,7 +3,11 @@
 
 package provider
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
+)
 
 type JSONType string
 
@@ -23,6 +27,16 @@ type ParamSpec struct {
 	Children []ParamSpec `json:"children,omitempty"`
 	Desc     string      `json:"desc,omitempty"`
 	DescEN   string      `json:"desc_en,omitempty"`
+}
+
+func (p *ParamSpec) UseLang(lang string) {
+	if lang == code.LANG_ZH {
+		return
+	}
+	p.Desc = p.DescEN
+	for i := range p.Children {
+		p.Children[i].UseLang(lang)
+	}
 }
 
 func ValidateJSON(value any, schema ParamSpec) error {

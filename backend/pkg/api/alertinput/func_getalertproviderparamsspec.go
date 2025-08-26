@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Param Request body request.GetAlertProviderParamsSpecRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 {object} response.getAlertProviderParamsSpecResponse
+// @Success 200 {object} response.GetAlertProviderParamsSpecResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/paramspec [get]
 func (h *handler) GetAlertProviderParamsSpec() core.HandlerFunc {
@@ -33,7 +33,7 @@ func (h *handler) GetAlertProviderParamsSpec() core.HandlerFunc {
 			)
 			return
 		}
-		resp := h.inputService.GetAlertProviderParamsSpec(req.SourceType)
+		resp := h.inputService.GetProviderParamsSpec(c, req.SourceType)
 		c.Payload(resp)
 	}
 }

@@ -13,18 +13,30 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider"
 )
 
-func (s *service) GetAlertProviderParamsSpec(sourceType string) *response.GetAlertProviderParamsSpecResponse {
-	pType, find := provider.ProviderRegistry[sourceType]
-	if !find {
+func (s *service) GetProviderParamsSpec(ctx core.Context, sourceType string) *response.GetAlertProviderParamsSpecResponse {
+	if len(sourceType) == 0 {
+		var res = make(map[string]provider.ProviderType)
+		for typ, item := range provider.ProviderRegistry {
+			res[typ] = item
+		}
+
 		return &response.GetAlertProviderParamsSpecResponse{
-			ParamSpec: &provider.ParamSpec{
-				Name: "root",
-				Type: provider.JSONTypeObject,
-			},
-			WithPullOptions: false,
+			ProviderTypes: res,
 		}
 	}
-	return &response.GetAlertProviderParamsSpecResponse{ParamSpec: &pType.ParamSpec}
+
+	if item, ok := provider.ProviderRegistry[sourceType]; ok {
+		return &response.GetAlertProviderParamsSpecResponse{
+			ProviderType:  &item,
+			ProviderTypes: map[string]provider.ProviderType{sourceType: item},
+		}
+	}
+
+	item := provider.BasicEncoder(sourceType)
+	return &response.GetAlertProviderParamsSpecResponse{
+		ProviderType:  &item,
+		ProviderTypes: map[string]provider.ProviderType{sourceType: item},
+	}
 }
 
 func (s *service) KeepPullAlert(ctx core.Context, source alert.AlertSource, interval time.Duration, p provider.Provider) {

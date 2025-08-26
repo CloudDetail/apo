@@ -40,7 +40,6 @@ type CheckAlertRuleResponse struct {
 }
 
 type GetAlertProviderParamsSpecResponse struct {
-	ParamSpec *provider.ParamSpec `json:"paramSpec"`
-
-	WithPullOptions bool `json:"withPullOptions"`
+	ProviderType  *provider.ProviderType           `json:"providerType,omitempty"`
+	ProviderTypes map[string]provider.ProviderType `json:"providerTypes,omitempty"`
 }

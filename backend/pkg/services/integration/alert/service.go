@@ -12,6 +12,7 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -23,7 +24,8 @@ import (
 var _ Service = &service{}
 
 type Service interface {
-	GetAlertProviderParamsSpec(sourceType string) *response.GetAlertProviderParamsSpecResponse
+	GetProviderParamsSpec(ctx core.Context, sourceType string) *response.GetAlertProviderParamsSpecResponse
+	SetupProviderWebhook(ctx core.Context, req *request.SetupAlertProviderWebhookRequest) error
 
 	CreateAlertSource(ctx core.Context, source *alert.AlertSource) (*alert.AlertSource, error)
 	GetAlertSource(ctx core.Context, source *alert.SourceFrom) (*alert.AlertSource, error)
@@ -118,7 +120,7 @@ func New(
 			continue
 		}
 
-		if !pType.WithPullOptions {
+		if !pType.SupportPull {
 			continue
 		}
 
