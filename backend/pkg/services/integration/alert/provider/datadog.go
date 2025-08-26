@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -269,6 +270,7 @@ func getDDStatus(transition any) string {
 
 	transitionMap, ok := transition.(map[string]any)
 	if !ok {
+		log.Printf("get datadog alert status failed, transition is not expected map, default set to firing")
 		return alert.StatusFiring
 	}
 	if status, find := transitionMap["transition_type"]; find && status == "alert recovery" {
