@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadog"
+	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV2"
 )
 
@@ -47,11 +49,12 @@ var DatadogProviderType = ProviderType{
 	factory: NewDatadogProvider,
 
 	SupportPull:           true,
-	SupportWebhookInstall: false, // TODO support webhook installation in datadog
+	SupportWebhookInstall: true,
 }
 
 type DatadogProvider struct {
-	api *datadogV2.EventsApi
+	api        *datadogV2.EventsApi
+	webhookAPI *datadogV1.WebhooksIntegrationApi
 
 	ctx        context.Context
 	sourceFrom alert.SourceFrom
@@ -78,14 +81,57 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 
 	return &DatadogProvider{
 		api:        datadogV2.NewEventsApi(client),
+		webhookAPI: datadogV1.NewWebhooksIntegrationApi(client),
 		ctx:        ctx,
 		sourceFrom: sourceFrom,
 	}
 }
 
+const DDWebhookPayload = `
+{
+	"alert_id": "$ALERT_ID",
+	"alert_cycle_key": "$ALERT_CYCLE_KEY",
+	
+    "alert_query": "$ALERT_QUERY",
+	"alert_title": "$ALERT_TITLE",
+	"alert_transition": "$ALERT_TRANSITION",
+	"id": "$ID",
+	"event_title": "$EVENT_TITLE",
+
+    "event_msg": "$TEXT_ONLY_MSG",
+    "last_updated": "$LAST_UPDATED",
+    "severity": "$ALERT_PRIORITY",
+	"tags": "$TAGS",
+    "date": "$DATE",
+    "scopes": "$ALERT_SCOPE",
+	"org_id": "$ORG_ID",
+	"org_name": "$ORG_NAME"
+}`
+
 func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string, params alert.AlertSourceParams) error {
-	// TODO support webhook installation in datadog
-	panic("unimplemented")
+	webhookName := fmt.Sprintf("apo-webhook-%s", f.sourceFrom.SourceID[:6])
+
+	// Check history
+	_, resp, err := f.webhookAPI.GetWebhooksIntegration(f.ctx, webhookName)
+	if resp.StatusCode == 404 {
+		// create new
+		integration := datadogV1.NewWebhooksIntegration(webhookName, webhookURL)
+		integration.SetPayload(DDWebhookPayload)
+		_, _, err = f.webhookAPI.CreateWebhooksIntegration(ctx, *integration)
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// update
+	updateReq := datadogV1.NewWebhooksIntegrationUpdateRequest()
+	updateReq.SetPayload(DDWebhookPayload)
+	updateReq.SetUrl(webhookURL)
+
+	_, _, err = f.webhookAPI.UpdateWebhooksIntegration(ctx, webhookName, *updateReq)
+	return err
 }
 
 func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {

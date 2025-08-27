@@ -40,7 +40,7 @@ type GetAlertParams struct {
 }
 
 var ProviderRegistry = map[string]ProviderType{
-	"datadog":   DatadogProviderType,   // TODO webhook support
+	"datadog":   DatadogProviderType,
 	"pagerduty": PagerDutyProviderType, // TODO pull support
 
 	// Do not support auto install webhook or pull alerts now

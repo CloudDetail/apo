@@ -1,0 +1,121 @@
+// Copyright 2025 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
+package decoder
+
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider/lifecycle"
+)
+
+type DatadogDecoder struct{}
+
+type DatadogPayload struct {
+	AlertID         string `json:"alert_id"`
+	AlertType       string `json:"alert_type"`
+	AlertQuery      string `json:"alert_query"`
+	AlertTitle      string `json:"alert_title"`
+	AlertCircleKey  string `json:"alert_cycle_key"`
+	AlertTransition string `json:"alert_transition"`
+	ID              string `json:"id"` // EventID
+	EventTitle      string `json:"event_title"`
+	EventType       string `json:"event_type"`
+	EventMsg        string `json:"event_msg"`
+	LastUpdated     string `json:"last_updated"`
+	Severity        string `json:"severity"`
+	Tags            string `json:"tags"`
+	Date            string `json:"date"`
+	Scopes          string `json:"scopes"`
+	OrgID           string `json:"org_id"`
+	OrgName         string `json:"org_name"`
+}
+
+func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert.AlertEvent, error) {
+	var payload DatadogPayload
+	err := json.Unmarshal(data, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	dateTS, err := strconv.ParseInt(payload.Date, 10, 64)
+	if err != nil {
+
+		return nil, err
+	}
+
+	status := getDDStatus(payload.AlertTransition)
+
+	var createTime, updateTime, endTime time.Time
+	createTime, _ = lifecycle.AlertLifeCycle.RecordEvent(payload.AlertCircleKey, status)
+	updateTime = time.UnixMilli(dateTS)
+	if status == alert.StatusResolved {
+		endTime = updateTime
+	}
+
+	tagStrs := strings.Split(payload.Tags, ",")
+	var tags = make(map[string]any, len(tagStrs))
+	for _, tag := range tagStrs {
+		if strings.Contains(tag, ":") {
+			tagKV := strings.Split(tag, ":")
+			tags[tagKV[0]] = tagKV[1]
+		} else {
+			tags[tag] = ""
+		}
+	}
+
+	alertEvent := alert.AlertEvent{
+		Alert: alert.Alert{
+			Source:            sourceFrom.SourceName,
+			SourceID:          sourceFrom.SourceID,
+			AlertID:           fmt.Sprintf("%s-%s", sourceFrom.SourceID[:6], payload.AlertID),
+			Group:             getDDtGroup(&payload),
+			Name:              payload.AlertTitle,
+			EnrichTags:        map[string]string{},
+			EnrichTagsDisplay: []alert.TagDisplay{},
+			Tags:              tags,
+		},
+		EventID:      payload.ID,
+		Detail:       payload.EventMsg,
+		CreateTime:   createTime,
+		UpdateTime:   updateTime,
+		EndTime:      endTime,
+		ReceivedTime: time.Now(),
+		Severity:     getDDSeverity(payload.Severity),
+		Status:       status,
+	}
+
+	return []alert.AlertEvent{alertEvent}, nil
+}
+
+var DDPriorityMap = map[string]string{
+	"P1": alert.SeverityCriticalLevel,
+	"P2": alert.SeverityErrorLevel,
+	"P3": alert.SeverityWarnLevel,
+	"P4": alert.SeverityInfoLevel,
+}
+
+func getDDSeverity(priority string) string {
+	if severity, ok := DDPriorityMap[priority]; ok {
+		return severity
+	}
+	return alert.SeverityInfoLevel
+}
+
+func getDDStatus(transition string) string {
+	if transition == "Recovered" {
+		return alert.StatusResolved
+	}
+	// Include Triggered/Re-Triggered, No Data/Re-No Data, Warn/Re-Warn, Renotify
+	return alert.StatusFiring
+}
+
+func getDDtGroup(pdEvent *DatadogPayload) string {
+	// TODO get related service from datadog
+	return ""
+}

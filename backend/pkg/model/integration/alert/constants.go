@@ -7,6 +7,7 @@ const (
 	PrometheusType string = "prometheus"
 	ZabbixType     string = "zabbix"
 
+	DatadogType   string = "datadog"
 	PagerDutyType string = "pagerduty"
 )
 
