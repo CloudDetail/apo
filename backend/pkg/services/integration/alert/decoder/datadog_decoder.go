@@ -18,6 +18,7 @@ type DatadogDecoder struct{}
 
 type DatadogPayload struct {
 	AlertID         string `json:"alert_id"`
+	AggRegKey       string `json:"agg_reg_key"`
 	AlertType       string `json:"alert_type"`
 	AlertQuery      string `json:"alert_query"`
 	AlertTitle      string `json:"alert_title"`
@@ -42,26 +43,34 @@ func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]aler
 		return nil, err
 	}
 
-	// format: aaaaaa-000000000000
-	alertID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.AlertID)
+	// AlertID: Same as monitor_id. Identifies the monitor rule and stays the same across all scopes.
+	// AggRegKey: Unique per scope within the same monitor. Identifies a specific monitor+scope alert instance.
+	// AlertCycleKey: Unique for each trigger-to-resolve cycle within the same monitor and scope. Changes on every new alert cycle.
+	// ID: Unique identifier for each event. Different events always have different IDs, even within the same cycle.
+	alertID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.AggRegKey)
+	eventID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.ID)
+
+	status := transDDStatus(payload.AlertTransition)
+	var updateTime, endTime time.Time
 	dateTS, err := strconv.ParseInt(payload.Date, 10, 64)
 	if err != nil {
 		return nil, err
 	}
-
-	status := transDDStatus(payload.AlertTransition)
-	var createTime, updateTime, endTime time.Time
-	createTime, _ = lifecycle.AlertLifeCycle.RecordEvent(payload.AlertCircleKey, status)
 	updateTime = time.UnixMilli(dateTS)
 	if status == alert.StatusResolved {
 		endTime = updateTime
+	}
+
+	createTime, find := lifecycle.AlertLifeCycle.CacheEventStatus(alertID, status, updateTime)
+	if !find {
+		createTime = updateTime
 	}
 
 	tagStrs := strings.Split(payload.Tags, ",")
 	var tags = make(map[string]any, len(tagStrs))
 	for _, tag := range tagStrs {
 		if strings.Contains(tag, ":") {
-			tagKV := strings.Split(tag, ":")
+			tagKV := strings.SplitN(tag, ":", 2)
 			tags[tagKV[0]] = tagKV[1]
 		} else {
 			tags[tag] = ""
@@ -90,7 +99,7 @@ func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]aler
 			EnrichTagsDisplay: []alert.TagDisplay{},
 			Tags:              tags,
 		},
-		EventID:      payload.ID,
+		EventID:      eventID,
 		Detail:       string(detailJsonStr),
 		CreateTime:   createTime,
 		UpdateTime:   updateTime,

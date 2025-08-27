@@ -39,7 +39,7 @@ func NewAlertCache() *AlertCache {
 	}
 }
 
-func (ac *AlertCache) RecordEvent(alertID string, status string) (time.Time, bool) {
+func (ac *AlertCache) CacheEventStatus(alertID string, status string, date time.Time) (time.Time, bool) {
 	ac.Lock()
 	defer ac.Unlock()
 
@@ -52,8 +52,9 @@ func (ac *AlertCache) RecordEvent(alertID string, status string) (time.Time, boo
 		ac.maybeCleanup()
 		// 确保缓存大小不超过限制
 		ac.ensureCacheSize()
-		ac.records[alertID] = time.Now()
+		ac.records[alertID] = date
 		ac.order = append(ac.order, alertID)
+		return date, true
 	case alert.StatusResolved:
 		if createTime, exists := ac.records[alertID]; exists {
 			// 标记为已删除

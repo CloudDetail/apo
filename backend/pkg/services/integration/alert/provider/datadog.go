@@ -92,6 +92,7 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 const DDWebhookPayload = `
 {
 	"alert_id": "$ALERT_ID",
+	"agg_reg_key": "$AGGREG_KEY",
 	"alert_cycle_key": "$ALERT_CYCLE_KEY",
     "alert_query": "$ALERT_QUERY",
 	"alert_title": "$ALERT_TITLE",

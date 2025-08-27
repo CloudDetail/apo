@@ -23,6 +23,11 @@ func (d PagerDutyDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]al
 		return nil, err
 	}
 
+	// Event.Data.ID -> Incident ID
+	// Event.ID -> Event ID
+	alertID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], pdEvent.Event.Data.ID)
+	eventID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], pdEvent.Event.ID)
+
 	createTime, err := time.Parse(time.RFC3339, pdEvent.Event.Data.CreatedAt)
 	if err != nil {
 		log.Printf("parse pagerduty event create time failed, err: %v", err)
@@ -45,13 +50,13 @@ func (d PagerDutyDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]al
 		Alert: alert.Alert{
 			Source:     sourceFrom.SourceName,
 			SourceID:   sourceFrom.SourceID,
-			AlertID:    fmt.Sprintf("%s-%s", sourceFrom.SourceID[:6], pdEvent.Event.Data.ID),
+			AlertID:    alertID,
 			Group:      getPagerDutyGroup(&pdEvent),
 			Name:       pdEvent.Event.Data.Title,
 			EnrichTags: map[string]string{},
 			Tags:       getPagerDutySimpleTags(&pdEvent),
 		},
-		EventID:      pdEvent.Event.Data.ID,
+		EventID:      eventID,
 		Detail:       pdEvent.Event.Data.Body.Details,
 		CreateTime:   createTime,
 		UpdateTime:   updateTime,
