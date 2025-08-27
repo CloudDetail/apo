@@ -50,6 +50,9 @@ func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]aler
 	alertID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.AggRegKey)
 	eventID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.ID)
 
+	// Only add eventID to the cache; no need to check since webhook is the primary event
+	lifecycle.AlertLifeCycle.CheckEventSeen(eventID)
+
 	status := transDDStatus(payload.AlertTransition)
 	var updateTime, endTime time.Time
 	dateTS, err := strconv.ParseInt(payload.Date, 10, 64)

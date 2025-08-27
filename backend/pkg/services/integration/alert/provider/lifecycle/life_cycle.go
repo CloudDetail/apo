@@ -27,6 +27,8 @@ type AlertCache struct {
 	order       []string             // Maintain insertion order of records
 	lastCleanup time.Time            // Last cleanup time
 	deletedKeys map[string]struct{}  // Mark deleted keys to avoid frequent memory copying
+
+	EventCache
 }
 
 // NewAlertCache creates a new alert cache instance
@@ -36,6 +38,8 @@ func NewAlertCache() *AlertCache {
 		order:       make([]string, 0),
 		lastCleanup: time.Now(),
 		deletedKeys: make(map[string]struct{}),
+
+		EventCache: NewEventCache(),
 	}
 }
 
@@ -126,4 +130,41 @@ func (ac *AlertCache) ensureCacheSize() {
 		copy(newOrder, ac.order[removeCount:])
 		ac.order = newOrder
 	}
+}
+
+type EventCache struct {
+	sync.RWMutex
+
+	lastCleanup time.Time
+	seen        map[string]struct{}
+	seenEarly   map[string]struct{}
+}
+
+func NewEventCache() EventCache {
+	return EventCache{
+		lastCleanup: time.Now(),
+		seen:        make(map[string]struct{}),
+		seenEarly:   make(map[string]struct{}),
+	}
+}
+
+func (c *EventCache) CheckEventSeen(eventID string) bool {
+	c.Lock()
+	defer c.Unlock()
+
+	if _, ok := c.seen[eventID]; ok {
+		return true
+	}
+	if _, ok := c.seenEarly[eventID]; ok {
+		return true
+	}
+	c.seen[eventID] = struct{}{}
+
+	now := time.Now()
+	if now.Sub(c.lastCleanup) >= cleanupInterval/2 {
+		c.seenEarly = c.seen
+		c.seen = make(map[string]struct{})
+		c.lastCleanup = now
+	}
+	return false
 }

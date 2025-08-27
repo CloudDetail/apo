@@ -28,6 +28,8 @@ func (p *ProviderType) New(sourceFrom alert.SourceFrom, params alert.AlertSource
 }
 
 type Provider interface {
+	UpdateAlertSource(source alert.AlertSource)
+	
 	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
 	// Install or update webhook
 	SetupWebhook(ctx core.Context, webhookURL string) error

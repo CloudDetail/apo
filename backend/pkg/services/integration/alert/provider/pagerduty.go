@@ -56,6 +56,15 @@ func NewPagerDutyProvider(sourceFrom alert.SourceFrom, params alert.AlertSourceP
 	}
 }
 
+func (f *PagerDutyProvider) UpdateAlertSource(source alert.AlertSource) {
+	apiKey := source.Params.Obj.GetString("api_key")
+	c := pd.NewClient(apiKey)
+	cEx := &pdClientEx{Client: c}
+
+	f.client = cEx
+	f.sourceFrom = source.SourceFrom
+}
+
 func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
 	subscriptions, err := f.client.ListWebhookSubscription(ctx)
 	if err != nil {
@@ -86,6 +95,7 @@ func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) er
 }
 
 func (f *PagerDutyProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
+	// TODO unsupported pull incident from pagerDuty and transform into alerts
 	return nil, nil
 }
 

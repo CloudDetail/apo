@@ -15,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/provider/lifecycle"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadog"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV2"
@@ -53,9 +54,10 @@ var DatadogProviderType = ProviderType{
 }
 
 type DatadogProvider struct {
-	api        *datadogV2.EventsApi
-	webhookAPI *datadogV1.WebhooksIntegrationApi
-	monitorAPI *datadogV1.MonitorsApi
+	client *datadog.APIClient
+	// api *datadogV2.EventsApi
+	// webhookAPI *datadogV1.WebhooksIntegrationApi
+	// monitorAPI *datadogV1.MonitorsApi
 
 	ctx        context.Context
 	sourceFrom alert.SourceFrom
@@ -81,12 +83,32 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	)
 
 	return &DatadogProvider{
-		api:        datadogV2.NewEventsApi(client),
-		webhookAPI: datadogV1.NewWebhooksIntegrationApi(client),
-		monitorAPI: datadogV1.NewMonitorsApi(client),
+		client:     client,
 		ctx:        ctx,
 		sourceFrom: sourceFrom,
 	}
+}
+
+func (f *DatadogProvider) UpdateAlertSource(source alert.AlertSource) {
+	params := source.Params.Obj
+
+	ctx := context.WithValue(context.Background(),
+		datadog.ContextServerVariables,
+		map[string]string{
+			"site": params.GetString("site"),
+		},
+	)
+
+	ctx = context.WithValue(ctx,
+		datadog.ContextAPIKeys,
+		map[string]datadog.APIKey{
+			"apiKeyAuth": {Key: params.GetString("apiKey")},
+			"appKeyAuth": {Key: params.GetString("appKey")},
+		},
+	)
+
+	f.ctx = ctx
+	f.sourceFrom = source.SourceFrom
 }
 
 const DDWebhookPayload = `
@@ -109,6 +131,7 @@ const DDWebhookPayload = `
 }`
 
 func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
+
 	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
 
 	// step1 setupWebhook
@@ -118,7 +141,9 @@ func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) erro
 	}
 
 	// step2 update monitor message
-	monitors, _, err := f.monitorAPI.ListMonitors(f.ctx)
+	monitorAPI := datadogV1.NewMonitorsApi(f.client)
+
+	monitors, _, err := monitorAPI.ListMonitors(f.ctx)
 	if err != nil {
 		return err
 	}
@@ -131,7 +156,7 @@ func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) erro
 
 		monitorReq := datadogV1.NewMonitorUpdateRequest()
 		monitorReq.SetMessage(message + " @" + webhookName)
-		_, _, err = f.monitorAPI.UpdateMonitor(f.ctx, monitor.GetId(), *monitorReq)
+		_, _, err = monitorAPI.UpdateMonitor(f.ctx, monitor.GetId(), *monitorReq)
 		if err != nil {
 			return err
 		}
@@ -140,15 +165,17 @@ func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) erro
 }
 
 func (f *DatadogProvider) setupWebhook(ctx core.Context, webhookURL string) error {
+	webhookAPI := datadogV1.NewWebhooksIntegrationApi(f.client)
+
 	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
 
 	// Check history
-	_, resp, err := f.webhookAPI.GetWebhooksIntegration(f.ctx, webhookName)
+	_, resp, err := webhookAPI.GetWebhooksIntegration(f.ctx, webhookName)
 	if resp.StatusCode == 404 {
 		// create new
 		integration := datadogV1.NewWebhooksIntegration(webhookName, webhookURL)
 		integration.SetPayload(DDWebhookPayload)
-		_, _, err = f.webhookAPI.CreateWebhooksIntegration(ctx, *integration)
+		_, _, err = webhookAPI.CreateWebhooksIntegration(ctx, *integration)
 		return err
 	}
 
@@ -161,15 +188,17 @@ func (f *DatadogProvider) setupWebhook(ctx core.Context, webhookURL string) erro
 	updateReq.SetPayload(DDWebhookPayload)
 	updateReq.SetUrl(webhookURL)
 
-	_, _, err = f.webhookAPI.UpdateWebhooksIntegration(ctx, webhookName, *updateReq)
+	_, _, err = webhookAPI.UpdateWebhooksIntegration(ctx, webhookName, *updateReq)
 	return err
 }
 
 func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
+	eventAPI := datadogV2.NewEventsApi(f.client)
+
 	start := args.From
 	end := args.To
 
-	resChan, cancel := f.api.ListEventsWithPagination(f.ctx, *datadogV2.NewListEventsOptionalParameters().
+	resChan, cancel := eventAPI.ListEventsWithPagination(f.ctx, *datadogV2.NewListEventsOptionalParameters().
 		WithPageLimit(1000).
 		WithSort(datadogV2.EVENTSSORT_TIMESTAMP_ASCENDING).
 		WithFilterFrom(strconv.FormatInt(start.UnixMilli(), 10)).
@@ -188,16 +217,25 @@ func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, e
 			break
 		}
 
-		event := f.parseEventItem(item, receivedTime)
-		events = append(events, event)
+		if event := f.parseEventItem(item, receivedTime); event != nil {
+			events = append(events, *event)
+		}
 	}
 
 	return events, err
 }
 
-func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2.EventResponse], receivedTime time.Time) alert.AlertEvent {
+func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2.EventResponse], receivedTime time.Time) *alert.AlertEvent {
 	attrs := item.Item.Attributes
 	nestedAttrs := item.Item.Attributes.Attributes
+
+	alertID := fmt.Sprintf("%s-%s", f.sourceFrom.SourceID[:8], nestedAttrs.GetAggregationKey())
+	eventID := fmt.Sprintf("%s-%s", f.sourceFrom.SourceID[:8], item.Item.GetId())
+
+	if lifecycle.AlertLifeCycle.CheckEventSeen(eventID) {
+		// repeated with webhook event, ignore
+		return nil
+	}
 
 	monitor := nestedAttrs.GetMonitor()
 	severity := f.getSeverityFromMonitor(monitor)
@@ -205,20 +243,23 @@ func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2
 	createTime := f.calculateCreateTime(nestedAttrs)
 	status, endTime := f.getStatusAndEndTimeFromMonitor(monitor, nestedAttrs)
 
+	// Only cache for webhook
+	lifecycle.AlertLifeCycle.CacheEventStatus(alertID, status, createTime)
+
 	tags := buildDDTags(nestedAttrs, attrs.GetTags())
 	group := getGroup(nestedAttrs, attrs.GetTags())
 
-	return alert.AlertEvent{
+	return &alert.AlertEvent{
 		Alert: alert.Alert{
 			Source:     f.sourceFrom.SourceName,
 			SourceID:   f.sourceFrom.SourceID,
-			AlertID:    nestedAttrs.GetAggregationKey(),
+			AlertID:    alertID,
 			Group:      group,
 			Name:       nestedAttrs.GetTitle(),
 			EnrichTags: make(map[string]string),
 			Tags:       tags,
 		},
-		EventID:      item.Item.GetId(),
+		EventID:      eventID,
 		Detail:       buildDDDetail(attrs.GetMessage(), tags),
 		CreateTime:   createTime,
 		UpdateTime:   time.UnixMilli(nestedAttrs.GetTimestamp()),
