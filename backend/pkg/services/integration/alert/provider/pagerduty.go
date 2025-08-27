@@ -56,7 +56,7 @@ func NewPagerDutyProvider(sourceFrom alert.SourceFrom, params alert.AlertSourceP
 	}
 }
 
-func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string, params alert.AlertSourceParams) error {
+func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
 	subscriptions, err := f.client.ListWebhookSubscription(ctx)
 	if err != nil {
 		return err

@@ -28,10 +28,9 @@ type DatadogPayload struct {
 	EventType       string `json:"event_type"`
 	EventMsg        string `json:"event_msg"`
 	LastUpdated     string `json:"last_updated"`
-	Severity        string `json:"severity"`
+	AlertPriority   string `json:"alert_priority"`
 	Tags            string `json:"tags"`
 	Date            string `json:"date"`
-	Scopes          string `json:"scopes"`
 	OrgID           string `json:"org_id"`
 	OrgName         string `json:"org_name"`
 }
@@ -43,14 +42,14 @@ func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]aler
 		return nil, err
 	}
 
+	// format: aaaaaa-000000000000
+	alertID := fmt.Sprintf("%s-%s", sourceFrom.SourceID[:8], payload.AlertID)
 	dateTS, err := strconv.ParseInt(payload.Date, 10, 64)
 	if err != nil {
-
 		return nil, err
 	}
 
-	status := getDDStatus(payload.AlertTransition)
-
+	status := transDDStatus(payload.AlertTransition)
 	var createTime, updateTime, endTime time.Time
 	createTime, _ = lifecycle.AlertLifeCycle.RecordEvent(payload.AlertCircleKey, status)
 	updateTime = time.UnixMilli(dateTS)
@@ -68,25 +67,36 @@ func (d DatadogDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]aler
 			tags[tag] = ""
 		}
 	}
+	tags["org_id"] = payload.OrgID
+	tags["org_name"] = payload.OrgName
+
+	detail := map[string]string{
+		"query":       payload.AlertQuery,
+		"summary":     payload.EventTitle,
+		"description": payload.EventMsg,
+		"tags":        payload.Tags,
+	}
+
+	detailJsonStr, _ := json.Marshal(detail)
 
 	alertEvent := alert.AlertEvent{
 		Alert: alert.Alert{
 			Source:            sourceFrom.SourceName,
 			SourceID:          sourceFrom.SourceID,
-			AlertID:           fmt.Sprintf("%s-%s", sourceFrom.SourceID[:6], payload.AlertID),
-			Group:             getDDtGroup(&payload),
+			AlertID:           alertID,
+			Group:             "",
 			Name:              payload.AlertTitle,
 			EnrichTags:        map[string]string{},
 			EnrichTagsDisplay: []alert.TagDisplay{},
 			Tags:              tags,
 		},
 		EventID:      payload.ID,
-		Detail:       payload.EventMsg,
+		Detail:       string(detailJsonStr),
 		CreateTime:   createTime,
 		UpdateTime:   updateTime,
 		EndTime:      endTime,
 		ReceivedTime: time.Now(),
-		Severity:     getDDSeverity(payload.Severity),
+		Severity:     transDDSeverity(payload.AlertPriority),
 		Status:       status,
 	}
 
@@ -100,22 +110,17 @@ var DDPriorityMap = map[string]string{
 	"P4": alert.SeverityInfoLevel,
 }
 
-func getDDSeverity(priority string) string {
+func transDDSeverity(priority string) string {
 	if severity, ok := DDPriorityMap[priority]; ok {
 		return severity
 	}
 	return alert.SeverityInfoLevel
 }
 
-func getDDStatus(transition string) string {
+func transDDStatus(transition string) string {
 	if transition == "Recovered" {
 		return alert.StatusResolved
 	}
 	// Include Triggered/Re-Triggered, No Data/Re-No Data, Warn/Re-Warn, Renotify
 	return alert.StatusFiring
-}
-
-func getDDtGroup(pdEvent *DatadogPayload) string {
-	// TODO get related service from datadog
-	return ""
 }

@@ -55,6 +55,7 @@ var DatadogProviderType = ProviderType{
 type DatadogProvider struct {
 	api        *datadogV2.EventsApi
 	webhookAPI *datadogV1.WebhooksIntegrationApi
+	monitorAPI *datadogV1.MonitorsApi
 
 	ctx        context.Context
 	sourceFrom alert.SourceFrom
@@ -82,6 +83,7 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	return &DatadogProvider{
 		api:        datadogV2.NewEventsApi(client),
 		webhookAPI: datadogV1.NewWebhooksIntegrationApi(client),
+		monitorAPI: datadogV1.NewMonitorsApi(client),
 		ctx:        ctx,
 		sourceFrom: sourceFrom,
 	}
@@ -91,25 +93,53 @@ const DDWebhookPayload = `
 {
 	"alert_id": "$ALERT_ID",
 	"alert_cycle_key": "$ALERT_CYCLE_KEY",
-	
     "alert_query": "$ALERT_QUERY",
 	"alert_title": "$ALERT_TITLE",
 	"alert_transition": "$ALERT_TRANSITION",
+	"alert_priority": "$ALERT_PRIORITY",
 	"id": "$ID",
 	"event_title": "$EVENT_TITLE",
-
     "event_msg": "$TEXT_ONLY_MSG",
     "last_updated": "$LAST_UPDATED",
-    "severity": "$ALERT_PRIORITY",
 	"tags": "$TAGS",
     "date": "$DATE",
-    "scopes": "$ALERT_SCOPE",
 	"org_id": "$ORG_ID",
 	"org_name": "$ORG_NAME"
 }`
 
-func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string, params alert.AlertSourceParams) error {
-	webhookName := fmt.Sprintf("apo-webhook-%s", f.sourceFrom.SourceID[:6])
+func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
+	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
+
+	// step1 setupWebhook
+	err := f.setupWebhook(ctx, webhookURL)
+	if err != nil {
+		return err
+	}
+
+	// step2 update monitor message
+	monitors, _, err := f.monitorAPI.ListMonitors(f.ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, monitor := range monitors {
+		message := monitor.GetMessage()
+		if strings.Contains(message, "@"+webhookName) {
+			continue
+		}
+
+		monitorReq := datadogV1.NewMonitorUpdateRequest()
+		monitorReq.SetMessage(message + " @" + webhookName)
+		_, _, err = f.monitorAPI.UpdateMonitor(f.ctx, monitor.GetId(), *monitorReq)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *DatadogProvider) setupWebhook(ctx core.Context, webhookURL string) error {
+	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
 
 	// Check history
 	_, resp, err := f.webhookAPI.GetWebhooksIntegration(f.ctx, webhookName)
