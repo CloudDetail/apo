@@ -13,25 +13,28 @@ import (
 type ProviderType struct {
 	Name      string
 	ParamSpec ParamSpec
-	factory   func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider
+	factory   func(source alert.AlertSource, params alert.AlertSourceParams) Provider
 
 	SupportPull           bool
 	SupportWebhookInstall bool
 }
 
-func (p *ProviderType) New(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider {
+func (p *ProviderType) New(source alert.AlertSource, params alert.AlertSourceParams) Provider {
 	if p.factory == nil {
 		return nil
 	}
-	return p.factory(sourceFrom, params)
+	return p.factory(source, params)
 }
 
 type Provider interface {
-	UpdateAlertSource(source alert.AlertSource)
+	GetAlertSource() alert.AlertSource
+	SetAlertSource(source alert.AlertSource)
 
 	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
 	// Install or update webhook
 	SetupWebhook(ctx core.Context, webhookURL string) error
+
+	ClearUP(ctx core.Context)
 }
 
 type GetAlertParams struct {

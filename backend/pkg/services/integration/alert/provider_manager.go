@@ -40,6 +40,7 @@ func (s *service) DeleteAlertProvider(ctx core.Context, source alert.SourceFrom)
 	if !find {
 		return
 	}
+	instance.Provider.ClearUP(ctx)
 	instance.cancel()
 	delete(pm.providersMap, source.SourceID)
 }
@@ -52,8 +53,14 @@ func (s *service) SetupAlertProvider(ctx core.Context, source alert.AlertSource,
 
 	instance, find := pm.providersMap[source.SourceID]
 	if find {
-		instance.cancel()
-		instance.Provider.UpdateAlertSource(source)
+		if instance.cancel != nil {
+			instance.cancel()
+		}
+		if !source.EnabledPull {
+			delete(pm.providersMap, source.SourceID)
+			return nil
+		}
+		instance.Provider.SetAlertSource(source)
 	} else {
 		if !source.EnabledPull {
 			return nil
@@ -68,7 +75,7 @@ func (s *service) SetupAlertProvider(ctx core.Context, source alert.AlertSource,
 			return fmt.Errorf("failed to validate provider params, err: %v", err)
 		}
 
-		provider := pType.New(source.SourceFrom, source.Params.Obj)
+		provider := pType.New(source, source.Params.Obj)
 		instance = &ProviderInstance{
 			Provider: provider,
 		}

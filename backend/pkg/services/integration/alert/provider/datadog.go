@@ -56,11 +56,11 @@ var DatadogProviderType = ProviderType{
 type DatadogProvider struct {
 	client *datadog.APIClient
 
-	authCtx    context.Context
-	sourceFrom alert.SourceFrom
+	authCtx context.Context
+	source  alert.AlertSource
 }
 
-func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider {
+func NewDatadogProvider(source alert.AlertSource, params alert.AlertSourceParams) Provider {
 	configuration := datadog.NewConfiguration()
 	client := datadog.NewAPIClient(configuration)
 
@@ -80,13 +80,17 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 	)
 
 	return &DatadogProvider{
-		client:     client,
-		authCtx:    ctx,
-		sourceFrom: sourceFrom,
+		client:  client,
+		authCtx: ctx,
+		source:  source,
 	}
 }
 
-func (f *DatadogProvider) UpdateAlertSource(source alert.AlertSource) {
+func (f *DatadogProvider) GetAlertSource() alert.AlertSource {
+	return f.source
+}
+
+func (f *DatadogProvider) SetAlertSource(source alert.AlertSource) {
 	params := source.Params.Obj
 
 	ctx := context.WithValue(context.Background(),
@@ -105,7 +109,7 @@ func (f *DatadogProvider) UpdateAlertSource(source alert.AlertSource) {
 	)
 
 	f.authCtx = ctx
-	f.sourceFrom = source.SourceFrom
+	f.source = source
 }
 
 const DDWebhookPayload = `
@@ -130,7 +134,7 @@ const DDWebhookPayload = `
 func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
 	cCtx := newCContext(ctx, f.authCtx) // Combine req.Done and f.authCtx
 
-	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
+	webhookName := fmt.Sprintf("webhook-apo-%s", f.source.SourceID[:8])
 
 	// step1 setupWebhook
 	if err := f.setupWebhook(cCtx, webhookName, webhookURL); err != nil {
@@ -161,6 +165,33 @@ func (f *DatadogProvider) updateMonitor(ctx CContext, webhookName string) error 
 		_, resp, err := monitorAPI.UpdateMonitor(ctx, monitor.GetId(), *monitorReq)
 		if err != nil {
 			log.Printf("update monitor failed, monitor: %d/%s, err: %v, full response: %v", monitor.GetId(), monitor.GetName(), err, resp)
+			// Ignore error
+			//  <custom_check> monitor can not update since group is not defined
+		}
+	}
+	return nil
+}
+
+func (f *DatadogProvider) clearupMonitor(ctx context.Context, webhookName string) error {
+	monitorAPI := datadogV1.NewMonitorsApi(f.client)
+	monitors, resp, err := monitorAPI.ListMonitors(ctx)
+	if err != nil {
+		log.Printf("list monitor failed, err: %v, full response: %v", err, resp)
+		return err
+	}
+
+	for _, monitor := range monitors {
+		message := monitor.GetMessage()
+		if !strings.Contains(message, "@"+webhookName) {
+			continue
+		}
+
+		message = strings.ReplaceAll(message, "@"+webhookName, "")
+		monitorReq := datadogV1.NewMonitorUpdateRequest()
+		monitorReq.SetMessage(message)
+		_, resp, err := monitorAPI.UpdateMonitor(ctx, monitor.GetId(), *monitorReq)
+		if err != nil {
+			log.Printf("clearup webhook in monitor failed, monitor: %d/%s, err: %v, full response: %v", monitor.GetId(), monitor.GetName(), err, resp)
 			// Ignore error
 			//  <custom_check> monitor can not update since group is not defined
 		}
@@ -259,8 +290,8 @@ func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2
 	attrs := item.Item.Attributes
 	nestedAttrs := item.Item.Attributes.Attributes
 
-	alertID := fmt.Sprintf("%s-%s", f.sourceFrom.SourceID[:8], nestedAttrs.GetAggregationKey())
-	eventID := fmt.Sprintf("%s-%s", f.sourceFrom.SourceID[:8], item.Item.GetId())
+	alertID := fmt.Sprintf("%s-%s", f.source.SourceID[:8], nestedAttrs.GetAggregationKey())
+	eventID := fmt.Sprintf("%s-%s", f.source.SourceID[:8], item.Item.GetId())
 
 	if lifecycle.AlertLifeCycle.CheckEventSeen(eventID) {
 		// repeated with webhook event, ignore
@@ -281,8 +312,8 @@ func (f *DatadogProvider) parseEventItem(item datadog.PaginationResult[datadogV2
 
 	return &alert.AlertEvent{
 		Alert: alert.Alert{
-			Source:     f.sourceFrom.SourceName,
-			SourceID:   f.sourceFrom.SourceID,
+			Source:     f.source.SourceName,
+			SourceID:   f.source.SourceID,
 			AlertID:    alertID,
 			Group:      group,
 			Name:       nestedAttrs.GetTitle(),
@@ -335,6 +366,30 @@ func (f *DatadogProvider) calculateCreateTime(nestedAttrs *datadogV2.EventAttrib
 	return time.UnixMilli(nestedAttrs.GetTimestamp())
 }
 
+func (f *DatadogProvider) ClearUP(ctx core.Context) {
+	cCtx := newCContext(ctx, f.authCtx) // Combine req.Done and f.authCtx
+	webhookName := fmt.Sprintf("webhook-apo-%s", f.source.SourceID[:8])
+	// update monitor
+
+	err := f.clearupMonitor(cCtx, webhookName)
+	if err != nil {
+		log.Printf("clearup monitor failed, err: %v", err)
+		// Ignored
+	}
+	// remove webhook
+	err = f.removeWebhook(cCtx, webhookName)
+	if err != nil {
+		log.Printf("remove webhook failed, err: %v", err)
+		// Ignored
+	}
+}
+
+func (f *DatadogProvider) removeWebhook(cCtx CContext, webhookName string) error {
+	webhookAPI := datadogV1.NewWebhooksIntegrationApi(f.client)
+	_, err := webhookAPI.DeleteWebhooksIntegration(cCtx, webhookName)
+	return err
+}
+
 /*
 *
 
@@ -367,37 +422,24 @@ func buildDDTags(attrs *datadogV2.EventAttributes, eventTags []string) map[strin
 		}
 	}
 
-	attrTags := make(map[string]any)
-	attrTags["title"] = attrs.GetTitle()
-	attrTags["service"] = attrs.GetService()
-	attrTags["hostname"] = attrs.GetHostname()
 	for _, tagStr := range attrs.GetTags() {
 		tag := strings.Split(tagStr, ":")
 		if len(tag) == 2 {
-			attrTags[tag[0]] = tag[1]
+			tags[tag[0]] = tag[1]
 		} else {
-			attrTags[tagStr] = ""
+			tags[tagStr] = ""
 		}
 	}
 
 	monitor := attrs.GetMonitor()
-
-	monitorTags := make(map[string]any)
-	monitorTags["id"] = attrs.GetMonitorId()
-	monitorTags["name"] = monitor.GetName()
-	monitorTags["query"] = monitor.GetQuery()
 	for _, tagStr := range monitor.GetTags() {
 		tag := strings.Split(tagStr, ":")
 		if len(tag) == 2 {
-			monitorTags[tag[0]] = tag[1]
+			tags[tag[0]] = tag[1]
 		} else {
-			monitorTags[tagStr] = ""
+			tags[tagStr] = ""
 		}
 	}
-
-	tags["attr"] = attrTags
-	attrTags["monitor"] = monitorTags
-
 	return tags
 }
 

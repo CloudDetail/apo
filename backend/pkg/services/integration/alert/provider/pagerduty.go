@@ -42,27 +42,31 @@ var PagerDutyProviderType = ProviderType{
 type PagerDutyProvider struct {
 	client *pdClientEx
 
-	sourceFrom alert.SourceFrom
+	source alert.AlertSource
 }
 
-func NewPagerDutyProvider(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider {
+func NewPagerDutyProvider(source alert.AlertSource, params alert.AlertSourceParams) Provider {
 	apiKey := params.GetString("api_key")
 	c := pd.NewClient(apiKey)
 	cEx := &pdClientEx{Client: c}
 
 	return &PagerDutyProvider{
-		client:     cEx,
-		sourceFrom: sourceFrom,
+		client: cEx,
+		source: source,
 	}
 }
 
-func (f *PagerDutyProvider) UpdateAlertSource(source alert.AlertSource) {
+func (f *PagerDutyProvider) GetAlertSource() alert.AlertSource {
+	return f.source
+}
+
+func (f *PagerDutyProvider) SetAlertSource(source alert.AlertSource) {
 	apiKey := source.Params.Obj.GetString("api_key")
 	c := pd.NewClient(apiKey)
 	cEx := &pdClientEx{Client: c}
 
 	f.client = cEx
-	f.sourceFrom = source.SourceFrom
+	f.source = source
 }
 
 func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
@@ -72,7 +76,7 @@ func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) er
 	}
 
 	for _, subscription := range subscriptions {
-		if strings.HasSuffix(subscription.DeliveryMethod.URL, f.sourceFrom.SourceID) {
+		if strings.HasSuffix(subscription.DeliveryMethod.URL, f.source.SourceID) {
 			err = f.client.DeleteWebhookSubscription(ctx, subscription.Type)
 			if err != nil {
 				log.Printf("delete existed pagerduty webhook subscription failed, err: %v", err)
@@ -91,6 +95,23 @@ func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) er
 func (f *PagerDutyProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error) {
 	// TODO unsupported pull incident from pagerDuty and transform into alerts
 	return nil, nil
+}
+
+func (f *PagerDutyProvider) ClearUP(ctx core.Context) {
+	subscriptions, err := f.client.ListWebhookSubscription(ctx)
+	if err != nil {
+		return
+	}
+
+	for _, subscription := range subscriptions {
+		if strings.HasSuffix(subscription.DeliveryMethod.URL, f.source.SourceID) {
+			err = f.client.DeleteWebhookSubscription(ctx, subscription.Type)
+			if err != nil {
+				log.Printf("delete existed pagerduty webhook subscription failed, err: %v", err)
+			}
+			break
+		}
+	}
 }
 
 type pdClientEx struct {

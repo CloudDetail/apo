@@ -23,7 +23,7 @@ func (s *service) SetupProviderWebhook(ctx core.Context, req *request.SetupAlert
 		return errors.New("alert source not support setup webhook now")
 	}
 
-	provider := pType.New(sourceInfo.SourceFrom, sourceInfo.Params.Obj)
+	provider := pType.New(*sourceInfo, sourceInfo.Params.Obj)
 	if provider == nil {
 		return errors.New("alert source not support setup webhook now")
 	}
