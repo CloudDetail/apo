@@ -34,16 +34,41 @@ func (d PagerDutyDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]al
 		return nil, err
 	}
 
-	updateTime, err := time.Parse(time.RFC3339, pdEvent.Event.Data.UpdatedAt)
-	if err != nil {
-		log.Printf("parse pagerduty event update time failed, err: %v", err)
-		return nil, err
+	// According to the PagerDuty documentation, the UpdatedAt and ResolvedAt is always empty
+	// https://developer.pagerduty.com/docs/webhooks-overview#event-types
+	// if len(pdEvent.Event.Data.UpdatedAt) > 0 {
+	// 	updateTime, err = time.Parse(time.RFC3339, pdEvent.Event.Data.UpdatedAt)
+	// 	if err != nil {
+	// 		log.Printf("parse pagerduty event update time failed, err: %v", err)
+	// 		return nil, err
+	// 	}
+	// }
+	// if len(pdEvent.Event.Data.ResolvedAt) > 0 {
+	// 	endTime, err = time.Parse(time.RFC3339, pdEvent.Event.Data.ResolvedAt)
+	// 	if err != nil {
+	// 		log.Printf("parse pagerduty event end time failed, err: %v", err)
+	// 		return nil, err
+	// 	}
+	// }
+	var updateTime time.Time
+	if len(pdEvent.Event.OccurredAt) > 0 {
+		updateTime, err = time.Parse(time.RFC3339, pdEvent.Event.OccurredAt)
+		if err != nil {
+			log.Printf("parse pagerduty event update time failed, err: %v", err)
+			return nil, err
+		}
 	}
 
-	endTime, err := time.Parse(time.RFC3339, pdEvent.Event.Data.ResolvedAt)
-	if err != nil {
-		log.Printf("parse pagerduty event end time failed, err: %v", err)
-		return nil, err
+	var endTime time.Time
+	if pdEvent.Event.Data.Status == "resolved" {
+		endTime = updateTime
+	}
+
+	var severity string
+	if pdEvent.Event.Data.Priority != nil {
+		severity = getPagerDutySeverity(pdEvent.Event.Data.Priority.Summary)
+	} else if pdEvent.Event.Data.Urgency == "high" {
+		severity = alert.SeverityWarnLevel
 	}
 
 	alertEvent := alert.AlertEvent{
@@ -57,12 +82,12 @@ func (d PagerDutyDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]al
 			Tags:       getPagerDutySimpleTags(&pdEvent),
 		},
 		EventID:      eventID,
-		Detail:       pdEvent.Event.Data.Body.Details,
+		Detail:       pdEvent.Event.Data.Title, // PagerDuty will not send eventDetail in webhook request
 		CreateTime:   createTime,
 		UpdateTime:   updateTime,
 		EndTime:      endTime,
 		ReceivedTime: time.Now(),
-		Severity:     getPagerDutySeverity(pdEvent.Event.Data.Priority.Summary),
+		Severity:     severity,
 		Status:       getPagerDutyStatus(pdEvent.Event.Data.Status),
 	}
 	return []alert.AlertEvent{alertEvent}, nil
@@ -97,6 +122,7 @@ var PagerDutyPriorityMap = map[string]string{
 	"P2": alert.SeverityErrorLevel,
 	"P3": alert.SeverityWarnLevel,
 	"P4": alert.SeverityInfoLevel,
+	"P5": alert.SeverityInfoLevel,
 }
 
 var PagerDutyStatusMap = map[string]string{

@@ -25,7 +25,7 @@ var PagerDutyProviderType = ProviderType{
 		Type: JSONTypeObject,
 		Children: []ParamSpec{
 			{
-				Name:     "api_key",
+				Name:     "apiKey",
 				Type:     JSONTypeString,
 				Optional: false,
 				Children: []ParamSpec{},
@@ -46,7 +46,7 @@ type PagerDutyProvider struct {
 }
 
 func NewPagerDutyProvider(source alert.AlertSource, params alert.AlertSourceParams) Provider {
-	apiKey := params.GetString("api_key")
+	apiKey := params.GetString("apiKey")
 	c := pd.NewClient(apiKey)
 	cEx := &pdClientEx{Client: c}
 
@@ -61,7 +61,7 @@ func (f *PagerDutyProvider) GetAlertSource() alert.AlertSource {
 }
 
 func (f *PagerDutyProvider) SetAlertSource(source alert.AlertSource) {
-	apiKey := source.Params.Obj.GetString("api_key")
+	apiKey := source.Params.Obj.GetString("apiKey")
 	c := pd.NewClient(apiKey)
 	cEx := &pdClientEx{Client: c}
 
