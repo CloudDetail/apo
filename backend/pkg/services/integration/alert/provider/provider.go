@@ -6,23 +6,35 @@ package provider
 import (
 	"time"
 
+	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 type ProviderType struct {
 	Name      string
 	ParamSpec ParamSpec
-	New       ProviderFactory
+	factory   func(source alert.AlertSource, params alert.AlertSourceParams) Provider
 
-	WithPullOptions bool
+	SupportPull           bool
+	SupportWebhookInstall bool
 }
 
-type ProviderFactory func(sourceFrom alert.SourceFrom, params alert.AlertSourceParams) Provider
+func (p *ProviderType) New(source alert.AlertSource, params alert.AlertSourceParams) Provider {
+	if p.factory == nil {
+		return nil
+	}
+	return p.factory(source, params)
+}
 
 type Provider interface {
-	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
+	GetAlertSource() alert.AlertSource
+	SetAlertSource(source alert.AlertSource)
 
-	// InstallWebhook() error
+	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
+	// Install or update webhook
+	SetupWebhook(ctx core.Context, webhookURL string) error
+
+	ClearUP(ctx core.Context)
 }
 
 type GetAlertParams struct {
@@ -32,9 +44,25 @@ type GetAlertParams struct {
 }
 
 var ProviderRegistry = map[string]ProviderType{
-	"datadog": {
-		Name:      "Datadog",
-		ParamSpec: DatadogParamSpec,
-		New:       NewDatadogProvider,
-	},
+	"datadog":   DatadogProviderType,
+	"pagerduty": PagerDutyProviderType, // TODO pull support
+
+	// Do not support auto install webhook or pull alerts now
+	"prometheus": BasicEncoder("Prometheus"), // TODO pull support
+	"zabbix":     BasicEncoder("Zabbix"),
+	"json":       BasicEncoder("JSON"),
+}
+
+func BasicEncoder(name string) ProviderType {
+	return ProviderType{
+		Name: name,
+		ParamSpec: ParamSpec{
+			Name: "root",
+			Type: JSONTypeObject,
+		},
+		factory: nil,
+
+		SupportPull:           false,
+		SupportWebhookInstall: false,
+	}
 }
