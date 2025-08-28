@@ -4,7 +4,6 @@
 package provider
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/core"
@@ -29,7 +28,7 @@ func (p *ProviderType) New(sourceFrom alert.SourceFrom, params alert.AlertSource
 
 type Provider interface {
 	UpdateAlertSource(source alert.AlertSource)
-	
+
 	PullAlerts(args GetAlertParams) ([]alert.AlertEvent, error)
 	// Install or update webhook
 	SetupWebhook(ctx core.Context, webhookURL string) error
@@ -49,10 +48,6 @@ var ProviderRegistry = map[string]ProviderType{
 	"prometheus": BasicEncoder("Prometheus"), // TODO pull support
 	"zabbix":     BasicEncoder("Zabbix"),
 	"json":       BasicEncoder("JSON"),
-}
-
-func getWebhookAddress(baseURL string, sourceID string) string {
-	return fmt.Sprintf("%s/api/alertinput/event/source?sourceId=%s", baseURL, sourceID)
 }
 
 func BasicEncoder(name string) ProviderType {

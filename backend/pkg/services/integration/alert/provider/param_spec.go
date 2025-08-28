@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 )
 
 type JSONType string
@@ -42,9 +43,12 @@ func (p *ParamSpec) UseLang(lang string) {
 func ValidateJSON(value any, schema ParamSpec) error {
 	switch schema.Type {
 	case JSONTypeObject:
-		obj, ok := value.(map[string]any)
+		obj, ok := value.(alert.AlertSourceParams)
 		if !ok {
-			return fmt.Errorf("field '%s' expected object", schema.Name)
+			obj, ok = value.(map[string]any)
+			if !ok {
+				return fmt.Errorf("field '%s' expected object", schema.Name)
+			}
 		}
 		for _, child := range schema.Children {
 			val, exists := obj[child.Name]

@@ -5,6 +5,7 @@ package alert
 
 import (
 	"errors"
+	"fmt"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -26,5 +27,15 @@ func (s *service) SetupProviderWebhook(ctx core.Context, req *request.SetupAlert
 	if provider == nil {
 		return errors.New("alert source not support setup webhook now")
 	}
-	return provider.SetupWebhook(ctx, req.URL)
+
+	var webhookURL string
+	if len(req.URL) == 0 {
+		// only first create
+		host := ctx.GetHeader("Origin")
+		webhookURL = fmt.Sprintf("%s/api/alertinput/event/source?sourceId=%s", host, req.SourceID)
+	} else {
+		webhookURL = req.URL
+	}
+
+	return provider.SetupWebhook(ctx, webhookURL)
 }

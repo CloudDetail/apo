@@ -55,11 +55,8 @@ var DatadogProviderType = ProviderType{
 
 type DatadogProvider struct {
 	client *datadog.APIClient
-	// api *datadogV2.EventsApi
-	// webhookAPI *datadogV1.WebhooksIntegrationApi
-	// monitorAPI *datadogV1.MonitorsApi
 
-	ctx        context.Context
+	authCtx    context.Context
 	sourceFrom alert.SourceFrom
 }
 
@@ -84,7 +81,7 @@ func NewDatadogProvider(sourceFrom alert.SourceFrom, params alert.AlertSourcePar
 
 	return &DatadogProvider{
 		client:     client,
-		ctx:        ctx,
+		authCtx:    ctx,
 		sourceFrom: sourceFrom,
 	}
 }
@@ -107,7 +104,7 @@ func (f *DatadogProvider) UpdateAlertSource(source alert.AlertSource) {
 		},
 	)
 
-	f.ctx = ctx
+	f.authCtx = ctx
 	f.sourceFrom = source.SourceFrom
 }
 
@@ -131,20 +128,24 @@ const DDWebhookPayload = `
 }`
 
 func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) error {
+	cCtx := newCContext(ctx, f.authCtx) // Combine req.Done and f.authCtx
 
 	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
 
 	// step1 setupWebhook
-	err := f.setupWebhook(ctx, webhookURL)
-	if err != nil {
+	if err := f.setupWebhook(cCtx, webhookName, webhookURL); err != nil {
 		return err
 	}
-
 	// step2 update monitor message
+	return f.updateMonitor(cCtx, webhookName)
+}
+
+func (f *DatadogProvider) updateMonitor(ctx CContext, webhookName string) error {
 	monitorAPI := datadogV1.NewMonitorsApi(f.client)
 
-	monitors, _, err := monitorAPI.ListMonitors(f.ctx)
+	monitors, resp, err := monitorAPI.ListMonitors(ctx)
 	if err != nil {
+		log.Printf("list monitor failed, err: %v, full response: %v", err, resp)
 		return err
 	}
 
@@ -156,26 +157,51 @@ func (f *DatadogProvider) SetupWebhook(ctx core.Context, webhookURL string) erro
 
 		monitorReq := datadogV1.NewMonitorUpdateRequest()
 		monitorReq.SetMessage(message + " @" + webhookName)
-		_, _, err = monitorAPI.UpdateMonitor(f.ctx, monitor.GetId(), *monitorReq)
+
+		_, resp, err := monitorAPI.UpdateMonitor(ctx, monitor.GetId(), *monitorReq)
 		if err != nil {
-			return err
+			log.Printf("update monitor failed, monitor: %d/%s, err: %v, full response: %v", monitor.GetId(), monitor.GetName(), err, resp)
+			// Ignore error
+			//  <custom_check> monitor can not update since group is not defined
 		}
 	}
 	return nil
 }
 
-func (f *DatadogProvider) setupWebhook(ctx core.Context, webhookURL string) error {
+// Combine Context
+type CContext struct {
+	context.Context
+	valueCtx context.Context
+}
+
+func newCContext(ctx context.Context, valueCtx context.Context) CContext {
+	return CContext{
+		Context:  ctx,
+		valueCtx: valueCtx,
+	}
+}
+
+func (c CContext) Value(key any) any {
+	if v := c.valueCtx.Value(key); v != nil {
+		return v
+	}
+	return c.Context.Value(key)
+}
+
+func (f *DatadogProvider) setupWebhook(ctx CContext, webhookName string, webhookURL string) error {
 	webhookAPI := datadogV1.NewWebhooksIntegrationApi(f.client)
 
-	webhookName := fmt.Sprintf("webhook-apo-%s", f.sourceFrom.SourceID[:8])
-
 	// Check history
-	_, resp, err := webhookAPI.GetWebhooksIntegration(f.ctx, webhookName)
+	_, resp, err := webhookAPI.GetWebhooksIntegration(ctx, webhookName)
 	if resp.StatusCode == 404 {
 		// create new
 		integration := datadogV1.NewWebhooksIntegration(webhookName, webhookURL)
 		integration.SetPayload(DDWebhookPayload)
-		_, _, err = webhookAPI.CreateWebhooksIntegration(ctx, *integration)
+		_, resp, err = webhookAPI.CreateWebhooksIntegration(ctx, *integration)
+		if err != nil {
+			log.Printf("create webhook failed, err: %v, full response: %v", err, resp)
+			return err
+		}
 		return err
 	}
 
@@ -188,7 +214,11 @@ func (f *DatadogProvider) setupWebhook(ctx core.Context, webhookURL string) erro
 	updateReq.SetPayload(DDWebhookPayload)
 	updateReq.SetUrl(webhookURL)
 
-	_, _, err = webhookAPI.UpdateWebhooksIntegration(ctx, webhookName, *updateReq)
+	_, resp, err = webhookAPI.UpdateWebhooksIntegration(ctx, webhookName, *updateReq)
+	if err != nil {
+		log.Printf("update webhook failed, err: %v, full response: %v", err, resp)
+		return err
+	}
 	return err
 }
 
@@ -198,7 +228,7 @@ func (f *DatadogProvider) PullAlerts(args GetAlertParams) ([]alert.AlertEvent, e
 	start := args.From
 	end := args.To
 
-	resChan, cancel := eventAPI.ListEventsWithPagination(f.ctx, *datadogV2.NewListEventsOptionalParameters().
+	resChan, cancel := eventAPI.ListEventsWithPagination(f.authCtx, *datadogV2.NewListEventsOptionalParameters().
 		WithPageLimit(1000).
 		WithSort(datadogV2.EVENTSSORT_TIMESTAMP_ASCENDING).
 		WithFilterFrom(strconv.FormatInt(start.UnixMilli(), 10)).

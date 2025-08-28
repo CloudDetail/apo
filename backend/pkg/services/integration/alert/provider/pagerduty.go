@@ -81,12 +81,6 @@ func (f *PagerDutyProvider) SetupWebhook(ctx core.Context, webhookURL string) er
 		}
 	}
 
-	if len(webhookURL) == 0 {
-		// only first create
-		host := ctx.GetHeader("Host")
-		webhookURL = getWebhookAddress(host, f.sourceFrom.SourceID)
-	}
-
 	err = f.client.CreateWebhookSubscriptions(ctx, webhookURL, []PDCustomHeader{})
 	if err != nil {
 		return err
