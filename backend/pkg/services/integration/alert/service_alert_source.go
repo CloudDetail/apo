@@ -6,6 +6,7 @@ package alert
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -40,6 +41,14 @@ func (s *service) UpdateAlertSource(ctx core.Context, source *alert.AlertSource)
 	}
 
 	err := s.dbRepo.UpdateAlertSource(ctx, source)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.SetupAlertProvider(ctx, *source, time.Minute)
+	if err != nil {
+		return nil, err
+	}
 	return source, err
 }
 
@@ -53,6 +62,7 @@ func (s *service) DeleteAlertSource(ctx core.Context, source alert.SourceFrom) (
 		return nil, err
 	}
 
+	s.DeleteAlertProvider(ctx, source)
 	s.dispatcher.DeleteAlertSource(ctx, deletedSource)
 
 	var storeError error

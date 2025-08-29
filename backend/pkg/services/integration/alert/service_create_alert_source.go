@@ -5,11 +5,10 @@ package alert
 
 import (
 	"errors"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	alertin "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
-
-	amodel "github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration/alert"
 	"github.com/CloudDetail/apo/backend/pkg/services/integration/alert/enrich"
@@ -33,18 +32,25 @@ func (s *service) CreateAlertSource(ctx core.Context, source *alertin.AlertSourc
 		}
 	}
 
+	// create record
 	err := s.dbRepo.CreateAlertSource(ctx, source)
 	if err != nil {
 		return nil, err
 	}
 
+	// init default enrich rule
 	_, err = s.initDefaultAlertSource(&source.SourceFrom)
+	if err != nil {
+		return nil, err
+	}
 
+	// start pull thread
+	err = s.SetupAlertProvider(ctx, *source, time.Minute)
 	return source, err
 }
 
 // create default enrich for specific alertSource
-// always return a vaild enricher
+// always return a valid enricher
 // - If already exists, return existing enricher
 // - If the default rule is wrong, return empty enricher
 func (s *service) initDefaultAlertSource(source *alertin.SourceFrom) (*enrich.AlertEnricher, error) {
@@ -153,7 +159,7 @@ func (s *service) createAlertSource(
 }
 
 // load existed enricher from db when process initializing
-func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO, targetTags []amodel.TargetTag) (*enrich.AlertEnricher, error) {
+func (s *service) initExistedAlertSource(source alertin.SourceFrom, enrichRules []alertin.AlertEnrichRuleVO, targetTags []alertin.TargetTag) (*enrich.AlertEnricher, error) {
 	enricher := &enrich.AlertEnricher{
 		SourceFrom: &source,
 		Enrichers:  make([]enrich.Enricher, 0, len(enrichRules)),

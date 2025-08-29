@@ -7,6 +7,8 @@ toolchain go1.23.8
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0
 	github.com/CloudDetail/metadata v0.0.0-20240903055919-f0487c96aa95
+	github.com/DataDog/datadog-api-client-go/v2 v2.43.0
+	github.com/PagerDuty/go-pagerduty v1.8.0
 	github.com/dave/dst v0.27.3
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-logr/zapr v1.3.0
@@ -48,12 +50,14 @@ require (
 )
 
 require (
+	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/coder/quartz v0.1.2 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/google/btree v1.0.1 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.7 // indirect
@@ -96,7 +100,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
-	github.com/go-faster/errors v0.7.1 // indirect
+	github.com/go-faster/errors v0.7.1
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
