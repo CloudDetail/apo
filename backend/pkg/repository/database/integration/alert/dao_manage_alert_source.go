@@ -4,6 +4,8 @@
 package alert
 
 import (
+	"time"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	input "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -132,4 +134,10 @@ func (repo *subRepo) DeleteAlertSource(ctx core.Context, alertSource alert.Sourc
 		return nil, err
 	}
 	return &deletedSource, nil
+}
+
+func (repo *subRepo) UpdateAlertSourceLastPullTime(ctx core.Context, sourceID string, lastPullTime time.Time) error {
+	return repo.GetContextDB(ctx).Model(&alert.AlertSource{}).
+		Where("source_id = ?", sourceID).
+		Update("last_pull_mill_ts", lastPullTime.UnixMilli()).Error
 }

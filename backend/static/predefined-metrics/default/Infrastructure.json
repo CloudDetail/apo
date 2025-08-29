@@ -1,6 +1,29 @@
 {
   "queries": [
     {
+      "title": "容器CPU - 容器CPU使用率",
+      "describe": "容器CPU使用率(使用Containerd容器运行时,按容器和Pod统计)",
+      "targets": [
+        {
+          "expr": "100* sum by (container,pod) (rate(container_cpu_usage_seconds_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval])) / sum by (container,pod) (container_spec_cpu_quota{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"} / container_spec_cpu_period{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval])",
+          "legendFormat": "{{pod}}: {{ container }}",
+          "refId": "Containerd",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
       "title": "容器CPU - 容器CPU使用率 - Containerd",
       "describe": "容器CPU使用率(使用Containerd容器运行时,按容器和Pod统计)",
       "targets": [
@@ -111,6 +134,23 @@
       "params": [
         "cadvisor_job_name",
         "namespace",
+        "pod"
+      ]
+    },
+    {
+      "title": "容器内存 - 容器内存使用率",
+      "describe": "容器内存使用率(使用Containerd容器运行时,按容器和Pod统计)",
+      "targets": [
+        {
+          "expr": "100 * sum(container_memory_working_set_bytes{pod=~\"$pod\"}) by (container,pod) / sum(container_spec_memory_limit_bytes{pod=~\"$pod\"}) by (container,pod)",
+          "legendFormat": "{{pod}}: {{ container }}",
+          "variables": [
+            "pod"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
         "pod"
       ]
     },

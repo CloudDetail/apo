@@ -6,6 +6,9 @@ const (
 	JSONType       string = "json"
 	PrometheusType string = "prometheus"
 	ZabbixType     string = "zabbix"
+
+	DatadogType   string = "datadog"
+	PagerDutyType string = "pagerduty"
 )
 
 const (

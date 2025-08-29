@@ -53,7 +53,7 @@ func (r *InnerReceivers) sendAlert(ctx core.Context, alert *alert.AlertEvent) er
 	notifyRecord := &model.AlertNotifyRecord{
 		AlertID:   alert.AlertID,
 		CreatedAt: time.Now().UnixMicro(),
-		EventID:   alert.ID.String(),
+		EventID:   alert.EventID,
 	}
 
 	var fails []string

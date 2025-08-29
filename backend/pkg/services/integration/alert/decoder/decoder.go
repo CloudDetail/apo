@@ -17,6 +17,8 @@ var decoders = map[string]Decoder{
 	ainput.JSONType:       JsonDecoder{},
 	ainput.PrometheusType: PrometheusDecoder{},
 	ainput.ZabbixType:     ZabbixDecoder{},
+	ainput.DatadogType:    DatadogDecoder{},
+	ainput.PagerDutyType:  PagerDutyDecoder{},
 }
 
 type ErrDecoderNotFound struct {
