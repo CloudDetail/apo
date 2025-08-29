@@ -125,8 +125,8 @@ func init() {
 }
 
 var (
-	apoChartVersion         = "1.10"
-	apoComposeDeployVersion = "v1.3.000"
+	apoChartVersion         = "1.11"
+	apoComposeDeployVersion = "v1.11.000"
 )
 
 func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
@@ -172,6 +172,7 @@ func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, e
 	jsonObj["_deploy_version"] = apoComposeDeployVersion
 	jsonObj["_chart_version"] = apoChartVersion
 	jsonObj["_cluster_id"] = ci.Cluster.ID
+	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
 
 	return jsonObj, nil
 }
