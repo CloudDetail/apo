@@ -172,6 +172,7 @@ func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, e
 	jsonObj["_deploy_version"] = apoComposeDeployVersion
 	jsonObj["_chart_version"] = apoChartVersion
 	jsonObj["_cluster_id"] = ci.Cluster.ID
+	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
 
 	return jsonObj, nil
 }
