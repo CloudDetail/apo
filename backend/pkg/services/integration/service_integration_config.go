@@ -125,8 +125,8 @@ func init() {
 }
 
 var (
-	apoChartVersion         = "1.10"
-	apoComposeDeployVersion = "v1.3.000"
+	apoChartVersion         = "1.11"
+	apoComposeDeployVersion = "v1.11.000"
 )
 
 func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
