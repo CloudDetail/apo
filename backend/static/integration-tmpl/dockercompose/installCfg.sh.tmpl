@@ -12,7 +12,7 @@ export APO_COLLECTOR_PORT={{ default .apoCollector.ports.apoCollector 30044 }}
 export APO_OTEL_COLLECTOR_GRPCPORT={{ default .apoCollector.ports.apoOtelCollectorGatewayGrpc 30317 }}
 export APO_VECTOR_PORT={{ default .apoCollector.ports.apoVector 30310 }}
 
-echo "Unzip docker compose tarball: apo-one-agent-compose-{{ ._deploy_version }}.tgz"
-tar -zxvf apo-one-agent-compose-{{ ._deploy_version }}.tgz
+echo "Unzip docker compose tarball: apo-one-agent-compose-amd64-{{ ._deploy_version }}.tgz"
+tar -zxvf apo-one-agent-compose-amd64-{{ ._deploy_version }}.tgz
 
 cd apo-one-agent-compose && bash deploy.sh init {{ .apoCollector.collectorGatewayAddr }}
