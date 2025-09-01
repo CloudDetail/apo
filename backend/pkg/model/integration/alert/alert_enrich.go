@@ -22,6 +22,10 @@ type AlertEnrichRule struct {
 	SchemaSource string `json:"schemaSource,omitempty" gorm:"type:varchar(255);column:schema_source"`
 }
 
+func (AlertEnrichRule) TableName() string {
+	return "alert_enrich_rules"
+}
+
 type AlertEnrichCondition struct {
 	EnrichRuleID string `json:"-" gorm:"type:varchar(255);column:enrich_rule_id;index"`
 	SourceID     string `json:"-" gorm:"type:varchar(255);column:source_id;index"`

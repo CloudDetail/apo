@@ -30,7 +30,7 @@ func TestRepo(t *testing.T) {
 }
 
 func testGetActiveInstanceList(t *testing.T, repo Repo) {
-	instances, err := repo.GetActiveInstanceList(core.EmptyCtx(), 1722914086000000, 1722935686000000, []string{"ts-travel-plan-service"})
+	instances, err := repo.GetActiveInstanceList(core.EmptyCtx(), 1722914086000000, 1722935686000000, "", []string{"ts-travel-plan-service"})
 	if err != nil {
 		t.Errorf("Error to get active instance list: %v", err)
 	}

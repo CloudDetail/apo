@@ -9,9 +9,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// ListDataPlaneType
-// @Summary
-// @Description
+// ListDataPlaneType Gets all supported dataplane types.
+// @Summary Gets all supported dataplane types.
+// @Description Gets all supported dataplane types.
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json

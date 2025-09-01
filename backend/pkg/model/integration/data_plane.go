@@ -14,9 +14,13 @@ type DataPlane struct {
 	ID   int    `gorm:"id;primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"name" json:"name"`
 
+	Note string `gorm:"note" json:"note"`
+
 	Typ        string              `gorm:"typ" json:"typ"`
 	Params     string              `gorm:"params" json:"params"`         // JSONStr
 	Capability JSONField[[]string] `gorm:"capability" json:"capability"` // Str Slice
+
+	ClusterID string `gorm:"-" json:"clusterId"`
 
 	UpdatedAt time.Time `gorm:"updated_at;autoUpdateTime:second" json:"-"`
 	IsDeleted bool      `gorm:"is_deleted;default:false" json:"-"`

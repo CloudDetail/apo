@@ -40,7 +40,7 @@ filterWorkflow AS(
 	FROM workflow_records
     %s
 )
-SELECT ae.id as id,
+SELECT ae.event_id as event_id,
   ae.group as group,
   ae.name as name,
   ae.alert_id as alert_id,
@@ -77,7 +77,7 @@ SELECT ae.id as id,
     WHEN fw.importance = 2 THEN 'valid'
   END as validity
 FROM targetEvent ae
-LEFT JOIN filterWorkflow fw ON toString(ae.id) = fw.input
+LEFT JOIN filterWorkflow fw ON ae.event_id = fw.input
 LEFT JOIN latestEvent le ON ae.alert_id = le.alert_id
 LIMIT 1`
 
@@ -101,7 +101,7 @@ filterNotify AS (
   FROM alert_notify_record anr
   %s
 )
-SELECT ae.id as id,
+SELECT ae.event_id as event_id,
   ae.group as group,
   ae.name as name,
   ae.alert_id as alert_id,
@@ -139,8 +139,8 @@ SELECT ae.id as id,
   fn.failed as notify_failed,
   fn.created_at as notify_at
 FROM filterEvent ae
-LEFT JOIN filterWorkflow fw ON toString(ae.id) = fw.input
-LEFT JOIN filterNotify fn ON toString(ae.id) = fn.event_id
+LEFT JOIN filterWorkflow fw ON ae.event_id = fw.input
+LEFT JOIN filterNotify fn ON ae.event_id = fn.event_id
 %s`
 
 const SQL_GET_RELEATED_ALERT_EVENT_COUNT = `SELECT count(1) AS count
@@ -159,7 +159,7 @@ FROM alert_event ae
 func (ch *chRepo) GetAlertDetail(ctx core.Context, req *request.GetAlertDetailRequest, cacheMinutes int) (*alert.AEventWithWRecord, error) {
 	alertFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID).
-		Equals("toString(id)", req.EventID)
+		Equals("event_id", req.EventID)
 
 	lastEventFilter := NewQueryBuilder().
 		Equals("alert_id", req.AlertID)
@@ -200,7 +200,7 @@ func (ch *chRepo) GetRelatedAlertEvents(ctx core.Context, req *request.GetAlertD
 	var offSet = (req.Pagination.CurrentPage - 1) * req.Pagination.PageSize
 	if req.LocateEvent {
 		targetQuery := NewQueryBuilder().
-			Equals("toString(id)", req.EventID).
+			Equals("event_id", req.EventID).
 			Equals("alert_id", req.AlertID)
 
 		sql := fmt.Sprintf(SQL_GET_RELEATED_ALERT_EVENT_LOCATE, targetQuery.String(), alertEventFilter.String())
@@ -287,7 +287,7 @@ func (ch *chRepo) ManualResolveLatestAlertEventByAlertID(ctx core.Context, alert
 	result.Status = model.StatusResolved.ToString()
 	result.EndTime = now
 	result.ReceivedTime = now
-	result.ID = uuid.New()
+	result.EventID = uuid.New().String()
 
 	detail := map[string]string{
 		"description": fmt.Sprintf("alert has been closed manally, LABELS: %+v", result.Tags),

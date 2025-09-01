@@ -38,7 +38,7 @@ func (d PrometheusDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]a
 		if len(alertEvent.AlertID) == 0 {
 			alertEvent.AlertID = alert.FastAlertID(alertEvent.Name, alertEvent.Tags)
 		}
-		alertEvent.ID = uuid.New()
+		alertEvent.EventID = uuid.NewString()
 		alertEvent.SourceID = sourceFrom.SourceID
 		alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 		alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)

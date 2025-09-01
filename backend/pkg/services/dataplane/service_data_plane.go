@@ -4,6 +4,8 @@
 package dataplane
 
 import (
+	"encoding/json"
+	"sort"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -26,8 +28,39 @@ type DPService interface {
 	CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error)
 }
 
+var specialOrder = map[string]int{
+	"datadog":           0,
+	"jaeger":            1,
+	"prometheus":        2,
+	"tempo":             3,
+	"loki":              4,
+	"grafanaPrometheus": 5,
+	"signoz":            6,
+	"skywalking":        7,
+	"arms":              8,
+}
+
 func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTypeResponse, error) {
 	dpTypes, err := s.dbRepo.ListDataPlaneType(ctx)
+	for i := 0; i < len(dpTypes); i++ {
+		dpTypes[i].UseLang(ctx.LANG())
+	}
+
+	sort.SliceStable(dpTypes, func(i, j int) bool {
+		orderI, findI := specialOrder[dpTypes[i].TypeName]
+		if !findI {
+			orderI = len(specialOrder)
+		}
+		orderJ, findJ := specialOrder[dpTypes[j].TypeName]
+		if !findJ {
+			orderJ = len(specialOrder)
+		}
+		if orderI == orderJ {
+			return dpTypes[i].TypeName < dpTypes[j].TypeName
+		}
+		return orderI < orderJ
+	})
+
 	return &response.ListDataPlaneTypeResponse{
 		DPTypes: dpTypes,
 	}, err
@@ -39,16 +72,55 @@ func (s *service) CreateDataPlane(ctx core.Context, req *request.CreateDataPlane
 		return core.Error(code.DataPlaneTypeNotExistError, "data plane type not exist")
 	}
 
+	if len(req.Capability.Obj) == 0 {
+		// Full capability
+		req.Capability.Obj = dpType.CapabilitySpec.Obj
+	}
+
 	if err := integration.CheckInvalid(&req.DataPlane, dpType); err != nil {
 		return core.Error(code.DataPlaneParamInvalidError, err.Error())
 	}
 
+	// HACK prometheus Prometheus 数据平面特殊处理
+	if dpType.TypeName == "prometheus" {
+		var paramsJson map[string]any
+		err := json.Unmarshal([]byte(req.DataPlane.Params), &paramsJson)
+		if err != nil {
+			return core.Error(code.DataPlaneParamInvalidError, err.Error())
+		}
+
+		paramsJson["promStorage"] = "prom"
+		updatedParams, _ := json.Marshal(paramsJson)
+		req.DataPlane.Params = string(updatedParams)
+	}
+
 	req.DataPlane.IsDeleted = false
+
+	if len(req.DataPlane.ClusterID) > 0 {
+		var createDataPlane = func(ctx core.Context) error {
+			return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
+		}
+
+		var createCluster2DataPlane = func(ctx core.Context) error {
+			return s.dbRepo.CreateCluster2DataPlane(ctx, &integration.Cluster2DataPlane{
+				ClusterID:   req.DataPlane.ClusterID,
+				DataPlaneID: req.DataPlane.ID,
+			})
+		}
+
+		return s.dbRepo.Transaction(ctx, createDataPlane, createCluster2DataPlane)
+	}
+
 	return s.dbRepo.CreateDataPlane(ctx, &req.DataPlane)
 }
 
 func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneResponse, error) {
 	res, err := s.dbRepo.ListDataPlane(ctx)
+
+	for i := 0; i < len(res); i++ {
+		res[i].UseLang(ctx.LANG())
+	}
+
 	return &response.ListDataPlaneResponse{
 		DataPlanes: res,
 	}, err
@@ -76,7 +148,13 @@ func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlane
 		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
 	}
 
-	return s.dbRepo.DeleteDataPlane(ctx, req.ID)
+	var deleteCluster2DataPlane = func(ctx core.Context) error {
+		return s.dbRepo.DeleteCluster2DataPlane(ctx, req.ID)
+	}
+	var deleteDataPlane = func(ctx core.Context) error {
+		return s.dbRepo.DeleteDataPlane(ctx, req.ID)
+	}
+	return s.dbRepo.Transaction(ctx, deleteCluster2DataPlane, deleteDataPlane)
 }
 
 func (s *service) CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error) {

@@ -5,10 +5,12 @@ package dataplane
 
 import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"github.com/CloudDetail/apo/backend/pkg/repository/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 )
 
@@ -22,34 +24,42 @@ type Service interface {
 	GetServiceInstances(ctx core.Context, req *request.QueryServiceInstancesRequest) *response.QueryServiceInstancesResponse
 	GetServiceName(ctx core.Context, req *request.QueryServiceNameRequest) *response.QueryServiceNameResponse
 	GetServiceTopology(ctx core.Context, req *request.QueryTopologyRequest) *response.QueryTopologyResponse
+	CheckDataSource(ctx core.Context, req *model.CheckDataSourceRequest) *model.CheckDataSourceResponse
+	CleanRelateServiceByRuleId(ctx core.Context, req *request.CleanRuleServicesRequest) error
+	CleanRelateServiceByDataSource(ctx core.Context, req *request.CleanDataSourceServicesRequest) error
 
 	CreateCustomTopology(ctx core.Context, req *request.CreateCustomTopologyRequest) error
 	DeleteCustomTopology(ctx core.Context, req *request.DeleteCustomTopologyRequest) error
 	ListCustomTopology(ctx core.Context, req *request.ListCustomTopologyRequest) (*response.ListCustomTopologyResponse, error)
 	CheckServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) (*response.CheckServiceNameRuleResponse, error)
 	SetServiceNameRule(ctx core.Context, req *request.SetServiceNameRuleRequest) error
-	ListServiceNameRule(ctx core.Context) (*response.ListServiceNameRuleResponse, error)
+	ListServiceNameRule(ctx core.Context, req *request.ListServiceNameRuleRequest) (*response.ListServiceNameRuleResponse, error)
 	DeleteServiceNameRule(ctx core.Context, req *request.DeleteServiceNameRuleRequest) error
 	ListAPPInfoLabelsKeys(ctx core.Context, req *request.QueryAPPInfoTagsRequest) (*response.QueryAPPInfoTagsResponse, error)
 	ListAPPInfoLabelValues(ctx core.Context, req *request.QueryAPPInfoTagValuesRequest) (*response.QueryAPPInfoTagValuesResponse, error)
 
 	DPService
+	GetDatasources(ctx core.Context, req *request.GetDatasourcesRequest) (response.GetDatasourcesResponse, error)
+	GetServiceWithInstances(ctx core.Context, req *request.GetServiceWithInstancesRequest) (response.GetServiceWithInstancesResponse, error)
 }
 
 type service struct {
-	chRepo   clickhouse.Repo
-	promRepo prometheus.Repo
-	dbRepo   database.Repo
+	chRepo        clickhouse.Repo
+	promRepo      prometheus.Repo
+	dbRepo        database.Repo
+	dataplaneRepo dataplane.DataplaneRepo
 }
 
 func New(
 	chRepo clickhouse.Repo,
 	promRepo prometheus.Repo,
 	dbRepo database.Repo,
+	dataplaneRepo dataplane.DataplaneRepo,
 ) Service {
 	return &service{
-		chRepo:   chRepo,
-		promRepo: promRepo,
-		dbRepo:   dbRepo,
+		chRepo:        chRepo,
+		promRepo:      promRepo,
+		dbRepo:        dbRepo,
+		dataplaneRepo: dataplaneRepo,
 	}
 }

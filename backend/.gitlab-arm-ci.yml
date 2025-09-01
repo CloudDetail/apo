@@ -33,3 +33,4 @@ push_local:
   - echo "TAG_NAME=$TAG_NAME"
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
+  - docker rmi $HARBOR_IMAGE_REPO:$TAG_NAME

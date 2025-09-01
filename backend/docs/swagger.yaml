@@ -1062,6 +1062,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       name:
         type: string
     type: object
@@ -1073,6 +1075,8 @@ definitions:
         type: string
       id:
         type: string
+      isMinimal:
+        type: boolean
       log:
         $ref: '#/definitions/integration.LogIntegration'
       metric:
@@ -1098,6 +1102,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
         description: JSONStr
+      typeDisplayName:
+        type: string
       typeName:
         type: string
     type: object
@@ -1111,6 +1117,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       clusterIds:
         items:
           type: string
@@ -1121,6 +1129,8 @@ definitions:
         type: integer
       name:
         type: string
+      note:
+        type: string
       paramSpec:
         allOf:
         - $ref: '#/definitions/integration.JSONField-integration_ParamSpec'
@@ -1129,6 +1139,8 @@ definitions:
         description: JSONStr
         type: string
       typ:
+        type: string
+      typeDisplayName:
         type: string
       typeName:
         type: string
@@ -1287,6 +1299,10 @@ definitions:
         items:
           $ref: '#/definitions/integration.ParamSpec'
         type: array
+      desc:
+        type: string
+      desc_en:
+        type: string
       name:
         type: string
       optional:
@@ -1463,24 +1479,29 @@ definitions:
     - AnormalTypeError
     - AnormalTypeAlertAppInstance
     - AnormalTypeAlertDatabase
-  model.AppInfo:
+  model.CheckDataSourceRequest:
     properties:
-      agentInstanceId:
+      attributes:
+        description: query attributes
         type: string
-      containerId:
+      dataSource:
+        description: query Datasource
         type: string
-      containerPid:
-        type: integer
-      hostPid:
-        type: integer
-      labels:
-        additionalProperties:
+      enabledCapabilities:
+        description: query capabilities
+        items:
           type: string
-        type: object
-      startTime:
-        type: integer
-      timestamp:
+        type: array
+    required:
+    - attributes
+    - dataSource
+    type: object
+  model.CheckDataSourceResponse:
+    properties:
+      message:
         type: string
+      success:
+        type: boolean
     type: object
   model.Datasource:
     properties:
@@ -1498,6 +1519,13 @@ definitions:
         type: array
       type:
         description: namespace or service
+        type: string
+    type: object
+  model.DatasourceCount:
+    properties:
+      count:
+        type: integer
+      type:
         type: string
     type: object
   model.DetectExprPart:
@@ -1553,6 +1581,15 @@ definitions:
       endpoint:
         type: string
       serviceName:
+        type: string
+    type: object
+  model.MatchServiceInstance:
+    properties:
+      instanceName:
+        type: string
+      serviceName:
+        type: string
+      source:
         type: string
     type: object
   model.Modifier:
@@ -2005,6 +2042,36 @@ definitions:
       numLayers:
         type: integer
     type: object
+  request.CleanDataSourceServicesRequest:
+    properties:
+      dataSource:
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      startTime:
+        description: query start time
+        type: integer
+    required:
+    - dataSource
+    - endTime
+    - startTime
+    type: object
+  request.CleanRuleServicesRequest:
+    properties:
+      endTime:
+        description: query end time
+        type: integer
+      ruleId:
+        type: integer
+      startTime:
+        description: query start time
+        type: integer
+    required:
+    - endTime
+    - ruleId
+    - startTime
+    type: object
   request.ComplexSpanTraceFilter:
     properties:
       dataType:
@@ -2044,9 +2111,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       id:
         type: integer
       name:
+        type: string
+      note:
         type: string
       params:
         description: JSONStr
@@ -2942,9 +3013,13 @@ definitions:
         allOf:
         - $ref: '#/definitions/integration.JSONField-array_string'
         description: Str Slice
+      clusterId:
+        type: string
       id:
         type: integer
       name:
+        type: string
+      note:
         type: string
       params:
         description: JSONStr
@@ -3066,9 +3141,9 @@ definitions:
     type: object
   response.CheckServiceNameRuleResponse:
     properties:
-      apps:
+      instances:
         items:
-          $ref: '#/definitions/model.AppInfo'
+          $ref: '#/definitions/model.MatchServiceInstance'
         type: array
     type: object
   response.ClusterScopedDatasource:
@@ -3388,6 +3463,17 @@ definitions:
         items:
           $ref: '#/definitions/model.Datasource'
         type: array
+    type: object
+  response.GetDatasourcesResponse:
+    properties:
+      datasources:
+        items:
+          $ref: '#/definitions/model.DatasourceCount'
+        type: array
+      serviceCount:
+        type: integer
+      status:
+        type: string
     type: object
   response.GetDefectDetectExecListResponse:
     properties:
@@ -3785,6 +3871,22 @@ definitions:
           type: string
         type: object
     type: object
+  response.GetServiceWithInstancesResponse:
+    properties:
+      currentPage:
+        description: current page number
+        type: integer
+      pageSize:
+        description: number of entries per page
+        type: integer
+      services:
+        items:
+          $ref: '#/definitions/response.ServiceWithInstances'
+        type: array
+      total:
+        description: total number of records
+        type: integer
+    type: object
   response.GetTTLResponse:
     properties:
       k8s:
@@ -3996,6 +4098,39 @@ definitions:
       service:
         type: string
     type: object
+  response.InstanceSource:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  response.InstanceWithSource:
+    properties:
+      clusterId:
+        type: string
+      containerId:
+        description: container ID
+        type: string
+      instanceName:
+        type: string
+      nodeIp:
+        type: string
+      nodeName:
+        description: hostname
+        type: string
+      pid:
+        description: process number
+        type: integer
+      podName:
+        description: Pod name
+        type: string
+      service:
+        description: service name
+        type: string
+      source:
+        $ref: '#/definitions/response.InstanceSource'
+    type: object
   response.InstancesRes:
     properties:
       data:
@@ -4056,12 +4191,18 @@ definitions:
     type: object
   response.ListServiceNameRule:
     properties:
+      clusterId:
+        type: string
       conditions:
         items:
           $ref: '#/definitions/database.ServiceNameRuleCondition'
         type: array
       id:
         type: integer
+      instances:
+        items:
+          type: string
+        type: array
       serviceName:
         type: string
     type: object
@@ -4571,6 +4712,21 @@ definitions:
         type: string
       status:
         $ref: '#/definitions/response.RYGStatus'
+    type: object
+  response.ServiceWithInstances:
+    properties:
+      clusterId:
+        type: string
+      id:
+        type: string
+      instances:
+        items:
+          $ref: '#/definitions/response.InstanceWithSource'
+        type: array
+      name:
+        type: string
+      source:
+        type: string
     type: object
   response.SpanSegmentMetricsResponse:
     additionalProperties:
@@ -6929,10 +7085,37 @@ paths:
       summary: Get app info tag values.
       tags:
       - API.dataplane
+  /api/dataplane/checkDataSource:
+    post:
+      consumes:
+      - application/json
+      description: check datasource is valid.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CheckDataSourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CheckDataSourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: check datasource is valid.
+      tags:
+      - API.dataplane
   /api/dataplane/create:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Creates a new dataplane.
       parameters:
       - description: Request information
         in: body
@@ -6955,6 +7138,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Creates a new dataplane.
       tags:
       - API.dataplane
   /api/dataplane/customtopology/create:
@@ -7062,6 +7246,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Check if the minimum probe is installed.
       produces:
       - application/json
       responses:
@@ -7073,12 +7258,50 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Check if the minimum probe is installed.
+      tags:
+      - API.dataplane
+  /api/dataplane/datasources:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Cluseter id
+        in: query
+        name: cluster
+        type: string
+      - description: Start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetDatasourcesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
       tags:
       - API.dataplane
   /api/dataplane/delete:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Deletes a dataplane.
       parameters:
       - description: Request information
         in: body
@@ -7101,6 +7324,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Deletes a dataplane.
       tags:
       - API.dataplane
   /api/dataplane/endpoints:
@@ -7185,6 +7409,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Gets all dataplane.
       parameters:
       - description: Bearer accessToken
         in: header
@@ -7201,6 +7426,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Gets all dataplane.
       tags:
       - API.dataplane
   /api/dataplane/redcharts:
@@ -7298,6 +7524,58 @@ paths:
       summary: Check servicename rule.
       tags:
       - API.dataplane
+  /api/dataplane/servicename/cleanDataSourceServices:
+    post:
+      consumes:
+      - application/json
+      description: clean relate service by dataSource.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CleanDataSourceServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: clean relate service by dataSource.
+      tags:
+      - API.dataplane
+  /api/dataplane/servicename/cleanRuleServices:
+    post:
+      consumes:
+      - application/json
+      description: clean relate service by ruleId.
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.CleanRuleServicesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: clean relate service by ruleId.
+      tags:
+      - API.dataplane
   /api/dataplane/servicename/deleteRule:
     post:
       consumes:
@@ -7330,6 +7608,21 @@ paths:
       - application/x-www-form-urlencoded
       description: List servicename rule.
       parameters:
+      - description: Service name
+        in: query
+        name: serviceName
+        required: true
+        type: string
+      - description: Start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        in: query
+        name: endTime
+        required: true
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7408,6 +7701,57 @@ paths:
       summary: Get all services.
       tags:
       - API.dataplane
+  /api/dataplane/servicesWithInstances:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Cluseter id
+        in: query
+        name: cluster
+        type: string
+      - description: Start time
+        in: query
+        name: startTime
+        required: true
+        type: integer
+      - description: End time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - collectionFormat: multi
+        description: Services
+        in: query
+        items:
+          type: string
+        name: services
+        type: array
+      - description: Current page
+        in: query
+        name: currentPage
+        type: integer
+      - description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetServiceWithInstancesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.dataplane
   /api/dataplane/topology:
     get:
       consumes:
@@ -7451,6 +7795,7 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Gets all supported dataplane types.
       parameters:
       - description: Bearer accessToken
         in: header
@@ -7467,12 +7812,14 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Gets all supported dataplane types.
       tags:
       - API.dataplane
   /api/dataplane/update:
     post:
       consumes:
       - application/x-www-form-urlencoded
+      description: Updates a dataplane.
       parameters:
       - description: Request information
         in: body
@@ -7495,6 +7842,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Updates a dataplane.
       tags:
       - API.dataplane
   /api/health:

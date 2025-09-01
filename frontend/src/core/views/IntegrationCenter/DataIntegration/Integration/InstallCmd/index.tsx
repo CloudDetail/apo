@@ -30,9 +30,9 @@ const decodeBase64 = (base64Str: string) => {
 function getAPOChartVersion() {
   try {
     const config = window.__APP_CONFIG__ || {}
-    return config.apoChartVersion || '1.10'
+    return config.apoChartVersion || '1.11'
   } catch (e) {
-    return '1.10'
+    return '1.11'
   }
 }
 const InstallCmd = ({ clusterId, clusterType, apoCollector }) => {
@@ -106,11 +106,10 @@ helm install apo-one-agent apo/apo-one-agent -n apo --create-namespace --version
   const getVmCommand1 = () => {
     return `curl -Lo installCfg.sh http://${apoCollector?.collectorGatewayAddr}:${apoCollector?.ports?.apoBackend || 31363}/api/integration/cluster/install/config?clusterId=${clusterId}`
   }
-  const deployVersion = 'v1.3.000'
-  const appVersion = 'v1.3.0'
+  const deployVersion = 'v1.11.000'
+  const appVersion = 'v1.11.0'
   const getVmCommand2 = () => {
-    return `curl -Lo apo-one-agent-compose-${deployVersion}.tgz https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-${deployVersion}.tgz
-bash ./installCfg.sh`
+    return `curl -Lo apo-one-agent-compose-amd64-${deployVersion}.tgz https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-amd64-${deployVersion}.tgz
   }
   return (
     <div className="px-3 mx-auto h-full overflow-auto flex flex-col">

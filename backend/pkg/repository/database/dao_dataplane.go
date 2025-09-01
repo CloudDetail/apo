@@ -4,13 +4,16 @@
 package database
 
 import (
+	"slices"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
 	mi "github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
 func (repo *daoRepo) ListDataPlaneType(ctx core.Context) ([]mi.DataPlaneType, error) {
 	var res []mi.DataPlaneType
-	err := repo.GetContextDB(ctx).Find(&res).Error
+	err := repo.GetContextDB(ctx).Find(&res).Order("type_name asc").Error
 	return res, err
 }
 
@@ -24,12 +27,16 @@ func (repo *daoRepo) CreateDataPlane(ctx core.Context, d *mi.DataPlane) error {
 	return repo.GetContextDB(ctx).Create(d).Error
 }
 
+func (repo *daoRepo) CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error {
+	return repo.GetContextDB(ctx).Create(c2dp).Error
+}
+
 func (repo *daoRepo) ListDataPlane(ctx core.Context) ([]mi.DataPlaneWithClusterIDs, error) {
 	var dps []mi.DataPlaneWithType
 
 	err := repo.GetContextDB(ctx).Table("data_plane as dp").
 		Select("id", "name", "typ", "params", "capability",
-			"type_name", "desc", "param_spec", "capability_spec").
+			"type_name", "type_display_name", "desc", "param_spec", "capability_spec").
 		Where("is_deleted = ?", false).
 		Joins("LEFT JOIN data_plane_type dpt ON dp.typ = dpt.type_name").
 		Order("id asc").
@@ -78,4 +85,39 @@ func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
 	return repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
 		Where("id = ?", id).
 		Update("is_deleted", true).Error
+}
+
+func (repo *daoRepo) GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error) {
+	var results []model.DatasourceCount
+	if err := repo.DB.Table("data_plane").
+		Select("typ, COUNT(*) AS record_count").
+		Group("typ").
+		Where("is_deleted", false).
+		Find(&results).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+func (repo *daoRepo) DeleteCluster2DataPlane(ctx core.Context, id int) error {
+	return repo.GetContextDB(ctx).Model(&mi.Cluster2DataPlane{}).
+		Where("data_plane_id = ?", id).
+		Delete(&mi.Cluster2DataPlane{}).Error
+}
+
+func (repo *daoRepo) CheckGetApoMetric(ctx core.Context) (bool, error) {
+	var dps []mi.DataPlane
+	err := repo.GetContextDB(ctx).Model(&mi.DataPlane{}).
+		Where("is_deleted = ?", false).Find(&dps).Error
+
+	for _, dp := range dps {
+		if dp.Typ != "apo" {
+			if slices.Contains(dp.Capability.Obj, "ServiceInstance") {
+				return false, nil
+			}
+		}
+	}
+	return true, err
 }

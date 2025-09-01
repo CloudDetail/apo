@@ -3487,8 +3487,49 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/checkDataSource": {
+            "post": {
+                "description": "check datasource is valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "check datasource is valid.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/create": {
             "post": {
+                "description": "Creates a new dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3498,6 +3539,7 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Creates a new dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -3684,6 +3726,7 @@ const docTemplate = `{
         },
         "/api/dataplane/data/check": {
             "get": {
+                "description": "Check if the minimum probe is installed.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3693,6 +3736,7 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Check if the minimum probe is installed.",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -3709,8 +3753,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/dataplane/delete": {
-            "post": {
+        "/api/dataplane/datasources": {
+            "get": {
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3720,6 +3764,63 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluseter id",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetDatasourcesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/delete": {
+            "post": {
+                "description": "Deletes a dataplane.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Deletes a dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -3871,6 +3972,7 @@ const docTemplate = `{
         },
         "/api/dataplane/list": {
             "get": {
+                "description": "Gets all dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -3880,6 +3982,7 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Gets all dataplane.",
                 "parameters": [
                     {
                         "type": "string",
@@ -4048,6 +4151,86 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/servicename/cleanDataSourceServices": {
+            "post": {
+                "description": "clean relate service by dataSource.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "clean relate service by dataSource.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CleanDataSourceServicesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/servicename/cleanRuleServices": {
+            "post": {
+                "description": "clean relate service by ruleId.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "clean relate service by ruleId.",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CleanRuleServicesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/servicename/deleteRule": {
             "post": {
                 "description": "Delete servicename rule.",
@@ -4102,6 +4285,27 @@ const docTemplate = `{
                 ],
                 "summary": "List servicename rule.",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Service name",
+                        "name": "serviceName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -4216,6 +4420,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/servicesWithInstances": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cluseter id",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Start time",
+                        "name": "startTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "End time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "Services",
+                        "name": "services",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Current page",
+                        "name": "currentPage",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetServiceWithInstancesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/topology": {
             "get": {
                 "description": "Get service's topology.",
@@ -4276,6 +4557,7 @@ const docTemplate = `{
         },
         "/api/dataplane/type/list": {
             "get": {
+                "description": "Gets all supported dataplane types.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4285,6 +4567,7 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Gets all supported dataplane types.",
                 "parameters": [
                     {
                         "type": "string",
@@ -4311,6 +4594,7 @@ const docTemplate = `{
         },
         "/api/dataplane/update": {
             "post": {
+                "description": "Updates a dataplane.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -4320,6 +4604,7 @@ const docTemplate = `{
                 "tags": [
                     "API.dataplane"
                 ],
+                "summary": "Updates a dataplane.",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -11904,6 +12189,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "isMinimal": {
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 }
@@ -11920,6 +12208,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "isMinimal": {
+                    "type": "boolean"
                 },
                 "log": {
                     "$ref": "#/definitions/integration.LogIntegration"
@@ -11963,6 +12254,9 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "typeDisplayName": {
+                    "type": "string"
+                },
                 "typeName": {
                     "type": "string"
                 }
@@ -11987,6 +12281,9 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "clusterIds": {
                     "type": "array",
                     "items": {
@@ -12002,6 +12299,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "note": {
+                    "type": "string"
+                },
                 "paramSpec": {
                     "description": "JSONStr",
                     "allOf": [
@@ -12015,6 +12315,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "typ": {
+                    "type": "string"
+                },
+                "typeDisplayName": {
                     "type": "string"
                 },
                 "typeName": {
@@ -12256,6 +12559,12 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/integration.ParamSpec"
                     }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "desc_en": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -12516,32 +12825,38 @@ const docTemplate = `{
                 "AnormalTypeAlertDatabase"
             ]
         },
-        "model.AppInfo": {
+        "model.CheckDataSourceRequest": {
             "type": "object",
+            "required": [
+                "attributes",
+                "dataSource"
+            ],
             "properties": {
-                "agentInstanceId": {
+                "attributes": {
+                    "description": "query attributes",
                     "type": "string"
                 },
-                "containerId": {
+                "dataSource": {
+                    "description": "query Datasource",
                     "type": "string"
                 },
-                "containerPid": {
-                    "type": "integer"
-                },
-                "hostPid": {
-                    "type": "integer"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
+                "enabledCapabilities": {
+                    "description": "query capabilities",
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "timestamp": {
+                }
+            }
+        },
+        "model.CheckDataSourceResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -12565,6 +12880,17 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "namespace or service",
+                    "type": "string"
+                }
+            }
+        },
+        "model.DatasourceCount": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -12643,6 +12969,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "serviceName": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.MatchServiceInstance": {
+            "type": "object",
+            "properties": {
+                "instanceName": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -13321,6 +13661,48 @@ const docTemplate = `{
                 }
             }
         },
+        "request.CleanDataSourceServicesRequest": {
+            "type": "object",
+            "required": [
+                "dataSource",
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "dataSource": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.CleanRuleServicesRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "ruleId",
+                "startTime"
+            ],
+            "properties": {
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "ruleId": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                }
+            }
+        },
         "request.ComplexSpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -13379,10 +13761,16 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "note": {
                     "type": "string"
                 },
                 "params": {
@@ -14698,10 +15086,16 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "clusterId": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "note": {
                     "type": "string"
                 },
                 "params": {
@@ -14888,10 +15282,10 @@ const docTemplate = `{
         "response.CheckServiceNameRuleResponse": {
             "type": "object",
             "properties": {
-                "apps": {
+                "instances": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.AppInfo"
+                        "$ref": "#/definitions/model.MatchServiceInstance"
                     }
                 }
             }
@@ -15369,6 +15763,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.Datasource"
                     }
+                }
+            }
+        },
+        "response.GetDatasourcesResponse": {
+            "type": "object",
+            "properties": {
+                "datasources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DatasourceCount"
+                    }
+                },
+                "serviceCount": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -15964,6 +16375,29 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetServiceWithInstancesResponse": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "description": "current page number",
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "description": "number of entries per page",
+                    "type": "integer"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ServiceWithInstances"
+                    }
+                },
+                "total": {
+                    "description": "total number of records",
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetTTLResponse": {
             "type": "object",
             "properties": {
@@ -16277,6 +16711,54 @@ const docTemplate = `{
                 }
             }
         },
+        "response.InstanceSource": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.InstanceWithSource": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "containerId": {
+                    "description": "container ID",
+                    "type": "string"
+                },
+                "instanceName": {
+                    "type": "string"
+                },
+                "nodeIp": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "podName": {
+                    "description": "Pod name",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "service name",
+                    "type": "string"
+                },
+                "source": {
+                    "$ref": "#/definitions/response.InstanceSource"
+                }
+            }
+        },
         "response.InstancesRes": {
             "type": "object",
             "properties": {
@@ -16370,6 +16852,9 @@ const docTemplate = `{
         "response.ListServiceNameRule": {
             "type": "object",
             "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
                 "conditions": {
                     "type": "array",
                     "items": {
@@ -16378,6 +16863,12 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "serviceName": {
                     "type": "string"
@@ -17164,6 +17655,29 @@ const docTemplate = `{
                 },
                 "status": {
                     "$ref": "#/definitions/response.RYGStatus"
+                }
+            }
+        },
+        "response.ServiceWithInstances": {
+            "type": "object",
+            "properties": {
+                "clusterId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instances": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.InstanceWithSource"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
                 }
             }
         },

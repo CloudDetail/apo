@@ -3,14 +3,29 @@
 
 package integration
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/CloudDetail/apo/backend/pkg/code"
+)
 
 type DataPlaneType struct {
 	TypeName string `gorm:"type_name;primary_key" json:"typeName"`
-	Desc     string `gorm:"desc" json:"desc"`
+
+	TypeDisplayName string     `gorm:"type_display_name;" json:"typeDisplayName"`
+	Desc            CompressMD `gorm:"desc;type:text" json:"desc"`
+	DescEN          CompressMD `gorm:"desc_en;type:text" json:"-"`
 
 	ParamSpec      JSONField[ParamSpec] `gorm:"param_spec" json:"paramSpec"`           // JSONStr
 	CapabilitySpec JSONField[[]string]  `gorm:"capability_spec" json:"capabilitySpec"` // Str Slice
+}
+
+func (d *DataPlaneType) UseLang(lang string) {
+	if lang == code.LANG_ZH {
+		return
+	}
+	d.Desc = d.DescEN
+	d.ParamSpec.Obj.UseLang(lang)
 }
 
 func (DataPlaneType) TableName() string {
@@ -33,6 +48,18 @@ type ParamSpec struct {
 	Type     JSONType    `json:"type"`
 	Optional bool        `json:"optional,omitempty"`
 	Children []ParamSpec `json:"children,omitempty"`
+	Desc     string      `json:"desc,omitempty"`
+	DescEN   string      `json:"desc_en,omitempty"`
+}
+
+func (p *ParamSpec) UseLang(lang string) {
+	if lang == code.LANG_ZH {
+		return
+	}
+	p.Desc = p.DescEN
+	for i := range p.Children {
+		p.Children[i].UseLang(lang)
+	}
 }
 
 func ValidateJSON(value any, schema ParamSpec) error {

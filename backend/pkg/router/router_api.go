@@ -290,6 +290,8 @@ func setApiRouter(r *resource) {
 		alertInputApi.POST("/event/source", handler.SourceHandler())
 		alertInputApi.POST("/event/json", handler.JsonHandler())
 		alertInputApi.POST("/source/create", handler.CreateAlertSource())
+		alertInputApi.GET("/source/paramspec", handler.GetAlertProviderParamsSpec())
+		alertInputApi.POST("/source/setup/webhook", handler.SetupAlertProviderWebhook())
 		alertInputApi.POST("/source/update", handler.UpdateAlertSource())
 		alertInputApi.POST("/source/get", handler.GetAlertSource())
 		alertInputApi.POST("/source/delete", handler.DeleteAlertSource())
@@ -343,13 +345,14 @@ func setApiRouter(r *resource) {
 
 	dataplaneAPI := r.mux.Group("/api/dataplane")
 	{
-		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db)
+		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db, r.dataplaneRepo)
 		dataplaneAPI.GET("/services", handler.QueryServices())
 		dataplaneAPI.GET("/redcharts", handler.QueryServiceRedCharts())
 		dataplaneAPI.GET("/endpoints", handler.QueryServiceEndpoints())
 		dataplaneAPI.GET("/instances", handler.QueryServiceInstances())
 		dataplaneAPI.POST("/servicename", handler.QueryServiceName())
 		dataplaneAPI.GET("/topology", handler.QueryTopology())
+		dataplaneAPI.POST("/checkDataSource", handler.CheckDataSource())
 
 		dataplaneAPI.POST("/customtopology/create", handler.CreateCustomTopology())
 		dataplaneAPI.GET("/customtopology/list", handler.ListCustomTopology())
@@ -358,6 +361,8 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.POST("/servicename/upsertRule", handler.SetServiceNameRule())
 		dataplaneAPI.GET("/servicename/listRule", handler.ListServiceNameRule())
 		dataplaneAPI.POST("/servicename/deleteRule", handler.DeleteServiceNameRule())
+		dataplaneAPI.POST("/servicename/cleanRuleServices", handler.CleanRuleServices())
+		dataplaneAPI.POST("/servicename/cleanDataSourceServices", handler.CleanDataSourceServices())
 		dataplaneAPI.GET("/type/list", handler.ListDataPlaneType())
 		dataplaneAPI.GET("/list", handler.ListDataPlane())
 		dataplaneAPI.POST("/create", handler.CreateDataPlane())
@@ -367,5 +372,7 @@ func setApiRouter(r *resource) {
 
 		dataplaneAPI.GET("/appinfo/tags", handler.QueryAPPInfoTags())
 		dataplaneAPI.GET("/appinfo/tags/values", handler.QueryAPPInfoTagValues())
+		dataplaneAPI.GET("datasources", handler.GetDatasources())
+		dataplaneAPI.GET("servicesWithInstances", handler.GetServiceWithInstances())
 	}
 }

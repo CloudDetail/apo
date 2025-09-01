@@ -9,9 +9,9 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// CheckDataPlane
-// @Summary
-// @Description
+// CheckDataPlane Check if the minimum probe is installed.
+// @Summary Check if the minimum probe is installed.
+// @Description Check if the minimum probe is installed.
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json

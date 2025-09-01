@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Service struct {
@@ -47,13 +46,9 @@ type ApmServiceInstance struct {
 }
 
 type AppInfo struct {
-	Timestamp       time.Time         `ch:"timestamp" json:"timestamp"`
-	StartTime       uint64            `ch:"start_time" json:"startTime"`
-	AgentInstanceId string            `ch:"agent_instance_id" json:"agentInstanceId"`
-	HostPid         uint32            `ch:"host_pid" json:"hostPid"`
-	ContainerPid    uint32            `ch:"container_pid" json:"containerPid"`
-	ContainerId     string            `ch:"container_id" json:"containerId"`
-	Labels          map[string]string `ch:"labels" json:"labels"`
+	HostPid     uint32            `ch:"host_pid" json:"hostPid"`
+	ContainerId string            `ch:"container_id" json:"containerId"`
+	Labels      map[string]string `ch:"labels" json:"labels"`
 }
 
 func (app *AppInfo) CheckIps(ips []string) bool {
@@ -90,8 +85,13 @@ func (app *AppInfo) GetSource() string {
 	return ""
 }
 
+type DatasourceCount struct {
+	Type  string `json:"type" gorm:"column:typ"`
+	Count int    `json:"count" gorm:"column:record_count"`
+}
+
 func (app *AppInfo) GetService() string {
-	serviceName := app.Labels["service_name"];
+	serviceName := app.Labels["service_name"]
 	return serviceName
 }
 
@@ -103,8 +103,19 @@ type MatchServiceInstance struct {
 
 func NewMatchServiceInstance(serviceName string, app *AppInfo) *MatchServiceInstance {
 	return &MatchServiceInstance{
-		ServiceName: app.GetService(),
+		ServiceName:  app.GetService(),
 		InstanceName: app.GetInstanceName(serviceName),
-		Source: app.GetSource(),
+		Source:       app.GetSource(),
 	}
+}
+
+type CheckDataSourceRequest struct {
+	Datasource   string   `json:"dataSource" binding:"required"` // query Datasource
+	Attributes   string   `json:"attributes" binding:"required"` // query attributes
+	Capabilities []string `json:"enabledCapabilities"`           // query capabilities
+}
+
+type CheckDataSourceResponse struct {
+	Message string `json:"message,omitempty"`
+	Success bool   `json:"success"`
 }

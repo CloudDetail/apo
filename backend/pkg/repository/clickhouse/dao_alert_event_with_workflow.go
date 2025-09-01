@@ -97,7 +97,7 @@ filtered_workflows AS (
   ORDER BY created_at DESC LIMIT 1 BY ref
 )
 SELECT
-  ae.id,
+  ae.event_id,
   ae.group,
   ae.name,
   ae.alert_id,

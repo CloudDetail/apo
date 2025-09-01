@@ -120,9 +120,9 @@ type ServiceInstance struct {
 	ServiceName string `json:"service"`     // service name
 	ContainerId string `json:"containerId"` // container ID
 	PodName     string `json:"podName"`     // Pod name
-	Namespace   string `json:"-"`
-	NodeName    string `json:"nodeName"` // hostname
-	Pid         int64  `json:"pid"`      // process number
+	Namespace   string `json:"namespace"`   // k8s namespace
+	NodeName    string `json:"nodeName"`    // hostname
+	Pid         int64  `json:"pid"`         // process number
 	NodeIP      string `json:"nodeIp"`
 	ClusterID   string `json:"clusterId"`
 }

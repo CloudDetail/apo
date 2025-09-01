@@ -32,11 +32,15 @@ func (ch *chRepo) QueryAllLogs(ctx core.Context, req *request.LogQueryRequest) (
 }
 
 func (ch *chRepo) QueryAllLogsInOrder(ctx core.Context, req *request.LogQueryRequest) ([]map[string]any, string, error) {
+	if len(req.DataBase) == 0 {
+		req.DataBase = ch.database
+	}
+
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)
 	bySql := NewByLimitBuilder().
 		OrderBy(fmt.Sprintf("`%s`", req.TimeField), true).
 		Limit(req.PageSize).
-		Offset(req.PageNum).
+		Offset((req.PageNum - 1) * req.PageSize).
 		String()
 	sql := buildAllLogsQuery(logsBaseQuery, req, condition, bySql)
 

@@ -160,9 +160,9 @@ type Repo interface {
 	DeleteCustomServiceTopology(ctx core.Context, id int) error
 
 	CreateServiceNameRule(ctx core.Context, serviceNameRule *ServiceNameRule) error
-	ListAllServiceNameRule(ctx core.Context) ([]ServiceNameRule, error)
+	ListServiceNameRule(ctx core.Context, servieName string) ([]ServiceNameRule, error)
 	UpsertServiceNameRuleCondition(ctx core.Context, condition *ServiceNameRuleCondition) error
-	ListAllServiceNameRuleCondition(ctx core.Context) ([]ServiceNameRuleCondition, error)
+	ListServiceNameRuleCondition(ctx core.Context, ruleIds []int) ([]ServiceNameRuleCondition, error)
 	ServiceNameRuleExists(ctx core.Context, ruleId int) (bool, error)
 	DeleteServiceNameRule(ctx core.Context, ruleId int) error
 	ListDataPlaneType(ctx core.Context) ([]mi.DataPlaneType, error)
@@ -172,6 +172,11 @@ type Repo interface {
 	CheckDataPlaneExist(ctx core.Context, id int) (bool, error)
 	UpdateDataPlane(ctx core.Context, d *mi.DataPlane) error
 	DeleteDataPlane(ctx core.Context, id int) error
+	GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error)
+	CheckGetApoMetric(ctx core.Context) (bool, error)
+
+	CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error
+	DeleteCluster2DataPlane(ctx core.Context, id int) error
 
 	integration.ObservabilityInputManage
 	DaoDataScope
@@ -239,6 +244,10 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = driver.InitSQL(database, &AlertMetricsData{}); err != nil {
 		return nil, err
 	}
+	if err = driver.InitSQL(database, &mi.DataPlaneType{}); err != nil {
+		return nil, err
+	}
+
 	if err = daoRepo.initRole(nil); err != nil {
 		return nil, err
 	}

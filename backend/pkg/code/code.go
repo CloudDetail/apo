@@ -204,6 +204,8 @@ const (
 	ListClusterFailed                 = "B1322"
 	GetAlertEnrichRuleFailed          = "B1323"
 	AlertSourceNotExisted             = "B1324"
+	SetupAlertProviderWebhookError    = "B1325"
+
 	GetDatasourceError                = "B0928"
 	DataSourceNotExistError           = "B0929"
 	CreateDataGroupError              = "B0930"
@@ -278,6 +280,9 @@ const (
 	DataPlaneTypeNotExistError      = "B1817"
 	DataPlaneParamInvalidError      = "B1818"
 	CheckMinimalDataPlaneExistError = "B1819"
+	GetDatasourcesError             = "B1820"
+	GetServiceWithInstancesError    = "B1821"
+	CleanRelateServiceError         = "B1822"
 
 	// Metric
 	QueryPodsError = "B1901"
