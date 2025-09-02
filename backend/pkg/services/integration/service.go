@@ -23,7 +23,7 @@ type Service interface {
 	DeleteCluster(ctx core.Context, cluster *integration.Cluster) error
 
 	GetIntegrationInstallConfigFile(ctx core.Context, req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
-	GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) ([]byte, error)
+	GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) (string, error)
 
 	TriggerAdapterUpdate(ctx core.Context, req *integration.TriggerAdapterUpdateRequest)
 }
