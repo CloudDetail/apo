@@ -5,7 +5,6 @@ package integration
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -47,8 +46,8 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 	}
 
 	md := buf.Bytes()
-	mdB64 := base64.StdEncoding.EncodeToString(md)
-	return mdB64, err
+	// mdB64 := base64.StdEncoding.EncodeToString(md)
+	return string(md), err
 }
 
 func (s *service) getMinimalIntegrationInstallCmd(clusterConfig *integration.ClusterIntegration) (string, error) {
