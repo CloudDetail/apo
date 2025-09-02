@@ -23,7 +23,6 @@ type Service interface {
 	DeleteCluster(ctx core.Context, cluster *integration.Cluster) error
 
 	GetIntegrationInstallConfigFile(ctx core.Context, req *integration.GetCInstallRequest) (*integration.GetCInstallConfigResponse, error)
-	// Deprecated
 	GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) ([]byte, error)
 
 	TriggerAdapterUpdate(ctx core.Context, req *integration.TriggerAdapterUpdateRequest)
@@ -34,7 +33,8 @@ var _ Service = &service{}
 type service struct {
 	dbRepo database.Repo
 
-	baseURL string
+	serverAddr string
+	baseURL    string
 }
 
 var baseSchema = regexp.MustCompile(`^(?:https?:\/\/)?([^:/]+)`)
@@ -47,12 +47,16 @@ func New(database database.Repo) Service {
 		dbRepo: database,
 	}
 
-	match := baseSchema.FindStringSubmatch(cfg.BaseURL)
-	if len(match) > 1 {
-		service.baseURL = match[1]
-	} else if len(cfg.BaseURL) == 0 {
-		service.baseURL = "apo-backend-svc.apo"
+	if len(cfg.BaseURL) == 0 {
+		service.baseURL = "http://apo-backend-svc.apo:8080"
+		service.serverAddr = "apo-backend-svc.apo"
 	} else {
+		match := baseSchema.FindStringSubmatch(cfg.BaseURL)
+		if len(match) > 1 {
+			service.serverAddr = match[1]
+		} else {
+			service.serverAddr = cfg.BaseURL
+		}
 		service.baseURL = cfg.BaseURL
 	}
 

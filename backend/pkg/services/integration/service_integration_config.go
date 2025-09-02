@@ -85,7 +85,7 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 	}
 
 	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
-		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.baseURL
+		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
 	}
 
 	if clusterConfig.IsMinimal {
@@ -95,7 +95,7 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 }
 
 func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
-	jsonObj, err := convert2DeployValues(clusterConfig)
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}
@@ -120,7 +120,7 @@ func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterInt
 }
 
 func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
-	jsonObj, err := convert2DeployValues(clusterConfig)
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}
@@ -155,7 +155,7 @@ var (
 	apoComposeDeployVersion = "v1.11.000"
 )
 
-func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
+func (s *service) convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
 	jsonStr, err := json.Marshal(ci)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
@@ -207,6 +207,7 @@ func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, e
 	jsonObj["_chart_version"] = apoChartVersion
 	jsonObj["_cluster_id"] = ci.Cluster.ID
 	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
+	jsonObj["_base_url_"] = s.baseURL
 
 	return jsonObj, nil
 }
