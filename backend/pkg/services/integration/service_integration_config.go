@@ -84,10 +84,17 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 		return nil, err
 	}
 
-	return getIntegrationConfigFile(clusterConfig)
+	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
+		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.baseURL
+	}
+
+	if clusterConfig.IsMinimal {
+		return s.getMinimalIntegrationConfigFile(clusterConfig)
+	}
+	return s.getIntegrationConfigFile(clusterConfig)
 }
 
-func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
 	jsonObj, err := convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
@@ -102,6 +109,31 @@ func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*i
 	case integration.ClusterTypeVM:
 		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
 		fileName = "installCfg.sh"
+	default:
+		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
+	}
+
+	return &integration.GetCInstallConfigResponse{
+		FileName: fileName,
+		Content:  buf.Bytes(),
+	}, err
+}
+
+func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+	jsonObj, err := convert2DeployValues(clusterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("marshal config failed: %w", err)
+	}
+
+	var buf bytes.Buffer
+	var fileName string
+	switch clusterConfig.ClusterType {
+	case integration.ClusterTypeK8s:
+		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values-minimal.yaml.tmpl", jsonObj)
+		fileName = "apo-one-agent-values.yaml"
+	case integration.ClusterTypeVM:
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, "cfg.env.tmpl", jsonObj)
+		fileName = "cfg.env"
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
 	}

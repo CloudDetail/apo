@@ -1,4 +1,6 @@
 server:
+  # baseurl will be used for generate webhook/gateway url
+  baseurl: apo-backend-svc:8080
   port: 8080
   access_token_expire_minutes: 15
   refresh_token_expire_hours: 48

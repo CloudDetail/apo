@@ -4,6 +4,9 @@
 package integration
 
 import (
+	"regexp"
+
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
@@ -30,10 +33,28 @@ var _ Service = &service{}
 
 type service struct {
 	dbRepo database.Repo
+
+	baseURL string
 }
 
+var baseSchema = regexp.MustCompile(`^(?:https?:\/\/)?([^:/]+)`)
+
 func New(database database.Repo) Service {
-	return &service{
+
+	cfg := config.Get().Server
+
+	service := &service{
 		dbRepo: database,
 	}
+
+	match := baseSchema.FindStringSubmatch(cfg.BaseURL)
+	if len(match) > 1 {
+		service.baseURL = match[1]
+	} else if len(cfg.BaseURL) == 0 {
+		service.baseURL = "apo-backend-svc.apo"
+	} else {
+		service.baseURL = cfg.BaseURL
+	}
+
+	return service
 }
