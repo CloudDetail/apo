@@ -19,6 +19,9 @@ type Service interface {
 	GetClusterIntegration(ctx core.Context, clusterID string) (*integration.ClusterIntegrationVO, error)
 	UpdateClusterIntegration(ctx core.Context, cluster *integration.ClusterIntegration) error
 
+	GetBaseURL() string
+	GetServerAddr() string
+
 	ListCluster(ctx core.Context) ([]integration.Cluster, error)
 	DeleteCluster(ctx core.Context, cluster *integration.Cluster) error
 

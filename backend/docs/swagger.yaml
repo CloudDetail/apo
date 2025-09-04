@@ -195,12 +195,21 @@ definitions:
         items:
           $ref: '#/definitions/integration.Cluster'
         type: array
+      enabledPull:
+        type: boolean
+      lastPullMillTS:
+        type: integer
+      params:
+        $ref: '#/definitions/integration.JSONField-alert_AlertSourceParams'
       sourceId:
         type: string
       sourceName:
         type: string
       sourceType:
         type: string
+    type: object
+  alert.AlertSourceParams:
+    additionalProperties: {}
     type: object
   alert.CheckSchemaIsUsedReponse:
     properties:
@@ -1168,12 +1177,25 @@ definitions:
       clusterId:
         type: string
     type: object
+  integration.GetIntegrationVarRequest:
+    properties:
+      variable:
+        maxLength: 64
+        type: string
+    required:
+    - variable
+    type: object
   integration.HuaweiConfig:
     properties:
       accessKey:
         type: string
       accessSecret:
         type: string
+    type: object
+  integration.JSONField-alert_AlertSourceParams:
+    properties:
+      obj:
+        $ref: '#/definitions/alert.AlertSourceParams'
     type: object
   integration.JSONField-array_string:
     properties:
@@ -1678,6 +1700,9 @@ definitions:
       containerId:
         description: container ID
         type: string
+      namespace:
+        description: k8s namespace
+        type: string
       nodeIp:
         type: string
       nodeName:
@@ -1836,6 +1861,50 @@ definitions:
       value:
         description: value
         type: number
+    type: object
+  provider.JSONType:
+    enum:
+    - object
+    - array
+    - string
+    - number
+    - boolean
+    - "null"
+    type: string
+    x-enum-varnames:
+    - JSONTypeObject
+    - JSONTypeArray
+    - JSONTypeString
+    - JSONTypeNumber
+    - JSONTypeBoolean
+    - JSONTypeNull
+  provider.ParamSpec:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/provider.ParamSpec'
+        type: array
+      desc:
+        type: string
+      desc_en:
+        type: string
+      name:
+        type: string
+      optional:
+        type: boolean
+      type:
+        $ref: '#/definitions/provider.JSONType'
+    type: object
+  provider.ProviderType:
+    properties:
+      name:
+        type: string
+      paramSpec:
+        $ref: '#/definitions/provider.ParamSpec'
+      supportPull:
+        type: boolean
+      supportWebhookInstall:
+        type: boolean
     type: object
   request.AddAlertManagerConfigReceiver:
     properties:
@@ -2358,6 +2427,11 @@ definitions:
         type: string
       refreshCache:
         type: boolean
+    type: object
+  request.GetAlertProviderParamsSpecRequest:
+    properties:
+      sourceType:
+        type: string
     type: object
   request.GetAlertRuleRequest:
     properties:
@@ -2952,6 +3026,13 @@ definitions:
     - dataType
     - day
     type: object
+  request.SetupAlertProviderWebhookRequest:
+    properties:
+      sourceID:
+        type: string
+      url:
+        type: string
+    type: object
   request.SpanTraceFilter:
     properties:
       dataType:
@@ -3399,6 +3480,15 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetAlertProviderParamsSpecResponse:
+    properties:
+      providerType:
+        $ref: '#/definitions/provider.ProviderType'
+      providerTypes:
+        additionalProperties:
+          $ref: '#/definitions/provider.ProviderType'
+        type: object
     type: object
   response.GetAlertRuleFileResponse:
     properties:
@@ -4113,6 +4203,9 @@ definitions:
         description: container ID
         type: string
       instanceName:
+        type: string
+      namespace:
+        description: k8s namespace
         type: string
       nodeIp:
         type: string
@@ -5377,6 +5470,36 @@ paths:
       summary: ListAlertSource
       tags:
       - API.alertinput
+  /api/alertinput/source/paramspec:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Obtain alarm source parameter configuration
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertProviderParamsSpecRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertProviderParamsSpecResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Obtain alarm source parameter configuration
+      tags:
+      - API.alertinput
   /api/alertinput/source/update:
     post:
       consumes:
@@ -5401,6 +5524,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: UpdateAlertSource
+      tags:
+      - API.alertinput
+  /api/alertinput/source/webhook:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Install or update webhook
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetupAlertProviderWebhookRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Install or update webhook
       tags:
       - API.alertinput
   /api/alerts/alert/events:
@@ -8055,6 +8208,34 @@ paths:
       produces:
       - application/json
       responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
+  /api/integration/vars/:variable:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetIntegrationVarRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
         "400":
           description: Bad Request
           schema:

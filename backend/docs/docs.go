@@ -873,6 +873,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alertinput/source/paramspec": {
+            "get": {
+                "description": "Obtain alarm source parameter configuration",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Obtain alarm source parameter configuration",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertProviderParamsSpecRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertProviderParamsSpecResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alertinput/source/update": {
             "post": {
                 "description": "UpdateAlertSource",
@@ -895,6 +941,52 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/alert.AlertSource"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/webhook": {
+            "post": {
+                "description": "Install or update webhook",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Install or update webhook",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetupAlertProviderWebhookRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -4966,6 +5058,50 @@ const docTemplate = `{
                     "API.integration"
                 ],
                 "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/vars/:variable": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetIntegrationVarRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -10922,6 +11058,15 @@ const docTemplate = `{
                         "$ref": "#/definitions/integration.Cluster"
                     }
                 },
+                "enabledPull": {
+                    "type": "boolean"
+                },
+                "lastPullMillTS": {
+                    "type": "integer"
+                },
+                "params": {
+                    "$ref": "#/definitions/integration.JSONField-alert_AlertSourceParams"
+                },
                 "sourceId": {
                     "type": "string"
                 },
@@ -10932,6 +11077,10 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "alert.AlertSourceParams": {
+            "type": "object",
+            "additionalProperties": {}
         },
         "alert.CheckSchemaIsUsedReponse": {
             "type": "object",
@@ -12361,6 +12510,18 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.GetIntegrationVarRequest": {
+            "type": "object",
+            "required": [
+                "variable"
+            ],
+            "properties": {
+                "variable": {
+                    "type": "string",
+                    "maxLength": 64
+                }
+            }
+        },
         "integration.HuaweiConfig": {
             "type": "object",
             "properties": {
@@ -12369,6 +12530,14 @@ const docTemplate = `{
                 },
                 "accessSecret": {
                     "type": "string"
+                }
+            }
+        },
+        "integration.JSONField-alert_AlertSourceParams": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/alert.AlertSourceParams"
                 }
             }
         },
@@ -13113,6 +13282,10 @@ const docTemplate = `{
                     "description": "container ID",
                     "type": "string"
                 },
+                "namespace": {
+                    "description": "k8s namespace",
+                    "type": "string"
+                },
                 "nodeIp": {
                     "type": "string"
                 },
@@ -13345,6 +13518,68 @@ const docTemplate = `{
                 "value": {
                     "description": "value",
                     "type": "number"
+                }
+            }
+        },
+        "provider.JSONType": {
+            "type": "string",
+            "enum": [
+                "object",
+                "array",
+                "string",
+                "number",
+                "boolean",
+                "null"
+            ],
+            "x-enum-varnames": [
+                "JSONTypeObject",
+                "JSONTypeArray",
+                "JSONTypeString",
+                "JSONTypeNumber",
+                "JSONTypeBoolean",
+                "JSONTypeNull"
+            ]
+        },
+        "provider.ParamSpec": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/provider.ParamSpec"
+                    }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "desc_en": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "$ref": "#/definitions/provider.JSONType"
+                }
+            }
+        },
+        "provider.ProviderType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "paramSpec": {
+                    "$ref": "#/definitions/provider.ParamSpec"
+                },
+                "supportPull": {
+                    "type": "boolean"
+                },
+                "supportWebhookInstall": {
+                    "type": "boolean"
                 }
             }
         },
@@ -14132,6 +14367,14 @@ const docTemplate = `{
                 },
                 "refreshCache": {
                     "type": "boolean"
+                }
+            }
+        },
+        "request.GetAlertProviderParamsSpecRequest": {
+            "type": "object",
+            "properties": {
+                "sourceType": {
+                    "type": "string"
                 }
             }
         },
@@ -14995,6 +15238,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SetupAlertProviderWebhookRequest": {
+            "type": "object",
+            "properties": {
+                "sourceID": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "request.SpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -15665,6 +15919,20 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertProviderParamsSpecResponse": {
+            "type": "object",
+            "properties": {
+                "providerType": {
+                    "$ref": "#/definitions/provider.ProviderType"
+                },
+                "providerTypes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/provider.ProviderType"
+                    }
                 }
             }
         },
@@ -16733,6 +17001,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "instanceName": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "k8s namespace",
                     "type": "string"
                 },
                 "nodeIp": {
