@@ -7,15 +7,18 @@ import { Card, ConfigProvider, Tabs, TabsProps } from 'antd'
 import SettingsForm from './SettingsForm'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import styles from './index.module.scss'
 import InstallCmd from 'src/core/components/InstallCmd'
 import { getClusterIntegrationInfoApi, getIntegrationConfigApi } from 'src/core/api/integration'
+import InstallCmd from './InstallCmd'
 export default function IntegrationSettings() {
   const { t } = useTranslation('core/dataIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeKey, setActiveKey] = useState('config')
   const [formInitValues, setFormInitValues] = useState(null)
+  const { pathname } = useLocation()
+  const isMinimal = pathname === '/probe-management/settings'
   const items: TabsProps['items'] = [
     {
       key: 'config',
@@ -33,6 +36,7 @@ export default function IntegrationSettings() {
           clusterId={searchParams.get('clusterId')}
           clusterType={searchParams.get('clusterType')}
           apoCollector={formInitValues?.apoCollector}
+          isMinimal={isMinimal}
         />
       ),
       style: {

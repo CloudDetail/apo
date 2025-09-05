@@ -8,12 +8,12 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { deleteClusterIntegrationApi, getIntegrationClusterListApi } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
-import InstallCmd from './Integration/InstallCmd'
 import { GoCommandPalette } from 'react-icons/go'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import InstallCmd from './Integration/InstallCmd'
 const ClusterTable = () => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
@@ -30,6 +30,8 @@ const ClusterTable = () => {
       getData()
     })
   }
+  const { pathname } = useLocation()
+  const isMinimal = pathname === '/probe-management'
   const columns = [
     {
       dataIndex: 'id',
@@ -146,6 +148,7 @@ const ClusterTable = () => {
           clusterId={clusterInfo?.id}
           clusterType={clusterInfo?.clusterType}
           apoCollector={clusterInfo?.apoCollector}
+          isMinimal={isMinimal}
         />
       </Modal>
     </BasicCard>
