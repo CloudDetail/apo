@@ -109,7 +109,7 @@ helm install apo-one-agent apo/apo-one-agent -n apo --create-namespace --version
   const deployVersion = 'v1.11.000'
   const appVersion = 'v1.11.0'
   const getVmCommand2 = () => {
-    return `curl -Lo apo-one-agent-compose-amd64-${deployVersion}.tgz https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-amd64-${deployVersion}.tgz
+    return `curl -Lo apo-one-agent-compose-amd64-${deployVersion}.tgz https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-amd64-${deployVersion}.tgz`
   }
   return (
     <div className="px-3 mx-auto h-full overflow-auto flex flex-col">
