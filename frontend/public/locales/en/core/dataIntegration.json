@@ -136,7 +136,13 @@
     "verifyDocker": "After installation, you can check if the Docker container is running using:",
     "checkDocker": "docker ps",
     "successMsgDocker": "If you see apo-related containers running, the installation was successful 🎉.If an issue occurs, please refer to the 'FAQ' section in the documentation.",
-    "helmConfigFile": "Helm Installation Configuration File"
+    "helmConfigFile": "Helm Installation Configuration File",
+    "k8sEnvironment": "Kubernetes (Helm) Environment",
+    "dockerEnvironment": "Docker-Compose Environment",
+    "k8sDeployDesc": "Execute commands to deploy agents in Kubernetes using Helm with one click",
+    "dockerDeployDesc": "Execute commands to deploy agents in Docker-Compose using Helm with one click",
+    "downloadFailed": "Download failed:",
+    "loadError": "Failed to load installation commands"
   },
   "ee": "Enterprise Edition",
   "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access."

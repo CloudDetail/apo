@@ -41,3 +41,8 @@ export function updateDataIntegrationApi(params) {
 export function deleteClusterIntegrationApi(id: string) {
   return get('/api/integration/cluster/delete', { id })
 }
+
+
+export function getIntegrationVarApi(variable: string) {
+  return get(`/api/integration/vars/${variable}`)
+}

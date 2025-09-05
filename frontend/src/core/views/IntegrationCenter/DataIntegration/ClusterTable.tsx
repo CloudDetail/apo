@@ -8,12 +8,12 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MdOutlineEdit } from 'react-icons/md'
 import { RiDeleteBin5Line } from 'react-icons/ri'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { deleteClusterIntegrationApi, getIntegrationClusterListApi } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
-import InstallCmd from './Integration/InstallCmd'
 import { GoCommandPalette } from 'react-icons/go'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import InstallCmd from './Integration/InstallCmd'
 const ClusterTable = () => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
@@ -22,7 +22,7 @@ const ClusterTable = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [clusterInfo, setClusterInfo] = useState(null)
   const deleteClusterIntegration = (id: string) => {
-    deleteClusterIntegrationApi(id).then((res) => {
+    deleteClusterIntegrationApi(id).then(() => {
       notify({
         type: 'success',
         message: ct('deleteSuccess'),
@@ -30,6 +30,8 @@ const ClusterTable = () => {
       getData()
     })
   }
+  const { pathname } = useLocation()
+  const isMinimal = pathname === '/probe-management'
   const columns = [
     {
       dataIndex: 'id',
@@ -59,9 +61,13 @@ const ClusterTable = () => {
                 // setGroupInfo(record)
                 toSettingPage(record.id, record.clusterType)
               }}
-              icon={<MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />}
+              icon={
+                <MdOutlineEdit className="!text-[var(--ant-color-primary-text)] !hover:text-[var(--ant-color-primary-text-active)]" />
+              }
             >
-              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">{ct('edit')}</span>
+              <span className="text-[var(--ant-color-primary-text)] hover:text-[var(--ant-color-primary-text-active)]">
+                {ct('edit')}
+              </span>
             </Button>
             <Popconfirm
               title={t('confirmDelete', {
@@ -93,11 +99,13 @@ const ClusterTable = () => {
   ]
   const getData = () => {
     getIntegrationClusterListApi().then((res) => {
-      setData(res.clusters || [])
+      const clusters = (res as any)?.clusters ?? []
+      setData(clusters)
     })
   }
   const toSettingPage = (clusterId?: string, clusterType?: 'k8s' | 'vm') => {
-    let url = '/integration/data/settings'
+    let url = 'settings'
+
     if (clusterId && clusterType) {
       url +=
         '?clusterId=' +
@@ -140,6 +148,7 @@ const ClusterTable = () => {
           clusterId={clusterInfo?.id}
           clusterType={clusterInfo?.clusterType}
           apoCollector={clusterInfo?.apoCollector}
+          isMinimal={isMinimal}
         />
       </Modal>
     </BasicCard>
