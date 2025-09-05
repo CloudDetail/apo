@@ -66,7 +66,16 @@ export default defineConfig(() => {
     },
     server: {
       port: 3000,
-      proxy: {},
+      proxy: {
+        '/api': {
+          target: 'http://192.168.1.6:31364',  // 后端服务地址
+          changeOrigin: true,
+        },
+      },
     },
   }
 })
+
+
+
+

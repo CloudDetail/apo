@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { AiFillCaretDown, AiFillCaretRight } from 'react-icons/ai'
 import LogItemFold from './component/LogItemFold'
 import LogItemDetail from './component/LogItemDetail'
@@ -15,10 +15,49 @@ import { useSelector } from 'react-redux'
 
 const LogItem = (props) => {
   const { log, openContextModal } = props
-  const { tableInfo } = useLogsContext()
+  const { tableInfo, query } = useLogsContext()
   const [nullFieldVisibility, setNullFieldVisibility] = useState(false)
   const { t } = useTranslation('oss/fullLogs')
   const { theme } = useSelector((state) => state.settingReducer)
+  
+  // 全文检索匹配提示逻辑
+  const fullTextSearchInfo = useMemo(() => {
+    // 从 query 中提取全文检索关键词
+    const extractFullTextSearchKeywords = (query) => {
+      if (!query) return []
+      const likePattern = /`content`\s+LIKE\s+'%([^%]+)%'/gi
+      const keywords = []
+      let match
+      while ((match = likePattern.exec(query)) !== null) {
+        keywords.push(match[1])
+      }
+      return keywords
+    }
+    
+    // 统计匹配数量
+    const countMatches = (text, keywords) => {
+      if (!text || !keywords || keywords.length === 0) return 0
+      let totalMatches = 0
+      keywords.forEach(keyword => {
+        if (keyword && keyword.trim()) {
+          const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+          const matches = text.match(regex)
+          if (matches) totalMatches += matches.length
+        }
+      })
+      return totalMatches
+    }
+    
+    const keywords = extractFullTextSearchKeywords(query)
+    const content = log?.content || ''
+    const matchesCount = keywords.length > 0 ? countMatches(content, keywords) : 0
+    
+    return {
+      keywords,
+      matchesCount,
+      hasMatches: matchesCount > 0
+    }
+  }, [query, log?.content])
 
   return (
     <div className="flex flex-col overflow-hidden px-2 w-full">
@@ -59,6 +98,36 @@ const LogItem = (props) => {
         {
           <>
             <LogItemFold tags={log.tags} />
+            {/* 全文检索匹配提示 */}
+            {fullTextSearchInfo.hasMatches && (
+              <div 
+                className="px-2 py-1 text-xs rounded flex items-center" 
+                style={(() => {
+                  if (theme === 'dark') {
+                    return {
+                    // 暗色主题的全文检索提示颜色
+                      backgroundColor: '#c3e88d20',
+                      borderLeft: '3px solid #c3e88d',
+                      color: '#c3e88d',
+                      display: 'inline-block'
+                    }
+                  } else {
+                    // 亮色主题的全文检索提示颜色 - 使用base16-light的字符串颜色
+                    return {
+                      backgroundColor: '#f4bf7520',
+                      borderLeft: '3px solid #f4bf75',
+                      color: '#f4bf75',
+                      display: 'inline-block'
+                    }
+                  }
+                })()}
+              >
+                {localStorage.getItem('i18nextLng') === 'en' 
+                  ? `Found ${fullTextSearchInfo.matchesCount} matches in content(Keywords: ${fullTextSearchInfo.keywords.join(', ')})`
+                  : `在content中找到 ${fullTextSearchInfo.matchesCount} 处匹配（关键词：${fullTextSearchInfo.keywords.join(', ')}）`
+                }
+              </div>
+            )}
             <LogItemDetail log={log} contentVisibility={!tableInfo?.timeField} nullFieldVisibility={nullFieldVisibility} />
           </>
         }
