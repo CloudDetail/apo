@@ -256,7 +256,7 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider, onRefresh }) => {
             size="32px"
           />
           <div className="flex flex-col">
-            <span className="font-bold text-base">{provider.name}</span>
+            <span className="font-bold text-base">{provider.label}</span>
             <span className="text-xs text-[var(--ant-color-text-secondary)]">
               {provider.description}
             </span>
