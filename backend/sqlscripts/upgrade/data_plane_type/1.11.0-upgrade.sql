@@ -1,0 +1,1 @@
+UPDATE data_plane_type SET capability_spec='["RedMetric","ServiceInstance","Topology","Log","Trace","Metrics"]' where type_name='signoz';
