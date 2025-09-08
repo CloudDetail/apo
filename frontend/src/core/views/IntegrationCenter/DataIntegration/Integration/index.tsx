@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import styles from './index.module.scss'
-import InstallCmd from 'src/core/components/InstallCmd'
 import { getClusterIntegrationInfoApi, getIntegrationConfigApi } from 'src/core/api/integration'
 import InstallCmd from './InstallCmd'
 export default function IntegrationSettings() {
