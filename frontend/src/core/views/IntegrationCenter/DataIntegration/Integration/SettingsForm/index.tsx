@@ -59,13 +59,16 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
       .validateFields()
       .then((values) => {
         const params = { ...values }
-        if (!values.apoCollector.ports || values.apoCollector.ports === undefined) {
-          params.apoCollector.ports = portsDefault?.reduce((map, item) => {
-            map[item.key] = item.value
-            return map
-          }, {})
+        if (!values.apoCollector?.ports) {
+          params.apoCollector = {
+            ...params.apoCollector,
+            ports: portsDefault?.reduce((map, item) => {
+              map[item.key] = item.value
+              return map
+            }, {}),
+          }
         }
-        if (!shouldShow && !values.apoCollector.collectorGatewayAddr) {
+        if (!shouldShow && !values.apoCollector?.collectorGatewayAddr) {
           params.apoCollector.collectorGatewayAddr = defaultGatewayAddr
         }
         saveIntegration(params)
