@@ -250,7 +250,7 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	productMode := os.Getenv("PRODUCT_MODE")
-	if productMode != "sre_agent" {
+	if productMode != "syncause" {
 		err = daoRepo.InitAPODataplane(nil)
 		if err != nil {
 			return nil, err

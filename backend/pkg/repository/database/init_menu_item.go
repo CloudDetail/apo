@@ -73,7 +73,7 @@ func (repo *daoRepo) initMenuItems(ctx core.Context) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		productMode := os.Getenv("PRODUCT_MODE")
 		productMenus := validMenuItemMappings
-		if productMode == "sre_agent" {
+		if productMode == "syncause" {
 			productMenus = sreMenuItemMappings
 		}
 		// Menu item might include item which not support to existing

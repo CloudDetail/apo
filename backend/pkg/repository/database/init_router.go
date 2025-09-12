@@ -93,7 +93,7 @@ func (repo *daoRepo) initRouterData(ctx core.Context) error {
 		toDelete := make([]int, 0)
 		productMode := os.Getenv("PRODUCT_MODE")
 		productRouters := validRouters
-		if productMode == "sre_agent" {
+		if productMode == "syncause" {
 			productRouters = sreRouters
 		}
 

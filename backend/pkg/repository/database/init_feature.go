@@ -55,7 +55,7 @@ func (repo *daoRepo) initFeature(ctx core.Context) error {
 
 		productMode := os.Getenv("PRODUCT_MODE")
 		productFeatures := validFeatures
-		if productMode == "sre_agent" {
+		if productMode == "syncause" {
 			productFeatures = sreFeatures
 		}
 		newFeatureMap := make(map[string]struct{})

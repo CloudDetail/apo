@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
+	"github.com/CloudDetail/apo/backend/pkg/api/app"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
@@ -29,6 +30,11 @@ import (
 
 func setApiRouter(r *resource) {
 	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
+	appApi := r.mux.Group("/api/app")
+	{
+		appHandler := app.New()
+		appApi.GET("/deployMode", appHandler.GetDeployMode())
+	}
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
