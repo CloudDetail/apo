@@ -109,6 +109,16 @@ helm install apo-one-agent apo/apo-one-agent -n apo --create-namespace --version
           <Typography>
             <CopyPre iconText="" code={markdownContent} />
           </Typography>
+          <div className="flex text-[var(--ant-color-text-tertiary)]">
+            <Trans
+              t={nst}
+              i18nKey="docsHelp"
+              components={{
+                // icon: <SiComma />,
+                a: <a href="https://syn-cause.com/docs/Agent/Introduction/" target="_blank"></a>,
+              }}
+            ></Trans>
+          </div>
         </>
       ) : (
         <>

@@ -136,13 +136,14 @@ const ClusterTable = () => {
       <Modal
         open={modalOpen}
         footer={null}
+        centered
         onCancel={() => {
           setModalOpen(false)
           setClusterInfo(null)
         }}
         // title={t('installCmdTitle')}
         width={800}
-        styles={{ body: { height: '70vh', overflowY: 'hidden', overflowX: 'hidden' } }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'scroll', overflowX: 'hidden' } }}
       >
         <InstallCmd
           clusterId={clusterInfo?.id}
