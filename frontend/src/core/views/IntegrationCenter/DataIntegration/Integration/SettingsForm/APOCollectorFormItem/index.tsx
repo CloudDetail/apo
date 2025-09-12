@@ -8,7 +8,13 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { portsDefault } from 'src/core/views/IntegrationCenter/constant'
 
-const APOCollectorFormItem = () => {
+const APOCollectorFormItem = ({
+  defaultGatewayAddr,
+  isMinimal = false,
+}: {
+  defaultGatewayAddr?: string
+  isMinimal?: boolean
+}) => {
   const { t } = useTranslation('core/dataIntegration')
   const [showMore, setShowMore] = useState(false)
   return (
@@ -16,23 +22,41 @@ const APOCollectorFormItem = () => {
       <Divider></Divider>
       <Typography.Title level={5}>{t('apoCollectorSetting')}</Typography.Title>
       <div className="px-3">
-        <Form.Item
-          label={
-            <Space>
-              {t('collectorGatewayAddr')}
-              <span className=" text-[var(--ant-color-text-secondary)] text-xs">
-                {t('collectorGatewayAddrHint')}
-              </span>
-            </Space>
-          }
-          name={['apoCollector', 'collectorGatewayAddr']}
-          rules={[{ required: true }]}
-        >
-          <Input />
-        </Form.Item>
+        {!isMinimal && (
+          <Form.Item
+            label={
+              <Space>
+                {t('collectorGatewayAddr')}
+                <span className=" text-[var(--ant-color-text-secondary)] text-xs">
+                  {t('collectorGatewayAddrHint')}
+                </span>
+              </Space>
+            }
+            name={['apoCollector', 'collectorGatewayAddr']}
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
+        )}
 
         {showMore ? (
           <Card type="inner" title={t('advanced')} size="small">
+            {isMinimal && (
+              <Form.Item
+                label={
+                  <Space>
+                    {t('collectorGatewayAddr')}
+                    <span className=" text-[var(--ant-color-text-secondary)] text-xs">
+                      {t('collectorGatewayAddrHint')}
+                    </span>
+                  </Space>
+                }
+                name={['apoCollector', 'collectorGatewayAddr']}
+                initialValue={defaultGatewayAddr}
+              >
+                <Input />
+              </Form.Item>
+            )}
             <Form.Item
               label={t('collectorAddr')}
               name={['apoCollector', 'collectorAddr']}
