@@ -8,14 +8,20 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { CContainer } from '@coreui/react'
 
 // routes config
-import routes from 'src/routes'
 import { useUserContext } from '../contexts/UserContext'
 import { Spin } from 'antd'
-
+import routes from 'src/routes'
 const AppContent = () => {
-  const { menuItems } = useUserContext()
+  const { menuItems, routes: storeRoutes } = useUserContext()
   const getDefaultTo = () => {
     if (!menuItems || menuItems.length === 0) return '/'
+    const redirectUrl = sessionStorage.getItem('urlBeforeLogin')
+
+    if (redirectUrl !== null && storeRoutes?.includes(redirectUrl)) {
+      window.location.href = redirectUrl
+    }
+    sessionStorage.removeItem('urlBeforeLogin')
+
     return menuItems[0]?.router?.to || menuItems[0]?.children?.[0]?.router?.to || '/'
   }
   return (
@@ -39,7 +45,7 @@ const AppContent = () => {
             path="/"
             element={
               <Navigate
-                to={import.meta.env.VITE_APP_VERSION === 'pro' ? '/alert-analyze' : getDefaultTo()}
+                to={getDefaultTo()}
                 replace
               />
             }
