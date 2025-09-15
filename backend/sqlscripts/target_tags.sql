@@ -84,7 +84,7 @@ INSERT INTO alert_enrich_conditions (enrich_rule_id,source_id,from_field,operati
 	 ('2ae5494b-442a-4858-9615-945c000730e6','efc91f08-86c4-3696-aba8-570d4a8dc069','.group','match','middleware'),
 	 ('e09ff3cc-70b6-4da5-ad60-ab2576bfc522','efc91f08-86c4-3696-aba8-570d4a8dc069','.group','match','infra');
 
-INSERT INTO alert_sources (source_id,source_name,source_type,params,enable_pull,last_pull_mill_ts) VALUES
+INSERT INTO alert_sources (source_id,source_name,source_type,params,enabled_pull,last_pull_mill_ts) VALUES
 	 ('825079a8-4d05-3507-b347-1272a078f9ff','APO_DEFAULT_ENRICH_RULE_PROMETHEUS','prometheus','{}',false,0),
 	 ('2213d3d5-41da-32a8-9026-22c2bf6aa448','APO_DEFAULT_ENRICH_RULE_JSON','json','{}',false,0),
 	 ('563a44a3-839f-3e23-adff-e00ac8a3e18f','APO_DEFAULT_ENRICH_RULE_DATADOG','datadog','{}',false,0),
