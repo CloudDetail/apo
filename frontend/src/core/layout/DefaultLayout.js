@@ -3,19 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
-import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
-import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons'
-import { Button, Layout } from 'antd'
+import React from 'react'
+import { AppContent, AppSidebar, AppHeader } from '../components/index'
+import { Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
-import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
-import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
-import { useTranslation } from 'react-i18next'
+import { useDeployMode } from '../contexts/DeployModeContext'
 
 const DefaultLayout = () => {
-  const { t } = useTranslation()
+  const { getLogo } = useDeployMode()
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -46,9 +43,9 @@ const DefaultLayout = () => {
           }}
         >
           <CImage
-            src={logo}
+            src={getLogo()}
             className="w-[36px] sidebar-brand-narrow flex-shrink-0"
-            alt="CoreuiVue"
+            alt="Logo"
           />
           {/* <span className="flex-shrink-0 text-lg">{t('apoTitle')}</span> */}
         </div>

@@ -26,6 +26,7 @@ import { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
 import { setNotifyApi } from './core/utils/notify'
 import { DataGroupProvider } from './core/contexts/DataGroupContext'
+import { DeployModeProvider } from './core/contexts/DeployModeContext'
 
 loader.config({ monaco })
 
@@ -128,6 +129,7 @@ const AntdWrapper = memo(() => {
       <MessageProvider>
         <UserProvider>
           <DataGroupProvider>
+
             {contextHolder}
             <App />
           </DataGroupProvider>
@@ -141,7 +143,9 @@ const AppWrapper = memo(() => {
     <ErrorBoundary>
       <Provider store={store}>
         <ToastProvider>
-          <AntdWrapper />
+          <DeployModeProvider>
+            <AntdWrapper />
+          </DeployModeProvider>
         </ToastProvider>
       </Provider>
     </ErrorBoundary>

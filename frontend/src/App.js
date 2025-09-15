@@ -13,6 +13,7 @@ import 'src/core/scss/style.scss'
 import { promLanguageDefinition } from 'monaco-promql'
 import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 import { Spin } from 'antd'
+import { useDeployMode } from 'src/core/contexts/DeployModeContext'
 import { useTranslation } from 'react-i18next'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
@@ -28,6 +29,7 @@ const App = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   // const { isColorModeSet, setColorMode } = useColorModes('dark')
   const { theme } = useSelector((state) => state.settingReducer)
+  const { getTitle, getFavicon, loading } = useDeployMode()
   const { t, i18n } = useTranslation()
   const dispatch = useDispatch()
   const setGroupLabel = (value) => {
@@ -54,9 +56,22 @@ const App = () => {
   useEffect(() => {
     setColorMode(theme)
   }, [theme])
+
+  // 根据部署模式更新页面标题
   useEffect(() => {
-    document.title = t('apoTitle');
-  }, [i18n.language, t]);
+    if (!loading) {
+      document.title = t(getTitle())
+      // 更新 favicon
+      let favicon = document.querySelector('link[rel="shortcut icon"]')
+      if (!favicon) {
+        favicon = document.createElement('link')
+        favicon.rel = 'icon'
+        document.head.appendChild(favicon)
+      }
+      favicon.href = getFavicon()
+    }
+  }, [loading, getTitle, getFavicon, i18n.language, t])
+
   useEffect(() => {
     if (window.location.hash !== '#/login') {
       getRuleGroupLabels()

@@ -19,9 +19,10 @@ import { workflowLoginApi } from 'src/core/api/workflows'
 import i18next from 'i18next'
 import { notify } from 'src/core/utils/notify'
 import { useSelector } from 'react-redux'
+import { useDeployMode } from 'src/core/contexts/DeployModeContext'
 
 export default function Login() {
-  const { user, dispatchUser } = useUserContext()
+  const { getLogo, getTitle } = useDeployMode()
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [remeberMe, setRemeberMe] = useState(true)
@@ -118,8 +119,8 @@ export default function Login() {
         }}
       >
         <Flex className="w-full justify-center items-center select-none">
-          <img src={logo} className="w-12 mr-2" />
-          <p className="text-2xl">{t('index.title')}</p>
+          <img src={getLogo()} className="w-12 mr-2" />
+          <p className="text-2xl">{getTitle()}</p>
         </Flex>
         <Flex vertical className="w-full justify-center items-center mt-20">
           <Form form={form} className="w-full">

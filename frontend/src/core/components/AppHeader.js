@@ -19,9 +19,11 @@ import { Button, theme } from 'antd'
 import DataGroupSelector from './DataGroup/DataGroupSelector'
 import PreferencesDrawer from './Drawer/PreferencesDrawer'
 import { useTranslation } from 'react-i18next'
+import { useDeployMode } from '../contexts/DeployModeContext'
 
 const AppHeader = ({ type = 'default' }) => {
   const { t } = useTranslation('common')
+  const { getLogo, getTitle } = useDeployMode()
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
@@ -83,8 +85,8 @@ const AppHeader = ({ type = 'default' }) => {
           {type === 'united' ? (
             <div className="flex items-center">
               <div className="h-[50px] flex overflow-hidden items-center mr-5">
-                <CImage src={logo} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
-                <span className="flex-shrink-0 text-lg">{t('common:apoTitle')}</span>
+                <CImage src={getLogo()} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
+                <span className="flex-shrink-0 text-lg">{getTitle()}</span>
               </div>
               {commercialNav.map((item) => (
                 <div
