@@ -8,6 +8,7 @@ export const initialState = {
   token: { accesstoken: null, refreshToken: null },
   menuItems: [],
   dataGroupList: [],
+  routes: []
 }
 
 const userReducer = (state = initialState, action) => {
@@ -18,6 +19,8 @@ const userReducer = (state = initialState, action) => {
       return { user: 'anonymous', token: { accesstoken: null, refreshToken: null } }
     case 'setMenu':
       return { ...state, menuItems: action.payload }
+    case 'setRoutes':
+      return { ...state, routes: action.payload }
     case 'setDataGroupList':
       return { ...state, dataGroupList: action.payload }
     default:
