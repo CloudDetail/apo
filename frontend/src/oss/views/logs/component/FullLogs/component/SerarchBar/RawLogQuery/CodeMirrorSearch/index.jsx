@@ -5,7 +5,8 @@
 
 import { useRef, useState } from 'react'
 import 'codemirror/lib/codemirror.css' // CodeMirror 样式
-import 'codemirror/theme/material-darker.css' // material-darker 主题
+import 'codemirror/theme/material-darker.css' // material-darker 主题 (dark mode)
+import 'codemirror/theme/base16-light.css' // base16-light 主题 (light mode)
 import 'codemirror/mode/sql/sql' // MySQL 语法高亮
 import 'codemirror/addon/hint/show-hint' // 引入 show-hint 插件
 import 'codemirror/addon/hint/show-hint.css' // 引入 show-hint 样式
@@ -419,7 +420,7 @@ const Editors = (props) => {
     autofocus: false,
     styleActiveLine: true,
     // 主题
-    theme: `material-${theme}er`,
+    theme: theme === 'dark' ? 'material-darker' : 'base16-light',
     inputStyle: 'contenteditable',
     // 溢出滚动而非换行
     lineWrapping: isMultipleLines,
@@ -490,7 +491,7 @@ const Editors = (props) => {
         <CodeMirror
           className={'editorsDom'}
           ref={formRefs}
-          key={title}
+          key={`${title}-${theme}`}
           value={value ?? ''}
           options={options}
           onKeyPress={handleKeyPress}

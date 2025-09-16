@@ -12,8 +12,7 @@
   .codemirrorInput {
     display: flex;
     width: calc(100%);
-    background-color: #212121;
-    border: 1px solid #424242;
+    border: 1px solid #d9d9d9;
     border-radius: 8px;
     margin: 0 10px;
 
@@ -24,12 +23,13 @@
       line-height: 26px;
     }
     .CodeMirror {
-      border: 1px solid #424242;
       border-radius: 0 7px 7px 7px;
     }
     .CodeMirror-cursor {
-      width: 1px !important;
-      background-color: #000 !important;
+      width: 1px;
+    }
+    .CodeMirror-sizer {
+      background: transparent;
     }
   }
 }
@@ -40,12 +40,6 @@
   .codemirrorInput {
     padding-right: 10px;
     padding-left: 10px;
-    &:focus-within {
-      border-color: #424242;
-      outline: 0;
-      box-shadow: 0 0 0 2px rgb(238 114 47 / 20%);
-    }
-
     &:hover {
       border-color: #3c89e8;
     }
@@ -66,7 +60,9 @@
       min-height: 32px !important;
       max-height: 400px !important;
       border: none !important;
+      background: transparent;
     }
+    
     .CodeMirror-scroll {
       width: calc(100%);
       height: auto !important;
@@ -74,6 +70,7 @@
       max-height: 32px !important;
       padding-bottom: 0 !important;
       overflow-y: hidden;
+      background: transparent;
       scrollbar-width: none;
       &::-webkit-scrollbar {
         display: none;
@@ -89,8 +86,7 @@
     }
 
     .CodeMirror-placeholder {
-      color: #585858 !important;
-      font-size: 14px !important;
+      font-size: 14px;
       transform: translateY(2px) translateX(-2px);
     }
 
@@ -100,13 +96,12 @@
 
     .afterBox {
       width: 60px;
-      background-color: #212121;
     }
   }
 }
 
 .CodeMirror-hints {
-  width: 800px !important;
+  width: 800px;
   overflow-x: scroll;
 }
 
