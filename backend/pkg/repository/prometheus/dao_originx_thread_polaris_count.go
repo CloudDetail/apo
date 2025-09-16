@@ -30,7 +30,7 @@ func (repo *promRepo) GetPodList(ctx core.Context, startTime int64, endTime int6
 		filters = append(filters, fmt.Sprintf(`namespace="%s"`, namespace))
 	}
 	if podName != "" {
-		filters = append(filters, fmt.Sprintf(`pod=~"%s.*"`, podName))
+		filters = append(filters, fmt.Sprintf(`pod="%s"`, podName))
 	}
 	query := fmt.Sprintf(
 		TEMPLATE_GET_PODS_BY_FILTER,
