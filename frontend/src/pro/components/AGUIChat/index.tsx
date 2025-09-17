@@ -4,17 +4,22 @@ import { useAGUIChat, useAGUISession, useAGUIState } from '../../contexts/AGUICo
 import { ChatHeader, ChatMain, SettingsModal } from './components'
 import { ClientConfig } from './types/index'
 import styles from './AGUIChat.module.scss'
+import { useSearchParams } from 'react-router-dom'
 
 // 控制会话功能的开关
 const ENABLE_SESSION_MANAGEMENT = false
 
 interface AGUIChatProps {
   initialSessionId?: string
+  threadId?: string
 }
 
-const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
+const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId, threadId }) => {
   // 使用AI权限检查hook - 目前暂时未使用，但保留以备将来使用
   // const aiPermission = useAGUIPermission()
+
+  // 路由相关 hooks
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // 使用Context hooks
   const {
@@ -28,6 +33,7 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
     sendMessage,
     cancelRun,
     clearMessages,
+    loadHistoryMessages,
   } = useAGUIChat()
 
   // 会话管理 - 仅在启用时使用
@@ -60,6 +66,13 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
     }
   }, [initialSessionId, currentSession, loadSession])
 
+  // 加载历史消息 - 当提供 threadId 时
+  useEffect(() => {
+    if (threadId) {
+      loadHistoryMessages(threadId)
+    }
+  }, [threadId, loadHistoryMessages])
+
   // 会话管理处理函数 - 仅在启用会话管理时使用
   const handleCreateSession = async () => {
     if (!ENABLE_SESSION_MANAGEMENT) return
@@ -86,6 +99,13 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId }) => {
       clearError()
       // 清空消息列表
       clearMessages()
+
+      // 如果当前 URL 中有 threadId 参数，清空它
+      if (searchParams.has('threadId')) {
+        const newSearchParams = new URLSearchParams(searchParams)
+        newSearchParams.delete('threadId')
+        setSearchParams(newSearchParams, { replace: true })
+      }
     }
   }
 

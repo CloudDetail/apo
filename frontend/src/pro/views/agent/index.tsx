@@ -5,8 +5,11 @@ import { Splitter } from 'antd'
 import AlertEventList from './components/AlertEventList'
 import './index.css'
 import { contentHeight } from 'src/constants'
+import { useSearchParams } from 'react-router-dom'
 
 const AgentPage: React.FC = () => {
+  const [searchParams] = useSearchParams()
+  const threadId = searchParams.get('threadId') || undefined
   return (
     <AGUIProvider
       initialConfig={{
@@ -27,7 +30,7 @@ const AgentPage: React.FC = () => {
           </Splitter.Panel>
           <Splitter.Panel collapsible>
             <div className="agent-container h-full overflow-hidden">
-              <AGUIChat />
+              <AGUIChat threadId={threadId} />
             </div>
           </Splitter.Panel>
         </Splitter>

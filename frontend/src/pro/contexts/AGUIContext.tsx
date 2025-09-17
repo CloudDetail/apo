@@ -31,6 +31,7 @@ import {
 import dayjs from 'dayjs'
 import { checkDataplaneDataApi } from '../api/dataplane'
 import { getModelListApi, setDefaultModelApi } from '../api/modelSetting'
+import { getConversationMessagesApi } from '../api/conversation'
 
 // 扩展AGUIMessage类型以支持工具调用
 export interface ExtendedAGUIMessage extends AGUIMessage {
@@ -135,6 +136,7 @@ interface AGUIContextValue {
   sendMessage: (content: string) => void
   cancelRun: () => void
   clearMessages: () => void
+  loadHistoryMessages: (threadId: string) => Promise<void>
 
   // AI权限操作
   checkPermission: () => Promise<void>
@@ -918,6 +920,43 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     setCurrentMessage(undefined)
     setCurrentToolCall(undefined)
     setState({})
+    setCurrentThreadId(undefined)
+  }, [])
+
+  // 加载历史消息
+  const loadHistoryMessages = useCallback(async (threadId: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await getConversationMessagesApi(threadId)
+
+      if (response.status === 'ok' && response.messages) {
+        const historyMessages: ExtendedAGUIMessage[] = response.messages.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+          toolCalls:
+            msg.toolCalls?.map((tc: any) => ({
+              id: tc.id || generateMessageId(),
+              name: tc.name,
+              args: tc.args,
+              result: tc.result,
+              status: 'completed' as const,
+            })) || [],
+          agentToolDisplay: msg.agentToolDisplay || [],
+        }))
+        historyMessages[historyMessages?.length - 1].isFinal = true
+        setMessages(historyMessages)
+        setCurrentThreadId(threadId)
+      }
+    } catch (error) {
+      console.error('加载历史消息失败:', error)
+      setError(`加载历史消息失败: ${error instanceof Error ? error.message : '未知错误'}`)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   // AI权限相关方法
@@ -1047,6 +1086,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     sendMessage,
     cancelRun,
     clearMessages,
+    loadHistoryMessages,
     checkPermission,
     refreshPermission,
     refreshModelList,
@@ -1075,6 +1115,7 @@ export const useAGUIChat = () => {
     sendMessage: context.sendMessage,
     cancelRun: context.cancelRun,
     clearMessages: context.clearMessages,
+    loadHistoryMessages: context.loadHistoryMessages,
   }
 }
 
