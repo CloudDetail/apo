@@ -1,4 +1,4 @@
-FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/node:22.3.0-alpine3.19 as build
+FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/node:22.19.0-alpine3.21 as build
 
 WORKDIR /app/
 
