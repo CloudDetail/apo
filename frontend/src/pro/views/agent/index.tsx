@@ -2,7 +2,6 @@ import React from 'react'
 import { AGUIProvider } from '../../contexts/AGUIContext'
 import AGUIChat from '../../components/AGUIChat'
 import { Splitter } from 'antd'
-import AlertEventList from './components/AlertEventList'
 import './index.css'
 import { contentHeight } from 'src/constants'
 import { useSearchParams } from 'react-router-dom'
@@ -25,9 +24,9 @@ const AgentPage: React.FC = () => {
             console.log('Splitter resized:', sizes)
           }}
         >
-          <Splitter.Panel defaultSize="30%" collapsible>
+          {/* <Splitter.Panel defaultSize="30%" collapsible>
             <AlertEventList />
-          </Splitter.Panel>
+          </Splitter.Panel> */}
           <Splitter.Panel collapsible>
             <div className="agent-container h-full overflow-hidden">
               <AGUIChat threadId={threadId} />
