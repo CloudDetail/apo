@@ -140,8 +140,10 @@
     "k8sDeployDesc": "执行命令在 Kubernetes 中使用 Helm 一键部署探针",
     "dockerDeployDesc": "执行命令在 Docker-Compose 中使用 Helm 一键部署探针",
     "downloadFailed": "下载失败:",
-    "loadError": "加载安装命令失败"
+    "loadError": "加载安装命令失败",
+    "docsHelp": "部署存在问题？<a> 查看文档</a>"
   },
   "ee": "企业版",
-  "eeToast": "升级企业版即可选择此类接入"
+  "eeToast": "升级企业版即可选择此类接入",
+  "goBack": "返回"
 }
