@@ -41,6 +41,7 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
 
   const saveIntegration = (params) => {
     delete params?.traceAPI
+    params.isMinimal = !shouldShow
     let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
     api(params).then((res) => {
       notify({
