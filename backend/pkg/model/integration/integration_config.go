@@ -106,7 +106,9 @@ type APOCollector struct {
 
 func (c *APOCollector) RemoveHttpPrefix() {
 	c.CollectorAddr = strings.TrimPrefix(c.CollectorAddr, "http://")
+	c.CollectorAddr = strings.TrimSuffix(c.CollectorAddr, "/")
 	c.CollectorGatewayAddr = strings.TrimPrefix(c.CollectorGatewayAddr, "http://")
+	c.CollectorGatewayAddr = strings.TrimSuffix(c.CollectorGatewayAddr, "/")
 }
 
 type CollectorGatewayPorts map[string]string
