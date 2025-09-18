@@ -146,5 +146,6 @@
     "docsHelp": "Deployment issues？   <a>See the Docs.</a>"
   },
   "ee": "Enterprise Edition",
-  "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access."
+  "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access.",
+  "goBack": "Go Back"
 }
