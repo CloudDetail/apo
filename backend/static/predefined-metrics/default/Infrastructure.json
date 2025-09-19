@@ -1639,6 +1639,27 @@
         "cadvisor_job_name",
         "related_nodes"
       ]
+    },
+    {
+      "title": "节点上的容器 - CPU使用率",
+      "describe": "节点上容器的CPU利用率(%)",
+      "targets": [
+        {
+          "expr": "sum by (id,pod,container) (irate(container_cpu_usage_seconds_total{image!=\"\",container!=\"\", job_name=~\"$cadvisor_job_name\",node_name=~\"$related_nodes\"}[1m]))",
+          "legendFormat": "{{pod}}:{{container}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "cadvisor_job_name",
+        "related_nodes"
+      ]
     }
   ],
   "variables": [
