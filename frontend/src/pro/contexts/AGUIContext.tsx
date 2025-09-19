@@ -27,6 +27,10 @@ import {
   generateThreadId,
   generateRunId,
   generateMessageId,
+  AnalysisMessageEndEvent,
+  AnalysisMessageContentEvent,
+  AnalysisMessageStartEvent,
+  AnalysisResultEvent,
 } from '../types/ag-ui'
 import dayjs from 'dayjs'
 import { checkDataplaneDataApi } from '../api/dataplane'
@@ -49,6 +53,10 @@ export interface ExtendedAGUIMessage extends AGUIMessage {
   }>
   isFinal?: boolean
   errorMessage?: string
+  hidden?: boolean
+  isEnd?: boolean
+  type?: 'analysisResult'
+  status?: 'pending' | 'completed' | 'error'
 }
 
 // AI权限相关的类型定义
@@ -223,7 +231,17 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       timestamp: new Date(),
       toolCalls: [],
     }
-    setMessages((prevMessages) => [...prevMessages, newMessage])
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      if (
+        updatedMessages?.length > 0 &&
+        updatedMessages[updatedMessages.length - 1]?.status === 'pending'
+      ) {
+        updatedMessages[updatedMessages.length - 1].status = 'completed'
+      }
+      updatedMessages.push(newMessage)
+      return updatedMessages
+    })
   }, [])
 
   const onTextMessageContent = useCallback((event: TextMessageContentEvent) => {
@@ -286,7 +304,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   )
 
   const onToolCallStart = useCallback((event: ToolCallStartEvent) => {
-    console.log('ToolCallStart event:', event)
     setMessages((prevMessages) => {
       const updatedMessages = [...prevMessages]
       const lastMessage = updatedMessages[updatedMessages.length - 1]
@@ -301,8 +318,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
         lastMessage.toolCalls = lastMessage.toolCalls || []
         lastMessage.toolCalls.push(toolCall)
-
-        console.log(t('toolCall.addedToolCall'), toolCall)
       }
 
       return updatedMessages
@@ -310,8 +325,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   }, [])
 
   const onToolCallArgs = useCallback((event: ToolCallArgsEvent) => {
-    console.log('ToolCallArgs event:', event)
-
     setCurrentToolCall((prev) =>
       prev
         ? {
@@ -386,7 +399,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   // 运行状态事件处理器
   const onRunStarted = useCallback((event: RunStartedEvent) => {
-    console.log(t('run.runStarted'), event.runId)
     setIsRunning(true)
     setCurrentRunId(event.runId)
     setLoading(false)
@@ -412,6 +424,9 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
               toolCall.status = 'completed'
             }
           })
+        }
+        if (message?.status === 'pending') {
+          message.status = 'completed'
         }
       })
       const lastMessage = updatedMessages[updatedMessages.length - 1]
@@ -449,6 +464,9 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
               toolCall.status = 'error'
             }
           })
+        }
+        if (message?.status === 'pending') {
+          message.status = 'completed'
         }
       })
       const lastMessage = updatedMessages[updatedMessages.length - 1]
@@ -522,6 +540,106 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     console.log(t('error.rawEvent'), event.event)
   }, [])
 
+  const onAnalysisMessageStart = useCallback((event: AnalysisMessageStartEvent) => {
+    const newMessage: ExtendedAGUIMessage = {
+      id: event.value.id,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      toolCalls: [],
+      agentToolDisplay: [],
+      hidden: true,
+      status: 'pending',
+    }
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      if (
+        updatedMessages?.length > 0 &&
+        updatedMessages[updatedMessages.length - 1]?.status === 'pending'
+      ) {
+        updatedMessages[updatedMessages.length - 1].status = 'completed'
+      }
+      updatedMessages.push(newMessage)
+      return updatedMessages
+    })
+  }, [])
+
+  const onAnalysisMessageContent = useCallback((event: AnalysisMessageContentEvent) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      const index = updatedMessages.findIndex((m) => m.id === event.value.id)
+
+      if (index !== -1) {
+        updatedMessages[index] = {
+          ...updatedMessages[index],
+          content: updatedMessages[index].content + event.value.delta,
+        }
+      }
+      return updatedMessages
+    })
+  }, [])
+
+  const onAnalysisMessageEnd = useCallback((event: AnalysisMessageEndEvent) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      const index = updatedMessages.findIndex((m) => m.id === event.value.id)
+
+      if (index !== -1) {
+        const finalMessage = {
+          ...updatedMessages[index],
+          timestamp: new Date(),
+        }
+
+        updatedMessages[index] = finalMessage
+
+        // 保存到当前会话
+        if (currentSession) {
+          client.addMessageToSession(currentSession.id, finalMessage)
+
+          try {
+            const stored = localStorage.getItem('agui_sessions') || '[]'
+            const allSessions = JSON.parse(stored) as AGUISession[]
+            const updatedSessions = allSessions.map((s) =>
+              s.id === currentSession.id
+                ? {
+                    ...s,
+                    messages: [...s.messages, finalMessage],
+                    updatedAt: new Date(),
+                  }
+                : s,
+            )
+            localStorage.setItem('agui_sessions', JSON.stringify(updatedSessions))
+            setSessions(updatedSessions)
+          } catch (e) {
+            console.warn(t('session.saveMessageFailed'), e)
+          }
+        }
+      }
+
+      return updatedMessages
+    })
+  }, [])
+  const onAnalysisResult = useCallback((event: AnalysisResultEvent) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      const index = updatedMessages.findIndex((m) => m.id === event.value.parentId)
+      const newMessage: ExtendedAGUIMessage = {
+        id: event.value.id,
+        role: 'assistant',
+        content: event.value.content,
+        timestamp: new Date(),
+        toolCalls: [],
+        agentToolDisplay: [],
+        type: 'analysisResult',
+      }
+      if (index !== -1) {
+        updatedMessages.splice(index + 1, 0, newMessage)
+      } else {
+        updatedMessages.push(newMessage)
+      }
+      return updatedMessages
+    })
+  }, [])
   const onCustomEvent = useCallback((event: CustomEvent) => {
     if (event.name === 'AgentToolDisplay' && event.value.toolCallName !== 'PING') {
       const toolCallName = event.value.toolCallName
@@ -540,20 +658,24 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
           lastMessage.agentToolDisplay = lastMessage.agentToolDisplay || []
           lastMessage.agentToolDisplay.push(toolCall)
-
-          console.log(t('toolCall.addedToolCall'), toolCall)
         }
 
         return updatedMessages
       })
+    } else if (event.name === 'ANALYSIS_MESSAGE_START') {
+      onAnalysisMessageStart(event as AnalysisMessageStartEvent)
+    } else if (event.name === 'ANALYSIS_MESSAGE_CONTENT') {
+      onAnalysisMessageContent(event as AnalysisMessageContentEvent)
+    } else if (event.name === 'ANALYSIS_MESSAGE_END') {
+      onAnalysisMessageEnd(event as AnalysisMessageEndEvent)
+    } else if (event.name === 'ANALYSIS_RESULT') {
+      onAnalysisResult(event as AnalysisResultEvent)
     }
   }, [])
 
   // 主事件处理器
   const handleEvent = useCallback(
     (event: Event) => {
-      console.log('AG-UI Event:', event.type, event)
-
       switch (event.type) {
         case EventType.TEXT_MESSAGE_START:
           onTextMessageStart(event as TextMessageStartEvent)
@@ -775,7 +897,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   // 发送消息
   const sendMessage = useCallback(
     (content: string) => {
-      console.log('content', content)
       // if (!currentSession) return
 
       // 先清理之前的状态，确保没有残留的运行状态
@@ -946,6 +1067,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
               status: 'completed' as const,
             })) || [],
           agentToolDisplay: msg.agentToolDisplay || [],
+          hidden: msg.hidden,
         }))
         historyMessages[historyMessages?.length - 1].isFinal = true
         setMessages(historyMessages)

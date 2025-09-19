@@ -12,6 +12,7 @@ export interface Config {
 
 export interface Provider {
     name: string
+    label: string
     description: string
     models: Model[]
     config: Config[]

@@ -12,28 +12,34 @@ import Logs from './ToolRender/Logs'
 import Metrics from './ToolRender/Metrics'
 import styles from '../AGUIChat.module.scss'
 import ToolCollapseIcon from './ToolCollapseIcon'
+import { FaDatabase } from 'react-icons/fa'
 
 interface ToolRenderProps {
   toolName: string
   title: string
   content?: string
+  open?: boolean
 }
 
-const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content }) => {
+const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content, open = true }) => {
   const { t } = useTranslation('pro/agent')
 
-  const [activeKey, setActiveKey] = useState([toolName])
+  const [activeKey, setActiveKey] = useState([])
   const [hovered, setHovered] = useState(false)
   // 监听完成状态，3 秒后自动关闭
+  // useEffect(() => {
+  //   if (content && toolName !== 'result') {
+  //     const timer = setTimeout(() => {
+  //       setActiveKey(null)
+  //     }, 5000)
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [content])
   useEffect(() => {
-    if (content && toolName !== 'result') {
-      const timer = setTimeout(() => {
-        setActiveKey(null)
-      }, 5000)
-      return () => clearTimeout(timer)
+    if (open) {
+      setActiveKey([toolName])
     }
-  }, [content])
-
+  }, [open])
   return (
     <div>
       <Collapse
@@ -53,8 +59,10 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content 
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
-                <span className="mr-2">📈</span>
-                <span className="text-[var(--ant-color-text-tertiary)] text-">{title}</span>
+                <div className="items-center my-auto flex mr-2">
+                  <FaDatabase />
+                </div>
+                <span className="text-[var(--ant-color-text-tertiary)] text-sm">{title}</span>
               </div>
             ),
             children: (

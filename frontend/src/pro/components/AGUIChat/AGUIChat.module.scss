@@ -114,11 +114,12 @@
 
 .messageContent {
   max-width: 80%;
-  @apply p-2 rounded-2xl break-words;
+  @apply rounded-2xl break-words;
 
   .user & {
     background-color: var(--ant-color-primary);
     color: white;
+    padding: 0.5rem;
   }
 
   .assistant & {
@@ -626,9 +627,9 @@
   }
 }
 .loadingDots {
-  margin-bottom: 10px;
+  margin-bottom: 0px;
   margin-left: 16px;
-  height: 40px;
+  height: 20px;
 }
 .loadingDots span {
   font-size: 50px;

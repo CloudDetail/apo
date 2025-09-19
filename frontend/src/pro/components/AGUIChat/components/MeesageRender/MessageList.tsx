@@ -1,15 +1,9 @@
 import React, { useLayoutEffect, useRef, useState, useEffect } from 'react'
-import ToolRender from './AGUITool'
-import styles from '../AGUIChat.module.scss'
+import styles from '../../AGUIChat.module.scss'
 import { useSelector } from 'react-redux'
-import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
-import AgentToolDisplay from './AgentToolDisplay'
 import { useTranslation } from 'react-i18next'
 import { ExtendedAGUIMessage } from 'src/pro/contexts/AGUIContext'
-import { PiShareFatBold } from 'react-icons/pi'
-import { FaRegCopy } from 'react-icons/fa'
-import { FiThumbsDown, FiThumbsUp } from 'react-icons/fi'
-import { Alert, Button } from 'antd'
+import MessageItem from './MessageItem'
 
 interface MessageListProps {
   messages: ExtendedAGUIMessage[]
@@ -17,29 +11,6 @@ interface MessageListProps {
   loading: boolean
   currentToolCall: any
   isRunning: boolean
-}
-
-const FinalMessageSuffix = () => {
-  return (
-    <div className="flex items-center justify-start ml-5 mt-3  text-[var(--ant-color-text-secondary)]">
-      <Button type="text" icon={<FaRegCopy />} className="text-[var(--ant-color-text-secondary)]" />
-      <Button
-        type="text"
-        icon={<PiShareFatBold />}
-        className="text-[var(--ant-color-text-secondary)]"
-      />
-      <Button
-        type="text"
-        icon={<FiThumbsUp />}
-        className="text-[var(--ant-color-text-secondary)]"
-      />
-      <Button
-        type="text"
-        icon={<FiThumbsDown />}
-        className="text-[var(--ant-color-text-secondary)]"
-      />
-    </div>
-  )
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isRunning }) => {
@@ -129,72 +100,10 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
     }
   }, [messages])
 
-  const renderMessage = (message: Message) => {
-    const messageClass = `${styles.message} ${message.role === 'user' ? styles.user : styles.assistant}`
-    return (
-      <div key={message.id} className={messageClass}>
-        <div className={styles.messageContent}>
-          <div className={styles.messageText}>
-            {message.role === 'assistant' && message.content ? (
-              <MarkdownRender content={message.content} theme={theme} />
-            ) : (
-              message.content
-            )}
-          </div>
-          <div className={styles.messageMeta}>
-            {message.metadata?.model && `· ${message.metadata.model}`}
-          </div>
-        </div>
-        {message.toolCalls?.length > 0 && (
-          <div className="message-tool-calls ml-6 ">
-            {message.toolCalls.map((toolCall: any) => (
-              <ToolRender key={toolCall.id} toolCall={toolCall} />
-            ))}
-          </div>
-        )}
-        {message.agentToolDisplay?.length > 0 && (
-          <div className="message-tool-calls ml-6">
-            {message.agentToolDisplay.map((toolCall: any, index: number) => (
-              <AgentToolDisplay
-                key={toolCall.toolName + index}
-                toolName={toolCall.toolName}
-                title={toolCall.title}
-                content={toolCall.content}
-              />
-            ))}
-          </div>
-        )}
-        {message.errorMessage && (
-          <Alert
-            message={message.errorMessage}
-            type="error"
-            className="mx-4 mt-2 text-[var(--ant-color-text-secondary)]"
-          />
-        )}
-        {message.isFinal && <FinalMessageSuffix />}
-      </div>
-    )
-  }
-
-  const renderCurrentMessage = () => {
-    if (!currentMessage) return null
-    return (
-      <div className={`${styles.message} ${styles.assistant} ${styles.currentMessage}`}>
-        <div className={styles.messageContent}>
-          <div className={styles.messageText}>
-            <MarkdownRender content={currentMessage.content} theme={theme} />
-            <span className={styles.typingIndicator}>▎</span>
-          </div>
-          <div className={styles.messageMeta}>{t('inputArea.typingIndicator')}</div>
-        </div>
-      </div>
-    )
-  }
-
   const renderLoadingIndicator = () => {
     if (!isRunning) return null
     return (
-      <div className="h-6">
+      <div className="h-0">
         <span className={styles.loadingDots}>
           <span>.</span>
           <span>.</span>
@@ -206,8 +115,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
 
   return (
     <div ref={messagesContainerRef} className={styles.messagesArea}>
-      {messages.map(renderMessage)}
-      {renderCurrentMessage()}
+      {messages.map(MessageItem)}
+      {/* {renderCurrentMessage()} */}
       {renderLoadingIndicator()}
       <div ref={messagesEndRef} />
     </div>

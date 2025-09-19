@@ -13,19 +13,19 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
   const components = {
     // Headers with icons
     h1: ({ children }: any) => (
-      <h1 className="text-4xl font-bold mb-6 flex items-center gap-3 group">
+      <h1 className="text-4xl font-bold mb-4 flex items-center gap-3 group">
         {/* <Hash className="w-8 h-8 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h1>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-3xl font-semibold mb-4 mt-8 flex items-center gap-2 group">
+      <h2 className="text-3xl font-semibold mb-3 mt-8 flex items-center gap-2 group">
         {/* <Hash className="w-6 h-6 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-2xl font-semibold mb-3 mt-6 flex items-center gap-2 group">
+      <h3 className="text-2xl font-semibold  mt-6 flex items-center gap-2 group">
         {/* <Hash className="w-5 h-5 text-blue-500 group-hover:text-blue-600 transition-colors" /> */}
         {children}
       </h3>
@@ -82,7 +82,8 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
     ),
 
     // Lists with custom styling
-    ul: ({ children }: any) => <ul className="my-2 space-y-2">{children}</ul>,
+    ul: ({ children }: any) => <ul className="my-2 space-y-2 ml-3">{children}</ul>,
+    ol: ({ children }: any) => <ul className="my-2 space-y-2 ml-3">{children}</ul>,
 
     li: ({ children, ...props }: any) => {
       // Check if it's a task list item
@@ -97,7 +98,7 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
       }
 
       return (
-        <li className="flex items-start gap-3  text-[var(--ant-color-text)]">
+        <li className="text-[var(--ant-color-text)] list-disc">
           {/* <List className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" /> */}
           <span>{children}</span>
         </li>
@@ -131,7 +132,7 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
 
     // Tables with beautiful styling
     table: ({ children }: any) => (
-      <div className="my-6 overflow-x-auto">
+      <div className="my-3 overflow-x-auto ml-10">
         <table className="w-full border-collapse rounded-lg shadow-lg overflow-hidden">
           {children}
         </table>
@@ -140,13 +141,15 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
 
     thead: ({ children }: any) => <thead className="">{children}</thead>,
 
-    th: ({ children }: any) => <th className="px-4 py-3 text-left font-semibold ">{children}</th>,
+    th: ({ children }: any) => (
+      <th className="px-2 py-2 text-left font-semibold text-xs">{children}</th>
+    ),
 
     tbody: ({ children }: any) => <tbody>{children}</tbody>,
 
-    tr: ({ children }: any) => <tr className=" transition-colors">{children}</tr>,
+    tr: ({ children }: any) => <tr className=" transition-colors ">{children}</tr>,
 
-    td: ({ children }: any) => <td className="px-4 py-3  ">{children}</td>,
+    td: ({ children }: any) => <td className="px-2 py-2 text-xs ">{children}</td>,
 
     // Paragraphs
     p: ({ children }: any) => (
@@ -154,8 +157,11 @@ const MarkdownRender = ({ content, theme }: { content: string; theme: 'light' | 
     ),
 
     // Horizontal rules
-    hr: () => <hr className="my-8 border-gray-300 dark:border-gray-600" />,
-
+    hr: () => (
+      <div className=" border-gray-300 dark:border-gray-600">
+        <hr></hr>
+      </div>
+    ),
     // Strong and emphasis
     strong: ({ children }: any) => <strong className="font-bold">{children}</strong>,
 

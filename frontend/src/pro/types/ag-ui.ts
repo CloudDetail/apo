@@ -203,3 +203,39 @@ export interface IAGUIClient {
 // 为了向后兼容，保留旧的类型别名
 export type AGUIEventType = any;
 
+
+export type AnalysisMessageStartEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'ANALYSIS_MESSAGE_START',
+    value: {
+        id: string
+        parentId: string
+    }
+}
+
+export type AnalysisMessageContentEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'ANALYSIS_MESSAGE_CONTENT',
+    value: {
+        id: string,
+        delta: string
+    }
+}
+
+export type AnalysisMessageEndEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'ANALYSIS_MESSAGE_END';
+    value: {
+        id: string;
+    };
+};
+
+export type AnalysisResultEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'ANALYSIS_RESULT';
+    value: {
+        parentId: string;
+        content: any;
+        id: string
+    };
+};

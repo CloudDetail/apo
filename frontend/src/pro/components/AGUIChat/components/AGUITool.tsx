@@ -1,11 +1,11 @@
-import { useAGUIChat } from 'src/pro/contexts/AGUIContext'
 import { Collapse } from 'antd'
 import { LoadingOutlined, CloseCircleOutlined } from '@ant-design/icons'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 import styles from '../AGUIChat.module.scss'
 import ToolCollapseIcon from './ToolCollapseIcon'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ShinyText from 'src/pro/components/Animation/ShinyText'
+import { FaTools } from 'react-icons/fa'
 interface ToolRenderProps {
   toolCall?: {
     id: string
@@ -16,12 +16,13 @@ interface ToolRenderProps {
     status?: 'pending' | 'completed' | 'error'
   }
   isCurrent?: boolean
+  open?: boolean
 }
 
-const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, isCurrent = false }) => {
-  const { currentToolCall } = useAGUIChat()
-  const displayToolCall = toolCall || currentToolCall
+const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, open = false }) => {
+  const displayToolCall = toolCall
   const [hovered, setHovered] = useState(false)
+  const [activeKey, setActiveKey] = useState([])
   const getStatusIcon = () => {
     if (displayToolCall.status === 'error') {
       return <CloseCircleOutlined className="text-red-500 ml-2" />
@@ -31,13 +32,19 @@ const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, isCurrent = false }) 
     }
     return <LoadingOutlined className="text-blue-500 ml-2" />
   }
-
+  useEffect(() => {
+    if (open) {
+      setActiveKey(displayToolCall.id)
+    }
+  }, [open])
   return (
     <div>
       <Collapse
         ghost
         className={styles.AGUItoolCallCollapse}
         expandIcon={() => getStatusIcon()}
+        onChange={setActiveKey}
+        activeKey={activeKey}
         items={[
           {
             key: displayToolCall.id,
@@ -47,7 +54,9 @@ const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, isCurrent = false }) 
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
-                <span className="mr-2">🛠️</span>
+                <div className="items-center my-auto flex mr-2">
+                  <FaTools />
+                </div>
                 <span className="text-[var(--ant-color-text-tertiary)] text-">
                   <ShinyText
                     text={displayToolCall.name}

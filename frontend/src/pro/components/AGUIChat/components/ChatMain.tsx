@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout } from 'antd'
-import MessageList from './MessageList'
+import MessageList from './MeesageRender/MessageList'
 import InputArea from './InputArea'
 import QuickQuestions from './QuickQuestions'
 import styles from '../AGUIChat.module.scss'
