@@ -1,0 +1,5 @@
+INSERT INTO data_plane_type (type_name,param_spec,capability_spec,"desc",desc_en,type_display_name) VALUES
+    ('apo','{"name":"root","type":"object"}','["RedMetric","ServiceInstance","Topology","Log","Trace","Metrics"]','','','APO'),
+    ('grafanaPrometheus','{"name":"root","type":"object","children":[{"name":"promAddress","type":"string","desc":"Prometheus地址,例如: http://10.0.0.0:9090","desc_en":"Prometheus Address, e.g. http://10.0.0.0:9090"},{"name":"promUser","type":"string","desc":"Prometheus 用户","desc_en":"Prometheus User"},{"name":"promToken","type":"string","desc":"Prometheus Token","desc_en":"Prometheus Token"}]}','["Metrics"]','','','Grafana Cloud Prometheus'),
+	('loki','{"name":"root","type":"object","children":[{"name":"address","type":"string","desc":"Loki 地址, 例如: http://10.0.0.0:3100","desc_en":"Loki Address, e.g. http://10.0.0.0:3100"},{"name":"user","type":"string","desc":"Loki 用户名","desc_en":"Loki Username"},{"name":"token","type":"string","desc":"Loki Token","desc_en":"Loki Token"}]}','["Log"]','','','Grafana Loki')
+ON CONFLICT (type_name) DO NOTHING;

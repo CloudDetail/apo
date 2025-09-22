@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
 )
@@ -46,7 +47,7 @@ func InitSQL(db *gorm.DB, model StructureDefine) error {
 		return nil
 	}
 
-	updateScripts, err := walkMatch(fmt.Sprintf("./sqlscripts/upgrade/%s/", model.TableName()), "*.sql")
+	updateScripts, err := walkMatch(fmt.Sprintf("./sqlscripts/upgrade/%s/", model.TableName()))
 	if err != nil {
 		return nil
 	}
@@ -70,7 +71,12 @@ func InitSQL(db *gorm.DB, model StructureDefine) error {
 	return nil
 }
 
-func walkMatch(root, pattern string) ([]string, error) {
+func walkMatch(root string) ([]string, error) {
+	globalCfg := config.Get()
+	connType := globalCfg.Database.Connection
+
+	connSql := fmt.Sprintf("*-%s.sql", connType)
+
 	var matches []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -79,9 +85,9 @@ func walkMatch(root, pattern string) ([]string, error) {
 		if info.IsDir() {
 			return nil
 		}
-		if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
-			return err
-		} else if matched {
+		if matched, err := filepath.Match("*-upgrade.sql", filepath.Base(path)); err == nil && matched {
+			matches = append(matches, path)
+		} else if matched, err := filepath.Match(connSql, filepath.Base(path)); err == nil && matched {
 			matches = append(matches, path)
 		}
 		return nil
