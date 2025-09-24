@@ -45,9 +45,10 @@ const ToolTag: React.FC<ToolTagProps> = memo(
               type="button"
               onClick={() => onToggle(desc.id)}
               title={name}
-              className={`bg-[#303030] text-gray-300 px-2 py-[2px] rounded-lg text-[10px] hover:bg-[#404040] transition-colors inline-flex items-center ${
-                isOpen ? 'ring-1 ring-gray-500' : ''
-              }`}
+              className={`bg-[var(--ant-color-bg-container-disabled)] text-[var(--ant-color-text-secondary)] px-2 py-[2px] rounded-lg text-[10px] 
+                hover:bg-[var(--ant-control-item-bg-active-hover)] transition-colors inline-flex items-center ${
+                  isOpen ? 'ring-1 ring-gray-500' : ''
+                }`}
               aria-pressed={isOpen}
             >
               <span className="mr-1 inline-flex">{icon}</span>
@@ -61,7 +62,8 @@ const ToolTag: React.FC<ToolTagProps> = memo(
             type="button"
             onClick={showMore}
             title={`open ${hiddenCount} more tools`}
-            className="bg-[#303030] text-gray-300 px-2 py-[2px] rounded-lg text-[10px] hover:bg-[#404040] transition-colors inline-flex items-center"
+            className="bg-[var(--ant-color-bg-container)] text-[var(--ant-color-text-secondary)] px-2 py-[2px] rounded-lg text-[10px] 
+            hover:bg-[var(--ant-control-item-bg-active-hover)] transition-colors inline-flex items-center"
           >
             +{hiddenCount}
           </button>

@@ -36,10 +36,10 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content,
   //   }
   // }, [content])
   useEffect(() => {
-    if (open) {
+    if (open || toolName === 'result') {
       setActiveKey([toolName])
     }
-  }, [open])
+  }, [open, toolName])
   return (
     <div>
       <Collapse

@@ -15,10 +15,10 @@ export type ToolKind = 'toolCall' | 'agentTool'
 
 export function stableId(obj: any, type: ToolKind, idx: number): string {
   const name = obj?.toolName || obj?.name || 'unknown'
-  return `${type}-${idx}-${name}`
+  return `${type}-${name}-${idx}`
 }
 export function ScaleCollapse({
-  expanded,
+  expanded = true,
   children,
   className = '',
 }: {
@@ -27,7 +27,7 @@ export function ScaleCollapse({
   className?: string
 }) {
   const prefersReduce = useReducedMotion()
-  const duration = prefersReduce ? 0.12 : 0.22
+  const duration = prefersReduce ? 0.32 : 0.32
 
   return (
     <AnimatePresence initial={false}>
@@ -102,7 +102,13 @@ const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
       // setExpandedIds(new Set(items.map((it) => it.id)))
     } else {
       setExpanded(false)
-      setExpandedIds(new Set()) // ✅ complete 后收起所有工具
+      setExpandedIds((prev) => {
+        const next = new Set<string>()
+        prev.forEach((id) => {
+          if (id.startsWith('agentTool-result-')) next.add(id)
+        })
+        return next
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.status])
@@ -184,9 +190,9 @@ const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
       )}
 
       {/* 内容区：流式与非流式分开处理 */}
-      {isStreaming ? (
+      {isStreaming && (
         <>
-          <div className="mt-2 text-gray-400 pr-2 py-[2px] mr-1 rounded-lg text-xs flex items-center ">
+          <div className=" text-gray-400 pr-2 py-[2px] mr-1 rounded-lg text-xs flex items-center ">
             <Spin
               indicator={<LoadingOutlined spin />}
               size="small"
@@ -194,16 +200,11 @@ const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
             />
             <ShinyText text="Analyzing" />
           </div>
-          <span>{message.content}</span>
-        </>
-      ) : (
-        <>
-          <ScaleCollapse expanded={expanded}>
-            <div className="mt-1 whitespace-pre-wrap text-xs leading-5">{message.content}</div>
-          </ScaleCollapse>
         </>
       )}
-
+      <ScaleCollapse expanded={expanded}>
+        <div className="mt-1 whitespace-pre-wrap text-xs leading-5">{message.content}</div>
+      </ScaleCollapse>
       {/* 工具详情：complete 后默认都收起；用户可手动再展开 */}
       {expandedItems.length > 0 && (
         <div className="mt-2 w-full space-y-2">
