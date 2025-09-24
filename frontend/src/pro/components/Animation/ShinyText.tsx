@@ -1,4 +1,5 @@
 import React from 'react'
+import { useSelector } from 'react-redux'
 
 interface ShinyTextProps {
   text: string
@@ -20,16 +21,19 @@ const ShinyText: React.FC<ShinyTextProps> = ({
     WebkitBackgroundClip: 'text',
     animationDuration: animationDuration,
   }
+  const { theme } = useSelector((state) => state.settingReducer)
 
   return (
     <div
-      className={`text-[var(--ant-color-text-tertiary)] bg-clip-text inline-block ${disabled ? '' : 'animate-shine'} ${className}`}
+      className={`text-[var(--ant-color-text-tertiary)] bg-clip-text inline-block  ${disabled ? '' : 'animate-shine'} ${className}`}
       style={{
         ...(disabled
           ? {}
           : {
               backgroundImage:
-                'linear-gradient(120deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 60%)',
+                theme === 'dark'
+                  ? 'linear-gradient(120deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 60%)'
+                  : 'linear-gradient(120deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0) 60%)',
             }),
         ...commonStyles,
       }}

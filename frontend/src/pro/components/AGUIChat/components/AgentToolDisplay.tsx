@@ -59,7 +59,7 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content,
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
-                <div className="items-center my-auto flex mr-2">
+                <div className="items-center flex mr-2 mt-1">
                   <FaDatabase />
                 </div>
                 <span className="text-[var(--ant-color-text-tertiary)] text-sm">{title}</span>
@@ -68,7 +68,7 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content,
             children: (
               <div className="m-[6px] px-3 relative border-l-2 border-[var(--ant-color-border)] ">
                 {/* <span className="absolute top-0 left-[6px]  text-[var(--ant-color-text-tertiary)] text-sm border-l border-[var(--ant-color-border)] h-full"></span> */}
-                <div className="bg-[var(--ant-color-bg-elevated)] rounded-2xl p-3">
+                <div className="bg-[var(--coustom-container-bg)] rounded-2xl p-3">
                   {(() => {
                     switch (toolName) {
                       case 'intentRecognition':

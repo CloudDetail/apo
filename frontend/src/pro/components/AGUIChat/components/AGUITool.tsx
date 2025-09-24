@@ -54,7 +54,7 @@ const ToolRender: React.FC<ToolRenderProps> = ({ toolCall, open = false }) => {
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
               >
-                <div className="items-center my-auto flex mr-2">
+                <div className="items-center flex mr-2 mt-1">
                   <FaTools />
                 </div>
                 <span className="text-[var(--ant-color-text-tertiary)] text-">
