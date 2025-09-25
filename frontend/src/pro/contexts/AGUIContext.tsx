@@ -1053,7 +1053,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       const response = await getConversationMessagesApi(threadId)
 
       if (response.status === 'ok' && response.messages) {
-        const historyMessages: ExtendedAGUIMessage[] = response.messages.map((msg: any) => ({
+        const rawMessages: ExtendedAGUIMessage[] = response.messages.map((msg: any) => ({
           id: msg.id,
           role: msg.role,
           content: msg.content,
@@ -1068,7 +1068,27 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
             })) || [],
           agentToolDisplay: msg.agentToolDisplay || [],
           hidden: msg.hidden,
+          parentId: msg.parentId,
         }))
+
+        const historyMessages: ExtendedAGUIMessage[] = []
+        const messageMap = new Map<string, ExtendedAGUIMessage>()
+
+        rawMessages.forEach((m) => {
+          messageMap.set(m.id, m)
+        })
+
+        rawMessages.forEach((m) => {
+          if (m?.parentId && !m?.hidden) {
+            const parentIndex = historyMessages.findIndex((hm) => hm.id === m.parentId)
+            if (parentIndex !== -1) {
+              historyMessages.splice(parentIndex + 1, 0, m)
+              return
+            }
+          }
+          historyMessages.push(m)
+        })
+
         historyMessages[historyMessages?.length - 1].isFinal = true
         setMessages(historyMessages)
         setCurrentThreadId(threadId)

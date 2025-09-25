@@ -102,15 +102,15 @@ const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
       // setExpandedIds(new Set(items.map((it) => it.id)))
     } else {
       setExpanded(false)
-      setExpandedIds((prev) => {
-        const next = new Set<string>()
-        prev.forEach((id) => {
-          if (id.startsWith('agentTool-result-')) next.add(id)
-        })
-        return next
-      })
+      setExpandedIds(
+        () =>
+          new Set(
+            items
+              .filter((it) => it.type === 'agentTool' && it.toolName === 'result')
+              .map((it) => it.id),
+          ),
+      )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.status])
 
   // 仅用于显示标签文案
