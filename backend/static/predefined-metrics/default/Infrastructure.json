@@ -433,8 +433,8 @@
       "describe": "容器网络接收带宽(按命名空间和Pod统计)",
       "targets": [
         {
-          "expr": "sum(rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
-          "legendFormat": "Received",
+          "expr": "sum by (pod) (rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Received {{pod}}",
           "refId": "Containerd Receive",
           "variables": [
             "__rate_interval",
@@ -456,8 +456,8 @@
       "describe": "容器网络发送带宽(按命名空间和Pod统计)",
       "targets": [
         {
-          "expr": "sum(rate(container_network_transmit_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
-          "legendFormat": "Sent",
+          "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Sent {{pod}}",
           "refId": "Containerd Send",
           "variables": [
             "__rate_interval",
