@@ -178,7 +178,7 @@
     },
     {
       "title": "容器磁盘 - 读写字节数 /s - Read",
-      "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
+      "describe": "容器磁盘读取字节数每秒(使用Containerd,按Pod统计)",
       "targets": [
         {
           "expr": "sum by (pod,container)(rate(container_fs_reads_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
@@ -201,7 +201,7 @@
     },
     {
       "title": "容器磁盘 - 读写字节数 /s - Write",
-      "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
+      "describe": "容器磁盘写入字节数每秒(使用Containerd,按Pod统计)",
       "targets": [
         {
           "expr": "sum by (pod,container)(rate(container_fs_writes_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
@@ -223,7 +223,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写字节数 /s - Read",
+      "title": "容器磁盘 - 读写字节数 /s - Read - Docker",
       "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -246,7 +246,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写字节数 /s - Write",
+      "title": "容器磁盘 - 读写字节数 /s - Write - Docker",
       "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -361,7 +361,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写次数 /s - Read",
+      "title": "容器磁盘 - 读写次数 /s - Read - Docker",
       "describe": "容器磁盘读取次数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -384,7 +384,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写次数 /s - Write",
+      "title": "容器磁盘 - 读写次数 /s - Write - Docker",
       "describe": "容器磁盘写入次数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
