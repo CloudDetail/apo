@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/mail"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -86,6 +87,9 @@ func (s *service) CreateUser(ctx core.Context, req *request.CreateUserRequest) e
 	}
 
 	var createDifyUserFunc = func(ctx core.Context) error {
+		if !config.Get().Dify.Enable {
+			return nil
+		}
 		resp, err := s.difyRepo.AddUser(req.Username, req.Password, "admin")
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to create user in dify")

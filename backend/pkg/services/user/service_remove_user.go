@@ -6,6 +6,7 @@ package user
 import (
 	"errors"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -53,6 +54,9 @@ func (s *service) RemoveUser(ctx core.Context, userID int64) error {
 	}
 
 	var removeDifyUserFunc = func(ctx core.Context) error {
+		if !config.Get().Dify.Enable {
+			return nil
+		}
 		resp, err := s.difyRepo.RemoveUser(user.Username)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to remove user in dify")

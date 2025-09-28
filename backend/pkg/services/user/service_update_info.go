@@ -7,6 +7,7 @@ import (
 	"errors"
 	"unicode"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -66,6 +67,9 @@ func (s *service) UpdateUserPassword(ctx core.Context, req *request.UpdateUserPa
 	}
 
 	var updateDifyPasswordFunc = func(ctx core.Context) error {
+		if !config.Get().Dify.Enable {
+			return nil
+		}
 		resp, err := s.difyRepo.UpdatePassword(user.Username, req.OldPassword, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to update password in dify")
@@ -140,6 +144,9 @@ func (s *service) RestPassword(ctx core.Context, req *request.ResetPasswordReque
 	}
 
 	var resetDifyPasswordFunc = func(ctx core.Context) error {
+		if !config.Get().Dify.Enable {
+			return nil
+		}
 		resp, err := s.difyRepo.ResetPassword(user.Username, req.NewPassword)
 		if err != nil || resp.Result != "success" {
 			return errors.New("failed to reset password in dify")
