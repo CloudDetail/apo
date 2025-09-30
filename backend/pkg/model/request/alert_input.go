@@ -230,3 +230,12 @@ type CheckAlertRuleRequest struct {
 }
 
 type ForwardToDingTalkRequest InputAlertManagerRequest
+
+type GetAlertProviderParamsSpecRequest struct {
+	SourceType string `json:"sourceType"`
+}
+
+type SetupAlertProviderWebhookRequest struct {
+	SourceID string `form:"sourceID" json:"sourceID"`
+	URL      string `form:"url" json:"url"`
+}

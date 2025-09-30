@@ -22,6 +22,7 @@ export const UserProvider = ({ children }) => {
     // getUserPermissionApi(state.user?.userId).then((res) => {
     getUserPermissionApi({ userId: user.userId, language: i18n.language }).then((res) => {
       dispatch({ type: 'setMenu', payload: res?.menuItem || [] })
+      dispatch({ type: 'setRoutes', payload: res?.routes || [] })
     })
   }
 

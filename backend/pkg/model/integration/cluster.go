@@ -19,6 +19,7 @@ type Cluster struct {
 	Name         string       `form:"name" json:"name" gorm:"unique;type:varchar(255);column:name"`
 	ClusterType  string       `form:"clusterType" json:"clusterType" gorm:"type:varchar(255);column:cluster_type"`
 	APOCollector APOCollector `json:"apoCollector,omitempty" gorm:"type:json;column:apo_collector"`
+	IsMinimal    bool         `form:"isMinimal" json:"isMinimal"  gorm:"is_minimal"`
 }
 
 type ClusterIntegration struct {

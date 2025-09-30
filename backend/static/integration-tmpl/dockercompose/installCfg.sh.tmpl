@@ -2,17 +2,32 @@
 
 set -e
 
+case "$(uname -m)" in
+    x86_64)  ARCH="amd64" ;;
+    aarch64) ARCH="arm64" ;;
+    armv7l|armv6l) ARCH="arm" ;;
+    *) ARCH="$(uname -m)" ;;
+esac
+
 # global
 export DEPLOY_VERSION={{ ._deploy_version }}
 export JAVA_AGENT_TYPE={{ default ._java_agent_type "OPENTELEMETRY" }}
 export TRACE_MODE={{ default ._modes.trace "trace" }}
+export APO_SERVER_IP={{ .apoCollector.collectorGatewayAddr }}
+export APO_CLUSTER_ID={{ default ._cluster_id "default" }}
+export APO_DOCKER_COMPOSE_FILE=apo-one-agent-compose-$ARCH-$DEPLOY_VERSION.tgz
 
 # network
 export APO_COLLECTOR_PORT={{ default .apoCollector.ports.apoCollector 30044 }}
 export APO_OTEL_COLLECTOR_GRPCPORT={{ default .apoCollector.ports.apoOtelCollectorGatewayGrpc 30317 }}
 export APO_VECTOR_PORT={{ default .apoCollector.ports.apoVector 30310 }}
 
-echo "Unzip docker compose tarball: apo-one-agent-compose-{{ ._deploy_version }}.tgz"
-tar -zxvf apo-one-agent-compose-{{ ._deploy_version }}.tgz
+echo "Unzip docker compose tarball: $APO_DOCKER_COMPOSE_FILE"
+tar -zxvf $APO_DOCKER_COMPOSE_FILE
+cd apo-one-agent-compose
 
-cd apo-one-agent-compose && bash deploy.sh init {{ .apoCollector.collectorGatewayAddr }}
+{{ if ._is_minimal }}
+sed -i -E 's/^(ENABLE_APO_GRAFANA_ALLOY|ENABLE_APO_GRAFANA_BEYLA|ENABLE_APO_ODIGLET|ENABLE_APO_OTEL_COLLECTOR_AGENT|ENABLE_APO_PROFILE_AGENT)=.*/\1=false/' switch.env
+{{ end }}
+
+bash deploy.sh init $APO_SERVER_IP $APO_CLUSTER_ID

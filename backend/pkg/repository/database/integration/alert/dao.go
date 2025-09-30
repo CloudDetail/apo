@@ -4,9 +4,10 @@
 package alert
 
 import (
+	"time"
+
 	sc "github.com/CloudDetail/apo/backend/pkg/model/amconfig/slienceconfig"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
-	dbdriver "github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 
 	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -19,6 +20,7 @@ type AlertInput interface {
 	CreateAlertSource(ctx core.Context, source *alert.AlertSource) error
 	GetAlertSource(ctx core.Context, sourceId string) (*alert.AlertSource, error)
 	UpdateAlertSource(ctx core.Context, alertSource *alert.AlertSource) error
+	UpdateAlertSourceLastPullTime(ctx core.Context, sourceID string, lastPullTime time.Time) error
 	DeleteAlertSource(ctx core.Context, alertSource alert.SourceFrom) (*alert.AlertSource, error)
 	ListAlertSource(ctx core.Context) ([]alert.AlertSource, error)
 
@@ -79,7 +81,17 @@ func NewAlertInputRepo(db *gorm.DB, cfg *config.Config) (*subRepo, error) {
 		return nil, err
 	}
 
-	err := dbdriver.InitSQL(db, &alert.TargetTag{})
+	err := driver.InitSQL(db, &alert.TargetTag{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = driver.InitSQL(db, &alert.AlertSource{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = driver.InitSQL(db, &alert.AlertEnrichRule{})
 	if err != nil {
 		return nil, err
 	}

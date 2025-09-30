@@ -2597,6 +2597,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/checkDataSource": {
+            "post": {
+                "description": "check datasource is valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "check datasource is valid.",
+                "parameters": [
+                    {
+                        "description": "Request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.CheckDataSourceResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/customtopology/create": {
             "post": {
                 "description": "Create custom topology.",
@@ -11219,32 +11259,38 @@ const docTemplate = `{
                 }
             }
         },
-        "model.AppInfo": {
+        "model.CheckDataSourceRequest": {
             "type": "object",
+            "required": [
+                "attributes",
+                "dataSource"
+            ],
             "properties": {
-                "agentInstanceId": {
+                "attributes": {
+                    "description": "query attributes",
                     "type": "string"
                 },
-                "containerId": {
+                "dataSource": {
+                    "description": "query Datasource",
                     "type": "string"
                 },
-                "containerPid": {
-                    "type": "integer"
-                },
-                "hostPid": {
-                    "type": "integer"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
+                "enabledCapabilities": {
+                    "description": "query capabilities",
+                    "type": "array",
+                    "items": {
                         "type": "string"
                     }
-                },
-                "startTime": {
-                    "type": "integer"
-                },
-                "timestamp": {
+                }
+            }
+        },
+        "model.CheckDataSourceResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
                     "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
                 }
             }
         },
@@ -11268,6 +11314,20 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "namespace or service",
+                    "type": "string"
+                }
+            }
+        },
+        "model.MatchServiceInstance": {
+            "type": "object",
+            "properties": {
+                "instanceName": {
+                    "type": "string"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -13178,10 +13238,10 @@ const docTemplate = `{
         "response.CheckServiceNameRuleResponse": {
             "type": "object",
             "properties": {
-                "apps": {
+                "instances": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.AppInfo"
+                        "$ref": "#/definitions/model.MatchServiceInstance"
                     }
                 }
             }

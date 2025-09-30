@@ -3,19 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Card, ConfigProvider, Tabs, TabsProps } from 'antd'
+import { Button, Card, ConfigProvider, Tabs, TabsProps } from 'antd'
 import SettingsForm from './SettingsForm'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './index.module.scss'
 import InstallCmd from 'src/core/components/InstallCmd'
 import { getClusterIntegrationInfoApi, getIntegrationConfigApi } from 'src/core/api/integration'
+import InstallCmd from './InstallCmd'
 export default function IntegrationSettings() {
   const { t } = useTranslation('core/dataIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeKey, setActiveKey] = useState('config')
   const [formInitValues, setFormInitValues] = useState(null)
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const isMinimal = pathname === '/probe-management/settings'
+  const handleCancel = () => {
+    if (!isMinimal) {
+      navigate('/integration/data')
+    } else {
+      navigate('/probe-management')
+    }
+  }
   const items: TabsProps['items'] = [
     {
       key: 'config',
@@ -29,11 +40,22 @@ export default function IntegrationSettings() {
       key: 'install',
       label: t('installCmdTitle'),
       children: (
-        <InstallCmd
-          clusterId={searchParams.get('clusterId')}
-          clusterType={searchParams.get('clusterType')}
-          apoCollector={formInitValues?.apoCollector}
-        />
+        <div className="h-full w-full flex flex-col">
+          <div className="w-full flex-1 h-0 overflow-auto">
+            <InstallCmd
+              clusterId={searchParams.get('clusterId')}
+              clusterType={searchParams.get('clusterType')}
+              apoCollector={formInitValues?.apoCollector}
+              isMinimal={isMinimal}
+            />
+          </div>
+
+          <div className={`${styles.bottomDiv} w-full `}>
+            <Button className="mr-3" onClick={handleCancel}>
+              {t('goBack')}
+            </Button>
+          </div>
+        </div>
       ),
       style: {
         height: 'calc(100vh - 220px)',

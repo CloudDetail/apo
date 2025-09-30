@@ -134,8 +134,16 @@
     "runInDir": "在配置文件和部署包所在目录执行以下命令：",
     "verifyDocker": "完成安装后，可以使用以下命令查看 Docker 容器是否正在运行：",
     "successMsgDocker": "如果您看到 apo 相关容器正常运行，则表示安装成功 🎉。如果出现异常，请参考文档中的“常见问题”部分",
-    "helmConfigFile": "Helm 配置文件"
+    "helmConfigFile": "Helm 配置文件",
+    "k8sEnvironment": "Kubernetes（Helm）环境",
+    "dockerEnvironment": "Docker-Compose 环境",
+    "k8sDeployDesc": "执行命令在 Kubernetes 中使用 Helm 一键部署探针",
+    "dockerDeployDesc": "执行命令在 Docker-Compose 中使用 Helm 一键部署探针",
+    "downloadFailed": "下载失败:",
+    "loadError": "加载安装命令失败",
+    "docsHelp": "部署存在问题？<a> 查看文档</a>"
   },
   "ee": "企业版",
-  "eeToast": "升级企业版即可选择此类接入"
+  "eeToast": "升级企业版即可选择此类接入",
+  "goBack": "返回"
 }

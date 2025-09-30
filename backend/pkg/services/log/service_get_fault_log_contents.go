@@ -55,7 +55,7 @@ func (s *service) trySearchInFullLog(req *request.GetFaultLogContentRequest, ctx
 		StartTime:  int64(req.StartTime),
 		EndTime:    int64(req.EndTime),
 		TableName:  "raw_logs",
-		DataBase:   "apo",
+		DataBase:   "", // HACK let clickhouse repo set the database name
 		PageNum:    1,
 		PageSize:   2000,
 		Query:      strings.Join(query, " AND "),

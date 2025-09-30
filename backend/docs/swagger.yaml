@@ -1346,24 +1346,29 @@ definitions:
         $ref: '#/definitions/model.AlertDetail'
       type: array
     type: object
-  model.AppInfo:
+  model.CheckDataSourceRequest:
     properties:
-      agentInstanceId:
+      attributes:
+        description: query attributes
         type: string
-      containerId:
+      dataSource:
+        description: query Datasource
         type: string
-      containerPid:
-        type: integer
-      hostPid:
-        type: integer
-      labels:
-        additionalProperties:
+      enabledCapabilities:
+        description: query capabilities
+        items:
           type: string
-        type: object
-      startTime:
-        type: integer
-      timestamp:
+        type: array
+    required:
+    - attributes
+    - dataSource
+    type: object
+  model.CheckDataSourceResponse:
+    properties:
+      message:
         type: string
+      success:
+        type: boolean
     type: object
   model.Datasource:
     properties:
@@ -1381,6 +1386,15 @@ definitions:
         type: array
       type:
         description: namespace or service
+        type: string
+    type: object
+  model.MatchServiceInstance:
+    properties:
+      instanceName:
+        type: string
+      serviceName:
+        type: string
+      source:
         type: string
     type: object
   model.ModifyTableTTLMap:
@@ -2665,9 +2679,9 @@ definitions:
     type: object
   response.CheckServiceNameRuleResponse:
     properties:
-      apps:
+      instances:
         items:
-          $ref: '#/definitions/model.AppInfo'
+          $ref: '#/definitions/model.MatchServiceInstance'
         type: array
     type: object
   response.ClusterScopedDatasource:
@@ -5739,6 +5753,32 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get app info tag values.
+      tags:
+      - API.dataplane
+  /api/dataplane/checkDataSource:
+    post:
+      consumes:
+      - application/json
+      description: check datasource is valid.
+      parameters:
+      - description: Request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CheckDataSourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CheckDataSourceResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: check datasource is valid.
       tags:
       - API.dataplane
   /api/dataplane/customtopology/create:

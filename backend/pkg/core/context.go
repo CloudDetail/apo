@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 
@@ -40,8 +41,6 @@ func releaseContext(ctx Context) {
 	c.ctx = nil
 	contextPool.Put(c)
 }
-
-var _ Context = (*context)(nil)
 
 type Context interface {
 	ShouldBind(obj interface{}) error
@@ -110,7 +109,14 @@ type Context interface {
 	ErrMessage(errCode string) string
 
 	Clone() Context
+
+	Done() <-chan struct{}
+	Err() error
+	Value(key any) any
+	Deadline() (deadline time.Time, ok bool)
 }
+
+var _ go_context.Context = (*context)(nil)
 
 type context struct {
 	ctx *gin.Context
@@ -298,4 +304,20 @@ func (c *context) Clone() Context {
 			Keys: keys,
 		},
 	}
+}
+
+func (c *context) Done() <-chan struct{} {
+	return c.ctx.Done()
+}
+
+func (c *context) Deadline() (deadline time.Time, ok bool) {
+	return c.ctx.Deadline()
+}
+
+func (c *context) Err() error {
+	return c.ctx.Err()
+}
+
+func (c *context) Value(key any) any {
+	return c.ctx.Value(key)
 }

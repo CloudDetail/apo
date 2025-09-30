@@ -11,7 +11,7 @@ const (
 	REDMetricsAlert     = "REDStatus"
 	LogMetricsAlert     = "logsStatus"
 	AppAlert            = "appStatus"
-	ContainerAlert      = "containerStaus"
+	ContainerAlert      = "containerStatus"
 
 	UndefinedAlert = "undefinedAlert"
 )

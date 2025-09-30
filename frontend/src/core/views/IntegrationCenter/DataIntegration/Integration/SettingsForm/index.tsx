@@ -6,17 +6,23 @@
 import { Button, Card, Form, Input, Segmented, Space } from 'antd'
 import { useTranslation } from 'react-i18next'
 import TraceFormItem from './TraceFormItem'
-import { useEffect } from 'react'
-import { createDataIntegrationApi, updateDataIntegrationApi } from 'src/core/api/integration'
+import { useEffect, useState } from 'react'
+import {
+  createDataIntegrationApi,
+  getIntegrationVarApi,
+  updateDataIntegrationApi,
+} from 'src/core/api/integration'
 import MetricsFormItem from './MetricsFormItem'
 import LogsFormItem from './LogsFormItem'
 import styles from './index.module.scss'
 import APOCollectorFormItem from './APOCollectorFormItem'
-import { useSearchParams, useLocation } from 'react-router-dom'
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
 import { notify } from 'src/core/utils/notify'
 
-const SettingsForm = ({ formInitValues }) => {
+const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
+  const navigate = useNavigate()
+
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
   const clusterTypeOptions = [
@@ -33,9 +39,11 @@ const SettingsForm = ({ formInitValues }) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const { pathname } = useLocation()
   const shouldShow = pathname === '/integration/data/settings'
+  const [defaultGatewayAddr, setDefaultGatewayAddr] = useState('')
 
   const saveIntegration = (params) => {
     delete params?.traceAPI
+    params.isMinimal = !shouldShow
     let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
     api(params).then((res) => {
       notify({
@@ -54,18 +62,23 @@ const SettingsForm = ({ formInitValues }) => {
       .validateFields()
       .then((values) => {
         const params = { ...values }
-        if (!values.apoCollector.ports || values.apoCollector.ports === undefined) {
-          params.apoCollector.ports = portsDefault?.reduce((map, item) => {
-            map[item.key] = item.value
-            return map
-          }, {})
+        if (!values.apoCollector?.ports) {
+          params.apoCollector = {
+            ...params.apoCollector,
+            ports: portsDefault?.reduce((map, item) => {
+              map[item.key] = item.value
+              return map
+            }, {}),
+          }
         }
-        params.isMinimal = !shouldShow
+        if (!shouldShow && !values.apoCollector?.collectorGatewayAddr) {
+          params.apoCollector.collectorGatewayAddr = defaultGatewayAddr
+        }
         saveIntegration(params)
       })
       .catch((errorInfo) => {
         // 手动滚动到第一个错误字段
-        if (errorInfo.errorFields.length > 0) {
+        if (errorInfo.errorFields?.length > 0) {
           form.scrollToField(errorInfo.errorFields[0].name[0])
         }
       })
@@ -74,6 +87,21 @@ const SettingsForm = ({ formInitValues }) => {
   useEffect(() => {
     form.setFieldsValue(formInitValues)
   }, [formInitValues])
+
+  useEffect(() => {
+    if (!shouldShow) {
+      getIntegrationVarApi('serverAddr').then((res) => {
+        setDefaultGatewayAddr(res)
+      })
+    }
+  }, [shouldShow])
+  const handleCancel = () => {
+    if (shouldShow) {
+      navigate('/integration/data')
+    } else {
+      navigate('/probe-management')
+    }
+  }
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-3 overflow-auto flex-1 h-full">
@@ -110,7 +138,7 @@ const SettingsForm = ({ formInitValues }) => {
           <Form.Item name="clusterType" label={t('clusterType')} rules={[{ required: true }]}>
             <Segmented options={clusterTypeOptions} />
           </Form.Item>
-          <APOCollectorFormItem />
+          <APOCollectorFormItem defaultGatewayAddr={defaultGatewayAddr} isMinimal={!shouldShow} />
           {shouldShow && (
             <>
               <Card type="inner" title={t('traceIntegration')} size="small">
@@ -152,7 +180,9 @@ const SettingsForm = ({ formInitValues }) => {
         </Form>
       </div>
       <div className={styles.bottomDiv}>
-        <Button className="mr-3">{ct('cancel')}</Button>
+        <Button className="mr-3" onClick={handleCancel}>
+          {ct('cancel')}
+        </Button>
         <Button type="primary" onClick={saveInfo}>
           {t('saveSettings')}
         </Button>

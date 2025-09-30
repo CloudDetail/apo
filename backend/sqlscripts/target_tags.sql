@@ -60,7 +60,15 @@ INSERT INTO alert_enrich_rules (enrich_rule_id,source_id,r_type,rule_order,from_
 	 ('c3c86c94-3a98-479b-adb7-a5895d28b6c5','efc91f08-86c4-3696-aba8-570d4a8dc069','tagMapping',0,'.db_url','',8,'','',''),
 	 ('6dcbf6b6-ecd5-494f-afcb-3cfbbd2290f2','efc91f08-86c4-3696-aba8-570d4a8dc069','tagMapping',0,'.net_host_name','([^(]+)$',9,'','',''),
 	 ('763d0d00-c160-4944-80b5-9d0d347841fc','efc91f08-86c4-3696-aba8-570d4a8dc069','tagMapping',0,'.net_host_name','(\d+\.\d+\.\d+\.\d+)',10,'','',''),
-	 ('2ae5494b-442a-4858-9615-945c000730e6','efc91f08-86c4-3696-aba8-570d4a8dc069','tagMapping',0,'.net_host_port','(\d+)',11,'','','');
+	 ('2ae5494b-442a-4858-9615-945c000730e6','efc91f08-86c4-3696-aba8-570d4a8dc069','tagMapping',0,'.net_host_port','(\d+)',11,'','',''),
+	 ('e6436efb-681c-452d-9364-828877b782b2','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.service','',1,'','',''),
+	 ('e44657d1-2acd-4be0-acb0-31e8899e0761','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.content_key','',2,'','',''),
+	 ('fd96ba9d-9a47-41cc-998c-807add758baf','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.namespace','',3,'','',''),
+	 ('6cb42756-7d9e-4696-b7e9-1a561ac40beb','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.pod','',4,'','',''),
+	 ('95d1708b-3328-4f25-8aec-8a0d6be3d010','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.hostname','',5,'','',''),
+	 ('f552f112-b071-4384-afcb-80a7c62da595','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.node','',5,'','',''),
+	 ('2ab88029-72a3-41cb-8490-96d85af93987','563a44a3-839f-3e23-adff-e00ac8a3e18f','tagMapping',0,'.attr.pid','',6,'','','');
+
 
 INSERT INTO alert_enrich_conditions (enrich_rule_id,source_id,from_field,operation,expr) VALUES
 	 ('55df6363-90ef-48c6-9594-9a95b7836fed','825079a8-4d05-3507-b347-1272a078f9ff','.group','match','middleware'),
@@ -76,7 +84,8 @@ INSERT INTO alert_enrich_conditions (enrich_rule_id,source_id,from_field,operati
 	 ('2ae5494b-442a-4858-9615-945c000730e6','efc91f08-86c4-3696-aba8-570d4a8dc069','.group','match','middleware'),
 	 ('e09ff3cc-70b6-4da5-ad60-ab2576bfc522','efc91f08-86c4-3696-aba8-570d4a8dc069','.group','match','infra');
 
-INSERT INTO alert_sources (source_id,source_name,source_type) VALUES
-	 ('825079a8-4d05-3507-b347-1272a078f9ff','APO_DEFAULT_ENRICH_RULE_PROMETHEUS','prometheus'),
-	 ('2213d3d5-41da-32a8-9026-22c2bf6aa448','APO_DEFAULT_ENRICH_RULE_JSON','json'),
-	 ('efc91f08-86c4-3696-aba8-570d4a8dc069','APO-VM-ALERT','prometheus');
+INSERT INTO alert_sources (source_id,source_name,source_type,params,enabled_pull,last_pull_mill_ts) VALUES
+	 ('825079a8-4d05-3507-b347-1272a078f9ff','APO_DEFAULT_ENRICH_RULE_PROMETHEUS','prometheus','{}',false,0),
+	 ('2213d3d5-41da-32a8-9026-22c2bf6aa448','APO_DEFAULT_ENRICH_RULE_JSON','json','{}',false,0),
+	 ('563a44a3-839f-3e23-adff-e00ac8a3e18f','APO_DEFAULT_ENRICH_RULE_DATADOG','datadog','{}',false,0),
+	 ('efc91f08-86c4-3696-aba8-570d4a8dc069','APO-VM-ALERT','prometheus','{}',false,0);

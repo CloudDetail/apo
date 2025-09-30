@@ -44,8 +44,7 @@ export default function Login() {
             window.localStorage.setItem('refreshToken', refreshToken)
             localStorage.removeItem('difyToken')
             localStorage.removeItem('difyRefreshToken')
-            const redirectUrl = sessionStorage.getItem('urlBeforeLogin')
-
+            navigate('/')
             notify({ message: t('index.loginSuccess'), type: 'success' })
             remeberMe
               ? localStorage.setItem('username', values.username)
@@ -53,12 +52,6 @@ export default function Login() {
             localStorage.setItem('remeberMe', String(remeberMe))
 
             await loginDify(values)
-            if (redirectUrl !== null) {
-              window.location.href = redirectUrl
-              sessionStorage.removeItem('urlBeforeLogin')
-            } else {
-              navigate('/')
-            }
           }
         } catch (error) {
           console.error(error)
@@ -114,7 +107,7 @@ export default function Login() {
         className="w-3/12 rounded-lg p-10 drop-shadow-xl"
         style={{
           backgroundColor: theme === 'light' ? token.colorFillSecondary : token.colorBgMask,
-          color: token.colorTextSecondary
+          color: token.colorTextSecondary,
         }}
       >
         <Flex className="w-full justify-center items-center select-none">
@@ -131,7 +124,7 @@ export default function Login() {
               <Input
                 size="large"
                 className="w-full"
-                style={{ backgroundColor: token.colorFillSecondary}}
+                style={{ backgroundColor: token.colorFillSecondary }}
                 prefix={<UserOutlined />}
               />
             </Form.Item>
@@ -143,7 +136,7 @@ export default function Login() {
               <Input.Password
                 size="large"
                 className="w-full"
-                style={{ backgroundColor: token.colorFillSecondary}}
+                style={{ backgroundColor: token.colorFillSecondary }}
                 prefix={<LockOutlined />}
               />
             </Form.Item>
