@@ -143,9 +143,44 @@
     "dockerDeployDesc": "Deploy agents with a single script in Kubernetes (via Helm) or Docker Compose environments.",
     "downloadFailed": "Download failed:",
     "loadError": "Failed to load installation commands",
-    "docsHelp": "Deployment issues？   <a>See the Docs.</a>"
+    "docsHelp": "Deployment issues?   <a>See the Docs.</a>"
   },
   "ee": "Enterprise Edition",
   "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access.",
-  "goBack": "Go Back"
+  "goBack": "Go Back",
+  "botManagement": {
+    "title": "Slack App Management",
+    "description": "Manage Slack App",
+    "slackBot": {
+      "name": "Slack App",
+      "description": "Add Syncause to your Slack with one click",
+      "teamIdLabel": "Slack Team ID",
+      "teamIdPlaceholder": "Enter your Slack Team ID",
+      "getTeamId": "Get Team ID",
+      "createBot": "Create Conversational Slack App ",
+      "teamId": "Team ID:",
+      "createTime": "Create Time:",
+      "connectionStatus": "Connection Status:",
+      "status": {
+        "connected": "Connected Successfully",
+        "waiting": "Waiting for Connection...",
+        "connectRetry": "Connection Retrying...",
+        "disconnected": "Disconnected",
+        "notConnected": "Not Connected"
+      },
+      "connectRetryMessage": "⏳ Connection Retrying...Please ensure that your Base URL is publicly accessible and reachable by Slack servers.",
+      "successMessage": "🎉 Slack App Connected Successfully.",
+      "waitingMessage": "⏳ Connecting...The connection may take 1-2 minutes. Thank you for your patience.",
+      "disconnectedMessage": "❌ Connection lost. Please try again...",
+      "resetButton": "Reset and Reconnect",
+      "docsLink": "Deployment issues? See the Docs"
+    },
+    "messages": {
+      "teamIdRequired": "Please enter Slack Team ID",
+      "addSuccess": "Team added successfully",
+      "connectFailed": "Connection failed",
+      "connectFailedRetry": "Connection failed, please retry",
+      "getStatusFailed": "Failed to get Slack status"
+    }
+  }
 }
