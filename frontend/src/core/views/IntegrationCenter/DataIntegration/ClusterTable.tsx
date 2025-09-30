@@ -14,6 +14,7 @@ import { notify } from 'src/core/utils/notify'
 import { GoCommandPalette } from 'react-icons/go'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 import InstallCmd from './Integration/InstallCmd'
+import BotManagement from './BotManagement'
 const ClusterTable = () => {
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
@@ -40,12 +41,12 @@ const ClusterTable = () => {
     {
       dataIndex: 'name',
       title: t('clusterName'),
-      width: '30%',
+      width: '20%',
     },
     {
       dataIndex: 'clusterType',
       title: t('clusterType'),
-      width: '30%',
+      width: '15%',
     },
     {
       dataIndex: 'operation',
@@ -119,20 +120,41 @@ const ClusterTable = () => {
     getData()
   }, [])
   return (
-    <BasicCard>
-      <BasicCard.Header>
-        <div className="w-full flex items-center justify-between mt-2">
-          <div>{/* //serach */}</div>
-          <Button type="primary" onClick={() => toSettingPage()}>
-            {ct('add')}
-          </Button>
+    <>
+      <div className="page-container">
+        {/* 主要内容区域 */}
+        <div className="content-grid">
+          {/* 左侧部分 - Probes Management */}
+          <div className="content-section">
+            <div className="section-header">
+              <div className="section-title-wrapper">
+                <h2 className="section-title">Probes Management</h2>
+                <p className="section-description text-[var(--ant-color-text-tertiary)]">
+                  Manage Data Collection Probes
+                </p>
+              </div>
+              <Button type="primary" onClick={() => toSettingPage()}>
+                {ct('add')}
+              </Button>
+            </div>
+
+            <BasicCard>
+              <BasicCard.Table>
+                <Table
+                  columns={columns}
+                  dataSource={data}
+                  scroll={{ y: 'calc(100vh - 200px)', x: 'max-content' }}
+                  size="small"
+                  pagination={false}
+                />
+              </BasicCard.Table>
+            </BasicCard>
+          </div>
+
+          {/* 右侧部分 - Bots Management */}
+          <BotManagement />
         </div>
-      </BasicCard.Header>
-
-      <BasicCard.Table>
-        <Table columns={columns} dataSource={data} scroll={{ y: 'calc(100vh - 265px)' }} />
-      </BasicCard.Table>
-
+      </div>
       <Modal
         open={modalOpen}
         footer={null}
@@ -151,7 +173,7 @@ const ClusterTable = () => {
           isMinimal={isMinimal}
         />
       </Modal>
-    </BasicCard>
+    </>
   )
 }
 export default ClusterTable

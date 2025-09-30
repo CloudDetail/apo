@@ -145,5 +145,40 @@
   },
   "ee": "企业版",
   "eeToast": "升级企业版即可选择此类接入",
-  "goBack": "返回"
+  "goBack": "返回",
+  "botManagement": {
+    "title": "Bots Management",
+    "description": "管理对话应用",
+    "slackBot": {
+      "name": "Slack App",
+      "description": "一键将 Syncause 添加到您的 Slack",
+      "teamIdLabel": "Slack Team ID",
+      "teamIdPlaceholder": "输入您的 Slack Team ID",
+      "getTeamId": "获取 Team ID",
+      "createBot": "创建对话应用",
+      "teamId": "Team ID:",
+      "createTime": "创建时间:",
+      "connectionStatus": "连接状态:",
+      "status": {
+        "connected": "连接成功",
+        "waiting": "等待连接中...",
+        "connectRetry": "连接重试中...",
+        "disconnected": "连接断开",
+        "notConnected": "未连接"
+      },
+      "successMessage": "🎉 Slack App 连接成功",
+      "waitingMessage": "⏳ 连接中...连接可能需要耗时1-2分钟，感谢您的等待",
+      "connectRetryMessage": "⏳ 连接重试中...请确认 Base URL 可被 Slack 服务器从公网访问",
+      "disconnectedMessage": "❌ 连接已断开，请重试...",
+      "resetButton": "重置并重新连接",
+      "docsLink": "部署遇到问题？查看文档"
+    },
+    "messages": {
+      "teamIdRequired": "请输入Slack Team ID",
+      "addSuccess": "Team添加成功",
+      "connectFailed": "连接失败",
+      "connectFailedRetry": "连接失败，请重试",
+      "getStatusFailed": "获取Slack状态失败"
+    }
+  }
 }
