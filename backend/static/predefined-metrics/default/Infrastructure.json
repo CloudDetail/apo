@@ -185,7 +185,6 @@
           "legendFormat": "{{pod}}:{{container}}",
           "refId": "Opened",
           "variables": [
-            "__rate_interval",
             "cadvisor_job_name",
             "namespace",
             "pod"
