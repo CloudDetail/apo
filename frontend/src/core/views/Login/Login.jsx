@@ -10,10 +10,8 @@ import bg from 'src/core/assets/brand/bg.jpg'
 import { loginApi } from 'core/api/user'
 import { useNavigate } from 'react-router-dom'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import logo from 'core/assets/brand/logo.svg'
 import { AiOutlineLoading } from 'react-icons/ai'
 import style from './Login.module.css'
-import { useUserContext } from 'src/core/contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { workflowLoginApi } from 'src/core/api/workflows'
 import i18next from 'i18next'
@@ -22,7 +20,7 @@ import { useSelector } from 'react-redux'
 import { useDeployMode } from 'src/core/contexts/DeployModeContext'
 
 export default function Login() {
-  const { getLogo, getTitle } = useDeployMode()
+  const { getLogo, getTitle, deployMode } = useDeployMode()
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [remeberMe, setRemeberMe] = useState(true)
@@ -52,7 +50,10 @@ export default function Login() {
               : localStorage.removeItem('username')
             localStorage.setItem('remeberMe', String(remeberMe))
 
-            await loginDify(values)
+            // 只有在非 syncause 模式下才调用 loginDify
+            if (deployMode !== 'syncause') {
+              await loginDify(values)
+            }
           }
         } catch (error) {
           console.error(error)
