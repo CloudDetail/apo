@@ -78,6 +78,7 @@ export const dataplaneIconMap = {
   'arms': aliyun,
   'Prometheus': prometheus,
   'prometheus': prometheus,
+  'prometheusmetric': prometheus,
   'loki': loki,
   'Tempo': tempo,
   'tempo': tempo,
