@@ -4,6 +4,9 @@
 package kubernetes
 
 import (
+	"os"
+	"strings"
+
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	v1 "k8s.io/api/core/v1"
@@ -76,7 +79,7 @@ func New(logger *zap.Logger, authType, authFilePath string, setting config.Metad
 	}
 
 	if len(setting.Namespace) == 0 {
-		setting.Namespace = DefaultAPONS
+		setting.Namespace = getCurrentNamespace()
 	}
 	if len(setting.AlertRuleCMName) == 0 {
 		setting.AlertRuleCMName = DefaultCMNAME
@@ -119,4 +122,20 @@ type k8sApi struct {
 
 	config.MetadataSettings
 	Metadata
+}
+
+func getCurrentNamespace() string {
+	if ns, find := os.LookupEnv("WORK_NAMESPACE"); find {
+		if len(ns) == 0 {
+			ns = "default"
+		}
+		return ns
+	}
+
+	const namespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
+	data, err := os.ReadFile(namespaceFile)
+	if err != nil {
+		return DefaultAPONS
+	}
+	return strings.TrimSpace(string(data))
 }
