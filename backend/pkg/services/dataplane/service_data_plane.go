@@ -5,6 +5,7 @@ package dataplane
 
 import (
 	"encoding/json"
+	"os"
 	"sort"
 	"time"
 
@@ -14,6 +15,8 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 )
+
+const showAPODataPlaneTypeENV = "SHOW_APO_DATA_PLANE_TYPE"
 
 var _ DPService = (*service)(nil)
 
@@ -45,6 +48,15 @@ func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTy
 	dpTypes, err := s.dbRepo.ListDataPlaneType(ctx)
 	for i := 0; i < len(dpTypes); i++ {
 		dpTypes[i].UseLang(ctx.LANG())
+	}
+
+	if os.Getenv(showAPODataPlaneTypeENV) != "true" {
+		for i := 0; i < len(dpTypes); i++ {
+			if dpTypes[i].TypeName == "apo" {
+				dpTypes = append(dpTypes[:i], dpTypes[i+1:]...)
+				break
+			}
+		}
 	}
 
 	sort.SliceStable(dpTypes, func(i, j int) bool {
@@ -120,6 +132,16 @@ func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneRespon
 
 	for i := 0; i < len(res); i++ {
 		res[i].UseLang(ctx.LANG())
+	}
+
+	// 过滤掉 APO 数据平面
+	if os.Getenv(showAPODataPlaneTypeENV) != "true" {
+		for i := 0; i < len(res); i++ {
+			if res[i].Typ == "apo" {
+				res = append(res[:i], res[i+1:]...)
+				i--
+			}
+		}
 	}
 
 	return &response.ListDataPlaneResponse{
