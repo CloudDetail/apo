@@ -12,6 +12,7 @@ import agentIcon from 'src/pro/assets/agent.svg'
 import { useAGUIPermission } from 'src/pro/contexts/AGUIContext'
 import { SettingOutlined } from '@ant-design/icons'
 import AgentModel from './AgentModel'
+import { useDeployMode } from 'src/core/contexts/DeployModeContext'
 
 const { Paragraph } = Typography
 
@@ -22,6 +23,7 @@ interface QuickQuestionsProps {
 const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
   const { hasPermission, permissionLoading, dataPlaneExist, defaultModel } = useAGUIPermission()
   const { t } = useTranslation('pro/agent')
+  const { deployMode } = useDeployMode()
   const quickQuestions = [
     {
       icon: <AiOutlineBarChart />,
@@ -136,7 +138,11 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
                   size="large"
                   icon={<SettingOutlined />}
                   onClick={() => {
-                    window.open('/#/integration/data/settings', '_blank')
+                    const url =
+                      deployMode === 'syncause'
+                        ? '/#/probe-management/settings'
+                        : '/#/integration/data/settings'
+                    window.open(url, '_blank')
                   }}
                 >
                   {t('installNow')}
