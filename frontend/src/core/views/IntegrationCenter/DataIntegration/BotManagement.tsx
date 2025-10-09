@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
 import { getSlackStatusApi, upsertAppConfigApi } from 'src/core/api/appConfig'
 import './slackapp.css'
-
+import slackPng from 'src/core/assets/images/slack.png'
 // 类型定义
 interface SlackStatus {
   teamId: string
@@ -57,17 +57,14 @@ const BotManagement = () => {
   // 开始轮询（仅在waiting或connect retry状态下使用）
   const startPolling = () => {
     if (pollingRef.current) {
-      // eslint-disable-next-line no-undef
       clearInterval(pollingRef.current)
     }
 
-    // eslint-disable-next-line no-undef
     pollingRef.current = setInterval(async () => {
       const status = await fetchSlackStatus()
       // 轮询直至状态变为connected或disconnected
       if (status?.status === 'connected' || status?.status === 'disconnected') {
         if (pollingRef.current) {
-          // eslint-disable-next-line no-undef
           clearInterval(pollingRef.current)
           pollingRef.current = null
         }
@@ -83,7 +80,6 @@ const BotManagement = () => {
   // 停止轮询
   const stopPolling = () => {
     if (pollingRef.current) {
-      // eslint-disable-next-line no-undef
       clearInterval(pollingRef.current)
       pollingRef.current = null
     }
@@ -92,7 +88,6 @@ const BotManagement = () => {
   // 停止倒计时
   const stopCountdown = () => {
     if (countdownRef.current) {
-      // eslint-disable-next-line no-undef
       clearInterval(countdownRef.current)
       countdownRef.current = null
     }
@@ -103,7 +98,6 @@ const BotManagement = () => {
     stopCountdown()
     setCountdown(5)
 
-    // eslint-disable-next-line no-undef
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -202,11 +196,11 @@ const BotManagement = () => {
       'https://slack.com/oauth/v2/authorize?client_id=9516861752262.9516864716406&scope=app_mentions:read,channels:history,channels:read,chat:write,groups:read,mpim:history,mpim:read,groups:history&user_scope='
     const width = 600
     const height = 700
-    // eslint-disable-next-line no-undef
+
     const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2)
-    // eslint-disable-next-line no-undef
+
     const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2)
-    // eslint-disable-next-line no-undef
+
     window.open(
       oauthUrl,
       'slack_oauth_popup',
@@ -258,7 +252,7 @@ const BotManagement = () => {
           <div className="bot-card border border-[var(--ant-color-border-secondary)]">
             <div className="bot-card-header bg-[var(--ant-color-fill-tertiary)]">
               <div className="bot-icon">
-                <img src="src/core/assets/images/slack.png" alt="Slack" className="slack-logo" />
+                <img src={slackPng} alt="Slack" className="slack-logo" />
               </div>
               <div className="bot-info">
                 <h3 className="bot-name">{t('botManagement.slackBot.name')}</h3>
