@@ -177,6 +177,29 @@
       ]
     },
     {
+      "title": "容器文件描述符 - 打开的文件描述符数量",
+      "describe": "容器当前打开的文件描述符数量",
+      "targets": [
+        {
+          "expr": "sum by (pod,container) (container_file_descriptors{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\", job_name=~\"$cadvisor_job_name\"})",
+          "legendFormat": "{{pod}}:{{container}}",
+          "refId": "Opened",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
       "title": "容器磁盘 - 读写字节数 /s - Read",
       "describe": "容器磁盘读取字节数每秒(使用Containerd,按Pod统计)",
       "targets": [
