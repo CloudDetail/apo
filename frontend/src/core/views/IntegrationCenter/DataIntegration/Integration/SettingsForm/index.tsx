@@ -16,11 +16,13 @@ import MetricsFormItem from './MetricsFormItem'
 import LogsFormItem from './LogsFormItem'
 import styles from './index.module.scss'
 import APOCollectorFormItem from './APOCollectorFormItem'
-import { useSearchParams, useLocation } from 'react-router-dom'
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
 import { notify } from 'src/core/utils/notify'
 
 const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
+  const navigate = useNavigate()
+
   const { t } = useTranslation('core/dataIntegration')
   const { t: ct } = useTranslation('common')
   const clusterTypeOptions = [
@@ -41,6 +43,7 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
 
   const saveIntegration = (params) => {
     delete params?.traceAPI
+    params.isMinimal = !shouldShow
     let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
     api(params).then((res) => {
       notify({
@@ -92,6 +95,13 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
       })
     }
   }, [shouldShow])
+  const handleCancel = () => {
+    if (shouldShow) {
+      navigate('/integration/data')
+    } else {
+      navigate('/probe-management')
+    }
+  }
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-3 overflow-auto flex-1 h-full">
@@ -170,7 +180,9 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
         </Form>
       </div>
       <div className={styles.bottomDiv}>
-        <Button className="mr-3">{ct('cancel')}</Button>
+        <Button className="mr-3" onClick={handleCancel}>
+          {ct('cancel')}
+        </Button>
         <Button type="primary" onClick={saveInfo}>
           {t('saveSettings')}
         </Button>

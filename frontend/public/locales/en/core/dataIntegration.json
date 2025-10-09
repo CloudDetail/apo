@@ -140,10 +140,12 @@
     "k8sEnvironment": "Kubernetes (Helm) Environment",
     "dockerEnvironment": "Docker-Compose Environment",
     "k8sDeployDesc": "Execute commands to deploy agents in Kubernetes using Helm with one click",
-    "dockerDeployDesc": "Execute commands to deploy agents in Docker-Compose using Helm with one click",
+    "dockerDeployDesc": "Deploy agents with a single script in Kubernetes (via Helm) or Docker Compose environments.",
     "downloadFailed": "Download failed:",
-    "loadError": "Failed to load installation commands"
+    "loadError": "Failed to load installation commands",
+    "docsHelp": "Deployment issues？   <a>See the Docs.</a>"
   },
   "ee": "Enterprise Edition",
-  "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access."
+  "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access.",
+  "goBack": "Go Back"
 }
