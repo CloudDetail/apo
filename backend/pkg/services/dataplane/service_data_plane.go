@@ -31,13 +31,14 @@ type DPService interface {
 var specialOrder = map[string]int{
 	"datadog":           0,
 	"jaeger":            1,
-	"prometheus":        2,
+	"prometheusmetric":  2,
 	"tempo":             3,
 	"loki":              4,
 	"grafanaPrometheus": 5,
 	"signoz":            6,
 	"skywalking":        7,
 	"arms":              8,
+	"apo":               9,
 }
 
 func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTypeResponse, error) {
