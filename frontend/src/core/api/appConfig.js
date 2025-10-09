@@ -7,10 +7,10 @@ import { get, post } from 'src/core/utils/request'
 
 // Upsert接口 - Bot安装成功后添加TeamId
 export const upsertAppConfigApi = (params) => {
-    return post(`/api/v1/app-config/upsert`, params)
+    return post(`/ai/api/v1/app-config/upsert`, params)
 }
 
 // 获取Slack状态接口
 export const getSlackStatusApi = () => {
-    return get(`/api/v1/app-config/slack-status`)
+    return get(`/ai/api/v1/app-config/slack-status`)
 }
