@@ -4,8 +4,12 @@
 package dataplane
 
 import (
+	"log"
+	"os"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
@@ -56,10 +60,44 @@ func New(
 	dbRepo database.Repo,
 	dataplaneRepo dataplane.DataplaneRepo,
 ) Service {
-	return &service{
+	service := &service{
 		chRepo:        chRepo,
 		promRepo:      promRepo,
 		dbRepo:        dbRepo,
 		dataplaneRepo: dataplaneRepo,
 	}
+
+	if os.Getenv("PRODUCT_MODE") == "apo" { // apo or syncause
+		if err := setupAPODataPlane(core.EmptyCtx(), dbRepo); err != nil {
+			log.Printf("init default apo data plane failed, err: %v", err)
+		}
+	}
+
+	return service
+}
+
+func setupAPODataPlane(ctx core.Context, dbRepo database.Repo) error {
+	// TODO check if apo has be deleted
+	dps, err := dbRepo.ListDataPlane(ctx)
+	if err != nil {
+		// list dp failed, skip init apo
+		return err
+	}
+
+	for _, v := range dps {
+		if v.Typ == "apo" {
+			return nil
+		}
+	}
+
+	return dbRepo.CreateDataPlane(ctx, &integration.DataPlane{
+		Name:   "APO",
+		Note:   "Auto created by APO Backend",
+		Typ:    "apo",
+		Params: "{}",
+		Capability: integration.JSONField[[]string]{
+			Obj: []string{"RedMetric", "ServiceInstance", "Topology", "Log", "Trace", "Metrics"},
+		},
+		IsDeleted: false,
+	})
 }
