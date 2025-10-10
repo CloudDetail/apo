@@ -3,9 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-
 // 通用样式
 .sidebarMenu {
+  flex: 1;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+
   :global(.ant-menu-sub .ant-menu-item) {
     white-space: nowrap !important;
     overflow: visible !important;
