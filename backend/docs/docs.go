@@ -873,6 +873,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alertinput/source/paramspec": {
+            "get": {
+                "description": "Obtain alarm source parameter configuration",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Obtain alarm source parameter configuration",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertProviderParamsSpecRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertProviderParamsSpecResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alertinput/source/update": {
             "post": {
                 "description": "UpdateAlertSource",
@@ -913,6 +959,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alertinput/source/webhook": {
+            "post": {
+                "description": "Install or update webhook",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Install or update webhook",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetupAlertProviderWebhookRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/alert/events": {
             "post": {
                 "description": "get alarm events",
@@ -929,6 +1021,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -936,6 +1029,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -1260,6 +1354,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1267,6 +1362,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1288,6 +1384,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -1344,6 +1441,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1351,6 +1449,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1358,6 +1457,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -1417,6 +1517,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1424,6 +1525,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1724,6 +1826,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1731,6 +1834,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1738,6 +1842,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
                         "in": "query",
@@ -3192,6 +3297,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
                         "in": "query"
@@ -3287,6 +3393,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
@@ -3353,6 +3460,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "data group's id",
                         "name": "groupId",
                         "in": "query",
@@ -3446,6 +3554,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "user's id",
                         "name": "userId",
                         "in": "query",
@@ -3783,6 +3892,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3790,6 +3900,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -3861,6 +3972,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -3868,6 +3980,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -3958,6 +4071,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3965,6 +4079,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4016,6 +4131,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4023,6 +4139,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4111,6 +4228,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4118,6 +4236,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4382,6 +4501,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4389,6 +4509,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4473,6 +4594,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4480,6 +4602,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -4528,6 +4651,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4535,6 +4659,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time",
                         "name": "endTime",
                         "in": "query",
@@ -4601,6 +4726,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4608,6 +4734,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -5054,6 +5181,50 @@ const docTemplate = `{
                     "API.integration"
                 ],
                 "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/integration/vars/:variable": {
+            "get": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.integration"
+                ],
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/integration.GetIntegrationVarRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -6184,6 +6355,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Start time, in microseconds",
                         "name": "startTime",
                         "in": "query",
@@ -6191,6 +6363,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "End time, in microseconds",
                         "name": "endTime",
                         "in": "query",
@@ -6280,6 +6453,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "query",
@@ -6424,6 +6598,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "formData",
@@ -6536,6 +6711,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
@@ -6698,6 +6874,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData"
@@ -6860,6 +7037,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "query",
@@ -6901,6 +7079,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -6908,6 +7087,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7010,6 +7190,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7017,6 +7198,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7104,6 +7286,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7111,6 +7294,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7132,6 +7316,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7191,6 +7376,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7198,6 +7384,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7219,6 +7406,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7284,6 +7472,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7291,6 +7480,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7344,12 +7534,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "data group id",
                         "name": "groupId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -7357,6 +7549,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -7364,6 +7557,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -7445,6 +7639,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7452,6 +7647,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7473,6 +7669,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7526,6 +7723,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7533,6 +7731,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7554,6 +7753,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -7610,6 +7810,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7617,6 +7818,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7656,6 +7858,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -7756,6 +7959,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7763,6 +7967,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7817,6 +8022,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7824,6 +8030,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7879,6 +8086,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7886,6 +8094,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7940,6 +8149,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7947,6 +8157,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -7954,6 +8165,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -8011,6 +8223,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8018,6 +8231,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8069,6 +8283,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8076,6 +8291,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8133,6 +8349,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8140,6 +8357,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8179,6 +8397,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -8225,6 +8444,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8232,6 +8452,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8253,6 +8474,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8312,6 +8534,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8319,6 +8542,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8363,6 +8587,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8370,6 +8595,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8377,6 +8603,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -8438,6 +8665,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -8445,6 +8673,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -8483,6 +8712,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8490,6 +8720,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8497,6 +8728,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8601,6 +8833,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8608,6 +8841,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8678,6 +8912,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8685,6 +8920,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8747,6 +8983,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8754,6 +8991,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8761,6 +8999,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "step",
                         "name": "step",
                         "in": "query",
@@ -8845,6 +9084,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "YoY Delay",
                         "name": "latency",
                         "in": "formData",
@@ -8852,6 +9092,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "YoY Error Rate",
                         "name": "errorRate",
                         "in": "formData",
@@ -8859,6 +9100,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "Number of requests compared with the same period last year",
                         "name": "tps",
                         "in": "formData",
@@ -8866,6 +9108,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "number",
+                        "format": "float64",
                         "description": "year-on-year log alarm",
                         "name": "log",
                         "in": "formData",
@@ -8907,6 +9150,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8914,6 +9158,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8928,6 +9173,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -8991,6 +9237,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8998,6 +9245,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -9068,6 +9316,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9075,6 +9324,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -9114,6 +9364,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process number",
                         "name": "pid",
                         "in": "query"
@@ -9160,6 +9411,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9167,6 +9419,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -9188,6 +9441,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
                         "in": "query",
@@ -9412,6 +9666,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -9420,7 +9675,8 @@ const docTemplate = `{
                     {
                         "type": "array",
                         "items": {
-                            "type": "integer"
+                            "type": "integer",
+                            "format": "int64"
                         },
                         "collectionFormat": "multi",
                         "description": "The list of team id.",
@@ -9512,6 +9768,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "query",
@@ -9559,6 +9816,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "formData",
@@ -9567,7 +9825,8 @@ const docTemplate = `{
                     {
                         "type": "array",
                         "items": {
-                            "type": "integer"
+                            "type": "integer",
+                            "format": "int64"
                         },
                         "collectionFormat": "multi",
                         "description": "The list of users' id.",
@@ -9620,6 +9879,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9627,6 +9887,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "thread id",
                         "name": "tid",
                         "in": "query",
@@ -9640,6 +9901,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -9647,6 +9909,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -9699,12 +9962,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Limit number of nodes",
                         "name": "maxNodes",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -9712,6 +9977,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -9719,6 +9985,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9814,6 +10081,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "start time, unit nanosecond",
                         "name": "startTime",
                         "in": "query",
@@ -9821,6 +10089,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "end time, unit nanosecond",
                         "name": "endTime",
                         "in": "query",
@@ -9828,6 +10097,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int32",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -9959,6 +10229,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9966,6 +10237,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -10360,6 +10632,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10398,6 +10671,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10457,6 +10731,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's is",
                         "name": "userId",
                         "in": "query",
@@ -10504,6 +10779,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10556,6 +10832,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10629,6 +10906,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10695,6 +10973,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10747,6 +11026,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10810,6 +11090,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
                         "in": "formData",
@@ -11131,6 +11412,15 @@ const docTemplate = `{
                         "$ref": "#/definitions/integration.Cluster"
                     }
                 },
+                "enabledPull": {
+                    "type": "boolean"
+                },
+                "lastPullMillTS": {
+                    "type": "integer"
+                },
+                "params": {
+                    "$ref": "#/definitions/integration.JSONField-alert_AlertSourceParams"
+                },
                 "sourceId": {
                     "type": "string"
                 },
@@ -11141,6 +11431,10 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "alert.AlertSourceParams": {
+            "type": "object",
+            "additionalProperties": {}
         },
         "alert.CheckSchemaIsUsedReponse": {
             "type": "object",
@@ -11805,7 +12099,8 @@ const docTemplate = `{
                 "metrics": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "mutatedValue": {
@@ -11933,9 +12228,8 @@ const docTemplate = `{
                 "rightType": {
                     "type": "string"
                 },
-                "type": {
-                    "description": "service or namespace",
-                    "type": "string"
+                "startTime": {
+                    "type": "integer"
                 }
             }
         },
@@ -11996,6 +12290,50 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "database.ServiceNameRuleCondition": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "matchType": {
+                    "type": "string"
+                },
+                "ruleId": {
+                    "type": "integer"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "datagroup.DataGroup": {
+            "type": "object",
+            "properties": {
+                "authType": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "The description of data group.",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "groupName": {
+                    "type": "string"
+                },
+                "parentGroupId": {
+                    "type": "integer"
+                },
+                "source": {
                     "type": "string"
                 }
             }
@@ -12527,6 +12865,18 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.GetIntegrationVarRequest": {
+            "type": "object",
+            "required": [
+                "variable"
+            ],
+            "properties": {
+                "variable": {
+                    "type": "string",
+                    "maxLength": 64
+                }
+            }
+        },
         "integration.HuaweiConfig": {
             "type": "object",
             "properties": {
@@ -12535,6 +12885,14 @@ const docTemplate = `{
                 },
                 "accessSecret": {
                     "type": "string"
+                }
+            }
+        },
+        "integration.JSONField-alert_AlertSourceParams": {
+            "type": "object",
+            "properties": {
+                "obj": {
+                    "$ref": "#/definitions/alert.AlertSourceParams"
                 }
             }
         },
@@ -12980,6 +13338,16 @@ const docTemplate = `{
                 "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
                 "AnormalTypeUnknown": "未定义的告警类型"
             },
+            "x-enum-descriptions": [
+                "未定义的告警类型",
+                "应用接口告警     =\u003e group=app",
+                "容器告警         =\u003e group=container",
+                "基础设施告警     =\u003e group=infra",
+                "网络告警         =\u003e group=net",
+                "错误事件告警 =\u003e 来自JavaException等",
+                "应用实例告警     =\u003e group=appInstance",
+                "数据库告警       =\u003e group=middleware"
+            ],
             "x-enum-varnames": [
                 "AnormalTypeUnknown",
                 "AnormalTypeAlertApp",
@@ -13279,6 +13647,10 @@ const docTemplate = `{
                     "description": "container ID",
                     "type": "string"
                 },
+                "namespace": {
+                    "description": "k8s namespace",
+                    "type": "string"
+                },
                 "nodeIp": {
                     "type": "string"
                 },
@@ -13331,6 +13703,7 @@ const docTemplate = `{
         },
         "model.SeverityLevel": {
             "type": "integer",
+            "format": "int32",
             "enum": [
                 0,
                 1,
@@ -13348,6 +13721,7 @@ const docTemplate = `{
         },
         "model.Status": {
             "type": "integer",
+            "format": "int32",
             "enum": [
                 0,
                 1
@@ -13511,6 +13885,68 @@ const docTemplate = `{
                 "value": {
                     "description": "value",
                     "type": "number"
+                }
+            }
+        },
+        "provider.JSONType": {
+            "type": "string",
+            "enum": [
+                "object",
+                "array",
+                "string",
+                "number",
+                "boolean",
+                "null"
+            ],
+            "x-enum-varnames": [
+                "JSONTypeObject",
+                "JSONTypeArray",
+                "JSONTypeString",
+                "JSONTypeNumber",
+                "JSONTypeBoolean",
+                "JSONTypeNull"
+            ]
+        },
+        "provider.ParamSpec": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/provider.ParamSpec"
+                    }
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "desc_en": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "$ref": "#/definitions/provider.JSONType"
+                }
+            }
+        },
+        "provider.ProviderType": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "paramSpec": {
+                    "$ref": "#/definitions/provider.ParamSpec"
+                },
+                "supportPull": {
+                    "type": "boolean"
+                },
+                "supportWebhookInstall": {
+                    "type": "boolean"
                 }
             }
         },
@@ -14298,6 +14734,14 @@ const docTemplate = `{
                 },
                 "refreshCache": {
                     "type": "boolean"
+                }
+            }
+        },
+        "request.GetAlertProviderParamsSpecRequest": {
+            "type": "object",
+            "properties": {
+                "sourceType": {
+                    "type": "string"
                 }
             }
         },
@@ -15161,6 +15605,17 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SetupAlertProviderWebhookRequest": {
+            "type": "object",
+            "properties": {
+                "sourceID": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "request.SpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -15400,7 +15855,8 @@ const docTemplate = `{
                 "counts": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "events": {
@@ -15540,7 +15996,8 @@ const docTemplate = `{
                 "anormalCounts": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "integer"
+                        "type": "integer",
+                        "format": "int64"
                     }
                 },
                 "endpoint": {
@@ -15682,7 +16139,8 @@ const docTemplate = `{
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -15831,6 +16289,20 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertProviderParamsSpecResponse": {
+            "type": "object",
+            "properties": {
+                "providerType": {
+                    "$ref": "#/definitions/provider.ProviderType"
+                },
+                "providerTypes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/provider.ProviderType"
+                    }
                 }
             }
         },
@@ -16327,21 +16799,24 @@ const docTemplate = `{
                     "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "logs": {
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -16695,21 +17170,24 @@ const docTemplate = `{
                     "description": "error rate",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "description": "delay P90",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "logs": {
                     "description": "log alarm",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "name": {
@@ -16942,6 +17420,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "instanceName": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "k8s namespace",
                     "type": "string"
                 },
                 "nodeIp": {
@@ -17654,19 +18136,22 @@ const docTemplate = `{
                 "errorRate": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "latency": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "tps": {
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 }
             }
@@ -17932,7 +18417,8 @@ const docTemplate = `{
                     "description": "ChartData chart data",
                     "type": "object",
                     "additionalProperties": {
-                        "type": "number"
+                        "type": "number",
+                        "format": "float64"
                     }
                 },
                 "ratio": {

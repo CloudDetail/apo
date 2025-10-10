@@ -176,42 +176,44 @@ func setApiRouter(r *resource) {
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
 
-	userApi := r.mux.Group("/api/user").Use(middlewares.LicMiddleware())
+	userApi := r.mux.Group("/api/user")
 	{
 		userHandler := user.New(r.logger, r.pkg_db, r.cache, r.dify)
 		userApi.POST("/login", userHandler.Login())
 		userApi.POST("/logout", userHandler.Logout())
 		userApi.GET("/refresh", userHandler.RefreshToken())
-		userApi.Use(middlewares.AuthMiddleware())
+		userApi.GET("/info", userHandler.GetUserInfo())
+		userApi.GET("/list", userHandler.GetUserList())
+		userApi.GET("/team", userHandler.GetUserTeam())
+		userApi.Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 		userApi.POST("/create", userHandler.CreateUser())
 		userApi.POST("/update/password", userHandler.UpdateUserPassword())
 		userApi.POST("/update/phone", userHandler.UpdateUserPhone())
 		userApi.POST("/update/email", userHandler.UpdateUserEmail())
 		userApi.POST("/update/info", userHandler.UpdateUserInfo())
 		userApi.POST("/update/self", userHandler.UpdateSelfInfo())
-		userApi.GET("/info", userHandler.GetUserInfo())
-		userApi.GET("/list", userHandler.GetUserList())
 		userApi.POST("/remove", userHandler.RemoveUser())
 		userApi.POST("/reset", userHandler.ResetPassword())
-		userApi.GET("/team", userHandler.GetUserTeam())
 	}
 
-	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
 	{
 		permissionHandler := permission.New(r.logger, r.pkg_db)
 		permissionApi.GET("/config", permissionHandler.GetUserConfig())
 		permissionApi.GET("/feature", permissionHandler.GetFeature())
+		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 		permissionApi.GET("/sub/feature", permissionHandler.GetSubjectFeature())
+		permissionApi.Use(middlewares.LicMiddleware())
 		permissionApi.POST("/operation", permissionHandler.PermissionOperation())
 		permissionApi.POST("/menu/configure", permissionHandler.ConfigureMenu())
-		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 	}
 
-	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
 	{
 		roleHandler := role.New(r.logger, r.pkg_db)
 		roleApi.GET("/roles", roleHandler.GetRole())
 		roleApi.GET("/user", roleHandler.GetUserRole())
+		roleApi.Use(middlewares.LicMiddleware())
 		roleApi.POST("/operation", roleHandler.RoleOperation())
 		roleApi.POST("/create", roleHandler.CreateRole())
 		roleApi.POST("/update", roleHandler.UpdateRole())
@@ -244,16 +246,17 @@ func setApiRouter(r *resource) {
 		dataApi.POST("/subs/operation", dataHandler.GroupSubsOperation())
 	}
 
-	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware())
 	{
 		teamHandler := team.New(r.logger, r.pkg_db)
+		teamApi.GET("", teamHandler.GetTeam())
+		teamApi.GET("/user", teamHandler.GetTeamUser())
+		teamApi.Use(middlewares.LicMiddleware())
 		teamApi.POST("/create", teamHandler.CreateTeam())
 		teamApi.POST("/update", teamHandler.UpdateTeam())
-		teamApi.GET("", teamHandler.GetTeam())
 		teamApi.POST("/delete", teamHandler.DeleteTeam())
 		teamApi.POST("/operation", teamHandler.TeamOperation())
 		teamApi.POST("/user/operation", teamHandler.TeamUserOperation())
-		teamApi.GET("/user", teamHandler.GetTeamUser())
 	}
 
 	k8sApi := r.mux.Group("/api/k8s").Use(middlewares.LicMiddleware())
