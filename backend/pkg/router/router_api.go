@@ -299,6 +299,7 @@ func setApiRouter(r *resource) {
 	{
 		handler := integration.New(r.pkg_db)
 		integrationAPI.GET("/configuration", handler.GetStaticIntegration())
+		integrationAPI.GET("/vars/:variable", handler.GetIntegrationVar())
 
 		integrationAPI.GET("/cluster/list", handler.ListCluster())
 		integrationAPI.GET("/cluster/get", handler.GetCluster())
