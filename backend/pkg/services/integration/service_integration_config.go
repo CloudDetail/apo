@@ -105,7 +105,7 @@ func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterInt
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
 		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values.yaml.tmpl", jsonObj)
-		fileName = "apo-one-agent-values.yaml"
+		fileName = "agent-values.yaml"
 	case integration.ClusterTypeVM:
 		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
 		fileName = "installCfg.sh"
@@ -130,7 +130,7 @@ func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.Clu
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
 		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values-minimal.yaml.tmpl", jsonObj)
-		fileName = "apo-one-agent-values.yaml"
+		fileName = "agent-values.yaml"
 	case integration.ClusterTypeVM:
 		err = dockerComposeTmpl.ExecuteTemplate(&buf, "cfg.env.tmpl", jsonObj)
 		fileName = "cfg.env"
@@ -195,13 +195,11 @@ func (s *service) convert2DeployValues(ci *integration.ClusterIntegration) (map[
 	}
 	jsonObj["_modes"] = modes
 
-	if ci.ClusterType == integration.ClusterTypeK8s {
-		jsonObj["_deploy_version"] = "v1.2.000"
-		jsonObj["_app_version"] = "v1.2.0"
-	} else {
-		jsonObj["_deploy_version"] = "v1.3.000"
-		jsonObj["_app_version"] = "v1.3.0"
-	}
+	// if ci.ClusterType == integration.ClusterTypeK8s {
+	// 	jsonObj["_app_version"] = "v1.2.0"
+	// } else {
+	// 	jsonObj["_app_version"] = "v1.3.0"
+	// }
 
 	jsonObj["_deploy_version"] = apoComposeDeployVersion
 	jsonObj["_chart_version"] = apoChartVersion
