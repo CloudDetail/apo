@@ -23,6 +23,10 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 		return nil, err
 	}
 
+	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
+		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
+	}
+
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
