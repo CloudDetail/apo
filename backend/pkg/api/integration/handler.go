@@ -15,6 +15,11 @@ type Handler interface {
 	// @Router /api/integration/configuration [get]
 	GetStaticIntegration() core.HandlerFunc
 
+	// GetIntegrationVar GetIntegrationVar
+	// @Tags API.integration
+	// @Router /api/integration/vars/:variable [get]
+	GetIntegrationVar() core.HandlerFunc
+
 	// ListCluster ListCluster
 	// @Tags API.integration
 	// @Router /api/integration/cluster/list [get]

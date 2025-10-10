@@ -23,7 +23,7 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 		return nil, err
 	}
 
-	jsonObj, err := convert2DeployValues(clusterConfig)
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}
