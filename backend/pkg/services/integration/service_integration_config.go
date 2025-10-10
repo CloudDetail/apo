@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
@@ -91,10 +92,10 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 	if clusterConfig.IsMinimal {
 		return s.getMinimalIntegrationConfigFile(clusterConfig)
 	}
-	return s.getIntegrationConfigFile(clusterConfig)
+	return s.getIntegrationConfigFile(ctx, clusterConfig)
 }
 
-func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+func (s *service) getIntegrationConfigFile(ctx core.Context, clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
@@ -104,10 +105,10 @@ func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterInt
 	var fileName string
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values.yaml.tmpl", jsonObj)
+		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "apo-one-agent-values.yaml.tmpl"), jsonObj)
 		fileName = "agent-values.yaml"
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "installCfg.sh.tmpl"), jsonObj)
 		fileName = "installCfg.sh"
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
@@ -117,6 +118,13 @@ func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterInt
 		FileName: fileName,
 		Content:  buf.Bytes(),
 	}, err
+}
+
+func tmplName(ctx core.Context, name string) string {
+	if ctx.LANG() == code.LANG_ZH {
+		return name + ".cn"
+	}
+	return name
 }
 
 func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
@@ -206,6 +214,7 @@ func (s *service) convert2DeployValues(ci *integration.ClusterIntegration) (map[
 	jsonObj["_cluster_id"] = ci.Cluster.ID
 	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
 	jsonObj["_base_url_"] = s.baseURL
+	jsonObj["_server_addr_"] = s.serverAddr
 
 	return jsonObj, nil
 }

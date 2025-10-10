@@ -27,7 +27,7 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 	}
 
 	if cluster.IsMinimal {
-		return s.getMinimalIntegrationInstallCmd(clusterConfig)
+		return s.getMinimalIntegrationInstallCmd(ctx, clusterConfig)
 	}
 
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
@@ -38,9 +38,9 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 	var buf bytes.Buffer
 	switch cluster.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
+		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install.md.tmpl"), jsonObj)
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install.md.tmpl"), jsonObj)
 	default:
 		return "", fmt.Errorf("unexpected clusterType: %s", cluster.ClusterType)
 	}
@@ -50,7 +50,7 @@ func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.Ge
 	return string(md), err
 }
 
-func (s *service) getMinimalIntegrationInstallCmd(clusterConfig *integration.ClusterIntegration) (string, error) {
+func (s *service) getMinimalIntegrationInstallCmd(ctx core.Context, clusterConfig *integration.ClusterIntegration) (string, error) {
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return "", fmt.Errorf("marshal config failed: %w", err)
@@ -59,9 +59,9 @@ func (s *service) getMinimalIntegrationInstallCmd(clusterConfig *integration.Clu
 	var buf bytes.Buffer
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, "install-cmd-minimal.tmpl", jsonObj)
+		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install-cmd-minimal.tmpl"), jsonObj)
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, "install-cmd-minimal.tmpl", jsonObj)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install-cmd-minimal.tmpl"), jsonObj)
 	default:
 		return "", fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
 	}

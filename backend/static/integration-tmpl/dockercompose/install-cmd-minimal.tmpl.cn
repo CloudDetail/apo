@@ -1,0 +1,8 @@
+# 安装命令
+## 传统服务器(Docker-Compose)环境
+通过一条命令在您的业务环境中安装 Syncause 数据 Agent，以采集来自传统服务的实时 eBPF 监控数据。
+### 网络策略
+请确认您的 Syncause 数据 Agent 运行环境能够连接到 {{ ._server_addr_ }}: 上的以下端口：
+30044、30310、30317、30319、30321、31363
+### 一键部署命令
+CONFIG_FILE_URL="http://{{ ._server_addr_ }}:32364/api/integration/cluster/install/config?clusterId={{ ._cluster_id }}" bash -c "$(curl -fsSL "https://syncause.s3.us-east-1.amazonaws.com/scripts-public/one-agent-deploy.sh")"
