@@ -5,6 +5,7 @@ package license
 
 import (
 	"errors"
+	"time"
 
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
@@ -24,6 +25,10 @@ func (s *service) GetLicenses() (response.GetLicenseResp, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	endTime := time.Now()
+	startTime := endTime.AddDate(0, 0, -1)
+	seatsCurrentlyInUse, _ := s.promRepo.GetNodesCount(startTime.UnixMicro(), endTime.UnixMicro())
 
 	resp := make([]response.LicenseResp, 0, len(licenses))
 	for _, lic := range licenses {
@@ -54,6 +59,8 @@ func (s *service) GetLicenses() (response.GetLicenseResp, error) {
 		}
 		licResp.ExpireAt = bLic.ActivatedAt + bLic.ExpireDuration
 		licResp.IssuedAt = bLic.IssuedAt
+		licResp.SeatsInLicense = bLic.MaxNodes
+		licResp.SeatsCurrentlyInUse = int(seatsCurrentlyInUse)
 
 		resp = append(resp, licResp)
 	}
@@ -93,6 +100,13 @@ func (s *service) GetCurrentLicense() (response.GetCurrentLicenseResp, error) {
 	licResp.LicenseID = bLic.LicenseID
 	expireAt := bLic.ActivatedAt + bLic.ExpireDuration
 	licResp.ExpireAt = expireAt
+	licResp.SeatsInLicense = bLic.MaxNodes
+	licResp.IssuedAt = bLic.IssuedAt
+
+	endTime := time.Now()
+	startTime := endTime.AddDate(0, 0, -1)
+	seatsCurrentlyInUse, _ := s.promRepo.GetNodesCount(startTime.UnixMicro(), endTime.UnixMicro())
+	licResp.SeatsCurrentlyInUse = int(seatsCurrentlyInUse)
 
 	if expire, err := bLic.CheckExpireDate(); err != nil && errors.Is(err, license.ErrLicenseNotActivated) {
 		licResp.Active = licenseStatusNotActivated
