@@ -18,10 +18,10 @@ func (Activation) TableName() string {
 
 type License struct {
 	gorm.Model
-	Token             string `gorm:"column:token;type:varchar(700)"`
-	SignPublicKey     string `gorm:"column:sign_public_key;type:varchar(600)"`
-	EncryptPublicKey  string `gorm:"column:encrypt_public_key;type:varchar(700)"`
-	DecryptPrivateKey string `gorm:"column:decrypt_private_key;type:varchar(2000)"`
+	Token             string `gorm:"column:token;type:text"`
+	SignPublicKey     string `gorm:"column:sign_public_key;type:text"`
+	EncryptPublicKey  string `gorm:"column:encrypt_public_key;type:text"`
+	DecryptPrivateKey string `gorm:"column:decrypt_private_key;type:text"`
 	Activated         bool   `gorm:"column:activated"`
 }
 
