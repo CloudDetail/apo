@@ -84,6 +84,10 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 		return nil, err
 	}
 
+	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
+		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
+	}
+
 	return s.getIntegrationConfigFile(clusterConfig)
 }
 
