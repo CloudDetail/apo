@@ -83,7 +83,9 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 func (m *middleware) checkFeature(path string) (has bool, err error) {
 	feature, ok := apiFeatureBlackList[path]
 	if !ok {
-		return true, nil
+		// feature为占位符，op场景下license包括所有功能，过期之后所有功能不可用
+		// FIXME 维护api与feature的映射
+		feature = "all"
 	}
 
 	return m.licenseService.CheckFeature(feature)

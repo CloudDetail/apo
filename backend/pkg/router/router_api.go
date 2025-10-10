@@ -32,7 +32,7 @@ import (
 func setApiRouter(r *resource) {
 	middlewares := middleware.New(r.cache, r.pkg_db, r.dify, r.prom, r.logger)
 
-	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
+	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		serviceOverviewHandler := serviceoverview.New(r.logger, r.ch, r.prom, r.pkg_db, r.k8sApi)
 		serviceApi.Any("/endpoints", serviceOverviewHandler.GetEndPointsData())
@@ -73,7 +73,7 @@ func setApiRouter(r *resource) {
 		serviceApi.POST("/redcharts", serviceHandler.GetServiceREDCharts())
 	}
 
-	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware())
+	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		logHandler := log.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom)
 		logApi.POST("/fault/pagelist", logHandler.GetFaultLogPageList())
@@ -100,7 +100,7 @@ func setApiRouter(r *resource) {
 		logApi.DELETE("/other/delete", logHandler.DeleteOtherTable())
 	}
 
-	traceApi := r.mux.Group("/api/trace")
+	traceApi := r.mux.Group("/api/trace").Use(middlewares.LicMiddleware())
 	{
 		traceHandler := trace.New(r.logger, r.pkg_db, r.ch, r.jaegerRepo, r.prom, r.k8sApi)
 		// These APIs are used by another project. DO NOT Auth.
@@ -115,7 +115,7 @@ func setApiRouter(r *resource) {
 		traceApi.GET("/info", traceHandler.GetSingleTraceInfo())
 	}
 
-	alertApi := r.mux.Group("/api/alerts")
+	alertApi := r.mux.Group("/api/alerts").Use(middlewares.LicMiddleware())
 	{
 		alertHandler := alerts.New(r.logger, r.ch, r.pkg_db, r.k8sApi, r.prom, r.dify, r.receivers)
 		alertApi.POST("/event/list", alertHandler.AlertEventList())
@@ -168,7 +168,7 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/filter/values", alertHandler.SearchAlertEventFilterValues())
 	}
 
-	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware())
+	configApi := r.mux.Group("/api/config").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		configHandler := config.New(r.logger, r.ch)
 		configApi.POST("/setTTL", configHandler.SetTTL())
@@ -176,7 +176,7 @@ func setApiRouter(r *resource) {
 		configApi.GET("/getTTL", configHandler.GetTTL())
 	}
 
-	userApi := r.mux.Group("/api/user")
+	userApi := r.mux.Group("/api/user").Use(middlewares.LicMiddleware())
 	{
 		userHandler := user.New(r.logger, r.pkg_db, r.cache, r.dify)
 		userApi.POST("/login", userHandler.Login())
@@ -196,7 +196,7 @@ func setApiRouter(r *resource) {
 		userApi.GET("/team", userHandler.GetUserTeam())
 	}
 
-	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware())
+	permissionApi := r.mux.Group("/api/permission").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		permissionHandler := permission.New(r.logger, r.pkg_db)
 		permissionApi.GET("/config", permissionHandler.GetUserConfig())
@@ -207,7 +207,7 @@ func setApiRouter(r *resource) {
 		permissionApi.GET("/router", permissionHandler.CheckRouterPermission())
 	}
 
-	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware())
+	roleApi := r.mux.Group("/api/role").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		roleHandler := role.New(r.logger, r.pkg_db)
 		roleApi.GET("/roles", roleHandler.GetRole())
@@ -218,8 +218,8 @@ func setApiRouter(r *resource) {
 		roleApi.POST("/delete", roleHandler.DeleteRole())
 	}
 
-	dataApi := r.mux.Group("/api/data").Use(middlewares.AuthMiddleware())
-	dataApiV2 := r.mux.Group("/api/v2/data").Use(middlewares.AuthMiddleware())
+	dataApi := r.mux.Group("/api/data").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	dataApiV2 := r.mux.Group("/api/v2/data").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		dataHandler := data.New(r.logger, r.pkg_db, r.prom, r.ch, r.k8sApi)
 		dataApiV2.GET("/group", dataHandler.GetDataGroupV2())
@@ -244,7 +244,7 @@ func setApiRouter(r *resource) {
 		dataApi.POST("/subs/operation", dataHandler.GroupSubsOperation())
 	}
 
-	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware())
+	teamApi := r.mux.Group("/api/team").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		teamHandler := team.New(r.logger, r.pkg_db)
 		teamApi.POST("/create", teamHandler.CreateTeam())
@@ -256,7 +256,7 @@ func setApiRouter(r *resource) {
 		teamApi.GET("/user", teamHandler.GetTeamUser())
 	}
 
-	k8sApi := r.mux.Group("/api/k8s")
+	k8sApi := r.mux.Group("/api/k8s").Use(middlewares.LicMiddleware())
 	{
 		k8sHandler := k8s.New(r.k8sApi)
 		// These APIs are used by another project. DO NOT Auth.
@@ -265,7 +265,7 @@ func setApiRouter(r *resource) {
 		k8sApi.GET("/pods", k8sHandler.GetPodList())
 		k8sApi.GET("/pod/info", k8sHandler.GetPodInfo())
 	}
-	networkApi := r.mux.Group("/api/network/")
+	networkApi := r.mux.Group("/api/network/").Use(middlewares.LicMiddleware())
 	{
 		handler := networkapi.New(r.logger, r.pkg_db, r.deepflowClickhouse, r.prom, r.k8sApi)
 		networkApi.GET("/podmap", handler.GetPodMap())
@@ -277,7 +277,7 @@ func setApiRouter(r *resource) {
 		handler := health.New()
 		healthApi.GET("", handler.HealthCheck())
 	}
-	customApi := r.mux.Group("/api/custom")
+	customApi := r.mux.Group("/api/custom").Use(middlewares.LicMiddleware())
 	{
 		handler := custom.New(r.logger, r.pkg_db)
 		customApi.POST("/create", handler.CreateCustomQuery())
@@ -286,7 +286,7 @@ func setApiRouter(r *resource) {
 		customApi.DELETE("/delete", handler.DeleteCustomQuery())
 	}
 
-	alertInputApi := r.mux.Group("/api/alertinput")
+	alertInputApi := r.mux.Group("/api/alertinput").Use(middlewares.LicMiddleware())
 	{
 		handler := alertinput.New(r.logger, r.ch, r.prom, r.pkg_db, r.dify)
 		alertInputApi.POST("/event/source", handler.SourceHandler())
@@ -321,7 +321,7 @@ func setApiRouter(r *resource) {
 		alertInputApi.POST("/source/enrich/default/set", handler.SetDefaultAlertEnrichRule())
 	}
 
-	integrationAPI := r.mux.Group("/api/integration")
+	integrationAPI := r.mux.Group("/api/integration").Use(middlewares.LicMiddleware())
 	{
 		handler := integration.New(r.pkg_db)
 		integrationAPI.GET("/configuration", handler.GetStaticIntegration())
@@ -338,7 +338,7 @@ func setApiRouter(r *resource) {
 		integrationAPI.GET("/adapter/update", handler.TriggerAdapterUpdate())
 	}
 
-	metricAPI := r.mux.Group("/api/metric")
+	metricAPI := r.mux.Group("/api/metric").Use(middlewares.LicMiddleware())
 	{
 		handler := metric.New(r.logger, r.prom)
 		metricAPI.GET("/list", handler.ListMetrics())
@@ -346,7 +346,7 @@ func setApiRouter(r *resource) {
 		metricAPI.POST("/queryPods", handler.QueryPods())
 	}
 
-	dataplaneAPI := r.mux.Group("/api/dataplane")
+	dataplaneAPI := r.mux.Group("/api/dataplane").Use(middlewares.LicMiddleware())
 	{
 		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db, r.dataplaneRepo)
 		dataplaneAPI.GET("/services", handler.QueryServices())
@@ -378,11 +378,10 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("datasources", handler.GetDatasources())
 		dataplaneAPI.GET("servicesWithInstances", handler.GetServiceWithInstances())
 	}
-	licenseApi := r.mux.Group("/api/license")
+	licenseApi := r.mux.Group("/api/license").Use(middlewares.AuthMiddleware())
 	{
 		licenseHandler := license.New(r.logger, r.prom, r.pkg_db)
 		licenseApi.POST("/upload", licenseHandler.UploadLicense())
-		licenseApi.Use(middlewares.LicMiddleware())
 		licenseApi.GET("", licenseHandler.GetLicenses())
 		licenseApi.GET("/current", licenseHandler.GetCurrentLicense())
 	}
