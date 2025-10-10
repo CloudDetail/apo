@@ -209,14 +209,28 @@ var enText = map[string]string{
 
 	GetAlertEventListError:     "Failed to get alert event list",
 	GetAlertEventClassifyError: "Failed to classify alert event list",
-	GetAlertEventReportError:   "Failed to get alert event report",
-	AddAlertEventReportError:   "Failed to add AlertEventReport",
+
+	UploadLicenseError:            "Failed to upload license",
+	GetLicenseError:               "Failed to get local license",
+	LicenseFeatureValidationError: "The feature you requested is not in the license",
+	ActivatedLicenseNotFound:      "Can not find local activated license",
+	ActivateLicenseFailed:         "Failed to active license",
+	LicenseCheckError:             "Failed to check license",
+	LicenseExpired:                "License has expired",
+	NoLicenseError:                "No local license detected, please upload your license",
+	GetAlertEventReportError:      "Failed to get alert event report",
+	AddAlertEventReportError:      "Failed to add AlertEventReport",
 
 	GetAlertSlienceError:    "Failed to get AlertSlience",
 	ListAlertSlienceError:   "Failed to list AlertSlience",
 	SetAlertSlienceError:    "Failed to set alertSlience",
 	RemoveAlertSlienceError: "Failed to remove alertSlience",
 	MarkAlertResolvedError:  "Failed to mark alertResourved",
+
+	UploadLogoError:     "Failed to upload logo",
+	GetLogoError:        "Failed to get logo",
+	LogoSizeExceedError: "Logo file size exceed 2M",
+	LogoTypeError:       "Unsupported logo type, please upload png/jpeg/svg/ico",
 
 	SearchAlertLabelFilterError: "Failed to search alert label filter",
 	SearchAlertFilterValueError: "Failed to search alert filter value",

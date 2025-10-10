@@ -726,8 +726,9 @@ definitions:
         type: string
       rightType:
         type: string
-      startTime:
-        type: integer
+      type:
+        description: service or namespace
+        type: string
     type: object
   database.InsertPage:
     properties:
@@ -766,35 +767,6 @@ definitions:
       routerId:
         type: integer
       to:
-        type: string
-    type: object
-  database.ServiceNameRuleCondition:
-    properties:
-      id:
-        type: integer
-      key:
-        type: string
-      matchType:
-        type: string
-      ruleId:
-        type: integer
-      value:
-        type: string
-    type: object
-  datagroup.DataGroup:
-    properties:
-      authType:
-        type: string
-      description:
-        description: The description of data group.
-        type: string
-      groupId:
-        type: integer
-      groupName:
-        type: string
-      parentGroupId:
-        type: integer
-      source:
         type: string
     type: object
   httpconfig.Authorization:
@@ -3430,6 +3402,25 @@ definitions:
       pagination:
         $ref: '#/definitions/model.Pagination'
     type: object
+  response.GetCurrentLicenseResp:
+    properties:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
+    type: object
   response.GetCustomResponse:
     properties:
       customs:
@@ -3734,6 +3725,15 @@ definitions:
       pid:
         description: process number
         type: integer
+    type: object
+  response.GetLogoResp:
+    properties:
+      logoImage:
+        items:
+          type: integer
+        type: array
+      logoText:
+        type: string
     type: object
   response.GetMetricPQLResponse:
     properties:
@@ -4160,6 +4160,25 @@ definitions:
       severity:
         description: Normal or Warning
         type: string
+    type: object
+  response.LicenseResp:
+    properties:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
     type: object
   response.ListAlertSlienceConfigResponse:
     properties:
@@ -6573,6 +6592,64 @@ paths:
       summary: GetTargetTags
       tags:
       - API.alertinput
+  /api/app/logo:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: gets logo
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetLogoResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: gets logo
+      tags:
+      - API.app
+  /api/app/upload:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: uploads logo
+      parameters:
+      - description: logoText
+        in: formData
+        name: logoText
+        required: true
+        type: string
+      - description: logoImage
+        in: formData
+        name: logoImage
+        required: true
+        type: file
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: uploads logo
+      tags:
+      - API.app
   /api/config/getTTL:
     get:
       consumes:
@@ -8160,6 +8237,85 @@ paths:
       summary: get all pod information
       tags:
       - API.k8s
+  /api/license:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get all license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LicenseResp'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get all license.
+      tags:
+      - API.license
+  /api/license/current:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get current license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetCurrentLicenseResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get current license.
+      tags:
+      - API.license
+  /api/license/upload:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: uploads your license, sign public key, decrypt key.
+      parameters:
+      - description: output json
+        in: formData
+        name: output
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: uploads your license, sign public key, decrypt key.
+      tags:
+      - API.license
   /api/log/chart:
     post:
       consumes:

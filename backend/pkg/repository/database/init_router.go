@@ -42,6 +42,7 @@ var validRouters = []Router{
 	{RouterTo: "/agent-dataplane", HideTimeSelector: true},
 	{RouterTo: "agent", HideTimeSelector: true},
 	{RouterTo: "probe-installer", HideTimeSelector: true},
+	{RouterTo: "/platform-manage", HideTimeSelector: true},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required

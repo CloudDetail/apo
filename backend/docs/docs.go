@@ -2705,6 +2705,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/app/logo": {
+            "get": {
+                "description": "gets logo",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.app"
+                ],
+                "summary": "gets logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetLogoResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/app/upload": {
+            "post": {
+                "description": "uploads logo",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.app"
+                ],
+                "summary": "uploads logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "logoText",
+                        "name": "logoText",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "logoImage",
+                        "name": "logoImage",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/config/getTTL": {
             "get": {
                 "description": "get TTL",
@@ -5112,6 +5200,127 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license": {
+            "get": {
+                "description": "get all license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get all license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/response.LicenseResp"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license/current": {
+            "get": {
+                "description": "get current license.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "get current license.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetCurrentLicenseResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/license/upload": {
+            "post": {
+                "description": "uploads your license, sign public key, decrypt key.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.license"
+                ],
+                "summary": "uploads your license, sign public key, decrypt key.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "output json",
+                        "name": "output",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
                         "schema": {
                             "type": "string"
                         }
@@ -11724,8 +11933,9 @@ const docTemplate = `{
                 "rightType": {
                     "type": "string"
                 },
-                "startTime": {
-                    "type": "integer"
+                "type": {
+                    "description": "service or namespace",
+                    "type": "string"
                 }
             }
         },
@@ -11786,50 +11996,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "to": {
-                    "type": "string"
-                }
-            }
-        },
-        "database.ServiceNameRuleCondition": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "matchType": {
-                    "type": "string"
-                },
-                "ruleId": {
-                    "type": "integer"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "datagroup.DataGroup": {
-            "type": "object",
-            "properties": {
-                "authType": {
-                    "type": "string"
-                },
-                "description": {
-                    "description": "The description of data group.",
-                    "type": "string"
-                },
-                "groupId": {
-                    "type": "integer"
-                },
-                "groupName": {
-                    "type": "string"
-                },
-                "parentGroupId": {
-                    "type": "integer"
-                },
-                "source": {
                     "type": "string"
                 }
             }
@@ -15715,6 +15881,35 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetCurrentLicenseResp": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.GetCustomResponse": {
             "type": "object",
             "properties": {
@@ -16160,6 +16355,20 @@ const docTemplate = `{
                 "pid": {
                     "description": "process number",
                     "type": "integer"
+                }
+            }
+        },
+        "response.GetLogoResp": {
+            "type": "object",
+            "properties": {
+                "logoImage": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "logoText": {
+                    "type": "string"
                 }
             }
         },
@@ -16802,6 +17011,35 @@ const docTemplate = `{
                 "severity": {
                     "description": "Normal or Warning",
                     "type": "string"
+                }
+            }
+        },
+        "response.LicenseResp": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "integer"
+                },
+                "expireAt": {
+                    "type": "integer"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "issuedAt": {
+                    "type": "integer"
+                },
+                "licenseId": {
+                    "type": "string"
+                },
+                "maxNodes": {
+                    "type": "integer"
+                },
+                "seatsCurrentlyInUse": {
+                    "type": "integer"
                 }
             }
         },

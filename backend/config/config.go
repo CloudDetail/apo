@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/metadata/configs"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -144,21 +145,32 @@ type MetadataSettings struct {
 }
 
 func Get() *Config {
-	if config == nil {
-		viper.SetConfigType("yaml")
-		configFile, found := os.LookupEnv("APO_CONFIG")
-		if !found {
-			configFile = "./config/apo.yml"
-		}
-		viper.SetConfigFile(configFile)
-		if err := viper.ReadInConfig(); err != nil {
-			panic(err)
-		}
-		if err := viper.Unmarshal(&config); err != nil {
-			panic(err)
-		}
+	if config != nil {
+		return config
 	}
+
+	getConfig()
+	viper.WatchConfig()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		getConfig()
+	})
+
 	return config
+}
+
+func getConfig() {
+	viper.SetConfigType("yaml")
+	configFile, found := os.LookupEnv("APO_CONFIG")
+	if !found {
+		configFile = "./config/apo.yml"
+	}
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
+	}
+	if err := viper.Unmarshal(&config); err != nil {
+		panic(err)
+	}
 }
 
 func GetCHCluster() string {

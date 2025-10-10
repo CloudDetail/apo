@@ -100,6 +100,8 @@ type Repo interface {
 	GetPodList(ctx core.Context, startTime int64, endTime int64, nodeName string, namespace string, podName string) ([]*model.Pod, error)
 
 	QueryWithPQLFilter
+
+	GetNodesCount(startTime int64, endTime int64) (int, error)
 }
 
 type promRepo struct {

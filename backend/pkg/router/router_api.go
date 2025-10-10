@@ -7,6 +7,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
+	"github.com/CloudDetail/apo/backend/pkg/api/app"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
@@ -14,6 +15,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
 	"github.com/CloudDetail/apo/backend/pkg/api/integration"
 	"github.com/CloudDetail/apo/backend/pkg/api/k8s"
+	"github.com/CloudDetail/apo/backend/pkg/api/license"
 	"github.com/CloudDetail/apo/backend/pkg/api/log"
 	"github.com/CloudDetail/apo/backend/pkg/api/metric"
 	networkapi "github.com/CloudDetail/apo/backend/pkg/api/network"
@@ -28,7 +30,7 @@ import (
 )
 
 func setApiRouter(r *resource) {
-	middlewares := middleware.New(r.cache, r.pkg_db, r.dify)
+	middlewares := middleware.New(r.cache, r.pkg_db, r.dify, r.prom, r.logger)
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware())
 	{
@@ -375,5 +377,20 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("/appinfo/tags/values", handler.QueryAPPInfoTagValues())
 		dataplaneAPI.GET("datasources", handler.GetDatasources())
 		dataplaneAPI.GET("servicesWithInstances", handler.GetServiceWithInstances())
+	}
+	licenseApi := r.mux.Group("/api/license")
+	{
+		licenseHandler := license.New(r.logger, r.prom, r.pkg_db)
+		licenseApi.POST("/upload", licenseHandler.UploadLicense())
+		licenseApi.Use(middlewares.LicMiddleware())
+		licenseApi.GET("", licenseHandler.GetLicenses())
+		licenseApi.GET("/current", licenseHandler.GetCurrentLicense())
+	}
+
+	appApi := r.mux.Group("/api/app").Use(middlewares.AuthMiddleware())
+	{
+		appHandler := app.New(r.pkg_db)
+		appApi.POST("/upload", middlewares.LicMiddleware(), appHandler.UploadLogo())
+		appApi.GET("/logo", appHandler.GetLogo())
 	}
 }

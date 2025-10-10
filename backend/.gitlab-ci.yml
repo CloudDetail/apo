@@ -24,7 +24,7 @@ build:
       TAG_NAME=$TAG
     fi
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
   - docker rmi $HARBOR_IMAGE_REPO:$TAG_NAME
@@ -41,7 +41,15 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  artifacts:
+    reports:
+      dotenv: build.env
+
+push_local:
+  stage: push-image
+  script:
+  - echo "TAG_NAME=$TAG_NAME"
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
   - docker rmi $HARBOR_IMAGE_REPO:$TAG_NAME

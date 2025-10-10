@@ -61,9 +61,10 @@ type Context interface {
 	// tag: `uri:"xxx"`
 	ShouldBindURI(obj interface{}) error
 
+	ShouldBindMultiPartForm(obj interface{}) error
+
 	Param(key string) string
 
-	// Payload returned correctly
 	GetMethodPath() (method string, path string)
 
 	// Payload 正确返回
@@ -108,6 +109,8 @@ type Context interface {
 
 	ErrMessage(errCode string) string
 
+	GetWriter() http.ResponseWriter
+
 	Clone() Context
 
 	Done() <-chan struct{}
@@ -149,6 +152,10 @@ func (c *context) ShouldBindJSON(obj interface{}) error {
 // tag: `uri:"xxx"`
 func (c *context) ShouldBindURI(obj interface{}) error {
 	return c.ctx.ShouldBindUri(obj)
+}
+
+func (c *context) ShouldBindMultiPartForm(obj interface{}) error {
+	return c.ctx.ShouldBindWith(obj, binding.FormMultipart)
 }
 
 func (c *context) Param(key string) string {
@@ -282,6 +289,10 @@ func (c *context) LANG() string {
 
 func (c *context) ErrMessage(errCode string) string {
 	return code.Text(c.LANG(), errCode)
+}
+
+func (c *context) GetWriter() http.ResponseWriter {
+	return c.ctx.Writer
 }
 
 func (c *context) UserID() int64 {

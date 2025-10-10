@@ -17,8 +17,10 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/logger"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/app"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/integration"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/license"
 
 	mi "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"go.uber.org/zap"
@@ -181,6 +183,8 @@ type Repo interface {
 	integration.ObservabilityInputManage
 	DaoDataScope
 	DaoDataGroupNew
+	license.LicenseRepo
+	app.AppRepo
 }
 
 type daoRepo struct {
@@ -188,6 +192,8 @@ type daoRepo struct {
 	sqlDB *sql.DB
 
 	integration.ObservabilityInputManage
+	license.LicenseRepo
+	app.AppRepo
 }
 
 // Connect to connect to the database
@@ -287,6 +293,14 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 
 	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(database, globalCfg); err != nil {
+		return nil, err
+	}
+
+	if daoRepo.LicenseRepo, err = license.NewLicenseRepo(database); err != nil {
+		return nil, err
+	}
+
+	if daoRepo.AppRepo, err = app.NewAppRepo(database); err != nil {
 		return nil, err
 	}
 
