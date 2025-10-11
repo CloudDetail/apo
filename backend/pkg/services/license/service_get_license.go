@@ -102,6 +102,7 @@ func (s *service) GetCurrentLicense() (response.GetCurrentLicenseResp, error) {
 	licResp.ExpireAt = expireAt
 	licResp.SeatsInLicense = bLic.MaxNodes
 	licResp.IssuedAt = bLic.IssuedAt
+	licResp.Type = bLic.Type
 
 	endTime := time.Now()
 	startTime := endTime.AddDate(0, 0, -1)

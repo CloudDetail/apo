@@ -4,6 +4,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -55,9 +56,7 @@ func (m *middleware) LicMiddleware() core.HandlerFunc {
 
 		activation, err := m.licenseService.GetActivation()
 		if activation.Mode == "private" {
-			c.AbortWithError(
-				http.StatusBadRequest, code.LicenseExpired, err,
-			)
+			log.Println("your license has been expired")
 			return
 		}
 

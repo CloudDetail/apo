@@ -12,6 +12,7 @@ type LicenseResp struct {
 	SeatsCurrentlyInUse int      `json:"seatsCurrentlyInUse"`
 	SeatsInLicense      int      `json:"seatsInLicense"`
 	IssuedAt            int64    `json:"issuedAt"`
+	Type                string   `json:"type"`
 }
 
 type GetLicenseResp []LicenseResp
