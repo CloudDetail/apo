@@ -33,7 +33,7 @@ const UnitedLayout = () => {
               <Button
                 size="small"
                 type="link"
-                onClick={() => navigate('/pro/licenseManage')}
+                onClick={() => navigate('/system/platform-manage')}
               >
                 {t('common:licenseStatus.goToManage')}
               </Button>
@@ -52,7 +52,7 @@ const UnitedLayout = () => {
               <Button
                 size="small"
                 type="link"
-                onClick={() => navigate('/pro/licenseManage')}
+                onClick={() => navigate('/system/platform-manage')}
               >
                 {t('common:licenseStatus.goToManage')}
               </Button>
@@ -71,7 +71,7 @@ const UnitedLayout = () => {
               <Button
                 size="small"
                 type="link"
-                onClick={() => navigate('/pro/licenseManage')}
+                onClick={() => navigate('/system/platform-manage')}
               >
                 {t('common:licenseStatus.goToManage')}
               </Button>
