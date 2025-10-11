@@ -10,6 +10,7 @@ const ServiceHealthy = React.lazy(() => import('src/pro/views/serviceHealthy/ind
 const MysqlDashboard = React.lazy(() => import('src/pro/views/MysqlDashboard/index'))
 const ChatAIPage = React.lazy(() => import('src/pro/views/chatAI/index'))
 const SlowReportPage = React.lazy(() => import('src/pro/views/report/index'))
+const PlatformManage = React.lazy(() => import('src/pro/views/platformManage/index'))
 
 let proRoutes = [
   {
@@ -55,6 +56,11 @@ let proRoutes = [
     name: t('pro/routes:causeReport'),
     element: SlowReportPage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/platform-manage',
+    name: t('pro/routes:licenseManage'),
+    element: PlatformManage
   },
   // {
   //   path: '/report/error',

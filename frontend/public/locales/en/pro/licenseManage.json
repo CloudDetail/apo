@@ -1,0 +1,108 @@
+{
+  "index": {
+    "manage": "Manage",
+    "delete": "Delete",
+    "expired": "Expired",
+    "enterpriseLicense": "APO Enterprise Edition Ultimate",
+    "trialLicense": "APO Enterprise Edition License",
+    "licenseManage": "License"
+  },
+  "upload": {
+    "title": "Upload your license",
+    "hint1": "Your license key is a .lic file with a signature attached.",
+    "hint2": "Uploading a license will replace your",
+    "hint3": " current ",
+    "hint4": "license.",
+    "success": "License uploaded successfully!",
+    "warn": "Please enter the license text or upload the license file",
+    "error": "Only .lic files can be uploaded!",
+    "readFileSuccess": "License file is successfully read!",
+    "readFileError": "Failed to read the license file!",
+    "placeHolder": "Please paste the license text or upload the license file...",
+    "cancel": "Cancel",
+    "confirm": "Upload",
+    "uploadFile": "Upload .lic file"
+  },
+  "trial": {
+    "title": "Start your free 30-day trial",
+    "description1": "This trial is for the full set of advanced features of the APO.",
+    "description2_part1": "For now, to obtain a trial license, please contact us via:",
+    "phone": "Phone: ",
+    "email": "Email: ",
+    "cancel": "Cancel",
+    "start": "Start my trial"
+  },
+  "activeStatus": {
+    "0": "Not Activated",
+    "1": "Activated",
+    "2": "Expired",
+    "-1": "Invalid License"
+  },
+  "error": {
+    "fetch": "Failed to fetch license information"
+  },
+  "mode": {
+    "public": "Public Deployment",
+    "private": "Private Deployment"
+  },
+  "licenseInfo": {
+    "trial": "Trial",
+    "remain": "{{days}} days remaining"
+  },
+  "feature": {
+    "index": "Feature",
+    "activeStatus": "Activation status",
+    "active": "active",
+    "inactive": "inactive",
+    "seatsInLicense": "Seats in license",
+    "seatsCurrentlyInUse": "License machine usage",
+    "maxNodes": "Max Prob Nodes"
+  },
+  "validity": {
+    "index": "Validity",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "duration": "Duration",
+    "days": "days",
+    "permanent": "Permanent"
+  },
+  "metaData": {
+    "index": "MetaData",
+    "appId": "App ID",
+    "license": "License",
+    "version": "Version"
+  },
+  "noLicense": {
+    "title": "No valid license detected",
+    "description": "Please upload a license file or start a trial to unlock enterprise features",
+    "upload": "Upload License",
+    "trial": "Start Trial",
+    "dismiss": "Dismiss"
+  },
+  "trialExpired": {
+    "title": "Your trial license has expired",
+    "description": "Your free trial expired on {{date}}. Please renew your license to continue using enterprise features",
+    "renew": "Renew Now",
+    "dismiss": "Dismiss"
+  },
+  "enterpriseExpired": {
+    "title": "Your enterprise license has expired",
+    "description": "Your enterprise license expired on {{date}}. Please renew your license to avoid feature limitations",
+    "renew": "Renew Now",
+    "dismiss": "Dismiss"
+  },
+  "UnlicensedCard": {
+    "title": "You have no license currently",
+    "upload": {
+      "title": "Upload your license",
+      "description": "If you already have a license, upload it now.",
+      "button": "Upload license"
+    },
+    "trial": {
+      "title": "Start a 30-day trial",
+      "description": "Experience all our advanced features. For now, to obtain a trial license, please contact us via {{phone}} or {{email}}.",
+      "button": "Start trial"
+    },
+    "fetchError": "Error notification"
+  }
+}

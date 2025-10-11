@@ -27,6 +27,8 @@ const proNsList = [
   'serviceAnalyze',
   'constant',
   'routes',
+  'platformManage',
+  'licenseManage',
 ]
 const getNsList = (folder, nsList) => {
   return nsList.map((ns) => `${folder}/${ns}`)

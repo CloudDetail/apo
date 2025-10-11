@@ -5,5 +5,6 @@
   "mysqlDashboard": "MySQL大盘",
   "serviceHealth": "服务健康状态",
   "aiRootCauseAnalysis": "大模型根因分析",
-  "free": "公测"
+  "free": "公测",
+  "licenseManage": "许可证"
 }

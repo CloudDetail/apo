@@ -81,5 +81,12 @@
     "unitsText": "个",
     "DailyYoYText": "日同比",
     "WeeklyYoYText": "周同比"
+  },
+  "licenseStatus": {
+    "inactive": "系统未激活，请上传 License 文件进行激活",
+    "active": "License 已激活",
+    "expired": "License 已过期，请更新 License 文件",
+    "invalid": "License 无效，请上传有效的 License 文件",
+    "goToManage": "前往管理"
   }
 }
