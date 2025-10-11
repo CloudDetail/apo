@@ -3,8 +3,8 @@
     "manage": "Manage",
     "delete": "Delete",
     "expired": "Expired",
-    "enterpriseLicense": "APO Enterprise Edition Ultimate",
-    "trialLicense": "APO Enterprise Edition License",
+    "enterpriseLicense": "Enterprise Edition Ultimate",
+    "trialLicense": "Enterprise Edition License",
     "licenseManage": "License"
   },
   "upload": {
@@ -25,7 +25,7 @@
   },
   "trial": {
     "title": "Start your free 30-day trial",
-    "description1": "This trial is for the full set of advanced features of the APO.",
+    "description1": "This trial is for the full set of advanced features of the .",
     "description2_part1": "For now, to obtain a trial license, please contact us via:",
     "phone": "Phone: ",
     "email": "Email: ",

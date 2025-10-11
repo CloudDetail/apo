@@ -57,11 +57,11 @@ let proRoutes = [
     element: SlowReportPage,
     hideSystemTimeRangePicker: true,
   },
-  {
-    path: '/system/platform-manage',
-    name: t('pro/routes:licenseManage'),
-    element: PlatformManage
-  },
+  // {
+  //   path: '/system/platform-manage',
+  //   name: t('pro/routes:licenseManage'),
+  //   element: PlatformManage
+  // },
   // {
   //   path: '/report/error',
   //   name: <TranslationCom text="errorReport" space={namespace} />,

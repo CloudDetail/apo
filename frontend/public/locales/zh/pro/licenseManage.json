@@ -3,8 +3,8 @@
     "manage": "管理",
     "delete": "删除",
     "expired": "已过期",
-    "enterpriseLicense": "APO企业版旗舰许可证",
-    "trialLicense": "APO企业版许可证",
+    "enterpriseLicense": "企业版许可证",
+    "trialLicense": "企业版许可证",
     "licenseManage": "许可证"
   },
   "upload": {
@@ -25,7 +25,7 @@
   },
   "trial": {
     "title": "开始 30 天免费试用",
-    "description1": "本次试用包含 APO 的所有高级功能。",
+    "description1": "本次试用包含  的所有高级功能。",
     "description2_part1": "目前，如需获取试用授权许可，请通过以下方式联系我们：",
     "phone": "电话：",
     "email": "邮箱：",
