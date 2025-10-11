@@ -45,6 +45,15 @@ func (s *service) UploadLicense(req *request.UploadLicenseRequest) error {
 		return nil
 	}
 
+	expired, err := bLic.CheckExpireDate()
+	if err != nil {
+		return err
+	}
+
+	if expired {
+		return core.Error(code.LicenseExpired, "License has expired")
+	}
+
 	activations, err := s.dbRepo.GetActivations()
 	if err != nil {
 		return err
