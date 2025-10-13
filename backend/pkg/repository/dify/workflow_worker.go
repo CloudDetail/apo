@@ -198,12 +198,12 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		inputStr, err := json.Marshal(param)
 		if err != nil {
 			w.logger.Info("failed to marshal workflow params", zap.Error(err))
-			record.AnalyzeErr = err.Error()
+			record.AnalyzeErr = "workflow execution failed due to error params"
 			record.AlertDirection = ""
 		} else {
 			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
 			if err != nil {
-				record.AnalyzeErr = err.Error()
+				record.AnalyzeErr = "workflow execution failed due to API call failure"
 				record.AlertDirection = ""
 			} else {
 				record.AnalyzeRunID = resp.WorkflowRunID()
