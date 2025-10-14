@@ -49,6 +49,18 @@ func (t *RawTags) Put(key any, value any) {
 	(*t)[strKey] = value
 }
 
+func (t *RawTags) Clone() RawTags {
+	if t == nil {
+		return nil
+	}
+
+	clone := make(RawTags, len(*t))
+	for k, v := range *t {
+		clone[k] = v
+	}
+	return clone
+}
+
 func (t *RawTags) Keys() <-chan any {
 	ch := make(chan any)
 
