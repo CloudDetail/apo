@@ -47,6 +47,8 @@ var enText = map[string]string{
 	GetLogTableInfoError:    "Failed to get log table info",
 	GetLogParseRuleError:    "Failed to get log parse rule",
 	UpdateLogParseRuleError: "Failed to update log parse rule",
+	AddLogParseRuleError:    "Failed to add log parse rule",
+	DeleteLogParseRuleError: "Failed to delete log parse rule",
 
 	GetTracePageListError:    "Failed to get trace pagelist",
 	GetTraceFiltersError:     "Failed to get trace filters",

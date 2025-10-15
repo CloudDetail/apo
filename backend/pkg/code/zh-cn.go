@@ -46,6 +46,8 @@ var zhCnText = map[string]string{
 	GetLogTableInfoError:    "获取日志表信息失败",
 	GetLogParseRuleError:    "获取日志表解析规则失败",
 	UpdateLogParseRuleError: "更新日志表解析规则失败",
+	AddLogParseRuleError:    "添加日志表解析规则失败",
+	DeleteLogParseRuleError: "删除日志表解析规则失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",
