@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	TEMPLATE_GET_PODS_BY_FILTER = `group by(node_name, namespace, pod) (increase(originx_thread_polaris_nanoseconds_count{%s}[%s])> 0)`
+	TEMPLATE_GET_PODS_BY_FILTER = `group by(node_name, namespace, pod, pid) (increase(originx_thread_polaris_nanoseconds_count{%s}[%s])> 0)`
 )
 
 func (repo *promRepo) GetPodList(ctx core.Context, startTime int64, endTime int64, nodeName string, namespace string, podName string) ([]*model.Pod, error) {
@@ -51,17 +51,41 @@ func (repo *promRepo) GetPodList(ctx core.Context, startTime int64, endTime int6
 		return nil, fmt.Errorf("unexpected type %T, expected model.Vector", value)
 	}
 
-	result := make([]*model.Pod, 0)
+	resultMap := make(map[_podKey]*model.Pod, 0)
 	for _, sample := range vector {
 		nodeName := string(sample.Metric["node_name"])
 		namespace := string(sample.Metric["namespace"])
 		pod := string(sample.Metric["pod"])
 
-		result = append(result, &model.Pod{
+		podKey := _podKey{
 			NodeName:  nodeName,
 			Namespace: namespace,
 			Pod:       pod,
-		})
+		}
+
+		if pod, find := resultMap[podKey]; find {
+			pod.Pids = append(pod.Pids, string(sample.Metric["pid"]))
+			continue
+		}
+
+		resultMap[podKey] = &model.Pod{
+			NodeName:  nodeName,
+			Namespace: namespace,
+			Pod:       pod,
+			Pids:      []string{string(sample.Metric["pid"])},
+		}
 	}
+
+	result := make([]*model.Pod, 0)
+	for _, pod := range resultMap {
+		result = append(result, pod)
+	}
+
 	return result, nil
+}
+
+type _podKey struct {
+	NodeName  string
+	Namespace string
+	Pod       string
 }
