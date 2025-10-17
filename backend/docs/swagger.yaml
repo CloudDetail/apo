@@ -1155,6 +1155,13 @@ definitions:
       typeName:
         type: string
     type: object
+  integration.DataplaneWithName:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
   integration.ElasticConfig:
     properties:
       address:
@@ -1347,6 +1354,33 @@ definitions:
       user:
         type: string
     type: object
+  integration.TelemetryCapability:
+    properties:
+      enabled:
+        type: boolean
+      sources:
+        items:
+          $ref: '#/definitions/integration.DataplaneWithName'
+        type: array
+      type:
+        $ref: '#/definitions/integration.TelemetryType'
+    type: object
+  integration.TelemetryType:
+    enum:
+    - Metrics
+    - Log
+    - Trace
+    - RedMetric
+    - Topology
+    - ServiceInstance
+    type: string
+    x-enum-varnames:
+    - TelemetryMetrics
+    - TelemetryLogs
+    - TelemetryTraces
+    - TelemetryRedMetric
+    - TelemetryTopology
+    - TelemetryServiceInstance
   integration.TraceAPI:
     properties:
       arms:
@@ -1669,6 +1703,10 @@ definitions:
         type: string
       nodeName:
         type: string
+      pids:
+        items:
+          type: string
+        type: array
       pod:
         type: string
     type: object
@@ -3796,6 +3834,13 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetIntegratedCapabilitiesResponse:
+    properties:
+      totalSupported:
+        items:
+          $ref: '#/definitions/integration.TelemetryCapability'
+        type: array
     type: object
   response.GetK8sEventsResponse:
     properties:
@@ -7302,6 +7347,30 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get app info tag values.
+      tags:
+      - API.dataplane
+  /api/dataplane/capabilities:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get intergrated dataplane capabilities.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetIntegratedCapabilitiesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get intergrated dataplane capabilities.
       tags:
       - API.dataplane
   /api/dataplane/checkDataSource:

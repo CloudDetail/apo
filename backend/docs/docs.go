@@ -3633,6 +3633,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/capabilities": {
+            "get": {
+                "description": "Get intergrated dataplane capabilities.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get intergrated dataplane capabilities.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetIntegratedCapabilitiesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/checkDataSource": {
             "post": {
                 "description": "check datasource is valid.",
@@ -12657,6 +12694,17 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.DataplaneWithName": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "integration.ElasticConfig": {
             "type": "object",
             "properties": {
@@ -12950,6 +12998,42 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "integration.TelemetryCapability": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataplaneWithName"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/integration.TelemetryType"
+                }
+            }
+        },
+        "integration.TelemetryType": {
+            "type": "string",
+            "enum": [
+                "Metrics",
+                "Log",
+                "Trace",
+                "RedMetric",
+                "Topology",
+                "ServiceInstance"
+            ],
+            "x-enum-varnames": [
+                "TelemetryMetrics",
+                "TelemetryLogs",
+                "TelemetryTraces",
+                "TelemetryRedMetric",
+                "TelemetryTopology",
+                "TelemetryServiceInstance"
+            ]
         },
         "integration.TraceAPI": {
             "type": "object",
@@ -13413,6 +13497,12 @@ const docTemplate = `{
                 },
                 "nodeName": {
                     "type": "string"
+                },
+                "pids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "pod": {
                     "type": "string"
@@ -16563,6 +16653,17 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetIntegratedCapabilitiesResponse": {
+            "type": "object",
+            "properties": {
+                "totalSupported": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.TelemetryCapability"
                     }
                 }
             }

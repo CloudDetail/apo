@@ -234,14 +234,15 @@ var zhCnText = map[string]string{
 	QueryAPPInfoTagsError:         "查询APP信息标签失败",
 	QueryAPPInfoValuesError:       "查询APP信息值失败",
 
-	CreateDataPlaneError:         "创建数据平面失败",
-	DeleteDataPlaneError:         "删除数据平面失败",
-	ListDataPlaneError:           "列出数据平面失败",
-	ListDataPlaneTypeError:       "列出数据平面类型失败",
-	UpdateDataPlaneError:         "更新数据平面失败",
-	GetDatasourcesError:          "获取数据源信息失败",
-	GetServiceWithInstancesError: "获取监控服务失败",
-	CleanRelateServiceError:      "清空关联服务名失败",
+	CreateDataPlaneError:           "创建数据平面失败",
+	DeleteDataPlaneError:           "删除数据平面失败",
+	ListDataPlaneError:             "列出数据平面失败",
+	ListDataPlaneTypeError:         "列出数据平面类型失败",
+	UpdateDataPlaneError:           "更新数据平面失败",
+	GetDatasourcesError:            "获取数据源信息失败",
+	GetServiceWithInstancesError:   "获取监控服务失败",
+	CleanRelateServiceError:        "清空关联服务名失败",
+	GetIntegratedCapabilitiesError: "获取集成能力失败",
 
 	QueryPodsError: "获取Pod列表失败",
 }

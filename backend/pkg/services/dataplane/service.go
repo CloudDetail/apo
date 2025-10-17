@@ -45,6 +45,7 @@ type Service interface {
 	DPService
 	GetDatasources(ctx core.Context, req *request.GetDatasourcesRequest) (response.GetDatasourcesResponse, error)
 	GetServiceWithInstances(ctx core.Context, req *request.GetServiceWithInstancesRequest) (response.GetServiceWithInstancesResponse, error)
+	GetIntegratedCapabilities(ctx core.Context) (*response.GetIntegratedCapabilitiesResponse, error)
 }
 
 type service struct {

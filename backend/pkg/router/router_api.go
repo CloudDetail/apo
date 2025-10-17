@@ -381,5 +381,6 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("/appinfo/tags/values", handler.QueryAPPInfoTagValues())
 		dataplaneAPI.GET("datasources", handler.GetDatasources())
 		dataplaneAPI.GET("servicesWithInstances", handler.GetServiceWithInstances())
+		dataplaneAPI.GET("capabilities", handler.GetIntegratedCapabilities())
 	}
 }

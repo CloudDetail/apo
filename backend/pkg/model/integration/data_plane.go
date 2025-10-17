@@ -10,6 +10,26 @@ import (
 	"time"
 )
 
+type TelemetryType string
+
+const (
+	TelemetryMetrics         TelemetryType = "Metrics"
+	TelemetryLogs            TelemetryType = "Log"
+	TelemetryTraces          TelemetryType = "Trace"
+	TelemetryRedMetric       TelemetryType = "RedMetric"
+	TelemetryTopology        TelemetryType = "Topology"
+	TelemetryServiceInstance TelemetryType = "ServiceInstance"
+)
+
+var AllTelemetryTypes = []TelemetryType{
+	TelemetryMetrics,
+	TelemetryLogs,
+	TelemetryTraces,
+	TelemetryRedMetric,
+	TelemetryTopology,
+	TelemetryServiceInstance,
+}
+
 type DataPlane struct {
 	ID   int    `gorm:"id;primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"name" json:"name"`
@@ -65,4 +85,15 @@ func (d *DataPlaneWithType) CheckInvalid() error {
 type Cluster2DataPlane struct {
 	ClusterID   string `gorm:"cluster_id;primary_key" json:"clusterId"`
 	DataPlaneID int    `gorm:"data_plane_id;primary_key" json:"dataPlaneId"`
+}
+
+type DataplaneWithName struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+}
+
+type TelemetryCapability struct {
+	Type    TelemetryType       `json:"type"`
+	Enabled bool                `json:"enabled"`
+	Sources []DataplaneWithName `json:"sources"`
 }

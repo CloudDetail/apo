@@ -128,3 +128,7 @@ type ServiceWithInstances struct {
 	model.Service `json:",inline"`
 	Instances     []InstanceWithSource `json:"instances"`
 }
+
+type GetIntegratedCapabilitiesResponse struct {
+	TotalSupported []integration.TelemetryCapability `json:"totalSupported"`
+}
