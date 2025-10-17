@@ -93,7 +93,8 @@ type DataplaneWithName struct {
 }
 
 type TelemetryCapability struct {
-	Type    TelemetryType       `json:"type"`
-	Enabled bool                `json:"enabled"`
-	Sources []DataplaneWithName `json:"sources"`
+	Type        TelemetryType       `json:"type"`
+	Enabled     bool                `json:"enabled"`
+	Description string              `json:"description"`
+	Sources     []DataplaneWithName `json:"sources"`
 }
