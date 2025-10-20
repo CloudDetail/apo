@@ -83,5 +83,12 @@
     "DailyYoYText": "DailyYoY",
     "WeeklyYoYText": "WeeklyYoY"
   },
+  "licenseStatus": {
+    "inactive": "System is not activated, please upload a License file",
+    "active": "License activated",
+    "expired": "License has expired, please update License file",
+    "invalid": "License is invalid, please upload a valid License file",
+    "goToManage": "Go to Manage"
+  },
   "search": "Search"
 }

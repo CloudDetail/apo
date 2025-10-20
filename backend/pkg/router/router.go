@@ -94,7 +94,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new promethues err", zap.Error(err))
 	}
 	r.prom = promRepo
-
 	// Initialize PolarisAnalyzer
 	polRepo, err := polarisanalyzer.New()
 	if err != nil {

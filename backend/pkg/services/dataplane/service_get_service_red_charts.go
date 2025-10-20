@@ -25,6 +25,7 @@ const (
 type ServiceMap = prometheus.MetricGroupMap[prometheus.ServiceKey, *prometheus.ServiceMetrics]
 
 func (s *service) GetServiceRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse {
+	req.StartTime = util.RoundDownToMinute(req.StartTime)
 	stepMicros := getStepMicros(req.EndTime - req.StartTime)
 	startBucket := req.StartTime / stepMicros
 	endBucket := req.EndTime / stepMicros

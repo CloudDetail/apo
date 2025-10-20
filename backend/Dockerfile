@@ -2,7 +2,17 @@ FROM golang:1.23.8-bookworm AS builder
 LABEL authors="apo"
 WORKDIR /build
 
+ARG PMODULE_HOST=''
+ARG ACCESS=''
+
 ENV GOPROXY https://goproxy.cn
+ENV GOPRIVATE $PMODULE_HOST
+ENV GONOPROXY $PMODULE_HOST
+ENV GOINSECURE $PMODULE_HOST
+
+RUN if [ "$ACCESS" != "" ]; then git config --global url."http://$ACCESS@$PMODULE_HOST".insteadOf "http://$PMODULE_HOST" ; fi
+
+
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 

@@ -5,5 +5,6 @@
   "mysqlDashboard": "MySQL Dashboard",
   "serviceHealth": "Service Health Status",
   "aiRootCauseAnalysis": "AI Root Cause Analysis",
-  "free": "Public Beta"
+  "free": "Public Beta",
+  "licenseManage": "License"
 }

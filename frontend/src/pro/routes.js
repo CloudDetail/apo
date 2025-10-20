@@ -18,6 +18,8 @@ const ProbeManagementPage = AuthRouter(React.lazy(() => import('src/core/views/I
 const IntegrationSettings = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
 )
+const PlatformManage = React.lazy(() => import('src/pro/views/platformManage/index'))
+
 let proRoutes = [
   {
     path: '/alert-analyze',
@@ -68,6 +70,11 @@ let proRoutes = [
     name: '外部数据源',
     element: AgentDataplanePage,
     hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/system/platform-manage',
+    name: t('pro/routes:licenseManage'),
+    element: PlatformManage
   },
   // {
   //   path: '/report/error',

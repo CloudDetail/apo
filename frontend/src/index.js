@@ -27,6 +27,7 @@ import * as monaco from 'monaco-editor'
 import { setNotifyApi } from './core/utils/notify'
 import { DataGroupProvider } from './core/contexts/DataGroupContext'
 import { DeployModeProvider } from './core/contexts/DeployModeContext'
+import { LicenseProvider } from './pro/contexts/LicenseContext'
 
 loader.config({ monaco })
 
@@ -129,9 +130,11 @@ const AntdWrapper = memo(() => {
       <MessageProvider>
         <UserProvider>
           <DataGroupProvider>
+            <LicenseProvider>
 
-            {contextHolder}
-            <App />
+              {contextHolder}
+              <App />
+            </LicenseProvider>
           </DataGroupProvider>
         </UserProvider>
       </MessageProvider>

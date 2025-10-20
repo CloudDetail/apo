@@ -12,6 +12,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
 import { useSelector } from 'react-redux'
 import styles from './AppSidebar.module.scss'
+import { TbLicense } from 'react-icons/tb'
+import { useTranslation } from 'react-i18next'
+
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
@@ -28,6 +31,7 @@ const agentKeys = import.meta.env.VITE_APP_CODE_VERSION === 'EE' ? ['agent', 'al
 const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
   const { theme } = useSelector((state) => state.settingReducer)
+  const { t } = useTranslation('pro/licenseManage')
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -107,6 +111,22 @@ const AppSidebar = () => {
       .filter(Boolean)
   }
 
+  const licenseMenuItem = [
+    {
+      key: 'license-manage',
+      label: t('index.licenseManage'),
+      icon: (
+        <div className="appSidebarMenuIcon">
+          <div><TbLicense /></div>
+          <span className="text-xs">{t('index.licenseManage')}</span>
+        </div>
+      ),
+      to: '/system/platform-manage',
+    }
+  ]
+
+  const licenseSelectedKeys = location.pathname === '/system/platform-manage' ? ['license-manage'] : []
+
   return (
     <ConfigProvider
       theme={{
@@ -121,10 +141,10 @@ const AppSidebar = () => {
         },
       }}
     >
-      <div className="flex flex-col items-center justify-center ">
+      <div className="flex flex-col items-center justify-center flex-1 overflow-hidden ">
         {
           agentKeys?.length > 0 &&
-          <> <Menu
+          <div className='flex-0'> <Menu
             mode="inline"
             theme={theme}
             inlineCollapsed={true}
@@ -140,24 +160,42 @@ const AppSidebar = () => {
             }}
           ></Menu>
             {menuList?.length > 0 && <Divider className="my-2" />}
-          </>
+          </div>
         }
 
-        <Menu
+        <div className='h-full flex flex-col justify-between flex-1 overflow-auto' >
+          <Menu
+            mode="inline"
+            theme={theme}
+            inlineCollapsed={true}
+            items={menuList}
+            onClick={onClick}
+            selectedKeys={selectedKeys}
+            openKeys={openKeys}
+            onOpenChange={onOpenChange}
+            className={styles.sidebarMenu}
+            style={{
+              backgroundColor: 'transparent',
+              width: 70,
+            }}
+          ></Menu>
+        </div>
+        <div
+          className='border-t border-[var(--ant-color-border-secondary)] cursor-pointer flex-0'
+
+          onClick={() => {
+            navigate('/system/platform-manage')
+          }}
+        >        <Menu
           mode="inline"
           theme={theme}
           inlineCollapsed={true}
-          items={menuList}
+          items={licenseMenuItem}
           onClick={onClick}
-          selectedKeys={selectedKeys}
-          openKeys={openKeys}
-          onOpenChange={onOpenChange}
+          selectedKeys={licenseSelectedKeys}
           className={styles.sidebarMenu}
-          style={{
-            backgroundColor: 'transparent',
-            width: 70,
-          }}
         ></Menu>
+        </div>
       </div>
     </ConfigProvider>
   )

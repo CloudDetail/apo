@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/metadata/configs"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -16,9 +17,10 @@ var config *Config
 
 type Config struct {
 	Server struct {
-		Port                     int `mapstructure:"port"`
-		AccessTokenExpireMinutes int `mapstructure:"access_token_expire_minutes"`
-		RefreshTokenExpireHours  int `mapstructure:"refresh_token_expire_hours"`
+		BaseURL                  string `mapstructure:"baseurl"`
+		Port                     int    `mapstructure:"port"`
+		AccessTokenExpireMinutes int    `mapstructure:"access_token_expire_minutes"`
+		RefreshTokenExpireHours  int    `mapstructure:"refresh_token_expire_hours"`
 	} `mapstructure:"server"`
 	Logger struct {
 		Level         string `mapstructure:"level"`
@@ -143,21 +145,32 @@ type MetadataSettings struct {
 }
 
 func Get() *Config {
-	if config == nil {
-		viper.SetConfigType("yaml")
-		configFile, found := os.LookupEnv("APO_CONFIG")
-		if !found {
-			configFile = "./config/apo.yml"
-		}
-		viper.SetConfigFile(configFile)
-		if err := viper.ReadInConfig(); err != nil {
-			panic(err)
-		}
-		if err := viper.Unmarshal(&config); err != nil {
-			panic(err)
-		}
+	if config != nil {
+		return config
 	}
+
+	getConfig()
+	viper.WatchConfig()
+	viper.OnConfigChange(func(in fsnotify.Event) {
+		getConfig()
+	})
+
 	return config
+}
+
+func getConfig() {
+	viper.SetConfigType("yaml")
+	configFile, found := os.LookupEnv("APO_CONFIG")
+	if !found {
+		configFile = "./config/apo.yml"
+	}
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
+	}
+	if err := viper.Unmarshal(&config); err != nil {
+		panic(err)
+	}
 }
 
 func GetCHCluster() string {
