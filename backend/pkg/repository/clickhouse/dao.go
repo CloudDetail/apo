@@ -156,7 +156,7 @@ type Repo interface {
 	GetAlertEventFilterValues(ctx core.Context, req *request.SearchAlertEventFilterValuesRequest) (*request.AlertEventFilter, error)
 
 	// Dataplane
-	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, size int, services []string) ([]*model.Service, uint64, error)
+	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, size int, services []string, sources []string) ([]*model.Service, uint64, error)
 	QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string, sources []string) (uint64, error)
 	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
 	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
