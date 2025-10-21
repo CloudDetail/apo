@@ -1,0 +1,96 @@
+// 加载状态指示器 - 绿色
+.loader {
+  height: 6px;
+  width: 6px;
+  margin: 2px 8px;
+  border-radius: 50%;
+  background-color: #4dd900;
+  box-shadow: 0 0 0 4px #69ffa818;
+  position: relative;
+  flex-shrink: 0;
+}
+
+// 错误状态指示器 - 红色
+.errorLoader {
+  height: 6px;
+  width: 6px;
+  margin: 2px 8px;
+  border-radius: 50%;
+  background-color: #f97066;
+  box-shadow: 0 0 0 4px #ff699b18;
+  position: relative;
+  flex-shrink: 0;
+}
+
+// 灰色状态指示器 - 未配置
+.grayLoader {
+  height: 6px;
+  width: 6px;
+  margin: 2px 8px;
+  border-radius: 50%;
+  background-color: #8c8c8c;
+  box-shadow: 0 0 0 4px rgba(140, 140, 140, 0.1);
+  position: relative;
+  flex-shrink: 0;
+}
+
+// 容器样式
+.loaderContainer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+// 悬停时的脉冲动画 - 绿色
+.loaderContainer:hover .loader::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(105, 255, 168, 0.1);
+  transform: translate(-50%, -50%) scale(1);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+// 悬停时的脉冲动画 - 红色
+.loaderContainer:hover .errorLoader::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(255, 105, 125, 0.1);
+  transform: translate(-50%, -50%) scale(1);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+// 悬停时的脉冲动画 - 灰色
+.loaderContainer:hover .grayLoader::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: rgba(140, 140, 140, 0.1);
+  transform: translate(-50%, -50%) scale(1);
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+// 脉冲动画关键帧
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(8);
+    opacity: 0;
+  }
+}

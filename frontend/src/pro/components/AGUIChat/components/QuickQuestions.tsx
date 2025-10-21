@@ -172,7 +172,7 @@ const QuickQuestions: React.FC<QuickQuestionsProps> = ({ onQuestionClick }) => {
                 size="large"
                 icon={<SettingOutlined />}
                 onClick={() => {
-                  window.open('/#/dataplane', '_blank')
+                  window.open('/#/dataplane?showSettings=true', '_blank')
                 }}
               >
                 {t('connectNow')}

@@ -26,6 +26,9 @@
     "testSuccess": "测试连接成功",
     "testFailed": "测试连接失败"
   },
+  "warnings": {
+    "signozMissingFdMetric": "SigNoz 数据源暂无主机 File Descriptor (FD) 指标"
+  },
   "optionalConfig": {
     "title": "可选数据采集配置",
     "subtitle": "(推荐在没有其他可观测性数据源时使用）"

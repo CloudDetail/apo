@@ -102,5 +102,47 @@
   "sessions": {
     "newConversation": "New Conversation",
     "invalidDate": "Invalid Date"
-  }
+  },
+  "dataCapability": {
+    "title": "Data Sources Capability ",
+    "config": "Config",
+    "serviceMonitorStatus": "Service Monitor Status",
+    "services": "Services",
+    "configured": "Covered",
+    "unconfigured": "Uncovered"
+  },
+  "dataCoverage": {
+    "title": "Data Coverage Overview",
+    "dataType": "Data Type",
+    "dataTypeDescription": "Data Type Description",
+    "providersSupplyingData": "Providers Supplying This Data",
+    "none": "None",
+    "impactIfMissing": "Impact if Missing",
+    "action": "Action",
+    "covered": "Covered",
+    "missingDataImpact": "Missing this data type will affect analysis capabilities.",
+    "quickSetup": "Quick Setup",
+    "doItLater": "Do it Later",
+    "description": "Verify your data coverage. If some data types are missing, you can choose \"Do it later\" or use quick setup to add them."
+  },
+  "dataplane": {
+    "filterByCapability": "Filter by Capability:",
+    "clearAll": "Clear All",
+    "showing": "Showing",
+    "of": "of",
+    "dataplanes": "dataplanes",
+    "noResultsFound": "No results found",
+    "noDataplaneMatches": "No dataplane matches the selected capabilities",
+    "clearFilters": "Clear Filters",
+    "seeTheDetail": "Data Coverage Overview"
+  },
+  "capabilityDescriptions": {
+    "Metrics": "Quantitative indicators that show how systems and applications are performing in real time.",
+    "Trace": "Request flow data that reveals how calls travel across services and where latency or errors occur.",
+    "Log": "Detailed records of system and application events, useful for troubleshooting and auditing.",
+    "RedMetric": "Service-level indicators summarizing request rate, error rate, and response duration.",
+    "ServiceInstance": "Individual runtime entities of an application, used for fine-grained analysis and correlation.",
+    "Topology": "A visual map of components and their dependencies, showing how services interact in your system."
+  },
+  "setupGuide": "Setup Guide"
 }

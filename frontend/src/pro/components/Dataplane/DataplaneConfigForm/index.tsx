@@ -12,6 +12,7 @@ import MetricsFormItem from 'src/core/components/Integration/MetricsFormItem'
 import TraceFormItem from 'src/core/components/Integration/TraceFormItem'
 import { useTranslation } from 'react-i18next'
 import i18n from 'src/i18n'
+import SetupGuide from '../DataplaneGuide'
 
 const DataplaneConfigForm = ({
   dataplaneParams,
@@ -120,32 +121,38 @@ const DataplaneConfigForm = ({
     [capabilitySpec],
   )
   return (
-    <div className="flex flex-col h-full">
-      {checkResult && checkResult.message && (
-        <Alert
-          closable
-          onClose={() => setCheckResult(null)}
-          showIcon
-          message={tAgent('messages.testFailed')}
-          description={
-            <>
-              <span className="text-[var(--ant-color-text-secondary)]">{checkResult.message}</span>
-            </>
-          }
-          type="error"
-        />
-      )}
-      {checkResult && checkResult.success && (
-        <Alert
-          closable
-          onClose={() => setCheckResult(null)}
-          showIcon
-          message={tAgent('messages.testSuccess')}
-          type="success"
-        />
-      )}
-
-      {/* <Collapse
+    <div className="flex h-full gap-2">
+      <div className="flex-1 flex flex-col h-full overflow-y-hidden w-1/2  px-4">
+        <div className="flex flex-col gap-2 w-full flex-1 ">
+          {checkResult && checkResult.message && (
+            <Alert
+              closable
+              onClose={() => setCheckResult(null)}
+              showIcon
+              message={tAgent('messages.testFailed')}
+              description={
+                <>
+                  <span className="text-[var(--ant-color-text-secondary)]">
+                    {checkResult.message}
+                  </span>
+                </>
+              }
+              type="error"
+            />
+          )}
+          {checkResult && checkResult.success && (
+            <Alert
+              closable
+              onClose={() => setCheckResult(null)}
+              showIcon
+              message={tAgent('messages.testSuccess')}
+              type="success"
+            />
+          )}
+          {typeName?.toLowerCase() === 'signoz' && (
+            <Alert showIcon message={tAgent('warnings.signozMissingFdMetric')} type="warning" />
+          )}
+          {/* <Collapse
         defaultActiveKey={['1']}
         className="my-2"
         items={[
@@ -156,72 +163,80 @@ const DataplaneConfigForm = ({
           },
         ]}
       /> */}
-      {dataplaneParams && (
-        <Form
-          layout="vertical"
-          className="mx-4 flex-1 h-0 overflow-y-auto"
-          initialValues={{
-            typ: typeName,
-            ...initialValues,
-          }}
-          form={form}
-          disabled={readonly}
-          scrollToFirstError={{ behavior: 'instant', block: 'end', focus: true }}
-        >
-          <Form.Item name="id" hidden>
-            <Input />
-          </Form.Item>
-          <Form.Item name="typ" hidden rules={[{ required: true }]}>
-            <Input defaultValue={typeName} />
-          </Form.Item>
-          <Form.Item name="name" label={tAgent('form.dataSourceName')} rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="note" label={tAgent('form.note')}>
-            <Input.TextArea rows={2} />
-          </Form.Item>
-          {paramSpec?.children?.map((item) => (
-            <Form.Item
-              key={item.name}
-              name={['params', item.name]}
-              label={
-                <div>
-                  {/* {item.name}
-                  <span className="ml-2 text-xs text-[var(--ant-color-text-secondary)]"> */}
-                  {i18n.language === 'zh' ? item.desc : item.desc_en}
-                  {/* </span> */}
-                </div>
-              }
-              rules={[{ required: !item?.optional }]}
+          {dataplaneParams && (
+            <Form
+              layout="vertical"
+              className="flex-1 h-0 overflow-y-auto"
+              initialValues={{
+                typ: typeName,
+                ...initialValues,
+              }}
+              form={form}
+              disabled={readonly}
+              scrollToFirstError={{ behavior: 'instant', block: 'end', focus: true }}
+              size="small"
             >
-              <Input />
-            </Form.Item>
-          ))}
+              <Form.Item name="id" hidden>
+                <Input />
+              </Form.Item>
+              <Form.Item name="typ" hidden rules={[{ required: true }]}>
+                <Input defaultValue={typeName} />
+              </Form.Item>
+              <Form.Item
+                name="name"
+                label={tAgent('form.dataSourceName')}
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+              {/* <Form.Item name="note" label={tAgent('form.note')}>
+                <Input.TextArea rows={2} />
+              </Form.Item> */}
+              {paramSpec?.children?.map((item) => (
+                <Form.Item
+                  key={item.name}
+                  name={['params', item.name]}
+                  label={
+                    <div>
+                      {/* {item.name}
+                  <span className="ml-2 text-xs text-[var(--ant-color-text-secondary)]"> */}
+                      {i18n.language === 'zh' ? item.desc : item.desc_en}
+                      {/* </span> */}
+                    </div>
+                  }
+                  rules={[{ required: !item?.optional }]}
+                >
+                  <Input />
+                </Form.Item>
+              ))}
 
-          <Form.Item name="capability" label="capability" hidden>
-            {/* <Checkbox.Group
+              <Form.Item name="capability" label="capability" hidden>
+                {/* <Checkbox.Group
                   options={capabilitySpec?.map((item) => ({ label: item, value: item }))}
                 /> */}
-            {/* <Capability capability={capabilitySpec || []} /> */}
-          </Form.Item>
-        </Form>
-      )}
-      {!readonly && (
-        <div className="flex justify-end  flex-0 items-end">
-          <Button
-            onClick={testForm}
-            className="mr-2"
-            color="primary"
-            variant="outlined"
-            loading={checkLoading}
-          >
-            {tAgent('form.test')}
-          </Button>
-          <Button type="primary" onClick={saveForm}>
-            {tAgent('form.connect')}
-          </Button>
+                {/* <Capability capability={capabilitySpec || []} /> */}
+              </Form.Item>
+            </Form>
+          )}
         </div>
-      )}
+        {!readonly && (
+          <div className="flex justify-end  flex-0 items-end">
+            <Button
+              onClick={testForm}
+              className="mr-2"
+              color="primary"
+              variant="outlined"
+              loading={checkLoading}
+            >
+              {tAgent('form.test')}
+            </Button>
+            <Button type="primary" onClick={saveForm}>
+              {tAgent('form.connect')}
+            </Button>
+          </div>
+        )}
+      </div>
+      <SetupGuide typeName={typeName} />
     </div>
   )
 }

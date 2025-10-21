@@ -102,5 +102,47 @@
   "sessions": {
     "newConversation": "新建对话",
     "invalidDate": "无效日期"
-  }
+  },
+  "dataCapability": {
+    "title": "数据能力状态",
+    "config": "配置",
+    "serviceMonitorStatus": "服务监控状态",
+    "services": "服务",
+    "configured": "已覆盖",
+    "unconfigured": "未覆盖"
+  },
+  "dataCoverage": {
+    "title": "数据覆盖概览",
+    "dataType": "数据类型",
+    "dataTypeDescription": "数据类型描述",
+    "providersSupplyingData": "提供此数据的数据源",
+    "none": "无",
+    "impactIfMissing": "缺失影响",
+    "action": "操作",
+    "covered": "已覆盖",
+    "missingDataImpact": "缺少此数据类型将影响分析能力。",
+    "quickSetup": "快速配置",
+    "doItLater": "稍后处理",
+    "description": "验证您的数据覆盖情况。如果某些数据类型缺失，您可以选择\"稍后处理\"或使用快速配置添加它们。"
+  },
+  "dataplane": {
+    "filterByCapability": "按能力筛选：",
+    "clearAll": "清除全部",
+    "showing": "显示",
+    "of": "共",
+    "dataplanes": "个数据源",
+    "noResultsFound": "未找到结果",
+    "noDataplaneMatches": "没有数据源匹配所选能力",
+    "clearFilters": "清除筛选",
+    "seeTheDetail": "数据覆盖概览"
+  },
+  "capabilityDescriptions": {
+    "Metrics": "显示系统和应用程序实时性能表现的量化指标。",
+    "Trace": "揭示请求如何跨服务传递以及延迟或错误发生位置的请求流数据。",
+    "Log": "系统和应用程序事件的详细记录，用于故障排查和审计。",
+    "RedMetric": "总结请求速率、错误率和响应时间的服务级指标。",
+    "ServiceInstance": "应用程序的单个运行时实体，用于细粒度分析和关联。",
+    "Topology": "组件及其依赖关系的可视化映射，展示系统中服务如何交互。"
+  },
+  "setupGuide": "配置指南"
 }

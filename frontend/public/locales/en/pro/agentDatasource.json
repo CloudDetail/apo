@@ -26,6 +26,9 @@
     "testSuccess": "Test connection successful",
     "testFailed": "Test connection failed"
   },
+  "warnings": {
+    "signozMissingFdMetric": "SigNoz data source does not provide host File Descriptor (FD) metrics"
+  },
   "optionalConfig": {
     "title": "Optional Data Collection Configuration",
     "subtitle": "(Recommended when no other observability data sources are available)"

@@ -14,7 +14,15 @@ import { dataplaneIconMap } from 'src/pro/constants'
 import { deleteDataplaneApi, getDataplaneListApi } from 'src/pro/api/dataplane'
 import Capability from 'src/pro/components/Dataplane/Capability'
 
-const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key: number }) => {
+const ConfiguredSources = ({
+  openDrawer,
+  key,
+  onDataChange,
+}: {
+  openDrawer: (any) => void
+  key: number
+  onDataChange?: () => void
+}) => {
   const { t } = useTranslation('pro/agentDatasource')
   const { t: ct } = useTranslation('common')
   const [data, setData] = useState([])
@@ -32,14 +40,18 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
 
   const deleteDataplane = (sourceId: string) => {
     deleteDataplaneApi(sourceId)
-      .then((res) => {
+      .then(() => {
         notify({
-          message: t('deleteSuccess'),
+          message: ct('deleteSuccess'),
           type: 'success',
         })
       })
       .finally(() => {
         getDataplaneList()
+        // 触发父组件刷新
+        if (onDataChange) {
+          onDataChange()
+        }
       })
   }
   const columns: TableProps<AlertInputBaseInfo>['columns'] = [
@@ -61,12 +73,12 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
       key: 'name',
       width: 150,
     },
-    {
-      title: t('form.note'),
-      dataIndex: 'note',
-      key: 'note',
-      width: 150,
-    },
+    // {
+    //   title: t('form.note'),
+    //   dataIndex: 'note',
+    //   key: 'note',
+    //   width: 150,
+    // },
     {
       title: t('capabilitySpec'),
       dataIndex: 'capability',
@@ -102,8 +114,8 @@ const ConfiguredSources = ({ openDrawer, key }: { openDrawer: (any) => void; key
                 </>
               }
               onConfirm={() => deleteDataplane(record.id)}
-              okText={t('confirm')}
-              cancelText={t('cancel')}
+              okText={ct('confirm')}
+              cancelText={ct('cancel')}
             >
               <Button type="text" icon={<RiDeleteBin5Line />} danger>
                 {ct('delete')}

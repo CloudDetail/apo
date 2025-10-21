@@ -111,3 +111,8 @@ export function getDataplaneDatasourcesApi(params: any) {
 export function checkDataplaneDatasourceApi(params: any) {
     return post('/api/dataplane/checkDataSource', params);
 }
+
+
+export function getCapabilitiesApi() {
+    return get('/api/dataplane/capabilities')
+}

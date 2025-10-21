@@ -24,6 +24,9 @@ const DataplanePage = () => {
     setDrawerOpen(false)
     setDatasourceConfigInfo(null)
   }
+  const handleDataChange = () => {
+    setKey((prevKey) => prevKey + 1)
+  }
   return (
     <>
       <Flex
@@ -33,12 +36,16 @@ const DataplanePage = () => {
           height: '100%',
         }}
       >
-        <div className="h-full w-[310px] px-1 flex-shrink-0">
-          <DataplaneList onClick={openAddDrawer} />
+        <div className="h-full w-1/3 px-1 flex-shrink-0">
+          <DataplaneList onClick={openAddDrawer} refreshKey={key} />
         </div>
         <Divider type="vertical" className="h-full text-[var(--ant-color-border)]" />
         <div className="px-4 flex-1 overflow-hidden">
-          <ConfiguredSources openDrawer={openEditDrawer} key={key} />
+          <ConfiguredSources
+            openDrawer={openEditDrawer}
+            key={key}
+            onDataChange={handleDataChange}
+          />
         </div>
       </Flex>
       <ConfigDrawer

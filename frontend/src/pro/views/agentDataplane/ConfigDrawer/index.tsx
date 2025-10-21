@@ -29,7 +29,7 @@ const ConfigDrawer = ({
       closable={{ 'aria-label': 'Close Button' }}
       onClose={() => closeDrawer()}
       open={drawerOpen}
-      width={'50%'}
+      width={'80%'}
     >
       {dataplaneConfigInfo && (
         <DataplaneConfigForm
