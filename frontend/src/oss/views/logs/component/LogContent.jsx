@@ -36,7 +36,7 @@ const LogContent = (props) => {
     }
   }, [data])
   return (
-    <div className="text-xs">
+    <div className="text-xs flex-1 h-0">
       <BasicTable {...tableProps} />
     </div>
   )
