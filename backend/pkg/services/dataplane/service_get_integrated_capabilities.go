@@ -55,22 +55,27 @@ func (s *service) GetIntegratedCapabilities(ctx core.Context) (*response.GetInte
 	}
 
 	var res response.GetIntegratedCapabilitiesResponse
+	res.TotalSupported = make([]integration.TelemetryCapability, 0)
+
 	capMap := make(map[integration.TelemetryType]*integration.TelemetryCapability)
+	for _, t := range integration.AllTelemetryTypes {
+		capMap[t] = &integration.TelemetryCapability{
+			Type:        t,
+			Enabled:     false,
+			Sources:     []integration.DataplaneWithName{},
+			Description: getTelemetryCapabilityDescription(t, ctx.LANG()),
+		}
+	}
+
 	for _, dp := range dps {
 		for _, t := range integration.AllTelemetryTypes {
-			cap, ok := capMap[t]
-			if !ok {
-				cap = &integration.TelemetryCapability{
-					Type:        t,
-					Enabled:     false,
-					Sources:     []integration.DataplaneWithName{},
-					Description: getTelemetryCapabilityDescription(t, ctx.LANG()),
-				}
-				capMap[t] = cap
-			}
+			cap := capMap[t]
 			if slices.Contains(dp.DataPlaneWithType.DataPlane.Capability.Obj, string(t)) {
 				dpType := dp.DataPlaneWithType.DataPlane.Typ
-				dpWithName := integration.DataplaneWithName{Type: dpType, Name: dp.DataPlaneWithType.DataPlane.Name}
+				dpWithName := integration.DataplaneWithName{
+					Type: dpType,
+					Name: dp.DataPlaneWithType.DataPlane.Name,
+				}
 				if !slices.Contains(cap.Sources, dpWithName) && (dpType != "apo" || os.Getenv(showAPODataPlaneTypeENV) == "true") {
 					cap.Enabled = true
 					cap.Sources = append(cap.Sources, dpWithName)
@@ -78,8 +83,10 @@ func (s *service) GetIntegratedCapabilities(ctx core.Context) (*response.GetInte
 			}
 		}
 	}
+
 	for _, cap := range capMap {
 		res.TotalSupported = append(res.TotalSupported, *cap)
 	}
+
 	return &res, nil
 }
