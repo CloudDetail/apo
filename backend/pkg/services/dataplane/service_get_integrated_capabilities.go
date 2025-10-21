@@ -67,14 +67,24 @@ func (s *service) GetIntegratedCapabilities(ctx core.Context) (*response.GetInte
 		}
 	}
 
+	dpTypes, err := s.dbRepo.ListDataPlaneType(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	typeDisplayName := make(map[string]string)
+	for _, dpType := range dpTypes {
+		typeDisplayName[dpType.TypeName] = dpType.TypeDisplayName
+	}
 	for _, dp := range dps {
 		for _, t := range integration.AllTelemetryTypes {
 			cap := capMap[t]
 			if slices.Contains(dp.DataPlaneWithType.DataPlane.Capability.Obj, string(t)) {
 				dpType := dp.DataPlaneWithType.DataPlane.Typ
 				dpWithName := integration.DataplaneWithName{
-					Type: dpType,
-					Name: dp.DataPlaneWithType.DataPlane.Name,
+					Type:            dpType,
+					Name:            dp.DataPlaneWithType.DataPlane.Name,
+					TypeDisplayName: typeDisplayName[dpType],
 				}
 				if !slices.Contains(cap.Sources, dpWithName) && (dpType != "apo" || os.Getenv(showAPODataPlaneTypeENV) == "true") {
 					cap.Enabled = true
