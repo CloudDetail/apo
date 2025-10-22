@@ -134,6 +134,16 @@ func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneRespon
 		res[i].UseLang(ctx.LANG())
 	}
 
+	// 过滤掉 APO 数据平面
+	if os.Getenv(showAPODataPlaneTypeENV) != "true" {
+		for i := 0; i < len(res); i++ {
+			if res[i].Typ == "apo" {
+				res = append(res[:i], res[i+1:]...)
+				i--
+			}
+		}
+	}
+
 	return &response.ListDataPlaneResponse{
 		DataPlanes: res,
 	}, err
