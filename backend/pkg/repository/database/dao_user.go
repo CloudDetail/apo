@@ -18,6 +18,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const (
@@ -141,16 +142,23 @@ func (repo *daoRepo) Login(ctx core.Context, username, password string) (*profil
 
 func (repo *daoRepo) CreateUser(ctx core.Context, user *profile.User) error {
 	db := repo.GetContextDB(ctx)
-	var count int64
-	err := db.Model(&profile.User{}).Where("username = ?", user.Username).Count(&count).Error
-	if err != nil {
-		return err
+
+	user.Password = Encrypt(user.Password)
+
+	result := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "username"}},
+		DoNothing: true,
+	}).Create(user)
+
+	if result.Error != nil {
+		return result.Error
 	}
-	if count > 0 {
+
+	if result.RowsAffected == 0 {
 		return core.Error(code.UserAlreadyExists, "user already exists")
 	}
-	user.Password = Encrypt(user.Password)
-	return db.Create(user).Error
+
+	return nil
 }
 
 func (repo *daoRepo) UpdateUserPhone(ctx core.Context, userID int64, phone string) error {
