@@ -417,6 +417,76 @@
         "service_name"
       ],
       "describe": "服务每次请求文件读写耗时P90分位数(按服务名和内容键统计,指定时间段内)"
+    },
+    {
+      "title": "service.process_count",
+      "targets": [
+        {
+          "expr": "count(originx_process_last_seen{node_name=~\"$node_name\",workload_name=~\"$workload_name\",comm=~\"$comm\"})",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "node_name",
+            "workload_name",
+            "comm"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "node_name",
+        "workload_name",
+        "comm"
+      ],
+      "describe": "服务当前实例数(属于该服务的进程数）"
+    },
+    {
+      "title": "service.process_count_avg_last_10m",
+      "targets": [
+        {
+          "expr": "avg_over_time(count(originx_process_last_seen{node_name=~\"$node_name\",workload_name=~\"$workload_name\",comm=~\"$comm\"})[10m:])",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "node_name",
+            "workload_name",
+            "comm"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "service_name",
+        "workload_name",
+        "comm"
+      ],
+      "describe": "服务过去10分钟的平均实例数"
+    },
+    {
+      "title": "service.process_last_seen",
+      "targets": [
+        {
+          "expr": "max(originx_process_last_seen{node_name=~\"$service_name\",workload_name=~\"$workload_name\",comm=~\"$comm\",pid=~\"$pid\"}) by ( $max_by )",
+          "legendFormat": "__auto",
+          "refId": "A",
+          "variables": [
+            "service_name",
+            "workload_name",
+            "comm",
+            "pid",
+            "max_by"
+          ]
+        }
+      ],
+      "unit": "ns",
+      "params": [
+        "service_name",
+        "workload_name",
+        "comm",
+        "pid",
+        "max_by"
+      ],
+      "describe": "服务实例最后存活时间戳"
     }
   ],
   "variables": [
