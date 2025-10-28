@@ -98,7 +98,7 @@ Join the growing community of developers and engineers transforming observabilit
 
 + **Slack**: [Join our Slack](https://join.slack.com/t/autopilotob/shared_invite/zt-31hxqlvy8-6Z2oqLAhNGluUEf0UiJVeg)
 + **Github**: [GitHub](https://github.com/CloudDetail/apo)
-
++ **WeChat**: ![Follow-Us](./docs/img/follow-us.jpg)
 
 
 Ready to transform your observability? Start with APO today! 🚀
