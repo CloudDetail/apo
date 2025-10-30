@@ -26,8 +26,10 @@ const YFormatter = (value: number, unit) => {
       if (value > 0 && value < 0.01) return '< 0.01%'
       return `${Number.parseFloat(value.toFixed(2))}%`
     case 'bytes':
-      if (value > 0 && value < 1024 * 0.01) return '< 0.01M'
-      return `${formatMGT(Number.parseFloat(value.toFixed(2)))}`
+      // 先将 bytes 转换为 MB，再调用 formatMGT（formatMGT 期望输入是 MB 单位）
+      const valueInMB = value / (1024 * 1024)
+      if (value > 0 && value < 1024 * 1024 * 0.01) return '< 0.01M'
+      return `${formatMGT(Number.parseFloat(valueInMB.toFixed(2)))}`
     default:
       if (value > 0 && value < 0.01) return `< 0.01 ${unit}`
       return `${Number.parseFloat(value.toFixed(2))} ${unit}`
