@@ -80,15 +80,13 @@ const DataStatus: React.FC = () => {
                       )}
                       <span>{capability.type}</span>
                     </div>
-                    {!capability.enabled && (
-                      <div
-                        className="flex items-center gap-1 text-gray-400 hover:text-blue-400 cursor-pointer"
-                        onClick={() => handleCapabilityClick(capability.type)}
-                      >
-                        <IoSettingsOutline className="flex-shrink-0" size={14} />
-                        <span className="text-[10px]">{t('dataCapability.config')}</span>
-                      </div>
-                    )}
+                    <div
+                      className="flex items-center gap-1 text-gray-400 hover:text-blue-400 cursor-pointer"
+                      onClick={() => handleCapabilityClick(capability.type)}
+                    >
+                      <IoSettingsOutline className="flex-shrink-0" size={14} />
+                      <span className="text-[10px]">{t('dataCapability.config')}</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -149,17 +147,15 @@ const DataStatus: React.FC = () => {
                 <span>{t('dataCapability.services')}</span>
                 {serviceCount > 0 && <span className="text-gray-400">({serviceCount})</span>}
               </div>
-              {serviceCount === 0 && (
-                <div
-                  className="flex items-center gap-1 text-gray-400 hover:text-blue-400 cursor-pointer"
-                  onClick={() => {
-                    window.open('/#/dataplane?tab=serviceMatcher', '_blank')
-                  }}
-                >
-                  <IoSettingsOutline className="flex-shrink-0" size={14} />
-                  <span className="text-[10px]">{t('dataCapability.config')}</span>
-                </div>
-              )}
+              <div
+                className="flex items-center gap-1 text-gray-400 hover:text-blue-400 cursor-pointer"
+                onClick={() => {
+                  window.open('/#/dataplane?tab=serviceMatcher', '_blank')
+                }}
+              >
+                <IoSettingsOutline className="flex-shrink-0" size={14} />
+                <span className="text-[10px]">{t('dataCapability.config')}</span>
+              </div>
             </div>
           </div>
         </div>
