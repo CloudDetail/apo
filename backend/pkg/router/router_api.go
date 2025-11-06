@@ -355,6 +355,7 @@ func setApiRouter(r *resource) {
 		handler := dataplane.New(r.logger, r.ch, r.prom, r.pkg_db, r.dataplaneRepo)
 		dataplaneAPI.GET("/services", handler.QueryServices())
 		dataplaneAPI.GET("/redcharts", handler.QueryServiceRedCharts())
+		dataplaneAPI.GET("/redcharts/list", handler.ListServiceRedCharts())
 		dataplaneAPI.GET("/endpoints", handler.QueryServiceEndpoints())
 		dataplaneAPI.GET("/instances", handler.QueryServiceInstances())
 		dataplaneAPI.POST("/servicename", handler.QueryServiceName())

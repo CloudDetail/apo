@@ -159,6 +159,7 @@ type Repo interface {
 	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, size int, services []string) ([]*model.Service, uint64, error)
 	QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string, sources []string) (uint64, error)
 	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
+	ListGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, step int64) ([]ServiceBucketRedMetric, error)
 	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
 	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
 	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)

@@ -19,6 +19,11 @@ type QueryServiceRedChartsResponse struct {
 	Results []*QueryChartResult `json:"results"`
 }
 
+type ListServiceRedChartsResponse struct {
+	Msg     string                         `json:"msg"`
+	Results map[string][]*QueryChartResult `json:"results"` // service -> []*QueryChartResult
+}
+
 type QueryServiceEndpointsResponse struct {
 	Msg     string   `json:"msg"`
 	Results []string `json:"results"`
