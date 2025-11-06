@@ -11,6 +11,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
+	"go.uber.org/zap"
 )
 
 func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDescendantAnormalTrendRequest) (*response.GetDescendantDeltaAnormalEventResponse, error) {
@@ -58,13 +59,23 @@ func (s *service) GetAnormalTrendByEntry(ctx core.Context, req *request.GetDesce
 			Endpoint:    descendant.Endpoint,
 		}
 		instanceMap.AddEndpoint(endpoint)
-		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+		var svcInstances *model.ServiceInstances
+		instancesList, err := s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, "", []string{descendant.Service})
 		if err != nil {
-			continue
+			s.logger.Info("get instance list from dataplane cached failed", zap.String("service", descendant.Service), zap.Error(err))
 		}
 
-		instancesForDescendant := instanceList.GetInstances()
+		if len(instancesList) > 0 {
+			svcInstances = model.NewServiceInstances()
+			svcInstances.AddInstances(instancesList)
+		} else {
+			svcInstances, err = s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			if err != nil {
+				continue
+			}
+		}
+
+		instancesForDescendant := svcInstances.GetInstances()
 		instanceMap.AddInstances(endpoint, instancesForDescendant)
 
 		instances = append(instances, instancesForDescendant...)
