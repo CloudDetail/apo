@@ -581,26 +581,18 @@ const (
 	OrderAlertByReceivedTime = "receivedTime,group,name"
 )
 
-// 常用排序
-// orderAlertByGroupName
-// orderAlertByReceivedTime
-var (
-	orderAlertByGroupName = NewByLimitBuilder().
-				OrderBy("group", true).
-				OrderBy("name", true).
-				OrderBy("received_time", false)
-	orderAlertByReceivedTime = NewByLimitBuilder().
-					OrderBy("received_time", false).
-					OrderBy("group", true).
-					OrderBy("name", true)
-)
-
 // extractOrderParam 解析排序参数
 func extractOrderParam(sortBy string) *ByLimitBuilder {
 	if sortBy == OrderAlertByGroupName {
-		return orderAlertByGroupName
+		return NewByLimitBuilder().
+			OrderBy("group", true).
+			OrderBy("name", true).
+			OrderBy("received_time", false)
 	} else if sortBy == OrderAlertByReceivedTime {
-		return orderAlertByReceivedTime
+		return NewByLimitBuilder().
+			OrderBy("received_time", false).
+			OrderBy("group", true).
+			OrderBy("name", true)
 	} else if len(sortBy) == 0 {
 		return NewByLimitBuilder()
 	}
