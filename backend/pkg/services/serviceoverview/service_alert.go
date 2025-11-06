@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
+	"go.uber.org/zap"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -36,22 +37,57 @@ func (s *service) GetServicesAlert(
 	serviceNames []string, namespaces []string,
 	returnData []string,
 ) (res []response.ServiceAlertRes, err error) {
-	pqlFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", groupID)
+	var svcInstances map[string]*model.ServiceInstances
+	instances, err := s.chRepo.GetDataplaneServiceInstances(ctx, startTime.UnixMicro(), endTime.UnixMicro(), "", serviceNames)
 	if err != nil {
-		return nil, err
+		s.logger.Info("failed to query serviceInstance from Dataplane, services %s, err : %v", zap.Strings("serviceNames", serviceNames), zap.Error(err))
 	}
-	if len(clusterIDs) > 0 {
-		pqlFilter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(clusterIDs...))
-	}
-	if len(namespaces) > 0 {
-		pqlFilter.RegexMatch(prometheus.NamespaceKey, prometheus.RegexMultipleValue(namespaces...))
-	}
-	pqlFilter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
 
-	svcInstances, err := s.promRepo.GetMultiSVCInstanceListByPQLFilter(ctx, startTime.UnixMicro(), endTime.UnixMicro(), pqlFilter)
-	if err != nil {
-		return nil, err
+	if len(instances) > 0 {
+		result := make(map[string]*model.ServiceInstances)
+
+		serviceMapList := make(map[string][]*model.ServiceInstance)
+		for _, instance := range instances {
+			pid := instance.Pid
+
+			instance := &model.ServiceInstance{
+				ServiceName: string(instance.ServiceName),
+				ContainerId: string(instance.ContainerId),
+				PodName:     string(instance.PodName),
+				Namespace:   string(instance.Namespace),
+				NodeName:    string(instance.NodeName),
+				Pid:         pid,
+			}
+			if list, ok := serviceMapList[instance.ServiceName]; ok {
+				serviceMapList[instance.ServiceName] = append(list, instance)
+			} else {
+				serviceMapList[instance.ServiceName] = []*model.ServiceInstance{instance}
+			}
+		}
+		for k, v := range serviceMapList {
+			result[k] = model.NewServiceInstances()
+			result[k].AddInstances(v)
+		}
+
+		svcInstances = result
+	} else {
+		pqlFilter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", groupID)
+		if err != nil {
+			return nil, err
+		}
+		if len(clusterIDs) > 0 {
+			pqlFilter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(clusterIDs...))
+		}
+		if len(namespaces) > 0 {
+			pqlFilter.RegexMatch(prometheus.NamespaceKey, prometheus.RegexMultipleValue(namespaces...))
+		}
+		pqlFilter.RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
+		svcInstances, err = s.promRepo.GetMultiSVCInstanceListByPQLFilter(ctx, startTime.UnixMicro(), endTime.UnixMicro(), pqlFilter)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	var services []ServiceDetail
 	for svc, instances := range svcInstances {
 		svcDetail := ServiceDetail{

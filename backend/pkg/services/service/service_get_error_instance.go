@@ -4,6 +4,8 @@
 package service
 
 import (
+	"log"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
@@ -12,22 +14,34 @@ import (
 )
 
 func (s *service) GetErrorInstance(ctx core.Context, req *request.GetErrorInstanceRequest) (*response.GetErrorInstanceResponse, error) {
-	filter := prometheus.NewFilter()
-	filter.EqualIfNotEmpty(prometheus.ContentKeyKey, req.Endpoint)
-	filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.Service)
 
-	if len(req.ClusterIDs) > 0 {
-		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
-	}
-
-	serviceInstances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
+	var serviceInstances *model.ServiceInstances
+	instances, err := s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, "", []string{req.Service})
 	if err != nil {
-		return nil, err
+		log.Printf("failed to query serviceInstance from Dataplane, services %s, err : %v", req.Service, err)
+	}
+	if len(instances) > 0 {
+		serviceInstances = model.NewServiceInstances()
+		serviceInstances.AddInstances(instances)
+	} else {
+		filter := prometheus.NewFilter()
+		filter.EqualIfNotEmpty(prometheus.ContentKeyKey, req.Endpoint)
+		filter.EqualIfNotEmpty(prometheus.ServiceNameKey, req.Service)
+
+		if len(req.ClusterIDs) > 0 {
+			filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
+		}
+
+		serviceInstances, err = s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
+		if err != nil {
+			return nil, err
+		}
+		instances = serviceInstances.GetInstances()
 	}
 
 	// Traverses the service instance and queries the corresponding log alarm data.
 	instanceList := make([]*response.ErrorInstance, 0)
-	for _, instance := range serviceInstances.GetInstances() {
+	for _, instance := range instances {
 		logs, err := s.promRepo.QueryLogCountByInstanceId(ctx, instance, req.StartTime, req.EndTime, req.Step)
 		if err != nil {
 			return nil, err
