@@ -247,6 +247,8 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		}
 	}
 
+	rawTags := event.Tags.Clone()
+	rawTags["alertEventId"] = event.EventID
 	parmas := alert.AlertAnalyzeWorkflowParams{
 		AlertName:    event.Name,
 		Node:         event.GetInfraNodeTag(),
@@ -256,7 +258,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		Detail:       event.Detail,
 		ContainerID:  event.GetContainerIDTag(),
 		Tags:         event.EnrichTags,
-		RawTags:      event.Tags,
+		RawTags:      rawTags,
 		AlertEventId: event.EventID,
 	}
 
