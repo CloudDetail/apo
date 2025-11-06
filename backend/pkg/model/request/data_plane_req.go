@@ -19,6 +19,12 @@ type QueryServiceRedChartsRequest struct {
 	Endpoint    string `form:"endpoint"`                                     // query Endpoint
 }
 
+type ListServiceRedChartsRequest struct {
+	Cluster   string `form:"cluster"`                                      // query Cluster
+	StartTime int64  `form:"startTime" binding:"min=0"`                    // query start time
+	EndTime   int64  `form:"endTime" binding:"required,gtfield=StartTime"` // query end time
+}
+
 type QueryServiceEndpointsRequest struct {
 	Cluster     string `form:"cluster"`                                      // query Cluster
 	StartTime   int64  `form:"startTime" binding:"min=0"`                    // query start time

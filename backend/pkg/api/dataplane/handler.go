@@ -18,6 +18,11 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/services [get]
 	QueryServices() core.HandlerFunc
+
+	// ListServiceRedCharts list services' redcharts
+	// @Tags API.dataplane
+	// @Router /api/dataplane/redcharts/list [get]
+	ListServiceRedCharts() core.HandlerFunc
 	// QueryServiceRedCharts Get service's redcharts.
 	// @Tags API.dataplane
 	// @Router /api/dataplane/redcharts [get]

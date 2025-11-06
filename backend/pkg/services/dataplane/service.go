@@ -22,6 +22,7 @@ var _ Service = (*service)(nil)
 
 type Service interface {
 	GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse
+	ListServiceRedCharts(ctx core.Context, req *request.ListServiceRedChartsRequest) *response.ListServiceRedChartsResponse
 	GetServiceRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse
 	GetServiceEndpointRedCharts(ctx core.Context, req *request.QueryServiceRedChartsRequest) *response.QueryServiceRedChartsResponse
 	GetServiceEndpoints(ctx core.Context, req *request.QueryServiceEndpointsRequest) *response.QueryServiceEndpointsResponse
