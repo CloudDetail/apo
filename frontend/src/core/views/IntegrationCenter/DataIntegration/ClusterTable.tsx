@@ -122,7 +122,7 @@ const ClusterTable = () => {
   return (
     <>
       {/* 主要内容区域 */}
-      {isMinimal ? (
+      {import.meta.env.VITE_APP_CODE_VERSION === 'EE' ? (
         <div className="page-container">
           <div className="content-grid">
             {/* 左侧部分 - Probes Management */}
