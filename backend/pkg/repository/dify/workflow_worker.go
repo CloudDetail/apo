@@ -228,7 +228,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		endTime = event.UpdateTime
 	}
 
-	alertServices, _ := tryGetAlertService(core.EmptyCtx(), w.Prom, event, startTime, endTime)
+	alertServices, _ := tryGetAlertService(core.EmptyCtx(), w.CH, w.Prom, event, startTime, endTime)
 
 	res := alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),

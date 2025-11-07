@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	TEMPLATE_QUERY_APP_INFO          = "SELECT host_pid, container_id, labels FROM originx_app_info %s"
-	TEMPLATE_CLEAN_SERVICE_BY_SOURCE = `ALTER TABLE originx_app_info
+	TEMPLATE_QUERY_APP_INFO            = "SELECT host_pid, container_id, labels FROM originx_app_info %s"
+	TEMPLATE_QUERY_SERVICE_BY_APP_INFO = "SELECT labels['service_name'] as service_name FROM originx_app_info %s"
+	TEMPLATE_CLEAN_SERVICE_BY_SOURCE   = `ALTER TABLE originx_app_info
 		update labels = mapUpdate(labels, map('service_name', '', 'service_id', '', 'source', ''))
 		WHERE labels['source'] = '%s' AND heart_time >= %d AND start_time <= %d
 	`
@@ -79,6 +80,37 @@ func (ch *chRepo) GetDataplaneServiceList(ctx core.Context, req *request.QuerySe
 		})
 	}
 	return result, nil
+}
+
+func (ch *chRepo) GetDataplaneServiceByInstance(ctx core.Context, startTime int64, endTime int64, cluster string, pod, namespace string, node string, pid int) ([]AlertService, error) {
+	if len(pod) == 0 && len(namespace) == 0 && len(node) == 0 {
+		return nil, errors.New("pod,namespace,node is all empty")
+	}
+
+	queryBuilder := NewQueryBuilder().
+		EqualsNotEmpty("labels['cluster_id']", cluster).
+		NotGreaterThan("start_time", endTime/1000000).
+		NotLessThan("heart_time", startTime/1000000)
+
+	if len(pod) > 0 && len(namespace) > 0 {
+		queryBuilder.
+			EqualsNotEmpty("labels['pod_name']", pod).
+			EqualsNotEmpty("labels['namespace']", namespace)
+	} else if pid > 0 {
+		queryBuilder.
+			EqualsNotEmpty("labels['node_name']", node).
+			Equals("host_pid", pid)
+	} else if len(node) > 0 {
+		queryBuilder.EqualsNotEmpty("labels['node_name']", node)
+	}
+
+	sql := fmt.Sprintf(TEMPLATE_QUERY_SERVICE_BY_APP_INFO, queryBuilder.String())
+	services := make([]AlertService, 0)
+	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &services, sql, queryBuilder.values...); err != nil {
+		return nil, err
+	}
+
+	return services, nil
 }
 
 func (ch *chRepo) GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error) {

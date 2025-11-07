@@ -81,8 +81,8 @@ func (r *EntryRelationship) GetEntryEndpoint() string {
 // 作为查询条件时,允许Endpoint为空
 // 表示对应Service下的所有Endpoint
 type AlertService struct {
-	Service  string `json:"serviceName"`
-	Endpoint string `json:"endpoint"`
+	Service  string `json:"serviceName" ch:"service_name"`
+	Endpoint string `json:"endpoint" ch:"endpoint"`
 
 	DatabaseURL  string `json:"dbURL"`
 	DatabaseIP   string `json:"dbIP"`
