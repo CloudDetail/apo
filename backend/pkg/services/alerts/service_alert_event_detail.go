@@ -69,7 +69,7 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 		startTime = record.UpdateTime.Add(-15 * time.Minute)
 		endTime = record.UpdateTime
 	}
-	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
+	alertServices, _ := tryGetAlertService(ctx, s.chRepo, s.promRepo, &record.AlertEvent, startTime, endTime)
 
 	for i := 0; i < len(records); i++ {
 		records[i].Alert.EnrichTags["source"] = records[i].Alert.Source

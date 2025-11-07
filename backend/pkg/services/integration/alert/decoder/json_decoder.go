@@ -71,6 +71,9 @@ func ToTimeHookFunc() mapstructure.DecodeHookFunc {
 
 		switch f.Kind() {
 		case reflect.String:
+			if len(data.(string)) == 0 { // accept empty string
+				return time.Time{}, nil
+			}
 			return time.Parse(time.RFC3339, data.(string))
 		case reflect.Float64:
 			return time.Unix(0, int64(data.(float64))*int64(time.Millisecond)), nil

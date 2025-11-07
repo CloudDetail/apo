@@ -28,6 +28,12 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 	tpsThreshold := threshold.Tps
 	latencyThreshold := threshold.Latency
 
+	var svcInstances *model.ServiceInstances
+	instancesList, err := s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, "", []string{req.ServiceName})
+	if err != nil {
+		log.Printf("failed to query serviceInstance from Dataplane, services %s, err : %v", req.ServiceName, err)
+	}
+
 	filter, err := common.GetPQLFilterByGroupID(ctx, s.dbRepo, "", req.GroupID)
 	if err != nil {
 		return res, err
@@ -42,17 +48,24 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		filter.RegexMatch(prometheus.ClusterIDKey, prometheus.RegexMultipleValue(req.ClusterIDs...))
 	}
 
-	// Get instance
-	instanceList, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
-	if err != nil {
-		return res, err
+	if len(instancesList) > 0 {
+		svcInstances = model.NewServiceInstances()
+		svcInstances.AddInstances(instancesList)
+	} else {
+
+		// Get instance
+		svcInstances, err = s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, filter)
+		if err != nil {
+			return res, err
+		}
 	}
+
 	// Fill the instance
 	var instances = &InstanceMap{
 		MetricGroupList: []*prometheus.InstanceMetrics{},
 		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
 	}
-	for _, instance := range instanceList.InstanceMap {
+	for _, instance := range svcInstances.InstanceMap {
 		key := prometheus.InstanceKey{
 			ServiceName: instance.ServiceName,
 			PID:         strconv.FormatInt(instance.Pid, 10),
@@ -79,6 +92,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 	serviceName := req.ServiceName
 
 	// Fill RED metric
+	// TODO support query InstanceRED from Dataplane
 	s.InstanceRED(ctx, startTime, endTime, filter, instances)
 
 	// populate chart data
@@ -87,6 +101,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		log.Println("get instance range data error: ", chartErr)
 	}
 	// Fill log data
+	// TODO support query instance logMetric from Dataplane
 	logErr := s.InstanceLog(ctx, instances, startTime, endTime, step)
 	if logErr.ErrorOrNil() != nil {
 		log.Println("get instance log data error: ", logErr)

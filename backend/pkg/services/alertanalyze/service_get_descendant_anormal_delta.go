@@ -13,6 +13,7 @@ import (
 	ck "github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
+	"go.uber.org/zap"
 )
 
 const (
@@ -55,6 +56,17 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 	var endpoints []model.EndpointKey
 	var databaseInstances []model.MiddlewareInstance
 	instanceMap := newInstanceMap()
+
+	var serviceList []string
+	for _, descendant := range descendants.Nodes {
+		serviceList = append(serviceList, descendant.Service)
+	}
+
+	instances, err = s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, "", serviceList)
+	if err != nil {
+		s.logger.Error("failed to get service instances from dataplane", zap.Strings("serviceList", serviceList), zap.Error(err))
+	}
+
 	for _, descendant := range descendants.Nodes {
 		if descendant.OutOfGroup {
 			continue
@@ -64,15 +76,23 @@ func (s *service) SearchAnormalDeltaByEntry(ctx core.Context, req *request.GetDe
 			Endpoint:    descendant.Endpoint,
 		}
 		instanceMap.AddEndpoint(endpoint)
-		// TODO 优化,减少查询次数,获取每个endpoint下的所有实例
-		instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
-		if err != nil {
-			continue
+
+		var instancesForDescendant []*model.ServiceInstance
+		if len(instances) > 0 {
+			for _, instance := range instances {
+				if instance.ServiceName == descendant.Service {
+					instancesForDescendant = append(instancesForDescendant, instance)
+				}
+			}
+		} else {
+			instanceList, err := s.promRepo.GetActiveRequestInstanceList(ctx, req.StartTime, req.EndTime, descendant.Service, descendant.Endpoint)
+			if err != nil {
+				continue
+			}
+			instancesForDescendant = instanceList.GetInstances()
 		}
 
-		instancesForDescendant := instanceList.GetInstances()
 		instanceMap.AddInstances(endpoint, instancesForDescendant)
-
 		instances = append(instances, instancesForDescendant...)
 		endpoints = append(endpoints, endpoint)
 

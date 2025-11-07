@@ -159,6 +159,7 @@ type Repo interface {
 	QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, size int, services []string) ([]*model.Service, uint64, error)
 	QueryServiceCount(ctx core.Context, startTime int64, endTime int64, clusterId string, sources []string) (uint64, error)
 	QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error)
+	ListGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, step int64) ([]ServiceBucketRedMetric, error)
 	QueryGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string, step int64) ([]BucketRedMetric, error)
 	QueryGroupServiceRedMetricValue(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string, endpoint string) (*GroupRedMetric, error)
 	QueryRealtimeServiceTopology(ctx core.Context, startTime int64, endTime int64, clusterId string) ([]model.ServiceToplogy, error)
@@ -170,6 +171,8 @@ type Repo interface {
 	GetDataplaneServiceList(ctx core.Context, req *request.QueryServiceNameRequest) ([]*model.Service, error)
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error)
 	CleanDataplaneServiceInstance(ctx core.Context, startTime int64, endTime int64, ruleId int, dataSource string) error
+	GetDataplaneServiceByInstance(ctx core.Context, startTime int64, endTime int64, cluster string, pod, namespace string, node string, pid int) ([]AlertService, error)
+
 	integration.Input
 }
 

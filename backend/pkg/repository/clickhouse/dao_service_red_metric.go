@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	TEMPLATE_LIST_GROUP_RED_METRIC  = "SELECT service_name,floor(toUnixTimestamp(timestamp) / %d) as time_bucket, sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s group by time_bucket,service_name"
 	TEMPLATE_QUERY_GROUP_RED_METRIC = "SELECT floor(toUnixTimestamp(timestamp) / %d) as time_bucket, sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s group by time_bucket"
 	TEMPLATE_QUERY_RED_METRIC_VALUE = "SELECT sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s"
 	TEMPLATE_QUERY_SERVICES         = `
@@ -37,6 +38,19 @@ func (ch *chRepo) QueryGroupServiceRedMetrics(ctx core.Context, startTime int64,
 		return nil, err
 	}
 
+	return result, nil
+}
+
+func (ch *chRepo) ListGroupServiceRedMetrics(ctx core.Context, startTime int64, endTime int64, clusterId string, step int64) ([]ServiceBucketRedMetric, error) {
+	queryBuilder := NewQueryBuilder().
+		Between("toUnixTimestamp(timestamp)", startTime/1000000, endTime/1000000).
+		EqualsNotEmpty("cluster_id", clusterId)
+	query := fmt.Sprintf(TEMPLATE_LIST_GROUP_RED_METRIC, step/1000000, queryBuilder.String())
+	result := []ServiceBucketRedMetric{}
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &result, query, queryBuilder.values...)
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 
@@ -128,6 +142,14 @@ type ServiceRedMetric struct {
 	Count      uint32 `ch:"count" json:"count"`
 	ErrorCount uint32 `ch:"error_count" json:"errorCount"`
 	Duration   uint64 `ch:"duration" json:"duration"`
+}
+
+type ServiceBucketRedMetric struct {
+	ServiceName   string  `ch:"service_name" json:"serviceName"`
+	TimeBucket    float64 `ch:"time_bucket"`
+	TotalCount    uint64  `ch:"total_count"`
+	TotalError    uint64  `ch:"total_error"`
+	TotalDuration uint64  `ch:"total_duration"`
 }
 
 type BucketRedMetric struct {
