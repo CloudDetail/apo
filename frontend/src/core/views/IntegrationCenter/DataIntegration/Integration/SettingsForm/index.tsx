@@ -105,6 +105,23 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-3 overflow-auto flex-1 h-full">
+        {!shouldShow && (
+          <div
+            className="mb-4 text-sm text-[var(--ant-color-text-secondary)] rounded-lg px-2 py-2"
+            style={{
+              borderLeft: '4px solid var(--ant-color-primary)',
+              background: 'var(--ant-color-fill-tertiary)',
+            }}
+          >
+            <div className="flex items-center">
+              <p className="ml-2">{t('installAgentIntro1')}</p>
+            </div>
+            <div className="flex items-center mt-1">
+              <p className="ml-2">{t('installAgentIntro2')}</p>
+            </div>
+          </div>
+        )}
+
         <Form
           scrollToFirstError
           form={form}

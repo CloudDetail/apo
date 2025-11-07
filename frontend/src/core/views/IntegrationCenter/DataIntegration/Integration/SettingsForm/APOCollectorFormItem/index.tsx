@@ -4,7 +4,7 @@
  */
 
 import { Button, Card, Divider, Form, Input, Space, Typography } from 'antd'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { portsDefault } from 'src/core/views/IntegrationCenter/constant'
 
@@ -17,18 +17,43 @@ const APOCollectorFormItem = ({
 }) => {
   const { t } = useTranslation('core/dataIntegration')
   const [showMore, setShowMore] = useState(false)
+
+  const removeApo = useCallback(
+    (value?: string | null) => {
+      if (!value) {
+        return ''
+      }
+      if (!isMinimal) {
+        return value
+      }
+
+      const sanitized = value
+        .replace(/APO[-\s]*/gi, '')
+        .replace(/APO/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+
+      return sanitized
+    },
+    [isMinimal],
+  )
+
+  const translate = useCallback(
+    (key: string, options?: Record<string, unknown>) => removeApo(t(key, options)),
+    [removeApo, t],
+  )
   return (
     <>
       <Divider></Divider>
-      <Typography.Title level={5}>{t('apoCollectorSetting')}</Typography.Title>
+      <Typography.Title level={5}>{translate('apoCollectorSetting')}</Typography.Title>
       <div className="px-3">
         {!isMinimal && (
           <Form.Item
             label={
               <Space>
-                {t('collectorGatewayAddr')}
+                {translate('collectorGatewayAddr')}
                 <span className=" text-[var(--ant-color-text-secondary)] text-xs">
-                  {t('collectorGatewayAddrHint')}
+                  {translate('collectorGatewayAddrHint')}
                 </span>
               </Space>
             }
@@ -45,9 +70,9 @@ const APOCollectorFormItem = ({
               <Form.Item
                 label={
                   <Space>
-                    {t('collectorGatewayAddr')}
+                    {translate('collectorGatewayAddr')}
                     <span className=" text-[var(--ant-color-text-secondary)] text-xs">
-                      {t('collectorGatewayAddrHint')}
+                      {translate('collectorGatewayAddrHint')}
                     </span>
                   </Space>
                 }
@@ -58,7 +83,7 @@ const APOCollectorFormItem = ({
               </Form.Item>
             )}
             <Form.Item
-              label={t('collectorAddr')}
+              label={translate('collectorAddr')}
               name={['apoCollector', 'collectorAddr']}
               initialValue={'apo-nginx-proxy-svc'}
             >
@@ -69,9 +94,9 @@ const APOCollectorFormItem = ({
                 name={['apoCollector', 'ports', item.key]}
                 label={
                   <Space>
-                    {item.key}
+                    {removeApo(item.key)}
                     <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                      {item.descriptions}
+                      {removeApo(item.descriptions)}
                     </span>
                   </Space>
                 }
@@ -123,7 +148,7 @@ const APOCollectorFormItem = ({
           </Card>
         ) : (
           <Button color="primary" variant="outlined" onClick={() => setShowMore(true)}>
-            {t('advanced')}
+            {translate('advanced')}
           </Button>
         )}
       </div>
