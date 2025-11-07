@@ -21,6 +21,7 @@ export const BasicCard: React.FC<CardProps> & {
   const otherContent: ReactElement[] = []
 
   //@ts-ignore
+
   // const contentHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-content-height)' : 'var(--ee-app-content-height)';
   const contentHeight = 'var(--ce-app-content-height)'
 

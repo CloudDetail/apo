@@ -257,6 +257,7 @@ const BotManagement = () => {
               <div className="bot-info">
                 <h3 className="bot-name">{t('botManagement.slackBot.name')}</h3>
                 <p className="bot-status">{t('botManagement.slackBot.description')}</p>
+                <p className="bot-status">{t('botManagement.slackBot.descriptionSub')}</p>
               </div>
             </div>
             <div className="bot-card-body">

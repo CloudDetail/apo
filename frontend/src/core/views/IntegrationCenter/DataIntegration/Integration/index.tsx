@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './index.module.scss'
 import { getClusterIntegrationInfoApi, getIntegrationConfigApi } from 'src/core/api/integration'
-import InstallCmd from './InstallCmd'
 export default function IntegrationSettings() {
   const { t } = useTranslation('core/dataIntegration')
   const [searchParams, setSearchParams] = useSearchParams()

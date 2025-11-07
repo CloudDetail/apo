@@ -66,6 +66,8 @@
   "port": "端口号",
   "guide": "接入说明",
   "config": "配置",
+  "installAgentIntro1": "在您的业务环境中安装 Syncause 数据 Agent，以收集业务服务的实时 eBPF 监控数据。",
+  "installAgentIntro2": "在当前页面配置以获取自动生成的一键部署命令。",
   "installCmdTitle": "安装部署命令",
   "saveSettingsSuccess": "集成接入成功",
   "confirmDelete": "是否确定删除名为 {{name}} 的集群接入配置",
@@ -152,6 +154,7 @@
     "slackBot": {
       "name": "Slack App",
       "description": "一键将 Syncause 添加到您的 Slack",
+      "descriptionSub": "在 Slack 直接向 Syncause 提问。",
       "teamIdLabel": "Slack Team ID",
       "teamIdPlaceholder": "输入您的 Slack Team ID",
       "getTeamId": "获取 Team ID",

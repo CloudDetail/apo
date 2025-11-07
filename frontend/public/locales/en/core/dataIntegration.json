@@ -66,6 +66,8 @@
   "port": "Port",
   "guide": "Integration Guide",
   "config": "Configuration",
+  "installAgentIntro1": "Install the Syncause Data Agent in your business environment to collect real-time eBPF monitoring data from your business services.",
+  "installAgentIntro2": "Configure it on this page to get the automatically generated one-click deployment command.",
   "installCmdTitle": "Installation and Setup Commands",
   "saveSettingsSuccess": "Save Cluster Integration Successfully",
   "confirmDelete": "Are you sure to delete the cluster integration {{name}}",
@@ -154,6 +156,7 @@
     "slackBot": {
       "name": "Slack App",
       "description": "Add Syncause to your Slack with one click",
+      "descriptionSub": "Ask in Slack with plain English",
       "teamIdLabel": "Slack Team ID",
       "teamIdPlaceholder": "Enter your Slack Team ID",
       "getTeamId": "Get Team ID",
