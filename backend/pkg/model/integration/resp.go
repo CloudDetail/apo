@@ -8,7 +8,7 @@ type ListClusterResponse struct {
 }
 
 type GetCInstallDocResponse struct {
-	InstallMD []byte `json:"installMd"`
+	InstallMD string `json:"installMd"`
 }
 
 type GetCInstallConfigResponse struct {

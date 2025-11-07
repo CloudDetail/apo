@@ -43,7 +43,7 @@ func (h *handler) GetIntegrationInstallDoc() core.HandlerFunc {
 			return
 		}
 		c.Payload(integration.GetCInstallDocResponse{
-			InstallMD: resp,
+			InstallMD: string(resp),
 		})
 	}
 }

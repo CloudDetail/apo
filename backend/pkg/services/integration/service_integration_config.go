@@ -84,11 +84,15 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 		return nil, err
 	}
 
-	return getIntegrationConfigFile(clusterConfig)
+	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
+		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
+	}
+
+	return s.getIntegrationConfigFile(clusterConfig)
 }
 
-func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
-	jsonObj, err := convert2DeployValues(clusterConfig)
+func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
 	}
@@ -98,7 +102,7 @@ func getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*i
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
 		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values.yaml.tmpl", jsonObj)
-		fileName = "apo-one-agent-values.yaml"
+		fileName = "agent-values.yaml"
 	case integration.ClusterTypeVM:
 		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
 		fileName = "installCfg.sh"
@@ -129,7 +133,7 @@ var (
 	apoComposeDeployVersion = "v1.11.000"
 )
 
-func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
+func (s *service) convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, error) {
 	jsonStr, err := json.Marshal(ci)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
@@ -173,6 +177,7 @@ func convert2DeployValues(ci *integration.ClusterIntegration) (map[string]any, e
 	jsonObj["_chart_version"] = apoChartVersion
 	jsonObj["_cluster_id"] = ci.Cluster.ID
 	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
+	jsonObj["_base_url_"] = s.baseURL
 
 	return jsonObj, nil
 }

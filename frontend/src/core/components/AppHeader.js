@@ -77,7 +77,7 @@ const AppHeader = ({ type = 'default' }) => {
   const { useToken } = theme
   const { token } = useToken()
   return (
-    <CHeader position="sticky" className="mb-1 p-0" ref={headerRef} style={vars}>
+    <CHeader position="sticky" className="flex-shrink-0 flex-grow-0 mb-1 p-0" ref={headerRef} style={vars}>
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center">
           {type === 'united' ? (

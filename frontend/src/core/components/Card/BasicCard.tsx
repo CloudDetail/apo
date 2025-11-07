@@ -6,7 +6,7 @@
 import React, { CSSProperties, ReactElement } from 'react'
 import { SLOT_TYPES, CardTable, CardHeader } from './CardSlots'
 import { Card } from 'antd'
-
+import style from './index.module.scss'
 type CardProps = {
   children: React.ReactNode
   bodyStyle?: CSSProperties
@@ -21,8 +21,10 @@ export const BasicCard: React.FC<CardProps> & {
   const otherContent: ReactElement[] = []
 
   //@ts-ignore
-  // const contentHeight = import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 'var(--ce-app-content-height)' : 'var(--ee-app-content-height)';
-  const contentHeight = 'var(--ce-app-content-height)'
+  const contentHeight =
+    import.meta.env.VITE_APP_CODE_VERSION === 'CE'
+      ? 'var(--ce-app-content-height)'
+      : 'var(--ee-app-content-height)'
 
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return
@@ -43,41 +45,47 @@ export const BasicCard: React.FC<CardProps> & {
   })
 
   return (
-    <Card
-      styles={{
-        body: {
-          height: contentHeight,
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '12px 24px',
-          ...bodyStyle,
-        },
-      }}
-    >
-      {/* Header Section */}
-      {headerContent.length > 0 &&
-        headerContent.map((header, index) => (
-          <div className="w-full text-sm font-medium flex items-center justify-between" key={index}>
-            {header}
-          </div>
-        ))}
+    <div className={style.basicCard}>
+      <Card
+        styles={{
+          body: {
+            // height: contentHeight,
+            height: '100%',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '12px 24px',
+            ...bodyStyle,
+          },
+        }}
+      >
+        {/* Header Section */}
+        {headerContent.length > 0 &&
+          headerContent.map((header, index) => (
+            <div
+              className="w-full text-sm font-medium flex items-center justify-between"
+              key={index}
+            >
+              {header}
+            </div>
+          ))}
 
-      {/* Table Section */}
-      {tableContent && (
-        <div className="flex-1 overflow-auto">
-          <div className="h-full text-xs justify-between">
-            {tableContent && <>{tableContent}</>}
+        {/* Table Section */}
+        {tableContent && (
+          <div className="flex-1 overflow-auto">
+            <div className="h-full text-xs justify-between">
+              {tableContent && <>{tableContent}</>}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Other Content */}
-      {otherContent.length > 0 &&
-        otherContent.map((content, index) => (
-          <React.Fragment key={index}>{content}</React.Fragment>
-        ))}
-    </Card>
+        {/* Other Content */}
+        {otherContent.length > 0 &&
+          otherContent.map((content, index) => (
+            <React.Fragment key={index}>{content}</React.Fragment>
+          ))}
+      </Card>
+    </div>
   )
 }
 

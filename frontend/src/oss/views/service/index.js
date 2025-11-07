@@ -17,7 +17,7 @@ export default function ServiceView() {
           </div>
         )}
       </DataGroupTabs> */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden h-full">
         <ChartsProvider>
           <ServiceTable />
         </ChartsProvider>

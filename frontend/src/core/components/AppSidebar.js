@@ -12,6 +12,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
 import { useSelector } from 'react-redux'
 import styles from './AppSidebar.module.scss'
+
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
@@ -121,28 +122,7 @@ const AppSidebar = () => {
         },
       }}
     >
-      <div className="flex flex-col items-center justify-center ">
-        {
-          agentKeys?.length > 0 &&
-          <> <Menu
-            mode="inline"
-            theme={theme}
-            inlineCollapsed={true}
-            items={agentMenuList()}
-            onClick={onClick}
-            selectedKeys={selectedKeys}
-            openKeys={openKeys}
-            onOpenChange={onOpenChange}
-            className={styles.sidebarMenu}
-            style={{
-              backgroundColor: 'transparent',
-              width: 70,
-            }}
-          ></Menu>
-            {menuList?.length > 0 && <Divider className="my-2" />}
-          </>
-        }
-
+      <div className='h-full flex flex-col justify-between ' >
         <Menu
           mode="inline"
           theme={theme}
@@ -153,11 +133,8 @@ const AppSidebar = () => {
           openKeys={openKeys}
           onOpenChange={onOpenChange}
           className={styles.sidebarMenu}
-          style={{
-            backgroundColor: 'transparent',
-            width: 70,
-          }}
         ></Menu>
+
       </div>
     </ConfigProvider>
   )

@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
-import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
-import { MenuUnfoldOutlined, MenuFoldOutlined } from '@ant-design/icons'
-import { Button, Layout } from 'antd'
+import React from 'react'
+import { AppContent, AppSidebar, AppHeader } from '../components/index'
+import { Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
-import { Header } from 'antd/es/layout/layout'
 import { CImage } from '@coreui/react'
 import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
@@ -18,7 +16,7 @@ const DefaultLayout = () => {
   const { t } = useTranslation()
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ height: '100vh', overflow: 'hidden' }} className='flex flex-col '>
       <Sider
         collapsible
         trigger={null}
@@ -55,13 +53,14 @@ const DefaultLayout = () => {
         <AppSidebar />
       </Sider>
       <Layout
+        className='flex flex-col'
         style={{
           marginLeft: '70px',
           transition: 'margin-left 0.3s ease-in-out',
         }}
       >
         <AppHeader />
-        <div className="body flex-grow-1">
+        <div className="body flex-1 h-0  flex flex-col">
           <AppContent />
         </div>
       </Layout>
