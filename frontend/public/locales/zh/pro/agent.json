@@ -19,6 +19,22 @@
     "placeholder": "询问 SRE 智能助手",
     "typingIndicator": "正在输入..."
   },
+  "slackStatus": {
+    "label": "Slack 接入",
+    "loading": "加载中",
+    "states": {
+      "connected": "已接入",
+      "waiting": "等待授权",
+      "connectRetry": "重试连接中",
+      "disconnected": "连接断开",
+      "notConnected": "未接入"
+    },
+    "tooltip": {
+      "title": "Slack 接入状态",
+      "teamId": "团队 ID",
+      "navigate": "点击跳转到配置页面"
+    }
+  },
   "settings": {
     "title": "AG-UI 设置",
     "cancel": "取消",

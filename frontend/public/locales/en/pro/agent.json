@@ -19,6 +19,22 @@
     "placeholder": "Ask SRE Agent",
     "typingIndicator": "Typing..."
   },
+  "slackStatus": {
+    "label": "Slack",
+    "loading": "Loading",
+    "states": {
+      "connected": "Connected",
+      "waiting": "Waiting for approval",
+      "connectRetry": "Retrying connection",
+      "disconnected": "Disconnected",
+      "notConnected": "Not connected"
+    },
+    "tooltip": {
+      "title": "Slack connection status",
+      "teamId": "Team ID",
+      "navigate": "Click to open the configuration page"
+    }
+  },
   "settings": {
     "title": "AG-UI Settings",
     "cancel": "Cancel",

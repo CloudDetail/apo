@@ -5,6 +5,7 @@ import { StopOutlined } from '@ant-design/icons'
 import { TbSend2 } from 'react-icons/tb'
 import DataStatus from './DataStatus'
 import AgentModel from './AgentModel'
+import SlackStatus from './SlackStatus'
 
 const { TextArea } = Input
 
@@ -67,6 +68,7 @@ const InputArea: React.FC<InputAreaProps> = ({
         <div className="flex items-center gap-2 ml-2">
           <AgentModel />
           <DataStatus />
+          <SlackStatus />
         </div>
 
         {/* <div className="flex justify-end">
