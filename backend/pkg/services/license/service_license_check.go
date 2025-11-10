@@ -9,8 +9,6 @@ import (
 
 	"192.168.1.22/apo/license-manager/pkg/encrypt"
 	"192.168.1.22/apo/license-manager/pkg/license"
-	"github.com/CloudDetail/apo/backend/pkg/code"
-	"github.com/CloudDetail/apo/backend/pkg/core"
 	"go.uber.org/zap"
 )
 
@@ -22,8 +20,8 @@ func (s *service) CheckLicenseNodes() (exceed bool, err error) {
 		return false, err
 	}
 	if bLic == nil {
-		s.logger.Error("", zap.Error(err))
-		return false, ErrNoLicense
+		s.logger.Error("", zap.Error(ErrNoLicense))
+		return true, nil
 	}
 	endTime := time.Now()
 	startTime := endTime.Add(-time.Minute * 10)
@@ -47,8 +45,8 @@ func (s *service) CheckLicenseDate() (expire bool, err error) {
 	}
 
 	if bLic == nil {
-		s.logger.Error("", zap.Error(err))
-		return false, core.Error(code.NoLicenseError, "no license dectected")
+		s.logger.Error("", zap.Error(ErrNoLicense))
+		return true, nil
 	}
 
 	if expire, err := bLic.CheckExpireDate(); err != nil {
@@ -100,8 +98,8 @@ func (s *service) CheckFeature(features ...string) (pass bool, err error) {
 	}
 
 	if bLic == nil {
-		s.logger.Error("", zap.Error(err))
-		return false, ErrNoLicense
+		s.logger.Error("", zap.Error(ErrNoLicense))
+		return true, nil
 	}
 
 	if has := bLic.CheckFeatures(features...); !has {
