@@ -113,9 +113,24 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentMessage, isR
     )
   }
 
+  // 过滤消息：如果有多个 findings 类型的消息，只保留第一个
+  const filteredMessages = React.useMemo(() => {
+    let findingsFound = false
+    return messages.filter((msg) => {
+      if (msg.type === 'findings') {
+        if (findingsFound) {
+          return false // 已经有一个 findings 了，跳过这个
+        }
+        findingsFound = true
+        return true // 这是第一个 findings，保留
+      }
+      return true // 非 findings 类型的消息全部保留
+    })
+  }, [messages])
+
   return (
     <div ref={messagesContainerRef} className={styles.messagesArea}>
-      {messages.map(MessageItem)}
+      {filteredMessages.map(MessageItem)}
       {/* {renderCurrentMessage()} */}
       {renderLoadingIndicator()}
       <div ref={messagesEndRef} />

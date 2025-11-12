@@ -53,6 +53,11 @@ const AgentToolDisplay: React.FC<ToolRenderProps> = ({ toolName, title, content,
         items={[
           {
             key: toolName,
+            styles: {
+              header: {
+                padding: '0',
+              },
+            },
             label: (
               <div
                 className="flex items-start "

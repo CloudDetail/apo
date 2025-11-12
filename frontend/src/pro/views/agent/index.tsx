@@ -1,40 +1,40 @@
 import React from 'react'
 import { AGUIProvider } from '../../contexts/AGUIContext'
 import AGUIChat from '../../components/AGUIChat'
-import { Splitter } from 'antd'
 import './index.css'
-import { contentHeight } from 'src/constants'
 import { useSearchParams } from 'react-router-dom'
+import { BasicCard } from 'src/core/components/Card/BasicCard'
 
 const AgentPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const threadId = searchParams.get('threadId') || undefined
   return (
-    <AGUIProvider
-      initialConfig={{
-        baseUrl: (import.meta as any).env?.VITE_AGUI_BASE_URL || '/ai/api/v1/srechat',
-        // 'http://localhost:8081/mock',
-        apiKey: (import.meta as any).env?.VITE_AGUI_API_KEY || '',
-      }}
-    >
-      <div className="overflow-hidden" style={{ height: contentHeight }}>
-        <Splitter
+    <BasicCard bodyStyle={{ padding: '8px' }}>
+      <AGUIProvider
+        initialConfig={{
+          baseUrl: (import.meta as any).env?.VITE_AGUI_BASE_URL || '/ai/api/v1/srechat',
+          // 'http://localhost:8081/mock',
+          apiKey: (import.meta as any).env?.VITE_AGUI_API_KEY || '',
+        }}
+      >
+        <div className="overflow-hidden h-full">
+          <AGUIChat threadId={threadId} />
+          {/* <Splitter
           style={{ height: 'calc(100vh - 100px )', overflow: 'hidden' }}
           onResize={(sizes) => {
             console.log('Splitter resized:', sizes)
           }}
         >
-          {/* <Splitter.Panel defaultSize="30%" collapsible>
+          <Splitter.Panel defaultSize="30%" collapsible>
             <AlertEventList />
-          </Splitter.Panel> */}
-          <Splitter.Panel collapsible>
-            <div className="agent-container h-full overflow-hidden">
-              <AGUIChat threadId={threadId} />
-            </div>
           </Splitter.Panel>
-        </Splitter>
-      </div>
-    </AGUIProvider>
+          <Splitter.Panel collapsible>
+            <div className="agent-container h-full overflow-hidden"></div>
+          </Splitter.Panel>
+        </Splitter> */}
+        </div>
+      </AGUIProvider>
+    </BasicCard>
   )
 }
 

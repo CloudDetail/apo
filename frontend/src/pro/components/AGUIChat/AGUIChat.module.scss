@@ -11,7 +11,7 @@
 
 // 头部样式
 .header {
-  @apply flex items-center h-14 justify-between px-6;
+  @apply flex items-center h-10 justify-between px-6;
   background-color: var(--ant-color-bg-container);
   color: var(--ant-color-text);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -660,9 +660,9 @@
 
 .toolCallCollapse {
   margin: 4px 16px 8px 16px;
-  :global(.ant-collapse-header) {
-    padding: 0 !important;
-  }
+  // :global(.ant-collapse-header) {
+  //   padding: 0 !important;
+  // }
   :global(.ant-collapse-content-box) {
     padding: 0 !important;
   }

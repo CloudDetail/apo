@@ -5,8 +5,8 @@ import Empty from 'src/core/components/Empty/Empty'
 import { ChartColorList } from 'src/constants'
 import { useSelector } from 'react-redux'
 
-const ChartComponent = (props) => {
-  const { chartData, YFormatter, emptyContext } = props
+export const ChartComponent = (props) => {
+  const { chartData, YFormatter, emptyContext, showLegend = true } = props
   const chartRef = useRef(null)
 
   const [option, setOption] = useState({
@@ -57,7 +57,7 @@ const ChartComponent = (props) => {
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '15%',
+      bottom: showLegend ? '15%' : '5%',
       top: '5%',
       containLabel: true,
     },
@@ -114,7 +114,7 @@ const ChartComponent = (props) => {
         showSymbol: false,
       })),
       legend: {
-        show: true,
+        show: showLegend,
         icon: 'roundRect',
         type: 'scroll',
         left: 10,
@@ -156,7 +156,7 @@ const ChartComponent = (props) => {
   )
 }
 
-const convertMetricsData = (data) => {
+export const convertMetricsData = (data) => {
   return data.map((item) => ({
     data: Object.entries(item.chart.chartData)
       ?.map(([key, value]) => [Number(key) / 1000, value])
@@ -164,7 +164,7 @@ const convertMetricsData = (data) => {
     legend: item.legend,
   }))
 }
-const Metrics = ({ args }: { args: any }) => {
+const Metrics = ({ args, showLegend = true }: { args: any; showLegend?: boolean }) => {
   return (
     <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-4 max-h-[500px] overflow-y-auto">
       {args?.map((item) => (
@@ -178,6 +178,7 @@ const Metrics = ({ args }: { args: any }) => {
             chartData={convertMetricsData(item.timeseries)}
             unit={item.unit}
             YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
+            showLegend={showLegend}
           />
         </div>
       ))}

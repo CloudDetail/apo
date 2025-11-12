@@ -239,3 +239,105 @@ export type AnalysisResultEvent = BaseEvent & {
         id: string
     };
 };
+
+export type FindingsStartEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_ROOT_START';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        content: string
+    };
+};
+
+export type FindingsAddEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_NODE_ADD';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        parentId: string;
+        content: string
+        title: string
+    };
+};
+
+export type FindingsEndEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TREE_END';
+    value: {
+        findingsId: string;
+        content: string;
+    };
+}
+export type FindingsResultEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TREE_RESULT';
+    value: {
+        findingsId: string;
+        title: string;
+        content: string;
+    };
+}
+
+export type FindingsToolStartEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TOOL_START';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        toolCallName: string;
+        toolCallId: string;
+    };
+}
+export type FindingsToolArgsEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TOOL_ARGS';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        toolCallId: string;
+        delta: string;
+    };
+}
+export type FindingsToolEndEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TOOL_END';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        toolCallId: string;
+    };
+}
+export type FindingsToolResultEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TOOL_RESULT';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        toolCallId: string;
+        content: string;
+    };
+}
+
+export type FindingsToolDisplayEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'FINDINGS_TOOL_DISPLAY';
+    value: {
+        findingsId: string;
+        nodeId: string;
+        toolCallName: string;
+        title: string;
+        content: object
+    };
+}
+
+export type WarningEvent = BaseEvent & {
+    type: 'CUSTOM';
+    name: 'WARNING';
+    value: {
+        id: string;
+        type: 'message' | 'node' | 'tool' | 'display'
+        content: string;
+    };
+}

@@ -31,6 +31,16 @@ import {
   AnalysisMessageContentEvent,
   AnalysisMessageStartEvent,
   AnalysisResultEvent,
+  FindingsToolStartEvent,
+  FindingsStartEvent,
+  WarningEvent,
+  FindingsAddEvent,
+  FindingsEndEvent,
+  FindingsResultEvent,
+  FindingsToolArgsEvent,
+  FindingsToolDisplayEvent,
+  FindingsToolEndEvent,
+  FindingsToolResultEvent,
 } from '../types/ag-ui'
 import dayjs from 'dayjs'
 import { checkDataplaneDataApi } from '../api/dataplane'
@@ -38,25 +48,60 @@ import { getModelListApi, setDefaultModelApi } from '../api/modelSetting'
 import { getConversationMessagesApi } from '../api/conversation'
 
 // 扩展AGUIMessage类型以支持工具调用
+export interface ToolCallItem {
+  id: string
+  name: string
+  args: string
+  result?: any
+  status: 'pending' | 'completed' | 'error'
+}
+export interface AgentToolDisplayItem {
+  toolName: string
+  title: string
+  content: string
+}
+
+// Findings 相关的独立数据结构
+export interface FindingsNode {
+  id: string
+  content: string
+  title?: string
+  parentId?: string
+}
+
+export interface FindingsEdge {
+  source: string
+  target: string
+}
+
+export interface FindingsResult {
+  title: string
+  content: string
+}
+
+// 简化后的 ExtendedAGUIMessage
 export interface ExtendedAGUIMessage extends AGUIMessage {
-  toolCalls?: Array<{
-    id: string
-    name: string
-    args: string
-    result?: any
-    status: 'pending' | 'render' | 'completed' | 'error'
-  }>
-  agentToolDisplay?: Array<{
-    toolName: string
-    title: string
-    content: string
-  }>
+  toolCalls?: ToolCallItem[]
+  agentToolDisplay?: AgentToolDisplayItem[]
   isFinal?: boolean
   errorMessage?: string
   hidden?: boolean
   isEnd?: boolean
-  type?: 'analysisResult'
+  type?: 'analysisResult' | 'findings'
   status?: 'pending' | 'completed' | 'error'
+  parentId?: string // 添加 parentId 属性
+  // 简化的 findingsData，只保留基本结构信息
+  findingsData?: {
+    nodes: FindingsNode[]
+    edges: FindingsEdge[]
+    result?: FindingsResult
+    tools: Map<string, any[]> // 工具调用数据，按节点ID索引
+    displays: Map<string, any[]> // 代理工具显示数据，按节点ID索引
+  }
+  result?: {
+    title: string
+    content: string
+  }
 }
 
 // AI权限相关的类型定义
@@ -102,6 +147,10 @@ interface AGUIContextValue {
   loading: boolean
   state: Record<string, any>
 
+  // Findings 相关的独立存储 - 优化版本
+  findingsToolCalls: Map<string, Map<string, ToolCallItem>> // 外层 key: `${findingsId}-${nodeId}`, 内层 key: toolCallId
+  findingsAgentToolDisplay: Map<string, AgentToolDisplayItem[]> // key: `${findingsId}-${nodeId}`
+
   // 当前正在处理的消息和工具调用
   currentMessage?: {
     id: string
@@ -145,6 +194,29 @@ interface AGUIContextValue {
   cancelRun: () => void
   clearMessages: () => void
   loadHistoryMessages: (threadId: string) => Promise<void>
+
+  // Findings 数据管理 - 优化版本
+  getFindingsToolCalls: (findingsId: string, nodeId: string) => ToolCallItem[]
+  getFindingsAgentToolDisplay: (findingsId: string, nodeId: string) => AgentToolDisplayItem[]
+  setFindingsToolCalls: (findingsId: string, nodeId: string, toolCalls: ToolCallItem[]) => void
+  setFindingsAgentToolDisplay: (
+    findingsId: string,
+    nodeId: string,
+    agentToolDisplay: AgentToolDisplayItem[],
+  ) => void
+  addFindingsToolCall: (findingsId: string, nodeId: string, toolCall: ToolCallItem) => void
+  updateFindingsToolCall: (
+    findingsId: string,
+    nodeId: string,
+    toolCallId: string,
+    updates: Partial<ToolCallItem>,
+  ) => void
+  addFindingsAgentToolDisplay: (
+    findingsId: string,
+    nodeId: string,
+    agentToolDisplay: AgentToolDisplayItem,
+  ) => void
+  clearFindingsData: () => void
 
   // AI权限操作
   checkPermission: () => Promise<void>
@@ -217,11 +289,130 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   const [originalProviders, setOriginalProviders] = useState<Provider[]>([])
   const [defaultModel, setDefaultModel] = useState<ModelOption | null>(null)
 
+  // Findings 相关的独立存储状态 - 使用嵌套 Map 提高性能
+  // 外层 key: `${findingsId}-${nodeId}`, 内层 key: toolCallId
+  const [findingsToolCalls, setFindingsToolCalls] = useState<
+    Map<string, Map<string, ToolCallItem>>
+  >(new Map())
+  const [findingsAgentToolDisplay, setFindingsAgentToolDisplay] = useState<
+    Map<string, AgentToolDisplayItem[]>
+  >(new Map())
+
   // 事件订阅引用
   const unsubscribeRef = useRef<(() => void) | null>(null)
 
-  // 假设 messages: ExtendedAGUIMessage[] 是 React 状态
-  // const [messages, setMessages] = useState<ExtendedAGUIMessage[]>([])
+  // Findings 数据管理辅助函数 - 优化版本
+  const getFindingsToolCalls = useCallback(
+    (findingsId: string, nodeId: string): ToolCallItem[] => {
+      const key = `${findingsId}-${nodeId}`
+      const toolCallsMap = findingsToolCalls.get(key)
+      return toolCallsMap ? Array.from(toolCallsMap.values()) : []
+    },
+    [findingsToolCalls],
+  )
+
+  const getFindingsAgentToolDisplay = useCallback(
+    (findingsId: string, nodeId: string): AgentToolDisplayItem[] => {
+      const key = `${findingsId}-${nodeId}`
+      return findingsAgentToolDisplay.get(key) || []
+    },
+    [findingsAgentToolDisplay],
+  )
+
+  const setFindingsToolCallsData = useCallback(
+    (findingsId: string, nodeId: string, toolCalls: ToolCallItem[]) => {
+      const key = `${findingsId}-${nodeId}`
+      setFindingsToolCalls((prev) => {
+        const newMap = new Map(prev)
+        const toolCallsMap = new Map<string, ToolCallItem>()
+        toolCalls.forEach((toolCall) => {
+          toolCallsMap.set(toolCall.id, toolCall)
+        })
+        newMap.set(key, toolCallsMap)
+        return newMap
+      })
+    },
+    [],
+  )
+
+  // 添加单个工具调用的高效方法
+  const addFindingsToolCall = useCallback(
+    (findingsId: string, nodeId: string, toolCall: ToolCallItem) => {
+      const key = `${findingsId}-${nodeId}`
+      setFindingsToolCalls((prev) => {
+        const newMap = new Map(prev)
+        const existingToolCalls = newMap.get(key) || new Map<string, ToolCallItem>()
+        const updatedToolCalls = new Map(existingToolCalls)
+        updatedToolCalls.set(toolCall.id, toolCall)
+        newMap.set(key, updatedToolCalls)
+        console.log('addFindingsToolCall', newMap)
+        return newMap
+      })
+    },
+    [],
+  )
+
+  // 更新单个工具调用的高效方法
+  const updateFindingsToolCall = useCallback(
+    (findingsId: string, nodeId: string, toolCallId: string, updates: Partial<ToolCallItem>) => {
+      const key = `${findingsId}-${nodeId}`
+      setFindingsToolCalls((prev) => {
+        const newMap = new Map(prev)
+        const existingToolCalls = newMap.get(key)
+        if (existingToolCalls && existingToolCalls.has(toolCallId)) {
+          const updatedToolCalls = new Map(existingToolCalls)
+          const existingToolCall = updatedToolCalls.get(toolCallId)!
+
+          // 对于 args 字段，进行叠加而不是覆盖
+          const mergedUpdates = { ...updates }
+          if (updates.args !== undefined) {
+            mergedUpdates.args = (existingToolCall.args || '') + updates.args
+          }
+
+          updatedToolCalls.set(toolCallId, { ...existingToolCall, ...mergedUpdates })
+          newMap.set(key, updatedToolCalls)
+          console.log('updateFindingsToolCall', newMap)
+          return newMap
+        }
+        return prev // 如果没找到，返回原状态
+      })
+    },
+    [],
+  )
+
+  const setFindingsAgentToolDisplayData = useCallback(
+    (findingsId: string, nodeId: string, agentToolDisplay: AgentToolDisplayItem[]) => {
+      const key = `${findingsId}-${nodeId}`
+      setFindingsAgentToolDisplay((prev) => {
+        const newMap = new Map(prev)
+        newMap.set(key, agentToolDisplay)
+        return newMap
+      })
+    },
+    [],
+  )
+
+  // 添加单个 AgentToolDisplay 的高效方法
+  const addFindingsAgentToolDisplay = useCallback(
+    (findingsId: string, nodeId: string, agentToolDisplay: AgentToolDisplayItem) => {
+      const key = `${findingsId}-${nodeId}`
+      setFindingsAgentToolDisplay((prev) => {
+        const newMap = new Map(prev)
+        const existingItems = newMap.get(key) || []
+        // 直接 push 到现有数组，避免展开操作
+        const updatedItems = [...existingItems, agentToolDisplay]
+        newMap.set(key, updatedItems)
+        console.log('addFindingsAgentToolDisplay', newMap)
+        return newMap
+      })
+    },
+    [],
+  )
+
+  const clearFindingsData = useCallback(() => {
+    setFindingsToolCalls(new Map())
+    setFindingsAgentToolDisplay(new Map())
+  }, [])
 
   const onTextMessageStart = useCallback((event: TextMessageStartEvent) => {
     const newMessage: ExtendedAGUIMessage = {
@@ -405,45 +596,52 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     setError(null) // 清除之前的错误
   }, [])
 
-  const onRunFinished = useCallback((event: RunFinishedEvent) => {
-    void event
-    setIsRunning(false)
-    setCurrentRunId(undefined)
-    setCurrentStep(undefined)
-    setCurrentMessage(undefined)
-    setCurrentToolCall(undefined)
-    setLoading(false)
+  const onRunFinished = useCallback(
+    (event: RunFinishedEvent) => {
+      void event
+      setIsRunning(false)
+      setCurrentRunId(undefined)
+      setCurrentStep(undefined)
+      setCurrentMessage(undefined)
+      setCurrentToolCall(undefined)
+      setLoading(false)
 
-    // 确保所有pending状态的工具调用都标记为completed
-    setMessages((prevMessages) => {
-      const updatedMessages = [...prevMessages]
-      updatedMessages.forEach((message) => {
-        if (message.toolCalls) {
-          message.toolCalls.forEach((toolCall) => {
-            if (toolCall.status === 'pending') {
-              toolCall.status = 'completed'
-            }
+      // 确保所有pending状态的工具调用都标记为completed
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages]
+        updatedMessages.forEach((message) => {
+          if (message.toolCalls) {
+            message.toolCalls.forEach((toolCall) => {
+              if (toolCall.status === 'pending') {
+                toolCall.status = 'completed'
+              }
+            })
+          }
+          if (message?.status === 'pending') {
+            message.status = 'completed'
+          }
+        })
+        const lastMessage = updatedMessages[updatedMessages.length - 1]
+        if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.isFinal = true
+        } else {
+          updatedMessages.push({
+            id: generateMessageId(),
+            role: 'assistant',
+            content: '',
+            timestamp: new Date(),
+            isFinal: true,
           })
         }
-        if (message?.status === 'pending') {
-          message.status = 'completed'
-        }
+        console.log('updatedMessages', updatedMessages)
+        console.log('findingsToolCalls', findingsToolCalls)
+        console.log('findingsAgentToolDisplay', findingsAgentToolDisplay)
+
+        return updatedMessages
       })
-      const lastMessage = updatedMessages[updatedMessages.length - 1]
-      if (lastMessage && lastMessage.role === 'assistant') {
-        lastMessage.isFinal = true
-      } else {
-        updatedMessages.push({
-          id: generateMessageId(),
-          role: 'assistant',
-          content: '',
-          timestamp: new Date(),
-          isFinal: true,
-        })
-      }
-      return updatedMessages
-    })
-  }, [])
+    },
+    [findingsToolCalls, findingsAgentToolDisplay],
+  )
 
   const onRunError = useCallback((event: RunErrorEvent) => {
     setError(event.message || t('run.runtimeError'))
@@ -640,36 +838,259 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       return updatedMessages
     })
   }, [])
-  const onCustomEvent = useCallback((event: CustomEvent) => {
-    if (event.name === 'AgentToolDisplay' && event.value.toolCallName !== 'PING') {
-      const toolCallName = event.value.toolCallName
-      const content = event.value.content
-      const title = event.value.title
-      setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages]
-        const lastMessage = updatedMessages[updatedMessages.length - 1]
 
-        if (lastMessage && lastMessage.role === 'assistant') {
-          const toolCall = {
+  const onFindingsRootStart = useCallback((event: FindingsStartEvent) => {
+    const value = event.value
+    const newMessage: ExtendedAGUIMessage = {
+      id: value.findingsId,
+      role: 'assistant',
+      content: value.content,
+      timestamp: new Date(),
+      toolCalls: [],
+      agentToolDisplay: [],
+      hidden: false,
+      status: 'pending',
+      type: 'findings',
+      findingsData: {
+        nodes: [
+          {
+            id: value.nodeId,
+            content: value.content,
+          },
+        ],
+        edges: [],
+        tools: new Map(),
+        displays: new Map(),
+      },
+    }
+
+    // 不再在节点创建时初始化工具调用和展示数据
+    // 这些数据将在收到 FINDINGS_TOOL_START 和 FINDINGS_TOOL_DISPLAY_EVENT 时创建
+
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      if (
+        updatedMessages?.length > 0 &&
+        updatedMessages[updatedMessages.length - 1]?.status === 'pending'
+      ) {
+        updatedMessages[updatedMessages.length - 1].status = 'completed'
+      }
+      updatedMessages.push(newMessage)
+      return updatedMessages
+    })
+  }, [])
+
+  const onFindingsNodeAdd = useCallback((event: FindingsAddEvent) => {
+    // 不再在节点创建时初始化工具调用和展示数据
+    // 这些数据将在收到 FINDINGS_TOOL_START 和 FINDINGS_TOOL_DISPLAY_EVENT 时创建
+
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      const index = updatedMessages.findIndex((m) => m.id === event.value.findingsId)
+      if (index !== -1) {
+        updatedMessages[index].findingsData?.nodes.push({
+          id: event.value.nodeId,
+          title: event.value.title,
+          content: event.value.content,
+          parentId: event.value.parentId,
+        })
+        updatedMessages[index].findingsData?.edges.push({
+          source: event.value.parentId,
+          target: event.value.nodeId,
+        })
+      }
+      return updatedMessages
+    })
+  }, [])
+
+  const onFindingsEnd = useCallback((event: FindingsEndEvent) => {
+    // setMessages((prevMessages) => {
+    //   const updatedMessages = [...prevMessages]
+    //   const index = updatedMessages.findIndex((m) => m.id === event.value.findingsId)
+    //   if (index !== -1) {
+    //     updatedMessages[index].status = 'completed'
+    //   }
+    //   return updatedMessages
+    // })
+  }, [])
+
+  const onFindingsRootResult = useCallback((event: FindingsResultEvent) => {
+    setMessages((prevMessages) => {
+      const updatedMessages = [...prevMessages]
+      const index = updatedMessages.findIndex((m) => m.id === event.value.findingsId)
+      if (index !== -1 && updatedMessages[index].findingsData) {
+        console.log('updatedMessages[index].findingsData', updatedMessages[index].findingsData)
+        console.log('event.value', event.value)
+        if (!updatedMessages[index].findingsData!.result) {
+          updatedMessages[index].findingsData!.result = { title: '', content: '' }
+        }
+        updatedMessages[index].findingsData!.result!.title = event.value.title
+        updatedMessages[index].findingsData!.result!.content = event.value.content
+        updatedMessages[index].status = 'completed'
+      }
+      return updatedMessages
+    })
+  }, [])
+
+  const onFindingsToolStart = useCallback(
+    (event: FindingsToolStartEvent) => {
+      const { findingsId, nodeId, toolCallId, toolCallName } = event.value
+
+      // 使用高效的添加方法，直接添加单个工具调用
+      const newToolCall: ToolCallItem = {
+        id: toolCallId,
+        name: toolCallName,
+        args: '',
+        status: 'pending',
+      }
+
+      addFindingsToolCall(findingsId, nodeId, newToolCall)
+    },
+    [addFindingsToolCall],
+  )
+
+  const onFindingsToolArgs = useCallback(
+    (event: FindingsToolArgsEvent) => {
+      const { findingsId, nodeId, toolCallId, delta } = event.value
+
+      // 使用高效的更新方法，只更新特定的工具调用
+      // 先获取当前的 args，然后追加 delta
+      const key = `${findingsId}-${nodeId}`
+      const existingToolCalls = findingsToolCalls.get(key)
+      const existingToolCall = existingToolCalls?.get(toolCallId)
+
+      if (existingToolCall) {
+        updateFindingsToolCall(findingsId, nodeId, toolCallId, {
+          args: existingToolCall.args + delta,
+        })
+      }
+    },
+    [findingsToolCalls, updateFindingsToolCall],
+  )
+
+  const onFindingsToolEnd = useCallback((event: FindingsToolEndEvent) => {
+    void event
+  }, [])
+
+  const onFindingsToolResult = useCallback((event: FindingsToolResultEvent) => {
+    // 根据实际事件结构调整
+    console.log('FindingsToolResult event:', event)
+    // 暂时注释掉具体实现，等确认事件结构
+    const { findingsId, nodeId, toolCallId, content } = event.value
+    updateFindingsToolCall(findingsId, nodeId, toolCallId, { status: 'completed', args: content })
+  }, [])
+
+  const onFindingsToolDisplayEvent = useCallback(
+    (event: FindingsToolDisplayEvent) => {
+      // 检查事件值的类型，确保正确处理
+      if (event.value && typeof event.value === 'object') {
+        const eventValue = event.value as any
+        const { findingsId, nodeId, toolCallName, title, content } = eventValue
+        console.log('onFindingsToolDisplayEvent', eventValue)
+        if (findingsId && nodeId && toolCallName && title && content) {
+          // 使用高效的添加方法，直接添加单个展示项
+          const newAgentToolDisplay: AgentToolDisplayItem = {
             toolName: toolCallName,
-            title: title,
-            content: content,
+            title,
+            content,
           }
 
-          lastMessage.agentToolDisplay = lastMessage.agentToolDisplay || []
-          lastMessage.agentToolDisplay.push(toolCall)
+          addFindingsAgentToolDisplay(findingsId, nodeId, newAgentToolDisplay)
         }
+      }
+    },
+    [addFindingsAgentToolDisplay],
+  )
 
-        return updatedMessages
-      })
-    } else if (event.name === 'ANALYSIS_MESSAGE_START') {
-      onAnalysisMessageStart(event as AnalysisMessageStartEvent)
-    } else if (event.name === 'ANALYSIS_MESSAGE_CONTENT') {
-      onAnalysisMessageContent(event as AnalysisMessageContentEvent)
-    } else if (event.name === 'ANALYSIS_MESSAGE_END') {
-      onAnalysisMessageEnd(event as AnalysisMessageEndEvent)
-    } else if (event.name === 'ANALYSIS_RESULT') {
-      onAnalysisResult(event as AnalysisResultEvent)
+  const onWarning = useCallback((event: WarningEvent) => {
+    void event
+  }, [])
+
+  const onCustomEvent = useCallback((event: CustomEvent) => {
+    switch (event.name) {
+      case 'AgentToolDisplay':
+        if (event.value.toolCallName !== 'PING') {
+          const toolCallName = event.value.toolCallName
+          const content = event.value.content
+          const title = event.value.title
+          setMessages((prevMessages) => {
+            const updatedMessages = [...prevMessages]
+            const lastMessage = updatedMessages[updatedMessages.length - 1]
+
+            if (lastMessage && lastMessage.role === 'assistant') {
+              const toolCall = {
+                toolName: toolCallName,
+                title: title,
+                content: content,
+              }
+
+              lastMessage.agentToolDisplay = lastMessage.agentToolDisplay || []
+              lastMessage.agentToolDisplay.push(toolCall)
+            }
+
+            return updatedMessages
+          })
+        }
+        break
+
+      case 'ANALYSIS_MESSAGE_START':
+        onAnalysisMessageStart(event as AnalysisMessageStartEvent)
+        break
+
+      case 'ANALYSIS_MESSAGE_CONTENT':
+        onAnalysisMessageContent(event as AnalysisMessageContentEvent)
+        break
+
+      case 'ANALYSIS_MESSAGE_END':
+        onAnalysisMessageEnd(event as AnalysisMessageEndEvent)
+        break
+
+      case 'ANALYSIS_RESULT':
+        onAnalysisResult(event as AnalysisResultEvent)
+        break
+
+      case 'FINDINGS_ROOT_START':
+        onFindingsRootStart(event as FindingsStartEvent)
+        break
+
+      case 'FINDINGS_NODE_ADD':
+        onFindingsNodeAdd(event as FindingsAddEvent)
+        break
+
+      case 'FINDINGS_TREE_END':
+        onFindingsEnd(event as FindingsEndEvent)
+        break
+
+      case 'FINDINGS_TREE_RESULT':
+        onFindingsRootResult(event as FindingsResultEvent)
+        break
+
+      case 'FINDINGS_TOOL_START':
+        onFindingsToolStart(event as FindingsToolStartEvent)
+        break
+
+      case 'FINDINGS_TOOL_ARGS':
+        onFindingsToolArgs(event as FindingsToolArgsEvent)
+        break
+
+      case 'FINDINGS_TOOL_END':
+        onFindingsToolEnd(event as FindingsToolEndEvent)
+        break
+
+      case 'FINDINGS_TOOL_RESULT':
+        onFindingsToolResult(event as FindingsToolResultEvent)
+        break
+
+      case 'FINDINGS_TOOL_DISPLAY':
+        onFindingsToolDisplayEvent(event as FindingsToolDisplayEvent)
+        break
+
+      case 'WARNING':
+        onWarning(event as WarningEvent)
+        break
+
+      default:
+        break
     }
   }, [])
 
@@ -1042,7 +1463,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     setCurrentToolCall(undefined)
     setState({})
     setCurrentThreadId(undefined)
-  }, [])
+    clearFindingsData() // 清理 findings 相关数据
+  }, [clearFindingsData])
 
   // 加载历史消息
   const loadHistoryMessages = useCallback(async (threadId: string) => {
@@ -1051,8 +1473,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       setError(null)
 
       const response = await getConversationMessagesApi(threadId)
-
-      if (response.status === 'ok' && response.messages) {
+      console.log(response)
+      if (response && response && response.messages) {
         const rawMessages: ExtendedAGUIMessage[] = response.messages.map((msg: any) => ({
           id: msg.id,
           role: msg.role,
@@ -1069,6 +1491,9 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           agentToolDisplay: msg.agentToolDisplay || [],
           hidden: msg.hidden,
           parentId: msg.parentId,
+          findingsData: msg.findingsData,
+          type: msg.type,
+          status: 'completed',
         }))
 
         const historyMessages: ExtendedAGUIMessage[] = []
@@ -1090,6 +1515,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
         })
 
         historyMessages[historyMessages?.length - 1].isFinal = true
+        console.log('historyMessages', historyMessages)
         setMessages(historyMessages)
         setCurrentThreadId(threadId)
       }
@@ -1206,6 +1632,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     messages,
     loading,
     state,
+    findingsToolCalls,
+    findingsAgentToolDisplay,
     currentMessage,
     currentToolCall,
     isRunning,
@@ -1229,6 +1657,14 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     cancelRun,
     clearMessages,
     loadHistoryMessages,
+    getFindingsToolCalls,
+    getFindingsAgentToolDisplay,
+    setFindingsToolCalls: setFindingsToolCallsData,
+    setFindingsAgentToolDisplay: setFindingsAgentToolDisplayData,
+    addFindingsToolCall,
+    updateFindingsToolCall,
+    addFindingsAgentToolDisplay,
+    clearFindingsData,
     checkPermission,
     refreshPermission,
     refreshModelList,
@@ -1316,6 +1752,25 @@ export const useAGUIPermission = () => {
     refreshPermission: context.refreshPermission,
     refreshModelList: context.refreshModelList,
     changeDefaultModel: context.changeDefaultModel,
+  }
+}
+
+// Hook for findings data management
+export const useAGUIFindings = () => {
+  const context = useContext(AGUIContext)
+  if (!context) {
+    throw new Error('useAGUIFindings must be used within an AGUIProvider')
+  }
+
+  return {
+    getFindingsToolCalls: context.getFindingsToolCalls,
+    getFindingsAgentToolDisplay: context.getFindingsAgentToolDisplay,
+    setFindingsToolCalls: context.setFindingsToolCalls,
+    setFindingsAgentToolDisplay: context.setFindingsAgentToolDisplay,
+    addFindingsToolCall: context.addFindingsToolCall,
+    updateFindingsToolCall: context.updateFindingsToolCall,
+    addFindingsAgentToolDisplay: context.addFindingsAgentToolDisplay,
+    clearFindingsData: context.clearFindingsData,
   }
 }
 

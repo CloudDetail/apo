@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { theme, Alert, Spin } from 'antd'
+import { Alert, Spin } from 'antd'
 import { RightOutlined, DownOutlined, LoadingOutlined } from '@ant-design/icons'
 import { ExtendedAGUIMessage } from 'src/pro/contexts/AGUIContext'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
@@ -10,6 +10,7 @@ import ShinyText from 'src/pro/components/Animation/ShinyText'
 import AgentToolDisplay from '../AgentToolDisplay'
 import ToolTag from '../ToolRender/ToolTag'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import FindingsMessageItem from './FindingsMessageItem'
 
 export type ToolKind = 'toolCall' | 'agentTool'
 
@@ -47,7 +48,7 @@ export function ScaleCollapse({
     </AnimatePresence>
   )
 }
-type ToolPointer = { id: string; type: ToolKind; index: number }
+type ToolPointer = { id: string; type: ToolKind; index: number; toolName?: string }
 const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
   const isStreaming = message.status === 'pending'
   // 分析文本：pending 展开，complete 折叠
@@ -239,18 +240,20 @@ const MessageItem = (message: ExtendedAGUIMessage) => {
     <div key={message.id} className={messageClass}>
       {message.hidden ? (
         <AnalysisMessageItem message={message} />
+      ) : message.type === 'findings' ? (
+        // findings 类型直接显示 FindingsMessageItem，不显示 message.content
+        <FindingsMessageItem message={message} />
       ) : (
         <div className={styles.messageContent}>
           <div className={`${styles.messageText} ${message?.type === 'analysisResult' ? '' : ''}`}>
             {message.role === 'assistant' && message.content && !message.hidden ? (
-              <MarkdownRender content={message.content} theme={theme} />
+              <MarkdownRender content={message.content} theme="light" />
             ) : (
               message.content
             )}
           </div>
         </div>
       )}
-
       {/* 非隐藏消息：保持原逻辑（如需也改成 ToolTag + 父渲染，告诉我） */}
       {!message.hidden && message.toolCalls?.length > 0 && (
         <div className="message-tool-calls ml-6 ">
