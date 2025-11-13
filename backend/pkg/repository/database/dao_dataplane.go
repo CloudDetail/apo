@@ -87,6 +87,12 @@ func (repo *daoRepo) DeleteDataPlane(ctx core.Context, id int) error {
 		Update("is_deleted", true).Error
 }
 
+func (repo *daoRepo) GetDataplane(ctx core.Context, id int) (*mi.DataPlane, error) {
+	var res mi.DataPlane
+	err := repo.GetContextDB(ctx).Where("id = ?", id).First(&res).Error
+	return &res, err
+}
+
 func (repo *daoRepo) GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error) {
 	var results []model.DatasourceCount
 	if err := repo.DB.Table("data_plane").

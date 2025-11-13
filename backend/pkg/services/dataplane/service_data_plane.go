@@ -135,14 +135,14 @@ func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneRespon
 	}
 
 	// 过滤掉 APO 数据平面
-	if os.Getenv(showAPODataPlaneTypeENV) != "true" {
-		for i := 0; i < len(res); i++ {
-			if res[i].Typ == "apo" {
-				res = append(res[:i], res[i+1:]...)
-				i--
-			}
-		}
-	}
+	// if os.Getenv(showAPODataPlaneTypeENV) != "true" {
+	// 	for i := 0; i < len(res); i++ {
+	// 		if res[i].Typ == "apo" {
+	// 			res = append(res[:i], res[i+1:]...)
+	// 			i--
+	// 		}
+	// 	}
+	// }
 
 	return &response.ListDataPlaneResponse{
 		DataPlanes: res,
@@ -167,8 +167,16 @@ func (s *service) UpdateDataPlane(ctx core.Context, req *request.UpdateDataPlane
 }
 
 func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlaneRequest) error {
-	if find, err := s.dbRepo.CheckDataPlaneExist(ctx, req.ID); err != nil || !find {
+	// if find, err := s.dbRepo.CheckDataPlaneExist(ctx, req.ID); err != nil || !find {
+	// 	return core.Error(code.DataPlaneNotExistError, "data plane not exist")
+	// }
+	dp, err := s.dbRepo.GetDataplane(ctx, req.ID)
+	if err != nil {
 		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
+	}
+
+	if dp.Typ == "apo" {
+		return core.Error(code.DeleteDataPlaneError, "forbidden to delete apo data plane")
 	}
 
 	var deleteCluster2DataPlane = func(ctx core.Context) error {

@@ -5,8 +5,10 @@ package integration
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
@@ -15,7 +17,7 @@ import (
 func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
 	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx, cluster.Name)
 	if err != nil {
-		return nil, err
+		return nil, core.Error(code.CreateClusterFailed, fmt.Sprintf("ClusterName \"%s\" has been used", cluster.Name))
 	}
 	if isExist {
 		return nil, errors.New("cluster name already exists")
