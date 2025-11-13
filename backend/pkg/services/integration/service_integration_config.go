@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	k8sTmplFilePattern           = "static/integration-tmpl/kubernetes/*.tmpl"
-	dockerComposeTmplFilePattern = "static/integration-tmpl/dockercompose/*.tmpl"
+	k8sTmplFilePattern           = "static/integration-tmpl/kubernetes/*"
+	dockerComposeTmplFilePattern = "static/integration-tmpl/dockercompose/*"
 )
 
 var (
