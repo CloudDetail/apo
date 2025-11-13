@@ -5,15 +5,93 @@
 
 import React from 'react'
 import { AppContent, AppSidebar, AppHeader } from '../components/index'
-import { Layout } from 'antd'
+import { Alert, Button, Layout } from 'antd'
 import Sider from 'antd/es/layout/Sider'
 import { CImage } from '@coreui/react'
 import logo from 'src/core/assets/brand/logo.svg'
 import './index.css'
+import { useTranslation } from 'react-i18next'
+import { useLicense } from 'src/pro/contexts/LicenseContext'
+import { useNavigate } from 'react-router-dom'
 
 const DefaultLayout = () => {
+  const { t } = useTranslation()
+  const { licenseInfo } = useLicense()
+  const navigate = useNavigate()
+  // 获取 license 状态信息
+  const getLicenseAlert = () => {
+    const { active } = licenseInfo
+
+    // active: 0-未激活, 1-已激活, 2-已过期, -1-无效
+    if (active === 1) {
+      return null // 已激活，不显示提示
+    }
+
+    switch (active) {
+      case 0:
+        return (
+          <Alert
+            message={t('common:licenseStatus.inactive')}
+            type="warning"
+            banner
+            closable
+            action={
+              <Button
+                size="small"
+                type="link"
+                onClick={() => navigate('/system/platform-manage')}
+              >
+                {t('common:licenseStatus.goToManage')}
+              </Button>
+            }
+            style={{ marginBottom: 0, padding: '16px 32px' }}
+          />
+        )
+      case 2:
+        return (
+          <Alert
+            message={t('common:licenseStatus.expired')}
+            type="error"
+            banner
+            closable
+            action={
+              <Button
+                size="small"
+                type="link"
+                onClick={() => navigate('/system/platform-manage')}
+              >
+                {t('common:licenseStatus.goToManage')}
+              </Button>
+            }
+            style={{ marginBottom: 0, padding: '16px 32px' }}
+          />
+        )
+      case -1:
+        return (
+          <Alert
+            message={t('common:licenseStatus.invalid')}
+            type="error"
+            banner
+            closable
+            action={
+              <Button
+                size="small"
+                type="link"
+                onClick={() => navigate('/system/platform-manage')}
+              >
+                {t('common:licenseStatus.goToManage')}
+              </Button>
+            }
+            style={{ marginBottom: 0, padding: '16px 32px' }}
+          />
+        )
+      default:
+        return null
+    }
+  }
   return (
     <Layout style={{ height: '100vh', overflow: 'hidden', flexDirection: 'column' }} className='flex flex-col '>
+      {getLicenseAlert()}
       <div className='flex flex-row flex-1 h-full overflow-hidden'>
         <Sider
           collapsible
