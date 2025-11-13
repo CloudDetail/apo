@@ -71,11 +71,15 @@ func CheckInvalid(d *DataPlane, dpt *DataPlaneType) error {
 		}
 	}
 
-	var obj interface{}
-	if err := json.Unmarshal([]byte(d.Params), &obj); err != nil {
-		return err
+	if len(dpt.ParamSpec.Obj.Children) > 0 {
+		var obj interface{}
+		if err := json.Unmarshal([]byte(d.Params), &obj); err != nil {
+			return fmt.Errorf("invalid params for %s", dpt.TypeName)
+		}
+		return ValidateJSON(obj, dpt.ParamSpec.Obj)
+	} else {
+		return nil
 	}
-	return ValidateJSON(obj, dpt.ParamSpec.Obj)
 }
 
 func (d *DataPlaneWithType) CheckInvalid() error {

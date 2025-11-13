@@ -17,6 +17,11 @@ import (
 )
 
 const showAPODataPlaneTypeENV = "SHOW_APO_DATA_PLANE_TYPE"
+const productModeENV = "PRODUCT_MODE"
+
+func showAPODataplaneType() bool {
+	return os.Getenv(productModeENV) == "syncause" || os.Getenv(showAPODataPlaneTypeENV) == "true"
+}
 
 var _ DPService = (*service)(nil)
 
@@ -50,7 +55,7 @@ func (s *service) ListDataPlaneType(ctx core.Context) (*response.ListDataPlaneTy
 		dpTypes[i].UseLang(ctx.LANG())
 	}
 
-	if os.Getenv(showAPODataPlaneTypeENV) != "true" {
+	if !showAPODataplaneType() {
 		for i := 0; i < len(dpTypes); i++ {
 			if dpTypes[i].TypeName == "apo" {
 				dpTypes = append(dpTypes[:i], dpTypes[i+1:]...)
@@ -134,16 +139,6 @@ func (s *service) ListDataPlane(ctx core.Context) (*response.ListDataPlaneRespon
 		res[i].UseLang(ctx.LANG())
 	}
 
-	// 过滤掉 APO 数据平面
-	// if os.Getenv(showAPODataPlaneTypeENV) != "true" {
-	// 	for i := 0; i < len(res); i++ {
-	// 		if res[i].Typ == "apo" {
-	// 			res = append(res[:i], res[i+1:]...)
-	// 			i--
-	// 		}
-	// 	}
-	// }
-
 	return &response.ListDataPlaneResponse{
 		DataPlanes: res,
 	}, err
@@ -175,8 +170,10 @@ func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlane
 		return core.Error(code.DataPlaneNotExistError, "data plane not exist")
 	}
 
-	if dp.Typ == "apo" {
-		return core.Error(code.DeleteDataPlaneError, "forbidden to delete apo data plane")
+	if !showAPODataplaneType() {
+		if dp.Typ == "apo" {
+			return core.Error(code.DeleteDataPlaneError, "forbidden to delete apo data plane in apo mode")
+		}
 	}
 
 	var deleteCluster2DataPlane = func(ctx core.Context) error {
