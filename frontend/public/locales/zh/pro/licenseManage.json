@@ -16,6 +16,8 @@
     "success": "许可证上传成功！",
     "warn": "请输入许可证文本或上传许可证文件",
     "error": "仅支持上传.lic格式文件!",
+    "invalidJson": "许可证内容不是有效的 JSON 格式！",
+    "invalidLicenseFormat": "许可证内容缺少必要字段，请检查后重试！",
     "readFileSuccess": "许可证文件读取成功",
     "readFileError": "许可证文件读取失败！",
     "placeHolder": "请粘贴许可证文本或上传许可证文件...",

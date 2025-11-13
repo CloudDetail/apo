@@ -16,6 +16,8 @@
     "success": "License uploaded successfully!",
     "warn": "Please enter the license text or upload the license file",
     "error": "Only .lic files can be uploaded!",
+    "invalidJson": "The license content is not valid JSON.",
+    "invalidLicenseFormat": "The license content is missing required fields.",
     "readFileSuccess": "License file is successfully read!",
     "readFileError": "Failed to read the license file!",
     "placeHolder": "Please paste the license text or upload the license file...",
