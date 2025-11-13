@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Spin } from 'antd'
 import FallbackPage from 'src/core/components/FallbackPage'
@@ -17,17 +17,17 @@ const checkRoutePermission = async (route: string) => {
 
 const AuthRouter = (WrappedComponent) => {
   return function GuardedComponent(props) {
-    const [isAllowed, setIsAllowed] = useState(true)
+    const [isAllowed, setIsAllowed] = useState(null)
     const location = useLocation()
     const { t } = useTranslation('common')
 
-    // useEffect(() => {
-    //   const checkPermission = async () => {
-    //     const hasPermission = await checkRoutePermission(location.pathname)
-    //     setIsAllowed(hasPermission)
-    //   }
-    //   checkPermission()
-    // }, [location.pathname])
+    useEffect(() => {
+      const checkPermission = async () => {
+        const hasPermission = await checkRoutePermission(location.pathname)
+        setIsAllowed(hasPermission)
+      }
+      checkPermission()
+    }, [location.pathname])
 
     if (isAllowed === null) {
       return (
