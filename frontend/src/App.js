@@ -78,7 +78,10 @@ const App = () => {
           <Route
             path="*"
             name="Home"
-            element={<DefaultLayout />}
+            element={
+              import.meta.env.VITE_APP_VERSION === 'pro' ? <DefaultLayout /> : <UnitedLayout />
+            }
+
           />
         </Routes>
       </Suspense>
