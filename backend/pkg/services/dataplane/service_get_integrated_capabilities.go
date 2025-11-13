@@ -4,7 +4,6 @@
 package dataplane
 
 import (
-	"os"
 	"slices"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -86,7 +85,7 @@ func (s *service) GetIntegratedCapabilities(ctx core.Context) (*response.GetInte
 					Name:            dp.DataPlaneWithType.DataPlane.Name,
 					TypeDisplayName: typeDisplayName[dpType],
 				}
-				if !slices.Contains(cap.Sources, dpWithName) && (dpType != "apo" || os.Getenv(showAPODataPlaneTypeENV) == "true") {
+				if !slices.Contains(cap.Sources, dpWithName) {
 					cap.Enabled = true
 					cap.Sources = append(cap.Sources, dpWithName)
 				}
