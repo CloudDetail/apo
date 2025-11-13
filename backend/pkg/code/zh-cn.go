@@ -46,6 +46,8 @@ var zhCnText = map[string]string{
 	GetLogTableInfoError:    "获取日志表信息失败",
 	GetLogParseRuleError:    "获取日志表解析规则失败",
 	UpdateLogParseRuleError: "更新日志表解析规则失败",
+	AddLogParseRuleError:    "添加日志表解析规则失败",
+	DeleteLogParseRuleError: "删除日志表解析规则失败",
 
 	GetTracePageListError:    "获取Trace分页列表失败",
 	GetTraceFiltersError:     "获取Trace过滤条件失败",
@@ -211,14 +213,28 @@ var zhCnText = map[string]string{
 
 	GetAlertEventListError:     "获取告警事件列表失败",
 	GetAlertEventClassifyError: "告警事件分类失败",
-	GetAlertEventReportError:   "获取告警事件报告失败",
-	AddAlertEventReportError:   "添加告警事件报告失败",
+
+	UploadLicenseError:            "上传许可证失败",
+	GetLicenseError:               "获取本地许可证失败",
+	LicenseFeatureValidationError: "license无权访问该功能",
+	ActivatedLicenseNotFound:      "未找到本地激活许可证",
+	ActivateLicenseFailed:         "激活license失败",
+	LicenseCheckError:             "检查license时失败",
+	LicenseExpired:                "license已过期",
+	NoLicenseError:                "无本地license，请先上传license",
+	GetAlertEventReportError:      "获取告警事件报告失败",
+	AddAlertEventReportError:      "添加告警事件报告失败",
 
 	GetAlertSlienceError:    "获取告警抑制配置失败",
 	ListAlertSlienceError:   "列出所有抑制告警失败",
 	SetAlertSlienceError:    "设置告警抑制失败",
 	RemoveAlertSlienceError: "移除告警抑制失败",
 	MarkAlertResolvedError:  "手动标记告警已解决失败",
+
+	UploadLogoError:     "上传logo失败",
+	GetLogoError:        "获取logo失败",
+	LogoSizeExceedError: "logo大小超出2M",
+	LogoTypeError:       "不支持的logo类型，请上传png/jpeg/svg/ico",
 
 	SearchAlertLabelFilterError: "查询告警标签过滤器失败",
 	SearchAlertFilterValueError: "查询告警过滤值失败",

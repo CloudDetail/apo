@@ -2,6 +2,7 @@ package alertanalyze
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -52,9 +53,27 @@ type databaseKey struct {
 	Port string
 }
 
-func (m *EndpointsMap) SearchAndAddEndpointsForAlert(ctx core.Context, repo prometheus.Repo, event *alert.Alert, startTime, endTime time.Time) ([]clickhouse.AlertService, bool) {
+func (m *EndpointsMap) SearchAndAddEndpointsForAlert(ctx core.Context, chRepo clickhouse.Repo, repo prometheus.Repo, event *alert.Alert, startTime, endTime time.Time) ([]clickhouse.AlertService, bool) {
 	// 尝试下面的方法去获取event的关联入口
 	endpoints, err := tryGetAlertService(ctx, repo, m, event, startTime, endTime)
+
+	if len(endpoints) == 0 {
+		var pid = 0
+		pidStr := event.GetPidTag()
+		if v, e1 := strconv.Atoi(pidStr); e1 == nil {
+			pid = v
+		}
+		endpoints, _ = chRepo.GetDataplaneServiceByInstance(ctx,
+			startTime.UnixMicro(),
+			endTime.UnixMicro(),
+			"",
+			event.GetNetSrcPodTag(),
+			event.GetK8sNamespaceTag(),
+			event.GetInfraNodeTag(),
+			pid,
+		)
+	}
+
 	if err != nil && len(endpoints) == 0 {
 		var vErr alert.ErrAlertImpactNoMatchedService
 		if errors.As(err, &vErr) {
@@ -80,6 +99,7 @@ func (m *EndpointsMap) EndpointsList() []clickhouse.AlertService {
 }
 
 func tryGetAlertService(ctx core.Context, repo prometheus.Repo, endpointsMap *EndpointsMap, event *alert.Alert, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+
 	var tryMethods = []func(core.Context, prometheus.Repo, *EndpointsMap, *alert.Alert, time.Time, time.Time) ([]clickhouse.AlertService, error){
 		tryGetAlertServiceByService,
 		tryGetAlertServiceByDB,

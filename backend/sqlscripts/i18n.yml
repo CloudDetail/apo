@@ -430,6 +430,34 @@ healthy:
       field_name: "abbreviation"
       entity_type: "menu"
 
+platformManage:
+  key: "platformManage"
+  i18n:
+    - language: "en"
+      translation: "Platform"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "平台管理"
+      field_name: "label"
+      entity_type: "menu"
+
+report:
+  key: "report"
+  i18n:
+    - language: "en"
+      translation: "Report"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "故障报告"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Report"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 serviceConfig:
   key: "serviceConfig"
   i18n:
@@ -826,6 +854,19 @@ MySQL大盘:
     translation: "服务概览"
     entity_type: "feature"
     field_name: "featureName"
+
+平台管理:
+  key: "平台管理"
+  i18n:
+    - language: "en"
+      translation: "Platform Management"
+      field_name: "featureName"
+      entity_type: "feature"
+    - language: "zh"
+      translation: "平台管理"
+      field_name: "featureName"
+      entity_type: "feature"
+
 智能体:
   key: "智能体"
   i18n:

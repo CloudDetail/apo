@@ -94,7 +94,6 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 		logger.Fatal("new promethues err", zap.Error(err))
 	}
 	r.prom = promRepo
-
 	// Initialize PolarisAnalyzer
 	polRepo, err := polarisanalyzer.New()
 	if err != nil {
@@ -161,6 +160,7 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			Sampling:       difyConfig.Sampling,
 
 			Prom: r.prom,
+			CH:   r.ch,
 		}, r.logger)
 		if err != nil {
 			logger.Error("failed to setup alertCheck workflow", zap.Error(err))

@@ -1,0 +1,108 @@
+{
+  "index": {
+    "manage": "管理",
+    "delete": "删除",
+    "expired": "已过期",
+    "enterpriseLicense": "企业版许可证",
+    "trialLicense": "企业版许可证",
+    "licenseManage": "许可证"
+  },
+  "upload": {
+    "title": "上传授权许可证",
+    "hint1": "您的授权密钥是一个带有签名的 .lic 文件。",
+    "hint2": "上传授权许可将会替换",
+    "hint3": "当前的",
+    "hint4": "授权许可。",
+    "success": "许可证上传成功！",
+    "warn": "请输入许可证文本或上传许可证文件",
+    "error": "仅支持上传.lic格式文件!",
+    "readFileSuccess": "许可证文件读取成功",
+    "readFileError": "许可证文件读取失败！",
+    "placeHolder": "请粘贴许可证文本或上传许可证文件...",
+    "cancel": "取消",
+    "confirm": "上传",
+    "uploadFile": "上传.lic文件"
+  },
+  "trial": {
+    "title": "开始 30 天免费试用",
+    "description1": "本次试用包含  的所有高级功能。",
+    "description2_part1": "目前，如需获取试用授权许可，请通过以下方式联系我们：",
+    "phone": "电话：",
+    "email": "邮箱：",
+    "cancel": "取消",
+    "start": "开始试用"
+  },
+  "activeStatus": {
+    "0": "未激活",
+    "1": "已激活",
+    "2": "已过期",
+    "-1": "无效的授权"
+  },
+  "error": {
+    "fetch": "获取许可证信息失败"
+  },
+  "mode": {
+    "public": "公开部署",
+    "private": "私有部署"
+  },
+  "licenseInfo": {
+    "trial": "试用",
+    "remain": "剩余 {{days}} 天"
+  },
+  "feature": {
+    "index": "功能模块",
+    "activeStatus": "激活状态",
+    "active": "已激活",
+    "inactive": "未激活",
+    "seatsInLicense": "许可证席位数量",
+    "seatsCurrentlyInUse": "当前许可证机器使用率",
+    "maxNodes": "最大探针节点数"
+  },
+  "validity": {
+    "index": "有效期",
+    "startDate": "起始日期",
+    "endDate": "截止日期",
+    "duration": "有效时长",
+    "days": "天",
+    "permanent": "永久有效"
+  },
+  "metaData": {
+    "index": "元数据",
+    "appId": "应用ID",
+    "license": "许可证",
+    "version": "版本号"
+  },
+  "noLicense": {
+    "title": "当前未检测到有效许可证",
+    "description": "请上传授权文件或开始试用，以解锁企业版功能",
+    "upload": "上传许可证",
+    "trial": "开始试用",
+    "dismiss": "关闭提示"
+  },
+  "trialExpired": {
+    "title": "试用许可证已过期",
+    "description": "您的免费试用已于 {{date}} 过期，请续订许可证以继续使用企业版功能",
+    "renew": "立即续订",
+    "dismiss": "关闭提示"
+  },
+  "enterpriseExpired": {
+    "title": "企业许可证已过期",
+    "description": "您的企业许可证已于 {{date}} 过期，请续订许可证，以避免功能限制",
+    "renew": "立即续订",
+    "dismiss": "关闭提示"
+  },
+  "UnlicensedCard": {
+    "title": "当前未检测到有效许可证",
+    "upload": {
+      "title": "上传您的许可证",
+      "description": "如果您已有许可证，请立即上传",
+      "button": "上传许可证"
+    },
+    "trial": {
+      "title": "开始 30 天试用",
+      "description": "体验所有高级功能。如需试用许可证，请联系 {{phone}} 或 {{email}}",
+      "button": "开始试用"
+    },
+    "fetchError": "获取许可证信息失败"
+  }
+}

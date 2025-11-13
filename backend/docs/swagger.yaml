@@ -201,12 +201,21 @@ definitions:
         type: integer
       params:
         $ref: '#/definitions/integration.JSONField-alert_AlertSourceParams'
+      enabledPull:
+        type: boolean
+      lastPullMillTS:
+        type: integer
+      params:
+        $ref: '#/definitions/integration.JSONField-alert_AlertSourceParams'
       sourceId:
         type: string
       sourceName:
         type: string
       sourceType:
         type: string
+    type: object
+  alert.AlertSourceParams:
+    additionalProperties: {}
     type: object
   alert.AlertSourceParams:
     additionalProperties: {}
@@ -650,6 +659,7 @@ definitions:
         type: object
       metrics:
         additionalProperties:
+          format: int64
           format: int64
           type: integer
         type: object
@@ -1193,12 +1203,25 @@ definitions:
     required:
     - variable
     type: object
+  integration.GetIntegrationVarRequest:
+    properties:
+      variable:
+        maxLength: 64
+        type: string
+    required:
+    - variable
+    type: object
   integration.HuaweiConfig:
     properties:
       accessKey:
         type: string
       accessSecret:
         type: string
+    type: object
+  integration.JSONField-alert_AlertSourceParams:
+    properties:
+      obj:
+        $ref: '#/definitions/alert.AlertSourceParams'
     type: object
   integration.JSONField-alert_AlertSourceParams:
     properties:
@@ -1536,6 +1559,15 @@ definitions:
     - 错误事件告警 => 来自JavaException等
     - 应用实例告警     => group=appInstance
     - 数据库告警       => group=middleware
+    x-enum-descriptions:
+    - 未定义的告警类型
+    - 应用接口告警     => group=app
+    - 容器告警         => group=container
+    - 基础设施告警     => group=infra
+    - 网络告警         => group=net
+    - 错误事件告警 => 来自JavaException等
+    - 应用实例告警     => group=appInstance
+    - 数据库告警       => group=middleware
     x-enum-varnames:
     - AnormalTypeUnknown
     - AnormalTypeAlertApp
@@ -1751,6 +1783,9 @@ definitions:
       namespace:
         description: k8s namespace
         type: string
+      namespace:
+        description: k8s namespace
+        type: string
       nodeIp:
         type: string
       nodeName:
@@ -1793,6 +1828,7 @@ definitions:
     - 3
     - 4
     format: int32
+    format: int32
     type: integer
     x-enum-varnames:
     - SeverityLevelUnknown
@@ -1804,6 +1840,7 @@ definitions:
     enum:
     - 0
     - 1
+    format: int32
     format: int32
     type: integer
     x-enum-varnames:
@@ -1911,6 +1948,50 @@ definitions:
       value:
         description: value
         type: number
+    type: object
+  provider.JSONType:
+    enum:
+    - object
+    - array
+    - string
+    - number
+    - boolean
+    - "null"
+    type: string
+    x-enum-varnames:
+    - JSONTypeObject
+    - JSONTypeArray
+    - JSONTypeString
+    - JSONTypeNumber
+    - JSONTypeBoolean
+    - JSONTypeNull
+  provider.ParamSpec:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/provider.ParamSpec'
+        type: array
+      desc:
+        type: string
+      desc_en:
+        type: string
+      name:
+        type: string
+      optional:
+        type: boolean
+      type:
+        $ref: '#/definitions/provider.JSONType'
+    type: object
+  provider.ProviderType:
+    properties:
+      name:
+        type: string
+      paramSpec:
+        $ref: '#/definitions/provider.ParamSpec'
+      supportPull:
+        type: boolean
+      supportWebhookInstall:
+        type: boolean
     type: object
   provider.JSONType:
     enum:
@@ -2477,6 +2558,11 @@ definitions:
         type: string
       refreshCache:
         type: boolean
+    type: object
+  request.GetAlertProviderParamsSpecRequest:
+    properties:
+      sourceType:
+        type: string
     type: object
   request.GetAlertProviderParamsSpecRequest:
     properties:
@@ -3083,6 +3169,13 @@ definitions:
       url:
         type: string
     type: object
+  request.SetupAlertProviderWebhookRequest:
+    properties:
+      sourceID:
+        type: string
+      url:
+        type: string
+    type: object
   request.SpanTraceFilter:
     properties:
       dataType:
@@ -3242,6 +3335,7 @@ definitions:
       counts:
         additionalProperties:
           format: int64
+          format: int64
           type: integer
         type: object
       events:
@@ -3333,6 +3427,7 @@ definitions:
     properties:
       anormalCounts:
         additionalProperties:
+          format: int64
           format: int64
           type: integer
         type: object
@@ -3431,6 +3526,7 @@ definitions:
         type: string
       logs:
         additionalProperties:
+          format: float64
           format: float64
           type: number
         description: log alarm
@@ -3543,6 +3639,15 @@ definitions:
           $ref: '#/definitions/provider.ProviderType'
         type: object
     type: object
+  response.GetAlertProviderParamsSpecResponse:
+    properties:
+      providerType:
+        $ref: '#/definitions/provider.ProviderType'
+      providerTypes:
+        additionalProperties:
+          $ref: '#/definitions/provider.ProviderType'
+        type: object
+    type: object
   response.GetAlertRuleFileResponse:
     properties:
       alertRules:
@@ -3572,6 +3677,25 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetCurrentLicenseResp:
+    properties:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
     type: object
   response.GetCustomResponse:
     properties:
@@ -3863,17 +3987,20 @@ definitions:
       errorRate:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         description: error rate
         type: object
       latency:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         description: delay P90
         type: object
       logs:
         additionalProperties:
+          format: float64
           format: float64
           type: number
         description: log alarm
@@ -3887,6 +4014,15 @@ definitions:
       pid:
         description: process number
         type: integer
+    type: object
+  response.GetLogoResp:
+    properties:
+      logoImage:
+        items:
+          type: integer
+        type: array
+      logoText:
+        type: string
     type: object
   response.GetMetricPQLResponse:
     properties:
@@ -4099,17 +4235,20 @@ definitions:
       errorRate:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         description: error rate
         type: object
       latency:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         description: delay P90
         type: object
       logs:
         additionalProperties:
+          format: float64
           format: float64
           type: number
         description: log alarm
@@ -4273,6 +4412,9 @@ definitions:
       namespace:
         description: k8s namespace
         type: string
+      namespace:
+        description: k8s namespace
+        type: string
       nodeIp:
         type: string
       nodeName:
@@ -4319,6 +4461,25 @@ definitions:
       severity:
         description: Normal or Warning
         type: string
+    type: object
+  response.LicenseResp:
+    properties:
+      active:
+        type: integer
+      expireAt:
+        type: integer
+      features:
+        items:
+          type: string
+        type: array
+      issuedAt:
+        type: integer
+      licenseId:
+        type: string
+      maxNodes:
+        type: integer
+      seatsCurrentlyInUse:
+        type: integer
     type: object
   response.ListAlertSlienceConfigResponse:
     properties:
@@ -4721,15 +4882,18 @@ definitions:
       errorRate:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         type: object
       latency:
         additionalProperties:
           format: float64
+          format: float64
           type: number
         type: object
       tps:
         additionalProperties:
+          format: float64
           format: float64
           type: number
         type: object
@@ -4898,6 +5062,7 @@ definitions:
     properties:
       chartData:
         additionalProperties:
+          format: float64
           format: float64
           type: number
         description: ChartData chart data
@@ -5570,6 +5735,36 @@ paths:
       summary: Obtain alarm source parameter configuration
       tags:
       - API.alertinput
+  /api/alertinput/source/paramspec:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Obtain alarm source parameter configuration
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertProviderParamsSpecRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertProviderParamsSpecResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Obtain alarm source parameter configuration
+      tags:
+      - API.alertinput
   /api/alertinput/source/update:
     post:
       consumes:
@@ -5626,6 +5821,36 @@ paths:
       summary: Install or update webhook
       tags:
       - API.alertinput
+  /api/alertinput/source/webhook:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Install or update webhook
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetupAlertProviderWebhookRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Install or update webhook
+      tags:
+      - API.alertinput
   /api/alerts/alert/events:
     post:
       consumes:
@@ -5634,11 +5859,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -5854,11 +6081,13 @@ paths:
       parameters:
       - description: 查询开始时间
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -5875,6 +6104,7 @@ paths:
         required: true
         type: string
       - description: 查询步长(us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -5914,17 +6144,20 @@ paths:
       parameters:
       - description: 查询开始时间
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: 查询步长(us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -5967,11 +6200,13 @@ paths:
       parameters:
       - description: 查询开始时间
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -6170,17 +6405,20 @@ paths:
         type: string
       - description: 查询开始时间
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: 查询结束时间
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: 查询步长(us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -7090,6 +7328,7 @@ paths:
       parameters:
       - description: Data group's id
         format: int64
+        format: int64
         in: query
         name: groupId
         type: integer
@@ -7154,6 +7393,7 @@ paths:
       parameters:
       - description: The id of authorized subject
         format: int64
+        format: int64
         in: query
         name: subjectId
         required: true
@@ -7198,6 +7438,7 @@ paths:
         name: Authorization
         type: string
       - description: data group's id
+        format: int64
         format: int64
         in: query
         name: groupId
@@ -7260,6 +7501,7 @@ paths:
       description: Get user's assigned data group.
       parameters:
       - description: user's id
+        format: int64
         format: int64
         in: query
         name: userId
@@ -7508,11 +7750,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7562,11 +7806,13 @@ paths:
         type: string
       - description: Start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7627,11 +7873,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7668,11 +7916,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7733,11 +7983,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7913,11 +8165,13 @@ paths:
         type: string
       - description: Start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -7975,11 +8229,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -8014,11 +8270,13 @@ paths:
         type: string
       - description: Start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -8064,11 +8322,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -8395,6 +8655,34 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.integration
+  /api/integration/vars/:variable:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/integration.GetIntegrationVarRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.integration
   /api/k8s/namespace/info:
     get:
       consumes:
@@ -8494,6 +8782,85 @@ paths:
       summary: get all pod information
       tags:
       - API.k8s
+  /api/license:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get all license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/response.LicenseResp'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get all license.
+      tags:
+      - API.license
+  /api/license/current:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: get current license.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetCurrentLicenseResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: get current license.
+      tags:
+      - API.license
+  /api/license/upload:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: uploads your license, sign public key, decrypt key.
+      parameters:
+      - description: output json
+        in: formData
+        name: output
+        required: true
+        type: string
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: uploads your license, sign public key, decrypt key.
+      tags:
+      - API.license
   /api/log/chart:
     post:
       consumes:
@@ -9045,11 +9412,13 @@ paths:
       parameters:
       - description: Start time, in microseconds
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: End time, in microseconds
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9110,6 +9479,7 @@ paths:
       description: Get user's menu config.
       parameters:
       - description: User's id
+        format: int64
         format: int64
         in: query
         name: userId
@@ -9207,6 +9577,7 @@ paths:
       parameters:
       - description: The id of authorized subject
         format: int64
+        format: int64
         in: formData
         name: subjectId
         required: true
@@ -9282,6 +9653,7 @@ paths:
         name: language
         type: string
       - description: The id of authorized subject
+        format: int64
         format: int64
         in: query
         name: subjectId
@@ -9392,6 +9764,7 @@ paths:
       parameters:
       - description: User's id
         format: int64
+        format: int64
         in: formData
         name: userId
         type: integer
@@ -9501,6 +9874,7 @@ paths:
       parameters:
       - description: User's id
         format: int64
+        format: int64
         in: query
         name: userId
         required: true
@@ -9529,11 +9903,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9604,11 +9980,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9669,11 +10047,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9690,6 +10070,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -9731,11 +10112,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9752,6 +10135,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -9797,11 +10181,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9839,10 +10225,12 @@ paths:
       parameters:
       - description: data group id
         format: int64
+        format: int64
         in: query
         name: groupId
         type: integer
       - description: start time
+        format: int64
         format: int64
         in: query
         name: startTime
@@ -9850,11 +10238,13 @@ paths:
         type: integer
       - description: end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         format: int64
         in: query
         name: step
@@ -9912,11 +10302,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9933,6 +10325,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -9970,11 +10363,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -9991,6 +10386,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -10030,11 +10426,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10063,6 +10461,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         format: int32
         in: query
         name: pid
@@ -10131,11 +10530,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10174,11 +10575,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10218,11 +10621,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10261,17 +10666,20 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         format: int64
         in: query
         name: step
@@ -10312,11 +10720,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10353,11 +10763,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10398,11 +10810,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10431,6 +10845,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         format: int32
         in: query
         name: pid
@@ -10463,11 +10878,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10484,6 +10901,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -10525,11 +10943,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10561,17 +10981,20 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         format: int64
         in: query
         name: step
@@ -10615,11 +11038,13 @@ paths:
       parameters:
       - description: start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10647,17 +11072,20 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -10729,11 +11157,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10783,11 +11213,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10831,17 +11263,20 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: step
+        format: int64
         format: int64
         in: query
         name: step
@@ -10901,11 +11336,13 @@ paths:
         type: string
       - description: YoY Delay
         format: float64
+        format: float64
         in: formData
         name: latency
         required: true
         type: number
       - description: YoY Error Rate
+        format: float64
         format: float64
         in: formData
         name: errorRate
@@ -10913,11 +11350,13 @@ paths:
         type: number
       - description: Number of requests compared with the same period last year
         format: float64
+        format: float64
         in: formData
         name: tps
         required: true
         type: number
       - description: year-on-year log alarm
+        format: float64
         format: float64
         in: formData
         name: log
@@ -10947,11 +11386,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -10963,6 +11404,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -11007,11 +11449,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -11061,11 +11505,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -11094,6 +11540,7 @@ paths:
         name: containerId
         type: string
       - description: process number
+        format: int32
         format: int32
         in: query
         name: pid
@@ -11126,11 +11573,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -11147,6 +11596,7 @@ paths:
         required: true
         type: string
       - description: query step (us)
+        format: int64
         format: int64
         in: query
         name: step
@@ -11297,6 +11747,7 @@ paths:
       parameters:
       - description: User's id
         format: int64
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11305,6 +11756,7 @@ paths:
         description: The list of team id.
         in: formData
         items:
+          format: int64
           format: int64
           type: integer
         name: teamList
@@ -11365,6 +11817,7 @@ paths:
       parameters:
       - description: Team's id
         format: int64
+        format: int64
         in: query
         name: teamId
         required: true
@@ -11397,6 +11850,7 @@ paths:
       parameters:
       - description: Team's id
         format: int64
+        format: int64
         in: formData
         name: teamId
         required: true
@@ -11405,6 +11859,7 @@ paths:
         description: The list of users' id.
         in: formData
         items:
+          format: int64
           format: int64
           type: integer
         name: userList
@@ -11441,11 +11896,13 @@ paths:
         type: string
       - description: process id
         format: int64
+        format: int64
         in: query
         name: pid
         required: true
         type: integer
       - description: thread id
+        format: int64
         format: int64
         in: query
         name: tid
@@ -11457,11 +11914,13 @@ paths:
         type: string
       - description: start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -11500,10 +11959,12 @@ paths:
       parameters:
       - description: Limit number of nodes
         format: int64
+        format: int64
         in: query
         name: maxNodes
         type: integer
       - description: start time
+        format: int64
         format: int64
         in: query
         name: startTime
@@ -11511,11 +11972,13 @@ paths:
         type: integer
       - description: end time
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: process id
+        format: int64
         format: int64
         in: query
         name: pid
@@ -11581,17 +12044,20 @@ paths:
       parameters:
       - description: start time, unit nanosecond
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: end time, unit nanosecond
         format: int64
+        format: int64
         in: query
         name: endTime
         required: true
         type: integer
       - description: process id
+        format: int32
         format: int32
         in: query
         name: pid
@@ -11680,11 +12146,13 @@ paths:
       parameters:
       - description: query start time
         format: int64
+        format: int64
         in: query
         name: startTime
         required: true
         type: integer
       - description: query end time
+        format: int64
         format: int64
         in: query
         name: endTime
@@ -11950,6 +12418,7 @@ paths:
         type: string
       - description: User's id
         format: int64
+        format: int64
         in: formData
         name: userId
         required: true
@@ -11975,6 +12444,7 @@ paths:
       description: Reset user's password.
       parameters:
       - description: User's id
+        format: int64
         format: int64
         in: formData
         name: userId
@@ -12017,6 +12487,7 @@ paths:
       parameters:
       - description: User's is
         format: int64
+        format: int64
         in: query
         name: userId
         required: true
@@ -12048,6 +12519,7 @@ paths:
       description: Update email.
       parameters:
       - description: User's id
+        format: int64
         format: int64
         in: formData
         name: userId
@@ -12084,6 +12556,7 @@ paths:
       description: Update user's info.
       parameters:
       - description: User's id
+        format: int64
         format: int64
         in: formData
         name: userId
@@ -12135,6 +12608,7 @@ paths:
       parameters:
       - description: User's id
         format: int64
+        format: int64
         in: formData
         name: userId
         required: true
@@ -12181,6 +12655,7 @@ paths:
       parameters:
       - description: User's id
         format: int64
+        format: int64
         in: formData
         name: userId
         required: true
@@ -12216,6 +12691,7 @@ paths:
       description: Update self info.
       parameters:
       - description: User's id
+        format: int64
         format: int64
         in: formData
         name: userId
@@ -12259,6 +12735,7 @@ paths:
       description: Delete the data group.
       parameters:
       - description: Data group's id
+        format: int64
         format: int64
         in: formData
         name: groupId

@@ -46,7 +46,7 @@ func (s *service) GetAlertsImpact(ctx core.Context, req *request.AlertImpactRequ
 	endpointsMap := newEndpointsMap()
 	for i := 0; i < len(alerts); i++ {
 		endpoints, associated := endpointsMap.SearchAndAddEndpointsForAlert(
-			ctx, s.promRepo, &alerts[i].Alert, startTime, endTime)
+			ctx, s.chRepo, s.promRepo, &alerts[i].Alert, startTime, endTime)
 		if !associated || len(endpoints) == 0 {
 			continue
 		}

@@ -4,6 +4,7 @@ package decoder
 
 import (
 	"encoding/json"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -25,16 +26,19 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 		return nil, err
 	}
 
-	if endTimeStr, find := event["endTime"]; find {
-		endTime, err := time.Parse(zabbixTimeLayout, endTimeStr.(string))
-		if err == nil {
-			event["endTime"] = endTime
-		}
-	}
+	now := time.Now()
+	// parse in local timezone by default
+	loc := time.Local
 
+	// decide if the timestamp is in UTC by comparing updateTime with now
 	if updateTimeStr, find := event["updateTime"]; find {
-		updateTime, err := time.Parse(zabbixTimeLayout, updateTimeStr.(string))
+		updateTime, err := time.ParseInLocation(zabbixTimeLayout, updateTimeStr.(string), loc)
 		if err == nil {
+			// Compatible with legacy UTC timestamps
+			if math.Abs(float64(updateTime.Sub(now))) > float64(time.Hour) {
+				updateTime, _ = time.ParseInLocation(zabbixTimeLayout, updateTimeStr.(string), time.UTC)
+				loc = time.UTC
+			}
 			event["updateTime"] = updateTime
 			if duration, find := event["duration"]; find {
 				duration := parseDuration(duration.(string))
@@ -43,7 +47,17 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 		}
 	}
 
+	if endTimeStr, find := event["endTime"]; find {
+		endTime, err := time.ParseInLocation(zabbixTimeLayout, endTimeStr.(string), loc)
+		if err == nil {
+			event["endTime"] = endTime
+		}
+	}
+
 	alertEvent, err := d.jsDecoder.convertAlertEvent(event)
+	if err != nil {
+		return nil, err
+	}
 	if len(alertEvent.EventID) == 0 {
 		alertEvent.EventID = uuid.NewString()
 	}
@@ -51,7 +65,7 @@ func (d ZabbixDecoder) Decode(sourceFrom alert.SourceFrom, data []byte) ([]alert
 	alertEvent.SourceID = sourceFrom.SourceID
 	alertEvent.Severity = alert.ConvertSeverity(sourceFrom.SourceType, alertEvent.Severity)
 	alertEvent.Status = alert.ConvertStatus(sourceFrom.SourceType, alertEvent.Status)
-	alertEvent.ReceivedTime = time.Now()
+	alertEvent.ReceivedTime = now
 
 	alertEvent.Tags["alert_id"] = alertEvent.AlertID
 	alertEvent.Tags["name"] = alertEvent.Name

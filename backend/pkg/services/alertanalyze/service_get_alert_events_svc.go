@@ -48,7 +48,7 @@ func (s *service) GetAlertEventsSvc(ctx core.Context, req *request.GetAlertEvent
 	endpointsMap := newEndpointsMap()
 	var impactEvents = make([]response.ImpactAlertEvent, len(events))
 	for i := 0; i < len(events); i++ {
-		endpoints, associated := endpointsMap.SearchAndAddEndpointsForAlert(ctx, s.promRepo, &events[i].Alert, startTime, endTime)
+		endpoints, associated := endpointsMap.SearchAndAddEndpointsForAlert(ctx, s.chRepo, s.promRepo, &events[i].Alert, startTime, endTime)
 		impactEvents[i] = response.ImpactAlertEvent{
 			AlertEvent:      &events[i],
 			IsAnalyzed:      associated,

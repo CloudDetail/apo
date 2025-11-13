@@ -12,6 +12,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useUserContext } from '../contexts/UserContext'
 import { useSelector } from 'react-redux'
 import styles from './AppSidebar.module.scss'
+import { TbLicense } from 'react-icons/tb'
+import { useTranslation } from 'react-i18next'
+
 const AppSidebarMenuIcon = (menuItem) => {
   return (
     <div className="appSidebarMenuIcon">
@@ -25,6 +28,7 @@ const AppSidebarMenuIcon = (menuItem) => {
 const AppSidebar = () => {
   const { menuItems, user } = useUserContext()
   const { theme } = useSelector((state) => state.settingReducer)
+  const { t } = useTranslation('pro/licenseManage')
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -92,6 +96,22 @@ const AppSidebar = () => {
     setSelectedKeys(result)
   }, [location.pathname, menuList])
 
+  const licenseMenuItem = [
+    {
+      key: 'license-manage',
+      label: t('index.licenseManage'),
+      icon: (
+        <div className="appSidebarMenuIcon">
+          <div><TbLicense /></div>
+          <span className="text-xs">{t('index.licenseManage')}</span>
+        </div>
+      ),
+      to: '/system/platform-manage',
+    }
+  ]
+
+  const licenseSelectedKeys = location.pathname === '/system/platform-manage' ? ['license-manage'] : []
+
   return (
     <ConfigProvider
       theme={{
@@ -106,17 +126,35 @@ const AppSidebar = () => {
         },
       }}
     >
-      <Menu
-        mode="inline"
-        theme={theme}
-        inlineCollapsed={true}
-        items={menuList}
-        onClick={onClick}
-        selectedKeys={selectedKeys}
-        openKeys={openKeys}
-        onOpenChange={onOpenChange}
-        className={styles.sidebarMenu}
-      ></Menu>
+      <div className='h-full flex flex-col justify-between ' >
+        <Menu
+          mode="inline"
+          theme={theme}
+          inlineCollapsed={true}
+          items={menuList}
+          onClick={onClick}
+          selectedKeys={selectedKeys}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          className={styles.sidebarMenu}
+        ></Menu>
+        <div
+          className='py-3 border-t border-[var(--ant-color-border-secondary)] cursor-pointer'
+
+          onClick={() => {
+            navigate('/system/platform-manage')
+          }}
+        >        <Menu
+          mode="inline"
+          theme={theme}
+          inlineCollapsed={true}
+          items={licenseMenuItem}
+          onClick={onClick}
+          selectedKeys={licenseSelectedKeys}
+          className={styles.sidebarMenu}
+        ></Menu>
+        </div>
+      </div>
     </ConfigProvider>
   )
 }

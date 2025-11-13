@@ -10,7 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY %s ORDER BY count DESC LIMIT 10"
+const groupLogIndexQuery = "SELECT count(*) as count, `%s` as f FROM `%s`.`%s` WHERE %s GROUP BY `%s` ORDER BY count DESC LIMIT 10"
 
 func groupBySQL(baseQuery string, req *request.LogIndexRequest) string {
 	condition := NewQueryCondition(req.StartTime, req.EndTime, req.TimeField, req.Query)

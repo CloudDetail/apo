@@ -5,7 +5,7 @@ package profile
 
 type User struct {
 	UserID      int64  `gorm:"column:user_id;primary_key" json:"userId,omitempty"`
-	Username    string `gorm:"column:username;uniqueIdx;type:varchar(20)" json:"username,omitempty"`
+	Username    string `gorm:"column:username;uniqueIndex;type:varchar(20)" json:"username,omitempty"`
 	Password    string `gorm:"column:password;type:varchar(200)" json:"-"`
 	Phone       string `gorm:"column:phone;type:varchar(20)" json:"phone,omitempty"`
 	Email       string `gorm:"column:email;type:varchar(50)" json:"email,omitempty"`

@@ -161,7 +161,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		Edition:   "ee",
 	}
 
-	alertServices, _ := tryGetAlertService(ctx, s.promRepo, &record.AlertEvent, startTime, endTime)
+	alertServices, _ := tryGetAlertService(ctx, s.chRepo, s.promRepo, &record.AlertEvent, startTime, endTime)
 
 	var services, endpoints []string
 	for _, alertService := range alertServices {
@@ -199,7 +199,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 	}
 }
 
-func tryGetAlertService(ctx core.Context, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
+func tryGetAlertService(ctx core.Context, chRepo clickhouse.Repo, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
 	var tryMethods = []func(core.Context, prometheus.Repo, *alert.AlertEvent, time.Time, time.Time) ([]clickhouse.AlertService, error){
 		tryGetAlertServiceByService,
 		tryGetAlertServiceByDB,
@@ -216,7 +216,21 @@ func tryGetAlertService(ctx core.Context, repo prometheus.Repo, event *alert.Ale
 		}
 	}
 
-	return endpoints, nil
+	var pid = 0
+	pidStr := event.GetPidTag()
+	if v, err := strconv.Atoi(pidStr); err == nil {
+		pid = v
+	}
+
+	return chRepo.GetDataplaneServiceByInstance(ctx,
+		startTime.UnixMicro(),
+		endTime.UnixMicro(),
+		"",
+		event.GetNetSrcPodTag(),
+		event.GetK8sNamespaceTag(),
+		event.GetInfraNodeTag(),
+		pid,
+	)
 }
 
 func tryGetAlertServiceByService(ctx core.Context, _ prometheus.Repo, event *alert.AlertEvent, _ time.Time, _ time.Time) ([]clickhouse.AlertService, error) {

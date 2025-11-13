@@ -198,12 +198,12 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		inputStr, err := json.Marshal(param)
 		if err != nil {
 			w.logger.Info("failed to marshal workflow params", zap.Error(err))
-			record.AnalyzeErr = err.Error()
+			record.AnalyzeErr = "workflow execution failed due to error params"
 			record.AlertDirection = ""
 		} else {
 			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
 			if err != nil {
-				record.AnalyzeErr = err.Error()
+				record.AnalyzeErr = "workflow execution failed due to API call failure"
 				record.AlertDirection = ""
 			} else {
 				record.AnalyzeRunID = resp.WorkflowRunID()
@@ -228,7 +228,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		endTime = event.UpdateTime
 	}
 
-	alertServices, _ := tryGetAlertService(core.EmptyCtx(), w.Prom, event, startTime, endTime)
+	alertServices, _ := tryGetAlertService(core.EmptyCtx(), w.CH, w.Prom, event, startTime, endTime)
 
 	res := alert.WorkflowParams{
 		StartTime: startTime.UnixMicro(),
@@ -247,6 +247,8 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		}
 	}
 
+	rawTags := event.Tags.Clone()
+	rawTags["alertEventId"] = event.EventID
 	parmas := alert.AlertAnalyzeWorkflowParams{
 		AlertName:    event.Name,
 		Node:         event.GetInfraNodeTag(),
@@ -256,7 +258,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		Detail:       event.Detail,
 		ContainerID:  event.GetContainerIDTag(),
 		Tags:         event.EnrichTags,
-		RawTags:      event.Tags,
+		RawTags:      rawTags,
 		AlertEventId: event.EventID,
 	}
 

@@ -85,7 +85,8 @@ func (r *AlertAnalyzeResponse) WorkflowRunID() string {
 
 func (r *AlertAnalyzeResponse) getOutput(defaultV string) string {
 	if r.resp.Data.Status != "succeeded" {
-		return fmt.Sprintf("failed: status: %s, output: %s", r.resp.Data.Status, string(r.resp.Data.Outputs))
+		// return fmt.Sprintf("failed: status: %s, output: %s", r.resp.Data.Status, string(r.resp.Data.Outputs))
+		return "workflow execution failed"
 	}
 
 	var res map[string]string

@@ -24,6 +24,15 @@ const AffectedEndpoints = (props) => {
       setTopologyData({ nodes: [], edges: [] })
       return
     }
+    // 当 props 形如 { children: [], current: {}, parents: [] } 时，展示 Empty
+    const isEmptyTopology =
+      (!data.current || Object.keys(data.current).length === 0 || !data.current.service) &&
+      (!data.parents || data.parents.length === 0) &&
+      (!data.children || data.children.length === 0)
+    if (isEmptyTopology) {
+      return { nodes: [], edges: [] }
+    }
+
     const nodeSet = new Set() // 用于存储已添加节点的 ID
     const edgeSet = new Set() // 用于存储已添加边的 ID
     const current = data.current

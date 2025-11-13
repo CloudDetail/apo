@@ -249,6 +249,15 @@ const (
 	GetAlertEventReportError   = "B1503"
 	AddAlertEventReportError   = "B1504"
 
+	UploadLicenseError            = "B1601"
+	GetLicenseError               = "B1602"
+	LicenseFeatureValidationError = "B1603"
+	ActivatedLicenseNotFound      = "B1604"
+	ActivateLicenseFailed         = "B1605"
+	LicenseCheckError             = "B1606"
+	LicenseExpired                = "B1607"
+	NoLicenseError                = "B1608"
+
 	// alert notify
 	GetAlertSlienceError    = "B1701"
 	ListAlertSlienceError   = "B1702"
@@ -287,6 +296,11 @@ const (
 
 	// Metric
 	QueryPodsError = "B1901"
+
+	UploadLogoError     = "B2001"
+	GetLogoError        = "B2002"
+	LogoSizeExceedError = "B2003"
+	LogoTypeError       = "B2004"
 )
 
 func Text(lang string, code string) string {
