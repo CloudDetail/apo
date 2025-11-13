@@ -508,10 +508,12 @@ const AlertEventsPage = () => {
           <StatusPanel firingCounts={firingCounts} resolvedCounts={resolvedCounts} />
         </div>
         <Card
+          className="flex-1 h-0"
           style={{
-            height: `calc(100vh - ${headHeight})`,
+            // height: `calc(100vh - ${headHeight})`,
             display: 'flex',
             flexDirection: 'column',
+            flex: 1,
           }}
           styles={{
             body: {

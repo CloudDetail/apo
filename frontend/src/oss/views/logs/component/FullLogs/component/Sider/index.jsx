@@ -6,15 +6,17 @@
 import React from 'react'
 import LogRuleList from './LogRuleList'
 import DataSourceTree from './DataSourceTree'
-import Sider from 'antd/es/layout/Sider'
-import { Card } from 'antd'
 
 const FullLogSider = () => {
   return (
-    <>
-      <LogRuleList />
-      <DataSourceTree />
-    </>
+    <div className="flex flex-col h-full">
+      <div className="flex-1">
+        <LogRuleList />
+      </div>
+      <div className="flex-1">
+        <DataSourceTree />
+      </div>
+    </div>
   )
 }
 

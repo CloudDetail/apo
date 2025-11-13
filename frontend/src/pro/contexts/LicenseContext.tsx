@@ -46,7 +46,7 @@ const defaultLicense: LicenseInfo = {
 // 创建 Provider 组件
 export const LicenseProvider = ({ children }: { children: ReactNode }) => {
   const [licenseInfo, setLicenseInfo] = useState<LicenseInfo>(defaultLicense)
-  const { t } = useTranslation('pro/license')
+  const { t } = useTranslation('pro/licenseManage')
   const fetchLicenseInfo = async () => {
     try {
       const res = await getLicense()
