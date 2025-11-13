@@ -3,11 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useRef } from 'react'
-import { CCard } from '@coreui/react'
-import { getFullLogApi, getFullLogChartApi } from 'core/api/logs'
-import { useSearchParams } from 'react-router-dom'
-import { ISOToTimestamp } from 'src/core/utils/time'
+import React from 'react'
 import LoadingSpinner from 'src/core/components/Spinner'
 import SearchBar from './component/SerarchBar'
 import IndexList from './component/IndexList'
@@ -34,7 +30,9 @@ function FullLogs() {
     tableInfo,
   } = useLogsContext()
 
-const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300)
+  const [siderSize, setSiderSize] = useState(
+    sessionStorage.getItem('fullLogs:siderCollapse') === 'true' ? 0 : 300,
+  )
 
   const { startTime, endTime } = useSelector(selectProcessedTimeRange)
   useUpdateEffect(() => {
@@ -72,50 +70,54 @@ const [siderSize, setSiderSize] = useState(sessionStorage.getItem('fullLogs:side
   useDebounce(
     () => {
       if (siderSize === 0) {
-        sessionStorage.setItem('fullLogs:siderCollapse', "true")
+        sessionStorage.setItem('fullLogs:siderCollapse', 'true')
       } else {
-        sessionStorage.setItem('fullLogs:siderCollapse', "false")
+        sessionStorage.setItem('fullLogs:siderCollapse', 'false')
       }
     },
     1000,
-    [siderSize]
+    [siderSize],
   )
 
   return (
-    <BasicCard
-      bodyStyle={{ padding: 0 }}
-    >
+    <BasicCard bodyStyle={{ padding: 0 }}>
       <LoadingSpinner loading={loading} />
 
       <Splitter onResize={handleResize}>
         <Splitter.Panel
           // collapsible
           // resizable={false}
-          defaultSize={
-            sessionStorage.getItem('fullLogs:siderCollapse') === "true" ? 0 : 300
-          }
-          className='relative text-[var(--ant-color-primary)] overflow-x-hidden'
+          defaultSize={sessionStorage.getItem('fullLogs:siderCollapse') === 'true' ? 0 : 300}
+          className="relative text-[var(--ant-color-primary)] overflow-x-hidden"
           {...((siderSize === 0 || siderSize === 300) && { size: siderSize })}
           // size={siderSize}
         >
           <FullLogSider />
-          {siderSize && <div
-            onClick={() => {setSiderSize(0); sessionStorage.setItem('fullLogs:siderCollapse', "true");}}
-            className='logSiderButton closeButton relative p-2'
-          >
-            <AiOutlineCaretLeft className='scale-150 absolute right-0' />
-          </div>}
+          {siderSize && (
+            <div
+              onClick={() => {
+                setSiderSize(0)
+                sessionStorage.setItem('fullLogs:siderCollapse', 'true')
+              }}
+              className="logSiderButton closeButton relative p-2"
+            >
+              <AiOutlineCaretLeft className="scale-150 absolute right-0" />
+            </div>
+          )}
         </Splitter.Panel>
         {/* <Content className="h-full relative flex overflow-hidden px-2"> */}
-        <Splitter.Panel
-          defaultSize={300}
-        >
-          {!siderSize && <div
-            onClick={() => {setSiderSize(300); sessionStorage.setItem('fullLogs:siderCollapse', "false");}}
-            className={`relative text-[var(--ant-color-primary)] logSiderButton openButton`}
-          >
-            <AiOutlineCaretRight className='scale-150' />
-          </div>}
+        <Splitter.Panel defaultSize={300}>
+          {!siderSize && (
+            <div
+              onClick={() => {
+                setSiderSize(300)
+                sessionStorage.setItem('fullLogs:siderCollapse', 'false')
+              }}
+              className={`relative text-[var(--ant-color-primary)] logSiderButton openButton`}
+            >
+              <AiOutlineCaretRight className="scale-150" />
+            </div>
+          )}
           <div className="h-full px-2">
             <IndexList />
           </div>

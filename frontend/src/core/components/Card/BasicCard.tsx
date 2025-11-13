@@ -72,10 +72,8 @@ export const BasicCard: React.FC<CardProps> & {
 
         {/* Table Section */}
         {tableContent && (
-          <div className="flex-1 overflow-auto">
-            <div className="h-full text-xs justify-between">
-              {tableContent && <>{tableContent}</>}
-            </div>
+          <div className="flex-1 overflow-hidden h-0 text-xs justify-between">
+            {tableContent && <>{tableContent}</>}
           </div>
         )}
 

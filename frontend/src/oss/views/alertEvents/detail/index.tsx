@@ -9,8 +9,7 @@ import { useDebounce } from 'react-use'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getAlertEventDetailApi, resolveAlertApi } from 'src/core/api/alerts'
-import { FaCheck, FaLocationDot } from 'react-icons/fa6'
-import { IoIosNotificationsOff } from 'react-icons/io'
+import { FaLocationDot } from 'react-icons/fa6'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useTranslation } from 'react-i18next'
 import SilentAlert from './SilentAlert'
@@ -87,7 +86,7 @@ const AlertEventDetailPage = () => {
     <Splitter
       layout="vertical"
       style={{
-        height: `calc(100vh - ${import.meta.env.VITE_APP_CODE_VERSION === 'CE' ? 60 : 100}px)`,
+        height: `100%`,
         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
         // border: '1px solid rgb(229, 231, 235)',
       }}

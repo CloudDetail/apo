@@ -11,7 +11,7 @@ import { getRouterPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
 
 const checkRoutePermission = async (route: string) => {
-  const authResult = await getRouterPermissionApi({ router: route });
+  const authResult = await getRouterPermissionApi({ router: route })
   return authResult || route === '/user'
 }
 
@@ -37,7 +37,11 @@ const AuthRouter = (WrappedComponent) => {
       )
     }
 
-    return isAllowed ? <WrappedComponent {...props} /> : <FallbackPage errorInfo={t('routeError')} />
+    return isAllowed ? (
+      <WrappedComponent {...props} />
+    ) : (
+      <FallbackPage errorInfo={t('routeError')} />
+    )
   }
 }
 
