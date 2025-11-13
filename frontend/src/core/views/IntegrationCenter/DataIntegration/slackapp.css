@@ -4,10 +4,11 @@
 .page-container {
     display: flex;
     flex-direction: column;
-    height: var(--ce-app-content-height);
+    /* height: var(--ce-app-content-height); */
     width: 100%;
     margin: 0;
     padding: 0;
+    height: 100%;
     max-width: calc(100vw - 70px);
 }
 
