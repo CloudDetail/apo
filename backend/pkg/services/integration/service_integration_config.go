@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
@@ -105,10 +104,10 @@ func (s *service) getIntegrationConfigFile(ctx core.Context, clusterConfig *inte
 	var fileName string
 	switch clusterConfig.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "apo-one-agent-values.yaml.tmpl"), jsonObj)
+		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values.yaml.tmpl", jsonObj)
 		fileName = "agent-values.yaml"
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "installCfg.sh.tmpl"), jsonObj)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
 		fileName = "installCfg.sh"
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
@@ -118,13 +117,6 @@ func (s *service) getIntegrationConfigFile(ctx core.Context, clusterConfig *inte
 		FileName: fileName,
 		Content:  buf.Bytes(),
 	}, err
-}
-
-func tmplName(ctx core.Context, name string) string {
-	if ctx.LANG() == code.LANG_ZH {
-		return name + ".cn"
-	}
-	return name
 }
 
 func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {

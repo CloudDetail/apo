@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
@@ -67,4 +68,11 @@ func (s *service) getMinimalIntegrationInstallCmd(ctx core.Context, clusterConfi
 	}
 
 	return buf.String(), err
+}
+
+func tmplName(ctx core.Context, name string) string {
+	if ctx.LANG() == code.LANG_ZH {
+		return name + ".cn"
+	}
+	return name
 }
