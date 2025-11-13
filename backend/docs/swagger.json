@@ -911,52 +911,6 @@
                 }
             }
         },
-        "/api/alertinput/source/paramspec": {
-            "get": {
-                "description": "Obtain alarm source parameter configuration",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alertinput"
-                ],
-                "summary": "Obtain alarm source parameter configuration",
-                "parameters": [
-                    {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetAlertProviderParamsSpecRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.GetAlertProviderParamsSpecResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/alertinput/source/update": {
             "post": {
                 "description": "UpdateAlertSource",
@@ -1043,52 +997,6 @@
                 }
             }
         },
-        "/api/alertinput/source/webhook": {
-            "post": {
-                "description": "Install or update webhook",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alertinput"
-                ],
-                "summary": "Install or update webhook",
-                "parameters": [
-                    {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.SetupAlertProviderWebhookRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/alerts/alert/events": {
             "post": {
                 "description": "get alarm events",
@@ -1106,7 +1014,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -1114,7 +1021,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -1441,7 +1347,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1449,7 +1354,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
@@ -1472,7 +1376,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
@@ -1531,7 +1434,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1540,7 +1442,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1548,7 +1449,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
@@ -1610,7 +1510,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1618,7 +1517,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
@@ -1921,7 +1819,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询开始时间",
                         "name": "startTime",
                         "in": "query",
@@ -1930,7 +1827,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "查询结束时间",
                         "name": "endTime",
                         "in": "query",
@@ -1938,7 +1834,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "查询步长(us)",
                         "name": "step",
@@ -2944,6 +2839,94 @@
                 }
             }
         },
+        "/api/app/logo": {
+            "get": {
+                "description": "gets logo",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.app"
+                ],
+                "summary": "gets logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetLogoResp"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/app/upload": {
+            "post": {
+                "description": "uploads logo",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.app"
+                ],
+                "summary": "uploads logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "logoText",
+                        "name": "logoText",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "logoImage",
+                        "name": "logoImage",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/config/getTTL": {
             "get": {
                 "description": "get TTL",
@@ -3344,7 +3327,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
                         "in": "query"
@@ -3441,7 +3423,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "query",
@@ -3508,7 +3489,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "data group's id",
                         "name": "groupId",
@@ -3603,7 +3583,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "user's id",
                         "name": "userId",
@@ -3980,7 +3959,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -3988,7 +3966,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -4062,7 +4039,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4070,7 +4046,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "End time",
                         "name": "endTime",
@@ -4163,7 +4138,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4171,7 +4145,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -4225,7 +4198,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4233,7 +4205,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -4307,6 +4278,52 @@
                 }
             }
         },
+        "/api/dataplane/recharts/list": {
+            "get": {
+                "description": "list services' redcharts",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "list services' redcharts",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ListServiceRedChartsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListServiceRedChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/redcharts": {
             "get": {
                 "description": "Get service's redcharts.",
@@ -4324,7 +4341,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4332,7 +4348,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -4599,7 +4614,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4607,7 +4621,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "End time",
                         "name": "endTime",
@@ -4694,7 +4707,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4702,7 +4714,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -4753,7 +4764,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Start time",
                         "name": "startTime",
                         "in": "query",
@@ -4761,7 +4771,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "End time",
                         "name": "endTime",
@@ -4830,7 +4839,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -4838,7 +4846,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -5286,50 +5293,6 @@
                     "API.integration"
                 ],
                 "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/integration/vars/:variable": {
-            "get": {
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.integration"
-                ],
-                "parameters": [
-                    {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.GetIntegrationVarRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -6505,7 +6468,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Start time, in microseconds",
                         "name": "startTime",
                         "in": "query",
@@ -6513,7 +6475,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "End time, in microseconds",
                         "name": "endTime",
@@ -6604,7 +6565,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "User's id",
                         "name": "userId",
@@ -6751,7 +6711,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
                         "in": "formData",
@@ -6864,7 +6823,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "The id of authorized subject",
                         "name": "subjectId",
@@ -7029,7 +6987,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData"
@@ -7193,7 +7150,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "query",
@@ -7236,7 +7192,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7244,7 +7199,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7349,7 +7303,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7357,7 +7310,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7447,7 +7399,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7455,7 +7406,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7478,7 +7428,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -7540,7 +7489,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7548,7 +7496,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7571,7 +7518,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -7639,7 +7585,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7647,7 +7592,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7703,14 +7647,12 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "data group id",
                         "name": "groupId",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "start time",
                         "name": "startTime",
@@ -7720,7 +7662,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -7728,7 +7669,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "step",
                         "name": "step",
@@ -7812,7 +7752,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7820,7 +7759,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7843,7 +7781,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -7899,7 +7836,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7907,7 +7843,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -7930,7 +7865,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -7989,7 +7923,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -7997,7 +7930,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8038,7 +7970,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int32",
                         "format": "int32",
                         "description": "process number",
                         "name": "pid",
@@ -8141,7 +8072,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8149,7 +8079,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8206,7 +8135,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8214,7 +8142,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8272,7 +8199,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8280,7 +8206,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8337,7 +8262,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8346,7 +8270,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8354,7 +8277,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "step",
                         "name": "step",
@@ -8414,7 +8336,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8422,7 +8343,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8476,7 +8396,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8484,7 +8403,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8544,7 +8462,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8552,7 +8469,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8593,7 +8509,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int32",
                         "format": "int32",
                         "description": "process number",
                         "name": "pid",
@@ -8642,7 +8557,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8650,7 +8564,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8673,7 +8586,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -8735,7 +8647,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8743,7 +8654,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -8790,7 +8700,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8799,7 +8708,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8807,7 +8715,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "step",
                         "name": "step",
@@ -8871,7 +8778,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -8879,7 +8785,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "end time",
                         "name": "endTime",
@@ -8920,7 +8825,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -8929,7 +8833,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -8937,7 +8840,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -9044,7 +8946,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9052,7 +8953,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9125,7 +9025,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9133,7 +9032,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9198,7 +9096,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9207,7 +9104,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
                         "in": "query",
@@ -9215,7 +9111,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "step",
                         "name": "step",
@@ -9302,7 +9197,6 @@
                     {
                         "type": "number",
                         "format": "float64",
-                        "format": "float64",
                         "description": "YoY Delay",
                         "name": "latency",
                         "in": "formData",
@@ -9310,7 +9204,6 @@
                     },
                     {
                         "type": "number",
-                        "format": "float64",
                         "format": "float64",
                         "description": "YoY Error Rate",
                         "name": "errorRate",
@@ -9320,7 +9213,6 @@
                     {
                         "type": "number",
                         "format": "float64",
-                        "format": "float64",
                         "description": "Number of requests compared with the same period last year",
                         "name": "tps",
                         "in": "formData",
@@ -9328,7 +9220,6 @@
                     },
                     {
                         "type": "number",
-                        "format": "float64",
                         "format": "float64",
                         "description": "year-on-year log alarm",
                         "name": "log",
@@ -9372,7 +9263,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9380,7 +9270,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9396,7 +9285,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -9462,7 +9350,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9470,7 +9357,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9543,7 +9429,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9551,7 +9436,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9592,7 +9476,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int32",
                         "format": "int32",
                         "description": "process number",
                         "name": "pid",
@@ -9641,7 +9524,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -9649,7 +9531,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -9672,7 +9553,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query step (us)",
                         "name": "step",
@@ -9899,7 +9779,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -9909,7 +9788,6 @@
                         "type": "array",
                         "items": {
                             "type": "integer",
-                            "format": "int64""type": "integer",
                             "format": "int64"
                         },
                         "collectionFormat": "multi",
@@ -10003,7 +9881,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "query",
@@ -10052,7 +9929,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Team's id",
                         "name": "teamId",
                         "in": "formData",
@@ -10062,7 +9938,6 @@
                         "type": "array",
                         "items": {
                             "type": "integer",
-                            "format": "int64""type": "integer",
                             "format": "int64"
                         },
                         "collectionFormat": "multi",
@@ -10117,7 +9992,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "process id",
                         "name": "pid",
                         "in": "query",
@@ -10125,7 +9999,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "thread id",
                         "name": "tid",
@@ -10141,7 +10014,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "start time",
                         "name": "startTime",
                         "in": "query",
@@ -10149,7 +10021,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "end time",
                         "name": "endTime",
@@ -10204,14 +10075,12 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "Limit number of nodes",
                         "name": "maxNodes",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "start time",
                         "name": "startTime",
@@ -10221,7 +10090,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "end time",
                         "name": "endTime",
                         "in": "query",
@@ -10229,7 +10097,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "process id",
                         "name": "pid",
@@ -10327,7 +10194,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "start time, unit nanosecond",
                         "name": "startTime",
                         "in": "query",
@@ -10336,7 +10202,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "end time, unit nanosecond",
                         "name": "endTime",
                         "in": "query",
@@ -10344,7 +10209,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int32",
                         "format": "int32",
                         "description": "process id",
                         "name": "pid",
@@ -10478,7 +10342,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "query start time",
                         "name": "startTime",
                         "in": "query",
@@ -10486,7 +10349,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "query end time",
                         "name": "endTime",
@@ -10883,7 +10745,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -10922,7 +10783,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "User's id",
                         "name": "userId",
@@ -10984,7 +10844,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's is",
                         "name": "userId",
                         "in": "query",
@@ -11032,7 +10891,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "User's id",
                         "name": "userId",
@@ -11086,7 +10944,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "User's id",
                         "name": "userId",
@@ -11162,7 +11019,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -11230,7 +11086,6 @@
                     {
                         "type": "integer",
                         "format": "int64",
-                        "format": "int64",
                         "description": "User's id",
                         "name": "userId",
                         "in": "formData",
@@ -11283,7 +11138,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "User's id",
                         "name": "userId",
@@ -11348,7 +11202,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "format": "int64",
                         "description": "Data group's id",
                         "name": "groupId",
@@ -11680,15 +11533,6 @@
                 "params": {
                     "$ref": "#/definitions/integration.JSONField-alert_AlertSourceParams"
                 },
-                "enabledPull": {
-                    "type": "boolean"
-                },
-                "lastPullMillTS": {
-                    "type": "integer"
-                },
-                "params": {
-                    "$ref": "#/definitions/integration.JSONField-alert_AlertSourceParams"
-                },
                 "sourceId": {
                     "type": "string"
                 },
@@ -11699,10 +11543,6 @@
                     "type": "string"
                 }
             }
-        },
-        "alert.AlertSourceParams": {
-            "type": "object",
-            "additionalProperties": {}
         },
         "alert.AlertSourceParams": {
             "type": "object",
@@ -12372,7 +12212,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
-                        "format": "int64""type": "integer",
                         "format": "int64"
                     }
                 },
@@ -13110,6 +12949,9 @@
                 },
                 "type": {
                     "type": "string"
+                },
+                "typeDisplayName": {
+                    "type": "string"
                 }
             }
         },
@@ -13161,18 +13003,6 @@
                 }
             }
         },
-        "integration.GetIntegrationVarRequest": {
-            "type": "object",
-            "required": [
-                "variable"
-            ],
-            "properties": {
-                "variable": {
-                    "type": "string",
-                    "maxLength": 64
-                }
-            }
-        },
         "integration.HuaweiConfig": {
             "type": "object",
             "properties": {
@@ -13181,14 +13011,6 @@
                 },
                 "accessSecret": {
                     "type": "string"
-                }
-            }
-        },
-        "integration.JSONField-alert_AlertSourceParams": {
-            "type": "object",
-            "properties": {
-                "obj": {
-                    "$ref": "#/definitions/alert.AlertSourceParams"
                 }
             }
         },
@@ -13430,6 +13252,9 @@
         "integration.TelemetryCapability": {
             "type": "object",
             "properties": {
+                "description": {
+                    "type": "string"
+                },
                 "enabled": {
                     "type": "boolean"
                 },
@@ -13678,16 +13503,6 @@
                 "AnormalTypeError": "错误事件告警 =\u003e 来自JavaException等",
                 "AnormalTypeUnknown": "未定义的告警类型"
             },
-            "x-enum-descriptions": [
-                "未定义的告警类型",
-                "应用接口告警     =\u003e group=app",
-                "容器告警         =\u003e group=container",
-                "基础设施告警     =\u003e group=infra",
-                "网络告警         =\u003e group=net",
-                "错误事件告警 =\u003e 来自JavaException等",
-                "应用实例告警     =\u003e group=appInstance",
-                "数据库告警       =\u003e group=middleware"
-            ],
             "x-enum-descriptions": [
                 "未定义的告警类型",
                 "应用接口告警     =\u003e group=app",
@@ -14007,10 +13822,6 @@
                     "description": "k8s namespace",
                     "type": "string"
                 },
-                "namespace": {
-                    "description": "k8s namespace",
-                    "type": "string"
-                },
                 "nodeIp": {
                     "type": "string"
                 },
@@ -14064,7 +13875,6 @@
         "model.SeverityLevel": {
             "type": "integer",
             "format": "int32",
-            "format": "int32",
             "enum": [
                 0,
                 1,
@@ -14082,7 +13892,6 @@
         },
         "model.Status": {
             "type": "integer",
-            "format": "int32",
             "format": "int32",
             "enum": [
                 0,
@@ -14247,68 +14056,6 @@
                 "value": {
                     "description": "value",
                     "type": "number"
-                }
-            }
-        },
-        "provider.JSONType": {
-            "type": "string",
-            "enum": [
-                "object",
-                "array",
-                "string",
-                "number",
-                "boolean",
-                "null"
-            ],
-            "x-enum-varnames": [
-                "JSONTypeObject",
-                "JSONTypeArray",
-                "JSONTypeString",
-                "JSONTypeNumber",
-                "JSONTypeBoolean",
-                "JSONTypeNull"
-            ]
-        },
-        "provider.ParamSpec": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/provider.ParamSpec"
-                    }
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "desc_en": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "optional": {
-                    "type": "boolean"
-                },
-                "type": {
-                    "$ref": "#/definitions/provider.JSONType"
-                }
-            }
-        },
-        "provider.ProviderType": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "paramSpec": {
-                    "$ref": "#/definitions/provider.ParamSpec"
-                },
-                "supportPull": {
-                    "type": "boolean"
-                },
-                "supportWebhookInstall": {
-                    "type": "boolean"
                 }
             }
         },
@@ -15169,14 +14916,6 @@
                 }
             }
         },
-        "request.GetAlertProviderParamsSpecRequest": {
-            "type": "object",
-            "properties": {
-                "sourceType": {
-                    "type": "string"
-                }
-            }
-        },
         "request.GetAlertRuleRequest": {
             "type": "object",
             "properties": {
@@ -15649,6 +15388,27 @@
                 "type": "string"
             }
         },
+        "request.ListServiceRedChartsRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "cluster": {
+                    "description": "query Cluster",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "request.LogIndexRequest": {
             "type": "object",
             "required": [
@@ -16048,17 +15808,6 @@
                 }
             }
         },
-        "request.SetupAlertProviderWebhookRequest": {
-            "type": "object",
-            "properties": {
-                "sourceID": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
         "request.SpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -16299,7 +16048,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
-                        "format": "int64""type": "integer",
                         "format": "int64"
                     }
                 },
@@ -16441,7 +16189,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
-                        "format": "int64""type": "integer",
                         "format": "int64"
                     }
                 },
@@ -16585,7 +16332,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -16752,20 +16498,6 @@
                 }
             }
         },
-        "response.GetAlertProviderParamsSpecResponse": {
-            "type": "object",
-            "properties": {
-                "providerType": {
-                    "$ref": "#/definitions/provider.ProviderType"
-                },
-                "providerTypes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/provider.ProviderType"
-                    }
-                }
-            }
-        },
         "response.GetAlertRuleFileResponse": {
             "type": "object",
             "properties": {
@@ -16819,7 +16551,7 @@
                 "active": {
                     "type": "integer"
                 },
-                "expireAt": {
+                "expiresAt": {
                     "type": "integer"
                 },
                 "features": {
@@ -16839,6 +16571,12 @@
                 },
                 "seatsCurrentlyInUse": {
                     "type": "integer"
+                },
+                "seatsInLicense": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -17271,7 +17009,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17280,7 +17017,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17289,7 +17025,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17645,7 +17380,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17654,7 +17388,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17663,7 +17396,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -17903,10 +17635,6 @@
                     "description": "k8s namespace",
                     "type": "string"
                 },
-                "namespace": {
-                    "description": "k8s namespace",
-                    "type": "string"
-                },
                 "nodeIp": {
                     "type": "string"
                 },
@@ -17983,7 +17711,7 @@
                 "active": {
                     "type": "integer"
                 },
-                "expireAt": {
+                "expiresAt": {
                     "type": "integer"
                 },
                 "features": {
@@ -18003,6 +17731,12 @@
                 },
                 "seatsCurrentlyInUse": {
                     "type": "integer"
+                },
+                "seatsInLicense": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -18083,6 +17817,24 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ListServiceNameRule"
+                    }
+                }
+            }
+        },
+        "response.ListServiceRedChartsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "description": "service -\u003e []*QueryChartResult",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/response.QueryChartResult"
+                        }
                     }
                 }
             }
@@ -18618,7 +18370,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -18626,7 +18377,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
@@ -18634,7 +18384,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 }
@@ -18902,7 +18651,6 @@
                     "type": "object",
                     "additionalProperties": {
                         "type": "number",
-                        "format": "float64""type": "number",
                         "format": "float64"
                     }
                 },
