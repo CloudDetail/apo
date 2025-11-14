@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { FindingsNodeData } from '../FindingsTree/FindingsNode'
-import StatusIcon, { getStatusLabel } from '../StatusIcon'
+import StatusIcon, { useStatusLabel } from '../StatusIcon'
 import NodeLogs from './NodeLogs'
 import NodeTraces from './NodeTraces'
 import NodeMetrics from './NodeMetrics'
@@ -23,6 +23,7 @@ interface NodeDetailProps {
 const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
   const { token } = useToken()
   const { t } = useTranslation('pro/agui')
+  const getStatusLabel = useStatusLabel()
   console.log('selectedNode', selectedNode)
   if (!selectedNode) {
     return (

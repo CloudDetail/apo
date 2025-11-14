@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 export type Status = 'normal' | 'info' | 'muted' | 'warning' | 'abnormal'
 
@@ -136,19 +137,11 @@ const StatusIcon: React.FC<StatusIconProps> = ({
 /**
  * 获取状态对应的文本标签
  */
-export const getStatusLabel = (status: Status): string => {
-  switch (status) {
-    case 'normal':
-      return '正常'
-    case 'warning':
-      return '轻微异常'
-    case 'abnormal':
-      return '严重异常'
-    case 'info':
-      return '信息'
-    case 'muted':
-    default:
-      return '静默'
+export const useStatusLabel = () => {
+  const { t } = useTranslation('pro/agui')
+
+  return (status: Status): string => {
+    return t(`status.${status}`)
   }
 }
 

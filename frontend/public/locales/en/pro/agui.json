@@ -87,5 +87,13 @@
     "directionContains": "Contains {{count}} {{statusText}} in this direction - Click to focus",
     "abnormal": "abnormal",
     "warning": "warning"
-  }
+  },
+  "status": {
+    "normal": "Normal",
+    "warning": "Warning",
+    "abnormal": "Abnormal",
+    "info": "Info",
+    "muted": "Muted"
+  },
+  "statusLegend": "Status Legend"
 }

@@ -1,5 +1,6 @@
 import React from 'react'
-import StatusIcon, { type Status, getStatusLabel } from './StatusIcon'
+import { useTranslation } from 'react-i18next'
+import StatusIcon, { type Status, useStatusLabel } from './StatusIcon'
 
 export interface StatusLegendProps {
   /** 要显示的状态列表，如果不提供则显示所有状态 */
@@ -24,11 +25,13 @@ const StatusLegend: React.FC<StatusLegendProps> = ({
   className = '',
   showTitle = true,
 }) => {
+  const { t } = useTranslation('pro/agui')
+  const getStatusLabel = useStatusLabel()
   return (
     <div className={`${className}`}>
       {showTitle && (
         <div className="text-xs font-medium text-[var(--ant-color-text-secondary)] mb-2">
-          状态图例
+          {t('statusLegend')}
         </div>
       )}
       <div className={`flex items-center gap-3 ${vertical ? 'flex-col' : 'flex-wrap'}`}>

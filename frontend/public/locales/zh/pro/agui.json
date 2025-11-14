@@ -87,5 +87,13 @@
     "directionContains": "此方向含 {{count}} 个{{statusText}} - 点击聚焦",
     "abnormal": "异常",
     "warning": "警告"
-  }
+  },
+  "status": {
+    "normal": "正常",
+    "warning": "轻微异常",
+    "abnormal": "严重异常",
+    "info": "信息",
+    "muted": "静默"
+  },
+  "statusLegend": "状态图例"
 }
