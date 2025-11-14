@@ -13,6 +13,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
+	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	prom "github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"github.com/CloudDetail/apo/backend/pkg/services/serviceoverview"
@@ -94,7 +95,7 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 
 	svcFilter := prom.RegexMatchFilter(prom.ServiceNameKey, prom.RegexMultipleValue(svcList...)).
 		RegexMatch(prom.ContentKeyKey, prom.RegexMultipleValue(contentKeyList...))
-	pqlFilter := prom.And(groupFilter, svcFilter)
+	pqlFilter := prom.And(prometheus.Clone(groupFilter), svcFilter)
 
 	descendantStatus, err := s.queryDescendantStatus(ctx, pqlFilter, req.StartTime, req.EndTime)
 	if err != nil {
@@ -122,10 +123,12 @@ func (s *service) GetDescendantRelevance(ctx core.Context, req *request.GetDesce
 		// Fill delay source and RED alarm (DelaySource/REDMetricsStatus)
 		fillServiceDelaySourceAndREDAlarm(&descendantResp, descendantStatus, threshold)
 
-		// Get all instances under each endpoint
-		instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, pqlFilter)
+		// Get all instances under each service
+		descendantFilter := prom.Clone(groupFilter).Equal(prom.ServiceNameKey, descendant.Service)
+		instances, err := s.promRepo.GetInstanceListByPQLFilter(ctx, req.StartTime, req.EndTime, descendantFilter)
 		if err != nil {
 			s.logger.Error("Failed to query instance list", zap.Error(err))
+			instances = model.NewServiceInstances() // init empty instance map
 		}
 
 		startTime := time.UnixMicro(req.StartTime)

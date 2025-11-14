@@ -16,7 +16,7 @@ import (
 func (repo *promRepo) QueryData(ctx core.Context, searchTime time.Time, query string) ([]MetricResult, error) {
 	value, warnings, err := repo.GetApi().Query(ctx.GetContext(), query, searchTime)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query metric failed, err: %w, query: %s, timestamp: %d", err, query, searchTime.Unix())
 	}
 	if len(warnings) > 0 {
 		log.Println("Warnings:", warnings)
