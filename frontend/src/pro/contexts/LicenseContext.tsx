@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { getLicense } from '../api/license'
 import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 
 type LicenseInfo = {
   licenseId: string
@@ -35,7 +36,7 @@ const defaultLicense: LicenseInfo = {
   appVersion: '',
   mode: 0,
   type: -1,
-  active: -1,
+  active: null,
   issuedAt: 0,
   expiresAt: 0,
   maxNodes: 0,
@@ -47,6 +48,7 @@ const defaultLicense: LicenseInfo = {
 export const LicenseProvider = ({ children }: { children: ReactNode }) => {
   const [licenseInfo, setLicenseInfo] = useState<LicenseInfo>(defaultLicense)
   const { t } = useTranslation('pro/licenseManage')
+  const { user } = useSelector((state) => state.userReducer)
   const fetchLicenseInfo = async () => {
     try {
       const res = await getLicense()
@@ -56,8 +58,10 @@ export const LicenseProvider = ({ children }: { children: ReactNode }) => {
     }
   }
   useEffect(() => {
-    fetchLicenseInfo()
-  }, [])
+    if (user.userId) {
+      fetchLicenseInfo()
+    }
+  }, [user.userId])
 
   return (
     <LicenseContext.Provider value={{ licenseInfo, setLicenseInfo, fetchLicenseInfo }}>
