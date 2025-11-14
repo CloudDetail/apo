@@ -3,8 +3,7 @@ import { Tooltip } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { IoWarning, IoSettingsOutline } from 'react-icons/io5'
 import { IoMdCheckmarkCircle, IoMdRadioButtonOff } from 'react-icons/io'
-import { useSelector } from 'react-redux'
-import { selectProcessedTimeRange } from 'src/core/store/reducers/timeRangeReducer'
+import { getTimestampRange } from 'src/core/store/reducers/timeRangeReducer'
 import { getDataplaneDatasourcesApi, getCapabilitiesApi } from 'src/pro/api/dataplane'
 import styles from './DataStatus.module.scss'
 
@@ -22,7 +21,7 @@ interface CapabilityItem {
 
 const DataStatus: React.FC = () => {
   const { t } = useTranslation('pro/agent')
-  const { startTime, endTime } = useSelector(selectProcessedTimeRange)
+  const { startTime, endTime } = getTimestampRange('15m')
   const [dataplane, setDataplane] = useState<any[]>([])
   const [serviceCount, setServiceCount] = useState<number>(0)
   const [capabilities, setCapabilities] = useState<CapabilityItem[]>([])
@@ -46,8 +45,10 @@ const DataStatus: React.FC = () => {
   }
 
   useEffect(() => {
-    getStatus()
-  }, [startTime, endTime])
+    if (startTime && endTime) {
+      getStatus()
+    }
+  }, [])
 
   const handleCapabilityClick = (type: string) => {
     // 根据 type 跳转到对应的设置页面
