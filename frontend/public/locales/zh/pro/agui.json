@@ -80,7 +80,8 @@
     "loadingFindings": "正在获取推理数据...",
     "noFindings": "暂无推理数据",
     "serviceNormal": "服务运行正常",
-    "serviceNormalDesc": "该服务状态正常，无需推理分析"
+    "serviceNormalDesc": "该服务状态正常，无需推理分析",
+    "noData": "暂无数据"
   },
   "findingsTree": {
     "noData": "暂无数据",

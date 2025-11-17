@@ -33,6 +33,7 @@ interface MetricData {
   data: any[]
   value: number
   status: string
+  hasData: boolean
 }
 
 // ==================== 工具函数 ====================
@@ -204,6 +205,8 @@ const ServiceHeader: React.FC<{ selectedService: any }> = ({ selectedService }) 
 
 // ==================== 子组件 - 指标卡片 ====================
 const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => {
+  const { t } = useTranslation('pro/agui')
+
   return (
     <div
       key={metric.type}
@@ -211,33 +214,45 @@ const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => {
     >
       <div className=" px-2 text-base font-medium text-[var(--ant-color-text-secondary)] mb-3 flex justify-between">
         {metric.label}
-        <div
-          className="text-base font-bold text-[var(--ant-color-text-secondary)] flex gap-2 items-center"
-          style={{
-            color:
-              metric.status === 'abnormal'
-                ? 'rgb(248 113 113)'
-                : metric.status === 'warning'
-                  ? 'var(--ant-color-warning)'
-                  : 'rgb(52, 211, 153)',
-          }}
-        >
-          {convertYValue(metric.value, metric.type)}
-          <div className="text-sm">
-            {metric.status === 'abnormal' && <ExclamationCircleOutlined />}
-            {metric.status === 'warning' && <WarningOutlined />}
-            {metric.status === 'normal' && <CheckCircleOutlined />}
+        {metric.hasData ? (
+          <div
+            className="text-base font-bold text-[var(--ant-color-text-secondary)] flex gap-2 items-center"
+            style={{
+              color:
+                metric.status === 'abnormal'
+                  ? 'rgb(248 113 113)'
+                  : metric.status === 'warning'
+                    ? 'var(--ant-color-warning)'
+                    : 'rgb(52, 211, 153)',
+            }}
+          >
+            {convertYValue(metric.value, metric.type)}
+            <div className="text-sm">
+              {metric.status === 'abnormal' && <ExclamationCircleOutlined />}
+              {metric.status === 'warning' && <WarningOutlined />}
+              {metric.status === 'normal' && <CheckCircleOutlined />}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="text-sm text-[var(--ant-color-text-tertiary)]">
+            {t('evidencePanel.noData')}
+          </div>
+        )}
       </div>
       <div className="h-28">
-        <DelayLineChart
-          data={metric.data}
-          type={metric.type}
-          timeRange={null}
-          needFillZero={false}
-          allowTimeBrush={false}
-        />
+        {metric.hasData ? (
+          <DelayLineChart
+            data={metric.data}
+            type={metric.type}
+            timeRange={null}
+            needFillZero={false}
+            allowTimeBrush={false}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-sm text-[var(--ant-color-text-tertiary)]">
+            {t('evidencePanel.noData')}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -248,27 +263,31 @@ const RedMetricsSection: React.FC<{ redMetrics: any }> = ({ redMetrics }) => {
   const { t } = useTranslation('pro/agui')
   const [isExpanded, setIsExpanded] = React.useState(true)
 
+  // 始终显示三个指标，即使为 null 也显示
   const metricsData: MetricData[] = [
     {
       label: t('evidencePanel.requestDuration'),
       type: 'latency',
-      data: redMetrics.latency.chartData,
-      value: redMetrics.latency.value,
-      status: redMetrics.latency.status,
+      data: redMetrics?.latency?.chartData || [],
+      value: redMetrics?.latency?.value || 0,
+      status: redMetrics?.latency?.status || 'normal',
+      hasData: redMetrics?.latency != null,
     },
     {
       label: t('evidencePanel.errorRate'),
       type: 'errorRate',
-      data: redMetrics.errorRate.chartData,
-      value: redMetrics.errorRate.value,
-      status: redMetrics.errorRate.status,
+      data: redMetrics?.errorRate?.chartData || [],
+      value: redMetrics?.errorRate?.value || 0,
+      status: redMetrics?.errorRate?.status || 'normal',
+      hasData: redMetrics?.errorRate != null,
     },
     {
       label: t('evidencePanel.requestRate'),
       type: 'tps',
-      data: redMetrics.tps.chartData,
-      value: redMetrics.tps.value,
-      status: redMetrics.tps.status,
+      data: redMetrics?.tps?.chartData || [],
+      value: redMetrics?.tps?.value || 0,
+      status: redMetrics?.tps?.status || 'normal',
+      hasData: redMetrics?.tps != null,
     },
   ]
 
@@ -361,27 +380,6 @@ const FindingsSection: React.FC<{
   )
 }
 
-// ==================== 子组件 - 正常服务状态 ====================
-const NormalServiceState: React.FC = () => {
-  const { t } = useTranslation('pro/agui')
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="text-5xl mb-4 opacity-60">✓</div>
-          <div className="text-lg font-semibold text-[var(--ant-color-success)] mb-2">
-            {t('evidencePanel.serviceNormal')}
-          </div>
-          <div className="text-sm text-[var(--ant-color-text-secondary)]">
-            {t('evidencePanel.serviceNormalDesc')}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 // ==================== 主组件 ====================
 const ServiceDetail: React.FC<ServiceDetailProps> = ({
   selectedService,
@@ -425,7 +423,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
           <div className="flex gap-2 h-full">
             <div className="flex-1 space-y-3 flex flex-col">
               {/* RED Metrics 区域 */}
-              {redMetrics && <RedMetricsSection redMetrics={redMetrics} />}
+              <RedMetricsSection redMetrics={redMetrics} />
 
               <FindingsSection
                 evidence={evidence}

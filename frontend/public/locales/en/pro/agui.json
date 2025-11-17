@@ -80,7 +80,8 @@
     "loadingFindings": "Loading reasoning data...",
     "noFindings": "No reasoning data",
     "serviceNormal": "Service Running Normally",
-    "serviceNormalDesc": "This service is running normally, no reasoning required"
+    "serviceNormalDesc": "This service is running normally, no reasoning required",
+    "noData": "No data"
   },
   "findingsTree": {
     "noData": "No data",
