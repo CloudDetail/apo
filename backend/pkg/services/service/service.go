@@ -12,7 +12,6 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/polarisanalyzer"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
-	"go.uber.org/zap"
 )
 
 var _ Service = (*service)(nil)
@@ -76,16 +75,13 @@ type service struct {
 	promRepo prometheus.Repo
 	polRepo  polarisanalyzer.Repo
 	dbRepo   database.Repo
-
-	logger *zap.Logger
 }
 
-func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, dbRepo database.Repo, logger *zap.Logger) Service {
+func New(chRepo clickhouse.Repo, promRepo prometheus.Repo, polRepo polarisanalyzer.Repo, dbRepo database.Repo) Service {
 	return &service{
 		chRepo:   chRepo,
 		promRepo: promRepo,
 		polRepo:  polRepo,
 		dbRepo:   dbRepo,
-		logger:   logger,
 	}
 }
