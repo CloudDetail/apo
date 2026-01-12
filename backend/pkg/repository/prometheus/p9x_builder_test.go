@@ -53,10 +53,10 @@ func TestSpliteSpanTraceP9x(t *testing.T) {
 		t.Errorf("want=%s, got=%s", e1, res1)
 	}
 	if e2 != res2 {
-		t.Errorf("want=%s, got=%s", e1, res1)
+		t.Errorf("want=%s, got=%s", e2, res2)
 	}
 	if e3 != res3 {
-		t.Errorf("want=%s, got=%s", e1, res1)
+		t.Errorf("want=%s, got=%s", e3, res3)
 	}
 }
 
