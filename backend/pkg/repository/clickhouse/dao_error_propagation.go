@@ -46,7 +46,7 @@ FROM (
         ARRAY JOIN nodes
         WHERE trace_id GLOBAL IN (
             SELECT trace_id FROM (
-                SELECT trace_id, timestamp, nodes.is_error as node_is_error
+                SELECT trace_id, timestamp, nodes.service, nodes.url,nodes.is_traced, nodes.is_error, entry_service, entry_url , nodes.error_types
                 FROM error_propagation
                 ARRAY JOIN nodes
             )
