@@ -25,7 +25,7 @@ func TestSpanTraceP9x(t *testing.T) {
 	}
 }
 
-func TestSpliteSpanTraceP9x(t *testing.T) {
+func TestSplitSpanTraceP9x(t *testing.T) {
 	svcs := []string{"ts-station-service", "ts-travel2-service", "ts-travel-service"}
 	endpoints := []string{
 		"POST /api/v1/stationservice/stations/idlist",
