@@ -32,8 +32,8 @@ func (repo *promRepo) QueryRangePercentile(ctx core.Context, startTime int64, en
 		End:   time.UnixMicro(endTime),
 		Step:  time.Duration(step * 1000),
 	}
-	query := getSpanTraceP9xSql(repo.GetRange(), tRange.Step, svcs, endpoints)
-	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
+	qb := getSpanTraceP9xSql(repo.GetRange(), tRange.Step, svcs, endpoints)
+	res, _, err := repo.QueryRangeWithP9xBuilder(ctx, qb, tRange)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (repo *promRepo) QueryRangePercentile(ctx core.Context, startTime int64, en
 	return getDescendantMetrics("svc_name", "content_key", tRange, res), nil
 }
 
-func getSpanTraceP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string) string {
+func getSpanTraceP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string) *UnionP9xBuilder {
 	builder := NewUnionP9xBuilder(
 		"0.9",
 		"kindling_span_trace_duration_nanoseconds_bucket",
@@ -50,7 +50,7 @@ func getSpanTraceP9xSql(promRange string, step time.Duration, svcs []string, end
 	)
 	builder.AddCondition("svc_name", svcs)
 	builder.AddCondition("content_key", endpoints)
-	return builder.ToString()
+	return builder
 }
 
 func (repo *promRepo) QueryInstanceP90(ctx core.Context, startTime int64, endTime int64, step int64, endpoint string, instance *model.ServiceInstance) (map[int64]float64, error) {
@@ -69,9 +69,9 @@ func (repo *promRepo) QueryInstanceP90(ctx core.Context, startTime int64, endTim
 		// VM scenario
 		extraCondition = fmt.Sprintf("node_name='%s', pid='%d'", instance.NodeName, instance.Pid)
 	}
-	sql := getSpanTraceInstanceP9xSql(repo.GetRange(), tRange.Step, endpoint, extraCondition)
+	qb := getSpanTraceInstanceP9xSql(repo.GetRange(), tRange.Step, endpoint, extraCondition)
 
-	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), sql, tRange)
+	res, _, err := repo.QueryRangeWithP9xBuilder(ctx, qb, tRange)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (repo *promRepo) QueryInstanceP90(ctx core.Context, startTime int64, endTim
 	return result, nil
 }
 
-func getSpanTraceInstanceP9xSql(promRange string, step time.Duration, endpoint string, extraCondition string) string {
+func getSpanTraceInstanceP9xSql(promRange string, step time.Duration, endpoint string, extraCondition string) *UnionP9xBuilder {
 	builder := NewUnionP9xBuilder(
 		"0.9",
 		"kindling_span_trace_duration_nanoseconds_bucket",
@@ -100,7 +100,7 @@ func getSpanTraceInstanceP9xSql(promRange string, step time.Duration, endpoint s
 	builder.AddCondition("content_key", []string{endpoint})
 	builder.AddExtraCondition(extraCondition)
 
-	return builder.ToString()
+	return builder
 }
 
 type DescendantMetrics struct {
