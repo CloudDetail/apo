@@ -83,6 +83,6 @@ func New(logger *zap.Logger, chRepo clickhouse.Repo, dbRepo database.Repo, promR
 		logger:                 logger,
 		alertanalyzeService:    alertanalyze.New(chRepo, promRepo, polRepo, k8sRepo, dbRepo, logger),
 		serviceoverviewService: serviceoverview.New(logger, chRepo, dbRepo, promRepo),
-		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo),
+		serviceInfoService:     service.New(chRepo, promRepo, polRepo, dbRepo, logger),
 	}
 }

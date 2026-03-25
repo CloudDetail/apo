@@ -22,15 +22,15 @@ func (repo *promRepo) QueryMqRangePercentile(ctx core.Context, startTime int64, 
 		End:   time.UnixMicro(endTime),
 		Step:  time.Duration(step * 1000),
 	}
-	query := getMqP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
-	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
+	qb := getMqP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
+	res, _, err := repo.QueryRangeWithP9xBuilder(ctx, qb, tRange)
 	if err != nil {
 		return nil, err
 	}
 	return getDescendantMetrics("address", "name", tRange, res), nil
 }
 
-func getMqP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) string {
+func getMqP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) *UnionP9xBuilder {
 	builder := NewUnionP9xBuilder(
 		"0.9",
 		"kindling_mq_duration_nanoseconds_bucket",
@@ -41,5 +41,5 @@ func getMqP9xSql(promRange string, step time.Duration, svcs []string, endpoints 
 	builder.AddCondition("name", endpoints)
 	builder.AddCondition("system", systems)
 	builder.AddExtraCondition("role!='consumer'")
-	return builder.ToString()
+	return builder
 }
