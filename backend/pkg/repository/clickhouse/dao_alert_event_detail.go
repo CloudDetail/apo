@@ -18,17 +18,19 @@ import (
 const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
 %s ORDER BY received_time DESC LIMIT 1`
 
+// Use LIMIT 1 BY alert_id for alert detail queries because plain LIMIT 1 can be unstable
+// on ClickHouse clusters when the query is not executed as a global ordered scan.
 const SQL_GET_ALERT_DETAIL = `WITH targetEvent AS (
 	SELECT *
     FROM alert_event ae
     %s
-	LIMIT 1
+	LIMIT 1 BY alert_id
 ),
 latestEvent AS (
 	SELECT *
 	FROM alert_event ae
     %s
-	ORDER BY received_time DESC limit 1
+	ORDER BY received_time DESC limit 1 BY alert_id
 ),
 filterWorkflow AS(
     SELECT *,
@@ -78,8 +80,7 @@ SELECT ae.event_id as event_id,
   END as validity
 FROM targetEvent ae
 LEFT JOIN filterWorkflow fw ON ae.event_id = fw.input
-LEFT JOIN latestEvent le ON ae.alert_id = le.alert_id
-LIMIT 1`
+LEFT JOIN latestEvent le ON ae.alert_id = le.alert_id`
 
 const SQL_GET_RELEATED_ALERT_EVENT = `WITH filterEvent AS (
     SELECT *
@@ -150,7 +151,7 @@ FROM alert_event ae
 const SQL_GET_RELEATED_ALERT_EVENT_LOCATE = `WITH target_event AS (
     SELECT alert_id,received_time FROM alert_event ae
     %s
-    LIMIT 1
+    LIMIT 1 BY alert_id
 )
 SELECT count(1) as index
 FROM alert_event ae

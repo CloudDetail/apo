@@ -11,6 +11,7 @@ import (
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	pmodel "github.com/prometheus/common/model"
 	prommodel "github.com/prometheus/common/model"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -102,6 +103,7 @@ type Repo interface {
 	QueryWithPQLFilter
 
 	GetNodesCount(startTime int64, endTime int64) (int, error)
+	QueryRangeWithP9xBuilder(ctx core.Context, builder *UnionP9xBuilder, tRange v1.Range) (pmodel.Value, v1.Warnings, error)
 }
 
 type promRepo struct {

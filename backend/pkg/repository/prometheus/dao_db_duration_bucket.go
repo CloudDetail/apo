@@ -24,15 +24,15 @@ func (repo *promRepo) QueryDbRangePercentile(ctx core.Context, startTime int64, 
 		Step:  time.Duration(step * 1000),
 	}
 
-	query := getDbP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
-	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
+	qb := getDbP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
+	res, _, err := repo.QueryRangeWithP9xBuilder(ctx, qb, tRange)
 	if err != nil {
 		return nil, err
 	}
 	return getDescendantMetrics("db_url", "name", tRange, res), nil
 }
 
-func getDbP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) string {
+func getDbP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) *UnionP9xBuilder {
 	builder := NewUnionP9xBuilder(
 		"0.9",
 		"kindling_db_duration_nanoseconds_bucket",
@@ -42,5 +42,5 @@ func getDbP9xSql(promRange string, step time.Duration, svcs []string, endpoints 
 	builder.AddCondition("db_url", svcs)
 	builder.AddCondition("name", endpoints)
 	builder.AddCondition("db_system", systems)
-	return builder.ToString()
+	return builder
 }
