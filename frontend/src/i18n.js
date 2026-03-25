@@ -8,6 +8,15 @@ import { initReactI18next } from 'react-i18next'
 import Backend from 'i18next-http-backend'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
+const normalizeLanguage = (language) => {
+  if (!language) {
+    return 'en'
+  }
+
+  const baseLanguage = language.toLowerCase().split('-')[0]
+  return baseLanguage === 'zh' ? 'zh' : 'en'
+}
+
 const coreNsList = [
   'mask',
   'alertsIntegration',
@@ -29,6 +38,7 @@ i18n
     fallbackLng: 'en',
     supportedLngs: ['en', 'zh'],
     nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json', // 翻译文件路径
     },
@@ -40,11 +50,13 @@ i18n
     detection: {
       order: ['querystring', 'cookie', 'localStorage', 'navigator'], // 检测语言顺序
       caches: ['localStorage', 'cookie'], // 缓存语言到 localStorage 和 cookie
+      convertDetectedLanguage: (lng) => normalizeLanguage(lng),
     },
   })
   .then(() => {
-    if (i18n.language.startsWith('zh') && i18n.language !== 'zh') {
-      i18n.changeLanguage('zh')
+    const normalizedLanguage = normalizeLanguage(i18n.language)
+    if (i18n.language !== normalizedLanguage) {
+      i18n.changeLanguage(normalizedLanguage)
     }
   })
 
