@@ -286,7 +286,7 @@ func groupEndpointsByService(endpoints []*prom.EndpointMetrics, sampleCount int)
 		}
 		if svcDetail, find := tmpSvcMap[endpoint.SvcName]; find {
 			svcDetail.EndpointCount++
-			if sampleCount > 0 && len(svcDetail.Endpoints) > sampleCount {
+			if sampleCount > 0 && len(svcDetail.Endpoints) >= sampleCount {
 				continue
 			}
 			svcDetail.Endpoints = append(svcDetail.Endpoints, endpoint)

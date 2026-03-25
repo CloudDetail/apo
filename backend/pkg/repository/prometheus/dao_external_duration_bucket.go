@@ -23,15 +23,15 @@ func (repo *promRepo) QueryExternalRangePercentile(ctx core.Context, startTime i
 		Step:  time.Duration(step * 1000),
 	}
 
-	query := getExternalP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
-	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
+	qb := getExternalP9xSql(repo.promRange, tRange.Step, svcs, endpoints, systems)
+	res, _, err := repo.QueryRangeWithP9xBuilder(ctx, qb, tRange)
 	if err != nil {
 		return nil, err
 	}
 	return getDescendantMetrics("address", "name", tRange, res), nil
 }
 
-func getExternalP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) string {
+func getExternalP9xSql(promRange string, step time.Duration, svcs []string, endpoints []string, systems []string) *UnionP9xBuilder {
 	builder := NewUnionP9xBuilder(
 		"0.9",
 		"kindling_external_duration_nanoseconds_bucket",
@@ -41,5 +41,5 @@ func getExternalP9xSql(promRange string, step time.Duration, svcs []string, endp
 	builder.AddCondition("address", svcs)
 	builder.AddCondition("name", endpoints)
 	builder.AddCondition("system", systems)
-	return builder.ToString()
+	return builder
 }
