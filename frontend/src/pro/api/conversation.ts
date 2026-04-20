@@ -320,6 +320,8 @@ export async function getFindingsDataApi(params: {
       return acc
     }, {}),
   ).toString()
-  const response = await get(`/ai/api/v1/conversations/findings-data?${queryParams}`)
+  const response = await get(`/ai/api/v1/conversations/findings-data?${queryParams}`, {}, {
+    timeout: 0,
+  })
   return normalizeFindingsDataResponse(response)
 }
