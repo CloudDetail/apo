@@ -5,6 +5,7 @@ package clickhouse
 
 import (
 	"fmt"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -77,17 +78,7 @@ func (ch *chRepo) QueryGroupServiceRedMetricValue(ctx core.Context, startTime in
 }
 
 func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, pageSize int, services []string, sources []string) ([]*model.Service, uint64, error) {
-	queryBuilder := NewQueryBuilder().
-		Between("toUnixTimestamp(timestamp)", startTime/1000000, endTime/1000000).
-		EqualsNotEmpty("cluster_id", clusterId)
-	if len(services) > 0 {
-		queryBuilder.In("service_name", services)
-	}
-	if len(sources) > 0 {
-		// source is empty means service is based on service rule
-		sources = append(sources, "")
-		queryBuilder.In("source", sources)
-	}
+	queryBuilder := newQueryServicesBuilder(startTime, endTime, clusterId, services, sources)
 
 	var count uint64
 	countQuery := fmt.Sprintf(TEMPLATE_QUERY_SERVICES_COUNT, queryBuilder.String())
@@ -122,6 +113,23 @@ func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64
 		})
 	}
 	return result, count, nil
+}
+
+func newQueryServicesBuilder(startTime int64, endTime int64, clusterId string, services []string, sources []string) *QueryBuilder {
+	queryBuilder := NewQueryBuilder().
+		Between("timestamp", time.UnixMicro(startTime), time.UnixMicro(endTime)).
+		EqualsNotEmpty("cluster_id", clusterId)
+
+	if len(services) > 0 {
+		queryBuilder.In("service_name", services)
+	}
+	if len(sources) > 0 {
+		// source is empty means service is based on service rule
+		sourceFilters := append(append([]string(nil), sources...), "")
+		queryBuilder.In("source", sourceFilters)
+	}
+
+	return queryBuilder
 }
 
 func (ch *chRepo) QueryServiceEndpoints(ctx core.Context, startTime int64, endTime int64, clusterId string, serviceName string) ([]string, error) {
