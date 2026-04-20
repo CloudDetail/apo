@@ -1,59 +1,7 @@
 import React from 'react'
 import { Handle, Position } from 'reactflow'
 import StatusIcon, { type Status } from '../StatusIcon'
-
-export interface LogItem {
-  timestamp: string
-  level: 'INFO' | 'WARN' | 'ERROR'
-  message: string
-}
-
-export interface FindingsNodeData {
-  /** 主标题，如：DB query latency spike */
-  title: string
-  /** 副标题/描述，如：'SELECT flights' database query latency increased sharply */
-  subtitle?: string
-  /** 节点内容 */
-  content?: string
-  /** 状态决定配色与图标 */
-  status?: Status
-  /** 右上角小徽标文本：如 "15 Steps" */
-  badge?: string
-  /** 是否高亮（比如当前聚焦） */
-  active?: boolean
-  /** 是否禁用（置灰、不可交互） */
-  disabled?: boolean
-  /** 节点ID，用于获取工具调用数据 */
-  nodeId?: string
-  /** findings ID，用于获取工具调用数据 */
-  findingsId?: string
-  /** 点击回调 */
-  onClick?: (data: FindingsNodeData) => void
-  /** 可选的计算/结论结果展示（小号副文本） */
-  result?: string
-  /** 可选的计算/结论结果展示（小号副文本） */
-  summaryConclusion?: string
-  /** 指标数据 */
-  metrics?: {
-    abnormalMetrics: any[]
-    normalMetrics: any[]
-  }
-  /** 链路追踪数据 */
-  traces?: any
-  /** 日志数据 */
-  logs?: LogItem[]
-  /** 表格数据 */
-  table?: {
-    title?: string
-    headers?: Array<{
-      name: string
-      key: string
-      width?: number
-    }>
-    data?: Array<Record<string, React.ReactNode>>
-    emptyText?: string
-  }
-}
+import type { FindingsNodeData } from './findingsContract'
 
 /** 颜色与样式主题 */
 const COLORS: Record<
@@ -87,34 +35,6 @@ const COLORS: Record<
     badgeBg: 'bg-emerald-600/90',
     badgeFg: 'text-white',
   },
-  info: {
-    card: 'bg-teal-50',
-    ring: 'ring-teal-200',
-    title: 'text-teal-900',
-    sub: 'text-teal-700/90',
-    iconBg: 'bg-teal-500',
-    iconFg: 'text-white',
-    handle: 'bg-teal-400',
-    hoverRing: 'ring-teal-300',
-    shadow: 'shadow-[0_10px_30px_-12px_rgba(13,148,136,0.35)]',
-    accent: 'from-teal-400 via-teal-500 to-teal-400',
-    badgeBg: 'bg-teal-600/90',
-    badgeFg: 'text-white',
-  },
-  muted: {
-    card: 'bg-gray-50',
-    ring: 'ring-gray-200',
-    title: 'text-gray-700',
-    sub: 'text-gray-500',
-    iconBg: 'bg-gray-300',
-    iconFg: 'text-white',
-    handle: 'bg-gray-300',
-    hoverRing: 'ring-gray-300',
-    shadow: 'shadow-none',
-    accent: 'from-gray-200 via-gray-300 to-gray-200',
-    badgeBg: 'bg-gray-600/80',
-    badgeFg: 'text-white',
-  },
   warning: {
     card: 'bg-amber-50',
     ring: 'ring-amber-200',
@@ -145,9 +65,9 @@ const COLORS: Record<
   },
 }
 
-const VALID_STATUS_SET = new Set<Status>(['normal', 'info', 'muted', 'warning', 'abnormal'])
+const VALID_STATUS_SET = new Set<Status>(['normal', 'warning', 'abnormal'])
 
-const resolveStatus = (value: unknown, fallback: Status = 'muted'): Status => {
+const resolveStatus = (value: unknown, fallback: Status = 'warning'): Status => {
   if (typeof value === 'string' && VALID_STATUS_SET.has(value as Status)) {
     return value as Status
   }
@@ -159,7 +79,8 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
   const {
     title,
     subtitle,
-    status = 'normal',
+    status = 'warning',
+    visualStatus,
     badge,
     active = false,
     disabled = false,
@@ -172,10 +93,13 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
     traces,
     logs,
     table,
+    nodeKind,
+    unsupportedReason,
   } = data || {}
-  const resolvedStatus = resolveStatus(status)
+  const resolvedStatus = resolveStatus(
+    visualStatus ?? (nodeKind === 'unsupported' ? 'normal' : status),
+  )
   const c = COLORS[resolvedStatus]
-  // const canClick = !!(!disabled && onClick && nodeId && findingsId && (content || title))
 
   const handleClick = () => {
     if (onClick) {
@@ -188,14 +112,16 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
         nodeId,
         findingsId,
         summaryConclusion,
-        status: resolvedStatus,
+        status,
+        visualStatus: resolvedStatus,
+        nodeKind,
+        unsupportedReason,
         table,
       })
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // if (!canClick) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       handleClick()

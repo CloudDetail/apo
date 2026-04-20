@@ -7,12 +7,15 @@ import {
   ApiOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { FindingsNodeData } from '../FindingsTree/FindingsNode'
 import StatusIcon, { useStatusLabel } from '../StatusIcon'
 import NodeLogs from './NodeLogs'
 import NodeTraces from './NodeTraces'
 import NodeMetrics from './NodeMetrics'
 import NodeTable from './NodeTable'
+import {
+  getFindingsDetailSections,
+  type FindingsNodeData,
+} from '../FindingsTree/findingsContract'
 
 const { useToken } = theme
 
@@ -24,7 +27,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
   const { token } = useToken()
   const { t } = useTranslation('pro/agui')
   const getStatusLabel = useStatusLabel()
-  console.log('selectedNode', selectedNode)
+
   if (!selectedNode) {
     return (
       <div
@@ -52,6 +55,29 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
     )
   }
 
+  const detailSections = getFindingsDetailSections(selectedNode)
+  const visualStatus =
+    selectedNode.visualStatus ??
+    (selectedNode.nodeKind === 'unsupported' ? 'normal' : selectedNode.status)
+  const statusColor =
+    visualStatus === 'abnormal'
+      ? token.colorError
+      : visualStatus === 'warning'
+        ? token.colorWarning
+        : token.colorSuccess
+  const statusBg =
+    visualStatus === 'abnormal'
+      ? token.colorErrorBg
+      : visualStatus === 'warning'
+        ? token.colorWarningBg
+        : token.colorSuccessBg
+  const statusBorder =
+    visualStatus === 'abnormal'
+      ? token.colorErrorBorder
+      : visualStatus === 'warning'
+        ? token.colorWarningBorder
+        : token.colorSuccessBorder
+
   return (
     <Card
       className="w-full h-full"
@@ -77,22 +103,10 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
         }}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* 状态图标 */}
-          {selectedNode.status && (
-            <Tooltip title={getStatusLabel(selectedNode.status)} zIndex={100000}>
-              <div
-                style={{
-                  color:
-                    selectedNode.status === 'abnormal'
-                      ? token.colorError
-                      : selectedNode.status === 'warning'
-                        ? token.colorWarning
-                        : selectedNode.status === 'normal'
-                          ? token.colorSuccess
-                          : token.colorInfo,
-                }}
-              >
-                <StatusIcon status={selectedNode.status} withContainer />
+          {visualStatus && (
+            <Tooltip title={getStatusLabel(visualStatus)} zIndex={100000}>
+              <div style={{ color: statusColor }}>
+                <StatusIcon status={visualStatus} withContainer />
               </div>
             </Tooltip>
           )}
@@ -121,7 +135,6 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* 徽标信息 */}
         {selectedNode.badge && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-[var(--ant-color-text-secondary)]">
@@ -139,33 +152,23 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
           </div>
         )}
 
-        {/* 主要内容 */}
-        {selectedNode.summaryConclusion && (
+        {detailSections.summaryConclusion && (
           <div className="space-y-2">
             <div
               className="p-3 rounded"
               style={{
-                backgroundColor:
-                  selectedNode.status === 'abnormal'
-                    ? token.colorErrorBg
-                    : selectedNode.status === 'warning'
-                      ? token.colorWarningBg
-                      : selectedNode.status === 'normal'
-                        ? token.colorSuccessBg
-                        : token.colorInfoBg,
-                border: `1px solid ${selectedNode.status === 'abnormal' ? token.colorErrorBorder : selectedNode.status === 'warning' ? token.colorWarningBorder : selectedNode.status === 'normal' ? token.colorSuccessBorder : token.colorInfoBorder}`,
-                borderLeft: `5px solid ${selectedNode.status === 'abnormal' ? token.colorError : selectedNode.status === 'warning' ? token.colorWarning : selectedNode.status === 'normal' ? token.colorSuccess : token.colorInfo}`,
+                backgroundColor: statusBg,
+                border: `1px solid ${statusBorder}`,
+                borderLeft: `5px solid ${statusColor}`,
                 borderRadius: token.borderRadiusLG,
               }}
             >
               {selectedNode.summaryConclusion}
-              {/* <MarkdownRender content={selectedNode.summaryConclusion} theme="light" /> */}
             </div>
           </div>
         )}
 
-        {/* 主要内容 */}
-        {selectedNode.content && (
+        {detailSections.content && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <InfoCircleOutlined
@@ -191,8 +194,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
           </div>
         )}
 
-        {/* Abnormal Metrics */}
-        {selectedNode.metrics?.abnormalMetrics.length > 0 && (
+        {detailSections.abnormalMetrics && (
           <div className="space-y-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -224,8 +226,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
           </div>
         )}
 
-        {/* Normal Metrics */}
-        {selectedNode.metrics?.normalMetrics.length > 0 && (
+        {detailSections.normalMetrics && (
           <div className="space-y-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
@@ -257,13 +258,10 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
           </div>
         )}
 
-        {/* Table */}
-        {selectedNode.table && <NodeTable table={selectedNode.table} />}
+        {detailSections.table && selectedNode.table && <NodeTable table={selectedNode.table} />}
 
-        {/* Logs */}
-        {selectedNode.logs && selectedNode.logs.length > 0 && <NodeLogs logs={selectedNode.logs} />}
-        {/* Traces */}
-        {selectedNode.traces && selectedNode.traces.length > 0 && (
+        {detailSections.logs && selectedNode.logs && <NodeLogs logs={selectedNode.logs} />}
+        {detailSections.traces && selectedNode.traces && (
           <div className="space-y-3">
             <div className="space-y-2">
               <div className="flex items-center gap-2">

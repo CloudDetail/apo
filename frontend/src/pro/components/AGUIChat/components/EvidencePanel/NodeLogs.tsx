@@ -2,13 +2,13 @@ import React, { useState, useMemo } from 'react'
 import { theme, Drawer, Button, Input } from 'antd'
 import { SnippetsOutlined, ExpandOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { type LogItem } from '../FindingsTree/FindingsNode'
 import dayjs from 'dayjs'
+import type { FindingsLogItem } from '../../../../api/conversation'
 
 const { useToken } = theme
 
 interface NodeLogsProps {
-  logs: LogItem[]
+  logs: FindingsLogItem[]
 }
 
 const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
@@ -51,7 +51,7 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
   }, [logs, levelFilter, searchText])
 
   // 复制日志内容 (仅用于 Drawer)
-  const copyLogContent = (log: LogItem) => {
+  const copyLogContent = (log: FindingsLogItem) => {
     const timestamp = dayjs(Number(log.timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss.SSS')
     const content = `[${timestamp}] ${log.message}`
     navigator.clipboard.writeText(content)

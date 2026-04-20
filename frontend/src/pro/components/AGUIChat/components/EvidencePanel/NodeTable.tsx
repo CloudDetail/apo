@@ -3,16 +3,14 @@ import { Table, theme, Tooltip } from 'antd'
 import { TableOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type { ColumnsType } from 'antd/es/table'
-import { type FindingsNodeData } from '../FindingsTree/FindingsNode'
+import type { FindingsTable } from '../../../../api/conversation'
 
 const { useToken } = theme
-
-type TableConfig = NonNullable<FindingsNodeData['table']>
 
 type TableRecord = Record<string, React.ReactNode> & { _rowKey?: React.Key }
 
 interface NodeTableProps {
-  table: TableConfig
+  table: FindingsTable
 }
 
 const NodeTable: React.FC<NodeTableProps> = ({ table }) => {

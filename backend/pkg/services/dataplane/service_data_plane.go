@@ -182,12 +182,26 @@ func (s *service) DeleteDataPlane(ctx core.Context, req *request.DeleteDataPlane
 
 func (s *service) CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckMinimalDataPlaneResponse, error) {
 	now := time.Now()
-	clusterIDs, err := s.promRepo.GetMinimalAgentExisted(ctx, now, 7*time.Hour*24)
+	return checkMinimalDataPlaneStatus(
+		func() ([]string, error) {
+			return s.promRepo.GetMinimalAgentExisted(ctx, now, 7*time.Hour*24)
+		},
+		func() ([]integration.DataPlaneWithClusterIDs, error) {
+			return s.dbRepo.ListDataPlane(ctx)
+		},
+	)
+}
+
+func checkMinimalDataPlaneStatus(
+	loadClusterIDs func() ([]string, error),
+	loadDataPlanes func() ([]integration.DataPlaneWithClusterIDs, error),
+) (*response.CheckMinimalDataPlaneResponse, error) {
+	clusterIDs, err := loadClusterIDs()
 	if err != nil {
-		return nil, err
+		clusterIDs = nil
 	}
 
-	dpList, err := s.dbRepo.ListDataPlane(ctx)
+	dpList, err := loadDataPlanes()
 	if err != nil {
 		return nil, err
 	}
@@ -203,5 +217,4 @@ func (s *service) CheckMinimalDataPlaneExist(ctx core.Context) (*response.CheckM
 		DataPlaneExist: len(dpList) > 0,
 		DataSource:     dataSources,
 	}, nil
-
 }

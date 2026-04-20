@@ -14,6 +14,7 @@ import { convertTime } from 'src/core/utils/time'
 import FindingsTree from '../FindingsTree/Tree'
 import NodeDetail from './NodeDetail'
 import StatusLegend from '../StatusLegend'
+import type { FindingsNodeData } from '../FindingsTree/findingsContract'
 
 // ==================== 类型定义 ====================
 interface ServiceDetailProps {
@@ -387,20 +388,16 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
 }) => {
   const { evidence, redMetrics } = selectedService || {}
 
-  // 节点选择状态
-  const [selectedNode, setSelectedNode] = React.useState<any>(null)
+  const [selectedNode, setSelectedNode] = React.useState<FindingsNodeData | null>(null)
 
-  // 节点点击处理函数
-  const handleNodeClick = React.useCallback((nodeData: any) => {
+  const handleNodeClick = React.useCallback((nodeData: FindingsNodeData) => {
     setSelectedNode(nodeData)
   }, [])
 
-  // 清除选中节点
   const handleClearSelection = React.useCallback(() => {
     setSelectedNode(null)
   }, [])
 
-  // 当切换服务时，清除选中的节点
   React.useEffect(() => {
     setSelectedNode(null)
   }, [selectedService])

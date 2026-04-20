@@ -1,7 +1,7 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-export type Status = 'normal' | 'info' | 'muted' | 'warning' | 'abnormal'
+export type Status = 'normal' | 'warning' | 'abnormal'
 
 export interface StatusIconProps {
   status: Status
@@ -23,14 +23,6 @@ const STATUS_COLORS: Record<
 > = {
   normal: {
     iconBg: 'bg-emerald-500',
-    iconFg: 'text-white',
-  },
-  info: {
-    iconBg: 'bg-teal-500',
-    iconFg: 'text-white',
-  },
-  muted: {
-    iconBg: 'bg-gray-300',
     iconFg: 'text-white',
   },
   warning: {
@@ -78,16 +70,6 @@ const IconSvg: React.FC<{ status: Status; className?: string; style?: React.CSSP
           <path d="M9 6h2v6H9V6zm0 8h2v2H9v-2z" fill="currentColor" />
         </svg>
       )
-    case 'info':
-      return (
-        <svg viewBox="0 0 20 20" className={baseClass} style={style}>
-          <path
-            fill="currentColor"
-            d="M10 0a10 10 0 1 0 0 20A10 10 0 0 0 10 0zM9 4h2v2H9V4zm0 4h2v8H9V8z"
-          />
-        </svg>
-      )
-    case 'muted':
     default:
       return (
         <svg viewBox="0 0 20 20" className={baseClass} style={style}>

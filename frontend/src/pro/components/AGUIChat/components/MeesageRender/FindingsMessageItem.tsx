@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { RightOutlined, DownOutlined } from '@ant-design/icons'
 import { ExtendedAGUIMessage, useAGUIFindings } from 'src/pro/contexts/AGUIContext'
 import FindingsTopology from '../FindingsTree/FindingsTopology'
-import { FindingsNodeData } from '../FindingsTree/FindingsNode'
+import type { FindingsNodeData } from '../FindingsTree/findingsContract'
 import NodeDetailPanel from './NodeDetailPanel'
 import MarkdownRender from 'src/core/components/Markdown/MarkdownRender'
 

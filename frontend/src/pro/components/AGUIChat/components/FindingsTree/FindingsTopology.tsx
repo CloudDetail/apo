@@ -23,10 +23,31 @@ const EDGE_BADGE_PADDING = 12
 // const _INITIAL_ZOOM = 1.2
 const BADGE_Z = 1000
 
+type VisualStatus = 'normal' | 'warning' | 'abnormal'
+
+const getNodeVisualStatus = (data?: Record<string, any>): VisualStatus => {
+  if (data?.visualStatus === 'abnormal' || data?.visualStatus === 'warning' || data?.visualStatus === 'normal') {
+    return data.visualStatus
+  }
+  if (data?.nodeKind === 'unsupported') {
+    return 'normal'
+  }
+  const status = data?.status
+  if (status === 'abnormal' || status === 'warning' || status === 'normal') {
+    return status
+  }
+  return 'normal'
+}
+
+const getStatusColor = (status: VisualStatus) =>
+  status === 'abnormal' ? '#ff4d6d' : status === 'warning' ? '#f59e0b' : '#22c55e'
+
+const getStatusStrokeColor = (status: VisualStatus) =>
+  status === 'abnormal' ? '#dc2626' : status === 'warning' ? '#d97706' : '#059669'
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _BasicNode({ data }: any) {
-  const color =
-    data?.status === 'abnormal' ? '#ff4d6d' : data?.status === 'warning' ? '#f59e0b' : '#22c55e'
+  const color = getStatusColor(getNodeVisualStatus(data))
   return (
     <div
       style={{
@@ -44,7 +65,7 @@ function _BasicNode({ data }: any) {
         <b>{data?.label || data?.id}</b>
       </div>
       <div style={{ fontSize: 12, opacity: 0.9 }}>
-        status: <span style={{ color }}>{data?.status || 'normal'}</span>
+        status: <span style={{ color }}>{getNodeVisualStatus(data)}</span>
       </div>
     </div>
   )
@@ -149,9 +170,8 @@ function layoutTree(treeData: any, findingsId?: string, onNodeClick?: (node: any
   root.each((n: any) => {
     if (!n.children) return
     n.children.forEach((c: any) => {
-      const tStatus = (c.data?.data || c.data)?.status
-      const stroke =
-        tStatus === 'abnormal' ? '#ff4d6d' : tStatus === 'warning' ? '#f59e0b' : '#10b981'
+      const tStatus = getNodeVisualStatus(c.data?.data || c.data)
+      const stroke = getStatusColor(tStatus)
       edges.push({
         id: `${n.data.id}-${c.data.id}`,
         source: n.data.id,
@@ -267,10 +287,10 @@ export function FlowCore({
         }
 
         const abnormalNodes = nodes
-          .filter((n: any) => n.data?.status === 'abnormal')
+          .filter((n: any) => getNodeVisualStatus(n.data) === 'abnormal')
           .sort(sortByLayerAndOrder)
         const warningNodes = nodes
-          .filter((n: any) => n.data?.status === 'warning')
+          .filter((n: any) => getNodeVisualStatus(n.data) === 'warning')
           .sort(sortByLayerAndOrder)
 
         let targetNode: any = null
@@ -320,7 +340,7 @@ export function FlowCore({
     const offScreenNodes: { node: any; status: 'abnormal' | 'warning' }[] = []
 
     nodes.forEach((node) => {
-      const status = node.data?.status
+      const status = getNodeVisualStatus(node.data)
       if (status !== 'abnormal' && status !== 'warning') return
 
       const worldCx = node.position.x + (node.width || NODE_WIDTH) / 2
@@ -456,8 +476,8 @@ export function FlowCore({
     const targetNodes = badge.nodes || []
     if (targetNodes.length === 0) return
 
-    const abnormalNodes = targetNodes.filter((n: any) => n.data?.status === 'abnormal')
-    const warningNodes = targetNodes.filter((n: any) => n.data?.status === 'warning')
+    const abnormalNodes = targetNodes.filter((n: any) => getNodeVisualStatus(n.data) === 'abnormal')
+    const warningNodes = targetNodes.filter((n: any) => getNodeVisualStatus(n.data) === 'warning')
     const target = abnormalNodes.length > 0 ? abnormalNodes[0] : warningNodes[0]
     if (!target) return
 
@@ -536,37 +556,11 @@ export function FlowCore({
 
         <MiniMap
           nodeColor={(node) => {
-            const status = (node.data as any)?.status
-            // 根据节点状态返回对应的颜色，保持与主图一致
-            switch (status) {
-              case 'abnormal':
-                return '#ff4d6d' // 异常红色
-              case 'warning':
-                return '#f59e0b' // 警告橙色
-              case 'info':
-                return '#06b6d4' // 信息蓝色
-              case 'normal':
-                return '#10b981' // 正常绿色
-              default:
-                return '#6b7280' // 默认灰色
-            }
+            return getStatusColor(getNodeVisualStatus(node.data as any))
           }}
           nodeStrokeWidth={1.5}
           nodeStrokeColor={(node) => {
-            const status = (node.data as any)?.status
-            // 节点边框使用稍深的颜色
-            switch (status) {
-              case 'abnormal':
-                return '#dc2626'
-              case 'warning':
-                return '#d97706'
-              case 'info':
-                return '#0891b2'
-              case 'normal':
-                return '#059669'
-              default:
-                return '#374151'
-            }
+            return getStatusStrokeColor(getNodeVisualStatus(node.data as any))
           }}
           nodeBorderRadius={6}
           maskColor={isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)'}

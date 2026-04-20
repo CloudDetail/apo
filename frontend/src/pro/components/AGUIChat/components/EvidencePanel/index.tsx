@@ -12,6 +12,7 @@ import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import ServiceDetail from './ServiceDetail'
 import { getFindingsDataApi } from '../../../../api/conversation'
+import type { FindingsNodePayload } from '../../../../api/conversation'
 import { useAGUIState } from '../../../../contexts/AGUIContext'
 // @ts-ignore
 
@@ -386,13 +387,13 @@ const EvidencePanel = ({ data }: { data: any }) => {
   }, [])
 
   // findings 数据缓存：key 为 serviceName，value 为 findings 数据
-  const findingsCache = useRef<Map<string, any>>(new Map())
+  const findingsCache = useRef<Map<string, FindingsNodePayload[] | null>>(new Map())
   // 正在请求的服务列表，避免重复请求
   const loadingServices = useRef<Set<string>>(new Set())
 
   // 获取服务的 findings 数据（带缓存）
   const fetchServiceFindingsData = useCallback(
-    async (serviceName: string) => {
+    async (serviceName: string): Promise<FindingsNodePayload[] | null> => {
       // 检查是否有 threadId
       if (!currentThreadId) {
         console.warn('无法获取 findings 数据：缺少 threadId')
@@ -419,8 +420,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
         })
 
         if (response?.nodes?.length > 0) {
-          // 缓存数据
-          const findingsData = response?.nodes
+          const findingsData = response.nodes
           findingsCache.current.set(serviceName, findingsData)
           return findingsData
         }
