@@ -30,6 +30,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		FeatureName string
 		MenuKey     string
 	}{
+		{"智能体", "agent"},
 		{"服务概览", "service"},
 		{"故障现场日志", "faultSite"},
 		{"全量日志", "full"},
@@ -44,8 +45,9 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"服务健康状态", "healthy"},
 		{"告警通知", "alertsNotify"},
 		{"告警事件", "alertEvents"},
-		{"数据接入", "dataIntegration"},
-		{"告警接入", "alertsIntegration"},
+		{"探针管理", "dataIntegration"},
+		{"告警集成", "alertsIntegration"},
+		{"外部数据", "dataplane"},
 		{"工作流", "workflows"},
 		{"配置中心", "config"},
 		{"用户管理", "userManage"},
@@ -53,6 +55,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"团队管理", "team"},
 		{"角色管理", "role"},
 		{"数据组管理", "dataGroup"},
+		{"告警分析", "analysis"},
 	}
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
@@ -129,14 +132,17 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 
 // TODO add mapping of feature and api
 
+// TODO add mapping of feature "告警分析"
 func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 	featureRoutes := map[string][]string{
-		"服务概览":   {"/service/info", "/service/overview"},
-		"数据接入":   {"/integration/data/settings", "/data/ingestion"},
-		"个人中心":   {"/user", "/profile", "/account"},
-		"告警事件":   {"/alerts/events/detail/:alertID/:eventID"},
-		"服务别名配置": {"/demo/service-config"},
-		"故障报告":   {"/report"},
+		"服务概览":    {"/service/info", "/service/overview"},
+		"接入中心":    {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
+		"个人中心":    {"/user", "/profile", "/account"},
+		"告警事件":    {"/alerts/events/detail/:alertID/:eventID"},
+		"服务别名配置":  {"/demo/service-config"},
+		"工作流故障报告": {"/report"},
+		"告警分析":    {"/alert-analyze", "/alert-analyze/info", "/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/alert-analyze/chatAI/:service/:endpoint", "/report"},
+		"智能体":     {"/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/report"},
 	}
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {

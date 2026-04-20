@@ -134,6 +134,11 @@ type Handler interface {
 	// @Tags API.dataplane
 	// @Router /api/dataplane/servicename/cleanDataSourceServices [post]
 	CleanDataSourceServices() core.HandlerFunc
+
+	// GetDataplaneCapabilities Get intergrated dataplane capabilities.
+	// @Tags API.dataplane
+	// @Router /api/dataplane/capabilities [get]
+	GetIntegratedCapabilities() core.HandlerFunc
 }
 
 type handler struct {

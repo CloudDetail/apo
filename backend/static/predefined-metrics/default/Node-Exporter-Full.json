@@ -537,8 +537,8 @@
       "describe": "宿主机网络接收速率(比特/秒)",
       "targets": [
         {
-          "expr": "irate(node_network_receive_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
-          "legendFormat": "recv {{device}}",
+          "expr": "sum by (instance_name) (irate(node_network_receive_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8)",
+          "legendFormat": "recv {{instance_name}}",
           "refId": "A",
           "variables": [
             "__rate_interval",
@@ -558,8 +558,8 @@
       "describe": "宿主机网络发送速率(比特/秒)",
       "targets": [
         {
-          "expr": "irate(node_network_transmit_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8",
-          "legendFormat": "trans {{device}} ",
+          "expr": "sum by (instance_name) (irate(node_network_transmit_bytes_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])*8)",
+          "legendFormat": "trans {{instance_name}}",
           "refId": "B",
           "variables": [
             "__rate_interval",

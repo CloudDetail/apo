@@ -4,6 +4,8 @@
 package database
 
 import (
+	"os"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"gorm.io/gorm"
 )
@@ -39,9 +41,35 @@ var validRouters = []Router{
 	{RouterTo: "/healthy-service", HideTimeSelector: false},
 	{RouterTo: "/system/data-group", HideTimeSelector: true},
 	{RouterTo: "/report", HideTimeSelector: true},
-	{RouterTo: "/agent-dataplane", HideTimeSelector: true},
-	{RouterTo: "agent", HideTimeSelector: true},
-	{RouterTo: "probe-installer", HideTimeSelector: true},
+	{RouterTo: "/dataplane", HideTimeSelector: true},
+	{RouterTo: "/agent", HideTimeSelector: true},
+	{RouterTo: "/probe-installer", HideTimeSelector: true},
+	{RouterTo: "/alert-analyze", HideTimeSelector: false},
+	{RouterTo: "/alert-analyze/info", HideTimeSelector: false},
+	{RouterTo: "/cause/report/:traceId/:spanId", HideTimeSelector: true},
+	{RouterTo: "/cause/error-report/:traceId", HideTimeSelector: true},
+	{RouterTo: "/alert-analyze/chatAI/:service/:endpoint", HideTimeSelector: false},
+	{RouterTo: "/probe-management", HideTimeSelector: false},
+	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
+}
+
+var sreRouters = []Router{
+	{RouterTo: "/agent", HideTimeSelector: true},
+	{RouterTo: "/probe-management", HideTimeSelector: true},
+	{RouterTo: "/integration/alerts", HideTimeSelector: true},
+	{RouterTo: "/dataplane", HideTimeSelector: true},
+	{RouterTo: "/alerts/notify", HideTimeSelector: true},
+	{RouterTo: "/alerts/events", HideTimeSelector: false},
+	{RouterTo: "/alerts/events/detail/:alertID/:eventID", HideTimeSelector: false},
+	{RouterTo: "/system/data-group", HideTimeSelector: true},
+	{RouterTo: "/system/team", HideTimeSelector: true},
+	{RouterTo: "/system/user-manage", HideTimeSelector: true},
+	{RouterTo: "/system/menu-manage", HideTimeSelector: true},
+	{RouterTo: "/system/role-manage", HideTimeSelector: true},
+	{RouterTo: "/cause/report/:traceId/:spanId", HideTimeSelector: true},
+	{RouterTo: "/cause/error-report/:traceId", HideTimeSelector: true},
+	{RouterTo: "/report", HideTimeSelector: true},
+	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required
@@ -61,11 +89,15 @@ func (repo *daoRepo) initRouterData(ctx core.Context) error {
 			existingMap[router.RouterTo] = router
 		}
 
-		var toAdd []Router
-		var toUpdate []Router
+		var toAdd, toUpdate []Router
 		toDelete := make([]int, 0)
+		productMode := os.Getenv("PRODUCT_MODE")
+		productRouters := validRouters
+		if productMode == "syncause" {
+			productRouters = sreRouters
+		}
 
-		for _, router := range validRouters {
+		for _, router := range productRouters {
 			if existing, exists := existingMap[router.RouterTo]; exists {
 				if existing.HideTimeSelector != router.HideTimeSelector {
 					existing.HideTimeSelector = router.HideTimeSelector

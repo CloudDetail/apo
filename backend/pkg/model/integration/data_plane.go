@@ -10,6 +10,26 @@ import (
 	"time"
 )
 
+type TelemetryType string
+
+const (
+	TelemetryMetrics         TelemetryType = "Metrics"
+	TelemetryLogs            TelemetryType = "Log"
+	TelemetryTraces          TelemetryType = "Trace"
+	TelemetryRedMetric       TelemetryType = "RedMetric"
+	TelemetryTopology        TelemetryType = "Topology"
+	TelemetryServiceInstance TelemetryType = "ServiceInstance"
+)
+
+var AllTelemetryTypes = []TelemetryType{
+	TelemetryMetrics,
+	TelemetryLogs,
+	TelemetryTraces,
+	TelemetryRedMetric,
+	TelemetryTopology,
+	TelemetryServiceInstance,
+}
+
 type DataPlane struct {
 	ID   int    `gorm:"id;primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"name" json:"name"`
@@ -51,11 +71,15 @@ func CheckInvalid(d *DataPlane, dpt *DataPlaneType) error {
 		}
 	}
 
-	var obj interface{}
-	if err := json.Unmarshal([]byte(d.Params), &obj); err != nil {
-		return err
+	if len(dpt.ParamSpec.Obj.Children) > 0 {
+		var obj interface{}
+		if err := json.Unmarshal([]byte(d.Params), &obj); err != nil {
+			return fmt.Errorf("invalid params for %s", dpt.TypeName)
+		}
+		return ValidateJSON(obj, dpt.ParamSpec.Obj)
+	} else {
+		return nil
 	}
-	return ValidateJSON(obj, dpt.ParamSpec.Obj)
 }
 
 func (d *DataPlaneWithType) CheckInvalid() error {
@@ -65,4 +89,17 @@ func (d *DataPlaneWithType) CheckInvalid() error {
 type Cluster2DataPlane struct {
 	ClusterID   string `gorm:"cluster_id;primary_key" json:"clusterId"`
 	DataPlaneID int    `gorm:"data_plane_id;primary_key" json:"dataPlaneId"`
+}
+
+type DataplaneWithName struct {
+	Type            string `json:"type"`
+	Name            string `json:"name"`
+	TypeDisplayName string `json:"typeDisplayName"`
+}
+
+type TelemetryCapability struct {
+	Type        TelemetryType       `json:"type"`
+	Enabled     bool                `json:"enabled"`
+	Description string              `json:"description"`
+	Sources     []DataplaneWithName `json:"sources"`
 }

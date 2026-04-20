@@ -1,22 +1,22 @@
-# 安装命令
+# Installation command
 
-## 通过helm安装
+## install via helm
 
-在需要监控的集群的主机上依次执行:
+On the host of the cluster to be monitored, execute the following in sequence:
 
-1. 下载安装配置
-2. 使用helm命令安装
+1. Download the installation configuration
+2. Install using the helm command
 
-### 1.下载安装配置
+### 1.Download the installation configuration
 
-使用下面的命令下载配置文件,或点击下面的集群安装配置按钮下载配置文件.
+Use the following command to download the configuration file, or click the cluster installation configuration button to download the configuration file.
 
 ```bash
 curl -Lo apo-one-agent-values.yaml \
     http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .id}}
 ```
 
-### 2.使用helm命令安装
+### 2.Install using the helm command
 
 ```bash
 helm repo add apo https://apo-charts.oss-cn-hangzhou.aliyuncs.com

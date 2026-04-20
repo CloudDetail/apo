@@ -15,7 +15,7 @@ import (
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
 	// Get the list of service
-	services, _, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, 0, 0, nil)
+	services, _, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, 0, 0, nil, nil)
 	if err != nil {
 		return &response.QueryServicesResponse{
 			Msg: "query service failed: " + err.Error(),
@@ -64,31 +64,23 @@ func (s *service) GetServiceWithInstances(ctx core.Context, req *request.GetServ
 	if len(datasources) == 0 {
 		return resp, nil
 	}
-	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize, req.Services)
+
+	// Get the list of service
+	sources := make([]string, 0)
+	for _, datasource := range datasources {
+		sources = append(sources, datasource.Type)
+	}
+
+	services, count, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, req.CurrentPage, req.PageSize, req.Services, sources)
 	if err != nil {
 		return resp, err
 	}
 
-	filteredServices := make([]*model.Service, 0, len(services))
-	serviceNames := make([]string, 0)
+	serviceNames := make([]string, 0, len(services))
 
 	for _, service := range services {
-		found := false
-		for _, datasource := range datasources {
-			// source is empty means service is based on service rule
-			if service.Source == datasource.Type || service.Source == "" {
-				found = true
-				break
-			}
-		}
-
-		if found {
-			filteredServices = append(filteredServices, service)
-			serviceNames = append(serviceNames, service.Name)
-		}
+		serviceNames = append(serviceNames, service.Name)
 	}
-
-	services = filteredServices
 	instances, err := s.chRepo.GetDataplaneServiceInstances(ctx, req.StartTime, req.EndTime, req.Cluster, serviceNames)
 	if err != nil {
 		return resp, err

@@ -382,6 +382,7 @@ func setApiRouter(r *resource) {
 		dataplaneAPI.GET("/appinfo/tags/values", handler.QueryAPPInfoTagValues())
 		dataplaneAPI.GET("datasources", handler.GetDatasources())
 		dataplaneAPI.GET("servicesWithInstances", handler.GetServiceWithInstances())
+		dataplaneAPI.GET("capabilities", handler.GetIntegratedCapabilities())
 	}
 	licenseApi := r.mux.Group("/api/license").Use(middlewares.AuthMiddleware())
 	{
@@ -396,5 +397,6 @@ func setApiRouter(r *resource) {
 		appHandler := app.New(r.pkg_db)
 		appApi.POST("/upload", middlewares.LicMiddleware(), appHandler.UploadLogo())
 		appApi.GET("/logo", appHandler.GetLogo())
+		appApi.GET("/deployMode", appHandler.GetDeployMode())
 	}
 }

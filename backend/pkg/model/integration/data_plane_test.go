@@ -18,6 +18,11 @@ func TestDataPlaneValidate(t *testing.T) {
 		param     string
 	}{
 		{
+			name:      "apo2",
+			paramSpec: `{"name":"root","type":"object"}`,
+			param:     `{}`,
+		},
+		{
 			name:      "apo",
 			paramSpec: `{"name":"root","type":"object","children":[{"name":"promAddress","type":"string"},{"name":"promStorage","type":"string"}]}`,
 			param:     `{"promAddress": "http://0.0.0.0:8428", "promStorage": "vm"}`,

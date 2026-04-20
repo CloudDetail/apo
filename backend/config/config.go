@@ -99,6 +99,7 @@ type Config struct {
 		AnonymousUser `mapstructure:"anonymous_user"`
 	} `mapstructure:"user"`
 	Dify struct {
+		Enable  bool   `mapstructure:"enable"`
 		User    string `mapstructure:"user"`
 		URL     string `mapstructure:"url"`
 		APIKeys struct {

@@ -1,0 +1,8 @@
+# Installation Command
+## Kubernetes (Helm) Environment
+Install the Syncause data Agent in your business environment via a single Helm command to capture real-time eBPF monitoring data from your Kubernetes services.
+### Network
+Confirm that your Syncause data Agent runtime environment can connect to the following ports on {{ ._server_addr_ }}：
+30044、30310、30317、30319、30321、31363
+### Deploy
+CONFIG_FILE_URL="{{ ._base_url_ }}/api/integration/cluster/install/config?clusterId={{ ._cluster_id }}" bash -c "$(curl -fsSL "https://syncause.s3.us-east-1.amazonaws.com/scripts-public/one-agent-deploy.sh")"

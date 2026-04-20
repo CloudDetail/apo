@@ -1155,6 +1155,15 @@ definitions:
       typeName:
         type: string
     type: object
+  integration.DataplaneWithName:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      typeDisplayName:
+        type: string
+    type: object
   integration.ElasticConfig:
     properties:
       address:
@@ -1347,6 +1356,35 @@ definitions:
       user:
         type: string
     type: object
+  integration.TelemetryCapability:
+    properties:
+      description:
+        type: string
+      enabled:
+        type: boolean
+      sources:
+        items:
+          $ref: '#/definitions/integration.DataplaneWithName'
+        type: array
+      type:
+        $ref: '#/definitions/integration.TelemetryType'
+    type: object
+  integration.TelemetryType:
+    enum:
+    - Metrics
+    - Log
+    - Trace
+    - RedMetric
+    - Topology
+    - ServiceInstance
+    type: string
+    x-enum-varnames:
+    - TelemetryMetrics
+    - TelemetryLogs
+    - TelemetryTraces
+    - TelemetryRedMetric
+    - TelemetryTopology
+    - TelemetryServiceInstance
   integration.TraceAPI:
     properties:
       arms:
@@ -1669,6 +1707,10 @@ definitions:
         type: string
       nodeName:
         type: string
+      pids:
+        items:
+          type: string
+        type: array
       pod:
         type: string
     type: object
@@ -2770,6 +2812,21 @@ definitions:
     additionalProperties:
       type: string
     type: object
+  request.ListServiceRedChartsRequest:
+    properties:
+      cluster:
+        description: query Cluster
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    type: object
   request.LogIndexRequest:
     properties:
       column:
@@ -3539,7 +3596,7 @@ definitions:
     properties:
       active:
         type: integer
-      expireAt:
+      expiresAt:
         type: integer
       features:
         items:
@@ -3553,6 +3610,10 @@ definitions:
         type: integer
       seatsCurrentlyInUse:
         type: integer
+      seatsInLicense:
+        type: integer
+      type:
+        type: string
     type: object
   response.GetCustomResponse:
     properties:
@@ -3815,6 +3876,13 @@ definitions:
         additionalProperties:
           type: string
         type: object
+    type: object
+  response.GetIntegratedCapabilitiesResponse:
+    properties:
+      totalSupported:
+        items:
+          $ref: '#/definitions/integration.TelemetryCapability'
+        type: array
     type: object
   response.GetK8sEventsResponse:
     properties:
@@ -4307,7 +4375,7 @@ definitions:
     properties:
       active:
         type: integer
-      expireAt:
+      expiresAt:
         type: integer
       features:
         items:
@@ -4321,6 +4389,10 @@ definitions:
         type: integer
       seatsCurrentlyInUse:
         type: integer
+      seatsInLicense:
+        type: integer
+      type:
+        type: string
     type: object
   response.ListAlertSlienceConfigResponse:
     properties:
@@ -4373,6 +4445,18 @@ definitions:
         items:
           $ref: '#/definitions/response.ListServiceNameRule'
         type: array
+    type: object
+  response.ListServiceRedChartsResponse:
+    properties:
+      msg:
+        type: string
+      results:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/response.QueryChartResult'
+          type: array
+        description: service -> []*QueryChartResult
+        type: object
     type: object
   response.LogChartResponse:
     properties:
@@ -6811,6 +6895,30 @@ paths:
       summary: GetTargetTags
       tags:
       - API.alertinput
+  /api/app/deployMode:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get deploy mode.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get deploy mode.
+      tags:
+      - API.app
   /api/app/logo:
     get:
       consumes:
@@ -7385,6 +7493,30 @@ paths:
       summary: Get app info tag values.
       tags:
       - API.dataplane
+  /api/dataplane/capabilities:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get intergrated dataplane capabilities.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetIntegratedCapabilitiesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Get intergrated dataplane capabilities.
+      tags:
+      - API.dataplane
   /api/dataplane/checkDataSource:
     post:
       consumes:
@@ -7735,6 +7867,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Gets all dataplane.
+      tags:
+      - API.dataplane
+  /api/dataplane/recharts/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: list services' redcharts
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.ListServiceRedChartsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListServiceRedChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: list services' redcharts
       tags:
       - API.dataplane
   /api/dataplane/redcharts:

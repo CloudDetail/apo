@@ -2810,6 +2810,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/app/deployMode": {
+            "get": {
+                "description": "Get deploy mode.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.app"
+                ],
+                "summary": "Get deploy mode.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/app/logo": {
             "get": {
                 "description": "gets logo",
@@ -3684,6 +3721,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/dataplane/capabilities": {
+            "get": {
+                "description": "Get intergrated dataplane capabilities.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "Get intergrated dataplane capabilities.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetIntegratedCapabilitiesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/dataplane/checkDataSource": {
             "post": {
                 "description": "check datasource is valid.",
@@ -4201,6 +4275,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.ListDataPlaneResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/recharts/list": {
+            "get": {
+                "description": "list services' redcharts",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "list services' redcharts",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ListServiceRedChartsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListServiceRedChartsResponse"
                         }
                     },
                     "400": {
@@ -12829,6 +12949,20 @@ const docTemplate = `{
                 }
             }
         },
+        "integration.DataplaneWithName": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "typeDisplayName": {
+                    "type": "string"
+                }
+            }
+        },
         "integration.ElasticConfig": {
             "type": "object",
             "properties": {
@@ -13122,6 +13256,45 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "integration.TelemetryCapability": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.DataplaneWithName"
+                    }
+                },
+                "type": {
+                    "$ref": "#/definitions/integration.TelemetryType"
+                }
+            }
+        },
+        "integration.TelemetryType": {
+            "type": "string",
+            "enum": [
+                "Metrics",
+                "Log",
+                "Trace",
+                "RedMetric",
+                "Topology",
+                "ServiceInstance"
+            ],
+            "x-enum-varnames": [
+                "TelemetryMetrics",
+                "TelemetryLogs",
+                "TelemetryTraces",
+                "TelemetryRedMetric",
+                "TelemetryTopology",
+                "TelemetryServiceInstance"
+            ]
         },
         "integration.TraceAPI": {
             "type": "object",
@@ -13585,6 +13758,12 @@ const docTemplate = `{
                 },
                 "nodeName": {
                     "type": "string"
+                },
+                "pids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "pod": {
                     "type": "string"
@@ -15217,6 +15396,27 @@ const docTemplate = `{
                 "type": "string"
             }
         },
+        "request.ListServiceRedChartsRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "cluster": {
+                    "description": "query Cluster",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "request.LogIndexRequest": {
             "type": "object",
             "required": [
@@ -16359,7 +16559,7 @@ const docTemplate = `{
                 "active": {
                     "type": "integer"
                 },
-                "expireAt": {
+                "expiresAt": {
                     "type": "integer"
                 },
                 "features": {
@@ -16379,6 +16579,12 @@ const docTemplate = `{
                 },
                 "seatsCurrentlyInUse": {
                     "type": "integer"
+                },
+                "seatsInLicense": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -16764,6 +16970,17 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "string"
+                    }
+                }
+            }
+        },
+        "response.GetIntegratedCapabilitiesResponse": {
+            "type": "object",
+            "properties": {
+                "totalSupported": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/integration.TelemetryCapability"
                     }
                 }
             }
@@ -17502,7 +17719,7 @@ const docTemplate = `{
                 "active": {
                     "type": "integer"
                 },
-                "expireAt": {
+                "expiresAt": {
                     "type": "integer"
                 },
                 "features": {
@@ -17522,6 +17739,12 @@ const docTemplate = `{
                 },
                 "seatsCurrentlyInUse": {
                     "type": "integer"
+                },
+                "seatsInLicense": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -17602,6 +17825,24 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.ListServiceNameRule"
+                    }
+                }
+            }
+        },
+        "response.ListServiceRedChartsResponse": {
+            "type": "object",
+            "properties": {
+                "msg": {
+                    "type": "string"
+                },
+                "results": {
+                    "description": "service -\u003e []*QueryChartResult",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/response.QueryChartResult"
+                        }
                     }
                 }
             }

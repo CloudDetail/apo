@@ -15,7 +15,7 @@ const (
 	TEMPLATE_QUERY_GROUP_RED_METRIC = "SELECT floor(toUnixTimestamp(timestamp) / %d) as time_bucket, sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s group by time_bucket"
 	TEMPLATE_QUERY_RED_METRIC_VALUE = "SELECT sum(count) as total_count, sum(error_count) as total_error, sum(duration) as total_duration FROM service_red_metric %s"
 	TEMPLATE_QUERY_SERVICES         = `
-		SELECT cluster_id, source, service_name, service_id 
+		SELECT cluster_id, source, service_name, service_id
 		FROM (
 			SELECT DISTINCT cluster_id, source, service_name, service_id
 			FROM service_red_metric %s
@@ -76,12 +76,17 @@ func (ch *chRepo) QueryGroupServiceRedMetricValue(ctx core.Context, startTime in
 	return metric, nil
 }
 
-func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, pageSize int, services []string) ([]*model.Service, uint64, error) {
+func (ch *chRepo) QueryServices(ctx core.Context, startTime int64, endTime int64, clusterId string, currentPage, pageSize int, services []string, sources []string) ([]*model.Service, uint64, error) {
 	queryBuilder := NewQueryBuilder().
 		Between("toUnixTimestamp(timestamp)", startTime/1000000, endTime/1000000).
 		EqualsNotEmpty("cluster_id", clusterId)
 	if len(services) > 0 {
 		queryBuilder.In("service_name", services)
+	}
+	if len(sources) > 0 {
+		// source is empty means service is based on service rule
+		sources = append(sources, "")
+		queryBuilder.In("source", sources)
 	}
 
 	var count uint64

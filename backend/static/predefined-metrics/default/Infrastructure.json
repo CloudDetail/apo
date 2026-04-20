@@ -177,8 +177,30 @@
       ]
     },
     {
+      "title": "容器文件描述符 - 打开的文件描述符数量",
+      "describe": "容器当前打开的文件描述符数量",
+      "targets": [
+        {
+          "expr": "sum by (pod,container) (container_file_descriptors{namespace=~\"$namespace\", pod=~\"$pod\", container!=\"\", job_name=~\"$cadvisor_job_name\"})",
+          "legendFormat": "{{pod}}:{{container}}",
+          "refId": "Opened",
+          "variables": [
+            "cadvisor_job_name",
+            "namespace",
+            "pod"
+          ]
+        }
+      ],
+      "unit": "",
+      "params": [
+        "cadvisor_job_name",
+        "namespace",
+        "pod"
+      ]
+    },
+    {
       "title": "容器磁盘 - 读写字节数 /s - Read",
-      "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
+      "describe": "容器磁盘读取字节数每秒(使用Containerd,按Pod统计)",
       "targets": [
         {
           "expr": "sum by (pod,container)(rate(container_fs_reads_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
@@ -201,7 +223,7 @@
     },
     {
       "title": "容器磁盘 - 读写字节数 /s - Write",
-      "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
+      "describe": "容器磁盘写入字节数每秒(使用Containerd,按Pod统计)",
       "targets": [
         {
           "expr": "sum by (pod,container)(rate(container_fs_writes_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", image!=\"\", container!=\"\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
@@ -223,7 +245,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写字节数 /s - Read",
+      "title": "容器磁盘 - 读写字节数 /s - Read - Docker",
       "describe": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -246,7 +268,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写字节数 /s - Write",
+      "title": "容器磁盘 - 读写字节数 /s - Write - Docker",
       "describe": "容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -361,7 +383,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写次数 /s - Read",
+      "title": "容器磁盘 - 读写次数 /s - Read - Docker",
       "describe": "容器磁盘读取次数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -384,7 +406,7 @@
       ]
     },
     {
-      "title": "容器磁盘 - 读写次数 /s - Write",
+      "title": "容器磁盘 - 读写次数 /s - Write - Docker",
       "describe": "容器磁盘写入次数每秒(使用Docker,按Pod统计)",
       "targets": [
         {
@@ -433,8 +455,8 @@
       "describe": "容器网络接收带宽(按命名空间和Pod统计)",
       "targets": [
         {
-          "expr": "sum(rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
-          "legendFormat": "Received",
+          "expr": "sum by (pod) (rate(container_network_receive_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Received {{pod}}",
           "refId": "Containerd Receive",
           "variables": [
             "__rate_interval",
@@ -456,8 +478,8 @@
       "describe": "容器网络发送带宽(按命名空间和Pod统计)",
       "targets": [
         {
-          "expr": "sum(rate(container_network_transmit_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
-          "legendFormat": "Sent",
+          "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{namespace=~\"$namespace\", pod=~\"$pod\", job_name=~\"$cadvisor_job_name\"}[$__rate_interval]))",
+          "legendFormat": "Sent {{pod}}",
           "refId": "Containerd Send",
           "variables": [
             "__rate_interval",
@@ -1635,6 +1657,27 @@
         }
       ],
       "unit": "bytes",
+      "params": [
+        "cadvisor_job_name",
+        "related_nodes"
+      ]
+    },
+    {
+      "title": "节点上的容器 - CPU使用率",
+      "describe": "节点上容器的CPU利用率(%)",
+      "targets": [
+        {
+          "expr": "sum by (id,pod,container) (irate(container_cpu_usage_seconds_total{image!=\"\",container!=\"\", job_name=~\"$cadvisor_job_name\",node_name=~\"$related_nodes\"}[1m]))",
+          "legendFormat": "{{pod}}:{{container}}",
+          "refId": "A",
+          "variables": [
+            "__rate_interval",
+            "cadvisor_job_name",
+            "related_nodes"
+          ]
+        }
+      ],
+      "unit": "percentunit",
       "params": [
         "cadvisor_job_name",
         "related_nodes"

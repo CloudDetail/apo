@@ -292,6 +292,7 @@ const (
 	GetDatasourcesError             = "B1820"
 	GetServiceWithInstancesError    = "B1821"
 	CleanRelateServiceError         = "B1822"
+	GetIntegratedCapabilitiesError  = "B1823"
 
 	// Metric
 	QueryPodsError = "B1901"

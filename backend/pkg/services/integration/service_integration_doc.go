@@ -7,40 +7,72 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 )
 
-// Deprecated
-func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) ([]byte, error) {
+func (s *service) GetIntegrationInstallDoc(ctx core.Context, req *integration.GetCInstallRequest) (string, error) {
 	cluster, err := s.dbRepo.GetCluster(ctx, req.ClusterID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	clusterConfig, err := s.dbRepo.GetIntegrationConfig(ctx, req.ClusterID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if len(clusterConfig.Cluster.APOCollector.CollectorGatewayAddr) == 0 {
 		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
 	}
 
+	if cluster.IsMinimal {
+		return s.getMinimalIntegrationInstallCmd(ctx, clusterConfig)
+	}
+
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
-		return nil, fmt.Errorf("marshal config failed: %w", err)
+		return "", fmt.Errorf("marshal config failed: %w", err)
 	}
 
 	var buf bytes.Buffer
 	switch cluster.ClusterType {
 	case integration.ClusterTypeK8s:
-		err = k8sTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
+		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install.md.tmpl"), jsonObj)
 	case integration.ClusterTypeVM:
-		err = dockerComposeTmpl.ExecuteTemplate(&buf, "install.md.tmpl", jsonObj)
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install.md.tmpl"), jsonObj)
 	default:
-		return nil, fmt.Errorf("unexpected clusterType: %s", cluster.ClusterType)
+		return "", fmt.Errorf("unexpected clusterType: %s", cluster.ClusterType)
 	}
 
-	return buf.Bytes(), err
+	md := buf.Bytes()
+	// mdB64 := base64.StdEncoding.EncodeToString(md)
+	return string(md), err
+}
+
+func (s *service) getMinimalIntegrationInstallCmd(ctx core.Context, clusterConfig *integration.ClusterIntegration) (string, error) {
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
+	if err != nil {
+		return "", fmt.Errorf("marshal config failed: %w", err)
+	}
+
+	var buf bytes.Buffer
+	switch clusterConfig.ClusterType {
+	case integration.ClusterTypeK8s:
+		err = k8sTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install-cmd-minimal.tmpl"), jsonObj)
+	case integration.ClusterTypeVM:
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, tmplName(ctx, "install-cmd-minimal.tmpl"), jsonObj)
+	default:
+		return "", fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
+	}
+
+	return buf.String(), err
+}
+
+func tmplName(ctx core.Context, name string) string {
+	if ctx.LANG() == code.LANG_ZH {
+		return name + ".cn"
+	}
+	return name
 }

@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -176,6 +177,7 @@ type Repo interface {
 	DeleteDataPlane(ctx core.Context, id int) error
 	GetDatapalenDsCount(ctx core.Context) ([]model.DatasourceCount, error)
 	CheckGetApoMetric(ctx core.Context) (bool, error)
+	GetDataplane(ctx core.Context, id int) (*mi.DataPlane, error)
 
 	CreateCluster2DataPlane(ctx core.Context, c2dp *mi.Cluster2DataPlane) error
 	DeleteCluster2DataPlane(ctx core.Context, id int) error
@@ -252,6 +254,14 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	}
 	if err = driver.InitSQL(database, &mi.DataPlaneType{}); err != nil {
 		return nil, err
+	}
+
+	productMode := os.Getenv("PRODUCT_MODE")
+	if productMode != "syncause" {
+		err = daoRepo.InitAPODataplane(nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err = daoRepo.initRole(nil); err != nil {

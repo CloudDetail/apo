@@ -19,6 +19,11 @@ type Handler interface {
 	// @Tags API.app
 	// @Router /api/app/logo [get]
 	GetLogo() core.HandlerFunc
+
+	// GetDeployMode Get deploy mode.
+	// @Tags API.app
+	// @Router /api/app/deployMode [get]
+	GetDeployMode() core.HandlerFunc
 }
 
 type handler struct {

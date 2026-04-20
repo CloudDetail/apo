@@ -1,24 +1,25 @@
-# 安装命令
+# Installation command
 
-传统服务器中使用Docker Compose安装和管理oneAgent服务.
+Use Docker Compose to install and manage oneAgent services in traditional servers.
 
-在需要监控的服务器上依次执行:
-1. 下载配置文件
-2. 下载部署包并执行安装命令
+Execute on the server to be monitored:
+1. Download the configuration file
+2. Download the deployment package and execute the installation command
 
-
-## 1.下载配置文件
+## 1.Download the configuration file
 
 ```bash
 curl -Lo installCfg.sh \
     http://{{ .apoCollector.collectorGatewayAddr }}:{{ default .apoCollector.ports.apoBackend 31363 }}/api/integration/cluster/install/config?clusterId={{ .id}}
 ```
 
-## 2.下载部署包并执行安装命令
+## 2.Download the deployment package and execute the installation command
 
-使用下面的命令下载部署包并进行安装
+Use the following command to download the deployment package and install
 
 ```bash
 curl -Lo apo-one-agent-compose-amd64-{{ ._deploy_version }}.tgz \
     https://apo-ce.oss-cn-hangzhou.aliyuncs.com/apo-one-agent-compose-amd64-{{ ._deploy_version }}.tgz
+
+bash ./installCfg.sh
 ```

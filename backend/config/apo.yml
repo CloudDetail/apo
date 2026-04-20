@@ -87,6 +87,7 @@ user:
     role: admin
 
 dify:
+  enable: true
   url: http://localhost:5001
   user: apo-backend
   auto_check: true

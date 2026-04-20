@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	k8sTmplFilePattern           = "static/integration-tmpl/kubernetes/*.tmpl"
-	dockerComposeTmplFilePattern = "static/integration-tmpl/dockercompose/*.tmpl"
+	k8sTmplFilePattern           = "static/integration-tmpl/kubernetes/*"
+	dockerComposeTmplFilePattern = "static/integration-tmpl/dockercompose/*"
 )
 
 var (
@@ -88,10 +88,13 @@ func (s *service) GetIntegrationInstallConfigFile(ctx core.Context, req *integra
 		clusterConfig.Cluster.APOCollector.CollectorGatewayAddr = s.serverAddr
 	}
 
-	return s.getIntegrationConfigFile(clusterConfig)
+	if clusterConfig.IsMinimal {
+		return s.getMinimalIntegrationConfigFile(clusterConfig)
+	}
+	return s.getIntegrationConfigFile(ctx, clusterConfig)
 }
 
-func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+func (s *service) getIntegrationConfigFile(ctx core.Context, clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
 	jsonObj, err := s.convert2DeployValues(clusterConfig)
 	if err != nil {
 		return nil, fmt.Errorf("marshal config failed: %w", err)
@@ -106,6 +109,31 @@ func (s *service) getIntegrationConfigFile(clusterConfig *integration.ClusterInt
 	case integration.ClusterTypeVM:
 		err = dockerComposeTmpl.ExecuteTemplate(&buf, "installCfg.sh.tmpl", jsonObj)
 		fileName = "installCfg.sh"
+	default:
+		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
+	}
+
+	return &integration.GetCInstallConfigResponse{
+		FileName: fileName,
+		Content:  buf.Bytes(),
+	}, err
+}
+
+func (s *service) getMinimalIntegrationConfigFile(clusterConfig *integration.ClusterIntegration) (*integration.GetCInstallConfigResponse, error) {
+	jsonObj, err := s.convert2DeployValues(clusterConfig)
+	if err != nil {
+		return nil, fmt.Errorf("marshal config failed: %w", err)
+	}
+
+	var buf bytes.Buffer
+	var fileName string
+	switch clusterConfig.ClusterType {
+	case integration.ClusterTypeK8s:
+		err = k8sTmpl.ExecuteTemplate(&buf, "apo-one-agent-values-minimal.yaml.tmpl", jsonObj)
+		fileName = "agent-values.yaml"
+	case integration.ClusterTypeVM:
+		err = dockerComposeTmpl.ExecuteTemplate(&buf, "cfg.env.tmpl", jsonObj)
+		fileName = "cfg.env"
 	default:
 		return nil, fmt.Errorf("unexpected clusterType: %s", clusterConfig.ClusterType)
 	}
@@ -167,19 +195,18 @@ func (s *service) convert2DeployValues(ci *integration.ClusterIntegration) (map[
 	}
 	jsonObj["_modes"] = modes
 
-	if ci.ClusterType == integration.ClusterTypeK8s {
-		jsonObj["_deploy_version"] = "v1.2.000"
-		jsonObj["_app_version"] = "v1.2.0"
-	} else {
-		jsonObj["_deploy_version"] = "v1.3.000"
-		jsonObj["_app_version"] = "v1.3.0"
-	}
+	// if ci.ClusterType == integration.ClusterTypeK8s {
+	// 	jsonObj["_app_version"] = "v1.2.0"
+	// } else {
+	// 	jsonObj["_app_version"] = "v1.3.0"
+	// }
 
 	jsonObj["_deploy_version"] = apoComposeDeployVersion
 	jsonObj["_chart_version"] = apoChartVersion
 	jsonObj["_cluster_id"] = ci.Cluster.ID
 	jsonObj["_is_minimal"] = ci.Cluster.IsMinimal
 	jsonObj["_base_url_"] = s.baseURL
+	jsonObj["_server_addr_"] = s.serverAddr
 
 	return jsonObj, nil
 }
