@@ -12,13 +12,11 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { hierarchy, tree as d3tree } from 'd3-hierarchy'
 import FindingsNode from './FindingsNode'
+import { buildFindingsLayout } from './findingsLayout'
 
 const NODE_WIDTH = 220
 const NODE_HEIGHT = 72
-const LAYER_GAP = 80
-const SIBLING_GAP = 20
 const EDGE_BADGE_PADDING = 12
 // const _INITIAL_ZOOM = 1.2
 const BADGE_Z = 1000
@@ -72,118 +70,6 @@ function _BasicNode({ data }: any) {
 }
 
 const nodeTypes = { findingsNode: FindingsNode }
-
-/** 把后端/推理树数据转成单根树（必要时加虚拟根） */
-function buildTree(data: any) {
-  const nodes = data?.nodes || []
-  const edges = data?.edges || []
-
-  const outAdj = new Map<string, string[]>()
-  const inDeg = new Map<string, number>()
-  nodes.forEach((n: any) => inDeg.set(n.id, 0))
-  edges.forEach((e: any) => {
-    if (!outAdj.has(e.source)) outAdj.set(e.source, [])
-    outAdj.get(e.source)!.push(e.target)
-    inDeg.set(e.target, (inDeg.get(e.target) || 0) + 1)
-  })
-
-  let roots = nodes.filter((n: any) => (inDeg.get(n.id) || 0) === 0).map((n: any) => n.id)
-  if (!roots.length && nodes.length) roots = [nodes[0].id]
-  const VROOT = '__virtual__'
-  const hasVirtualRoot = roots.length > 1
-
-  if (hasVirtualRoot) {
-    nodes.push({ id: VROOT, type: 'basic', data: { id: VROOT, label: 'root' } })
-    roots.forEach((r) => {
-      edges.push({ id: `v-${r}`, source: VROOT, target: r })
-    })
-    roots = [VROOT]
-  }
-
-  const parent = new Map<string, string>()
-  const children = new Map<string, string[]>()
-  const q = [...roots]
-  while (q.length) {
-    const u = q.shift()!
-    const outs = outAdj.get(u) || []
-    for (const v of outs) {
-      if (!parent.has(v)) {
-        parent.set(v, u)
-        if (!children.has(u)) children.set(u, [])
-        children.get(u)!.push(v)
-        q.push(v)
-      }
-    }
-  }
-
-  const id2node = new Map(nodes.map((n: any) => [n.id, n]))
-  function buildSub(id: string): any {
-    const base: any = id2node.get(id) || { id, type: 'basic', data: { id } }
-    const kids = (children.get(id) || []).map(buildSub)
-    return { ...base, children: kids }
-  }
-  const treeData = buildSub(roots[0])
-
-  return { treeData, hasVirtualRoot }
-}
-
-/**
- * 用 d3.hierarchy + d3.tree 做 tidy 布局，生成 ReactFlow 的 nodes / edges
- * 纯粹的布局计算，不做任何视图定位或聚焦操作
- */
-function layoutTree(treeData: any, findingsId?: string, onNodeClick?: (node: any) => void) {
-  const root = hierarchy(treeData, (d: any) => d.children || [])
-  const layout = d3tree()
-    .nodeSize([SIBLING_GAP + NODE_HEIGHT, LAYER_GAP + NODE_WIDTH])
-    .separation((a, b) => (a.parent === b.parent ? 1 : 1.25))
-  layout(root)
-
-  // 计算垂直居中偏移量
-  const xs: number[] = []
-  root.each((n: any) => xs.push(n.x))
-  const xMin = Math.min(...xs)
-  const xMax = Math.max(...xs)
-  const vCenter = (xMin + xMax) / 2
-
-  // 生成节点数据
-  const nodes: any[] = []
-  root.each((n: any) => {
-    nodes.push({
-      id: n.data.id,
-      type: n.data.type || 'findingsNode',
-      data: {
-        ...(n.data.data || n.data),
-        nodeId: n.data.id,
-        findingsId: findingsId,
-        onClick: onNodeClick,
-      },
-      position: { x: n.y, y: n.x - vCenter },
-      width: NODE_WIDTH,
-      height: NODE_HEIGHT,
-      sourcePosition: 'right',
-      targetPosition: 'left',
-    })
-  })
-
-  // 生成边数据
-  const edges: any[] = []
-  root.each((n: any) => {
-    if (!n.children) return
-    n.children.forEach((c: any) => {
-      const tStatus = getNodeVisualStatus(c.data?.data || c.data)
-      const stroke = getStatusColor(tStatus)
-      edges.push({
-        id: `${n.data.id}-${c.data.id}`,
-        source: n.data.id,
-        target: c.data.id,
-        style: { stroke, strokeWidth: 2.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: stroke },
-      })
-    })
-  })
-
-  return { nodes, edges }
-}
 
 /** 反推当前 zoom & 世界坐标原点 */
 function getZoomAndWorldOrigin(rf: any) {
@@ -256,10 +142,19 @@ export function FlowCore({
       return
     }
 
-    const { treeData } = buildTree(data)
-    const { nodes: ns, edges: es } = layoutTree(treeData, findingsId, onNodeClick)
-    setNodes(ns)
-    setEdges(es)
+    const { nodes: layoutNodes, edges: layoutEdges } = buildFindingsLayout(data, findingsId, onNodeClick)
+    const styledEdges = layoutEdges.map((edge) => {
+      const targetNode = layoutNodes.find((node) => node.id === edge.target)
+      const stroke = getStatusColor(getNodeVisualStatus(targetNode?.data))
+      return {
+        ...edge,
+        style: { stroke, strokeWidth: 2.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16, color: stroke },
+      }
+    })
+
+    setNodes(layoutNodes)
+    setEdges(styledEdges)
     hasInitializedView.current = false // 新数据时重置视图初始化标记
   }, [data, findingsId, onNodeClick])
 
