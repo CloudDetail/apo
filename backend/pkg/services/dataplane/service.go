@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/CloudDetail/apo/backend/config"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -50,10 +51,11 @@ type Service interface {
 }
 
 type service struct {
-	chRepo        clickhouse.Repo
-	promRepo      prometheus.Repo
-	dbRepo        database.Repo
-	dataplaneRepo dataplane.DataplaneRepo
+	chRepo          clickhouse.Repo
+	promRepo        prometheus.Repo
+	dbRepo          database.Repo
+	dataplaneRepo   dataplane.DataplaneRepo
+	instancesLookup *serviceInstancesLookup
 }
 
 func New(
@@ -62,11 +64,23 @@ func New(
 	dbRepo database.Repo,
 	dataplaneRepo dataplane.DataplaneRepo,
 ) Service {
+	lookupBudget := durationFromSeconds(config.Get().Dataplane.ServiceInstancesLookupBudgetSeconds, defaultServiceInstancesLookupBudget)
+	cacheTTL := durationFromSeconds(config.Get().Dataplane.ServiceInstancesCacheTTLSeconds, defaultServiceInstancesCacheTTL)
+	log.Printf("dataplane instances lookup config: %s", formatServiceInstancesLookupConfig(lookupBudget, cacheTTL))
+
 	service := &service{
 		chRepo:        chRepo,
 		promRepo:      promRepo,
 		dbRepo:        dbRepo,
 		dataplaneRepo: dataplaneRepo,
+		instancesLookup: newServiceInstancesLookup(
+			chRepo,
+			promRepo,
+			dbRepo,
+			lookupBudget,
+			cacheTTL,
+			log.Printf,
+		),
 	}
 
 	if os.Getenv("PRODUCT_MODE") == "apo" { // apo or syncause

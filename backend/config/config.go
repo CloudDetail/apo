@@ -84,7 +84,9 @@ type Config struct {
 		MetaSourceConfig configs.MetaSourceConfig `mapstructure:"meta_source_config"`
 	} `mapstructure:"meta_server"`
 	Dataplane struct {
-		Address string `mapstructure:"address"`
+		Address                             string `mapstructure:"address"`
+		ServiceInstancesLookupBudgetSeconds int    `mapstructure:"service_instances_lookup_budget_seconds"`
+		ServiceInstancesCacheTTLSeconds     int    `mapstructure:"service_instances_cache_ttl_seconds"`
 	} `mapstructure:"dataplane"`
 	Jaeger struct {
 		Address string `mapstructure:"address"`
