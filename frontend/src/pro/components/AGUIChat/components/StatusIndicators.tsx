@@ -10,7 +10,6 @@ interface StatusIndicatorsProps {
   currentStep: string | null
   isRunning: boolean
   runId: string | null
-  state: Record<string, any> | null
   onClearError: () => void
 }
 
@@ -20,7 +19,6 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
   currentStep,
   isRunning,
   runId,
-  state,
   onClearError,
 }) => {
   const { t } = useTranslation('pro/agent')
@@ -86,32 +84,12 @@ const StatusIndicators: React.FC<StatusIndicatorsProps> = ({
     )
   }
 
-  // 渲染状态信息
-  const renderStateInfo = () => {
-    if (!state || Object.keys(state).length === 0) return null
-
-    return (
-      <div className={styles.stateInfo}>
-        <div className={styles.stateTitle}>{t('status.sessionStatus')}:</div>
-        <div className={styles.stateChips}>
-          {Object.entries(state).map(([key, value]) => (
-            <span key={key} className={styles.stateChip}>
-              <span className={styles.stateKey}>{key}:</span>
-              <span className={styles.stateValue}>{JSON.stringify(value)}</span>
-            </span>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <>
       {renderErrorAlert()}
       {renderConnectionStatus()}
       {renderStepStatus()}
       {renderRunStatus()}
-      {renderStateInfo()}
     </>
   )
 }

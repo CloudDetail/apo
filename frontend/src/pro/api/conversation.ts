@@ -1,7 +1,20 @@
 import { get } from 'src/core/utils/request'
+import {
+  buildConversationHistoryListRequestParams,
+  buildConversationMessagesRequestParams,
+} from './conversationRequestParams'
 import { stabilizeFindingsNodeStatus } from './findingsPresentation'
+import {
+  DEFAULT_CONVERSATION_HISTORY_FALLBACK_TITLE,
+  normalizeConversationHistoryListResponse,
+  type ConversationHistoryListResponse,
+} from './conversationHistory'
 
 export { normalizeFindingsStatus } from './findingsPresentation'
+export type {
+  ConversationHistoryItem,
+  ConversationHistoryListResponse,
+} from './conversationHistory'
 
 export type FindingsStatus = 'normal' | 'warning' | 'abnormal'
 
@@ -252,7 +265,8 @@ export const normalizeFindingsNode = (value: unknown): FindingsNodePayload | nul
   const traces = normalizeTraces(value.traces)
   const unsupportedReason = readString(value.unsupportedReason)
   const inferredKind =
-    unsupportedReason || (!hasMetrics(metrics) && !hasTable(table) && !hasLogs(logs) && !hasTraces(traces))
+    unsupportedReason ||
+    (!hasMetrics(metrics) && !hasTable(table) && !hasLogs(logs) && !hasTraces(traces))
       ? unsupportedReason
         ? 'unsupported'
         : 'summary'
@@ -303,7 +317,29 @@ export const normalizeFindingsDataResponse = (value: unknown): FindingsDataRespo
 
 // 获取对话历史消息
 export function getConversationMessagesApi(threadId: string) {
-  return get(`/ai/api/v1/conversations/messages?threadId=${threadId}`)
+  return get('/ai/api/v1/conversations/messages', buildConversationMessagesRequestParams(threadId))
+}
+
+export async function getConversationHistoryListApi(params?: {
+  cursor?: string
+  limit?: number
+  fallbackTitle?: string
+  userId?: string
+}): Promise<ConversationHistoryListResponse> {
+  const {
+    fallbackTitle = DEFAULT_CONVERSATION_HISTORY_FALLBACK_TITLE,
+    userId,
+    ...queryParams
+  } = params || {}
+  const response = await get(
+    '/ai/api/v1/conversations/list',
+    buildConversationHistoryListRequestParams(queryParams, userId),
+    {
+      timeout: 0,
+    },
+  )
+
+  return normalizeConversationHistoryListResponse(response, fallbackTitle)
 }
 
 // 获取选定服务的 findings 数据
@@ -320,8 +356,12 @@ export async function getFindingsDataApi(params: {
       return acc
     }, {}),
   ).toString()
-  const response = await get(`/ai/api/v1/conversations/findings-data?${queryParams}`, {}, {
-    timeout: 0,
-  })
+  const response = await get(
+    `/ai/api/v1/conversations/findings-data?${queryParams}`,
+    {},
+    {
+      timeout: 0,
+    },
+  )
   return normalizeFindingsDataResponse(response)
 }

@@ -45,7 +45,14 @@ import {
 import dayjs from 'dayjs'
 import { checkDataplaneDataApi } from '../api/dataplane'
 import { getModelListApi, setDefaultModelApi } from '../api/modelSetting'
+import { getCurrentAgentUserId } from '../api/agentUser'
 import { getConversationMessagesApi } from '../api/conversation'
+import { buildThreadTransitionReset, shouldApplyThreadLoadResult } from './threadTransition'
+import {
+  classifyThreadLoadError,
+  formatThreadLoadErrorMessage,
+  type ThreadLoadErrorKind,
+} from './threadLoadError'
 
 // 扩展AGUIMessage类型以支持工具调用
 export interface ToolCallItem {
@@ -137,6 +144,7 @@ interface AGUIContextValue {
   client: AGUIClient
   isConnected: boolean
   error: string | null
+  threadLoadErrorKind: ThreadLoadErrorKind | null
 
   // 会话管理
   sessions: AGUISession[]
@@ -193,6 +201,8 @@ interface AGUIContextValue {
   sendMessage: (content: string) => void
   cancelRun: () => void
   clearMessages: () => void
+  openThread: (threadId: string) => Promise<void>
+  resetToNewConversation: () => Promise<void>
   loadHistoryMessages: (threadId: string) => Promise<void>
 
   // Findings 数据管理 - 优化版本
@@ -251,6 +261,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   const [client, setClient] = useState<AGUIClient>(() => new AGUIClient(config))
   const [isConnected] = useState(true) // 简化实现，假设总是连接的
   const [error, setError] = useState<string | null>(null)
+  const [threadLoadErrorKind, setThreadLoadErrorKind] = useState<ThreadLoadErrorKind | null>(null)
   const [sessions, setSessions] = useState<AGUISession[]>([])
   const [currentSession, setCurrentSession] = useState<AGUISession | null>(null)
 
@@ -300,6 +311,17 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   // 事件订阅引用
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const currentRunIdRef = useRef<string | undefined>(undefined)
+  const clientRef = useRef(client)
+  const threadLoadRevisionRef = useRef(0)
+
+  useEffect(() => {
+    currentRunIdRef.current = currentRunId
+  }, [currentRunId])
+
+  useEffect(() => {
+    clientRef.current = client
+  }, [client])
 
   // Findings 数据管理辅助函数 - 优化版本
   const getFindingsToolCalls = useCallback(
@@ -594,6 +616,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     setCurrentRunId(event.runId)
     setLoading(false)
     setError(null) // 清除之前的错误
+    setThreadLoadErrorKind(null)
   }, [])
 
   const onRunFinished = useCallback(
@@ -645,6 +668,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
 
   const onRunError = useCallback((event: RunErrorEvent) => {
     setError(event.message || t('run.runtimeError'))
+    setThreadLoadErrorKind(null)
     setIsRunning(false)
     setCurrentRunId(undefined)
     setCurrentStep(undefined)
@@ -1315,6 +1339,161 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     }
   }, [])
 
+  const applyThreadTransitionReset = useCallback(
+    (activeRunId: string | undefined, targetThreadId?: string) => {
+      const reset = buildThreadTransitionReset<
+        ExtendedAGUIMessage,
+        ToolCallItem,
+        AgentToolDisplayItem
+      >({
+        currentRunId: activeRunId,
+        loadRevision: threadLoadRevisionRef.current,
+        targetThreadId,
+      })
+
+      threadLoadRevisionRef.current = reset.nextLoadRevision
+
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current()
+        unsubscribeRef.current = null
+      }
+
+      setIsRunning(reset.runtime.isRunning)
+      setCurrentRunId(reset.runtime.currentRunId)
+      setCurrentStep(reset.runtime.currentStep)
+      setCurrentMessage(reset.runtime.currentMessage)
+      setCurrentToolCall(reset.runtime.currentToolCall)
+      setLoading(reset.runtime.loading)
+      setError(reset.runtime.error)
+      setThreadLoadErrorKind(null)
+      setMessages(reset.scoped.messages)
+      setState(reset.scoped.state)
+      setCurrentThreadId(undefined)
+      setFindingsToolCalls(reset.scoped.findingsToolCalls)
+      setFindingsAgentToolDisplay(reset.scoped.findingsAgentToolDisplay)
+
+      return reset
+    },
+    [],
+  )
+
+  const transitionToThread = useCallback(
+    async (targetThreadId?: string) => {
+      const activeRunId = currentRunIdRef.current
+      const reset = applyThreadTransitionReset(activeRunId, targetThreadId)
+
+      if (reset.shouldCancelRun && activeRunId) {
+        clientRef.current.cancelRun(activeRunId).catch((transitionError) => {
+          console.error(t('run.cancelRunFailed'), transitionError)
+        })
+      }
+
+      if (!reset.shouldLoadHistory || !reset.targetThreadId) {
+        return
+      }
+
+      const responseLoadRevision = reset.nextLoadRevision
+
+      try {
+        const response = await getConversationMessagesApi(reset.targetThreadId)
+
+        if (
+          !shouldApplyThreadLoadResult({
+            activeLoadRevision: threadLoadRevisionRef.current,
+            responseLoadRevision,
+          })
+        ) {
+          return
+        }
+
+        const rawMessages: ExtendedAGUIMessage[] = Array.isArray(response?.messages)
+          ? response.messages.map((msg: any) => ({
+              id: msg.id,
+              role: msg.role,
+              content: msg.content,
+              timestamp: new Date(msg.timestamp),
+              toolCalls:
+                msg.toolCalls?.map((tc: any) => ({
+                  id: tc.id || generateMessageId(),
+                  name: tc.name,
+                  args: tc.args,
+                  result: tc.result,
+                  status: 'completed' as const,
+                })) || [],
+              agentToolDisplay: msg.agentToolDisplay || [],
+              hidden: msg.hidden,
+              parentId: msg.parentId,
+              findingsData: msg.findingsData,
+              type: msg.type,
+              status: 'completed',
+            }))
+          : []
+
+        const historyMessages: ExtendedAGUIMessage[] = []
+        const messageMap = new Map<string, ExtendedAGUIMessage>()
+
+        rawMessages.forEach((message) => {
+          messageMap.set(message.id, message)
+        })
+
+        rawMessages.forEach((message) => {
+          if (message.parentId && !message.hidden) {
+            const parentIndex = historyMessages.findIndex((historyMessage) => {
+              const parent = messageMap.get(message.parentId!)
+              return historyMessage.id === (parent?.id || message.parentId)
+            })
+
+            if (parentIndex !== -1) {
+              historyMessages.splice(parentIndex + 1, 0, message)
+              return
+            }
+          }
+
+          historyMessages.push(message)
+        })
+
+        if (historyMessages.length > 0) {
+          historyMessages[historyMessages.length - 1].isFinal = true
+        }
+
+        setMessages(historyMessages)
+        setCurrentThreadId(reset.targetThreadId)
+        setThreadLoadErrorKind(null)
+      } catch (error) {
+        if (
+          !shouldApplyThreadLoadResult({
+            activeLoadRevision: threadLoadRevisionRef.current,
+            responseLoadRevision,
+          })
+        ) {
+          return
+        }
+
+        console.error('加载历史消息失败:', error)
+        setThreadLoadErrorKind(classifyThreadLoadError(error))
+        setError(
+          formatThreadLoadErrorMessage({
+            error,
+            messages: {
+              loadFailed: t('thread.loadHistoryFailed'),
+              unknownError: t('thread.unknownHistoryError'),
+            },
+          }),
+        )
+      } finally {
+        if (
+          shouldApplyThreadLoadResult({
+            activeLoadRevision: threadLoadRevisionRef.current,
+            responseLoadRevision,
+          })
+        ) {
+          setLoading(false)
+        }
+      }
+    },
+    [applyThreadTransitionReset, t],
+  )
+
   // 发送消息
   const sendMessage = useCallback(
     (content: string) => {
@@ -1333,6 +1512,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       setCurrentMessage(undefined)
       setCurrentToolCall(undefined)
       setError(null)
+      setThreadLoadErrorKind(null)
 
       const userMessage: ExtendedAGUIMessage = {
         id: generateMessageId(),
@@ -1376,6 +1556,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
       // 生成新的runId
       const runId = generateRunId()
       setCurrentRunId(runId)
+      const userId = getCurrentAgentUserId()
 
       // 订阅新的运行事件
       unsubscribeRef.current = client.subscribeToRun(
@@ -1388,6 +1569,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           context: [],
           forwardedProps: {
             clientDate: dayjs().format('YYYY-MM-DDTHH:mm:ssZ'),
+            ...(userId ? { userId } : {}),
           },
         },
         handleEvent,
@@ -1454,78 +1636,32 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   // 错误处理
   const clearError = useCallback(() => {
     setError(null)
+    setThreadLoadErrorKind(null)
   }, [])
+
+  const openThread = useCallback(
+    async (threadId: string) => {
+      await transitionToThread(threadId)
+    },
+    [transitionToThread],
+  )
+
+  const resetToNewConversation = useCallback(async () => {
+    await transitionToThread(undefined)
+  }, [transitionToThread])
 
   // 清空消息
   const clearMessages = useCallback(() => {
-    setMessages([])
-    setCurrentMessage(undefined)
-    setCurrentToolCall(undefined)
-    setState({})
-    setCurrentThreadId(undefined)
-    clearFindingsData() // 清理 findings 相关数据
-  }, [clearFindingsData])
+    void resetToNewConversation()
+  }, [resetToNewConversation])
 
   // 加载历史消息
-  const loadHistoryMessages = useCallback(async (threadId: string) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await getConversationMessagesApi(threadId)
-      console.log(response)
-      if (response && response && response.messages) {
-        const rawMessages: ExtendedAGUIMessage[] = response.messages.map((msg: any) => ({
-          id: msg.id,
-          role: msg.role,
-          content: msg.content,
-          timestamp: new Date(msg.timestamp),
-          toolCalls:
-            msg.toolCalls?.map((tc: any) => ({
-              id: tc.id || generateMessageId(),
-              name: tc.name,
-              args: tc.args,
-              result: tc.result,
-              status: 'completed' as const,
-            })) || [],
-          agentToolDisplay: msg.agentToolDisplay || [],
-          hidden: msg.hidden,
-          parentId: msg.parentId,
-          findingsData: msg.findingsData,
-          type: msg.type,
-          status: 'completed',
-        }))
-
-        const historyMessages: ExtendedAGUIMessage[] = []
-        const messageMap = new Map<string, ExtendedAGUIMessage>()
-
-        rawMessages.forEach((m) => {
-          messageMap.set(m.id, m)
-        })
-
-        rawMessages.forEach((m) => {
-          if (m?.parentId && !m?.hidden) {
-            const parentIndex = historyMessages.findIndex((hm) => hm.id === m.parentId)
-            if (parentIndex !== -1) {
-              historyMessages.splice(parentIndex + 1, 0, m)
-              return
-            }
-          }
-          historyMessages.push(m)
-        })
-
-        historyMessages[historyMessages?.length - 1].isFinal = true
-        console.log('historyMessages', historyMessages)
-        setMessages(historyMessages)
-        setCurrentThreadId(threadId)
-      }
-    } catch (error) {
-      console.error('加载历史消息失败:', error)
-      setError(`加载历史消息失败: ${error instanceof Error ? error.message : '未知错误'}`)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const loadHistoryMessages = useCallback(
+    async (threadId: string) => {
+      await openThread(threadId)
+    },
+    [openThread],
+  )
 
   // AI权限相关方法
   const fetchModelList = useCallback(async () => {
@@ -1627,6 +1763,7 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     client,
     isConnected,
     error,
+    threadLoadErrorKind,
     sessions,
     currentSession,
     messages,
@@ -1656,6 +1793,8 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
     sendMessage,
     cancelRun,
     clearMessages,
+    openThread,
+    resetToNewConversation,
     loadHistoryMessages,
     getFindingsToolCalls,
     getFindingsAgentToolDisplay,
@@ -1693,6 +1832,8 @@ export const useAGUIChat = () => {
     sendMessage: context.sendMessage,
     cancelRun: context.cancelRun,
     clearMessages: context.clearMessages,
+    openThread: context.openThread,
+    resetToNewConversation: context.resetToNewConversation,
     loadHistoryMessages: context.loadHistoryMessages,
   }
 }
@@ -1725,6 +1866,7 @@ export const useAGUIState = () => {
     client: context.client,
     isConnected: context.isConnected,
     error: context.error,
+    threadLoadErrorKind: context.threadLoadErrorKind,
     state: context.state,
     config: context.config,
     currentThreadId: context.currentThreadId,

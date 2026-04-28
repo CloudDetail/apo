@@ -23,6 +23,10 @@
     "userMessage": "User message",
     "assistantMessage": "Assistant message"
   },
+  "thread": {
+    "loadHistoryFailed": "Failed to load conversation history",
+    "unknownHistoryError": "Unknown error"
+  },
   "error": {
     "unknownEventType": "Unhandled event type",
     "rawEvent": "Raw event",

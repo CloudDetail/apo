@@ -187,6 +187,7 @@ export interface AGUIRunResponse {
 export interface AGUIClientConfig {
     baseUrl: string;
     apiKey?: string;
+    headers?: Record<string, string>;
     timeout?: number;
     retryCount?: number;
 }

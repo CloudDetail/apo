@@ -1,5 +1,6 @@
 export { default as ChatHeader } from './ChatHeader'
 export { default as SessionsPanel } from './SessionsPanel'
+export { default as ConversationHistoryPanel } from './ConversationHistoryPanel'
 export { default as ChatMain } from './ChatMain'
 export { default as MessageList } from './MeesageRender/MessageList'
 export { default as InputArea } from './InputArea'

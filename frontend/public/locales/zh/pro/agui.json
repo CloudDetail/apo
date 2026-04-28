@@ -23,6 +23,10 @@
     "userMessage": "用户消息",
     "assistantMessage": "助手消息"
   },
+  "thread": {
+    "loadHistoryFailed": "加载历史消息失败",
+    "unknownHistoryError": "未知错误"
+  },
   "error": {
     "unknownEventType": "未处理的事件类型",
     "rawEvent": "原始事件",

@@ -82,6 +82,8 @@
   "header": {
     "title": "SRE Agent Chat",
     "refresh": "Refresh",
+    "openHistory": "Open history panel",
+    "closeHistory": "Close history panel",
     "badges": {
       "datasource": "Data Sources",
       "services": "Monitored Services"
@@ -118,6 +120,29 @@
   "sessions": {
     "newConversation": "New Conversation",
     "invalidDate": "Invalid Date"
+  },
+  "history": {
+    "title": "History",
+    "newConversation": "New Conversation",
+    "loading": "Loading conversation history",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more",
+    "retry": "Retry",
+    "fallbackTitle": "Untitled conversation",
+    "errorTitle": "Failed to load conversation history",
+    "errorDescription": "Conversation history is temporarily unavailable. Please try again.",
+    "loadMoreError": "Failed to load more conversation history. Please try again.",
+    "emptyDescription": "No conversation history for this account yet. You can still start a new conversation on the right.",
+    "missingAssistantResponse": "No assistant response was saved for this turn. It may have been interrupted, cancelled, or failed. You can continue the conversation.",
+    "time": {
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "yesterday": "Yesterday {{value}}",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago"
+    }
   },
   "dataCapability": {
     "title": "Data Sources Capability ",

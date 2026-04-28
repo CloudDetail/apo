@@ -82,6 +82,8 @@
   "header": {
     "title": "SRE Agent Chat",
     "refresh": "刷新",
+    "openHistory": "打开历史面板",
+    "closeHistory": "收起历史面板",
     "badges": {
       "datasource": "数据源",
       "services": "监控服务"
@@ -118,6 +120,29 @@
   "sessions": {
     "newConversation": "新建对话",
     "invalidDate": "无效日期"
+  },
+  "history": {
+    "title": "历史对话",
+    "newConversation": "新对话",
+    "loading": "正在加载历史对话",
+    "loadMore": "加载更多",
+    "loadingMore": "正在加载更多",
+    "retry": "重试",
+    "fallbackTitle": "未命名对话",
+    "errorTitle": "历史对话加载失败",
+    "errorDescription": "暂时无法获取历史列表，请稍后重试。",
+    "loadMoreError": "暂时无法加载更多历史对话，请重试。",
+    "emptyDescription": "当前账号还没有历史对话，右侧仍可直接开始新对话。",
+    "missingAssistantResponse": "这次对话没有保存到 AI 回复，可能是回答尚未完成、已取消或发生错误。你可以继续追问。",
+    "time": {
+      "minutesAgo_one": "{{count}} 分钟前",
+      "minutesAgo_other": "{{count}} 分钟前",
+      "hoursAgo_one": "{{count}} 小时前",
+      "hoursAgo_other": "{{count}} 小时前",
+      "yesterday": "昨天 {{value}}",
+      "daysAgo_one": "{{count}} 天前",
+      "daysAgo_other": "{{count}} 天前"
+    }
   },
   "dataCapability": {
     "title": "数据能力状态",

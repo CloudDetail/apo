@@ -1,30 +1,38 @@
 import React from 'react'
 import { Button, Tooltip } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
+import { MenuFoldOutlined, MenuUnfoldOutlined, ReloadOutlined } from '@ant-design/icons'
 import styles from '../AGUIChat.module.scss'
 import { useTranslation } from 'react-i18next'
 
 interface ChatHeaderProps {
   siderCollapsed: boolean
+  showHistoryToggle: boolean
   onToggleSider: () => void
   onOpenSettings: () => void
   onRefreshSessions: () => void
 }
 
-const ChatHeader: React.FC<ChatHeaderProps> = ({ onRefreshSessions }) => {
+const ChatHeader: React.FC<ChatHeaderProps> = ({
+  siderCollapsed,
+  showHistoryToggle,
+  onToggleSider,
+  onRefreshSessions,
+}) => {
   const { t } = useTranslation('pro/agent')
 
   return (
     <div className={styles.header}>
       <div className={styles.headerLeft}>
-        {/* <Tooltip title={siderCollapsed ? '展开侧边栏' : '收起侧边栏'}>
-          <Button
-            type="text"
-            icon={siderCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={onToggleSider}
-            className={styles.siderTrigger}
-          />
-        </Tooltip> */}
+        {showHistoryToggle && (
+          <Tooltip title={siderCollapsed ? t('header.openHistory') : t('header.closeHistory')}>
+            <Button
+              type="text"
+              icon={siderCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={onToggleSider}
+              className={styles.siderTrigger}
+            />
+          </Tooltip>
+        )}
         <h2 className={styles.headerTitle}>{t('header.title')}</h2>
       </div>
       <div className={styles.headerActions}>

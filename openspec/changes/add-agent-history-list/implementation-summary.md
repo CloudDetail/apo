@@ -1,0 +1,282 @@
+## Final Scope
+
+This change is now functionally complete for the commercial `/agent` consumer slice plus its paired owner-side contract landing. It lands the `/agent` frontend history-list foundation, bounded creator-scoped pagination, and the required cross-repo identity handoff:
+
+- normalized creator-scoped history list response handling
+- deterministic title fallback insertion
+- shared `timeValue` sorting behavior
+- frontend time formatting helper aligned with the documented thresholds
+- a checked-in frontend test command for the history contract helpers
+- explicit thread transition entry points for opening an existing `threadId` and returning to a clean new conversation state
+- run cancellation / unsubscription plus thread-scoped state reset before loading another thread
+- stale history load result guarding so an older async response cannot overwrite a newer thread transition
+- stable thread selection syncing so unrelated callback identity changes do not re-open or clear the current thread
+- a left-side history panel foundation in `/agent` with creator-scoped fetch, basic rendering, active highlight, empty state, error state, and URL-driven thread selection
+- first-message `threadId` URL writeback for new conversations without re-enabling local session management
+- optimistic insertion of a freshly started thread into the left-side history list, followed by a post-run refresh to reconcile with persisted backend state
+- route writeback is now limited to the pending new-thread path, so clearing an existing history thread does not accidentally restore the old `threadId`
+- late history-list fetches now merge the optimistic thread item instead of overwriting it before the post-run reconciliation refresh returns
+- only the newest in-flight history-list response is now allowed to update list/loading/error state, so an older request cannot overwrite a newer reconciliation result
+- optimistic reconcile now clears only after the backend payload itself contains the pending thread, instead of clearing on any successful fetch
+- optimistic reconcile now retries on failed, superseded, or not-yet-persisted refreshes with bounded backoff, and drops the optimistic ghost item if the backend still never confirms the thread
+- manual history refresh / retry now checks the active pending thread id too, so a user-triggered successful refresh can close reconcile without later misclassifying the persisted item as missing
+- stale/superseded history refreshes now keep latest-response-wins semantics without consuming the bounded reconcile retry budget
+- pending reconcile scheduling now depends only on chat-run state, so the effect is no longer cancelled by its own history-list loading flag before the refresh result is applied
+- superseded reconcile attempts now reuse the existing pending-refresh state object when the retry count does not change, avoiding an extra immediate refresh after a newer manual retry wins the race
+- history selection now prefers URL `threadId` but falls back to the in-memory `currentThreadId` while new-thread route writeback is still catching up, so a freshly inserted or paginated current thread keeps a stable active highlight
+- first-page history refresh now preserves a previously loaded selected older thread item when that thread is outside the refreshed page, so pagination-era selection is not lost just because the list revalidated from page one
+- the history panel now fetches a bounded first page and exposes cursor-based “load more” so users can continue traversing their own creator-scoped threads without unbounded first-screen fetches
+- history-panel rendering now keeps existing items visible during follow-up refreshes, and shows inline retry / load-more feedback instead of replacing the whole list
+- narrow-screen `/agent` now degrades the left history panel into an expandable drawer while desktop keeps the fixed sidebar layout
+- `/agent` history navigation is now collapsed by default on both desktop and narrow-screen entry, while the chat header keeps a persistent history toggle so the panel can always be reopened
+- recoverable invalid-thread load errors now surface as one-shot top-right notifications, instead of silently disappearing or persistently occupying the chat surface
+- narrow-screen header now exposes an actual history-panel toggle again, so the drawer mode has a stable reopen entry point instead of relying on a commented-out trigger
+- the chat main area no longer renders the top status-indicator strip, so the conversation surface stays focused on messages and input
+- the chat main area now distinguishes an empty new-conversation state from an in-flight history-thread load, so switching threads no longer flashes back to the initial quick-question agent landing view before the target messages arrive
+- history threads that replay to a trailing user message without any saved assistant response now show a non-persistent assistant-side notice, so interrupted/cancelled/failed turns do not look like a broken one-message transcript
+- final-message action suffix controls now render only after assistant responses, so a history replay that ends on a user question does not show copy/share/feedback controls under the user bubble
+- history-thread load failures now use localized error copy instead of a hard-coded Chinese fallback, so invalid `threadId` errors stay readable in both zh/en runtimes
+- sending from an invalid deep-linked `threadId` error state now seeds a brand-new conversation, replaces the stale route `threadId`, and keeps URL/history selection aligned with the actual runtime thread that received the message
+- dismissing or auto-closing the invalid-thread notification no longer clears the failed-route recovery path, so the next send still replaces the stale `threadId` instead of silently continuing behind a broken URL
+- keyboard `Enter` submission is now blocked while a history-thread load is still in flight, preventing the old-thread load and a new send from racing each other
+- chat status indicators now ignore raw AGUI `state` payloads and no longer render debug-style session state chips into the normal `/agent` chat surface
+- the history sidebar no longer relies on hard-coded light backgrounds; it now follows theme tokens for container, item, hover, and active states across light/dark modes
+- `/agent` now forwards explicit `userId` request parameters on creator-scoped history list calls and AGUI streaming runs, so owner-sensitive AgentSRE paths can bind real creators instead of falling back to `syncause`
+- the frontend history normalizer now accepts both the owner-side canonical `conversations` / `continuation` envelope and the temporary legacy alias envelope during rollout
+- verified that the current commercial repo has no other supported `/conversations/list` consumer besides the `/agent` history-list path, so creator-scoped list semantics do not break another APO page in this repo
+- verified that the一期 history UI exposes no delete or rename controls and does not depend on delete permission semantics
+
+## Actual Code Changes
+
+- Added [conversationHistory.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistory.ts) to hold pure helpers for:
+  - `ConversationHistoryItem` / `ConversationHistoryListResponse`
+  - history response normalization
+  - `timeValue`-based display formatting
+  - default placeholder fallback via `DEFAULT_CONVERSATION_HISTORY_FALLBACK_TITLE`
+  - optimistic history-item merge logic for late fetch reconciliation
+  - paginated page merge logic for older history batches
+  - latest-response revision guards and fetched-thread presence checks for reconciliation
+  - dedicated load-more state clearing so a superseded page request cannot leave the incremental loading spinner stuck
+  - bounded reconcile retry decisions, retry delay calculation, and optimistic item removal when reconciliation exhausts its budget
+  - explicit reconcile scheduling gates plus distinct `applied` / `error` / `superseded` refresh outcomes so request-order races do not count as retry failures
+  - pending-refresh state reuse so superseded reconciles that keep the same retry count do not trigger a redundant effect pass
+- Added [conversationHistory.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistory.test.ts) as targeted regression coverage for:
+  - response shape normalization
+  - fallback title behavior
+  - descending sort by `timeValue`
+  - local history-list upsert behavior for new or existing threads
+  - preserving an optimistic thread item when an older fetch response arrives later
+  - preserving the backend item when the fetched payload already contains the optimistic thread
+  - stable cross-page append behavior without duplicates while preserving sort order
+  - detecting whether a fetched payload already contains the pending thread
+  - allowing only the newest history response revision to apply
+  - clearing the active load-more state even when a full refresh supersedes the current page request
+  - retry-vs-drop reconcile decisions for missing, failed, or superseded refreshes
+  - delayed retry scheduling and optimistic-item removal after bounded reconcile failure
+  - superseded refreshes preserving retry budget and chat-idle-only reconcile scheduling
+  - referentially stable pending-refresh state when superseded reconcile keeps the same attempt count
+  - preserving a previously loaded selected older thread when a later first-page refresh does not include it
+  - documented time display thresholds
+- Added [tsconfig.node-tests.json](/Users/keting/workspace/product/commercial/apo/frontend/tsconfig.node-tests.json) so frontend `node:test` files compile with Node types through a checked-in config.
+- Added [threadTransition.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadTransition.ts) to hold pure thread transition reset helpers and stale-load guards for AGUI thread switching.
+- Added [threadTransition.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadTransition.test.ts) as focused regression coverage for:
+  - running-thread switch reset behavior
+  - return-to-new-conversation reset behavior
+  - running return-to-new-conversation cancellation plus scoped-state reset behavior
+  - stale async history load suppression
+  - unchanged `threadId` no-op behavior for repeated synchronization
+  - route catch-up suppression when URL writeback reflects the already active in-memory thread
+- Added [threadLoadError.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadLoadError.ts) to hold pure localized formatting for history-thread load failures.
+- Added [threadLoadError.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadLoadError.test.ts) as focused regression coverage for:
+  - preserving backend error detail under a localized load-failed prefix
+  - falling back to localized unknown-error copy when the thrown value has no usable message
+- Added [conversationHistoryView.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistoryView.ts) to hold pure helpers for:
+  - history list item view-model generation
+  - blocking-vs-list panel state resolution so existing items stay visible during follow-up refreshes
+  - responsive history-panel layout resolution for desktop sider vs narrow-screen drawer behavior
+  - explicit drawer-toggle visibility in the responsive header layout contract
+  - `threadId` search-param write / clear behavior without dropping unrelated params
+  - pending-new-thread route writeback gating for `threadId`, including replacement of a stale invalid route thread after recovery send
+  - active history-thread resolution that uses the route `threadId` first and falls back to the in-memory current thread while route writeback is pending
+  - explicit recovery detection for “failed route thread -> next send starts a new conversation”
+  - chat status-indicator visibility decisions so recoverable thread-load errors, disconnects, and running state are only hidden when there is truly nothing to show
+- Added [conversationHistoryView.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistoryView.test.ts) as targeted regression coverage for:
+  - active item and formatted time rendering inputs
+  - panel blocking-state decisions for empty/loading/error/list rendering
+  - responsive header / drawer / sider layout decisions across desktop and narrow-screen modes
+  - persistent history-toggle visibility plus collapsed-vs-open behavior across desktop and narrow-screen modes
+  - suppressing persistent chat-surface alerts for recoverable route-thread failures
+  - marking recoverable route-thread failures for one-shot top-right notification feedback
+  - URL search-param updates for selecting or clearing a thread
+  - route writeback suppression while clearing an existing thread
+  - replacing a stale invalid route thread when a recovery send materializes a new conversation
+  - preserving failed-route recovery after the dismissible inline error copy is closed
+  - active history-thread fallback while URL writeback is catching up
+  - detecting the failed-route recovery-send path before the next user message seeds a new thread
+- Updated [conversation.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversation.ts) to expose `getConversationHistoryListApi()` and reuse the normalization helper.
+- Added [agentUser.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/agentUser.ts) to read the current APO `userId` from the persisted store for `/agent` requests.
+- Updated [conversation.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversation.ts) to append `userId` query parameters on history API requests.
+- Updated [conversation.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversation.ts) again so creator-scoped history list calls can take an explicit caller-provided `userId`, while history message replay deliberately stays `threadId`-only to preserve URL direct-open / lightweight sharing semantics.
+- Added [conversationRequestParams.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationRequestParams.ts) to keep request-param construction explicit: history-list params may include creator-scoped `userId`, but message replay params only include `threadId`.
+- Updated [agentUser.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/agentUser.ts) to export a reusable `normalizeAgentUserId()` helper for runtime identity gating.
+- Updated [AGUIContext.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/AGUIContext.tsx), [ag-ui-client.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/services/ag-ui-client.ts), and [agent/index.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/views/agent/index.tsx) so AGUI streaming runs now carry `userId` in request body `forwardedProps`, while removing the temporary custom-header passthrough.
+- Updated [conversationHistory.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistory.ts) to parse canonical owner-side `conversations` / `continuation` envelopes in addition to the rollout aliases.
+- Updated [AGUIContext.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/AGUIContext.tsx) to:
+  - expose explicit `openThread()` / `resetToNewConversation()` thread transition entry points
+  - reset messages, run state, findings caches, and current thread state before switching
+  - cancel or detach the previous run before loading another thread
+  - ignore stale history load results after a newer transition starts
+  - format thread-load failures through localized copy instead of a hard-coded Chinese string
+  - classify history-thread load failures as `not_found` vs `transient/unknown`, expose that kind through context state, and only keep recovery semantics for explicit invalid-thread cases
+  - clear the classified thread-load error state whenever a new run starts, a send begins, the route thread changes, or the user dismisses the error
+  - keep history replay requests `threadId`-only so valid shared deep links are not accidentally filtered by the current creator identity
+- Added [ConversationHistoryPanel.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/ConversationHistoryPanel.tsx) to render the `/agent` history panel body for both desktop sider and narrow-screen drawer modes, with loading, empty, error, selected, incremental load-more, and inline retry states.
+- Updated [AGUIChat/index.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/index.tsx) to:
+  - fetch creator-scoped history items on page load
+  - bound the first-page fetch to a fixed page size and keep the returned `nextCursor` / `hasMore` state for later pagination
+  - render the new left-side history panel beside the chat area
+  - drive history opening by URL `threadId`
+  - provide “new conversation” and history-item click actions through URL search params
+  - guard synchronization by actual `threadId` change, preventing callback identity churn from clearing in-memory new-conversation state or reloading the same history thread
+  - write a freshly created `threadId` back into the URL after the first user message without forcing an unnecessary `openThread()` reset
+  - optimistically insert the new thread into the left history list and schedule a follow-up refresh after the run settles
+  - avoid restoring the previous history thread when the user clears back to a new conversation
+  - merge late fetch responses with the current optimistic thread item until reconciliation succeeds
+  - ignore stale history-list responses that lost the request-order race
+  - keep the optimistic thread visible until a backend response explicitly includes that thread, instead of clearing optimism on any successful fetch
+  - retry pending optimistic reconciliation with bounded backoff after missing, failed, or superseded refreshes, and remove the optimistic ghost if the backend never confirms it
+  - reuse the pending thread id during manual refresh / retry so a user-triggered successful fetch can also finish reconciliation safely
+  - preserve latest-response-wins semantics by treating superseded refreshes as non-failures in the reconcile state machine
+  - keep reconcile effect scheduling independent from `historyLoading`, avoiding self-cancelled retries caused by the effect toggling its own loading flag
+  - reuse the current pending-refresh state object when a superseded reconcile keeps the same retry count, avoiding a redundant immediate reconcile after a newer manual retry succeeds
+  - pass a stable active history thread id to the history panel even when the URL `threadId` is momentarily absent during new-thread materialization
+  - preserve an already loaded active older thread item across page-one refreshes so selection remains visible after pagination-driven navigation
+  - append older history pages through cursor-based load-more while keeping creator-scoped ordering stable across pages
+  - supersede stale in-flight load-more requests when a full refresh starts, so obsolete page responses cannot re-open the spinner or append stale data after refresh
+  - switch to a left-side drawer on narrow screens, while keeping the fixed `Sider` layout on desktop
+  - keep the chat header visible in drawer mode even before the first message so mobile users still have a history-panel entry point
+  - default the history panel to a collapsed state on both desktop and narrow-screen entry, instead of opening the history list by default on desktop
+  - keep the chat header visible on desktop too, so the same toggle can reopen the collapsed desktop `Sider`
+  - pass the responsive history-toggle visibility contract into the chat header so drawer mode can reopen the history panel
+  - auto-close the narrow-screen history drawer after selecting a thread or starting a new conversation
+  - treat “failed deep-link thread load + next send” as a fresh conversation path, so the new thread is optimistically inserted and the stale route `threadId` is replaced instead of remaining authoritative
+  - materialize pending new-thread history items even while recovering from a stale invalid route `threadId`, so failed-deep-link recovery can still insert and reconcile the fresh thread without a full page refresh
+  - retain failed-route recovery state even after the inline error alert is dismissed, clearing it only when the route changes or a thread successfully becomes active
+  - show recoverable invalid-thread errors through the shared top-right notification helper once per failed route, instead of keeping a persistent inline alert inside the chat body
+  - gate creator-scoped history fetch, route-driven history replay, load-more, and first-message send behavior on a resolved current `userId`, preventing empty-identity first requests from racing ahead of user bootstrap
+  - pass the explicit resolved `userId` into creator-scoped history list requests instead of depending only on an imperative store read inside the request helper
+  - narrow failed-route recovery so only explicit invalid-thread failures can auto-recover into a fresh conversation; transient load failures now stay on the failing route instead of silently forking a new thread on the next send
+- Updated [ChatHeader.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/ChatHeader.tsx) to:
+  - restore the history drawer toggle button for narrow-screen mode
+  - use localized open / close tooltip copy for the history-panel trigger
+- Updated [ChatMain.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/ChatMain.tsx) to:
+  - remove the top `StatusIndicators` strip from the chat surface so the main area shows only quick questions, messages, and input
+  - keep persistent inline alerts only for non-recoverable chat-surface errors, while recoverable invalid-thread failures are handled by top-right notification feedback
+  - render a dedicated loading state while a selected history thread is being fetched with an empty message buffer, instead of flashing the initial quick-question landing view during thread switches
+  - identify loaded history threads whose visible transcript ends with a user turn and no saved assistant response
+- Updated [MessageList.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/MeesageRender/MessageList.tsx) to render that missing-assistant-response state as a local, non-persisted assistant-side notice after the replayed messages.
+- Updated [MessageItem.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/MeesageRender/MessageItem.tsx) so `FinalMessageSuffix` is gated by assistant role instead of raw `isFinal` alone.
+- Updated [InputArea.tsx](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/components/InputArea.tsx) so keyboard `Enter` submission follows the same in-flight `loading` guard as the send button, and the entire input can now be disabled until creator identity is ready.
+- Updated [conversationHistoryView.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistoryView.ts) to:
+  - add a pure identity-readiness gate for creator-scoped history behavior
+  - require explicit `not_found` classification before a routed thread can enter auto-recovery/new-thread send mode
+  - add a pure chat-surface state resolver so the main panel can distinguish loading-history from a true empty new conversation
+  - add a pure missing-assistant-response notice gate for idle history threads ending with a visible user message
+  - add a pure final-message-suffix gate so suffix actions are only attached to final assistant turns
+- Updated [threadLoadError.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadLoadError.ts) to:
+  - classify load failures into `not_found`, `transient`, and `unknown`
+  - recognize both human-readable and code-style not-found markers such as `thread not found` and `CONVERSATION_NOT_FOUND`
+- Updated [conversationHistoryView.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/api/conversationHistoryView.test.ts) and [threadLoadError.test.ts](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/contexts/threadLoadError.test.ts) with regression coverage for:
+  - requiring a stable `userId` before creator-scoped history requests and first-message send paths
+  - blocking transient route-thread failures from auto-recovering into a new conversation
+  - preserving auto-recovery only for explicit invalid-thread failures
+  - classifying missing-thread and transient-load errors correctly
+  - materializing pending new-thread history items while recovering from stale invalid route threads
+  - keeping replay request params free of creator-scoped `userId` while preserving explicit `userId` on creator-scoped history list params
+  - keeping the chat surface in a loading state, instead of rendering `QuickQuestions`, while an empty history thread is still loading
+  - showing the missing-assistant-response notice only for idle history threads whose visible transcript ends with a user turn
+  - preventing final-message suffix controls from rendering after final user turns
+- Updated [AGUIChat.module.scss](/Users/keting/workspace/product/commercial/apo/frontend/src/pro/components/AGUIChat/AGUIChat.module.scss) with the default-collapsed history-panel layout and token-driven light/dark sidebar surfaces, item states, and footer styling.
+- Updated [agent.json](/Users/keting/workspace/product/commercial/apo/frontend/public/locales/zh/pro/agent.json) and [agent.json](/Users/keting/workspace/product/commercial/apo/frontend/public/locales/en/pro/agent.json) with history panel copy, fallback title text, relative-time messages, load-more strings, and missing-assistant-response notice text.
+- Updated [agui.json](/Users/keting/workspace/product/commercial/apo/frontend/public/locales/zh/pro/agui.json) and [agui.json](/Users/keting/workspace/product/commercial/apo/frontend/public/locales/en/pro/agui.json) with localized history-thread load error copy.
+- Updated [package.json](/Users/keting/workspace/product/commercial/apo/frontend/package.json) to expose `npm run test:agent-history-contract` for both contract and thread-transition unit tests.
+
+## Document Updates
+
+- Updated change docs:
+  - [proposal.md](/Users/keting/workspace/product/commercial/apo/openspec/changes/add-agent-history-list/proposal.md)
+  - [spec.md](/Users/keting/workspace/product/commercial/apo/openspec/changes/add-agent-history-list/specs/agent-history-list/spec.md)
+  - [tasks.md](/Users/keting/workspace/product/commercial/apo/openspec/changes/add-agent-history-list/tasks.md)
+  - [implementation-summary.md](/Users/keting/workspace/product/commercial/apo/openspec/changes/add-agent-history-list/implementation-summary.md)
+- Updated supporting docs outside change docs:
+  - [2026-04-23-agent-history-list-design.md](/Users/keting/workspace/product/commercial/apo/docs/requirements/2026-04-23-agent-history-list-design.md)
+- Updated system docs:
+  - none
+
+## Design Deviations
+
+- No product-scope deviation in this slice.
+- The API helper still keeps a deterministic English placeholder as a low-level fallback, while the `/agent` UI now passes localized fallback title copy when fetching the history list.
+- During rollout, the consumer keeps accepting both canonical and legacy list envelopes; canonical `conversations` / `continuation` is now treated as the owner-side source of truth.
+- After review, the thread synchronization effect was tightened so it only reacts to real `threadId` changes, not incidental callback recreation from unrelated rerenders.
+- To avoid introducing a larger AGUI protocol change in this slice, first-message persistence feedback is handled with an optimistic list insert plus a follow-up refresh after the run settles, rather than waiting on a new explicit backend acknowledgement event.
+- After review, the route writeback path was narrowed again so only a pending new thread can populate `threadId`; this prevents clear/reset flows from rehydrating the previous thread through a stale in-memory `currentThreadId`.
+- After review, history-list refresh now preserves the optimistic thread item until a successful reconciliation fetch completes, removing the earlier race where a slower initial fetch could briefly hide the newly created thread.
+- After review, history-list refresh was tightened again so only the latest request revision may mutate component state; this closes the remaining race where an older request could still land after a newer reconciliation fetch.
+- After review, reconciliation no longer drops the optimistic thread marker on a generic 200 response; it now waits until the backend payload itself contains the pending thread before clearing the optimistic state.
+- After review, reconciliation was tightened again to keep retrying after failed or superseded refreshes instead of leaving the pending state stuck.
+- After review, optimistic reconciliation now has a bounded retry budget with backoff and explicit ghost-item removal, so creator-scoped history does not retain an unconfirmed thread forever.
+- After review, manual history refresh / retry now carries the pending thread identity too, preventing a user-triggered successful fetch from being misread as a missing thread during a later automatic reconcile.
+- After review, superseded refreshes are now modeled separately from true failures, so request-order races no longer burn reconcile retries or prematurely drop the optimistic item.
+- After review, the pending reconcile effect now gates only on chat activity state; it no longer depends on `historyLoading`, which previously caused the effect cleanup path to cancel its own in-flight reconciliation callback.
+- After review, superseded reconcile results now preserve referential equality for unchanged pending retry state, so a race-losing automatic refresh cannot schedule an extra immediate follow-up after a newer manual retry wins.
+- The history panel active state now falls back to the in-memory `currentThreadId` only when the URL has no `threadId`; once a route `threadId` exists, URL selection remains authoritative.
+- The list refresh path now intentionally carries forward a currently loaded older selected item only when the refreshed payload itself does not contain that thread; this keeps cross-page selection stable without overriding fresher backend copies when they do exist.
+- The history panel now uses an explicit “load more” footer with a fixed page size rather than implicit infinite scroll.
+- After review, the narrow-screen drawer header now includes a real reopen trigger; the previous “header stays visible in drawer mode” slice was not enough on its own because the toggle button was still commented out.
+- After review, the invalid-`threadId` error path no longer leaks a hard-coded Chinese string into English UI; the detail text is now wrapped by locale-owned copy.
+- After review, recoverable invalid-thread failures now use one-shot top-right notifications instead of relying on the removed top status strip or a persistent inline 404 in the chat body.
+- After review, the first user send from a failed deep-link `threadId` now explicitly becomes a fresh conversation recovery path and replaces the stale route thread instead of leaving URL/history selection pinned to the broken thread id.
+- After follow-up bug review, creator-scoped history behavior no longer races ahead of user bootstrap with an empty identity; `/agent` now waits for a resolved current `userId` before issuing creator-bound list or first-send requests.
+- After follow-up bug review, the failed-route recovery path is now intentionally narrower: only explicit invalid-thread failures may recover into a new conversation, while transient load failures remain retryable errors on the original route.
+- After follow-up bug review, pending new-thread history materialization no longer depends on the route lacking `threadId`; this keeps invalid-deep-link recovery from replacing the URL but skipping optimistic insertion/reconciliation for the fresh thread.
+- After follow-up contract review, message replay no longer sends explicit `userId`; creator-scoped identity is kept on list/create paths, while valid `threadId` direct-open replay remains independent from the current user's creator identity.
+- After bugfix review, dismissing the inline invalid-thread alert no longer clears the recovery state that the next send relies on; the route is only cleared or replaced by actual thread selection changes.
+- After bugfix review, keyboard `Enter` now respects the same history-load blocking as the send button, closing the remaining load-vs-send race window.
+- After UI review, the history panel now defaults to collapsed even on desktop, with the chat header kept visible as the single reopen control across desktop and narrow-screen layouts.
+- After UI review, the chat surface no longer shows the top status strip at all.
+- After UI review, empty-history-thread loading is no longer treated as the same visual state as an untouched new conversation, preventing history-thread switches from flashing back to the initial `/agent` landing questions.
+- After UI review, the history sidebar surfaces were tightened to theme-token-driven backgrounds and active states so both light and dark themes stay readable.
+- After UI review, the history-panel header now vertically aligns the title and new-conversation action, and history list rows no longer use filled background colors by default.
+- After UI review, the history sidebar background now reuses the same base container background as the main `/agent` surface instead of a separate gradient/layout background.
+- After UI review, history list item titles now stay on one line and truncate with an ellipsis when they are too long.
+- After UX review, history replay now treats a user-only saved turn as an incomplete saved response state and renders local explanatory copy instead of persisting or inventing an assistant answer.
+- After UX review, the final assistant action suffix is now explicitly assistant-only; a final user turn can be followed by the missing-response notice, but not by assistant answer controls.
+
+## Compatibility And Rollout
+
+- This slice is commercial-frontend only and stays inside `frontend/src/pro/**`.
+- No OSS sync is required for these files.
+- The paired owner-side AgentSRE change now binds creators by real user identity, returns creator-scoped history, and requires explicit `userId` request parameters for owner-sensitive paths.
+- The frontend now actively forwards `userId` on creator-scoped history list calls and AGUI streaming runs.
+- The frontend now also waits until a non-empty normalized `userId` is available before starting creator-scoped history fetches or first-send thread creation, reducing the chance of owner-side fallback identities during initial page bootstrap.
+- History replay requests intentionally remain `threadId`-only, because `/agent?threadId=...` direct-open / lightweight sharing is a separate一期 contract from the creator-scoped left-side list.
+- The frontend API helper now tolerates the canonical owner envelope (`conversations`, `continuation`) alongside rollout aliases (`items`, `nextCursor`, `hasMore`).
+- Frontend verification now has a checked-in entrypoint: `cd frontend && npm run test:agent-history-contract`.
+- Frontend thread switching now treats the URL `threadId` as the only active history-thread source in the runtime path, without re-enabling the disabled local session model.
+- The history panel already follows the creator-scoped `/conversations/list` contract and keeps opening a selected thread on the same `/agent` route.
+- The history panel now keeps the first screen bounded to `30` items per request and uses the backend `nextCursor` contract for subsequent creator-scoped pagination.
+- New-conversation first send now converges to the same `/agent?threadId=...` route shape as history-open flows, so refresh and direct revisit can reuse the same thread identity.
+- If a deep-linked `threadId` fails to load and the user sends a new message anyway, the frontend now intentionally creates a fresh thread and replaces the stale route `threadId` so URL state matches the actual conversation receiving the message.
+- Pending optimistic reconciliation now retries up to a bounded budget with `0s -> 1s -> 2s -> 4s` spacing before giving up and removing the unconfirmed local-only history item.
+- Narrow-screen runtime now keeps the same history-list contract and actions, but exposes them through an expandable drawer instead of a permanently visible sidebar.
+- Narrow-screen runtime now also has a localized header trigger to reopen the history drawer after it has been closed.
+- Desktop runtime now also reuses the same header reopen trigger because the fixed `Sider` starts collapsed by default.
+- Repo audit result: `GET /ai/api/v1/conversations/list` is currently wrapped by `getConversationHistoryListApi()` and consumed only by `frontend/src/pro/components/AGUIChat/index.tsx`; no separate APO page relies on the old all-conversations semantics.
+- Task status updated: 1.1 through 1.5, 2.1 through 2.9, and 3.1 through 3.7 are checked off based on the paired AgentSRE owner implementation, consumer-side `userId` query/body passthrough, history-panel behavior verification, i18n/runtime copy audit, thread-transition reset verification, URL/thread behavior verification, paginated history traversal audit, responsive history-panel capability audit, and repo-wide `/conversations/list` consumer audit.
+- Verification status: `cd frontend && npm run test:agent-history-contract` now passes with 60/60 tests, and `cd frontend && npm run build` succeeds. URL/thread validation now covers history-click URL replacement, initial deep-link route selection for refresh/manual/share entry, new-thread first-send writeback, invalid-`threadId` error visibility, one-shot top-right notification routing for recoverable invalid-thread failures, failed-route recovery send behavior, dismissal-safe failed-route recovery, stale-route recovery materializing the fresh thread into the history list, and canonical owner envelope normalization. Thread-isolation validation now also covers running history-thread switches, running return-to-new-conversation resets, stale async history-load suppression, scoped clearing of message / AGUI state / findings containers before the target thread is applied, and keyboard-send blocking while history load is still in flight. Chat-surface validation now covers empty history-thread loading so the main panel stays in a loading state instead of flashing the initial quick-question landing view. Pagination validation now also covers cursor-gated load-more application, stable cross-page descending order without duplicates, and preservation of an already opened older thread when the first page revalidates. New-conversation / history-continuation audit confirms that clearing a selected history thread removes `threadId` back to the `/agent` new-conversation state, while continuing from an opened history thread reuses the existing `currentThreadId` instead of allocating a new thread. The follow-up identity gating audit now also verifies that creator-scoped history behavior requires a stable current `userId` before issuing owner-bound requests, while replay request params stay free of creator-scoped `userId` filtering. Error-classification validation now confirms that only explicit invalid-thread failures enter route recovery, while transient load failures remain non-recoverable. Time-display validation covers the documented `timeValue` thresholds, consistent descending ordering, and deterministic fallback-title rendering for older data. Locale validation confirms that every history-list and thread-load-error key referenced by the `pro` frontend exists in both zh/en locale files with matching key structure. Responsive capability validation confirms desktop fixed-sider and narrow-screen drawer modes both preserve the same history open / history reopen / continue-on-thread flow through the shared `ConversationHistoryPanel` actions and route-thread runtime path. Owner-side helper regression tests in AgentSRE now also cover creator-scoped list filtering, canonical / legacy alias output, delete guard, stable user key parsing, and `syncause` exclusion.
+
+## Follow-ups
+
+- Confirm the deployed `/ai/api/v1/**` ingress path preserves the `userId` query/body contract end-to-end before AgentSRE.
+- If future consumers still depend on legacy `items` / `nextCursor` / `hasMore`, retire those aliases only after all callers move to canonical `conversations` / `continuation`.

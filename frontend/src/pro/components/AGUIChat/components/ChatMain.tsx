@@ -1,10 +1,16 @@
 import React from 'react'
-import { Layout } from 'antd'
+import { CloseOutlined } from '@ant-design/icons'
+import { Button, Layout, Spin } from 'antd'
 import MessageList from './MeesageRender/MessageList'
 import InputArea from './InputArea'
 import QuickQuestions from './QuickQuestions'
 import styles from '../AGUIChat.module.scss'
 import { useAGUIPermission } from 'src/pro/contexts/AGUIContext'
+import {
+  resolveChatMainConversationSurface,
+  resolveChatMainInlineAlert,
+  shouldShowMissingAssistantResponseNotice,
+} from 'src/pro/api/conversationHistoryView'
 
 const { Content } = Layout
 
@@ -35,9 +41,12 @@ interface ChatMainProps {
   runId: string | null
   currentStep: string | null
   error: string | null
+  hideInlineError?: boolean
   isConnected: boolean
   state: Record<string, any> | null
   inputText: string
+  inputDisabled?: boolean
+  isHistoryThread?: boolean
   onInputChange: (text: string) => void
   onSendMessage: (props?: { question?: string }) => void
   onCancelRun: () => void
@@ -55,11 +64,11 @@ const ChatMain: React.FC<ChatMainProps> = ({
   currentToolCall,
   isRunning,
   runId,
-  currentStep,
   error,
-  isConnected,
-  state,
+  hideInlineError = false,
   inputText,
+  inputDisabled = false,
+  isHistoryThread = false,
   onInputChange,
   onSendMessage,
   onCancelRun,
@@ -68,6 +77,17 @@ const ChatMain: React.FC<ChatMainProps> = ({
 }) => {
   // 快捷问答处理函数
   const { hasPermission, permissionLoading, dataPlaneExist, defaultModel } = useAGUIPermission()
+  const inlineAlert = resolveChatMainInlineAlert({ error, hideError: hideInlineError })
+  const conversationSurface = resolveChatMainConversationSurface({
+    messageCount: messages.length,
+    loading,
+  })
+  const showMissingAssistantResponseNotice = shouldShowMissingAssistantResponseNotice({
+    messages,
+    isHistoryThread,
+    loading,
+    isRunning,
+  })
 
   const handleQuickQuestion = (question?: string) => {
     if (ENABLE_SESSION_MANAGEMENT && onCreateSession) {
@@ -85,18 +105,24 @@ const ChatMain: React.FC<ChatMainProps> = ({
 
   return (
     <Content className={styles.main}>
-      {/* <StatusIndicators
-        error={error}
-        isConnected={isConnected}
-        currentStep={currentStep}
-        isRunning={isRunning}
-        runId={runId}
-        state={state}
-        onClearError={onClearError}
-      /> */}
+      {inlineAlert.showError && inlineAlert.message && (
+        <div className={styles.errorAlert}>
+          <span>{inlineAlert.message}</span>
+          <Button
+            type="text"
+            icon={<CloseOutlined />}
+            onClick={onClearError}
+            className={styles.errorClose}
+          />
+        </div>
+      )}
 
       {/* 消息区域或快捷问答 */}
-      {messages.length === 0 ? (
+      {conversationSurface === 'loading' ? (
+        <div className={styles.chatLoadingState}>
+          <Spin size="large" />
+        </div>
+      ) : conversationSurface === 'empty' ? (
         <QuickQuestions onQuestionClick={handleQuickQuestion} />
       ) : (
         <MessageList
@@ -105,6 +131,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
           loading={loading}
           currentToolCall={currentToolCall}
           isRunning={isRunning}
+          showMissingAssistantResponseNotice={showMissingAssistantResponseNotice}
         />
       )}
 
@@ -112,6 +139,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
       {!permissionLoading && hasPermission && dataPlaneExist && defaultModel && (
         <InputArea
           inputText={inputText}
+          disabled={inputDisabled}
           loading={loading}
           isRunning={isRunning}
           runId={runId}

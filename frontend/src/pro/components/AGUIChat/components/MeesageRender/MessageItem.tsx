@@ -11,6 +11,7 @@ import AgentToolDisplay from '../AgentToolDisplay'
 import ToolTag from '../ToolRender/ToolTag'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import FindingsMessageItem from './FindingsMessageItem'
+import { shouldRenderFinalMessageSuffix } from 'src/pro/api/conversationHistoryView'
 
 export type ToolKind = 'toolCall' | 'agentTool'
 
@@ -283,7 +284,7 @@ const MessageItem = (message: ExtendedAGUIMessage) => {
           className="mx-4 mt-2 text-[var(--ant-color-text-secondary)]"
         />
       )}
-      {message.isFinal && <FinalMessageSuffix />}
+      {shouldRenderFinalMessageSuffix(message) && <FinalMessageSuffix />}
     </div>
   )
 }

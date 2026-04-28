@@ -26,19 +26,33 @@ export class AGUIClient {
         };
 
         // 创建HttpAgent实例
+        const headers = {
+            ...(this.config.headers || {}),
+            ...(this.config.apiKey ? {
+                'Authorization': `Bearer ${this.config.apiKey}`,
+            } : {}),
+        };
         this.agent = new HttpAgent({
             url: this.config.baseUrl,
-            headers: this.config.apiKey ? {
-                'Authorization': `Bearer ${this.config.apiKey}`,
-            } : {},
+            headers,
         });
         this.agent.abortController = this.abortController;
+    }
+
+    private getHeaders(): Record<string, string> {
+        return {
+            ...(this.config.headers || {}),
+            ...(this.config.apiKey ? {
+                'Authorization': `Bearer ${this.config.apiKey}`,
+            } : {}),
+        };
     }
 
     // 开始运行Agent (适配我们的接口到官方SDK)
     async startRun(request: AGUIRunRequest): Promise<AGUIRunResponse> {
         console.log('startRun', request)
         try {
+            Object.assign(this.agent.headers, this.getHeaders());
             // 转换我们的请求格式到官方格式
             const runInput = {
                 threadId: request.threadId,
@@ -70,6 +84,7 @@ export class AGUIClient {
     // 订阅运行事件 (使用流式API)
     subscribeToRun(request: AGUIRunRequest, callback: (event: Event) => void): () => void {
         try {
+            Object.assign(this.agent.headers, this.getHeaders());
             this.agent.headers['Accept-Language'] = i18next.language;
             // 创建AbortController用于取消
             this.abortController = new AbortController();
@@ -208,4 +223,4 @@ export class AGUIClient {
         messages.push(message);
         await this.updateSessionState(sessionId, { messages });
     }
-} 
+}

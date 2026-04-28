@@ -14,6 +14,7 @@ interface InputAreaProps {
   loading: boolean
   isRunning: boolean
   runId: string | null
+  disabled?: boolean
   onInputChange: (text: string) => void
   onSendMessage: (props?: { question?: string }) => void
   onCancelRun: () => void
@@ -24,6 +25,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   loading,
   isRunning,
   runId,
+  disabled = false,
   onInputChange,
   onSendMessage,
   onCancelRun,
@@ -40,7 +42,7 @@ const InputArea: React.FC<InputAreaProps> = ({
     onSendMessage()
   }
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !isComposing && !isRunning) {
+    if (e.key === 'Enter' && !isComposing && !isRunning && !loading && !disabled) {
       e.preventDefault()
       onSendMessage() // 你自己的发送逻辑
     }
@@ -55,6 +57,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           onKeyDown={handleKeyPress}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
+          disabled={disabled}
           autoSize={{ minRows: 1, maxRows: 6 }}
           placeholder={t('inputArea.placeholder')}
           className="bg-transparent resize-none focus:outline-none border-none focus:border-none active:border-none"
@@ -95,7 +98,7 @@ const InputArea: React.FC<InputAreaProps> = ({
           icon={<TbSend2 />}
           className="flex-shrink-0  disabled:hover:bg-transparent"
           onClick={handleSendClick}
-          disabled={!inputText.trim() || loading}
+          disabled={!inputText.trim() || loading || disabled}
         />
       )}
     </div>
