@@ -162,6 +162,30 @@ To securely connect Syncause with ARMS, create a dedicated RAM user with minimal
 4. Copy the generated API key and paste it into the \`SigNoz API Key\` field in the configuration panel.
    * Only users with the **Admin** role can create or manage API keys.
    * If you do not have admin privileges, please contact your organization's administrator.`,
+    'elastic': `### Scope
+
+This page currently exposes **Elastic / ELK Log** onboarding only.
+
+If your team usually calls this stack **ELK**, APO connects to the **Elasticsearch** endpoint directly, not the Kibana URL.
+
+### Step 1: Get the Elasticsearch endpoint
+
+1. Use the Elasticsearch HTTPS endpoint directly.
+2. Elastic Cloud users can copy it from **Deployments** -> **Elasticsearch**.
+3. Self-managed users can use an address such as \`https://elastic.example.com:9200\`.
+
+### Step 2: Create an API Key
+
+1. Open **Stack Management** -> **API keys** in Elastic Cloud / Kibana, or create an Elasticsearch API key in your self-managed cluster.
+2. The key only needs read permission on the target log indices or data streams, for example \`logs-*\`.
+
+### Step 3: Fill APO and test
+
+1. Only fill in **Name**, **URL**, and **API Key** in the main flow. The **URL** here is the Elasticsearch **Address**.
+2. APO uses these defaults automatically: \`authType=apiKey\`, \`logIndexPattern=logs-*\`.
+3. Click **Test** and then **Connect**.
+4. For AgentSRE service log analysis, your Elastic logs should include common Kubernetes fields such as \`kubernetes.pod.name\` / \`k8s.pod.name\` and \`kubernetes.namespace\` / \`k8s.namespace.name\`. Standard Elastic Agent, Filebeat, and OpenTelemetry Kubernetes logs usually provide these fields automatically.
+5. A warning means the connection is valid, but APO could not confirm that the current log samples can be filtered by service instance. You can still save the integration, but AgentSRE may not find service-specific business logs until those fields are present.`,
     'skywalking': `### Configuration
 
 This integration requires only basic connection parameters. Simply fill in the following fields with information from your environment:
@@ -349,6 +373,30 @@ Grafana Cloud Tempo 不会自动生成 Service Graph（拓扑）数据。如果�
 4. 复制生成的 API 密钥并将其粘贴到配置面板中的 \`SigNoz API Key\` 字段。
    * 只有具有 **Admin** 角色的用户才能创建或管理 API 密钥。
    * 如果您没有管理员权限，请联系您组织的管理员。`,
+    'elastic': `### 当前范围
+
+当前页面先开放 **Elastic / ELK 日志 Log 接入**。
+
+如果你们内部习惯叫 **ELK**，这里对应的是 **Elasticsearch** 接入，不是 Kibana 页面地址。
+
+### 步骤 1：获取 Elasticsearch 地址
+
+1. 请直接使用 Elasticsearch 的 HTTPS endpoint。
+2. Elastic Cloud 用户可在 **Deployments** -> **Elasticsearch** 中复制 endpoint。
+3. 自建集群可使用类似 \`https://elastic.example.com:9200\` 的地址。
+
+### 步骤 2：创建 API Key
+
+1. 在 Elastic Cloud / Kibana 中进入 **Stack Management** -> **API keys**，或在自建集群里创建 Elasticsearch API Key。
+2. 这个 Key 只需要有目标日志索引或 data stream 的读取权限，例如 \`logs-*\`。
+
+### 步骤 3：填写 APO 并测试
+
+1. 主流程只需要填写 **名称**、**URL** 和 **API Key**，其中 **URL** 就是 Elasticsearch 的 **Address**。
+2. 系统会自动使用默认值：\`authType=apiKey\`、\`logIndexPattern=logs-*\`。
+3. 点击 **测试**，通过后再点击 **接入**。
+4. 如果要让 AgentSRE 按服务分析日志，Elastic 中的业务日志最好包含常见 Kubernetes 字段，例如 \`kubernetes.pod.name\` / \`k8s.pod.name\` 和 \`kubernetes.namespace\` / \`k8s.namespace.name\`。标准 Elastic Agent、Filebeat 或 OpenTelemetry Kubernetes 日志通常会自动带上这些字段。
+5. 如果结果是 warning，表示连接正常，但 APO 暂时无法确认当前日志样本能按服务实例过滤。仍然可以保存接入；等业务日志带有这些字段后，AgentSRE 才能稳定查到具体服务的日志。`,
     'skywalking': `### 配置
 
 此集成仅需要基本的连接参数。只需根据您的环境信息填写以下字段：

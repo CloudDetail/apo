@@ -24,7 +24,9 @@
     "defaultCollectionInfo": "默认仅采集核心关键数据，您可以通过配置允许探针采集更多数据，增强智能分析效果",
     "connectSuccess": "接入成功",
     "testSuccess": "测试连接成功",
-    "testFailed": "测试连接失败"
+    "testWarning": "测试连接成功，但需要关注",
+    "testFailed": "测试连接失败",
+    "fieldRequired": "该字段必填"
   },
   "warnings": {
     "signozMissingFdMetric": "SigNoz 数据源暂无主机 File Descriptor (FD) 指标"

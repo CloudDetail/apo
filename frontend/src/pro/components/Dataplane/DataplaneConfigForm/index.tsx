@@ -7,12 +7,45 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { DataplaneItem, DataplaneTypeItem } from 'src/pro/types/datasource'
 import { notify } from 'src/core/utils/notify'
-import LogsFormItem from 'src/core/components/Integration/LogsFormItem'
-import MetricsFormItem from 'src/core/components/Integration/MetricsFormItem'
-import TraceFormItem from 'src/core/components/Integration/TraceFormItem'
 import { useTranslation } from 'react-i18next'
 import i18n from 'src/i18n'
 import SetupGuide from '../DataplaneGuide'
+
+const ELASTIC_LOG_ONLY_CAPABILITIES = ['Log']
+const ELASTIC_DEFAULT_LOG_INDEX_PATTERN = 'logs-*'
+const ELASTIC_PRIMARY_PARAM_NAMES = ['address', 'apiKey']
+
+const isDataplaneItem = (
+  dataplaneParams: DataplaneTypeItem | DataplaneItem,
+): dataplaneParams is DataplaneItem => 'capability' in dataplaneParams
+
+const parseParams = (params: string) => {
+  try {
+    return JSON.parse(params || '{}')
+  } catch {
+    return {}
+  }
+}
+
+const normalizeElasticFormValues = (values: any) => {
+  const rawParams = values?.params || {}
+  const params: Record<string, string> = {}
+
+  ELASTIC_PRIMARY_PARAM_NAMES.forEach((name) => {
+    const value = rawParams[name]
+    if (typeof value === 'string' && value.trim()) {
+      params[name] = value.trim()
+    }
+  })
+  params.authType = 'apiKey'
+  params.logIndexPattern = ELASTIC_DEFAULT_LOG_INDEX_PATTERN
+
+  return {
+    ...values,
+    capability: ELASTIC_LOG_ONLY_CAPABILITIES,
+    params,
+  }
+}
 
 const DataplaneConfigForm = ({
   dataplaneParams,
@@ -23,24 +56,27 @@ const DataplaneConfigForm = ({
   onSave?: (apoConfig: any) => void
   readonly: boolean
 }) => {
-  const { t } = useTranslation('core/dataIntegration')
   const { t: tAgent } = useTranslation('pro/agentDatasource')
 
-  const { paramSpec, typeName, capabilitySpec, desc } = dataplaneParams
-  const capability = 'capabilitySpec' in dataplaneParams ? dataplaneParams.capabilitySpec : []
-  const params = 'params' in dataplaneParams ? dataplaneParams.params : '{}'
-  const name = 'name' in dataplaneParams ? dataplaneParams.name : ''
-  const id = 'id' in dataplaneParams ? dataplaneParams.id : undefined
+  const { paramSpec, typeName, capabilitySpec } = dataplaneParams
+  const isElastic = typeName?.toLowerCase() === 'elastic'
+  const capability = isElastic ? ELASTIC_LOG_ONLY_CAPABILITIES : capabilitySpec || []
+  const params = isDataplaneItem(dataplaneParams) ? dataplaneParams.params : '{}'
+  const name = isDataplaneItem(dataplaneParams) ? dataplaneParams.name : ''
+  const id = isDataplaneItem(dataplaneParams) ? dataplaneParams.id : undefined
   const [form] = Form.useForm()
   const [checkLoading, setCheckLoading] = useState(false)
   const [checkResult, setCheckResult] = useState<any>(null)
   const saveDataplane = (values: any) => {
-    values.params = JSON.stringify(values.params)
-    delete values.trace
-    delete values.log
-    delete values.metric
+    const payload = {
+      ...values,
+      params: JSON.stringify(values.params || {}),
+    }
+    delete payload.trace
+    delete payload.log
+    delete payload.metric
     const api = id ? updateDataplaneApi : createDataplaneApi
-    api(values)
+    api(payload)
       .then((res) => {
         notify({
           message: tAgent('messages.connectSuccess'),
@@ -48,17 +84,12 @@ const DataplaneConfigForm = ({
         })
       })
       .finally(() => {
-        onSave?.(values)
+        onSave?.(payload)
       })
   }
   const saveForm = () => {
     form.validateFields().then((values) => {
-      const info: Record<string, any> = {}
-      dataSourceConfigs.forEach(({ key }) => {
-        info[key] = values[key]
-      })
-
-      saveDataplane(values)
+      saveDataplane(isElastic ? normalizeElasticFormValues(values) : values)
     })
   }
   const testForm = () => {
@@ -66,10 +97,11 @@ const DataplaneConfigForm = ({
     form
       .validateFields()
       .then((values) => {
+        const normalizedValues = isElastic ? normalizeElasticFormValues(values) : values
         checkDataplaneDatasourceApi({
-          dataSource: values.typ,
-          attributes: JSON.stringify(values.params),
-          enabledCapabilities: capabilitySpec,
+          dataSource: normalizedValues.typ,
+          attributes: JSON.stringify(normalizedValues.params || {}),
+          enabledCapabilities: normalizedValues.capability || capabilitySpec,
         })
           .then((res) => {
             setCheckResult(res)
@@ -83,48 +115,67 @@ const DataplaneConfigForm = ({
       })
   }
   useEffect(() => {
+    const parsedParams = parseParams(params)
+    if (isElastic && !parsedParams.authType) {
+      parsedParams.authType = 'apiKey'
+    }
+    if (isElastic && !parsedParams.logIndexPattern) {
+      parsedParams.logIndexPattern = ELASTIC_DEFAULT_LOG_INDEX_PATTERN
+    }
     form.resetFields()
     form.setFieldsValue({
       id: id,
       typ: typeName,
       capability: capability || capabilitySpec,
-      params: JSON.parse(params || '{}'),
+      params: parsedParams,
       name: name || '',
     })
   }, [typeName, dataplaneParams])
-  const dataSourceConfigs = useMemo(
-    () => [
-      {
-        key: 'trace' as const,
-        label: t('traceIntegration'),
-        component: TraceFormItem,
-      },
-      {
-        key: 'metric' as const,
-        label: t('metricsIntegration'),
-        component: MetricsFormItem,
-      },
-      {
-        key: 'log' as const,
-        label: t('logsIntegration'),
-        component: LogsFormItem,
-      },
-    ],
-    [t],
-  )
 
   // 表单初始值
   const initialValues = useMemo(
     () => ({
-      capability: capabilitySpec || [],
+      capability: capability || [],
     }),
-    [capabilitySpec],
+    [capability],
   )
+
+  const shouldRenderParam = (name: string) => {
+    if (!isElastic) {
+      return true
+    }
+    return ELASTIC_PRIMARY_PARAM_NAMES.includes(name)
+  }
+
+  const isParamRequired = (item: any) => {
+    if (!isElastic) {
+      return !item?.optional
+    }
+    return ELASTIC_PRIMARY_PARAM_NAMES.includes(item.name)
+  }
+
+  const renderParamInput = (name: string) => {
+    if (name === 'apiKey') {
+      return <Input.Password />
+    }
+    return <Input />
+  }
+
+  const getParamLabel = (item: any) => {
+    if (isElastic && item.name === 'address') {
+      return 'URL'
+    }
+    if (isElastic && item.name === 'apiKey') {
+      return 'API Key'
+    }
+    return i18n.language === 'zh' ? item.desc : item.desc_en
+  }
+
   return (
     <div className="flex h-full gap-2">
       <div className="flex-1 flex flex-col h-full overflow-y-hidden w-1/2  px-4">
         <div className="flex flex-col gap-2 w-full flex-1 ">
-          {checkResult && checkResult.message && (
+          {checkResult && !checkResult.success && checkResult.message && (
             <Alert
               closable
               onClose={() => setCheckResult(null)}
@@ -140,7 +191,23 @@ const DataplaneConfigForm = ({
               type="error"
             />
           )}
-          {checkResult && checkResult.success && (
+          {checkResult && checkResult.success && checkResult.message && (
+            <Alert
+              closable
+              onClose={() => setCheckResult(null)}
+              showIcon
+              message={tAgent('messages.testWarning')}
+              description={
+                <>
+                  <span className="text-[var(--ant-color-text-secondary)]">
+                    {checkResult.message}
+                  </span>
+                </>
+              }
+              type="warning"
+            />
+          )}
+          {checkResult && checkResult.success && !checkResult.message && (
             <Alert
               closable
               onClose={() => setCheckResult(null)}
@@ -192,7 +259,7 @@ const DataplaneConfigForm = ({
               {/* <Form.Item name="note" label={tAgent('form.note')}>
                 <Input.TextArea rows={2} />
               </Form.Item> */}
-              {paramSpec?.children?.map((item) => (
+              {paramSpec?.children?.filter((item) => shouldRenderParam(item.name)).map((item) => (
                 <Form.Item
                   key={item.name}
                   name={['params', item.name]}
@@ -200,13 +267,18 @@ const DataplaneConfigForm = ({
                     <div>
                       {/* {item.name}
                   <span className="ml-2 text-xs text-[var(--ant-color-text-secondary)]"> */}
-                      {i18n.language === 'zh' ? item.desc : item.desc_en}
+                      {getParamLabel(item)}
                       {/* </span> */}
                     </div>
                   }
-                  rules={[{ required: !item?.optional }]}
+                  rules={[
+                    {
+                      required: isParamRequired(item),
+                      message: tAgent('messages.fieldRequired'),
+                    },
+                  ]}
                 >
-                  <Input />
+                  {renderParamInput(item.name)}
                 </Form.Item>
               ))}
 

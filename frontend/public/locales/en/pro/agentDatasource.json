@@ -24,7 +24,9 @@
     "defaultCollectionInfo": "By default, only core critical data is collected. You can configure the probe to collect more data to enhance intelligent analysis",
     "connectSuccess": "Connection successful",
     "testSuccess": "Test connection successful",
-    "testFailed": "Test connection failed"
+    "testWarning": "Test connection successful, with warnings",
+    "testFailed": "Test connection failed",
+    "fieldRequired": "This field is required"
   },
   "warnings": {
     "signozMissingFdMetric": "SigNoz data source does not provide host File Descriptor (FD) metrics"

@@ -6,6 +6,7 @@ import dynatrace from 'src/pro/assets/dynatrace.png'
 import nginx from 'src/pro/assets/nginx.png'
 import aliyun from 'src/core/assets/dataCollector/aliyun.svg'
 import prometheus from 'src/core/assets/dataCollector/prometheus.svg'
+import elastic from 'src/core/assets/dataCollector/elastic.svg'
 import loki from 'src/pro/assets/loki.svg'
 import tempo from 'src/pro/assets/tempo.svg'
 import openobserve from 'src/pro/assets/openobserve.png'
@@ -79,6 +80,8 @@ export const dataplaneIconMap = {
   'Prometheus': prometheus,
   'prometheus': prometheus,
   'prometheusmetric': prometheus,
+  'Elastic': elastic,
+  'elastic': elastic,
   'loki': loki,
   'Tempo': tempo,
   'tempo': tempo,
