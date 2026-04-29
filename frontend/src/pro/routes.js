@@ -13,6 +13,7 @@ const ChatAIPage = AuthRouter(React.lazy(() => import('src/pro/views/chatAI/inde
 const SlowReportPage = AuthRouter(React.lazy(() => import('src/pro/views/report/index')))
 const AgentDataplanePage = AuthRouter(React.lazy(() => import('src/pro/views/agentDataplane/index')))
 const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index')))
+const KnowledgeBasesPage = AuthRouter(React.lazy(() => import('src/pro/views/knowledgeBases/index')))
 const ProbeManagementPage = AuthRouter(React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')))
 
 const IntegrationSettings = AuthRouter(
@@ -88,6 +89,12 @@ let proRoutes = [
     element: AgentPage,
     hideSystemTimeRangePicker: true,
 
+  },
+  {
+    path: '/knowledge-bases',
+    name: '知识库管理',
+    element: KnowledgeBasesPage,
+    hideSystemTimeRangePicker: true,
   },
   {
     path: '/probe-management',

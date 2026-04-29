@@ -1,0 +1,69 @@
+.knowledgeBasesPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  min-height: 100%;
+}
+
+.header {
+  display: block;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.actions {
+  margin-left: auto;
+}
+
+.tableWrap {
+  min-height: 360px;
+}
+
+.uploadActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.previewList {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.previewItem {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ant-color-border, #f0f0f0);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .knowledgeBasesPage {
+    padding: 12px;
+  }
+
+  .toolbar,
+  .filters,
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions {
+    margin-left: 0;
+  }
+}

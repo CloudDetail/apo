@@ -11,6 +11,7 @@ import (
 )
 
 var validRouters = []Router{
+	{RouterTo: "/knowledge-bases", HideTimeSelector: true},
 	{RouterTo: "/service", HideTimeSelector: false},
 	{RouterTo: "/logs/fault-site", HideTimeSelector: true},
 	{RouterTo: "/logs/full", HideTimeSelector: false},
@@ -55,6 +56,7 @@ var validRouters = []Router{
 
 var sreRouters = []Router{
 	{RouterTo: "/agent", HideTimeSelector: true},
+	{RouterTo: "/knowledge-bases", HideTimeSelector: true},
 	{RouterTo: "/probe-management", HideTimeSelector: true},
 	{RouterTo: "/integration/alerts", HideTimeSelector: true},
 	{RouterTo: "/dataplane", HideTimeSelector: true},

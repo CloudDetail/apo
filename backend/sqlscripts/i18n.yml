@@ -30,6 +30,26 @@ agent:
       field_name: "abbreviation"
       entity_type: "menu"
 
+knowledgeBases:
+  key: "knowledgeBases"
+  i18n:
+    - language: "en"
+      translation: "Knowledge Bases"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "知识库管理"
+      field_name: "label"
+      entity_type: "menu"
+    - language: "en"
+      translation: "Knowledge"
+      field_name: "abbreviation"
+      entity_type: "menu"
+    - language: "zh"
+      translation: "知识库"
+      field_name: "abbreviation"
+      entity_type: "menu"
+
 workflows:
   key: "workflows"
   i18n:
@@ -876,6 +896,17 @@ MySQL大盘:
     field_name: "featureName"
   - language: "zh"
     translation: "智能体"
+    entity_type: "feature"
+    field_name: "featureName"
+知识库管理:
+  key: "知识库管理"
+  i18n:
+  - language: "en"
+    translation: "Knowledge Bases"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "知识库管理"
     entity_type: "feature"
     field_name: "featureName"
 探针管理:

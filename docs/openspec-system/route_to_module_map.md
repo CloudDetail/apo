@@ -45,6 +45,7 @@
 | `/dataplane` | `frontend/src/pro/views/agentDataplane/index.tsx` | `dataplane-and-topology-governance` | `/api/dataplane/*` | 数据平面治理入口。 |
 | `/system/platform-manage` | `frontend/src/pro/views/platformManage/index.tsx` | `platform-administration` | `/api/license/current`, `/api/license/upload`, `/api/app/logo`, `/api/app/upload` | 平台管理主页。 |
 | `/agent` | `frontend/src/pro/views/agent/index.tsx` | `conversational-diagnosis-and-reporting` | 外部 `/ai/api/*` | Agent 交互页面。 |
+| `/knowledge-bases` | `frontend/src/pro/views/knowledgeBases/index.tsx` | `ops-knowledge-base-management` | 外部 `/rag/api/kb/*` | 知识库管理页面；已通过后端 `knowledgeBases` 顶层菜单元数据接入侧边栏。 |
 | `/probe-management` | `frontend/src/core/views/IntegrationCenter/DataIntegration/index.tsx` | `data-ingestion-and-oneagent` | `/api/integration/*` | 路由名称指向 ProbeInstaller，但组件实际复用 DataIntegration。 |
 | `/probe-management/settings` | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/index.tsx` | `data-ingestion-and-oneagent` | `/api/integration/*` | Probe 管理配置页。 |
 

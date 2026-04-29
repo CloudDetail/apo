@@ -31,6 +31,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		MenuKey     string
 	}{
 		{"智能体", "agent"},
+		{"知识库管理", "knowledgeBases"},
 		{"服务概览", "service"},
 		{"故障现场日志", "faultSite"},
 		{"全量日志", "full"},

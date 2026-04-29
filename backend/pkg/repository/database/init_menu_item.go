@@ -19,6 +19,7 @@ type menuMapping struct {
 var validMenuItemMappings = []menuMapping{
 	{MenuItem: MenuItem{Key: "agent", Order: 0}, RouterKey: "/agent"},
 	{MenuItem: MenuItem{Key: "service", Order: 1}, RouterKey: "/service"},
+	{MenuItem: MenuItem{Key: "knowledgeBases", Order: 2}, RouterKey: "/knowledge-bases"},
 	{MenuItem: MenuItem{Key: "workflows", Order: 3}, RouterKey: "/workflows"},
 	{MenuItem: MenuItem{Key: "alerts", Order: 4}},
 	{MenuItem: MenuItem{Key: "logs", Order: 5}},
@@ -53,6 +54,7 @@ var validMenuItemMappings = []menuMapping{
 
 var sreMenuItemMappings = []menuMapping{
 	{MenuItem: MenuItem{Key: "agent", Order: 0}, RouterKey: "/agent"},
+	{MenuItem: MenuItem{Key: "knowledgeBases", Order: 2}, RouterKey: "/knowledge-bases"},
 	{MenuItem: MenuItem{Key: "integration", Order: 33}},
 	{MenuItem: MenuItem{Key: "dataIntegration", Order: 35}, RouterKey: "/probe-management"},
 	{MenuItem: MenuItem{Key: "alertsIntegration", Order: 37}, RouterKey: "/integration/alerts"},

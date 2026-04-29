@@ -13,6 +13,7 @@ import (
 
 var validFeatures = []profile.Feature{
 	{FeatureName: "智能体"},
+	{FeatureName: "知识库管理"},
 	{FeatureName: "服务概览"},
 	{FeatureName: "工作流"},
 	{FeatureName: "告警分析"},
@@ -35,6 +36,7 @@ var validFeatures = []profile.Feature{
 
 var sreFeatures = []profile.Feature{
 	{FeatureName: "智能体"},
+	{FeatureName: "知识库管理"},
 	{FeatureName: "告警管理"}, {FeatureName: "告警通知"}, {FeatureName: "告警事件"},
 	{FeatureName: "接入中心"}, {FeatureName: "探针管理"}, {FeatureName: "告警集成"}, {FeatureName: "外部数据"},
 	{FeatureName: "系统管理"}, {FeatureName: "用户管理"}, {FeatureName: "菜单管理"},

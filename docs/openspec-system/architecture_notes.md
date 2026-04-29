@@ -55,6 +55,7 @@ router
 | Boundary | Evidence | Why It Must Stay Explicit |
 |---|---|---|
 | `/ai/api/*` | `frontend/src/pro/api/chatAI.ts`, `conversation.ts`, `modelSetting.ts` | 当前仓库前端明确依赖，但 `backend/pkg/router/router_api.go` 未注册对应主路由。 |
+| `/rag/api/kb/*` | `frontend/src/pro/api/knowledgeBase.ts`, `knowledgeBaseClient.ts`, `frontend/vite.config.mjs` | 知识库管理、文档导入状态和原文件下载由外部 rag-management 提供；当前仓库只提供 APO 前端页面、菜单权限元数据和开发态 `/rag` 转发。 |
 | `/originx/api/*` | `frontend/src/pro/api/cause.ts` | 作为外部诊断查询边界更安全。 |
 | `/dify/console/api/*` | `frontend/src/core/api/workflows.ts` | 当前仓库中主要表现为旁路登录/登出边界。 |
 | `/alert/api/v1/*` | `frontend/src/core/api/alerts.js` 部分调用 | 与 `/api/alerts/*` 并存，当前主后端未见等价注册。 |

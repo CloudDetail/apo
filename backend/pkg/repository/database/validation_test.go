@@ -17,6 +17,7 @@ func TestIsValidMenuItem(t *testing.T) {
 	}{
 		{"Valid menu item: service", "service", true},
 		{"Valid menu item: workflows", "workflows", true},
+		{"Valid menu item: knowledgeBases", "knowledgeBases", true},
 		{"Invalid menu item", "invalid", false},
 		{"Empty menu item", "", false},
 	}
@@ -57,6 +58,7 @@ func TestIsValidFeature(t *testing.T) {
 	}{
 		{"Valid feature: 服务概览", "服务概览", true},
 		{"Valid feature: 工作流", "工作流", true},
+		{"Valid feature: 知识库管理", "知识库管理", true},
 		{"Invalid feature", "feature3", false},
 		{"Empty feature", "", false},
 	}
@@ -124,6 +126,7 @@ func TestIsValidRouter(t *testing.T) {
 	}{
 		{"Valid router: /service", "/service", true},
 		{"Valid router: /logs/full", "/logs/full", true},
+		{"Valid router: /knowledge-bases", "/knowledge-bases", true},
 		{"Invalid router", "/api/v3", false},
 		{"Empty router", "", false},
 	}

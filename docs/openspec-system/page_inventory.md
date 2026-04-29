@@ -45,6 +45,7 @@
 | `/dataplane` | `frontend/src/pro/views/agentDataplane/index.tsx` | `dataplane-and-topology-governance` | Active |
 | `/system/platform-manage` | `frontend/src/pro/views/platformManage/index.tsx` | `platform-administration` | Active |
 | `/agent` | `frontend/src/pro/views/agent/index.tsx` | `conversational-diagnosis-and-reporting` | Active |
+| `/knowledge-bases` | `frontend/src/pro/views/knowledgeBases/index.tsx` | `ops-knowledge-base-management` | Active top-level menu route |
 | `/probe-management` | `frontend/src/core/views/IntegrationCenter/DataIntegration/index.tsx` | `data-ingestion-and-oneagent` | Active alias route |
 | `/probe-management/settings` | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/index.tsx` | `data-ingestion-and-oneagent` | Active alias route |
 
