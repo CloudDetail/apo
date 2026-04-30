@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type UIEvent } from 'react'
 import {
   Alert,
   Button,
@@ -7,6 +7,7 @@ import {
   Modal,
   Select,
   Space,
+  Spin,
   Table,
   Tag,
   Tooltip,
@@ -15,7 +16,7 @@ import {
   message,
 } from 'antd'
 import type { UploadFile } from 'antd/es/upload/interface'
-import { Download, RefreshCw, Trash2, UploadCloud } from 'lucide-react'
+import { Download, Eye, RefreshCw, Trash2, UploadCloud } from 'lucide-react'
 import {
   DEFAULT_KNOWLEDGE_BASE_ID,
   KNOWLEDGE_BASE_FILE_ACCEPT,
@@ -25,13 +26,17 @@ import {
   isIndexStatusTerminal,
   isKnowledgeBaseWritable,
   resolveKnowledgeBaseDownloadFilename,
+  resolveKnowledgeBasePreviewNextOffset,
   validateKnowledgeBaseFiles,
   type KnowledgeBaseDocument,
+  type KnowledgeBasePreviewNode,
   type KnowledgeBaseSummary,
+  type UploadedKnowledgeBaseDocumentPreview,
 } from 'src/pro/api/knowledgeBase'
 import {
   deleteKnowledgeBaseDocumentApi,
   downloadKnowledgeBaseDocumentApi,
+  getUploadedKnowledgeBaseDocumentPreviewApi,
   getKnowledgeBaseDocumentIndexStatusApi,
   getKnowledgeBaseDocumentsApi,
   getKnowledgeBasesApi,
@@ -44,6 +49,12 @@ const { Title } = Typography
 
 const INDEX_POLL_INTERVAL_MS = 3000
 const INDEX_POLL_MAX_ATTEMPTS = 40
+const PREVIEW_PAGE_SIZE = 50
+const PREVIEW_SCROLL_BOTTOM_THRESHOLD = 32
+
+type PreviewTarget =
+  | { type: 'uploadedDocument'; kbId: string; docId: string }
+  | { type: 'uploadFile'; kbId: string; file: File }
 
 const formatFileSize = (value?: number) => {
   if (!value) {
@@ -92,9 +103,19 @@ const KnowledgeBasesPage = () => {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([])
   const [uploading, setUploading] = useState(false)
-  const [previewing, setPreviewing] = useState(false)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [previewNodes, setPreviewNodes] = useState<KnowledgeBasePreviewNode[]>([])
+  const [previewTarget, setPreviewTarget] = useState<PreviewTarget>()
+  const [previewNextOffset, setPreviewNextOffset] = useState(0)
+  const [previewHasMore, setPreviewHasMore] = useState(false)
+  const [previewLoadingMore, setPreviewLoadingMore] = useState(false)
+  const previewListRef = useRef<HTMLDivElement>(null)
+  const previewLoadingMoreRef = useRef(false)
+  const previewRequestSeqRef = useRef(0)
+  const [previewingUploadFileUids, setPreviewingUploadFileUids] = useState<Set<string>>(() => new Set())
   const [pollingDocIds, setPollingDocIds] = useState<Set<string>>(() => new Set())
   const [downloadingDocIds, setDownloadingDocIds] = useState<Set<string>>(() => new Set())
+  const [previewingDocIds, setPreviewingDocIds] = useState<Set<string>>(() => new Set())
 
   const selectedKnowledgeBase = useMemo(
     () => knowledgeBases.find((item) => item.id === selectedKbId),
@@ -258,43 +279,167 @@ const KnowledgeBasesPage = () => {
     }
   }
 
-  const handlePreview = async () => {
-    const file = uploadFiles[0]?.originFileObj
-    if (!file) {
+  const startPreviewRequest = () => {
+    previewRequestSeqRef.current += 1
+    return previewRequestSeqRef.current
+  }
+
+  const isCurrentPreviewRequest = (requestSeq: number) => requestSeq === previewRequestSeqRef.current
+
+  const showPreviewModal = (
+    result: UploadedKnowledgeBaseDocumentPreview,
+    target: PreviewTarget,
+  ) => {
+    const nextOffset = resolveKnowledgeBasePreviewNextOffset(result)
+
+    setPreviewNodes(result.nodes)
+    setPreviewTarget(target)
+    setPreviewNextOffset(nextOffset)
+    setPreviewHasMore(nextOffset < result.total)
+    setPreviewLoadingMore(false)
+    previewLoadingMoreRef.current = false
+    setPreviewModalOpen(true)
+  }
+
+  const handlePreviewModalCancel = () => {
+    startPreviewRequest()
+    previewLoadingMoreRef.current = false
+    setPreviewLoadingMore(false)
+    setPreviewHasMore(false)
+    setPreviewModalOpen(false)
+  }
+
+  const loadNextPreviewPage = useCallback(async () => {
+    if (!previewTarget || !previewHasMore || previewLoadingMoreRef.current) {
+      return
+    }
+
+    const requestSeq = previewRequestSeqRef.current
+    previewLoadingMoreRef.current = true
+    setPreviewLoadingMore(true)
+
+    try {
+      const result = previewTarget.type === 'uploadFile'
+        ? await previewKnowledgeBaseDocumentApi(previewTarget.kbId, previewTarget.file, {
+          limit: PREVIEW_PAGE_SIZE,
+          offset: previewNextOffset,
+        })
+        : await getUploadedKnowledgeBaseDocumentPreviewApi(
+          previewTarget.kbId,
+          previewTarget.docId,
+          {
+            limit: PREVIEW_PAGE_SIZE,
+            offset: previewNextOffset,
+          },
+      )
+      if (!isCurrentPreviewRequest(requestSeq)) {
+        return
+      }
+
+      const nextOffset = resolveKnowledgeBasePreviewNextOffset(result)
+
+      setPreviewNodes((current) => [...current, ...result.nodes])
+      setPreviewNextOffset(nextOffset)
+      setPreviewHasMore(nextOffset < result.total)
+    } catch (error) {
+      if (isCurrentPreviewRequest(requestSeq)) {
+        message.error(extractKnowledgeBaseErrorMessage(error, '加载更多切片失败'))
+      }
+    } finally {
+      if (isCurrentPreviewRequest(requestSeq)) {
+        previewLoadingMoreRef.current = false
+        setPreviewLoadingMore(false)
+      }
+    }
+  }, [previewHasMore, previewNextOffset, previewTarget])
+
+  useEffect(() => {
+    if (!previewModalOpen || !previewHasMore || previewLoadingMore) {
+      return
+    }
+
+    const previewList = previewListRef.current
+    if (!previewList) {
+      return
+    }
+
+    if (previewList.scrollHeight <= previewList.clientHeight) {
+      loadNextPreviewPage()
+    }
+  }, [loadNextPreviewPage, previewHasMore, previewLoadingMore, previewModalOpen, previewNodes.length])
+
+  const handlePreviewScroll = (event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    const nearBottom = target.scrollTop + target.clientHeight >= target.scrollHeight - PREVIEW_SCROLL_BOTTOM_THRESHOLD
+
+    if (nearBottom) {
+      loadNextPreviewPage()
+    }
+  }
+
+  const handleUploadFilePreview = async (file: UploadFile) => {
+    const originFile = file.originFileObj
+    const previewUid = file.uid
+    if (!originFile) {
       message.warning('请选择要预览的文档')
       return
     }
 
-    const errors = validateKnowledgeBaseFiles([file])
+    const errors = validateKnowledgeBaseFiles([originFile])
     if (errors.length > 0) {
       message.error(errors[0])
       return
     }
 
-    setPreviewing(true)
+    setPreviewingUploadFileUids((current) => new Set(current).add(previewUid))
+    const requestSeq = startPreviewRequest()
     try {
-      const result = await previewKnowledgeBaseDocumentApi(selectedKbId, file)
-      const nodes = Array.isArray(result?.nodes) ? result.nodes : []
-      Modal.info({
-        title: '切片预览',
-        width: 760,
-        content:
-          nodes.length > 0 ? (
-            <div className={styles.previewList}>
-              {nodes.slice(0, 20).map((node: any, index: number) => (
-                <div key={node.id ?? index} className={styles.previewItem}>
-                  {node.content ?? ''}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无切片内容" />
-          ),
+      const result = await previewKnowledgeBaseDocumentApi(selectedKbId, originFile, {
+        limit: PREVIEW_PAGE_SIZE,
+        offset: 0,
       })
+      if (!isCurrentPreviewRequest(requestSeq)) {
+        return
+      }
+
+      showPreviewModal(result, { type: 'uploadFile', kbId: selectedKbId, file: originFile })
     } catch (error) {
-      message.error(extractKnowledgeBaseErrorMessage(error, '预览失败'))
+      if (isCurrentPreviewRequest(requestSeq)) {
+        message.error(extractKnowledgeBaseErrorMessage(error, '预览失败'))
+      }
     } finally {
-      setPreviewing(false)
+      setPreviewingUploadFileUids((current) => {
+        const next = new Set(current)
+        next.delete(previewUid)
+        return next
+      })
+    }
+  }
+
+  const handlePreviewUploadedDocument = async (record: KnowledgeBaseDocument) => {
+    setPreviewingDocIds((current) => new Set(current).add(record.id))
+    const requestSeq = startPreviewRequest()
+
+    try {
+      const result = await getUploadedKnowledgeBaseDocumentPreviewApi(selectedKbId, record.id, {
+        limit: PREVIEW_PAGE_SIZE,
+        offset: 0,
+      })
+      if (!isCurrentPreviewRequest(requestSeq)) {
+        return
+      }
+
+      showPreviewModal(result, { type: 'uploadedDocument', kbId: selectedKbId, docId: record.id })
+    } catch (error) {
+      if (isCurrentPreviewRequest(requestSeq)) {
+        message.error(extractKnowledgeBaseErrorMessage(error, '预览失败'))
+      }
+    } finally {
+      setPreviewingDocIds((current) => {
+        const next = new Set(current)
+        next.delete(record.id)
+        return next
+      })
     }
   }
 
@@ -421,10 +566,18 @@ const KnowledgeBasesPage = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 230,
+      width: 300,
       fixed: 'right' as const,
       render: (_: unknown, record: KnowledgeBaseDocument) => (
         <Space>
+          <Button
+            icon={<Eye size={15} />}
+            size="small"
+            onClick={() => handlePreviewUploadedDocument(record)}
+            loading={previewingDocIds.has(record.id)}
+          >
+            预览
+          </Button>
           <Button
             icon={<Download size={15} />}
             size="small"
@@ -558,6 +711,18 @@ const KnowledgeBasesPage = () => {
           onChange={({ fileList }) => {
             setUploadFiles(fileList)
           }}
+          itemRender={(originNode, file) => (
+            <div className={styles.uploadFileItem}>
+              <div className={styles.uploadFileNode}>{originNode}</div>
+              <Button
+                size="small"
+                onClick={() => handleUploadFilePreview(file)}
+                loading={previewingUploadFileUids.has(file.uid)}
+              >
+                预览
+              </Button>
+            </div>
+          )}
         >
           <p className="ant-upload-drag-icon">
             <UploadCloud size={32} />
@@ -565,13 +730,36 @@ const KnowledgeBasesPage = () => {
           <p className="ant-upload-text">选择或拖入文档</p>
         </Upload.Dragger>
         <div className={styles.uploadActions}>
-          <Button onClick={handlePreview} loading={previewing} disabled={uploadFiles.length === 0}>
-            预览切片
-          </Button>
           <Button type="primary" onClick={handleUpload} loading={uploading} disabled={uploadFiles.length === 0}>
             上传
           </Button>
         </div>
+      </Modal>
+
+      <Modal
+        title="切片预览"
+        open={previewModalOpen}
+        width={760}
+        footer={null}
+        destroyOnClose
+        onCancel={handlePreviewModalCancel}
+      >
+        {previewNodes.length > 0 || previewHasMore || previewLoadingMore ? (
+          <div ref={previewListRef} className={styles.previewList} onScroll={handlePreviewScroll}>
+            {previewNodes.map((node, index) => (
+              <div key={node.id ?? index} className={styles.previewItem}>
+                {node.content ?? ''}
+              </div>
+            ))}
+            {previewLoadingMore ? (
+              <div className={styles.previewLoading}>
+                <Spin size="small" />
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无切片内容" />
+        )}
       </Modal>
     </div>
   )

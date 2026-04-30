@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: APO 提供知识库管理页面入口
-系统 SHALL 在 APO 商业前端提供“知识库管理”页面，并在 pro 构建中通过 `/knowledge-bases` route 渲染该页面。该页面 MUST 至少支持知识库列表、文档列表、上传文档、下载原文件、删除文档、导入状态查看、失败原因展示、刷新和空状态。
+系统 SHALL 在 APO 商业前端提供“知识库管理”页面，并在 pro 构建中通过 `/knowledge-bases` route 渲染该页面。该页面 MUST 至少支持知识库列表、文档列表、上传文档、上传前预览文档切片、预览已上传文档切片、下载原文件、删除文档、导入状态查看、失败原因展示、刷新和空状态。
 
 #### Scenario: 用户直达知识库管理页面
 - **WHEN** 用户在 pro 构建中访问 `/knowledge-bases`
@@ -103,6 +103,7 @@
 #### Scenario: 上传合法文件
 - **WHEN** 用户在 `syncause_default` 中选择合法格式且大小不超过限制的文件并确认上传
 - **THEN** 前端 MUST 调用 `POST /rag/api/kb/knowledge_bases/syncause_default/documents` 并使用表单字段 `file`
+- **AND** 请求体 MUST 使用 `chunk_method=separator` 和 `chunk_params={"separator":["\n\n","\n",".","。","?","？","!","！"," "],"chunk_size":1024,"chunk_overlap":100}`
 
 #### Scenario: 阻止 PDF 上传
 - **WHEN** 用户选择 `.pdf` 文件
@@ -117,7 +118,7 @@
 - **THEN** 页面 MUST 优先展示 `error_message`、`error` 或 `message` 中的上游错误信息
 
 ### Requirement: APO 支持上传前预览切片
-系统 SHALL 在可写知识库中支持调用上传前预览切片接口。预览接口 MUST 使用 `multipart/form-data`，文件字段 MUST 为 `file`，并且 MUST NOT 创建正式文档记录或要求 APO 前端写入向量索引。
+系统 SHALL 在可写知识库中支持调用上传前预览切片接口。预览接口 MUST 使用 `multipart/form-data`，文件字段 MUST 为 `file`，查询参数 MUST 使用 `limit` 和 `offset` 控制分页，并且 MUST NOT 创建正式文档记录、chunks 或要求 APO 前端写入向量索引。多文件待上传时，预览入口 MUST 归属于具体文件项，MUST NOT 使用只预览第一个文件的全局按钮。
 
 #### Scenario: 可写知识库展示预览入口
 - **WHEN** 当前知识库 `writable` 为 `true`
@@ -125,7 +126,55 @@
 
 #### Scenario: 预览请求使用 RAG preview 接口
 - **WHEN** 用户请求预览切片
-- **THEN** 前端 MUST 调用 `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview`
+- **THEN** 前端 MUST 调用 `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview?limit=50&offset=0`
+- **AND** 请求体 MUST 包含当前文件项对应的 `file`
+- **AND** 请求体 MUST 使用 `chunk_method=separator` 和 `chunk_params={"separator":["\n\n","\n",".","。","?","？","!","！"," "],"chunk_size":1024,"chunk_overlap":100}`，除非后续 UI 明确允许用户选择切片方法
+- **AND** 前端 MUST 归一化并展示返回的 `nodes[].content`
+
+#### Scenario: 上传前预览滚动加载后续切片
+- **WHEN** 上传前预览返回的 `total` 大于当前已加载切片数
+- **THEN** 页面 MUST 在预览弹窗滚动到底部时继续请求下一页
+- **AND** 如果当前已加载内容不足以撑出滚动条但仍有后续切片，页面 MUST 自动继续请求下一页
+- **AND** 后续请求 MUST 重新带同一个 `file`、`chunk_method` 和 `chunk_params`
+- **AND** 后续请求 MUST 使用 RAG 返回的 `offset + limit` 推进新的 `offset`，并保留 `limit=50`
+- **AND** 后续切片 MUST 追加到当前弹窗内容中
+
+#### Scenario: 上传前预览忽略过期请求
+- **WHEN** 用户在预览请求未完成前切换到另一个文件预览或关闭预览弹窗
+- **THEN** 旧请求返回的切片 MUST NOT 追加到新的预览弹窗
+- **AND** 旧请求失败时 MUST NOT 覆盖当前预览状态
+
+#### Scenario: 多文件上传时逐文件预览
+- **WHEN** 用户在上传弹窗中选择多个文件
+- **THEN** 每个文件项旁边 MUST 展示该文件自己的预览入口
+- **AND** 页面 MUST NOT 通过 `uploadFiles[0]` 或等价逻辑只预览第一个文件
+
+### Requirement: APO 支持预览已上传文档切片
+系统 SHALL 在文档列表操作列提供已上传文档切片预览入口。预览 MUST 通过 RAG 管理接口 `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview` 完成，APO 前端 MUST 使用接口的 `limit` 和 `offset` 查询参数做滚动分页加载，MUST 只展示 RAG 返回的 `nodes[].content`，MUST NOT 重新下载原文件、重新解析文件或重新索引文档。
+
+#### Scenario: 用户预览已上传文档切片
+- **WHEN** 用户点击某个文档的预览操作
+- **THEN** 前端 MUST 请求 `/rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview?limit=50&offset=0`
+- **AND** 预览请求 MUST 继续走同源 `/rag` 代理
+- **AND** 页面 MUST 在弹窗中展示返回的切片内容
+
+#### Scenario: 用户滚动加载后续切片
+- **WHEN** 已上传文档切片预览接口返回 `total` 大于当前已加载页
+- **THEN** 页面 MUST 在预览弹窗滚动到底部时使用下一页 `offset` 继续请求该 preview 接口
+- **AND** 如果当前已加载内容不足以撑出滚动条但仍有后续切片，页面 MUST 自动继续请求下一页
+- **AND** 下一页 `offset` MUST 按 RAG 返回的 `offset + limit` 推进，而不是按前端过滤后的切片数量推进
+- **AND** 后续切片 MUST 追加到当前弹窗内容中
+- **AND** 页面 MUST NOT 使用固定本地截断只展示前 20 条或前 50 条切片
+
+#### Scenario: 已上传文档预览忽略过期请求
+- **WHEN** 用户在预览请求未完成前切换到另一个文档预览或关闭预览弹窗
+- **THEN** 旧请求返回的切片 MUST NOT 追加到新的预览弹窗
+- **AND** 旧请求失败时 MUST NOT 覆盖当前预览状态
+
+#### Scenario: 切片预览弹窗继承当前主题
+- **WHEN** 页面展示已上传文档切片预览
+- **THEN** 前端 MUST 使用组件内受控弹窗或等价方式渲染弹窗
+- **AND** 前端 MUST NOT 使用脱离当前 AntD `ConfigProvider` 主题上下文的静态 `Modal.info()`
 
 ### Requirement: APO 支持删除可写知识库中的文档
 系统 SHALL 支持删除 `syncause_default` 中的文档。删除操作 MUST 只在可写知识库中展示，MUST 在提交前二次确认，并在删除失败时保留原列表状态。

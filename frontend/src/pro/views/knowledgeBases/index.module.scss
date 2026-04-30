@@ -40,6 +40,19 @@
   margin-top: 16px;
 }
 
+.uploadFileItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.uploadFileNode {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
 .uploadDragger {
   text-align: center;
 
@@ -63,6 +76,12 @@
   padding: 8px 0;
   border-bottom: 1px solid var(--ant-color-border, #f0f0f0);
   white-space: pre-wrap;
+}
+
+.previewLoading {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
 }
 
 @media (max-width: 768px) {

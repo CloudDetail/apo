@@ -33,7 +33,7 @@ APO 前端应按该文档的 `/api/kb/**` 接口调用，但在同源路径前�
 
 **Goals:**
 
-- 新增 APO 商业前端“知识库管理”页面，覆盖知识库列表、文档列表、上传、下载原文件、删除、导入状态和失败原因展示。
+- 新增 APO 商业前端“知识库管理”页面，覆盖知识库列表、文档列表、上传、上传前文档切片预览、已上传文档切片预览、下载原文件、删除、导入状态和失败原因展示。
 - 新增前端 RAG 管理 API wrapper，统一消费 `/rag/api/kb/**`。
 - 本地 Vite 开发态新增 `/rag` 代理，并 rewrite 掉 `/rag` 前缀。
 - 一期只允许写入 `syncause_default`，并用 RAG 返回的 `writable` 控制上传、预览和删除入口。
@@ -70,14 +70,21 @@ APO 只作为 consumer 适配以下接口：
 GET    /api/kb/knowledge_bases
 GET    /api/kb/knowledge_bases/{kb_id}
 GET    /api/kb/knowledge_bases/{kb_id}/documents
-POST   /api/kb/knowledge_bases/{kb_id}/documents/preview
+POST   /api/kb/knowledge_bases/{kb_id}/documents/preview?limit=50&offset=0
 POST   /api/kb/knowledge_bases/{kb_id}/documents
+GET    /api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview
 GET    /api/kb/documents/{doc_id}/index_status
 GET    /api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/download
 DELETE /api/kb/knowledge_bases/{kb_id}/documents/{doc_id}
 ```
 
 APO wrapper 负责 TypeScript 类型、响应归一化、错误消息提取和页面状态映射，但不重新定义上游 contract。
+
+已上传文档切片预览使用只读接口 `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview`。该接口按 `limit` 和 `offset` 滚动分页返回，APO 首次请求 `limit=50&offset=0`，弹窗滚动到底部后继续请求下一页并追加展示；如果当前页内容不足以撑出滚动条但 RAG 仍返回后续页，前端继续自动加载下一页，不能只依赖 `onScroll`。APO 只展示 RAG 返回的 `nodes[].content`，不重新下载原文件、不重新解析、不重新索引，也不使用固定本地截断替代分页；弹窗使用组件内受控 AntD `Modal`，避免静态 `Modal.info()` 脱离主题上下文。用户切换预览对象或关闭弹窗时，未完成的旧预览请求结果必须失效，不能追加到新的弹窗内容中。
+
+上传文档和上传前预览都使用 `multipart/form-data` 显式传递默认切片参数：`chunk_method=separator`、`chunk_params={"separator":["\n\n","\n",".","。","?","？","!","！"," "],"chunk_size":1024,"chunk_overlap":100}`。上传前预览使用 `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview?limit=50&offset=0`，请求体固定带当前文件项的 `file` 字段。该接口只用于上传前切片预览，不创建 documents、不创建 chunks、不写向量索引。
+
+上传前预览同样按 RAG 返回的 `total` 和当前页 `limit` 做滚动分页。APO 首次请求 `limit=50&offset=0`；如果用户滚动到预览弹窗底部或当前内容不足以撑出滚动条且仍有后续切片，前端按 `offset + limit` 推进下一页 offset，并继续用同一个 `File`、同一个 `chunk_method` 和同一个 `chunk_params` 重新发起下一页 `POST`，因为 RAG 不保存上传前预览状态。当上传弹窗选择多个文件时，预览按钮跟随每个待上传文件项展示，点击后只预览该文件，避免底部全局预览按钮默认读取第一个文件造成歧义。用户切换文件预览或关闭弹窗时，旧预览请求结果必须失效。
 
 Alternatives considered:
 
@@ -176,7 +183,7 @@ Alternatives considered:
 1. 先实现前端 API wrapper、类型和状态映射，并用 mock 或真实 RAG dev 服务验证契约。
 2. 新增 `/knowledge-bases` 页面和 pro route，保证直达路由可用。
 3. 增加 Vite `/rag` 开发代理，验证本地管理接口闭环。
-4. 接入文档列表、上传、删除、导入状态查询和错误处理。
+4. 接入文档列表、上传、上传前文档切片预览、已上传文档切片预览、删除、导入状态查询和错误处理。
 5. 决定是否进入主导航；如果进入，再处理菜单、权限和可能的 license gating。
 6. 生产上线前确认部署层 `/rag/api/kb/**` 转发链路。
 

@@ -38,7 +38,7 @@
 | API Family | Recommended Ownership | Frontend Wrappers | Current Status |
 |---|---|---|---|
 | `/ai/api/*` | `external-service-boundaries` | `frontend/src/pro/api/chatAI.ts`, `conversation.ts`, `modelSetting.ts` | 当前仓库未见主后端注册，视为外部 AI 边界。 |
-| `/rag/api/kb/*` | `external-service-boundaries` | `frontend/src/pro/api/knowledgeBase.ts`, `knowledgeBaseClient.ts` | 当前仓库未见主后端注册；开发态由 Vite `/rag` 代理转发到外部 rag-management，覆盖知识库管理、文档导入状态和原文件下载。 |
+| `/rag/api/kb/*` | `external-service-boundaries` | `frontend/src/pro/api/knowledgeBase.ts`, `knowledgeBaseClient.ts` | 当前仓库未见主后端注册；开发态由 Vite `/rag` 代理转发到外部 rag-management，覆盖知识库管理、文档导入状态、上传前文档切片预览、已上传文档切片预览和原文件下载。 |
 | `/originx/api/*` | `external-service-boundaries` | `frontend/src/pro/api/cause.ts` | 当前仓库未见主后端注册。 |
 | `/dify/console/api/*` | `external-service-boundaries` | `frontend/src/core/api/workflows.ts` | workflow console 旁路接口。 |
 | `/alert/api/v1/*` | `external-service-boundaries` | `frontend/src/core/api/alerts.js` 中历史调用 | 当前仓库未见主后端注册。 |

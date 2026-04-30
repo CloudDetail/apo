@@ -3,6 +3,11 @@ export const RAG_KB_API_PREFIX = '/rag/api/kb'
 export const MAX_KNOWLEDGE_BASE_FILE_SIZE = 20 * 1024 * 1024
 export const MAX_KNOWLEDGE_BASE_FILE_COUNT = 5
 export const KNOWLEDGE_BASE_FILE_ACCEPT = '.txt,.md,.docx,.csv,.xls,.xlsx'
+export const DEFAULT_KNOWLEDGE_BASE_CHUNK_PARAMS = {
+  separator: ['\n\n', '\n', '.', '。', '?', '？', '!', '！', ' '],
+  chunk_size: 1024,
+  chunk_overlap: 100,
+}
 
 export type KnowledgeBaseIndexStatus = 'pending' | 'indexing' | 'indexed' | 'failed'
 
@@ -65,6 +70,29 @@ export interface DocumentIndexStatusResult {
   errorMessage?: string
 }
 
+export interface KnowledgeBasePreviewNode {
+  id?: string
+  content: string
+  metadata?: Record<string, unknown>
+}
+
+export interface UploadedKnowledgeBaseDocumentPreview {
+  success?: boolean
+  kbId?: string
+  docId?: string
+  filename?: string
+  indexStatus?: KnowledgeBaseIndexStatus | string
+  total: number
+  limit: number
+  offset: number
+  nodes: KnowledgeBasePreviewNode[]
+}
+
+export interface UploadedDocumentPreviewRequest {
+  limit?: number
+  offset?: number
+}
+
 export interface IndexStatusDisplay {
   label: string
   color: 'default' | 'processing' | 'success' | 'error'
@@ -85,6 +113,14 @@ const readString = (value: unknown): string | undefined => {
 
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : undefined
+}
+
+const readNonEmptyStringPreservingWhitespace = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+
+  return value.trim().length > 0 ? value : undefined
 }
 
 const readNumber = (value: unknown): number | undefined =>
@@ -212,6 +248,36 @@ export const buildDocumentListRequestParams = ({
 export const buildKnowledgeBaseDocumentDownloadUrl = (kbId: string, docId: string) =>
   buildKnowledgeBaseApiPath('knowledge_bases', kbId, 'documents', docId, 'download')
 
+export const buildKnowledgeBaseDocumentPreviewUrl = (kbId: string, docId: string) =>
+  buildKnowledgeBaseApiPath('knowledge_bases', kbId, 'documents', docId, 'preview')
+
+const normalizeBoundedInteger = (
+  value: number | undefined,
+  defaultValue: number,
+  {
+    min,
+    max,
+  }: {
+    min: number
+    max?: number
+  },
+) => {
+  const integer = typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : defaultValue
+  const boundedMin = Math.max(integer, min)
+
+  return typeof max === 'number' ? Math.min(boundedMin, max) : boundedMin
+}
+
+export const buildDocumentPreviewRequestParams = ({
+  limit,
+  offset,
+}: UploadedDocumentPreviewRequest = {}) => ({
+  limit: normalizeBoundedInteger(limit, 50, { min: 0, max: 200 }),
+  offset: normalizeBoundedInteger(offset, 0, { min: 0 }),
+})
+
+export const buildUploadedDocumentPreviewRequestParams = buildDocumentPreviewRequestParams
+
 export const resolveKnowledgeBaseDownloadFilename = (contentDisposition: unknown, fallback: string) => {
   const disposition = readString(contentDisposition)
   if (!disposition) {
@@ -298,7 +364,7 @@ export const buildDocumentFormData = (
   file: File,
   {
     chunkMethod = 'separator',
-    chunkParams = { chunk_size: 512, chunk_overlap: 20 },
+    chunkParams = DEFAULT_KNOWLEDGE_BASE_CHUNK_PARAMS,
   }: {
     chunkMethod?: string
     chunkParams?: Record<string, unknown>
@@ -327,4 +393,49 @@ export const normalizeUploadResult = (value: unknown): UploadKnowledgeBaseDocume
     indexStatus: normalizeIndexStatus(data.index_status) ?? normalizeIndexStatus(data.indexStatus),
     errorMessage: readString(data.error_message) ?? readString(data.errorMessage),
   }
+}
+
+const normalizePreviewNode = (value: unknown): KnowledgeBasePreviewNode | null => {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const content = readNonEmptyStringPreservingWhitespace(value.content)
+  if (!content) {
+    return null
+  }
+
+  return {
+    id: readString(value.id),
+    content,
+    metadata: isRecord(value.metadata) ? value.metadata : undefined,
+  }
+}
+
+export const normalizeUploadedDocumentPreviewResponse = (value: unknown): UploadedKnowledgeBaseDocumentPreview => {
+  const data = isRecord(value) ? value : {}
+  const nodes = Array.isArray(data.nodes)
+    ? data.nodes.map((node) => normalizePreviewNode(node)).filter((node): node is KnowledgeBasePreviewNode => node !== null)
+    : []
+
+  return {
+    success: readBoolean(data.success),
+    kbId: readString(data.kb_id) ?? readString(data.kbId),
+    docId: readString(data.doc_id) ?? readString(data.docId),
+    filename: readString(data.filename),
+    indexStatus: normalizeIndexStatus(data.index_status) ?? normalizeIndexStatus(data.indexStatus),
+    total: readNumber(data.total) ?? nodes.length,
+    limit: readNumber(data.limit) ?? nodes.length,
+    offset: readNumber(data.offset) ?? 0,
+    nodes,
+  }
+}
+
+export const resolveKnowledgeBasePreviewNextOffset = (preview: Pick<
+  UploadedKnowledgeBaseDocumentPreview,
+  'limit' | 'nodes' | 'offset' | 'total'
+>) => {
+  const advance = preview.limit > 0 ? preview.limit : preview.nodes.length
+
+  return Math.min(preview.offset + advance, preview.total)
 }

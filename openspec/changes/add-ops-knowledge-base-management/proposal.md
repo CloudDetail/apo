@@ -4,9 +4,9 @@
 
 ## What Changes
 
-- 在 APO 商业前端新增“知识库管理”页面，用于展示知识库列表、文档列表、上传文档、下载原文件、删除文档、查看导入状态和失败原因。
+- 在 APO 商业前端新增“知识库管理”页面，用于展示知识库列表、文档列表、上传文档、上传前预览文档切片、预览已上传文档切片、下载原文件、删除文档、查看导入状态和失败原因。
 - 新增 APO 前端 RAG 管理 API wrapper，统一调用同源路径 `/rag/api/kb/**`，并由开发态代理转发到 `http://192.168.1.69:5003/api/kb/**`。
-- 按 `rag-management` 的 `docs/api/apo-knowledge-base-api.md` 作为管理接口契约，接入知识库列表、知识库详情、文档列表、上传前预览、上传并索引、文档导入状态、原文件下载和删除文档接口。
+- 按 `rag-management` 的 `docs/api/apo-knowledge-base-api.md` 作为管理接口契约，接入知识库列表、知识库详情、文档列表、上传前预览、上传并索引、已上传文档切片预览、文档导入状态、原文件下载和删除文档接口；上传前预览使用 `multipart/form-data` 并通过 `limit`、`offset` 查询参数分页读取切片。
 - 页面只向用户展示 RAG 明确返回 `writable === true` 的知识库；`support`、`intention_examples` 以及未声明可写的知识库不展示给用户管理。
 - 使用 RAG 返回的 `writable` 控制知识库可见性和上传、预览、删除入口；不再对 `syncause_default` 做字段缺失兜底。
 - 使用 `index_status` 展示文档导入状态，一期不引入 `job_id`、任务进度百分比或独立 jobs API。
@@ -37,8 +37,9 @@ None.
   - `GET /rag/api/kb/knowledge_bases`
   - `GET /rag/api/kb/knowledge_bases/{kb_id}`
   - `GET /rag/api/kb/knowledge_bases/{kb_id}/documents`
-  - `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview`
+  - `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview?limit=50&offset=0`
   - `POST /rag/api/kb/knowledge_bases/{kb_id}/documents`
+  - `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview`
   - `GET /rag/api/kb/documents/{doc_id}/index_status`
   - `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/download`
   - `DELETE /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}`

@@ -4,13 +4,18 @@ import {
   buildKnowledgeBaseApiPath,
   buildDocumentFormData,
   buildKnowledgeBaseDocumentDownloadUrl,
+  buildKnowledgeBaseDocumentPreviewUrl,
   buildDocumentListRequestParams,
+  buildDocumentPreviewRequestParams,
+  buildUploadedDocumentPreviewRequestParams,
   normalizeDocumentListResponse,
   normalizeKnowledgeBaseListResponse,
+  normalizeUploadedDocumentPreviewResponse,
   normalizeUploadResult,
   type DocumentIndexStatusResult,
   type DocumentListRequest,
   type KnowledgeBaseSummary,
+  type UploadedDocumentPreviewRequest,
 } from './knowledgeBase'
 
 export interface DeleteKnowledgeBaseDocumentResult {
@@ -36,10 +41,17 @@ export const getKnowledgeBaseDocumentsApi = async (kbId: string, params?: Docume
     await get(buildKnowledgeBaseApiPath('knowledge_bases', kbId, 'documents'), buildDocumentListRequestParams(params)),
   )
 
-export const previewKnowledgeBaseDocumentApi = async (kbId: string, file: File) =>
-  post(buildKnowledgeBaseApiPath('knowledge_bases', kbId, 'documents', 'preview'), buildDocumentFormData(file), {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+export const previewKnowledgeBaseDocumentApi = async (
+  kbId: string,
+  file: File,
+  params?: UploadedDocumentPreviewRequest,
+) =>
+  normalizeUploadedDocumentPreviewResponse(
+    await post(buildKnowledgeBaseApiPath('knowledge_bases', kbId, 'documents', 'preview'), buildDocumentFormData(file), {
+      params: buildDocumentPreviewRequestParams(params),
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  )
 
 export const uploadKnowledgeBaseDocumentApi = async (kbId: string, file: File) =>
   normalizeUploadResult(
@@ -79,3 +91,12 @@ export const deleteKnowledgeBaseDocumentApi = async (
 
 export const downloadKnowledgeBaseDocumentApi = async (kbId: string, docId: string) =>
   get(buildKnowledgeBaseDocumentDownloadUrl(kbId, docId), {}, { responseType: 'blob' })
+
+export const getUploadedKnowledgeBaseDocumentPreviewApi = async (
+  kbId: string,
+  docId: string,
+  params?: UploadedDocumentPreviewRequest,
+) =>
+  normalizeUploadedDocumentPreviewResponse(
+    await get(buildKnowledgeBaseDocumentPreviewUrl(kbId, docId), buildUploadedDocumentPreviewRequestParams(params)),
+  )

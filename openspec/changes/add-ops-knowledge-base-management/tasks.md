@@ -26,12 +26,13 @@
 
 - [x] 4.1 实现上传入口，只允许可写知识库上传，并限制一期格式为 `.txt`、`.md`、`.docx`、`.csv`、`.xls`、`.xlsx`，明确阻止 PDF。
 - [x] 4.2 实现上传大小和数量校验：单文件不超过 20 MB，单次最多 5 个文件；多文件上传按 RAG 单文件接口逐个提交或按页面约束收敛为单文件提交。
-- [x] 4.3 实现上传前预览切片入口，使用 `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview`，并只在可写知识库展示。
+- [x] 4.3 实现上传前预览切片入口，使用 `POST /rag/api/kb/knowledge_bases/{kb_id}/documents/preview?limit=50&offset=0` 和 `multipart/form-data`，并只在可写知识库展示；多文件待上传时预览入口跟随具体文件项，不使用只预览第一个文件的全局按钮；滚动分页时重新带同一个文件、切片方法和切片参数请求下一页。
 - [x] 4.4 实现正式上传并索引，使用 `multipart/form-data` 和固定字段 `file`，上传成功后展示 `doc_id`、`index_status` 并刷新列表。
 - [x] 4.5 实现 `index_status` 映射和有界轮询：`pending`、`indexing`、`indexed`、`failed`，UI 分别展示为待处理、处理中、可用、处理失败，终态停止轮询；单行手动刷新入口放在导入状态列右侧。
 - [x] 4.6 实现处理失败原因展示；上游未返回原因时展示本地兜底文案。
 - [x] 4.7 实现删除文档二次确认、成功刷新、失败回滚；当返回 `failed_step` 时提示删除未完成且不直接移除列表项。
 - [x] 4.8 实现原文件下载入口，使用显式请求调用 `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/download` 并下载 blob，不在 APO 前端拼接 RAG 文件存储路径。
+- [x] 4.9 实现已上传文档切片预览入口，使用 `GET /rag/api/kb/knowledge_bases/{kb_id}/documents/{doc_id}/preview`，在操作列新增“预览”按钮，并用组件内受控 Modal 展示切片内容以继承当前主题。
 
 ## 5. AgentSRE Boundary And Existing Flow Safety
 
@@ -48,6 +49,8 @@
 - [x] 6.5 补充页面空状态、加载失败和仅展示可写知识库的交互验证。
 - [x] 6.6 补充原文件下载 URL、操作入口和导入状态列刷新入口验证。
 - [x] 6.7 运行前端构建或项目约定的最小验证命令，确认新增页面和 proxy 配置不会破坏现有编译。
+- [x] 6.8 补充已上传文档切片预览 URL、分页参数、响应归一化、操作入口、主题弹窗和上传弹窗逐文件预览验证。
+- [x] 6.9 补充上传前预览 multipart 表单默认切片参数、分页查询参数、响应归一化和滚动分页重传同一文件的验证。
 
 ## 7. Documentation And Rollout
 
