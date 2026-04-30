@@ -82,6 +82,7 @@ OneAgent / external alert source / external metrics source
 | `permission-menu-router-model` | `feature`、`menu`、`router`、`feature_mapping`、`router_insert_page` 与菜单路由装配。 |
 | `license-and-edition-gating` | `LicenseContext`、`LicMiddleware`、页面与 API 的能力开关。 |
 | `data-group-and-time-range-context` | `DataGroupContext`、time range reducer 对多个观测模块的共同影响。 |
+| `observability-data-sources` | Trace、Log、Metric、Event、Alert、Topology、AgentSRE findings 等后台数据来源、存储和查询入口。 |
 | `external-service-boundaries` | `/ai/api`、`/originx/api`、`/dify/console/api`、`/alert/api/v1` 等旁路或外部边界。 |
 
 ## Source Ownership Snapshot
@@ -106,13 +107,14 @@ OneAgent / external alert source / external metrics source
 
 1. 先读 [module_index.md](module_index.md) 确认模块边界。
 2. 再读 [frontend_backend_mapping.md](frontend_backend_mapping.md) 建立前后端对应关系。
-3. 如果要查路由、页面、API、模型清单，则继续看：
+3. 如果要理解后台数据从哪来，读 [observability_data_sources.md](observability_data_sources.md)。
+4. 如果要查路由、页面、API、模型清单，则继续看：
    - [route_to_module_map.md](route_to_module_map.md)
    - [page_inventory.md](page_inventory.md)
    - [api_to_module_map.md](api_to_module_map.md)
    - [api_inventory.md](api_inventory.md)
    - [model_inventory.md](model_inventory.md)
-4. 如果要进入模块细节，则从 `modules/<module>/module_overview.md` 继续。
+5. 如果要进入模块细节，则从 `modules/<module>/module_overview.md` 继续。
 
 ## Coverage Statement
 当前整编目标覆盖整个已实现系统，而不是单模块说明。按当前扫描结果：

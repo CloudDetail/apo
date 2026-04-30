@@ -47,6 +47,7 @@ interface ChatMainProps {
   inputText: string
   inputDisabled?: boolean
   isHistoryThread?: boolean
+  activeThreadId?: string
   onInputChange: (text: string) => void
   onSendMessage: (props?: { question?: string }) => void
   onCancelRun: () => void
@@ -69,6 +70,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
   inputText,
   inputDisabled = false,
   isHistoryThread = false,
+  activeThreadId,
   onInputChange,
   onSendMessage,
   onCancelRun,
@@ -131,6 +133,7 @@ const ChatMain: React.FC<ChatMainProps> = ({
           loading={loading}
           currentToolCall={currentToolCall}
           isRunning={isRunning}
+          activeThreadId={activeThreadId}
           showMissingAssistantResponseNotice={showMissingAssistantResponseNotice}
         />
       )}

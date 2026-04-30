@@ -47,7 +47,7 @@ None.
   - 外部 `rag-management` 知识库管理服务
   - AgentSRE `/agent` 问答消费链路保持现状，由 AgentSRE 自身负责 `ops_knowledge -> syncause_default` 检索路由
 - Dependencies:
-  - `rag-management` 管理接口契约：`/Users/keting/workspace/gitlabProject/rag-management/docs/api/apo-knowledge-base-api.md`
+  - `rag-management` 管理接口契约：`rag-management: docs/api/apo-knowledge-base-api.md`
   - 本地开发代理目标：`http://192.168.1.69:5003`
 - Governance:
   - 页面主体与 API wrapper 属于 `frontend/src/pro/**` 商业前端范围。

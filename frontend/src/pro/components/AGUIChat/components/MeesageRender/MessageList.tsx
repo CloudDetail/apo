@@ -11,6 +11,7 @@ interface MessageListProps {
   loading: boolean
   currentToolCall: any
   isRunning: boolean
+  activeThreadId?: string
   showMissingAssistantResponseNotice?: boolean
 }
 
@@ -18,6 +19,7 @@ const MessageList: React.FC<MessageListProps> = ({
   messages,
   currentMessage,
   isRunning,
+  activeThreadId,
   showMissingAssistantResponseNotice = false,
 }) => {
   const { theme } = useSelector((state: any) => state.settingReducer)
@@ -136,7 +138,9 @@ const MessageList: React.FC<MessageListProps> = ({
 
   return (
     <div ref={messagesContainerRef} className={styles.messagesArea}>
-      {filteredMessages.map(MessageItem)}
+      {filteredMessages.map((message) => (
+        <MessageItem key={message.id} message={message} activeThreadId={activeThreadId} />
+      ))}
       {showMissingAssistantResponseNotice && (
         <div className={`${styles.message} ${styles.assistant}`}>
           <div className={`${styles.messageContent} ${styles.historyMissingAssistantNotice}`}>

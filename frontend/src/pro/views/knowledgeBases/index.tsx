@@ -549,6 +549,7 @@ const KnowledgeBasesPage = () => {
         destroyOnClose
       >
         <Upload.Dragger
+          className={styles.uploadDragger}
           multiple
           accept={KNOWLEDGE_BASE_FILE_ACCEPT}
           maxCount={5}

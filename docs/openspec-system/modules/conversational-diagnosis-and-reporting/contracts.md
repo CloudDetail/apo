@@ -4,7 +4,7 @@
 
 本模块消费的 findings tree / evidence payload 的 producer-side canonical contract 不在当前仓，而在 AgentSRE：
 
-- [AgentSRE investigation_findings/contracts.md](/Users/keting/workspace/gitlabProject/AgentSRE/docs/openspec-backend/modules/investigation_findings/contracts.md)
+- `AgentSRE: docs/openspec-backend/modules/investigation_findings/contracts.md`
 
 当前商业仓只记录 consumer-side contract，也就是：
 
@@ -98,8 +98,8 @@ Batch 1 冻结的 consumer 侧策略如下：
 
 ## Related Documents
 
-- [module_overview.md](/Users/keting/workspace/product/commercial/apo/docs/openspec-system/modules/conversational-diagnosis-and-reporting/module_overview.md)
-- [frontend.md](/Users/keting/workspace/product/commercial/apo/docs/openspec-system/modules/conversational-diagnosis-and-reporting/frontend.md)
-- [dependencies.md](/Users/keting/workspace/product/commercial/apo/docs/openspec-system/modules/conversational-diagnosis-and-reporting/dependencies.md)
-- [AgentSRE investigation_findings/module_overview.md](/Users/keting/workspace/gitlabProject/AgentSRE/docs/openspec-backend/modules/investigation_findings/module_overview.md)
-- [AgentSRE investigation_findings/contracts.md](/Users/keting/workspace/gitlabProject/AgentSRE/docs/openspec-backend/modules/investigation_findings/contracts.md)
+- [module_overview.md](module_overview.md)
+- [frontend.md](frontend.md)
+- [dependencies.md](dependencies.md)
+- `AgentSRE: docs/openspec-backend/modules/investigation_findings/module_overview.md`
+- `AgentSRE: docs/openspec-backend/modules/investigation_findings/contracts.md`

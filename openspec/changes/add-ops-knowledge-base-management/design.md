@@ -13,7 +13,7 @@ AgentSRE：只读消费 RAG 检索结果，不参与知识库管理。
 当前 `rag-management` 已提供面向 APO 的管理接口文档：
 
 ```text
-/Users/keting/workspace/gitlabProject/rag-management/docs/api/apo-knowledge-base-api.md
+rag-management: docs/api/apo-knowledge-base-api.md
 ```
 
 APO 前端应按该文档的 `/api/kb/**` 接口调用，但在同源路径前加 `/rag` 前缀。开发态代理目标为 `http://192.168.1.69:5003`，即：

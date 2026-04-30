@@ -41,7 +41,22 @@ export interface ChatHistoryMessageLike {
 export interface FinalMessageSuffixMessageLike {
   role?: string
   isFinal?: boolean
+  content?: unknown
+  agentToolDisplay?: Array<{
+    toolName?: string
+    title?: string
+    content?: unknown
+  }>
+  findingsData?: {
+    result?: {
+      title?: unknown
+      content?: unknown
+    }
+  }
 }
+
+export type FinalMessageCopyTarget = 'response' | 'share'
+export type FinalMessageFeedbackTarget = 'positive' | 'negative'
 
 export const resolveChatMainConversationSurface = ({
   messageCount,
@@ -180,6 +195,113 @@ export const shouldShowMissingAssistantResponseNotice = ({
 
 export const shouldRenderFinalMessageSuffix = (message: FinalMessageSuffixMessageLike) =>
   Boolean(message.isFinal && message.role === 'assistant')
+
+export const getFinalMessageCopyText = (message: FinalMessageSuffixMessageLike) => {
+  if (!shouldRenderFinalMessageSuffix(message)) {
+    return ''
+  }
+
+  const parts = [
+    extractCopyText(message.content),
+    ...extractAgentToolDisplayCopyText(message.agentToolDisplay),
+    extractFindingsResultCopyText(message.findingsData?.result),
+  ].filter(Boolean)
+
+  return parts.join('\n\n')
+}
+
+export const getFinalMessageCopySuccessKey = (target: FinalMessageCopyTarget) =>
+  target === 'share' ? 'messageActions.copyLinkSuccess' : 'messageActions.copyResponseSuccess'
+
+export const isFinalMessageFeedbackSelected = (
+  selected: FinalMessageFeedbackTarget | undefined,
+  target: FinalMessageFeedbackTarget,
+) => selected === target
+
+const extractCopyText = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value.trim()
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+
+  return ''
+}
+
+const extractAgentToolDisplayCopyText = (
+  agentToolDisplay: FinalMessageSuffixMessageLike['agentToolDisplay'],
+): string[] => {
+  if (!Array.isArray(agentToolDisplay)) {
+    return []
+  }
+
+  return agentToolDisplay.flatMap((display) => {
+    if (display?.toolName !== 'result') {
+      return []
+    }
+
+    return extractResultFieldsCopyText(display.content)
+  })
+}
+
+const extractResultFieldsCopyText = (content: unknown): string[] => {
+  if (!content || typeof content !== 'object') {
+    return []
+  }
+
+  const fields = (content as { fields?: unknown }).fields
+  if (!Array.isArray(fields)) {
+    return []
+  }
+
+  return fields.flatMap((field) => {
+    if (!field || typeof field !== 'object') {
+      return []
+    }
+
+    const { key, label, children } = field as {
+      key?: unknown
+      label?: unknown
+      children?: unknown
+    }
+    if (key === 'evidence_json') {
+      return []
+    }
+
+    return [extractCopyText(label), extractCopyText(children)].filter(Boolean)
+  })
+}
+
+const extractFindingsResultCopyText = (
+  result: FinalMessageSuffixMessageLike['findingsData'] extends { result?: infer Result }
+    ? Result
+    : never,
+) => {
+  if (!result || typeof result !== 'object') {
+    return ''
+  }
+
+  const { title, content } = result as { title?: unknown; content?: unknown }
+  return [extractCopyText(title), extractCopyText(content)].filter(Boolean).join('\n\n')
+}
+
+export const buildFinalMessageShareUrl = ({
+  href,
+  threadId,
+}: {
+  href: string
+  threadId?: string
+}) => {
+  const url = new URL(href)
+
+  if (threadId) {
+    url.searchParams.set('threadId', threadId)
+  }
+
+  return url.toString()
+}
 
 export const buildThreadSearchParams = (search: string, threadId?: string) => {
   const params = new URLSearchParams(search)

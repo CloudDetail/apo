@@ -716,6 +716,7 @@ const AGUIChat: React.FC<AGUIChatProps> = ({ initialSessionId, threadId }) => {
           inputText={inputText}
           inputDisabled={!hasResolvedAgentUserId}
           isHistoryThread={Boolean(threadId)}
+          activeThreadId={activeHistoryThreadId}
           onInputChange={setInputText}
           onSendMessage={handleSendMessage}
           onCancelRun={handleCancelRun}

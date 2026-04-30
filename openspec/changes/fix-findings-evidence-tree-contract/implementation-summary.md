@@ -21,7 +21,7 @@
 
 ### AgentSRE owner-side changes
 
-外部 owner 仓 `/Users/keting/workspace/gitlabProject/AgentSRE` 已落地的关键实现包括：
+外部 owner 仓 `AgentSRE` 已落地的关键实现包括：
 
 - `api/controllers/findings_data.py`
   - findings payload 最终收口到 canonical node projection
@@ -37,7 +37,7 @@
 
 ### Commercial consumer-side changes
 
-当前仓 `/Users/keting/workspace/product/commercial/apo` 已落地的关键实现包括：
+当前商业仓已落地的关键实现包括：
 
 - `frontend/src/pro/api/conversation.ts`
   - 新增 findings canonical 类型定义
@@ -108,10 +108,10 @@
 
 以下文档位于 owner 仓，记录 producer-side canonical contract：
 
-- `/Users/keting/workspace/gitlabProject/AgentSRE/docs/openspec-backend/modules/investigation_findings/contracts.md`
-- `/Users/keting/workspace/gitlabProject/AgentSRE/docs/openspec-backend/modules/investigation_findings/backend.md`
-- `/Users/keting/workspace/gitlabProject/AgentSRE/openspec/changes/fix-findings-evidence-tree-contract/tasks.md`
-- `/Users/keting/workspace/gitlabProject/AgentSRE/openspec/changes/fix-findings-evidence-tree-contract/implementation-summary.md`
+- `AgentSRE: docs/openspec-backend/modules/investigation_findings/contracts.md`
+- `AgentSRE: docs/openspec-backend/modules/investigation_findings/backend.md`
+- `AgentSRE: openspec/changes/fix-findings-evidence-tree-contract/tasks.md`
+- `AgentSRE: openspec/changes/fix-findings-evidence-tree-contract/implementation-summary.md`
 
 ## Design Deviations
 

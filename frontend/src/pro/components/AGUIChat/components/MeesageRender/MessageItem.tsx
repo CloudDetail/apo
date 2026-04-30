@@ -235,7 +235,13 @@ const AnalysisMessageItem = ({ message }: { message: ExtendedAGUIMessage }) => {
   )
 }
 
-const MessageItem = (message: ExtendedAGUIMessage) => {
+const MessageItem = ({
+  message,
+  activeThreadId,
+}: {
+  message: ExtendedAGUIMessage
+  activeThreadId?: string
+}) => {
   const messageClass = `${styles.message} ${message.role === 'user' ? styles.user : styles.assistant}`
   return (
     <div key={message.id} className={messageClass}>
@@ -284,7 +290,9 @@ const MessageItem = (message: ExtendedAGUIMessage) => {
           className="mx-4 mt-2 text-[var(--ant-color-text-secondary)]"
         />
       )}
-      {shouldRenderFinalMessageSuffix(message) && <FinalMessageSuffix />}
+      {shouldRenderFinalMessageSuffix(message) && (
+        <FinalMessageSuffix message={message} activeThreadId={activeThreadId} />
+      )}
     </div>
   )
 }

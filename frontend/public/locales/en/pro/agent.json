@@ -121,6 +121,11 @@
     "newConversation": "New Conversation",
     "invalidDate": "Invalid Date"
   },
+  "messageActions": {
+    "copyResponseSuccess": "Response copied to clipboard",
+    "copyLinkSuccess": "Link copied to clipboard",
+    "copyFailed": "Copy failed"
+  },
   "history": {
     "title": "History",
     "newConversation": "New Conversation",

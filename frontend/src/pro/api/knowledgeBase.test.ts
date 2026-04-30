@@ -213,6 +213,20 @@ test('knowledge base page keeps filters in one toolbar without title description
   assert.match(toolbarSource, /上传文档/)
 })
 
+test('knowledge base upload dragger centers the icon and prompt text', () => {
+  const source = readFileSync(resolve(process.cwd(), 'src/pro/views/knowledgeBases/index.tsx'), 'utf8')
+  const stylesSource = readFileSync(resolve(process.cwd(), 'src/pro/views/knowledgeBases/index.module.scss'), 'utf8')
+  const uploadDraggerStart = source.indexOf('<Upload.Dragger')
+  const uploadActionsStart = source.indexOf('<div className={styles.uploadActions}>', uploadDraggerStart)
+  const uploadDraggerSource = source.slice(uploadDraggerStart, uploadActionsStart)
+
+  assert.match(uploadDraggerSource, /className={styles\.uploadDragger}/)
+  assert.match(stylesSource, /\.uploadDragger\s*{[\s\S]*text-align:\s*center;/)
+  assert.match(stylesSource, /:global\(\.ant-upload-drag-icon\)\s*{[\s\S]*display:\s*flex;/)
+  assert.match(stylesSource, /:global\(\.ant-upload-drag-icon\)\s*{[\s\S]*justify-content:\s*center;/)
+  assert.match(stylesSource, /:global\(\.ant-upload-text\)\s*{[\s\S]*text-align:\s*center;/)
+})
+
 test('knowledge base page only shows writable knowledge bases', () => {
   const source = readFileSync(resolve(process.cwd(), 'src/pro/views/knowledgeBases/index.tsx'), 'utf8')
 

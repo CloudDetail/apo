@@ -40,6 +40,20 @@
   margin-top: 16px;
 }
 
+.uploadDragger {
+  text-align: center;
+
+  :global(.ant-upload-drag-icon) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :global(.ant-upload-text) {
+    text-align: center;
+  }
+}
+
 .previewList {
   max-height: 420px;
   overflow: auto;

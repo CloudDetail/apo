@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 
 import {
   buildConversationHistoryItemViewModels,
+  buildFinalMessageShareUrl,
   buildThreadSearchParams,
+  getFinalMessageCopySuccessKey,
+  getFinalMessageCopyText,
+  isFinalMessageFeedbackSelected,
   resolveChatMainConversationSurface,
   resolveChatMainInlineAlert,
   shouldRenderFinalMessageSuffix,
@@ -327,6 +331,118 @@ test('renders final message suffix only after assistant responses', () => {
     }),
     false,
   )
+})
+
+test('uses final assistant message content as copy text', () => {
+  assert.equal(
+    getFinalMessageCopyText({
+      role: 'assistant',
+      isFinal: true,
+      content: 'Root cause summary\n\nRecommended action',
+    }),
+    'Root cause summary\n\nRecommended action',
+  )
+
+  assert.equal(
+    getFinalMessageCopyText({
+      role: 'user',
+      isFinal: true,
+      content: 'Do not copy user prompt',
+    }),
+    '',
+  )
+})
+
+test('includes final assistant result component text in copy text', () => {
+  assert.equal(
+    getFinalMessageCopyText({
+      role: 'assistant',
+      isFinal: true,
+      content: 'Analysis complete.',
+      agentToolDisplay: [
+        {
+          toolName: 'result',
+          title: 'Result',
+          content: {
+            fields: [
+              {
+                key: 'summary',
+                label: 'Summary',
+                children: 'Root cause: database latency.',
+              },
+              {
+                key: 'recommendation',
+                label: 'Recommendation',
+                children: 'Scale the database connection pool.',
+              },
+              {
+                key: 'evidence_json',
+                label: 'Evidence',
+                children: { nodes: [] },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+    [
+      'Analysis complete.',
+      'Summary',
+      'Root cause: database latency.',
+      'Recommendation',
+      'Scale the database connection pool.',
+    ].join('\n\n'),
+  )
+})
+
+test('includes completed findings result text in copy text', () => {
+  assert.equal(
+    getFinalMessageCopyText({
+      role: 'assistant',
+      isFinal: true,
+      content: 'Findings complete.',
+      findingsData: {
+        result: {
+          title: 'Final Result',
+          content: 'The checkout service is impacted by Redis timeouts.',
+        },
+      },
+    }),
+    [
+      'Findings complete.',
+      'Final Result',
+      'The checkout service is impacted by Redis timeouts.',
+    ].join('\n\n'),
+  )
+})
+
+test('builds a share URL that preserves existing route params and selects the thread', () => {
+  assert.equal(
+    buildFinalMessageShareUrl({
+      href: 'https://apo.example.com/agent?foo=bar',
+      threadId: 'thread-123',
+    }),
+    'https://apo.example.com/agent?foo=bar&threadId=thread-123',
+  )
+
+  assert.equal(
+    buildFinalMessageShareUrl({
+      href: 'https://apo.example.com/agent?foo=bar&threadId=old',
+      threadId: 'thread-123',
+    }),
+    'https://apo.example.com/agent?foo=bar&threadId=thread-123',
+  )
+})
+
+test('uses distinct success feedback keys for response and link copy actions', () => {
+  assert.equal(getFinalMessageCopySuccessKey('response'), 'messageActions.copyResponseSuccess')
+  assert.equal(getFinalMessageCopySuccessKey('share'), 'messageActions.copyLinkSuccess')
+})
+
+test('marks only the clicked final-message feedback action as selected', () => {
+  assert.equal(isFinalMessageFeedbackSelected('positive', 'positive'), true)
+  assert.equal(isFinalMessageFeedbackSelected('positive', 'negative'), false)
+  assert.equal(isFinalMessageFeedbackSelected(undefined, 'positive'), false)
 })
 
 test('shows an inline chat error alert when a thread-load error is present', () => {

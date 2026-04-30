@@ -10,8 +10,8 @@
 
 | Repository | Path | Role |
 |---|---|---|
-| Commercial Repo | `/Users/keting/workspace/product/commercial/apo` | 当前业务文档和商业实现所在仓库。 |
-| Upstream OSS Repo | `/Users/keting/workspace/githubProject/apo` | 当前已确认的开源基线仓库。 |
+| Commercial Repo | commercial apo repository | 当前业务文档和商业实现所在仓库。 |
+| Upstream OSS Repo | OSS apo repository | 当前已确认的开源基线仓库。 |
 
 ## Classification Model
 
@@ -188,7 +188,7 @@
 5. 对调用外部服务的增强能力，要同时记录“本仓实现”和“外部边界”，不要因为是商业特性就默认全部在本仓实现。
 
 ## Instruction Precedence
-本文件用于解释源码归属与分支治理规则，但真正的执行层约束以仓库根目录 [AGENTS.md](/Users/keting/workspace/product/commercial/apo/AGENTS.md) 为准。
+本文件用于解释源码归属与分支治理规则，但真正的执行层约束以仓库根目录 [AGENTS.md](../../AGENTS.md) 为准。
 
 如果 `AGENTS.md` 与本文件表述不一致，应优先遵守 `AGENTS.md`，再回头修正文档，避免解释性文档和执行规则漂移。
 

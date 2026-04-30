@@ -20,7 +20,7 @@
 
 ## 4. `apo-dataplane` Elastic Provider
 
-- [x] 4.1 在 `/Users/keting/workspace/gitlabProject/apo-dataplane/pkg/datasource/**` 中注册 `elastic` datasource，并补齐 provider factory、checker 和参数解析入口。
+- [x] 4.1 在 `apo-dataplane: pkg/datasource/**` 中注册 `elastic` datasource，并补齐 provider factory、checker 和参数解析入口。
 - [x] 4.2 实现 Elastic 共享客户端、认证处理和基础参数模型，支持 Elasticsearch endpoint 与 API Key；Basic Auth 作为 provider 预留能力，不在 APO UI 主流程开放。
 - [x] 4.3 实现 Elastic `LogProvider` 与默认字段映射，并支持 AgentSRE 传入的 `podName` / `k8sNamespace` 过滤。
 - [x] 4.4 扩展 `checkProvider` 逻辑，输出 Log-only warning，并保留顶层 `success/message` 兼容语义。

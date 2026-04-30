@@ -12,6 +12,7 @@
 - `architecture_notes.md`
 - `shared_infrastructure.md`
 - `frontend_backend_mapping.md`
+- `observability_data_sources.md`
 - `source_governance.md`
 - `module_index.md`
 - `file_to_module_map.md`

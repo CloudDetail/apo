@@ -27,7 +27,7 @@ None.
 - Code:
   - APO 商业仓 `/dataplane` 页面与 `frontend/src/pro/**` 相关配置 UI
   - APO 商业仓 `backend/sqlscripts/data_plane_type.sql` 及升级脚本
-  - 外部仓 `/Users/keting/workspace/gitlabProject/apo-dataplane/pkg/datasource/**`
+  - 外部仓 `apo-dataplane: pkg/datasource/**`
 - APIs:
   - `/api/dataplane/type/list`
   - `/api/dataplane/checkDatasource`
