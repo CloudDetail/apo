@@ -16,6 +16,7 @@ build:
   stage: build
   rules:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
+  - if: '$CI_COMMIT_BRANCH == "feat/agent-menus"'
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - |
@@ -41,7 +42,7 @@ build:
 manual_build:
   stage: build
   rules:
-  - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "enterprise"'
+  - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "enterprise" && $CI_COMMIT_BRANCH != "feat/agent-menus"'
     when: manual
   script:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
@@ -64,6 +65,7 @@ deploy-dev:
   image: 192.168.1.22:81/kindling/kubectl-cmd:latest
   rules:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
+  - if: '$CI_COMMIT_BRANCH == "feat/agent-menus"'
   script:
   - echo "TAG_NAME=$TAG_NAME"
   - echo "kubeconfig path is $KUBE_CONFIG_6"

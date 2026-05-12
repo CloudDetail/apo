@@ -25,6 +25,9 @@ trigger_frontend:
   - if: $CI_COMMIT_BRANCH == "enterprise" && $CI_PIPELINE_SOURCE != "trigger"
     changes:
     - frontend/**/*
+  - if: $CI_COMMIT_BRANCH == "feat/agent-menus" && $CI_PIPELINE_SOURCE != "trigger"
+    changes:
+    - frontend/**/*
 
 manual_trigger_backend:
   stage: triggers
