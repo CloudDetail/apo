@@ -88,6 +88,8 @@
     "requestMetrics": "Request Metrics",
     "reasoningTree": "Reasoning Tree",
     "loadingFindings": "Loading reasoning data...",
+    "retryNode": "Retry node",
+    "retryingNode": "Retrying",
     "noFindings": "No reasoning data",
     "serviceNormal": "Service Running Normally",
     "serviceNormalDesc": "This service is running normally, no reasoning required",
@@ -97,7 +99,11 @@
     "noData": "No data",
     "directionContains": "Contains {{count}} {{statusText}} in this direction - Click to focus",
     "abnormal": "abnormal",
-    "warning": "warning"
+    "warning": "warning",
+    "hydrationLoading": "Loading",
+    "hydrationFailed": "Failed",
+    "hydrating": "Hydrating",
+    "hydrationFailedDetail": "Hydration failed"
   },
   "status": {
     "normal": "Normal",

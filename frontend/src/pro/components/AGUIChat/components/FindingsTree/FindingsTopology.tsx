@@ -14,34 +14,17 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import FindingsNode from './FindingsNode'
 import { buildFindingsLayout } from './findingsLayout'
+import {
+  getNodeVisualStatus,
+  getStatusColor,
+  getStatusStrokeColor,
+} from './findingsTopologyPresentation'
 
 const NODE_WIDTH = 220
 const NODE_HEIGHT = 72
 const EDGE_BADGE_PADDING = 12
 // const _INITIAL_ZOOM = 1.2
 const BADGE_Z = 1000
-
-type VisualStatus = 'normal' | 'warning' | 'abnormal'
-
-const getNodeVisualStatus = (data?: Record<string, any>): VisualStatus => {
-  if (data?.visualStatus === 'abnormal' || data?.visualStatus === 'warning' || data?.visualStatus === 'normal') {
-    return data.visualStatus
-  }
-  if (data?.nodeKind === 'unsupported') {
-    return 'normal'
-  }
-  const status = data?.status
-  if (status === 'abnormal' || status === 'warning' || status === 'normal') {
-    return status
-  }
-  return 'normal'
-}
-
-const getStatusColor = (status: VisualStatus) =>
-  status === 'abnormal' ? '#ff4d6d' : status === 'warning' ? '#f59e0b' : '#22c55e'
-
-const getStatusStrokeColor = (status: VisualStatus) =>
-  status === 'abnormal' ? '#dc2626' : status === 'warning' ? '#d97706' : '#059669'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _BasicNode({ data }: any) {
@@ -118,6 +101,8 @@ export function FlowCore({
   const rf = useReactFlow()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const rafRef = useRef<number | null>(null)
+  const resizeFitRafRef = useRef<number | null>(null)
+  const lastContainerSize = useRef({ width: 0, height: 0 })
   const [isReactFlowReady, setIsReactFlowReady] = useState(false)
   const hasInitializedView = useRef(false) // 标记是否已完成初始视图定位
   const [miniMapSize, setMiniMapSize] = useState({ width: 200, height: 150 })
@@ -333,6 +318,50 @@ export function FlowCore({
   useEffect(() => {
     scheduleBadges()
   }, [nodes, edges, scheduleBadges])
+
+  useEffect(() => {
+    if (!isReactFlowReady || nodes.length === 0 || !containerRef.current) {
+      return
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+
+      const width = Math.round(entry.contentRect.width)
+      const height = Math.round(entry.contentRect.height)
+      if (width <= 0 || height <= 0) return
+      if (
+        lastContainerSize.current.width === width &&
+        lastContainerSize.current.height === height
+      ) {
+        return
+      }
+
+      lastContainerSize.current = { width, height }
+      if (resizeFitRafRef.current) {
+        cancelAnimationFrame(resizeFitRafRef.current)
+      }
+      resizeFitRafRef.current = requestAnimationFrame(() => {
+        resizeFitRafRef.current = null
+        try {
+          rf.fitView({ duration: 220, padding: 0.15 })
+          scheduleBadges()
+        } catch {
+          /* ignore */
+        }
+      })
+    })
+
+    observer.observe(containerRef.current)
+    return () => {
+      observer.disconnect()
+      if (resizeFitRafRef.current) {
+        cancelAnimationFrame(resizeFitRafRef.current)
+        resizeFitRafRef.current = null
+      }
+    }
+  }, [isReactFlowReady, nodes.length, rf, scheduleBadges])
 
   const onMove = () => scheduleBadges()
   const onMoveEnd = () => scheduleBadges()

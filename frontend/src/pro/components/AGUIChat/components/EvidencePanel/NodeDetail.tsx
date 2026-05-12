@@ -1,5 +1,5 @@
 import React from 'react'
-import { Card, Empty, theme, Tooltip } from 'antd'
+import { Alert, Button, Card, Empty, theme, Tooltip } from 'antd'
 import {
   ExclamationCircleFilled,
   CheckCircleFilled,
@@ -7,6 +7,7 @@ import {
   ApiOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { RefreshCw } from 'lucide-react'
 import StatusIcon, { useStatusLabel } from '../StatusIcon'
 import NodeLogs from './NodeLogs'
 import NodeTraces from './NodeTraces'
@@ -22,8 +23,10 @@ const { useToken } = theme
 interface NodeDetailProps {
   selectedNode: FindingsNodeData | null
   onClose?: () => void // Reserved for future use
+  onRetry?: (nodeId: string) => void
+  retryingNodeId?: string | null
 }
-const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
+const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode, onRetry, retryingNodeId }) => {
   const { token } = useToken()
   const { t } = useTranslation('pro/agui')
   const getStatusLabel = useStatusLabel()
@@ -77,6 +80,10 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
       : visualStatus === 'warning'
         ? token.colorWarningBorder
         : token.colorSuccessBorder
+  const isRetrying =
+    retryingNodeId === selectedNode.nodeId || selectedNode.hydrationStatus === 'running'
+  const canRetry =
+    selectedNode.hydrationStatus === 'failed' && selectedNode.retryable && Boolean(onRetry)
 
   return (
     <Card
@@ -135,6 +142,34 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode }) => {
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {selectedNode.hydrationStatus === 'failed' && (
+          <Alert
+            type="warning"
+            showIcon
+            message={selectedNode.errorMessage || t('evidencePanel.loadingFindings')}
+            description={[
+              selectedNode.errorType ? `type: ${selectedNode.errorType}` : null,
+              typeof selectedNode.attempt === 'number' ? `attempt: ${selectedNode.attempt}` : null,
+              selectedNode.retryable ? 'retryable' : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+            action={
+              canRetry ? (
+                <Button
+                  size="small"
+                  type="primary"
+                  loading={isRetrying}
+                  icon={isRetrying ? undefined : <RefreshCw size={14} />}
+                  onClick={() => onRetry?.(selectedNode.nodeId)}
+                >
+                  {isRetrying ? t('evidencePanel.retryingNode') : t('evidencePanel.retryNode')}
+                </Button>
+              ) : undefined
+            }
+          />
+        )}
+
         {selectedNode.badge && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-[var(--ant-color-text-secondary)]">

@@ -4,6 +4,12 @@ import {
   buildConversationMessagesRequestParams,
 } from './conversationRequestParams'
 import { stabilizeFindingsNodeStatus } from './findingsPresentation'
+import streamFetch from '../util/streamFetch'
+import {
+  consumeFindingsStreamResponse,
+  type FindingsStreamEvent,
+  type StreamFindingsDataHandlers,
+} from './findingsStream'
 import {
   DEFAULT_CONVERSATION_HISTORY_FALLBACK_TITLE,
   normalizeConversationHistoryListResponse,
@@ -19,6 +25,16 @@ export type {
 export type FindingsStatus = 'normal' | 'warning' | 'abnormal'
 
 export type FindingsNodeKind = 'summary' | 'evidence' | 'unsupported'
+
+export type FindingsHydrationStatus =
+  | 'pending'
+  | 'running'
+  | 'success'
+  | 'failed'
+  | 'unsupported'
+  | 'skipped'
+
+export type { FindingsStreamEvent, StreamFindingsDataHandlers }
 
 export interface FindingsMetricItem {
   title: string
@@ -92,6 +108,11 @@ export interface FindingsNodePayload {
   logs?: FindingsLogItem[]
   traces?: FindingsTraceData[]
   unsupportedReason?: string
+  hydrationStatus?: FindingsHydrationStatus
+  attempt?: number
+  retryable?: boolean
+  errorType?: string
+  errorMessage?: string
 }
 
 export interface FindingsDataResponse {
@@ -294,6 +315,19 @@ export const normalizeFindingsNode = (value: unknown): FindingsNodePayload | nul
     logs,
     traces,
     unsupportedReason,
+    hydrationStatus:
+      value.hydrationStatus === 'pending' ||
+      value.hydrationStatus === 'running' ||
+      value.hydrationStatus === 'success' ||
+      value.hydrationStatus === 'failed' ||
+      value.hydrationStatus === 'unsupported' ||
+      value.hydrationStatus === 'skipped'
+        ? value.hydrationStatus
+        : undefined,
+    attempt: typeof value.attempt === 'number' ? value.attempt : undefined,
+    retryable: typeof value.retryable === 'boolean' ? value.retryable : undefined,
+    errorType: readString(value.errorType),
+    errorMessage: readString(value.errorMessage),
   }
 }
 
@@ -364,4 +398,42 @@ export async function getFindingsDataApi(params: {
     },
   )
   return normalizeFindingsDataResponse(response)
+}
+
+export interface StreamFindingsDataParams {
+  threadId: string
+  serviceName: string
+  nodeId?: string
+  refresh?: boolean
+  signal?: AbortSignal
+}
+
+export async function streamFindingsDataApi(
+  params: StreamFindingsDataParams,
+  handlers: StreamFindingsDataHandlers,
+) {
+  const { signal, ...query } = params
+  const queryParams = new URLSearchParams(
+    Object.entries(query).reduce<Record<string, string>>((acc, [key, value]) => {
+      if (typeof value === 'string') {
+        acc[key] = value
+      } else if (typeof value === 'boolean') {
+        acc[key] = String(value)
+      }
+      return acc
+    }, {}),
+  ).toString()
+
+  const response = await streamFetch(
+    `/ai/api/v1/conversations/findings-data/stream?${queryParams}`,
+    {
+      method: 'GET',
+      signal,
+      headers: {
+        Accept: 'application/x-ndjson',
+      },
+    },
+  )
+
+  await consumeFindingsStreamResponse(response, handlers)
 }
