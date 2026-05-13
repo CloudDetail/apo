@@ -11,8 +11,22 @@ import {
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import ServiceDetail from './ServiceDetail'
-import { getFindingsDataApi } from '../../../../api/conversation'
-import type { FindingsNodePayload } from '../../../../api/conversation'
+import { streamFindingsDataApi } from '../../../../api/conversation'
+import type { FindingsStreamEvent } from '../../../../api/conversation'
+import {
+  applyFindingsStreamEvent,
+  abortStaleFindingsStreams,
+  buildFindingsCacheKey,
+  buildFindingsNodeRetryParams,
+  createPendingFindingsShell,
+  getFindingsStreamOverflowKey,
+  isTerminalFindingsPhase,
+  isWholeTreeDoneEvent,
+  runFindingsStreamRequest,
+  shouldStartFindingsStream,
+  shouldSyncSelectedFindings,
+  type FindingsCacheEntry,
+} from './findingsHydration'
 import { useAGUIState } from '../../../../contexts/AGUIContext'
 // @ts-ignore
 
@@ -359,6 +373,10 @@ const EvidencePanel = ({ data }: { data: any }) => {
   const [selectedService, setSelectedService] = useState<any>(null)
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false) // 初始非全屏
   const [loadingFindings, setLoadingFindings] = useState<boolean>(false) // findings 数据加载状态
+  const [retryingFindingsNode, setRetryingFindingsNode] = useState<{
+    cacheKey: string
+    nodeId: string
+  } | null>(null)
   const [isAnimating, setIsAnimating] = useState<boolean>(false) // 动画状态
 
   // 获取当前 threadId
@@ -386,56 +404,321 @@ const EvidencePanel = ({ data }: { data: any }) => {
     }
   }, [])
 
-  // findings 数据缓存：key 为 serviceName，value 为 findings 数据
-  const findingsCache = useRef<Map<string, FindingsNodePayload[] | null>>(new Map())
+  // findings 数据缓存：key 为 threadId:serviceName，value 为 stream hydration 状态
+  const findingsCache = useRef<Map<string, FindingsCacheEntry>>(new Map())
   // 正在请求的服务列表，避免重复请求
   const loadingServices = useRef<Set<string>>(new Set())
+  const activeFindingsKey = useRef<string | null>(null)
+  const findingsAbortControllers = useRef<Map<string, AbortController>>(new Map())
+  const findingsRetryAbortController = useRef<AbortController | null>(null)
+  const lastFindingsShellNodes = useRef<FindingsCacheEntry['nodes']>([])
+  const maxConcurrentFindingsStreams = 2
+
+  const abortFindingsStream = useCallback(
+    (cacheKey: string, phase: FindingsCacheEntry['phase'] = 'idle') => {
+      findingsAbortControllers.current.get(cacheKey)?.abort()
+      findingsAbortControllers.current.delete(cacheKey)
+      loadingServices.current.delete(cacheKey)
+
+      const cached = findingsCache.current.get(cacheKey)
+      if (cached && cached.phase === 'streaming') {
+        findingsCache.current.set(cacheKey, {
+          ...cached,
+          phase,
+        })
+      }
+    },
+    [],
+  )
+
+  const syncSelectedServiceFindings = useCallback((cacheKey: string) => {
+    if (activeFindingsKey.current !== cacheKey || !currentThreadId) {
+      return
+    }
+
+    const entry = findingsCache.current.get(cacheKey)
+    setSelectedService((prev) => {
+      if (
+        !prev ||
+        !shouldSyncSelectedFindings({
+          cacheKey,
+          activeKey: activeFindingsKey.current,
+          currentThreadId,
+          selectedServiceName: prev.serviceName,
+        })
+      ) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        evidence: {
+          ...prev.evidence,
+          findingsData: entry?.nodes,
+        },
+        findingsHydrationPhase: entry?.phase,
+        findingsErrorMessage: entry?.errorMessage,
+      }
+    })
+  }, [currentThreadId])
+
+  const updateFindingsCacheFromEvent = useCallback(
+    (
+      cacheKey: string,
+      event: FindingsStreamEvent,
+      options?: { preservePhase?: boolean; retryNodeId?: string },
+    ) => {
+      const current = findingsCache.current.get(cacheKey) ?? {
+        nodes: [],
+        phase: 'streaming' as const,
+      }
+
+      if (event.type === 'tree_failed') {
+        if (options?.preservePhase && options.retryNodeId) {
+          findingsCache.current.set(cacheKey, {
+            ...current,
+            nodes: applyFindingsStreamEvent(current.nodes, {
+              type: 'node_failed',
+              hydrationId: event.hydrationId ?? current.hydrationId ?? 'node-retry',
+              nodeId: options.retryNodeId,
+              retryable: true,
+              errorType: event.errorType,
+              message: event.message || event.errorType || 'Findings node retry failed',
+            }),
+            phase: current.phase,
+            hydrationId: event.hydrationId ?? current.hydrationId,
+          })
+          syncSelectedServiceFindings(cacheKey)
+          return
+        }
+
+        findingsCache.current.set(cacheKey, {
+          ...current,
+          nodes: current.hydrationId ? current.nodes : [],
+          phase: 'failed',
+          hydrationId: event.hydrationId ?? current.hydrationId,
+          errorMessage: event.message || event.errorType || 'Findings stream failed',
+        })
+        if (activeFindingsKey.current === cacheKey) {
+          setLoadingFindings(false)
+        }
+        syncSelectedServiceFindings(cacheKey)
+        return
+      }
+
+      if (event.type === 'tree_done') {
+        if (!isWholeTreeDoneEvent(event) || options?.preservePhase) {
+          findingsCache.current.set(cacheKey, {
+            ...current,
+            phase: current.phase,
+            hydrationId: event.hydrationId ?? current.hydrationId,
+          })
+          syncSelectedServiceFindings(cacheKey)
+          return
+        }
+
+        findingsCache.current.set(cacheKey, {
+          ...current,
+          phase: 'done',
+          hydrationId: event.hydrationId,
+        })
+        if (activeFindingsKey.current === cacheKey) {
+          setLoadingFindings(false)
+        }
+        syncSelectedServiceFindings(cacheKey)
+        return
+      }
+
+      if (event.type === 'tree_shell') {
+        lastFindingsShellNodes.current = createPendingFindingsShell(event.nodes)
+      }
+
+      findingsCache.current.set(cacheKey, {
+        ...current,
+        nodes: applyFindingsStreamEvent(current.nodes, event),
+        phase: options?.preservePhase ? current.phase : 'streaming',
+        hydrationId: event.hydrationId ?? current.hydrationId,
+      })
+      syncSelectedServiceFindings(cacheKey)
+    },
+    [syncSelectedServiceFindings],
+  )
 
   // 获取服务的 findings 数据（带缓存）
-  const fetchServiceFindingsData = useCallback(
-    async (serviceName: string): Promise<FindingsNodePayload[] | null> => {
+  const startServiceFindingsStream = useCallback(
+    async (serviceName: string) => {
       // 检查是否有 threadId
       if (!currentThreadId) {
         console.warn('无法获取 findings 数据：缺少 threadId')
-        return null
+        return
       }
 
+      const cacheKey = buildFindingsCacheKey(currentThreadId, serviceName)
+      const previousActiveKey = activeFindingsKey.current
+      if (previousActiveKey && previousActiveKey !== cacheKey) {
+        findingsRetryAbortController.current?.abort()
+        findingsRetryAbortController.current = null
+        setRetryingFindingsNode((current) =>
+          current?.cacheKey === previousActiveKey ? null : current,
+        )
+      }
+      activeFindingsKey.current = cacheKey
+      abortStaleFindingsStreams({
+        loadingKeys: loadingServices.current,
+        activeKey: cacheKey,
+        abort: abortFindingsStream,
+      })
+
       // 检查缓存
-      if (findingsCache.current.has(serviceName)) {
-        return findingsCache.current.get(serviceName)
+      let cached = findingsCache.current.get(cacheKey)
+      if (cached) {
+        syncSelectedServiceFindings(cacheKey)
+      } else if (!cached && lastFindingsShellNodes.current.length) {
+        findingsCache.current.set(cacheKey, {
+          nodes: createPendingFindingsShell(lastFindingsShellNodes.current),
+          phase: 'streaming',
+        })
+        cached = findingsCache.current.get(cacheKey)
+        syncSelectedServiceFindings(cacheKey)
       }
 
       // 检查是否正在请求中
-      if (loadingServices.current.has(serviceName)) {
-        return null
+      const isLoading = loadingServices.current.has(cacheKey)
+      if (
+        !shouldStartFindingsStream({
+          cachedPhase: cached?.phase,
+          isLoading,
+        })
+      ) {
+        setLoadingFindings(isLoading)
+        return
       }
+
+      if (isTerminalFindingsPhase(cached?.phase)) {
+        setLoadingFindings(false)
+        return
+      }
+
+      const overflowKey = getFindingsStreamOverflowKey(
+        loadingServices.current,
+        cacheKey,
+        maxConcurrentFindingsStreams,
+      )
+      if (overflowKey) {
+        abortFindingsStream(overflowKey)
+      }
+
+      const abortController = new AbortController()
+      findingsAbortControllers.current.set(cacheKey, abortController)
 
       try {
-        loadingServices.current.add(serviceName)
+        loadingServices.current.add(cacheKey)
         setLoadingFindings(true)
 
-        const response = await getFindingsDataApi({
-          threadId: currentThreadId,
-          serviceName: serviceName,
+        await runFindingsStreamRequest({
+          streamFindingsData: streamFindingsDataApi,
+          params: {
+            threadId: currentThreadId,
+            serviceName,
+            signal: abortController.signal,
+          },
+          cacheKey,
+          getActiveKey: () => activeFindingsKey.current,
+          onActiveEvent: (event) => {
+            updateFindingsCacheFromEvent(cacheKey, event)
+          },
         })
-
-        if (response?.nodes?.length > 0) {
-          const findingsData = response.nodes
-          findingsCache.current.set(serviceName, findingsData)
-          return findingsData
-        }
       } catch (error) {
-        console.error(`获取服务 ${serviceName} 的 findings 数据失败:`, error)
-        // 缓存失败结果，避免重复请求
-        findingsCache.current.set(serviceName, null)
+        if ((error as Error)?.name === 'AbortError') {
+          return
+        }
+        if (activeFindingsKey.current !== cacheKey) {
+          return
+        }
+
+        console.error(`获取服务 ${serviceName} 的 findings stream 失败:`, error)
+        const previous = findingsCache.current.get(cacheKey)
+        findingsCache.current.set(cacheKey, {
+          nodes: previous?.hydrationId ? previous.nodes : [],
+          phase: 'failed',
+          errorMessage: error instanceof Error ? error.message : String(error),
+        })
+        syncSelectedServiceFindings(cacheKey)
       } finally {
-        loadingServices.current.delete(serviceName)
-        setLoadingFindings(false)
+        loadingServices.current.delete(cacheKey)
+        findingsAbortControllers.current.delete(cacheKey)
+        if (activeFindingsKey.current === cacheKey) {
+          setLoadingFindings(false)
+        }
+      }
+    },
+    [abortFindingsStream, currentThreadId, syncSelectedServiceFindings, updateFindingsCacheFromEvent],
+  )
+
+  const retryFindingsNode = useCallback(
+    async (serviceName: string, nodeId: string) => {
+      if (!currentThreadId) {
+        return
       }
 
-      return null
+      const cacheKey = buildFindingsCacheKey(currentThreadId, serviceName)
+      const activeRetry =
+        retryingFindingsNode?.cacheKey === cacheKey && retryingFindingsNode.nodeId === nodeId
+      if (activeRetry) {
+        return
+      }
+
+      findingsRetryAbortController.current?.abort()
+      const abortController = new AbortController()
+      findingsRetryAbortController.current = abortController
+      setRetryingFindingsNode({ cacheKey, nodeId })
+
+      try {
+        await runFindingsStreamRequest({
+          streamFindingsData: streamFindingsDataApi,
+          params: buildFindingsNodeRetryParams(
+            currentThreadId,
+            serviceName,
+            nodeId,
+            abortController.signal,
+          ),
+          cacheKey,
+          getActiveKey: () => activeFindingsKey.current,
+          onActiveEvent: (event) => {
+            updateFindingsCacheFromEvent(cacheKey, event, {
+              preservePhase: true,
+              retryNodeId: nodeId,
+            })
+          },
+        })
+      } catch (error) {
+        if (activeFindingsKey.current !== cacheKey) {
+          return
+        }
+        if ((error as Error)?.name !== 'AbortError') {
+          updateFindingsCacheFromEvent(
+            cacheKey,
+            {
+              type: 'node_failed',
+              hydrationId: findingsCache.current.get(cacheKey)?.hydrationId ?? 'node-retry',
+              nodeId,
+              retryable: true,
+              errorType: 'request_error',
+              message: error instanceof Error ? error.message : String(error),
+            },
+            { preservePhase: true, retryNodeId: nodeId },
+          )
+        }
+      } finally {
+        if (findingsRetryAbortController.current === abortController) {
+          findingsRetryAbortController.current = null
+        }
+        setRetryingFindingsNode((current) =>
+          current?.cacheKey === cacheKey && current.nodeId === nodeId ? null : current,
+        )
+      }
     },
-    [currentThreadId],
+    [currentThreadId, retryingFindingsNode, updateFindingsCacheFromEvent],
   )
 
   // 解析传入 data：字符串 -> JSON.parse；对象则直接使用；否则报错
@@ -475,21 +758,10 @@ const EvidencePanel = ({ data }: { data: any }) => {
 
       const shouldFetchFindings = service && service.serviceName
       if (shouldFetchFindings) {
-        const findingsData = await fetchServiceFindingsData(service.serviceName)
-        console.log('findingsData', findingsData)
-        // 如果获取到数据，更新选中服务的 evidence
-        if (findingsData) {
-          setSelectedService((prev) => ({
-            ...prev,
-            evidence: {
-              ...prev?.evidence,
-              findingsData,
-            },
-          }))
-        }
+        await startServiceFindingsStream(service.serviceName)
       }
     },
-    [fetchServiceFindingsData],
+    [startServiceFindingsStream],
   )
 
   // 默认选择第一个 suspected 的服务节点（在解析成功时）
@@ -514,8 +786,15 @@ const EvidencePanel = ({ data }: { data: any }) => {
 
   // 清理缓存的函数
   const clearFindingsCache = useCallback(() => {
+    findingsAbortControllers.current.forEach((controller) => controller.abort())
+    findingsAbortControllers.current.clear()
+    findingsRetryAbortController.current?.abort()
+    findingsRetryAbortController.current = null
     findingsCache.current.clear()
     loadingServices.current.clear()
+    activeFindingsKey.current = null
+    lastFindingsShellNodes.current = []
+    setRetryingFindingsNode(null)
   }, [])
 
   // 组件卸载时清理缓存
@@ -524,6 +803,25 @@ const EvidencePanel = ({ data }: { data: any }) => {
       clearFindingsCache()
     }
   }, [clearFindingsCache])
+
+  const selectedServiceFindingsCacheKey =
+    currentThreadId && selectedService?.serviceName
+      ? buildFindingsCacheKey(currentThreadId, selectedService.serviceName)
+      : null
+  const retryingFindingsNodeId =
+    retryingFindingsNode?.cacheKey === selectedServiceFindingsCacheKey
+      ? retryingFindingsNode.nodeId
+      : null
+  const handleRetryFindingsNode = useCallback(
+    (nodeId: string) => {
+      const serviceName = selectedService?.serviceName
+      if (!serviceName) {
+        return
+      }
+      void retryFindingsNode(serviceName, nodeId)
+    },
+    [retryFindingsNode, selectedService?.serviceName],
+  )
 
   // 解析失败：展示错误信息且不需要放大（不显示放大按钮、容器采用正常高度）
   if (parseError) {
@@ -603,7 +901,12 @@ const EvidencePanel = ({ data }: { data: any }) => {
             isFullscreen ? t('evidencePanel.exitFullscreen') : t('evidencePanel.enterFullscreen')
           }
         />
-        <ServiceDetail selectedService={selectedService} loadingFindings={loadingFindings} />
+        <ServiceDetail
+          selectedService={selectedService}
+          loadingFindings={loadingFindings}
+          onRetryFindingsNode={handleRetryFindingsNode}
+          retryingFindingsNodeId={retryingFindingsNodeId}
+        />
       </div>
     </div>
   )

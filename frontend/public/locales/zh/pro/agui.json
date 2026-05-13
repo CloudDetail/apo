@@ -88,6 +88,8 @@
     "requestMetrics": "请求指标",
     "reasoningTree": "推理树",
     "loadingFindings": "正在获取推理数据...",
+    "retryNode": "重试节点",
+    "retryingNode": "重试中",
     "noFindings": "暂无推理数据",
     "serviceNormal": "服务运行正常",
     "serviceNormalDesc": "该服务状态正常，无需推理分析",
@@ -97,7 +99,11 @@
     "noData": "暂无数据",
     "directionContains": "此方向含 {{count}} 个{{statusText}} - 点击聚焦",
     "abnormal": "异常",
-    "warning": "警告"
+    "warning": "警告",
+    "hydrationLoading": "加载中",
+    "hydrationFailed": "加载失败",
+    "hydrating": "正在加载推理数据",
+    "hydrationFailedDetail": "推理数据加载失败"
   },
   "status": {
     "normal": "正常",

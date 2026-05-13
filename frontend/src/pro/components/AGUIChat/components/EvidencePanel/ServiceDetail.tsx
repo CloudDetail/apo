@@ -1,4 +1,5 @@
 import React from 'react'
+import { Alert } from 'antd'
 import {
   InfoCircleOutlined,
   AppstoreOutlined,
@@ -14,12 +15,14 @@ import { convertTime } from 'src/core/utils/time'
 import FindingsTree from '../FindingsTree/Tree'
 import NodeDetail from './NodeDetail'
 import StatusLegend from '../StatusLegend'
-import type { FindingsNodeData } from '../FindingsTree/findingsContract'
+import { toFindingsNodeData, type FindingsNodeData } from '../FindingsTree/findingsContract'
 
 // ==================== 类型定义 ====================
 interface ServiceDetailProps {
   selectedService?: any
   loadingFindings?: boolean
+  onRetryFindingsNode?: (nodeId: string) => void
+  retryingFindingsNodeId?: string | null
 }
 
 interface ServiceIconProps {
@@ -329,9 +332,13 @@ const RedMetricsSection: React.FC<{ redMetrics: any }> = ({ redMetrics }) => {
 const FindingsSection: React.FC<{
   evidence: any
   loadingFindings: boolean
+  hydrationPhase?: string
+  errorMessage?: string
   onNodeClick?: (nodeData: any) => void
-}> = ({ evidence, loadingFindings, onNodeClick }) => {
+}> = ({ evidence, loadingFindings, hydrationPhase, errorMessage, onNodeClick }) => {
   const { t } = useTranslation('pro/agui')
+  const hasFindingsData = Boolean(evidence?.findingsData?.length)
+  const isInitialLoading = loadingFindings && !hasFindingsData
 
   return (
     <div className="flex-1 h-0 flex flex-col">
@@ -345,7 +352,7 @@ const FindingsSection: React.FC<{
             <LoadingOutlined className="text-[var(--ant-color-primary)] animate-spin" />
           )}
         </div>
-        {!loadingFindings && evidence?.findingsData && (
+        {hasFindingsData && (
           <StatusLegend
             className="ml-4"
             showTitle={false}
@@ -354,7 +361,7 @@ const FindingsSection: React.FC<{
         )}
       </div>
 
-      {loadingFindings ? (
+      {isInitialLoading ? (
         <div className="flex items-center justify-center py-8">
           <div className="text-center">
             <LoadingOutlined className="text-2xl text-[var(--ant-color-primary)] animate-spin mb-2" />
@@ -363,7 +370,7 @@ const FindingsSection: React.FC<{
             </div>
           </div>
         </div>
-      ) : evidence?.findingsData ? (
+      ) : hasFindingsData ? (
         <div className="w-full flex flex-1 h-0">
           <FindingsTree
             nodes={evidence.findingsData}
@@ -371,6 +378,12 @@ const FindingsSection: React.FC<{
             findingsId="service-findings"
           />
         </div>
+      ) : hydrationPhase === 'failed' ? (
+        <Alert
+          type="warning"
+          showIcon
+          message={errorMessage || t('evidencePanel.noFindings')}
+        />
       ) : (
         <div className="text-center text-[var(--ant-color-text-secondary)] py-8">
           <div className="text-3xl mb-2 opacity-50">📊</div>
@@ -385,8 +398,12 @@ const FindingsSection: React.FC<{
 const ServiceDetail: React.FC<ServiceDetailProps> = ({
   selectedService,
   loadingFindings = false,
+  onRetryFindingsNode,
+  retryingFindingsNodeId,
 }) => {
   const { evidence, redMetrics } = selectedService || {}
+  const hydrationPhase = selectedService?.findingsHydrationPhase
+  const findingsErrorMessage = selectedService?.findingsErrorMessage
 
   const [selectedNode, setSelectedNode] = React.useState<FindingsNodeData | null>(null)
 
@@ -400,7 +417,17 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
 
   React.useEffect(() => {
     setSelectedNode(null)
-  }, [selectedService])
+  }, [selectedService?.serviceName])
+
+  React.useEffect(() => {
+    setSelectedNode((current) => {
+      if (!current) {
+        return current
+      }
+      const latestNode = evidence?.findingsData?.find((node: any) => node.nodeId === current.nodeId)
+      return latestNode ? toFindingsNodeData(latestNode) : null
+    })
+  }, [evidence?.findingsData])
 
   return (
     <div
@@ -425,6 +452,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
               <FindingsSection
                 evidence={evidence}
                 loadingFindings={loadingFindings}
+                hydrationPhase={hydrationPhase}
+                errorMessage={findingsErrorMessage}
                 onNodeClick={handleNodeClick}
               />
 
@@ -432,7 +461,12 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
               {/* {selectedService?.type === 'normalNodesDetails' && <NormalServiceState />} */}
             </div>
             <div className="w-[300px] shrink-0">
-              <NodeDetail selectedNode={selectedNode} onClose={handleClearSelection} />
+              <NodeDetail
+                selectedNode={selectedNode}
+                onClose={handleClearSelection}
+                onRetry={onRetryFindingsNode}
+                retryingNodeId={retryingFindingsNodeId}
+              />
             </div>
           </div>
         )}

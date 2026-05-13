@@ -1,11 +1,16 @@
 import React from 'react'
 import { Handle, Position } from 'reactflow'
+import { useTranslation } from 'react-i18next'
 import StatusIcon, { type Status } from '../StatusIcon'
 import type { FindingsNodeData } from './findingsContract'
+import {
+  getFindingsNodePresentation,
+  type FindingsNodeThemeKey,
+} from './findingsNodePresentation'
 
 /** 颜色与样式主题 */
 const COLORS: Record<
-  Status,
+  FindingsNodeThemeKey,
   {
     card: string
     ring: string
@@ -63,19 +68,24 @@ const COLORS: Record<
     badgeBg: 'bg-rose-700/95',
     badgeFg: 'text-white',
   },
-}
-
-const VALID_STATUS_SET = new Set<Status>(['normal', 'warning', 'abnormal'])
-
-const resolveStatus = (value: unknown, fallback: Status = 'warning'): Status => {
-  if (typeof value === 'string' && VALID_STATUS_SET.has(value as Status)) {
-    return value as Status
-  }
-
-  return fallback
+  loading: {
+    card: 'bg-slate-100',
+    ring: 'ring-slate-300',
+    title: 'text-slate-700',
+    sub: 'text-slate-500',
+    iconBg: 'bg-slate-400',
+    iconFg: 'text-white',
+    handle: 'bg-slate-300',
+    hoverRing: 'ring-slate-400',
+    shadow: 'shadow-[0_10px_26px_-14px_rgba(100,116,139,0.35)]',
+    accent: 'from-slate-300 via-slate-400 to-slate-300',
+    badgeBg: 'bg-slate-500/95',
+    badgeFg: 'text-white',
+  },
 }
 
 const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
+  const { t } = useTranslation('pro/agui')
   const {
     title,
     subtitle,
@@ -95,11 +105,30 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
     table,
     nodeKind,
     unsupportedReason,
+    hydrationStatus,
+    attempt,
+    retryable,
+    errorType,
+    errorMessage,
   } = data || {}
-  const resolvedStatus = resolveStatus(
-    visualStatus ?? (nodeKind === 'unsupported' ? 'normal' : status),
-  )
-  const c = COLORS[resolvedStatus]
+  const {
+    resolvedStatus,
+    themeKey,
+    isRunning,
+    isPending,
+    isFailed,
+    isLoading,
+    badgeLabel,
+    badgeLabelKey,
+  } = getFindingsNodePresentation({
+    status,
+    visualStatus,
+    nodeKind,
+    hydrationStatus,
+    badge,
+  })
+  const c = COLORS[themeKey]
+  const displayBadgeLabel = badgeLabelKey ? t(badgeLabelKey) : badgeLabel
 
   const handleClick = () => {
     if (onClick) {
@@ -117,6 +146,11 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
         nodeKind,
         unsupportedReason,
         table,
+        hydrationStatus,
+        attempt,
+        retryable,
+        errorType,
+        errorMessage,
       })
     }
   }
@@ -138,7 +172,7 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
         c?.card,
         c?.ring,
         active ? `ring-2 ${c.hoverRing}` : 'hover:ring-2',
-        disabled ? 'opacity-70 grayscale-[8%]' : c.shadow,
+        disabled || isPending ? 'opacity-85 grayscale-[8%]' : c.shadow,
         'cursor-pointer',
       ].join(' ')}
       role={'button'}
@@ -161,26 +195,46 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
       />
 
       {/* 右上角徽标 */}
-      {badge && (
+      {displayBadgeLabel && (
         <div
           className={[
-            'absolute -top-2 -right-2 rounded-full px-2 py-1 text-[10px] leading-none',
+            'absolute top-2 right-2 rounded-full px-2 py-1 text-[10px] leading-none',
             'backdrop-blur-sm shadow ring-1 ring-white/25',
-            c.badgeBg,
+            isFailed ? 'bg-rose-700/95' : c.badgeBg,
             c.badgeFg,
           ].join(' ')}
         >
-          {badge}
+          {displayBadgeLabel}
         </div>
       )}
 
       <div className="flex items-center gap-3">
         {/* 状态图标块 */}
-        <StatusIcon status={resolvedStatus} withContainer />
+        {isLoading ? (
+          <div
+            className={[
+              'inline-flex items-center justify-center shrink-0',
+              'w-7 h-7 rounded-xl',
+              c.iconBg,
+              c.iconFg,
+              'shadow-sm ring-1 ring-white/60',
+            ].join(' ')}
+          >
+            <span className="inline-block h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          </div>
+        ) : (
+          <StatusIcon status={resolvedStatus as Status} withContainer />
+        )}
 
         {/* 文本区 */}
         <div className="flex-1 min-w-0">
-          <div className={['text-[15px] font-semibold leading-snug truncate', c.title].join(' ')}>
+          <div
+            className={[
+              'text-[15px] font-semibold leading-snug truncate',
+              displayBadgeLabel ? 'pr-16' : '',
+              c.title,
+            ].join(' ')}
+          >
             {title || content || 'FindingsNode'}
           </div>
 
@@ -188,6 +242,17 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
           {subtitle && (
             <div className={['mt-0.5 text-[12px] leading-snug truncate', c.sub].join(' ')}>
               {subtitle}
+            </div>
+          )}
+          {isRunning && (
+            <div className={['mt-1 flex items-center gap-1 text-[11px]', c.sub].join(' ')}>
+              <span className="inline-block h-2 w-2 rounded-full border border-current border-t-transparent animate-spin" />
+              <span>{t('findingsTree.hydrating')}</span>
+            </div>
+          )}
+          {isFailed && (
+            <div className="mt-1 text-[11px] leading-snug truncate text-rose-700">
+              {errorMessage || errorType || t('findingsTree.hydrationFailedDetail')}
             </div>
           )}
 

@@ -1,6 +1,7 @@
 import type {
   FindingsLogItem,
   FindingsMetrics,
+  FindingsHydrationStatus,
   FindingsNodeKind,
   FindingsNodePayload,
   FindingsStatus,
@@ -29,6 +30,11 @@ export interface FindingsNodeData {
   traces?: FindingsTraceData[]
   logs?: FindingsLogItem[]
   table?: FindingsTable
+  hydrationStatus?: FindingsHydrationStatus
+  attempt?: number
+  retryable?: boolean
+  errorType?: string
+  errorMessage?: string
 }
 
 export interface FindingsTopologyNode {
@@ -87,6 +93,11 @@ export const toFindingsNodeData = (node: FindingsNodePayload): FindingsNodeData 
   traces: node.traces,
   logs: node.logs,
   table: node.table,
+  hydrationStatus: node.hydrationStatus,
+  attempt: node.attempt,
+  retryable: node.retryable,
+  errorType: node.errorType,
+  errorMessage: node.errorMessage,
 })
 
 export const buildFindingsTopologyData = (nodes: FindingsNodePayload[]): FindingsTopologyData => {
