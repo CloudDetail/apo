@@ -88,6 +88,7 @@
     "requestMetrics": "请求指标",
     "reasoningTree": "推理树",
     "loadingFindings": "正在获取推理数据...",
+    "loadingNodeDetails": "数据加载中...",
     "retryNode": "重试节点",
     "retryingNode": "重试中",
     "noFindings": "暂无推理数据",

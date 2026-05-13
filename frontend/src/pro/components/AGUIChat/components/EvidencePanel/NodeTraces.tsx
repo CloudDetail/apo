@@ -1,12 +1,8 @@
 import React from 'react'
-import { theme, Tooltip, Collapse } from 'antd'
+import { theme, Tooltip } from 'antd'
 import {
   ExclamationCircleFilled,
-  WarningOutlined,
-  CloseCircleOutlined,
   ArrowRightOutlined,
-  ThunderboltOutlined,
-  ClockCircleOutlined,
   ApiOutlined,
   DatabaseOutlined,
   CloudOutlined,
@@ -38,267 +34,232 @@ interface NodeTracesProps {
   traces: TraceData[]
 }
 
+interface TraceMetricProps {
+  label: string
+  value: string | number
+  title: string
+  danger?: boolean
+}
+
+const formatDuration = (value: number) => `${value.toFixed(2)} ms`
+
 const NodeTraces: React.FC<NodeTracesProps> = ({ traces }) => {
   const { token } = useToken()
   const { t } = useTranslation('pro/agui')
 
-  const getTypeIcon = (type: string) => {
+  const getTypeMeta = (type: string) => {
     const lowerType = type?.toLowerCase() || ''
+
     if (lowerType.includes('mysql') || lowerType.includes('database') || lowerType.includes('db')) {
-      return <DatabaseOutlined style={{ fontSize: 14 }} />
+      return {
+        icon: <DatabaseOutlined style={{ fontSize: 12 }} />,
+        label: 'DB',
+        color: token.colorInfo,
+      }
     }
+
     if (lowerType.includes('http') || lowerType.includes('api')) {
-      return <ApiOutlined style={{ fontSize: 14 }} />
+      return {
+        icon: <ApiOutlined style={{ fontSize: 12 }} />,
+        label: lowerType.includes('http') ? 'HTTP' : 'API',
+        color: token.colorSuccess,
+      }
     }
-    return <CloudOutlined style={{ fontSize: 14 }} />
+
+    return {
+      icon: <CloudOutlined style={{ fontSize: 12 }} />,
+      label: type ? type.toUpperCase() : 'TRACE',
+      color: token.colorTextSecondary,
+    }
   }
 
-  const getTypeColor = (type: string) => {
-    const lowerType = type?.toLowerCase() || ''
-    if (lowerType.includes('mysql') || lowerType.includes('database') || lowerType.includes('db')) {
-      return token.colorInfo
-    }
-    if (lowerType.includes('http') || lowerType.includes('api')) {
-      return token.colorSuccess
-    }
-    return token.colorTextSecondary
-  }
+  const TraceMetric: React.FC<TraceMetricProps> = ({ label, value, title, danger }) => (
+    <Tooltip title={title}>
+      <div className="min-w-0">
+        <div
+          className="text-[11px] leading-4 whitespace-nowrap"
+          style={{ color: token.colorTextTertiary }}
+        >
+          {label}
+        </div>
+        <div
+          className="text-xs font-semibold leading-5 truncate"
+          style={{ color: danger ? token.colorError : token.colorText }}
+        >
+          {value}
+        </div>
+      </div>
+    </Tooltip>
+  )
 
   return (
     <div className="flex flex-col gap-4">
       {traces?.map((trace, traceIndex) => (
-        <div key={traceIndex} className="space-y-3">
-          {/* 服务名称 */}
-          <div
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold"
-            style={{
-              backgroundColor: token.colorPrimaryBg,
-              color: token.colorPrimary,
-              border: `1px solid ${token.colorPrimaryBorder}`,
-            }}
-          >
-            <ApiOutlined />
-            <span>{trace.service}</span>
+        <div key={traceIndex} className="space-y-2">
+          <div className="flex items-center justify-between gap-2 px-1">
+            <Tooltip title={trace.service} placement="topLeft">
+              <div className="min-w-0 flex items-center gap-2">
+                <span
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+                  style={{
+                    color: token.colorPrimary,
+                    backgroundColor: token.colorPrimaryBg,
+                  }}
+                >
+                  <ApiOutlined style={{ fontSize: 13 }} />
+                </span>
+                <span className="truncate text-sm font-semibold" style={{ color: token.colorText }}>
+                  {trace.service}
+                </span>
+              </div>
+            </Tooltip>
+            <span
+              className="shrink-0 rounded px-1.5 py-0.5 text-[11px] leading-4"
+              style={{
+                color: token.colorTextSecondary,
+                backgroundColor: token.colorFillQuaternary,
+              }}
+            >
+              {trace.calls?.length ?? 0}
+            </span>
           </div>
 
-          {/* 调用链路 */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {trace.calls?.map((call, callIndex) => {
               const hasError = call.errorCount > 0
-              const typeColor = getTypeColor(call.type)
+              const typeMeta = getTypeMeta(call.type)
+              const operations = call.operations ?? []
+              const showOperations =
+                operations.length > 1 ||
+                (operations.length === 1 && operations[0]?.name !== call.target)
 
               return (
                 <div
                   key={callIndex}
-                  className="rounded-lg border overflow-hidden"
+                  className="rounded-lg border px-2.5 py-2.5"
                   style={{
-                    borderColor: hasError ? token.colorErrorBorder : token.colorBorder,
-                    backgroundColor: token.colorBgContainer,
+                    borderColor: hasError ? token.colorErrorBorder : token.colorBorderSecondary,
+                    backgroundColor: hasError ? token.colorErrorBg : token.colorFillQuaternary,
                   }}
                 >
-                  {/* 调用关系主体 */}
-                  <div
-                    className="p-3"
-                    style={{
-                      backgroundColor: hasError ? token.colorErrorBg : token.colorFillQuaternary,
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* 箭头指向目标 */}
-                      <ArrowRightOutlined
-                        style={{
-                          fontSize: 16,
-                          color: hasError ? token.colorError : token.colorPrimary,
-                        }}
-                      />
+                  <div className="flex items-start gap-2">
+                    <span
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded"
+                      style={{
+                        color: hasError ? token.colorError : token.colorPrimary,
+                        backgroundColor: token.colorBgContainer,
+                      }}
+                    >
+                      <ArrowRightOutlined style={{ fontSize: 12 }} />
+                    </span>
 
-                      {/* 目标服务 */}
-                      <div className="flex items-center gap-2 flex-1">
-                        <div
-                          className="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium"
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span
+                          className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium leading-4"
                           style={{
+                            color: typeMeta.color,
                             backgroundColor: token.colorBgContainer,
                             border: `1px solid ${hasError ? token.colorErrorBorder : token.colorBorder}`,
-                            color: typeColor,
                           }}
                         >
-                          {getTypeIcon(call.type)}
-                          <span>{call.type.toUpperCase()}</span>
-                        </div>
-                        <span className="text-sm font-medium" style={{ color: token.colorText }}>
-                          {call.target}
+                          {typeMeta.icon}
+                          <span>{typeMeta.label}</span>
                         </span>
+
+                        {hasError && (
+                          <span
+                            className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium leading-4"
+                            style={{
+                              color: token.colorError,
+                              backgroundColor: token.colorErrorBg,
+                              border: `1px solid ${token.colorErrorBorder}`,
+                            }}
+                          >
+                            <ExclamationCircleFilled style={{ fontSize: 11 }} />
+                            <span>
+                              {call.errorCount} {t('evidencePanel.errorSuffix')}
+                            </span>
+                          </span>
+                        )}
                       </div>
 
-                      {/* 错误标识 */}
-                      {hasError && (
+                      <Tooltip title={call.target} placement="topLeft">
                         <div
-                          className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
+                          className="mt-1 text-sm font-semibold leading-snug"
                           style={{
-                            backgroundColor: token.colorErrorBg,
-                            color: token.colorError,
-                            border: `1px solid ${token.colorErrorBorder}`,
+                            color: token.colorText,
+                            overflowWrap: 'anywhere',
                           }}
                         >
-                          <ExclamationCircleFilled />
-                          <span>
-                            {call.errorCount} {t('evidencePanel.errorSuffix')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 指标信息 */}
-                    <div className="flex items-center gap-4 mt-3">
-                      {/* 调用次数 */}
-                      <Tooltip title={t('evidencePanel.callCount')}>
-                        <div className="flex items-center gap-1.5">
-                          <ThunderboltOutlined
-                            style={{ fontSize: 14, color: token.colorTextSecondary }}
-                          />
-                          <span className="text-xs" style={{ color: token.colorTextSecondary }}>
-                            {t('evidencePanel.calls')}:
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: token.colorText }}
-                          >
-                            {call.count.toLocaleString()}
-                          </span>
-                        </div>
-                      </Tooltip>
-
-                      {/* 平均耗时 */}
-                      <Tooltip title={t('evidencePanel.avgDuration')}>
-                        <div className="flex items-center gap-1.5">
-                          <ClockCircleOutlined
-                            style={{ fontSize: 14, color: token.colorTextSecondary }}
-                          />
-                          <span className="text-xs" style={{ color: token.colorTextSecondary }}>
-                            {t('evidencePanel.average')}:
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: token.colorText }}
-                          >
-                            {call.avgDuration.toFixed(2)} ms
-                          </span>
-                        </div>
-                      </Tooltip>
-
-                      {/* 最大耗时 */}
-                      <Tooltip title={t('evidencePanel.maxDuration')}>
-                        <div className="flex items-center gap-1.5">
-                          <WarningOutlined
-                            style={{ fontSize: 14, color: token.colorTextSecondary }}
-                          />
-                          <span className="text-xs" style={{ color: token.colorTextSecondary }}>
-                            {t('evidencePanel.max')}:
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: token.colorText }}
-                          >
-                            {call.maxDuration.toFixed(2)} ms
-                          </span>
-                        </div>
-                      </Tooltip>
-
-                      {/* 错误次数 */}
-                      <Tooltip title={t('evidencePanel.errorCount')}>
-                        <div className="flex items-center gap-1.5">
-                          <CloseCircleOutlined
-                            style={{
-                              fontSize: 14,
-                              color: hasError ? token.colorError : token.colorTextSecondary,
-                            }}
-                          />
-                          <span className="text-xs" style={{ color: token.colorTextSecondary }}>
-                            {t('evidencePanel.errors')}:
-                          </span>
-                          <span
-                            className="text-sm font-semibold"
-                            style={{ color: hasError ? token.colorError : token.colorText }}
-                          >
-                            {call.errorCount}
-                          </span>
+                          {call.target}
                         </div>
                       </Tooltip>
                     </div>
                   </div>
 
-                  {/* 操作详情（可折叠） */}
-                  {call.operations && call.operations.length > 0 && (
-                    <Collapse
-                      ghost
-                      size="small"
-                      items={[
-                        {
-                          key: '1',
-                          label: (
-                            <span
-                              className="text-xs font-medium"
-                              style={{ color: token.colorTextSecondary }}
-                            >
-                              {t('evidencePanel.operationDetails')} ({call.operations.length})
-                            </span>
-                          ),
-                          children: (
-                            <div className="space-y-2">
-                              {call.operations.map((op, opIndex) => (
-                                <div
-                                  key={opIndex}
-                                  className="flex items-center justify-between p-2 rounded"
-                                  style={{
-                                    backgroundColor: token.colorFillQuaternary,
-                                    border: `1px solid ${token.colorBorder}`,
-                                  }}
-                                >
-                                  <div className="flex items-center gap-2 flex-1">
-                                    <span
-                                      className="text-xs font-mono"
-                                      style={{ color: token.colorText }}
-                                    >
-                                      {op.name}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1">
-                                      <span
-                                        className="text-xs"
-                                        style={{ color: token.colorTextSecondary }}
-                                      >
-                                        {t('evidencePanel.times')}:
-                                      </span>
-                                      <span
-                                        className="text-xs font-medium"
-                                        style={{ color: token.colorText }}
-                                      >
-                                        {op.count}
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                      <span
-                                        className="text-xs"
-                                        style={{ color: token.colorTextSecondary }}
-                                      >
-                                        {t('evidencePanel.average')}:
-                                      </span>
-                                      <span
-                                        className="text-xs font-medium"
-                                        style={{ color: token.colorText }}
-                                      >
-                                        {op.avgDuration.toFixed(2)} ms
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ),
-                        },
-                      ]}
+                  <div className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    <TraceMetric
+                      label={t('evidencePanel.calls')}
+                      title={t('evidencePanel.callCount')}
+                      value={call.count.toLocaleString()}
                     />
+                    <TraceMetric
+                      label={t('evidencePanel.average')}
+                      title={t('evidencePanel.avgDuration')}
+                      value={formatDuration(call.avgDuration)}
+                    />
+                    <TraceMetric
+                      label={t('evidencePanel.max')}
+                      title={t('evidencePanel.maxDuration')}
+                      value={formatDuration(call.maxDuration)}
+                    />
+                    <TraceMetric
+                      label={t('evidencePanel.errors')}
+                      title={t('evidencePanel.errorCount')}
+                      value={call.errorCount}
+                      danger={hasError}
+                    />
+                  </div>
+
+                  {showOperations && (
+                    <div
+                      className="mt-2 border-t pt-2"
+                      style={{ borderColor: hasError ? token.colorErrorBorder : token.colorBorder }}
+                    >
+                      <div
+                        className="mb-1.5 text-[11px] font-medium leading-4"
+                        style={{ color: token.colorTextSecondary }}
+                      >
+                        {t('evidencePanel.operationDetails')} ({operations.length})
+                      </div>
+
+                      <div className="space-y-1">
+                        {operations.map((op, opIndex) => (
+                          <div key={opIndex} className="min-w-0">
+                            <Tooltip title={op.name} placement="topLeft">
+                              <div
+                                className="truncate text-xs font-mono leading-5"
+                                style={{ color: token.colorText }}
+                              >
+                                {op.name}
+                              </div>
+                            </Tooltip>
+                            <div
+                              className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] leading-4"
+                              style={{ color: token.colorTextTertiary }}
+                            >
+                              <span className="whitespace-nowrap">
+                                {t('evidencePanel.times')}: {op.count.toLocaleString()}
+                              </span>
+                              <span className="whitespace-nowrap">
+                                {t('evidencePanel.average')}: {formatDuration(op.avgDuration)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )

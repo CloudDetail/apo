@@ -5,6 +5,7 @@ import {
   CheckCircleFilled,
   InfoCircleOutlined,
   ApiOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw } from 'lucide-react'
@@ -13,10 +14,8 @@ import NodeLogs from './NodeLogs'
 import NodeTraces from './NodeTraces'
 import NodeMetrics from './NodeMetrics'
 import NodeTable from './NodeTable'
-import {
-  getFindingsDetailSections,
-  type FindingsNodeData,
-} from '../FindingsTree/findingsContract'
+import RelatedReports from './RelatedReports'
+import { getFindingsDetailSections, type FindingsNodeData } from '../FindingsTree/findingsContract'
 
 const { useToken } = theme
 
@@ -59,6 +58,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode, onRetry, retrying
   }
 
   const detailSections = getFindingsDetailSections(selectedNode)
+  const loadingNodeDetailsText = t('evidencePanel.loadingNodeDetails')
   const visualStatus =
     selectedNode.visualStatus ??
     (selectedNode.nodeKind === 'unsupported' ? 'normal' : selectedNode.status)
@@ -110,7 +110,19 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode, onRetry, retrying
         }}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {visualStatus && (
+          {detailSections.loading ? (
+            <Tooltip title={loadingNodeDetailsText} zIndex={100000}>
+              <div
+                className="inline-flex items-center justify-center shrink-0 w-7 h-7 rounded-xl"
+                style={{
+                  backgroundColor: token.colorPrimaryBg,
+                  color: token.colorPrimary,
+                }}
+              >
+                <LoadingOutlined className="animate-spin" />
+              </div>
+            </Tooltip>
+          ) : (
             <Tooltip title={getStatusLabel(visualStatus)} zIndex={100000}>
               <div style={{ color: statusColor }}>
                 <StatusIcon status={visualStatus} withContainer />
@@ -142,6 +154,8 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode, onRetry, retrying
 
       {/* 内容区域 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {detailSections.loading && <Alert type="info" showIcon message={loadingNodeDetailsText} />}
+
         {selectedNode.hydrationStatus === 'failed' && (
           <Alert
             type="warning"
@@ -229,6 +243,7 @@ const NodeDetail: React.FC<NodeDetailProps> = ({ selectedNode, onRetry, retrying
           </div>
         )}
 
+        {!detailSections.loading && <RelatedReports reportLinks={selectedNode.reportLinks} />}
         {detailSections.abnormalMetrics && (
           <div className="space-y-3">
             <div className="space-y-2">
