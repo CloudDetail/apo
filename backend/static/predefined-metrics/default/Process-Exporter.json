@@ -22,11 +22,11 @@
     },
     {
       "title": "进程内存使用",
-      "describe": "按节点和 PID 查询进程内存使用",
+      "describe": "按节点和 PID 查询进程常驻内存使用",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid,memtype) (namedprocess_namegroup_memory_bytes{instance_name=~\"$node\",pid=~\"$pid\"})",
-          "legendFormat": "{{instance_name}}/{{pid}}/{{memtype}}",
+          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_memory_bytes{instance_name=~\"$node\",pid=~\"$pid\",memtype=\"resident\"})",
+          "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
             "node",
             "pid"
