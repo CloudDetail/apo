@@ -2,7 +2,7 @@ FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/node:22.19.0-alpine3.21 as buil
 
 WORKDIR /app/
 
-COPY package.json ./
+COPY package.json yarn.lock ./
 
 RUN yarn config set registry https://registry.npmmirror.com
 RUN apk add --no-cache git
