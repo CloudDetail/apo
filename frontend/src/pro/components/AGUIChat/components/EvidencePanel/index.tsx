@@ -19,6 +19,7 @@ import {
   buildFindingsCacheKey,
   buildFindingsNodeRetryParams,
   createPendingFindingsShell,
+  FINDINGS_CACHE_CONTRACT_VERSION,
   getFindingsStreamOverflowKey,
   isTerminalFindingsPhase,
   isWholeTreeDoneEvent,
@@ -471,6 +472,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
       const current = findingsCache.current.get(cacheKey) ?? {
         nodes: [],
         phase: 'streaming' as const,
+        contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
       }
 
       if (event.type === 'tree_failed') {
@@ -487,6 +489,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
             }),
             phase: current.phase,
             hydrationId: event.hydrationId ?? current.hydrationId,
+            contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
           })
           syncSelectedServiceFindings(cacheKey)
           return
@@ -498,6 +501,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
           phase: 'failed',
           hydrationId: event.hydrationId ?? current.hydrationId,
           errorMessage: event.message || event.errorType || 'Findings stream failed',
+          contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
         })
         if (activeFindingsKey.current === cacheKey) {
           setLoadingFindings(false)
@@ -512,6 +516,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
             ...current,
             phase: current.phase,
             hydrationId: event.hydrationId ?? current.hydrationId,
+            contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
           })
           syncSelectedServiceFindings(cacheKey)
           return
@@ -521,6 +526,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
           ...current,
           phase: 'done',
           hydrationId: event.hydrationId,
+          contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
         })
         if (activeFindingsKey.current === cacheKey) {
           setLoadingFindings(false)
@@ -538,6 +544,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
         nodes: applyFindingsStreamEvent(current.nodes, event),
         phase: options?.preservePhase ? current.phase : 'streaming',
         hydrationId: event.hydrationId ?? current.hydrationId,
+        contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
       })
       syncSelectedServiceFindings(cacheKey)
     },
@@ -577,6 +584,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
         findingsCache.current.set(cacheKey, {
           nodes: createPendingFindingsShell(lastFindingsShellNodes.current),
           phase: 'streaming',
+          contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
         })
         cached = findingsCache.current.get(cacheKey)
         syncSelectedServiceFindings(cacheKey)
@@ -584,17 +592,19 @@ const EvidencePanel = ({ data }: { data: any }) => {
 
       // 检查是否正在请求中
       const isLoading = loadingServices.current.has(cacheKey)
+      const isCacheCurrent = cached?.contractVersion === FINDINGS_CACHE_CONTRACT_VERSION
       if (
         !shouldStartFindingsStream({
           cachedPhase: cached?.phase,
           isLoading,
+          isCacheCurrent,
         })
       ) {
         setLoadingFindings(isLoading)
         return
       }
 
-      if (isTerminalFindingsPhase(cached?.phase)) {
+      if (isTerminalFindingsPhase(cached?.phase) && isCacheCurrent) {
         setLoadingFindings(false)
         return
       }
@@ -642,6 +652,7 @@ const EvidencePanel = ({ data }: { data: any }) => {
           nodes: previous?.hydrationId ? previous.nodes : [],
           phase: 'failed',
           errorMessage: error instanceof Error ? error.message : String(error),
+          contractVersion: FINDINGS_CACHE_CONTRACT_VERSION,
         })
         syncSelectedServiceFindings(cacheKey)
       } finally {

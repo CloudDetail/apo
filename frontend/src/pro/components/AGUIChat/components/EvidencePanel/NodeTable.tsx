@@ -4,10 +4,9 @@ import { TableOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type { ColumnsType } from 'antd/es/table'
 import type { FindingsTable } from '../../../../api/conversation'
+import { buildNodeTableDataSource, type TableRecord } from './nodeTableData'
 
 const { useToken } = theme
-
-type TableRecord = Record<string, React.ReactNode> & { _rowKey?: React.Key }
 
 interface NodeTableProps {
   table: FindingsTable
@@ -16,13 +15,7 @@ interface NodeTableProps {
 const NodeTable: React.FC<NodeTableProps> = ({ table }) => {
   const { token } = useToken()
   const { t } = useTranslation('pro/agui')
-  console.log(table)
-  const dataSource = useMemo<TableRecord[]>(() => {
-    return (table.data ?? []).map((item, index) => ({
-      ...item,
-      _rowKey: (item?.key as React.Key | undefined) ?? index,
-    }))
-  }, [table.data])
+  const dataSource = useMemo<TableRecord[]>(() => buildNodeTableDataSource(table.data), [table.data])
 
   const columns = useMemo<ColumnsType<TableRecord>>(() => {
     return (table.headers ?? []).map((header) => {
@@ -83,6 +76,7 @@ const NodeTable: React.FC<NodeTableProps> = ({ table }) => {
       <Table<TableRecord>
         columns={columns}
         dataSource={dataSource}
+        rowKey="_rowKey"
         pagination={false}
         size="small"
         bordered

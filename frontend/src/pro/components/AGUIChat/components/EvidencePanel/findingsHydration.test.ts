@@ -66,6 +66,17 @@ test('done and failed findings cache entries are terminal unless refreshed', () 
   )
 })
 
+test('terminal findings cache with an old contract version is refreshed', () => {
+  assert.equal(
+    shouldStartFindingsStream({
+      cachedPhase: 'done',
+      isLoading: false,
+      isCacheCurrent: false,
+    }),
+    true,
+  )
+})
+
 test('node retry tree_done does not complete the whole tree phase', () => {
   assert.equal(
     isWholeTreeDoneEvent({
