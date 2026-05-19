@@ -8,11 +8,14 @@ import { normalizeFindingsNode } from '../../../../api/findingsDataNormalizer'
 
 export type FindingsHydrationPhase = 'idle' | 'streaming' | 'done' | 'failed'
 
+export const FINDINGS_CACHE_CONTRACT_VERSION = 'report-links-v2'
+
 export interface FindingsCacheEntry {
   nodes: FindingsNodePayload[]
   phase: FindingsHydrationPhase
   hydrationId?: string
   errorMessage?: string
+  contractVersion?: string
 }
 
 export const isTerminalFindingsPhase = (phase?: FindingsHydrationPhase) =>
@@ -25,15 +28,17 @@ export const shouldStartFindingsStream = ({
   cachedPhase,
   isLoading,
   refresh = false,
+  isCacheCurrent = true,
 }: {
   cachedPhase?: FindingsHydrationPhase
   isLoading: boolean
   refresh?: boolean
+  isCacheCurrent?: boolean
 }) => {
   if (isLoading) {
     return false
   }
-  if (!refresh && isTerminalFindingsPhase(cachedPhase)) {
+  if (!refresh && isTerminalFindingsPhase(cachedPhase) && isCacheCurrent) {
     return false
   }
   return true
