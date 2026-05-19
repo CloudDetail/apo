@@ -5,6 +5,7 @@ WORKDIR /app/
 COPY package.json ./
 
 RUN yarn config set registry https://registry.npmmirror.com
+RUN apk add --no-cache git
 RUN yarn install
 
 COPY . .
