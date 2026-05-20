@@ -5,7 +5,7 @@
             "describe": "查询节点上被监控的服务列表",
             "targets": [
                 {
-                    "expr": "sum without (tid_key,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"})",
+                    "expr": "sum without (tid_key,type) (increase(originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"}[15m])) > 0",
                     "legendFormat": "{{namespace}}:{{pod}}",
                     "refId": "A",
                     "variables": [
