@@ -52,8 +52,7 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
       .max()
       .value()
     const maxTotalTime = Math.max(...data.nodes.map((node: any) => node.totalTime))
-    // const WIDTH = chartRef.current.clientWidth
-    const WIDTH = data.nodes.length * 310
+    const WIDTH = Math.max(nodeOrder.length, data.nodes.length, 1) * 310
     let HEIGHT = data.nodes.length * 310
     if (category === 'chain') {
       HEIGHT -= 50
@@ -61,8 +60,10 @@ function SingleLinkTopology({ data, category, chartId = 'nodeChart' }: Props) {
     const svg = d3
       .select(`#${chartId}`)
       .append('svg')
+      .attr('width', WIDTH)
       .style('height', '100%')
-      .style('width', HEIGHT)
+      .style('width', `${WIDTH}px`)
+      .style('display', 'block')
     const g = svg.append('g').attr('id', `${chartId}-chart_warp`).attr('class', 'chart_warp')
     const nodeWarp = g.append('g').attr('id', `${chartId}-node_warp`)
     const LineWarp = g.append('g').attr('id', `${chartId}-line_warp`)
