@@ -185,6 +185,7 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 		RawTags:      record.Alert.Tags,
 		AlertEventId: record.EventID,
 	}
+	alert.AttachReportOutputContract(&parmas)
 
 	if len(services) == 1 {
 		parmas.Service = services[0]

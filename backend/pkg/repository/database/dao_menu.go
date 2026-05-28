@@ -12,7 +12,7 @@ core "github.com/CloudDetail/apo/backend/pkg/core"
 
 type MenuItem struct {
 	ItemID       int    `gorm:"column:item_id;primary_key" json:"itemId"`
-	Key          string `gorm:"column:key;type:varchar(20);uniqueIndex" json:"key"`
+	Key          string `gorm:"column:key;type:varchar(64);uniqueIndex" json:"key"`
 	Label        string `gorm:"-" json:"label"` // AKA item name.
 	Icon         string `gorm:"column:icon;type:varchar(150)" json:"icon"`
 	ParentID     *int   `gorm:"column:parent_id" json:"-"`

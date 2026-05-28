@@ -4,10 +4,27 @@
 package database
 
 import (
+	"sync"
 	"testing"
 
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
+
+func TestMenuItemKeyColumnSupportsExecutiveDashboardKeys(t *testing.T) {
+	s, err := schema.Parse(&MenuItem{}, &sync.Map{}, schema.NamingStrategy{})
+	require.NoError(t, err)
+
+	field := s.LookUpField("Key")
+	require.NotNil(t, field)
+	assert.Equal(t, "varchar(64)", field.TagSettings["TYPE"])
+}
 
 func TestIsValidMenuItem(t *testing.T) {
 	tests := []struct {
@@ -156,4 +173,29 @@ func TestIsValidPageURL(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+func TestInitFeatureRouterMapsAlertEventsToReport(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&profile.Feature{}, &Router{}, &FeatureMapping{}))
+
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+
+	require.NoError(t, db.Create(&profile.Feature{FeatureName: "告警事件"}).Error)
+	require.NoError(t, db.Create(&Router{RouterTo: "/report"}).Error)
+
+	require.NoError(t, repo.initFeatureRouter(nil))
+
+	var count int64
+	require.NoError(t, db.Model(&FeatureMapping{}).
+		Joins("JOIN feature ON feature.feature_id = feature_mapping.feature_id").
+		Joins("JOIN router ON router.router_id = feature_mapping.mapped_id").
+		Where("feature.feature_name = ? AND router.router_to = ? AND feature_mapping.mapped_type = ?",
+			"告警事件",
+			"/report",
+			model.MAPPED_TYP_ROUTER,
+		).
+		Count(&count).Error)
+	assert.Equal(t, int64(1), count)
 }

@@ -33,16 +33,64 @@ type AlertCheckConfig struct {
 	FlowName      string
 	APIKey        string
 	Authorization string
+	AnalyzeAPIKey string
 	AnalyzeAuth   string
+	AnalyzeFlowId string
 
 	User string
 
 	Sampling       string
 	CacheMinutes   int
 	MaxConcurrency int
+	QueueSize      int
+	EnqueueTimeout time.Duration
 
 	Prom prometheus.Repo
 	CH   clickhouse.Repo
+}
+
+const (
+	defaultAlertCheckQueueSize      = 1000
+	defaultAlertCheckEnqueueTimeout = 3 * time.Second
+)
+
+func (cfg *AlertCheckConfig) queueSize() int {
+	if cfg != nil && cfg.QueueSize > 0 {
+		return cfg.QueueSize
+	}
+	return defaultAlertCheckQueueSize
+}
+
+func (cfg *AlertCheckConfig) enqueueTimeout() time.Duration {
+	if cfg != nil && cfg.EnqueueTimeout > 0 {
+		return cfg.EnqueueTimeout
+	}
+	return defaultAlertCheckEnqueueTimeout
+}
+
+func (cfg *AlertCheckConfig) newRecordChan() chan *model.WorkflowRecord {
+	return make(chan *model.WorkflowRecord, cfg.queueSize())
+}
+
+func (cfg *AlertCheckConfig) enqueueAlertEvent(logger *zap.Logger, eventInput *inputChan, event *alert.AlertEvent) bool {
+	if eventInput.IsShutDown {
+		return false
+	}
+
+	timer := time.NewTimer(cfg.enqueueTimeout())
+	defer timer.Stop()
+
+	select {
+	case eventInput.Ch <- event:
+		return true
+	case <-timer.C:
+		logger.Info("alert check queue is full, drop after waiting",
+			zap.String("alertId", event.AlertID),
+			zap.Int("queueSize", cfg.queueSize()),
+			zap.Int("remainCount", len(eventInput.Ch)),
+		)
+		return false
+	}
 }
 
 func newAsyncAlertCheck(cfg *AlertCheckConfig, logger *zap.Logger) asyncAlertCheck {
@@ -51,21 +99,21 @@ func newAsyncAlertCheck(cfg *AlertCheckConfig, logger *zap.Logger) asyncAlertChe
 		return &checkWorkers{
 			AlertCheckConfig: cfg,
 			logger:           logger,
-			eventInput:       newInputChan(),
+			eventInput:       newInputChan(cfg.queueSize()),
 		}
 	case "last":
 		return &sampleWithLastRecord{
 			logger:           logger,
 			AlertCheckConfig: cfg,
 			prepareToRun:     make(map[string]alert.AlertEvent),
-			eventInput:       newInputChan(),
+			eventInput:       newInputChan(cfg.queueSize()),
 		}
 	default:
 		return &sampleWithFirstRecord{
 			logger:           logger,
 			AlertCheckConfig: cfg,
 			checkedAlert:     make(map[string]struct{}),
-			eventInput:       newInputChan(),
+			eventInput:       newInputChan(cfg.queueSize()),
 		}
 	}
 }
@@ -78,7 +126,7 @@ type checkWorkers struct {
 }
 
 func (c *checkWorkers) Run(ctx context.Context, client *DifyClient) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+	rChan := c.newRecordChan()
 	var wg sync.WaitGroup
 	for i := 0; i < c.MaxConcurrency; i++ {
 		wg.Add(1)
@@ -98,14 +146,8 @@ func (c *checkWorkers) AddEvents(events []alert.AlertEvent) {
 	if c.eventInput.IsShutDown {
 		return
 	}
-	remainSize := len(c.eventInput.Ch)
 	for i := 0; i < len(events); i++ {
-		if remainSize > MAX_CACHE_SIZE {
-			c.logger.Info("too many alerts waiting for check, skip", zap.String("alertId", events[i].AlertID))
-			continue
-		}
-		remainSize++
-		c.eventInput.Ch <- &events[i]
+		c.enqueueAlertEvent(c.logger, c.eventInput, &events[i])
 	}
 }
 
@@ -125,7 +167,7 @@ func (s *sampleWithFirstRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
 ) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+	rChan := s.newRecordChan()
 
 	var wg sync.WaitGroup
 	now := time.Now()
@@ -168,7 +210,6 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	remainSize := len(s.eventInput.Ch)
 	for i := 0; i < len(events); i++ {
 		if events[i].Status == alert.StatusResolved {
 			continue
@@ -177,13 +218,9 @@ func (s *sampleWithFirstRecord) AddEvents(events []alert.AlertEvent) {
 		if _, find := s.checkedAlert[events[i].AlertID]; find {
 			continue
 		}
-		if remainSize > MAX_CACHE_SIZE {
-			s.logger.Info("too many alerts waiting for check, skip", zap.String("alertId", events[i].AlertID))
-			continue
+		if s.enqueueAlertEvent(s.logger, s.eventInput, &events[i]) {
+			s.checkedAlert[events[i].AlertID] = struct{}{}
 		}
-		s.checkedAlert[events[i].AlertID] = struct{}{}
-		remainSize++
-		s.eventInput.Ch <- &events[i]
 	}
 }
 
@@ -203,7 +240,7 @@ func (s *sampleWithLastRecord) Run(
 	ctx context.Context,
 	client *DifyClient,
 ) (<-chan *model.WorkflowRecord, error) {
-	rChan := make(chan *model.WorkflowRecord, MAX_CACHE_SIZE+10)
+	rChan := s.newRecordChan()
 
 	var wg sync.WaitGroup
 	for i := 0; i < s.MaxConcurrency; i++ {
@@ -238,7 +275,8 @@ func (s *sampleWithLastRecord) AddEvents(events []alert.AlertEvent) {
 		}
 
 		if _, find := s.prepareToRun[event.AlertID]; !find {
-			if len(s.prepareToRun) > MAX_CACHE_SIZE {
+			if len(s.prepareToRun) >= s.queueSize() {
+				s.logger.Info("too many alerts waiting for check, skip", zap.String("alertId", event.AlertID))
 				continue
 			}
 		}

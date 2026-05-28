@@ -12,6 +12,17 @@ const MetricsNode = React.memo(({ data, isConnectable }) => {
   const { useToken } = theme
   const { token } = useToken()
   const { t } = useTranslation('common')
+  const getMetricLabel = (key) => {
+    const translated = t(`delayLineChartTitleMap.${key}`)
+    return translated === `delayLineChartTitleMap.${key}` ? key : translated
+  }
+  const getMetricValue = (metric, key) => {
+    const metricTypes = ['latency', 'errorRate', 'tps', 'logs']
+    if (typeof metric.value === 'number' && metricTypes.includes(key)) {
+      return MetricsValue(metric.value, key)
+    }
+    return metric.value
+  }
   return (
     <div className="text-updater-node">
       <Handle
@@ -32,17 +43,17 @@ const MetricsNode = React.memo(({ data, isConnectable }) => {
           {data.label}
           <div className="text-xs text-[#9e9e9e] text-left  break-all">{data.description}</div>
           <div className="w-full">
-            {Object.entries(data.metrics)?.map(([key, metric]) => (
-              <div className="flex text-xs text-[var(--ant-color-text)] w-full">
+            {Object.entries(data.metrics || {})?.map(([key, metric]) => (
+              <div key={key} className="flex text-xs text-[var(--ant-color-text)] w-full">
                 <div className="shrink-0 w-[90px] text-left">
-                  {t(`delayLineChartTitleMap.${key}`)}：
+                  {getMetricLabel(key)}：
                 </div>
                 <div
                   className={
                     metric.value === 'N/A' ? 'text-slate-400' : 'text-[var(--ant-color-text)]'
                   }
                 >
-                  {MetricsValue(metric.value, key)}
+                  {getMetricValue(metric, key)}
                 </div>
               </div>
             ))}

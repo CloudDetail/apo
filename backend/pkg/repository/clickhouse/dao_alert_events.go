@@ -96,8 +96,25 @@ const (
 	FROM grouped_alarm
 	WHERE rn <= 1`
 
-	SQL_GET_ALERT_EVENT = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
+	SQL_GET_ALERT_EVENT = `SELECT source,group,id,alert_id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
 	FROM alert_event %s %s`
+
+	SQL_GET_ALERT_EVENT_BY_EVENT_ID = `SELECT source,group,id,alert_id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
+	FROM alert_event
+	WHERE event_id = ?
+	  AND (
+		received_time BETWEEN ? AND ?
+		OR update_time BETWEEN ? AND ?
+		OR create_time BETWEEN ? AND ?
+	  )
+	ORDER BY received_time DESC
+	LIMIT 1`
+
+	SQL_GET_ALERT_EVENT_BY_EVENT_ID_ONLY = `SELECT source,group,id,alert_id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
+	FROM alert_event
+	WHERE event_id = ?
+	ORDER BY received_time DESC
+	LIMIT 1`
 
 	SQL_GET_ALERT_EVENT_WITH_LABEL_KEY = `SELECT source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status
         ,if(alert_id != '', alert_id, arrayStringConcat(arrayMap(x -> x.2, arraySort(arrayZip(mapKeys(tags), mapValues(tags)))), ', ')) AS alert_key
@@ -365,6 +382,35 @@ func (ch *chRepo) GetAlertEventById(ctx core.Context, eventId string, startTime,
 		return nil, err
 	} else if len(event) == 0 {
 		return nil, fmt.Errorf("no event found with ID %s", eventId)
+	}
+	return &event[0], err
+}
+
+func (ch *chRepo) GetAlertEventByEventID(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error) {
+	var event []model.AlertEvent
+	var err error
+	if startTime.IsZero() && endTime.IsZero() {
+		err = ch.GetContextDB(ctx).Select(
+			ctx.GetContext(),
+			&event,
+			SQL_GET_ALERT_EVENT_BY_EVENT_ID_ONLY,
+			eventId,
+		)
+	} else {
+		err = ch.GetContextDB(ctx).Select(
+			ctx.GetContext(),
+			&event,
+			SQL_GET_ALERT_EVENT_BY_EVENT_ID,
+			eventId,
+			startTime.Unix(), endTime.Unix(),
+			startTime.Unix(), endTime.Unix(),
+			startTime.Unix(), endTime.Unix(),
+		)
+	}
+	if err != nil {
+		return nil, err
+	} else if len(event) == 0 {
+		return nil, fmt.Errorf("no event found with event_id %s", eventId)
 	}
 	return &event[0], err
 }

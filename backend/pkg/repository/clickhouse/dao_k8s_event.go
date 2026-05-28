@@ -98,3 +98,10 @@ func (e *K8sEvents) GetReason() string {
 	}
 	return "unknown"
 }
+
+func (e *K8sEvents) GetBody() string {
+	if e == nil {
+		return ""
+	}
+	return e.Body
+}

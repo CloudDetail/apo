@@ -6,6 +6,8 @@ package clickhouse
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -20,14 +22,25 @@ const (
 )
 
 func querytagsCondition(tags map[string]string) string {
-	var res string
+	if len(tags) == 0 {
+		return "AND (1='1')"
+	}
+
+	conditions := make([]string, 0, len(tags))
 	for k, v := range tags {
-		res += fmt.Sprintf("AND tags['%s'] = '%s'", k, v)
+		conditions = append(conditions, fmt.Sprintf(
+			"tags['%s'] = '%s'",
+			escapeClickHouseStringLiteral(k),
+			escapeClickHouseStringLiteral(v),
+		))
 	}
-	if res == "" {
-		res = "AND (1='1')"
-	}
-	return res
+	sort.Strings(conditions)
+	return "AND " + strings.Join(conditions, " AND ")
+}
+
+func escapeClickHouseStringLiteral(value string) string {
+	escaped := strings.ReplaceAll(value, `\`, `\\`)
+	return strings.ReplaceAll(escaped, "'", "''")
 }
 
 func (ch *chRepo) GetAlertEventReport(ctx core.Context, startTime time.Time, endTime time.Time, tags map[string]string) (*model.AlertEventReport, error) {
@@ -47,6 +60,24 @@ func (ch *chRepo) GetAlertEventReport(ctx core.Context, startTime time.Time, end
 		return nil, fmt.Errorf("no event found with tags %s", sqltags)
 	}
 	return &event[0], err
+}
+
+func (ch *chRepo) ListAlertEventReports(ctx core.Context, startTime time.Time, endTime time.Time, limit int) ([]model.AlertEventReport, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+	builder := NewQueryBuilder().
+		Between("overview_timestamp", startTime.Unix(), endTime.Unix())
+
+	byLimit := NewByLimitBuilder().
+		OrderBy("overview_timestamp", false).
+		Limit(limit)
+
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_REPORT, builder.String(), "", byLimit.String())
+
+	var reports []model.AlertEventReport
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &reports, sql, startTime, endTime)
+	return reports, err
 }
 
 func convertJSONS2Strings(datas []map[string]any) []string {
@@ -90,7 +121,7 @@ func (ch *chRepo) AddAlertEventReport(ctx core.Context, req *request.AddAlertEve
 		time.UnixMicro(req.Overview.TimeStamp),
 		req.Overview.Detail,
 		req.Overview.Reason,
-		req.Overview.Tags,
+		model.ReportOverviewTagsForStorage(req.Overview.Tags, req.Overview.Headline, req.ReportView),
 		req.Tags,
 		convertJSON2String(req.Topology),
 		req.RootCause.Cause,

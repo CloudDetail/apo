@@ -6,6 +6,7 @@ package dify
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type WorkflowRequest struct {
@@ -76,7 +77,34 @@ func (r *AlertCheckResponse) getOutput(defaultV string) string {
 		return defaultV
 	}
 
-	return text
+	return normalizeAlertCheckOutput(text)
+}
+
+func normalizeAlertCheckOutput(text string) string {
+	cleaned := stripThinkBlocks(text)
+	switch strings.ToLower(cleaned) {
+	case "true":
+		return "true"
+	case "false":
+		return "false"
+	default:
+		return text
+	}
+}
+
+func stripThinkBlocks(text string) string {
+	for {
+		lower := strings.ToLower(text)
+		start := strings.Index(lower, "<think>")
+		if start < 0 {
+			return strings.TrimSpace(text)
+		}
+		end := strings.Index(lower[start:], "</think>")
+		if end < 0 {
+			return strings.TrimSpace(text[:start])
+		}
+		text = text[:start] + text[start+end+len("</think>"):]
+	}
 }
 
 func (r *AlertAnalyzeResponse) WorkflowRunID() string {
@@ -100,5 +128,5 @@ func (r *AlertAnalyzeResponse) getOutput(defaultV string) string {
 		return defaultV
 	}
 
-	return text
+	return stripThinkBlocks(text)
 }

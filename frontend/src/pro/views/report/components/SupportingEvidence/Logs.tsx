@@ -2,6 +2,10 @@ import React from 'react'
 import { Table } from 'antd'
 import dayjs from 'dayjs'
 const Logs = ({ logs }) => {
+  const dataSource = logs.map((log, index) => ({
+    ...log,
+    key: `${log.timestamp || 'log'}-${log.body || log.message || index}`,
+  }))
   const column = [
     {
       title: 'Date',
@@ -12,11 +16,19 @@ const Logs = ({ logs }) => {
       },
     },
     {
-      title: 'Massage',
+      title: 'Message',
       dataIndex: 'body',
+      render: (value, record) => value || record.message || '-',
     },
   ]
 
-  return <Table scroll={{ y: 500 }} columns={column} dataSource={logs} size="small" />
+  return (
+    <Table
+      scroll={{ y: 500 }}
+      columns={column}
+      dataSource={dataSource}
+      size="small"
+    />
+  )
 }
 export default Logs

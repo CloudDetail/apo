@@ -115,6 +115,7 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 			RawTags:      records[i].AlertEvent.Tags,
 			AlertEventId: records[i].Input,
 		}
+		alert.AttachReportOutputContract(&parmas)
 
 		if len(services) == 1 {
 			parmas.Service = services[0]

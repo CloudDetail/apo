@@ -1,0 +1,85 @@
+.evidenceStack {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.evidenceItem {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--line, oklch(86.5% 0.008 250)) 86%, transparent);
+  border-radius: 8px;
+  background: var(--panel, oklch(99.2% 0.002 250));
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid color-mix(in oklch, var(--line, oklch(86.5% 0.008 250)) 72%, transparent);
+    background: color-mix(
+      in oklch,
+      var(--panel-soft, oklch(96.8% 0.005 250)) 58%,
+      var(--panel, oklch(99.2% 0.002 250))
+    );
+  }
+
+  strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--text, oklch(22% 0.018 250));
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 800;
+  }
+
+  span {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    border-radius: 999px;
+    color: var(--info, oklch(47% 0.115 245));
+    background: var(--info-bg, oklch(95.2% 0.024 245));
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 760;
+  }
+}
+
+.evidenceBody {
+  min-width: 0;
+  padding: 12px;
+}
+
+.chartFrame {
+  height: 300px;
+  min-width: 0;
+}
+
+.traceEvidence {
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text, oklch(22% 0.018 250));
+  font-size: 12px;
+  line-height: 1.55;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+.evidenceDescription {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in oklch, var(--line, oklch(86.5% 0.008 250)) 78%, transparent);
+  border-radius: 8px;
+  color: var(--muted, oklch(48% 0.018 250));
+  background: color-mix(
+    in oklch,
+    var(--panel-soft, oklch(96.8% 0.005 250)) 45%,
+    var(--panel, oklch(99.2% 0.002 250))
+  );
+  font-size: 12px;
+  line-height: 1.45;
+}

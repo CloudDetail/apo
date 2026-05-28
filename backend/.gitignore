@@ -7,3 +7,5 @@ database-apo.db
 logs/*.log.gz
 .DS_Store
 backend
+config/apo-local.yml
+config/apo-dev.yml

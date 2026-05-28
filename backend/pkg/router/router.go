@@ -152,10 +152,13 @@ func NewHTTPServer(logger *zap.Logger) (*Server, error) {
 			FlowId:        difyConfig.FlowIDs.AlertCheck,
 			APIKey:        difyConfig.APIKeys.AlertCheck,
 			Authorization: fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertCheck),
+			AnalyzeAPIKey: difyConfig.APIKeys.AlertAnalyze,
 			AnalyzeAuth:   fmt.Sprintf("Bearer %s", difyConfig.APIKeys.AlertAnalyze),
+			AnalyzeFlowId: difyConfig.FlowIDs.AlertEventAnalyze,
 
 			User:           "apo-backend",
 			MaxConcurrency: difyConfig.MaxConcurrency,
+			QueueSize:      difyConfig.QueueSize,
 			CacheMinutes:   difyConfig.CacheMinutes,
 			Sampling:       difyConfig.Sampling,
 

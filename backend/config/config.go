@@ -114,6 +114,7 @@ type Config struct {
 			AlertEventAnalyze string `mapstructure:"alert_event_analyze"`
 		} `mapstructure:"flow_ids"`
 		MaxConcurrency int    `mapstructure:"max_concurrency"`
+		QueueSize      int    `mapstructure:"queue_size"`
 		CacheMinutes   int    `mapstructure:"cache_minutes"`
 		TimeoutSecond  int    `mapstructure:"timeout_second"`
 		Sampling       string `mapstructure:"sampling"`

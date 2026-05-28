@@ -17,16 +17,17 @@ import (
 	"go.uber.org/zap"
 )
 
-const MAX_CACHE_SIZE = 100
-
 type inputChan struct {
 	Ch         chan *alert.AlertEvent
 	IsShutDown bool
 }
 
-func newInputChan() *inputChan {
+func newInputChan(queueSize int) *inputChan {
+	if queueSize <= 0 {
+		queueSize = defaultAlertCheckQueueSize
+	}
 	return &inputChan{
-		Ch:         make(chan *alert.AlertEvent, MAX_CACHE_SIZE+10),
+		Ch:         make(chan *alert.AlertEvent, queueSize),
 		IsShutDown: false,
 	}
 }
@@ -88,12 +89,11 @@ func (w *worker) getAlertClassify(c *DifyClient, event *alert.AlertEvent) model.
 	}
 
 	difyconf := config.Get().Dify
-	resp, err := c.WorkflowsRun(request, "Bearer "+difyconf.APIKeys.AlertClassify)
+	resp, err := runWorkflowWithRetry(func() (WorkflowResponse, error) {
+		return c.WorkflowsRun(request, "Bearer "+difyconf.APIKeys.AlertClassify)
+	}, 3, time.Sleep)
 
-	classify := model.AlertEventClassify{
-		WorkflowId:     w.FlowId,
-		WorkflowApiKey: w.AnalyzeAuth,
-	}
+	classify := w.defaultAlertClassify()
 	if err != nil {
 		w.logger.Error("failed to alert event classify", zap.Error(err))
 		return classify
@@ -114,6 +114,17 @@ func (w *worker) getAlertClassify(c *DifyClient, event *alert.AlertEvent) model.
 	classify.WorkflowId = res["workflowId"]
 	cache.Add(event.Group+event.Name, classify)
 	return classify
+}
+
+func (w *worker) defaultAlertClassify() model.AlertEventClassify {
+	apiKey := w.AnalyzeAPIKey
+	if apiKey == "" {
+		apiKey = strings.TrimPrefix(w.AnalyzeAuth, "Bearer ")
+	}
+	return model.AlertEventClassify{
+		WorkflowId:     w.AnalyzeFlowId,
+		WorkflowApiKey: apiKey,
+	}
 }
 
 func (w *worker) createExpiredRecord(c *DifyClient, event *alert.AlertEvent, endTime int64) model.WorkflowRecord {
@@ -201,9 +212,12 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 			record.AnalyzeErr = "workflow execution failed due to error params"
 			record.AlertDirection = ""
 		} else {
-			resp, err := c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
+			resp, err := runAlertAnalyzeWithRetry(func() (*AlertAnalyzeResponse, error) {
+				return c.alertAnalyze(&WorkflowRequest{Inputs: inputStr}, "Bearer "+classify.WorkflowApiKey, w.User)
+			}, 3, time.Sleep)
 			if err != nil {
-				record.AnalyzeErr = "workflow execution failed due to API call failure"
+				w.logger.Error("failed to alert analyze", zap.Error(err))
+				record.AnalyzeErr = "workflow execution failed due to API call failure: " + err.Error()
 				record.AlertDirection = ""
 			} else {
 				record.AnalyzeRunID = resp.WorkflowRunID()
@@ -216,6 +230,47 @@ func (w *worker) doAlertCheck(c *DifyClient, event *alert.AlertEvent, endTime in
 		}
 	}
 	return record
+}
+
+func runAlertAnalyzeWithRetry(
+	run func() (*AlertAnalyzeResponse, error),
+	maxAttempts int,
+	wait func(time.Duration),
+) (*AlertAnalyzeResponse, error) {
+	return runWithRetry(run, maxAttempts, wait)
+}
+
+func runWorkflowWithRetry(
+	run func() (WorkflowResponse, error),
+	maxAttempts int,
+	wait func(time.Duration),
+) (WorkflowResponse, error) {
+	return runWithRetry(run, maxAttempts, wait)
+}
+
+func runWithRetry[T any](
+	run func() (T, error),
+	maxAttempts int,
+	wait func(time.Duration),
+) (T, error) {
+	if maxAttempts < 1 {
+		maxAttempts = 1
+	}
+
+	var lastErr error
+	var zero T
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		resp, err := run()
+		if err == nil {
+			return resp, nil
+		}
+
+		lastErr = err
+		if attempt < maxAttempts && wait != nil {
+			wait(time.Duration(attempt) * time.Second)
+		}
+	}
+	return zero, lastErr
 }
 
 func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParams {
@@ -261,6 +316,7 @@ func (w *worker) getWorkflowParams(event *alert.AlertEvent) *alert.WorkflowParam
 		RawTags:      rawTags,
 		AlertEventId: event.EventID,
 	}
+	alert.AttachReportOutputContract(&parmas)
 
 	if len(services) == 1 {
 		parmas.Service = services[0]

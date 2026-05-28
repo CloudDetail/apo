@@ -27,6 +27,7 @@ type Service interface {
 	AlertEventClassify(ctx core.Context, req *request.AlertEventClassifyRequest) (*response.AlertEventClassifyResponse, error)
 
 	GetAlertEventReport(ctx core.Context, req *request.GetAlertEventReportRequest) (*response.GetAlertEventReportResponse, error)
+	GetAlertEventReportView(ctx core.Context, req *request.GetAlertEventReportRequest) (*response.GetAlertEventReportViewResponse, error)
 	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
 
 	// ========================告警配置========================

@@ -41,6 +41,11 @@ type Handler interface {
 	// @Router /api/alerts/events/report/get [get]
 	GetAlertEventReport() core.HandlerFunc
 
+	// GetAlertEventReportView
+	// @Tags API.alerts
+	// @Router /api/alerts/events/report/view [post]
+	GetAlertEventReportView() core.HandlerFunc
+
 	// AddAlertEventReport
 	// @Tags API.alerts
 	// @Router /api/alerts/events/report/add [post]
@@ -180,10 +185,11 @@ func New(
 
 	receivers receiver.Receivers,
 ) Handler {
+	serviceoverviewService := so.New(logger, chRepo, dbRepo, promRepo)
 	return &handler{
 		logger:                 logger,
 		alertService:           alerts.New(chRepo, promRepo, k8sRepo, dbRepo, difyRepo, receivers),
 		inputService:           alertinput.New(promRepo, dbRepo, chRepo, difyRepo),
-		serviceoverviewService: so.New(logger, chRepo, dbRepo, promRepo),
+		serviceoverviewService: serviceoverviewService,
 	}
 }

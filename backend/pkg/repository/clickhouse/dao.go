@@ -106,6 +106,7 @@ type Repo interface {
 	GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 
 	GetAlertEventReport(ctx core.Context, startTime time.Time, endTime time.Time, tags map[string]string) (*model.AlertEventReport, error)
+	ListAlertEventReports(ctx core.Context, startTime time.Time, endTime time.Time, limit int) ([]model.AlertEventReport, error)
 
 	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
 
@@ -114,6 +115,7 @@ type Repo interface {
 	GetAlertEventsWithKeyByInstanceAndEndpoints(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventWithKey, error)
 	// 查询指定EventId的告警事件
 	GetAlertEventById(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
+	GetAlertEventByEventID(ctx core.Context, eventId string, startTime, endTime time.Time) (*model.AlertEvent, error)
 
 	GetAlertEvents(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances, pageParam *request.PageParam, sortBy string) ([]alert.AlertEvent, uint64, error)
 	GetAlertDataScope(ctx core.Context, startTime time.Time, endTime time.Time) ([]datagroup.DataScope, error)
@@ -148,6 +150,7 @@ type Repo interface {
 
 	CreateAlertNotifyRecord(ctx core.Context, record model.AlertNotifyRecord) error
 	GetLatestAlertEventByAlertID(ctx core.Context, alertID string) (*alert.AlertEvent, error)
+	GetLatestAlertEventByAlertIDInWindow(ctx core.Context, alertID string, startTime, endTime time.Time) (*alert.AlertEvent, error)
 
 	ManualResolveLatestAlertEventByAlertID(ctx core.Context, alertID string) error
 

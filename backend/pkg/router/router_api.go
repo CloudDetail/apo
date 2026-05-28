@@ -122,6 +122,7 @@ func setApiRouter(r *resource) {
 		alertApi.POST("/event/detail", alertHandler.AlertEventDetail())
 		alertApi.GET("/events/classify", alertHandler.AlertEventClassify())
 		alertApi.POST("/events/report/get", alertHandler.GetAlertEventReport())
+		alertApi.POST("/events/report/view", alertHandler.GetAlertEventReportView())
 		alertApi.POST("/events/report/add", alertHandler.AddAlertEventReport())
 		alertApi.POST("/inputs/alertmanager", alertHandler.InputAlertManager())
 		alertApi.POST("/outputs/dingtalk/:uuid", alertHandler.ForwardToDingTalk())

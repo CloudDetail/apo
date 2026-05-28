@@ -13,8 +13,9 @@ import (
 
 // AlertEvent indicates an event in the alert_event table
 type AlertEvent struct {
-	Source string    `ch:"source" json:"source,omitempty"`
-	ID     uuid.UUID `ch:"id" json:"id,omitempty"`
+	Source  string    `ch:"source" json:"source,omitempty"`
+	ID      uuid.UUID `ch:"id" json:"id,omitempty"`
+	AlertID string    `ch:"alert_id" json:"alertId,omitempty"`
 	// fault trigger time
 	CreateTime time.Time `ch:"create_time" json:"createTime"`
 	// Last time the fault occurred

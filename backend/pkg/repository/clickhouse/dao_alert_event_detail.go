@@ -15,8 +15,8 @@ import (
 	"github.com/google/uuid"
 )
 
-const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT * FROM alert_event ae
-%s ORDER BY received_time DESC LIMIT 1`
+const SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID = `SELECT source,id,event_id,alert_id,group,name,tags,raw_tags,detail,create_time,update_time,end_time,received_time,severity,status FROM alert_event ae
+%s ORDER BY received_time DESC LIMIT 1 BY alert_id`
 
 // Use LIMIT 1 BY alert_id for alert detail queries because plain LIMIT 1 can be unstable
 // on ClickHouse clusters when the query is not executed as a global ordered scan.
@@ -260,6 +260,20 @@ func (ch *chRepo) GetLatestAlertEventByAlertID(ctx core.Context, alertID string)
 	alertEventFilter := NewQueryBuilder().
 		Equals("alert_id", alertID).
 		GreaterThan("received_time", time.Now().Add(-7*24*time.Hour).Unix())
+	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
+	var result = alert.AlertEvent{}
+	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, alertEventFilter.values...).ScanStruct(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, err
+}
+
+func (ch *chRepo) GetLatestAlertEventByAlertIDInWindow(ctx core.Context, alertID string, startTime, endTime time.Time) (*alert.AlertEvent, error) {
+	alertEventFilter := NewQueryBuilder().
+		Equals("alert_id", alertID).
+		Between("update_time", startTime.Unix(), endTime.Unix()).
+		NotGreaterThan("end_time", endTime.Unix())
 	sql := fmt.Sprintf(SQL_GET_LATEST_ALERT_EVENT_BY_ALERTID, alertEventFilter.String())
 	var result = alert.AlertEvent{}
 	err := ch.GetContextDB(ctx).QueryRow(ctx.GetContext(), sql, alertEventFilter.values...).ScanStruct(&result)

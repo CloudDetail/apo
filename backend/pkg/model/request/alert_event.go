@@ -56,13 +56,14 @@ type GetAlertEventReportRequest struct {
 }
 
 type AddAlertEventReportRequest struct {
-	Type      string                `json:"reportType"`
-	Overview  model.ReportOverView  `json:"overview"`
-	Topology  map[string]any        `json:"topology"`
-	RootCause model.ReportRootCause `json:"rootCauseAnalysis"`
-	Tags      map[string]string     `json:"tags"`
-	Suggest   []map[string]any      `json:"suggest"`
-	Data      []map[string]any      `json:"evidence"`
+	Type       string                `json:"reportType"`
+	Overview   model.ReportOverView  `json:"overview"`
+	Topology   map[string]any        `json:"topology"`
+	RootCause  model.ReportRootCause `json:"rootCauseAnalysis"`
+	Tags       map[string]string     `json:"tags"`
+	Suggest    []map[string]any      `json:"suggest"`
+	Data       []map[string]any      `json:"evidence"`
+	ReportView map[string]any        `json:"reportView,omitempty"`
 }
 
 type MarkAlertResolvedManuallyRequest struct {
