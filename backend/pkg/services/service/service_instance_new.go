@@ -65,6 +65,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		MetricGroupList: []*prometheus.InstanceMetrics{},
 		MetricGroupMap:  map[prometheus.InstanceKey]*prometheus.InstanceMetrics{},
 	}
+	seededInstanceKeys := make(map[prometheus.InstanceKey]struct{})
 	for _, instance := range svcInstances.InstanceMap {
 		key := prometheus.InstanceKey{
 			ServiceName: instance.ServiceName,
@@ -83,6 +84,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		if _, ok := instances.MetricGroupMap[key]; !ok {
 			instances.MetricGroupMap[key] = metric
 			instances.MetricGroupList = append(instances.MetricGroupList, metric)
+			seededInstanceKeys[key] = struct{}{}
 		}
 	}
 
@@ -106,7 +108,9 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 	if logErr.ErrorOrNil() != nil {
 		log.Println("get instance log data error: ", logErr)
 	}
+	logDuplicateInstanceKeys(req, instances, seededInstanceKeys)
 	resData := []response.InstanceData{}
+	resDataByName := make(map[string]int)
 	res.Status = model.STATUS_NORMAL
 	// Status of filled instance and RED metrics
 	for _, instance := range instances.MetricGroupList {
@@ -273,7 +277,7 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 			newInstance.Timestamp = &latestStartTime
 		}
 
-		resData = append(resData, newInstance)
+		resData = appendInstanceDataByName(resData, resDataByName, newInstance)
 	}
 	res.Data = resData
 
@@ -290,6 +294,124 @@ func (s *service) GetInstancesNew(ctx core.Context, req *request.GetServiceInsta
 		}
 	}
 	return
+}
+
+func appendInstanceDataByName(list []response.InstanceData, indexByName map[string]int, item response.InstanceData) []response.InstanceData {
+	if item.Name == "" {
+		return append(list, item)
+	}
+	index, exists := indexByName[item.Name]
+	if !exists {
+		indexByName[item.Name] = len(list)
+		return append(list, item)
+	}
+	if instanceDataScore(item) > instanceDataScore(list[index]) {
+		list[index] = item
+	}
+	return list
+}
+
+func instanceDataScore(item response.InstanceData) int {
+	score := 0
+	score += chartObjectScore(item.Latency) * 4
+	score += chartObjectScore(item.Tps) * 4
+	score += chartObjectScore(item.Logs) * 2
+	score += chartObjectScore(item.ErrorRate)
+	if item.Timestamp != nil {
+		score += 5
+	}
+	if item.NodeIP != "" {
+		score++
+	}
+	return score
+}
+
+func chartObjectScore(chart response.TempChartObject) int {
+	score := 0
+	if chart.Value != nil {
+		score += 10
+		if *chart.Value != 0 {
+			score += 10
+		}
+	}
+	for _, value := range chart.ChartData {
+		if value != 0 {
+			score += 20
+			break
+		}
+	}
+	if chart.Ratio.DayOverDay != nil {
+		score += 2
+	}
+	if chart.Ratio.WeekOverDay != nil {
+		score += 2
+	}
+	return score
+}
+
+func logDuplicateInstanceKeys(req *request.GetServiceInstanceRequest, instances *InstanceMap, seededKeys map[prometheus.InstanceKey]struct{}) {
+	if instances == nil {
+		return
+	}
+	metricsByDisplayName := make(map[string][]*prometheus.InstanceMetrics)
+	for _, metric := range instances.MetricGroupList {
+		if metric == nil {
+			continue
+		}
+		displayName := metric.InstanceKey.GenInstanceName()
+		if displayName == "" {
+			continue
+		}
+		metricsByDisplayName[displayName] = append(metricsByDisplayName[displayName], metric)
+	}
+
+	for displayName, duplicateMetrics := range metricsByDisplayName {
+		if len(duplicateMetrics) <= 1 {
+			continue
+		}
+		log.Printf(
+			"duplicate service instance display name detected: displayName=%q service=%q endpoint=%q startTime=%d endTime=%d count=%d",
+			displayName,
+			req.ServiceName,
+			req.Endpoint,
+			req.StartTime,
+			req.EndTime,
+			len(duplicateMetrics),
+		)
+		for idx, metric := range duplicateMetrics {
+			source := "prometheus_metric"
+			if _, ok := seededKeys[metric.InstanceKey]; ok {
+				source = "dataplane_instance"
+			}
+			log.Printf(
+				"duplicate service instance key detail: displayName=%q index=%d source=%s service=%q pid=%q containerId=%q pod=%q namespace=%q nodeName=%q nodeIP=%q clusterID=%q hasLatency=%t hasTPS=%t hasErrorRate=%t hasLog=%t",
+				displayName,
+				idx,
+				source,
+				metric.ServiceName,
+				metric.PID,
+				metric.ContainerId,
+				metric.Pod,
+				metric.Namespace,
+				metric.NodeName,
+				metric.NodeIP,
+				metric.ClusterID,
+				metric.REDMetrics.Avg.Latency != nil || hasNonZeroPoints(metric.LatencyData),
+				metric.REDMetrics.Avg.TPM != nil || hasNonZeroPoints(metric.TPMData),
+				metric.REDMetrics.Avg.ErrorRate != nil || hasNonZeroPoints(metric.ErrorRateData),
+				metric.LogAVGData != nil || hasNonZeroPoints(metric.LogData),
+			)
+		}
+	}
+}
+
+func hasNonZeroPoints(points []prometheus.Points) bool {
+	for _, point := range points {
+		if point.Value != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // DataToChart convert chart data to map
