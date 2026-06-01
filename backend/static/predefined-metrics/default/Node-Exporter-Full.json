@@ -45,6 +45,27 @@
       ]
     },
     {
+      "title": "Scheduler - CPU Waiting Running Ratio",
+      "describe": "宿主机CPU调度等待/运行时间比，基于 node_schedstat_waiting_seconds_total 与 node_schedstat_running_seconds_total 计算",
+      "targets": [
+        {
+          "expr": "sum by (instance_name) (rate(node_schedstat_waiting_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])) / clamp_min(sum by (instance_name) (rate(node_schedstat_running_seconds_total{instance_name=~\"$node\",job_name=~\"$job\"}[$__rate_interval])), 0.000001)",
+          "legendFormat": "{{instance_name}} waiting/running",
+          "refId": "CPU waiting/running",
+          "variables": [
+            "__rate_interval",
+            "job",
+            "node"
+          ]
+        }
+      ],
+      "unit": "percentunit",
+      "params": [
+        "job",
+        "node"
+      ]
+    },
+    {
       "title": "Quick CPU / Mem / Disk - Pressure - Mem",
       "describe": "宿主机内存压力指标(等待时间每秒)",
       "targets": [
