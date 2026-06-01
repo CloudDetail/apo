@@ -88,7 +88,7 @@ let proRoutes = [
     name: 'Agent',
     element: AgentPage,
     hideSystemTimeRangePicker: true,
-
+    showDataGroup: true,
   },
   {
     path: '/knowledge-bases',
