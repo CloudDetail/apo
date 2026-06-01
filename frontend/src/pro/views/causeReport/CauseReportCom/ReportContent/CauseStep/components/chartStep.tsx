@@ -7,9 +7,10 @@ import { ThemeColor, ThemeStyle } from 'src/constants'
 import StackChart from './StackChart'
 import CopyButton from 'src/core/components/CopyButton'
 import GrafanaChart from './GrafanaChart'
-import { Card } from 'antd'
+import { Card, Tooltip } from 'antd'
 import FlamegraphCanvas from './Flamegraph'
 import { useTranslation } from 'react-i18next'
+import { AiOutlineQuestionCircle } from 'react-icons/ai'
 
 // const testPQL = 'sum by (device) (rate(node_disk_io_time_seconds_total{instance=\"10.10.103.219:9100\"}[5m]))*100';
 interface Props {
@@ -22,6 +23,35 @@ interface ChartOption {
   option: any
 }
 const i18nKey = 'causeStep'
+
+const metricDescriptions: Record<string, string> = {
+  '宿主机监控指标 - Basic CPU / Mem / Net / Disk - CPU Basic - Busy Steal':
+    'CPU Steal 表示虚拟机等待宿主机分配物理 CPU 的时间占比。该值升高通常说明虚拟化宿主机存在 CPU 资源争用或超卖。',
+  '宿主机监控指标 - Quick CPU / Mem / Disk - CPU Busy':
+    'CPU Busy 表示宿主机非 idle CPU 使用率，用于判断宿主机 CPU 是否接近饱和。',
+  '宿主机监控指标 - Scheduler - CPU Waiting Running Ratio':
+    'CPU Waiting/Running Ratio 基于 node_schedstat_waiting_seconds_total / node_schedstat_running_seconds_total 计算，用于观察 CPU 调度等待时间相对实际运行时间的比例。值越高，说明任务等待 CPU 调度的压力越明显。',
+  '进程监控指标 - 进程 CPU 使用速率':
+    '进程 CPU 使用速率表示目标进程消耗的 CPU Core 数，用于判断 RUNQ 耗时是否由当前进程自身 CPU 开销增加引起。',
+  '进程监控指标 - 进程 CPU 使用速率 - same host processes':
+    '同宿主机进程 CPU 使用速率用于在目标进程 CPU 开销较低时，观察同一宿主机上是否存在其他 CPU 消耗较高的进程。',
+  '基础设施情况 - 容器CPU - 容器CPU节流时间 - Containerd':
+    '容器 CPU 节流时间表示容器因 CFS quota 限制而被暂停执行的时间。该值升高说明容器 CPU 限额可能导致线程等待运行。',
+}
+
+const getMetricDescription = (name?: string) => {
+  if (!name) {
+    return ''
+  }
+  if (metricDescriptions[name]) {
+    return metricDescriptions[name]
+  }
+  if (name.includes('container_cpu_cfs_throttled_seconds_total')) {
+    return metricDescriptions['基础设施情况 - 容器CPU - 容器CPU节流时间 - Containerd']
+  }
+  return ''
+}
+
 function ChartStep({ data, occurrenceAt }: Props) {
   const { t } = useTranslation('pro/causeReport')
   const theme = ThemeStyle['dark']
@@ -163,11 +193,22 @@ function ChartStep({ data, occurrenceAt }: Props) {
         <div>
           {chartOptionList &&
             chartOptionList.map((chartOption) => {
+              const metricDescription = getMetricDescription(chartOption.name)
+              const actionText = chartOption.action?.text || chartOption.name
+              const actionType = chartOption.action?.type || 'metric'
               return (
                 <div key={chartOption.name}>
                   <div className="chart-title">
-                    {chartOption.action.type + '：' + chartOption.action.text}
-                    <CopyButton value={chartOption.action.text} />
+                    <span>{actionType + '：' + actionText}</span>
+                    {metricDescription && (
+                      <Tooltip title={metricDescription} placement="topLeft">
+                        <AiOutlineQuestionCircle
+                          size={16}
+                          className="inline-block ml-1 align-middle cursor-help text-[var(--ant-color-text-tertiary)]"
+                        />
+                      </Tooltip>
+                    )}
+                    <CopyButton value={actionText} />
                   </div>
                   <GrafanaChart option={chartOption.option} height={260} />
                 </div>
