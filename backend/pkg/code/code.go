@@ -179,6 +179,12 @@ const (
 	UpdateCustomTypeError = "B1103"
 	DeleteCustomTypeError = "B1104"
 
+	CreateCustomDashboardError = "B1111"
+	GetCustomDashboardError    = "B1112"
+	UpdateCustomDashboardError = "B1113"
+	DeleteCustomDashboardError = "B1114"
+	QueryCustomDashboardError  = "B1115"
+
 	// alertinput
 	GetAlertsInputTargetTagsError     = "B1301"
 	CreateAlertSourceFailed           = "B1302"

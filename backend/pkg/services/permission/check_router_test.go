@@ -6,6 +6,12 @@ package permission
 import (
 	"strings"
 	"testing"
+
+	"github.com/CloudDetail/apo/backend/pkg/core"
+	"github.com/CloudDetail/apo/backend/pkg/model"
+	"github.com/CloudDetail/apo/backend/pkg/model/profile"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
+	"gorm.io/gorm"
 )
 
 func TestCheckRouterMatch(t *testing.T) {
@@ -139,5 +145,136 @@ func TestCheckRouterMatch(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestConcreteCustomDashboardRouteRequiresExactAuthorization(t *testing.T) {
+	if authorizedRouterMatches("/custom-dashboard/dashboard-1", "/custom-dashboard/:id") {
+		t.Fatalf("concrete custom dashboard route must not be authorized by generic dashboard route")
+	}
+	if authorizedRouterMatches("/custom-dashboard/dashboard-1/edit", "/custom-dashboard/:id/edit") {
+		t.Fatalf("concrete custom dashboard edit route must not be authorized by generic dashboard edit route")
+	}
+	if !authorizedRouterMatches("/custom-dashboard/dashboard-1", "/custom-dashboard/dashboard-1") {
+		t.Fatalf("concrete custom dashboard route should accept exact authorization")
+	}
+	if !authorizedRouterMatches("/custom-dashboard/dashboard-1/edit", "/custom-dashboard/dashboard-1/edit") {
+		t.Fatalf("concrete custom dashboard edit route should accept exact authorization")
+	}
+	if !authorizedRouterMatches("/service/1", "/service/:id") {
+		t.Fatalf("non-dashboard dynamic routes should keep existing matching behavior")
+	}
+}
+
+type dashboardRouteVisibilityRepoStub struct {
+	database.Repo
+	userPerms     []int
+	rolePerms     []database.AuthPermission
+	teamPerms     []database.AuthPermission
+	teams         map[int64][]int64
+	routers       []database.Router
+	itemRoutes    []database.Router
+	dashboards    map[string]*database.CustomDashboard
+	dashboardErrs map[string]error
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetUserRole(ctx core.Context, userID int64) ([]profile.UserRole, error) {
+	return nil, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetUserTeams(ctx core.Context, userID int64) ([]int64, error) {
+	return r.teams[userID], nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetSubjectsPermission(ctx core.Context, subIDs []int64, subType string, typ string) ([]database.AuthPermission, error) {
+	if subType == model.PERMISSION_SUB_TYP_TEAM {
+		return r.teamPerms, nil
+	}
+	return r.rolePerms, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetSubjectPermission(ctx core.Context, subID int64, subType string, typ string) ([]int, error) {
+	return r.userPerms, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetFeatureMappingByFeature(ctx core.Context, featureIDs []int, mappedType string) ([]database.FeatureMapping, error) {
+	if mappedType == model.MAPPED_TYP_ROUTER {
+		return []database.FeatureMapping{{MappedID: 1, MappedType: mappedType}}, nil
+	}
+	return []database.FeatureMapping{{MappedID: 2, MappedType: mappedType}}, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetRouterByIDs(ctx core.Context, routerIDs []int) ([]database.Router, error) {
+	return r.routers, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetItemsRouter(ctx core.Context, itemIDs []int) ([]database.Router, error) {
+	return r.itemRoutes, nil
+}
+
+func (r *dashboardRouteVisibilityRepoStub) GetCustomDashboard(ctx core.Context, id string) (*database.CustomDashboard, error) {
+	if err := r.dashboardErrs[id]; err != nil {
+		return nil, err
+	}
+	return r.dashboards[id], nil
+}
+
+func TestCheckRouterPermissionAllowsVisibleCustomDashboardWithRootPermission(t *testing.T) {
+	repo := &dashboardRouteVisibilityRepoStub{
+		userPerms:  []int{7},
+		teams:      map[int64][]int64{101: {8}},
+		routers:    []database.Router{{RouterTo: "/custom-dashboard/:id"}},
+		itemRoutes: []database.Router{{RouterTo: "/custom-dashboard"}},
+		dashboards: map[string]*database.CustomDashboard{
+			"shared":  {OwnerID: 100, Visibility: "everyone"},
+			"team":    {OwnerID: 100, Visibility: "team", TeamIDs: "[8]"},
+			"private": {OwnerID: 100, Visibility: "personal"},
+		},
+	}
+	s := &service{dbRepo: repo}
+	ctx := core.EmptyCtx()
+
+	if ok, err := s.CheckRouterPermission(ctx, 101, "/custom-dashboard/shared"); err != nil || !ok {
+		t.Fatalf("everyone-visible dashboard should allow concrete route with root dashboard permission, ok=%v err=%v", ok, err)
+	}
+	if ok, err := s.CheckRouterPermission(ctx, 101, "/custom-dashboard/team"); err != nil || !ok {
+		t.Fatalf("team-visible dashboard should allow concrete route for a team member, ok=%v err=%v", ok, err)
+	}
+	if ok, err := s.CheckRouterPermission(ctx, 101, "/custom-dashboard/private"); err != nil || ok {
+		t.Fatalf("private dashboard should not allow non-owner concrete route, ok=%v err=%v", ok, err)
+	}
+}
+
+func TestCheckRouterPermissionAllowsMissingCustomDashboardWithRootPermission(t *testing.T) {
+	repo := &dashboardRouteVisibilityRepoStub{
+		userPerms:     []int{7},
+		routers:       []database.Router{{RouterTo: "/custom-dashboard/:id"}},
+		itemRoutes:    []database.Router{{RouterTo: "/custom-dashboard"}},
+		dashboards:    map[string]*database.CustomDashboard{},
+		dashboardErrs: map[string]error{"deleted": gorm.ErrRecordNotFound},
+	}
+	s := &service{dbRepo: repo}
+
+	if ok, err := s.CheckRouterPermission(core.EmptyCtx(), 101, "/custom-dashboard/deleted"); err != nil || !ok {
+		t.Fatalf("missing dashboard route should reach viewer so it can show not-found state, ok=%v err=%v", ok, err)
+	}
+}
+
+func TestCheckRouterPermissionRequiresOwnerForCustomDashboardEditRoute(t *testing.T) {
+	repo := &dashboardRouteVisibilityRepoStub{
+		userPerms:  []int{7},
+		routers:    []database.Router{{RouterTo: "/custom-dashboard/:id/edit"}},
+		itemRoutes: []database.Router{{RouterTo: "/custom-dashboard"}},
+		dashboards: map[string]*database.CustomDashboard{
+			"shared": {OwnerID: 100, Visibility: "everyone"},
+		},
+	}
+	s := &service{dbRepo: repo}
+
+	if ok, err := s.CheckRouterPermission(core.EmptyCtx(), 101, "/custom-dashboard/shared/edit"); err != nil || ok {
+		t.Fatalf("non-owner must not edit a shared custom dashboard, ok=%v err=%v", ok, err)
+	}
+	if ok, err := s.CheckRouterPermission(core.EmptyCtx(), 100, "/custom-dashboard/shared/edit"); err != nil || !ok {
+		t.Fatalf("owner should be allowed to edit own custom dashboard, ok=%v err=%v", ok, err)
 	}
 }

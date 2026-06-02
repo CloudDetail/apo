@@ -3,6 +3,8 @@
   "businessAlertAnalyze": "Business Alert Analysis",
   "causeReport": "Failure Report",
   "mysqlDashboard": "MySQL Dashboard",
+  "customDashboard": "My Dashboards",
+  "customDashboardEditor": "Dashboard Editor",
   "serviceHealth": "Service Health Status",
   "aiRootCauseAnalysis": "AI Root Cause Analysis",
   "free": "Public Beta",

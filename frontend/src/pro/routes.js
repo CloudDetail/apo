@@ -14,6 +14,9 @@ const SlowReportPage = AuthRouter(React.lazy(() => import('src/pro/views/report/
 const AgentDataplanePage = AuthRouter(React.lazy(() => import('src/pro/views/agentDataplane/index')))
 const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index')))
 const KnowledgeBasesPage = AuthRouter(React.lazy(() => import('src/pro/views/knowledgeBases/index')))
+const CustomDashboardList = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/List')))
+const CustomDashboardViewer = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/Viewer')))
+const CustomDashboardEditor = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/Editor')))
 const ProbeManagementPage = AuthRouter(React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')))
 
 const IntegrationSettings = AuthRouter(
@@ -53,6 +56,26 @@ let proRoutes = [
     name: t('pro/routes:serviceHealth'),
     element: ServiceHealthy,
     showDataGroup: true,
+  },
+  {
+    path: '/custom-dashboard',
+    name: t('pro/routes:customDashboard'),
+    hideSystemTimeRangePicker: true,
+    element: CustomDashboardList,
+  },
+  {
+    path: '/custom-dashboard/:id',
+    name: t('pro/routes:customDashboard'),
+    showDataGroup: true,
+
+    element: CustomDashboardViewer,
+  },
+  {
+    path: '/custom-dashboard/:id/edit',
+    name: t('pro/routes:customDashboardEditor'),
+    showDataGroup: true,
+
+    element: CustomDashboardEditor,
   },
   {
     path: '/alert-analyze/chatAI/:service/:endpoint',

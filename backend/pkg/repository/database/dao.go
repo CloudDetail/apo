@@ -104,6 +104,8 @@ type Repo interface {
 	GetFeatureMappingByFeature(ctx core.Context, featureIDs []int, mappedType string) ([]FeatureMapping, error)
 	GetFeatureMappingByMapped(ctx core.Context, mappedID int, mappedType string) (FeatureMapping, error)
 	GetMenuItems(ctx core.Context) ([]MenuItem, error)
+	UpsertCustomDashboardMenu(ctx core.Context, id string, name string, visibility string) error
+	DeleteCustomDashboardMenu(ctx core.Context, id string) error
 
 	GetTeamList(ctx core.Context, req *request.GetTeamRequest) ([]profile.Team, int64, error)
 	DeleteTeam(ctx core.Context, teamID int64) error
@@ -139,6 +141,16 @@ type Repo interface {
 	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
 	DropDataGroupDatasourceConstraint(ctx core.Context) error
 	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
+	ListCustomDashboards(ctx core.Context, userID int64, teamIDs []int64, keyword string) ([]CustomDashboard, error)
+	GetCustomDashboard(ctx core.Context, id string) (*CustomDashboard, error)
+	CreateCustomDashboard(ctx core.Context, dashboard *CustomDashboard) error
+	CreateCustomDashboardWithMenu(ctx core.Context, dashboard *CustomDashboard) error
+	UpdateCustomDashboard(ctx core.Context, dashboard *CustomDashboard) error
+	UpdateCustomDashboardWithMenu(ctx core.Context, dashboard *CustomDashboard) error
+	DeleteCustomDashboard(ctx core.Context, id string) error
+	DeleteCustomDashboardWithMenu(ctx core.Context, id string) error
+	TouchCustomDashboardVisit(ctx core.Context, id string, at time.Time) error
+	CreateCustomDashboardQueryAudit(ctx core.Context, audit *CustomDashboardQueryAudit) error
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx core.Context) *gorm.DB
@@ -301,6 +313,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.createAnonymousUser(nil); err != nil {
 		return nil, err
 	}
+	if err = daoRepo.syncCustomDashboardMenus(nil); err != nil {
+		return nil, err
+	}
 
 	if daoRepo.ObservabilityInputManage, err = integration.NewObservabilityInputManage(database, globalCfg); err != nil {
 		return nil, err
@@ -367,6 +382,8 @@ func migrateTable(db *gorm.DB) error {
 		&ServiceNameRule{},
 		&ServiceNameRuleCondition{},
 		&CustomServiceTopology{},
+		&CustomDashboard{},
+		&CustomDashboardQueryAudit{},
 		&mi.DataPlaneType{},
 		&mi.DataPlane{},
 		&mi.Cluster2DataPlane{},

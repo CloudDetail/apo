@@ -3,10 +3,7 @@
 
 package database
 
-import
-
-// API represents an API endpoint definition
-core "github.com/CloudDetail/apo/backend/pkg/core"
+import core "github.com/CloudDetail/apo/backend/pkg/core"
 
 type API struct {
 	ID      int    `gorm:"primary_key;auto_increment"`

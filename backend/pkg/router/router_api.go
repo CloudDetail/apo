@@ -10,6 +10,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/app"
 	"github.com/CloudDetail/apo/backend/pkg/api/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/custom"
+	customdashboardapi "github.com/CloudDetail/apo/backend/pkg/api/customdashboard"
 	"github.com/CloudDetail/apo/backend/pkg/api/data"
 	"github.com/CloudDetail/apo/backend/pkg/api/dataplane"
 	"github.com/CloudDetail/apo/backend/pkg/api/health"
@@ -289,6 +290,23 @@ func setApiRouter(r *resource) {
 		customApi.POST("/update", handler.UpdateCustomQuery())
 		customApi.GET("/get", handler.GetCustomQuery())
 		customApi.DELETE("/delete", handler.DeleteCustomQuery())
+	}
+
+	customDashboardApi := r.mux.Group("/api/custom-dashboard").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	{
+		handler := customdashboardapi.New(r.logger, r.pkg_db, r.prom)
+		customDashboardApi.GET("/list", handler.List())
+		customDashboardApi.GET("/detail", handler.Get())
+		customDashboardApi.POST("/create", handler.Create())
+		customDashboardApi.POST("/update", handler.Update())
+		customDashboardApi.POST("/copy", handler.Copy())
+		customDashboardApi.DELETE("/delete", handler.Delete())
+		customDashboardApi.GET("/templates", handler.Templates())
+		customDashboardApi.GET("/preset-queries", handler.PresetQueries())
+		customDashboardApi.GET("/variables", handler.VariableCandidates())
+		customDashboardApi.POST("/variables/query", handler.VariableCandidatesQuery())
+		customDashboardApi.POST("/query/validate", handler.ValidateQuery())
+		customDashboardApi.POST("/query/preview", handler.PreviewQuery())
 	}
 
 	alertInputApi := r.mux.Group("/api/alertinput").Use(middlewares.LicMiddleware())

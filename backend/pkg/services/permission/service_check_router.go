@@ -4,10 +4,12 @@
 package permission
 
 import (
+	"errors"
 	"strings"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	"gorm.io/gorm"
 )
 
 var allowedRouters = []string{
@@ -68,12 +70,19 @@ func (s *service) CheckRouterPermission(ctx core.Context, userID int64, routerTo
 	}
 
 	for _, r := range authRouters {
-		if checkRouterMatch(routerTo, r) {
+		if authorizedRouterMatches(routerTo, r) {
 			return true, nil
 		}
 	}
 
-	return false, nil
+	return s.visibleCustomDashboardRouteAuthorized(ctx, userID, routerTo, authRouters)
+}
+
+func authorizedRouterMatches(checkRouter, authRouter string) bool {
+	if isConcreteCustomDashboardRoute(checkRouter) || isConcreteCustomDashboardEditRoute(checkRouter) {
+		return checkRouter == authRouter
+	}
+	return checkRouterMatch(checkRouter, authRouter)
 }
 
 func checkRouterMatch(checkRouter, matchRouter string) bool {
@@ -96,4 +105,45 @@ func checkRouterMatch(checkRouter, matchRouter string) bool {
 		}
 	}
 	return true
+}
+
+func (s *service) visibleCustomDashboardRouteAuthorized(ctx core.Context, userID int64, routerTo string, authRouters []string) (bool, error) {
+	isViewRoute := isConcreteCustomDashboardRoute(routerTo)
+	isEditRoute := isConcreteCustomDashboardEditRoute(routerTo)
+	if (!isViewRoute && !isEditRoute) ||
+		(isViewRoute && !hasCustomDashboardRootRoutePermission(authRouters)) ||
+		(isEditRoute && !hasCustomDashboardEditRoutePermission(authRouters)) {
+		return false, nil
+	}
+	id := strings.TrimPrefix(routerTo, "/custom-dashboard/")
+	id = strings.TrimSuffix(id, "/edit")
+	row, err := s.dbRepo.GetCustomDashboard(ctx, id)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return isViewRoute, nil
+	}
+	if err != nil || row == nil {
+		return false, err
+	}
+	if isEditRoute {
+		return row.OwnerID == userID, nil
+	}
+	return customDashboardVisibleToUser(ctx, s.dbRepo, row, userID), nil
+}
+
+func hasCustomDashboardRootRoutePermission(authRouters []string) bool {
+	for _, route := range authRouters {
+		if route == "/custom-dashboard" || route == "/custom-dashboard/:id" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasCustomDashboardEditRoutePermission(authRouters []string) bool {
+	for _, route := range authRouters {
+		if route == "/custom-dashboard/:id/edit" {
+			return true
+		}
+	}
+	return false
 }

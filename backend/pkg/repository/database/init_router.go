@@ -19,6 +19,9 @@ var validRouters = []Router{
 	{RouterTo: "/basic-dashboard", HideTimeSelector: false},
 	{RouterTo: "/application-dashboard", HideTimeSelector: false},
 	{RouterTo: "/middleware-dashboard", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard/:id", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard/:id/edit", HideTimeSelector: false},
 	{RouterTo: "/alerts/rule", HideTimeSelector: true},
 	{RouterTo: "/alerts/notify", HideTimeSelector: true},
 	{RouterTo: "/integration/data", HideTimeSelector: true},
@@ -72,6 +75,9 @@ var sreRouters = []Router{
 	{RouterTo: "/cause/error-report/:traceId", HideTimeSelector: true},
 	{RouterTo: "/report", HideTimeSelector: true},
 	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard/:id", HideTimeSelector: false},
+	{RouterTo: "/custom-dashboard/:id/edit", HideTimeSelector: false},
 }
 
 // initRouterData TODO Add mapping of router to feature when permission control is required

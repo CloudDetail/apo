@@ -260,5 +260,10 @@ var zhCnText = map[string]string{
 	CleanRelateServiceError:        "清空关联服务名失败",
 	GetIntegratedCapabilitiesError: "获取集成能力失败",
 
-	QueryPodsError: "获取Pod列表失败",
+	CreateCustomDashboardError: "创建自定义大盘失败",
+	GetCustomDashboardError:    "获取自定义大盘失败",
+	UpdateCustomDashboardError: "更新自定义大盘失败",
+	DeleteCustomDashboardError: "删除自定义大盘失败",
+	QueryCustomDashboardError:  "查询自定义大盘指标失败",
+	QueryPodsError:             "获取Pod列表失败",
 }

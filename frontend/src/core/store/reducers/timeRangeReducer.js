@@ -153,12 +153,16 @@ export const selectProcessedTimeRange = createSelector([selectTimeRangeState], (
 export const selectSecondsTimeRange = createSelector([selectTimeRangeState], (timeRangeState) => {
   const { startTime, endTime, rangeType } = timeRangeState
   // 在这里对 startTime 和 endTime 进行处理，例如返回一个格式化后的对象
-  return rangeType
+  const range = rangeType
     ? getTimestampRange(rangeType, true)
     : {
       startTime: toNearestSecond(startTime),
       endTime: toNearestSecond(endTime),
     }
+  return {
+    ...range,
+    refreshTimestamp: timeRangeState.refreshTimestamp,
+  }
 })
 
 // 转微秒级时间戳为整秒的微秒时间戳

@@ -1,0 +1,278 @@
+{
+  "title": "我的大盘",
+  "new": "新建",
+  "refresh": "刷新",
+  "name": "名称",
+  "description": "描述",
+  "creator": "创建者",
+  "visibility": "可见范围",
+  "updated": "更新时间",
+  "lastVisit": "最近访问",
+  "actions": "操作",
+  "newDashboard": "新建大盘",
+  "deleteDashboard": "删除大盘",
+  "deleteDashboardConfirm": "删除后该大盘将不可访问。",
+  "dashboardNotFound": "大盘不存在",
+  "noViewPermission": "当前用户没有查看该大盘的权限。",
+  "dashboard": "大盘",
+  "widget": "组件",
+  "newWidget": "新建组件",
+  "unsaved": "未保存",
+  "unsavedChanges": "存在未保存修改",
+  "leaveWithoutSaving": "确认不保存并离开当前页面？",
+  "save": "保存",
+  "saveDashboard": "保存大盘",
+  "saveWidget": "保存面板",
+  "saveWidgetAndReturn": "保存面板并返回",
+  "widgetSavedToDraft": "面板已保存到大盘草稿",
+  "unsavedWidget": "面板未保存",
+  "unsavedWidgetChanges": "面板有未保存修改",
+  "leaveWidgetWithoutSaving": "当前面板修改尚未保存，返回大盘会丢弃这些修改。",
+  "discardWidgetChanges": "放弃面板修改",
+  "continueEditing": "继续编辑",
+  "cancel": "取消",
+  "edit": "编辑",
+  "delete": "删除",
+  "saved": "已保存",
+  "saveFailed": "保存失败",
+  "retry": "重试",
+  "copySuffix": "副本",
+  "preview": "预览",
+  "fullscreen": "全屏",
+  "settings": "设置",
+  "backToEdit": "返回编辑",
+  "backToViewer": "返回查看",
+  "backToDashboard": "返回大盘",
+  "noEditPermission": "当前用户没有编辑该大盘的权限。",
+  "chartType": "图表类型",
+  "width": "宽度",
+  "height": "高度",
+  "queryMode": "查询模式",
+  "preset": "预置查询",
+  "custom": "自定义查询",
+  "presetQuery": "预置查询",
+  "presetCategory": {
+    "service": "服务指标",
+    "instance": "pod 指标",
+    "infrastructure": "基础设施指标",
+    "other": "其他指标"
+  },
+  "templates": {
+    "service-health": {
+      "name": "服务健康",
+      "description": "请求量、错误率、延迟、实例和资源健康概览。"
+    },
+    "infrastructure-resources": {
+      "name": "基础资源",
+      "description": "节点 CPU、内存、磁盘和资源排行。"
+    },
+    "blank": {
+      "name": "空白大盘",
+      "description": "包含默认系统变量的空白网格。"
+    }
+  },
+  "presetQueries": {
+    "service-qps": {
+      "name": "请求量 QPS",
+      "description": "服务请求吞吐量"
+    },
+    "service-error-rate": {
+      "name": "错误率",
+      "description": "服务请求错误比例"
+    },
+    "service-latency-avg": {
+      "name": "平均延迟",
+      "description": "服务平均延迟"
+    },
+    "service-latency-p95": {
+      "name": "P95 延迟",
+      "description": "服务 P95 延迟"
+    },
+    "service-latency-p99": {
+      "name": "P99 延迟",
+      "description": "服务 P99 延迟"
+    },
+    "service-instance-status": {
+      "name": "服务实例状态",
+      "description": "服务实例可用状态"
+    },
+    "service-slow-endpoints": {
+      "name": "慢接口 TopN",
+      "description": "按平均延迟排序的慢接口"
+    },
+    "pod-cpu": {
+      "name": "CPU 使用率",
+      "description": "Pod CPU 使用率"
+    },
+    "pod-memory": {
+      "name": "内存使用率",
+      "description": "Pod 内存使用率"
+    },
+    "pod-network-traffic": {
+      "name": "网络流量",
+      "description": "Pod 接收和发送流量"
+    },
+    "pod-restarts": {
+      "name": "重启次数",
+      "description": "Pod 重启次数"
+    },
+    "node-cpu": {
+      "name": "节点 CPU",
+      "description": "节点 CPU 使用率"
+    },
+    "node-memory": {
+      "name": "节点内存",
+      "description": "节点内存使用率"
+    },
+    "disk-usage": {
+      "name": "磁盘使用率",
+      "description": "文件系统使用率"
+    },
+    "node-network-traffic": {
+      "name": "网络流量",
+      "description": "节点接收和发送流量"
+    },
+    "pod-status-distribution": {
+      "name": "Pod 状态分布",
+      "description": "Pod 阶段状态分布"
+    },
+    "resource-usage-top": {
+      "name": "资源使用 TopN",
+      "description": "CPU 使用率最高的 Pod"
+    }
+  },
+  "presetParameters": {
+    "service": {
+      "label": "服务",
+      "description": "服务变量或具体服务名"
+    },
+    "pod": {
+      "label": "pod",
+      "description": "Pod 变量或具体 Pod 名称"
+    }
+  },
+  "expression": "PromQL / VictoriaMetrics",
+  "query": "查询",
+  "addQuery": "新增查询",
+  "hideQuery": "隐藏该查询",
+  "showQuery": "显示该查询",
+  "unit": "单位",
+  "unitDisplay": "单位显示",
+  "unitCustomPlaceholder": "选择或输入单位",
+  "unitPresetBytes": "字节 (B)",
+  "unitPresetMilliseconds": "毫秒 (ms)",
+  "unitPresetSeconds": "秒 (s)",
+  "unitPresetPercent": "百分比 (%)",
+  "unitAutoScaleLabel": "自动换算单位",
+  "unitAutoScaleHelp": "如 1234 ms → 1.23 s",
+  "unitRatioToPercent": "输入值为比例",
+  "decimals": "小数位",
+  "legend": "图例",
+  "legendAuto": "自动",
+  "legendCustom": "自定义",
+  "legendHelp": "配置每条序列在图表图例、Tooltip 和表格中的显示名称。",
+  "legendCustomHelp": "自定义：手动输入名称，支持用 $label 或 Grafana 模板格式读取返回的指标标签。",
+  "legendAutoHelp": "自动：用返回的指标标签拼出名称，例如 {svc_name=\"api\", endpoint=\"/checkout\"}。",
+  "legendCustomPlaceholder": "例如 $svc_name 或 API 延迟",
+  "legendDisplay": "图例展示",
+  "legendDisplayHelp": "控制图表下方图例的展示方式；列表只显示名称，表格会额外显示最小值、最大值和平均值。",
+  "legendList": "列表",
+  "legendTable": "表格",
+  "thresholds": "阈值",
+  "warningThreshold": "警告阈值",
+  "criticalThreshold": "严重阈值",
+  "warningThresholdHelp": "在折线图、面积图和柱状图上画一条黄色参考线，帮助判断数值接近风险区间；为空则不显示。",
+  "criticalThresholdHelp": "在折线图、面积图和柱状图上画一条红色参考线，帮助判断数值进入严重区间；为空则不显示。",
+  "variables": "变量",
+  "variableName": "变量名",
+  "labels": "标签",
+  "addVariable": "新增变量",
+  "builtinVariableGroup": "内置资源参数",
+  "queryLabelVariableGroup": "从查询发现的 Label",
+  "variableDeleteAllowed": "当前参数未被查询引用，可删除。",
+  "variableDeleteBlocked": "该参数被 {{count}} 个查询引用，请先移除引用后再删除。",
+  "variableSelectionMode": "选择变量取值模式",
+  "multiSelect": "多选",
+  "singleSelect": "单选",
+  "labelsAvailableAfterQuery": "配置组件指标查询后可选择标签。",
+  "supportedParameters": "可插入的资源筛选",
+  "supportedParametersHelp": "这些是系统能识别的资源筛选条件，点击可插入到 PromQL。",
+  "recognizedParameters": "当前查询已绑定",
+  "recognizedParametersHelp": "这些 label 已经映射为大盘筛选参数，会跟随页面筛选值联动。",
+  "fixedFilters": "查询内固定条件",
+  "fixedFiltersHelp": "这些条件直接写在 PromQL 里，不会出现在大盘筛选栏，也不需要用户选择。",
+  "unrecognizedParameters": "普通指标标签",
+  "unrecognizedParametersHelp": "这些 label 目前只是 PromQL 里的普通指标标签；如果要让它变成可选筛选，需要在大盘变量里配置。",
+  "labelVariableFallback": "未配置为筛选",
+  "dataGroup": "数据组",
+  "application": "应用名",
+  "cluster": "集群",
+  "namespace": "命名空间",
+  "service": "服务",
+  "endpoint": "服务端点",
+  "pod": "pod",
+  "instance": "实例",
+  "queryByK8s": "按K8s查询",
+  "queryByVirtualMachine": "按虚机查询",
+  "relatedNodes": "相关节点",
+  "resolution": "精度",
+  "jvmInstance": "JVM实例",
+  "hostMetricsJob": "主机指标 Job",
+  "containerMetricsJob": "容器指标 Job",
+  "allData": "全部数据",
+  "allOptionGroup": "全部",
+  "availableOptionGroup": "可选值",
+  "noAvailableValues": "暂无可选值",
+  "noVariablePermission": "当前用户无该变量的数据权限",
+  "refreshSeconds": "刷新间隔（秒）",
+  "everyone": "所有人",
+  "team": "团队",
+  "personal": "私密",
+  "addWidget": "新增组件",
+  "configureWidget": "配置新组件",
+  "addToCanvas": "添加到画布",
+  "emptyCanvasTitle": "还没有组件",
+  "emptyCanvasHint": "先新增组件，在右侧配置完成后再添加到画布。",
+  "addWidgetPlaceholderTitle": "继续添加组件",
+  "addWidgetPlaceholderHint": "新增组件会先进入配置面板，确认后再放入画布。",
+  "line": "折线图",
+  "area": "面积图",
+  "bar": "柱状图",
+  "table": "表格",
+  "stat": "指标卡",
+  "barGauge": "条形仪表",
+  "unsupportedWidgetType": "已移除组件",
+  "unsupportedWidgetHelp": "该组件类型已移除，请删除或改为支持的图表类型。",
+  "noData": "无数据",
+  "widgetDeferred": "等待加载",
+  "widgetDeferredSuggestion": "该面板进入可视区域后会加载。",
+  "refreshing": "刷新中",
+  "retrying": "重试中",
+  "statusSyntaxError": "语法错误",
+  "statusTimeout": "查询超时",
+  "statusTooLarge": "结果过大",
+  "statusNoPermission": "无权限",
+  "statusMetricMissing": "指标不存在",
+  "statusNoData": "无数据",
+  "statusQueryFailure": "查询失败",
+  "syntaxErrorSuggestion": "请检查提示位置附近的 PromQL 语法。",
+  "timeoutSuggestion": "请缩小时间范围或简化查询后重试。",
+  "tooLargeSuggestion": "请缩小时间范围、增大步长或减少查询结果范围。",
+  "noPermissionSuggestion": "请选择有权限的数据组，或联系管理员调整权限。",
+  "metricMissingSuggestion": "请确认指标名称和标签在当前时间范围内存在。",
+  "noDataSuggestion": "请调整时间范围或变量取值后刷新。",
+  "queryFailureSuggestion": "请检查查询语句，并在指标服务恢复后重试。",
+  "last15Minutes": "最近 15 分钟",
+  "last1Hour": "最近 1 小时",
+  "last6Hours": "最近 6 小时",
+  "last24Hours": "最近 24 小时",
+  "off": "关闭",
+  "position": "位置",
+  "seriesName": "名称",
+  "seriesValue": "数值",
+  "seriesLimitSummary": "{{total}} 条序列",
+  "seriesLimitNotice": "返回 {{total}} 条序列，当前展示 Top {{shown}}",
+  "legendMin": "最小",
+  "legendMax": "最大",
+  "legendMean": "平均"
+}

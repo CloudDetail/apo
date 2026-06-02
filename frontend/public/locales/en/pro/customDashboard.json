@@ -1,0 +1,278 @@
+{
+  "title": "My Dashboards",
+  "new": "New",
+  "refresh": "Refresh",
+  "name": "Name",
+  "description": "Description",
+  "creator": "Creator",
+  "visibility": "Visibility",
+  "updated": "Updated",
+  "lastVisit": "Last Visit",
+  "actions": "Actions",
+  "newDashboard": "New dashboard",
+  "deleteDashboard": "Delete dashboard",
+  "deleteDashboardConfirm": "This dashboard will no longer be available.",
+  "dashboardNotFound": "Dashboard not found",
+  "noViewPermission": "You do not have permission to view this dashboard.",
+  "dashboard": "Dashboard",
+  "widget": "Widget",
+  "newWidget": "New widget",
+  "unsaved": "Unsaved",
+  "unsavedChanges": "Unsaved changes",
+  "leaveWithoutSaving": "Leave without saving current changes?",
+  "save": "Save",
+  "saveDashboard": "Save dashboard",
+  "saveWidget": "Save widget",
+  "saveWidgetAndReturn": "Save widget and return",
+  "widgetSavedToDraft": "Widget saved to dashboard draft",
+  "unsavedWidget": "Unsaved widget",
+  "unsavedWidgetChanges": "Unsaved widget changes",
+  "leaveWidgetWithoutSaving": "The current widget changes are not saved. Returning to the dashboard will discard them.",
+  "discardWidgetChanges": "Discard widget changes",
+  "continueEditing": "Continue editing",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "delete": "Delete",
+  "saved": "Saved",
+  "saveFailed": "Save failed",
+  "retry": "Retry",
+  "copySuffix": "Copy",
+  "preview": "Preview",
+  "fullscreen": "Fullscreen",
+  "settings": "Settings",
+  "backToEdit": "Back to edit",
+  "backToViewer": "Back to viewer",
+  "backToDashboard": "Back to dashboard",
+  "noEditPermission": "You do not have permission to edit this dashboard.",
+  "chartType": "Chart type",
+  "width": "Width",
+  "height": "Height",
+  "queryMode": "Query mode",
+  "preset": "Preset",
+  "custom": "Custom",
+  "presetQuery": "Preset query",
+  "presetCategory": {
+    "service": "Service metrics",
+    "instance": "pod metrics",
+    "infrastructure": "Infrastructure metrics",
+    "other": "Other metrics"
+  },
+  "templates": {
+    "service-health": {
+      "name": "Service Health",
+      "description": "Request volume, error rate, latency, instance and resource health."
+    },
+    "infrastructure-resources": {
+      "name": "Infrastructure Resources",
+      "description": "Node CPU, memory, disk and resource rankings."
+    },
+    "blank": {
+      "name": "Blank Dashboard",
+      "description": "Empty grid with default system variables."
+    }
+  },
+  "presetQueries": {
+    "service-qps": {
+      "name": "Request QPS",
+      "description": "Service request throughput"
+    },
+    "service-error-rate": {
+      "name": "Error Rate",
+      "description": "Service request error ratio"
+    },
+    "service-latency-avg": {
+      "name": "Average Latency",
+      "description": "Service average latency"
+    },
+    "service-latency-p95": {
+      "name": "P95 Latency",
+      "description": "Service P95 latency"
+    },
+    "service-latency-p99": {
+      "name": "P99 Latency",
+      "description": "Service P99 latency"
+    },
+    "service-instance-status": {
+      "name": "Service Instance Status",
+      "description": "Instance availability for a service"
+    },
+    "service-slow-endpoints": {
+      "name": "Slow Endpoints TopN",
+      "description": "Slowest endpoints by average latency"
+    },
+    "pod-cpu": {
+      "name": "CPU Usage",
+      "description": "Pod CPU usage"
+    },
+    "pod-memory": {
+      "name": "Memory Usage",
+      "description": "Pod memory usage"
+    },
+    "pod-network-traffic": {
+      "name": "Network Traffic",
+      "description": "Pod receive and transmit traffic"
+    },
+    "pod-restarts": {
+      "name": "Restart Count",
+      "description": "Pod restart count"
+    },
+    "node-cpu": {
+      "name": "Node CPU",
+      "description": "Node CPU usage"
+    },
+    "node-memory": {
+      "name": "Node Memory",
+      "description": "Node memory usage"
+    },
+    "disk-usage": {
+      "name": "Disk Usage",
+      "description": "Filesystem usage"
+    },
+    "node-network-traffic": {
+      "name": "Network Traffic",
+      "description": "Node receive and transmit traffic"
+    },
+    "pod-status-distribution": {
+      "name": "Pod Status Distribution",
+      "description": "Pod phase distribution"
+    },
+    "resource-usage-top": {
+      "name": "Resource Usage TopN",
+      "description": "Pods with highest CPU usage"
+    }
+  },
+  "presetParameters": {
+    "service": {
+      "label": "Service",
+      "description": "Service variable or concrete service name"
+    },
+    "pod": {
+      "label": "pod",
+      "description": "Pod variable or concrete pod name"
+    }
+  },
+  "expression": "PromQL / VictoriaMetrics",
+  "query": "Query",
+  "addQuery": "Add query",
+  "hideQuery": "Hide this query",
+  "showQuery": "Show this query",
+  "unit": "Unit",
+  "unitDisplay": "Unit display",
+  "unitCustomPlaceholder": "Select or enter unit",
+  "unitPresetBytes": "Bytes (B)",
+  "unitPresetMilliseconds": "Milliseconds (ms)",
+  "unitPresetSeconds": "Seconds (s)",
+  "unitPresetPercent": "Percent (%)",
+  "unitAutoScaleLabel": "Auto convert units",
+  "unitAutoScaleHelp": "e.g. 1234 ms -> 1.23 s",
+  "unitRatioToPercent": "Input value is ratio",
+  "decimals": "Decimals",
+  "legend": "Legend",
+  "legendAuto": "Auto",
+  "legendCustom": "Custom",
+  "legendHelp": "Controls the display name used in the chart legend, tooltip, and table rows for each series.",
+  "legendCustomHelp": "Custom: enter a name manually. You can use $label or Grafana-style templates to read labels returned by the metric.",
+  "legendAutoHelp": "Auto: builds the name from metric labels, for example {svc_name=\"api\", endpoint=\"/checkout\"}.",
+  "legendCustomPlaceholder": "Example: $svc_name or API latency",
+  "legendDisplay": "Legend display",
+  "legendDisplayHelp": "Controls the legend below the chart. List shows names only; Table also shows min, max, and mean values.",
+  "legendList": "List",
+  "legendTable": "Table",
+  "thresholds": "Thresholds",
+  "warningThreshold": "Warning threshold",
+  "criticalThreshold": "Critical threshold",
+  "warningThresholdHelp": "Draws a yellow reference line on line, area, and bar charts to show when values approach the risk range. Leave empty to hide it.",
+  "criticalThresholdHelp": "Draws a red reference line on line, area, and bar charts to show when values enter the critical range. Leave empty to hide it.",
+  "variables": "Variables",
+  "variableName": "Variable name",
+  "labels": "Labels",
+  "addVariable": "Add variable",
+  "builtinVariableGroup": "Built-in resources",
+  "queryLabelVariableGroup": "Labels from queries",
+  "variableDeleteAllowed": "This variable is not referenced by queries and can be deleted.",
+  "variableDeleteBlocked": "This variable is used by {{count}} queries. Remove those references before deleting it.",
+  "variableSelectionMode": "Choose variable selection mode",
+  "multiSelect": "Multi",
+  "singleSelect": "Single",
+  "labelsAvailableAfterQuery": "Configure widget metric queries to select labels.",
+  "supportedParameters": "Insertable resource filters",
+  "supportedParametersHelp": "These are resource filters the dashboard recognizes. Click one to insert its PromQL matcher.",
+  "recognizedParameters": "Bound in this query",
+  "recognizedParametersHelp": "These labels already map to dashboard filters and follow the selected filter values.",
+  "fixedFilters": "Fixed query conditions",
+  "fixedFiltersHelp": "These conditions are written directly in PromQL. They do not appear in the dashboard filter bar and do not require user selection.",
+  "unrecognizedParameters": "Metric labels",
+  "unrecognizedParametersHelp": "These labels are ordinary PromQL metric labels for now. Configure a dashboard variable if they should become selectable filters.",
+  "labelVariableFallback": "not configured as filter",
+  "dataGroup": "Data Group",
+  "application": "Application",
+  "cluster": "Cluster",
+  "namespace": "Namespace",
+  "service": "Service",
+  "endpoint": "Endpoint",
+  "pod": "pod",
+  "instance": "Instance",
+  "queryByK8s": "Query by K8s",
+  "queryByVirtualMachine": "Query by VM",
+  "relatedNodes": "Related Nodes",
+  "resolution": "Resolution",
+  "jvmInstance": "JVM Instance",
+  "hostMetricsJob": "Host metrics Job",
+  "containerMetricsJob": "Container metrics Job",
+  "allData": "All Data",
+  "allOptionGroup": "All",
+  "availableOptionGroup": "Values",
+  "noAvailableValues": "No available values",
+  "noVariablePermission": "No data permission for this variable",
+  "refreshSeconds": "Refresh seconds",
+  "everyone": "Everyone",
+  "team": "Team",
+  "personal": "Private",
+  "addWidget": "Add widget",
+  "configureWidget": "Configure new widget",
+  "addToCanvas": "Add to canvas",
+  "emptyCanvasTitle": "No widgets yet",
+  "emptyCanvasHint": "Add a widget first, configure it on the right, then place it on the canvas.",
+  "addWidgetPlaceholderTitle": "Add another widget",
+  "addWidgetPlaceholderHint": "New widgets open in the config panel first and are placed after confirmation.",
+  "line": "Line",
+  "area": "Area",
+  "bar": "Bar",
+  "table": "Table",
+  "stat": "Stat",
+  "barGauge": "Bar gauge",
+  "unsupportedWidgetType": "Removed widget",
+  "unsupportedWidgetHelp": "This widget type was removed. Delete it or change it to a supported chart type.",
+  "noData": "No data",
+  "widgetDeferred": "Waiting to load",
+  "widgetDeferredSuggestion": "This panel will load when it enters the viewport.",
+  "refreshing": "Refreshing",
+  "retrying": "Retrying",
+  "statusSyntaxError": "Syntax error",
+  "statusTimeout": "Timeout",
+  "statusTooLarge": "Too large",
+  "statusNoPermission": "No permission",
+  "statusMetricMissing": "Metric missing",
+  "statusNoData": "No data",
+  "statusQueryFailure": "Query failed",
+  "syntaxErrorSuggestion": "Check the PromQL syntax near the reported position.",
+  "timeoutSuggestion": "Narrow the time range or simplify the query, then retry.",
+  "tooLargeSuggestion": "Reduce the time range, increase the step, or narrow the query result.",
+  "noPermissionSuggestion": "Select an allowed data group or contact an administrator.",
+  "metricMissingSuggestion": "Verify the metric name and labels exist in the selected time range.",
+  "noDataSuggestion": "Adjust the time range or variable values and refresh.",
+  "queryFailureSuggestion": "Review the query and retry after the metric service recovers.",
+  "last15Minutes": "Last 15 minutes",
+  "last1Hour": "Last 1 hour",
+  "last6Hours": "Last 6 hours",
+  "last24Hours": "Last 24 hours",
+  "off": "Off",
+  "position": "position",
+  "seriesName": "Name",
+  "seriesValue": "Value",
+  "seriesLimitSummary": "{{total}} series",
+  "seriesLimitNotice": "Returned {{total}} series, showing Top {{shown}}",
+  "legendMin": "Min",
+  "legendMax": "Max",
+  "legendMean": "Mean"
+}

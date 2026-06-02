@@ -30,6 +30,7 @@ const coreNsList = [
 ]
 const proNsList = [
   'dataViewCom',
+  'customDashboard',
   'alertAnalyze',
   'causeReport',
   'chatAI',

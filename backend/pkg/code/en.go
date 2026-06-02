@@ -258,5 +258,10 @@ var enText = map[string]string{
 	CleanRelateServiceError:        "Failed to clean relate service",
 	GetIntegratedCapabilitiesError: "Failed to get integrated capabilities",
 
-	QueryPodsError: "Failed to get pod list",
+	CreateCustomDashboardError: "Failed to create custom dashboard",
+	GetCustomDashboardError:    "Failed to get custom dashboard",
+	UpdateCustomDashboardError: "Failed to update custom dashboard",
+	DeleteCustomDashboardError: "Failed to delete custom dashboard",
+	QueryCustomDashboardError:  "Failed to query custom dashboard metrics",
+	QueryPodsError:             "Failed to get pod list",
 }

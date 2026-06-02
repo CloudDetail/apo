@@ -41,6 +41,7 @@ func (repo *daoRepo) initFeatureMenuItems(ctx core.Context) error {
 		{"应用基础设施大盘", "basic"},
 		{"应用指标大盘", "application"},
 		{"中间件大盘", "middleware"},
+		{"我的大盘", "customDashboard"},
 		{"MySQL大盘", "mysql"},
 		{"告警规则", "alertsRule"},
 		{"服务健康状态", "healthy"},
@@ -144,6 +145,7 @@ func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 		"工作流故障报告": {"/report"},
 		"告警分析":    {"/alert-analyze", "/alert-analyze/info", "/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/alert-analyze/chatAI/:service/:endpoint", "/report"},
 		"智能体":     {"/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/report"},
+		"我的大盘":    {"/custom-dashboard", "/custom-dashboard/:id", "/custom-dashboard/:id/edit"},
 	}
 
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {

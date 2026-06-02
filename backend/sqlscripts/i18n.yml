@@ -214,6 +214,26 @@ middleware:
     field_name: "abbreviation"
     entity_type: "menu"
 
+customDashboard:
+  key: "customDashboard"
+  i18n:
+  - language: "en"
+    translation: "My Dashboards"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "我的大盘"
+    field_name: "label"
+    entity_type: "menu"
+  - language: "en"
+    translation: "Dashboards"
+    field_name: "abbreviation"
+    entity_type: "menu"
+  - language: "zh"
+    translation: "我的大盘"
+    field_name: "abbreviation"
+    entity_type: "menu"
+
 alerts:
   key: "alerts"
   i18n:
@@ -508,6 +528,18 @@ analysis:
       translation: "Analysis"
       field_name: "abbreviation"
       entity_type: "menu"
+我的大盘:
+  key: "我的大盘"
+  i18n:
+  - language: "en"
+    translation: "My Dashboards"
+    entity_type: "feature"
+    field_name: "featureName"
+  - language: "zh"
+    translation: "我的大盘"
+    entity_type: "feature"
+    field_name: "featureName"
+
 工作流故障报告:
   key: "工作流故障报告"
   i18n:

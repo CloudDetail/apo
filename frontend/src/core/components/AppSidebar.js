@@ -14,6 +14,7 @@ import { useSelector } from 'react-redux'
 import styles from './AppSidebar.module.scss'
 import { TbLicense } from 'react-icons/tb'
 import { useTranslation } from 'react-i18next'
+import { parentMenuTitleClickProps } from './AppSidebarBehavior.mjs'
 
 const AppSidebarMenuIcon = (menuItem) => {
   return (
@@ -68,6 +69,7 @@ const AppSidebar = () => {
       children: menu.children?.length > 0 && prepareGroup(menu),
       popupClassName: `submenu-with-parent-${menu.key}`,
       className: `menu-item-${menu.key}`,
+      ...parentMenuTitleClickProps(menu, navigate),
     }
   }
 

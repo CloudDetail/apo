@@ -18,6 +18,14 @@ let isTokenRefreshing = false
 let pendingRequests = []
 let lastTokenRefreshTime = 0
 
+const isRequestCanceled = (error = {}) => (
+  axios.isCancel?.(error) ||
+  error.code === 'ERR_CANCELED' ||
+  error.name === 'CanceledError' ||
+  error.name === 'AbortError' ||
+  ['cancel', 'canceled'].includes(String(error.message || '').toLowerCase())
+)
+
 // 创建axios实例
 const instance = axios.create({
   baseURL: '', // 替换为你的API基础URL
@@ -69,6 +77,9 @@ instance.interceptors.response.use(
     return data
   },
   async (error) => {
+    if (isRequestCanceled(error)) {
+      return Promise.reject(error)
+    }
     if (error.response) {
       const { status, data } = error.response
       const originalRequest = error.config

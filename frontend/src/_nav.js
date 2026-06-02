@@ -171,6 +171,7 @@ const navIcon = {
   manage: <GrSystem />,
   alerts: <FaRegBell />,
   mysql: <AiOutlineDashboard />,
+  customDashboard: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,

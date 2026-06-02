@@ -4,6 +4,7 @@
 package prometheus
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -153,7 +154,10 @@ func (repo *promRepo) GetRange() string {
 }
 
 type Labels struct {
+	RawLabels map[string]string `json:"-"`
+
 	ContainerID string `json:"container_id"`
+	Container   string `json:"container"`
 	ContentKey  string `json:"content_key"`
 	Instance    string `json:"instance"`
 	IsError     string `json:"is_error"`
@@ -177,6 +181,8 @@ type Labels struct {
 	PeerPort string `json:"peer_port"`
 
 	MonitorName string `json:"monitor_name"`
+	QueryID     string `json:"query_id,omitempty"`
+	QueryLegend string `json:"query_legend,omitempty"`
 }
 
 func (l *Labels) ExtractGran(granularity []string, metric prommodel.LabelSet) {
@@ -198,9 +204,16 @@ func (l *Labels) Extract(metric prommodel.Metric) {
 }
 
 func (l *Labels) SetValue(name string, value string) {
+	if l.RawLabels == nil {
+		l.RawLabels = map[string]string{}
+	}
+	l.RawLabels[name] = value
+
 	switch name {
 	case "container_id":
 		l.ContainerID = string(value)
+	case "container":
+		l.Container = string(value)
 	case "content_key":
 		l.ContentKey = string(value)
 	case "instance":
@@ -245,6 +258,45 @@ func (l *Labels) SetValue(name string, value string) {
 		l.PeerIP = string(value)
 	case "peer_port":
 		l.PeerPort = string(value)
+	}
+}
+
+func (l Labels) MarshalJSON() ([]byte, error) {
+	labels := make(map[string]string, len(l.RawLabels)+24)
+	for key, value := range l.RawLabels {
+		labels[key] = value
+	}
+
+	setMetricLabel(labels, "container_id", l.ContainerID)
+	setMetricLabel(labels, "container", l.Container)
+	setMetricLabel(labels, "content_key", l.ContentKey)
+	setMetricLabel(labels, "instance", l.Instance)
+	setMetricLabel(labels, "is_error", l.IsError)
+	setMetricLabel(labels, "job", l.Job)
+	setMetricLabel(labels, "node_name", l.NodeName)
+	setMetricLabel(labels, "pod", l.POD)
+	setMetricLabel(labels, "svc_name", l.SvcName)
+	setMetricLabel(labels, "top_span", l.TopSpan)
+	setMetricLabel(labels, "pid", l.PID)
+	setMetricLabel(labels, "namespace", l.Namespace)
+	setMetricLabel(labels, "cluster_id", l.ClusterID)
+	setMetricLabel(labels, "node_ip", l.NodeIP)
+	setMetricLabel(labels, "db_system", l.DBSystem)
+	setMetricLabel(labels, "db_name", l.DBName)
+	setMetricLabel(labels, "name", l.Name)
+	setMetricLabel(labels, "db_url", l.DBUrl)
+	setMetricLabel(labels, "peer_ip", l.PeerIP)
+	setMetricLabel(labels, "peer_port", l.PeerPort)
+	setMetricLabel(labels, "monitor_name", l.MonitorName)
+	setMetricLabel(labels, "query_id", l.QueryID)
+	setMetricLabel(labels, "query_legend", l.QueryLegend)
+
+	return json.Marshal(labels)
+}
+
+func setMetricLabel(labels map[string]string, key string, value string) {
+	if value != "" {
+		labels[key] = value
 	}
 }
 

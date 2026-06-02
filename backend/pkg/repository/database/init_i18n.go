@@ -31,6 +31,7 @@ func (repo *daoRepo) initI18nTranslation(ctx core.Context) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var existingTranslations []I18nTranslation
 		var toInsert, toDelete, toUpdate []I18nTranslation
+		managedEntities := make(map[string]struct{})
 		if err := tx.Find(&existingTranslations).Error; err != nil {
 			return err
 		}
@@ -59,6 +60,7 @@ func (repo *daoRepo) initI18nTranslation(ctx core.Context) error {
 			for i := range translations.I18n {
 				translations.I18n[i].EntityID = targetID
 			}
+			managedEntities[fmt.Sprintf("%d:%s", targetID, typ)] = struct{}{}
 
 			for _, newTranslation := range translations.I18n {
 				key := fmt.Sprintf("%d:%s:%s:%s", newTranslation.EntityID, newTranslation.EntityType, newTranslation.Language, newTranslation.FieldName)
@@ -75,6 +77,10 @@ func (repo *daoRepo) initI18nTranslation(ctx core.Context) error {
 		}
 
 		for _, existingTranslation := range existingMap {
+			entityKey := fmt.Sprintf("%d:%s", existingTranslation.EntityID, existingTranslation.EntityType)
+			if _, managed := managedEntities[entityKey]; !managed {
+				continue
+			}
 			toDelete = append(toDelete, existingTranslation)
 		}
 
