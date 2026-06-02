@@ -62,6 +62,8 @@ func (ch *chRepo) GetDataplaneServiceList(ctx core.Context, req *request.QuerySe
 		EqualsNotEmpty("labels['cluster_id']", req.Cluster).
 		EqualsNotEmpty("labels['node_name']", req.Tags.NodeName).
 		EqualsNotEmpty("labels['pod_name']", req.Tags.PodName).
+		EqualsNotEmpty("container_id", req.Tags.ContainerId).
+		EqualsNotEmpty("host_pid", req.Tags.Pid).
 		NotGreaterThan("start_time", req.EndTime/1000000).
 		NotLessThan("heart_time", req.StartTime/1000000)
 	if req.Tags.ContainerId != "" {

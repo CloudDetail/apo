@@ -4,6 +4,7 @@ import type {
   FindingsHydrationStatus,
   FindingsNodeKind,
   FindingsNodePayload,
+  FindingsReportLink,
   FindingsStatus,
   FindingsTable,
   FindingsTraceData,
@@ -28,6 +29,7 @@ export interface FindingsNodeData {
   unsupportedReason?: string
   metrics?: FindingsMetrics
   traces?: FindingsTraceData[]
+  reportLinks?: FindingsReportLink[]
   logs?: FindingsLogItem[]
   table?: FindingsTable
   hydrationStatus?: FindingsHydrationStatus
@@ -55,6 +57,7 @@ export interface FindingsTopologyData {
 }
 
 export interface FindingsDetailSections {
+  loading: boolean
   summaryConclusion: boolean
   content: boolean
   abnormalMetrics: boolean
@@ -67,6 +70,9 @@ export interface FindingsDetailSections {
 
 const hasTableData = (table?: FindingsTable) =>
   Boolean(table && ((table.headers?.length ?? 0) > 0 || (table.data?.length ?? 0) > 0))
+
+const isHydrating = (status?: FindingsHydrationStatus) =>
+  status === 'pending' || status === 'running'
 
 const getVisualStatus = ({
   nodeKind,
@@ -91,6 +97,7 @@ export const toFindingsNodeData = (node: FindingsNodePayload): FindingsNodeData 
   unsupportedReason: node.unsupportedReason,
   metrics: node.metrics,
   traces: node.traces,
+  reportLinks: node.reportLinks,
   logs: node.logs,
   table: node.table,
   hydrationStatus: node.hydrationStatus,
@@ -122,6 +129,20 @@ export const buildFindingsTopologyData = (nodes: FindingsNodePayload[]): Finding
 }
 
 export const getFindingsDetailSections = (node: FindingsNodeData): FindingsDetailSections => {
+  if (isHydrating(node.hydrationStatus)) {
+    return {
+      loading: true,
+      summaryConclusion: false,
+      content: false,
+      abnormalMetrics: false,
+      normalMetrics: false,
+      table: false,
+      logs: false,
+      traces: false,
+      unsupported: false,
+    }
+  }
+
   const abnormalMetrics = (node.metrics?.abnormalMetrics.length ?? 0) > 0
   const normalMetrics = (node.metrics?.normalMetrics.length ?? 0) > 0
   const table = hasTableData(node.table)
@@ -134,6 +155,7 @@ export const getFindingsDetailSections = (node: FindingsNodeData): FindingsDetai
   })
 
   return {
+    loading: false,
     summaryConclusion: textSections.summaryConclusion,
     content: textSections.content,
     abnormalMetrics,

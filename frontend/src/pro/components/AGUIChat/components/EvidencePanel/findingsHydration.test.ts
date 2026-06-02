@@ -66,6 +66,17 @@ test('done and failed findings cache entries are terminal unless refreshed', () 
   )
 })
 
+test('terminal findings cache with an old contract version is refreshed', () => {
+  assert.equal(
+    shouldStartFindingsStream({
+      cachedPhase: 'done',
+      isLoading: false,
+      isCacheCurrent: false,
+    }),
+    true,
+  )
+})
+
 test('node retry tree_done does not complete the whole tree phase', () => {
   assert.equal(
     isWholeTreeDoneEvent({
@@ -111,10 +122,7 @@ test('stream overflow aborts the oldest non-active key only when at capacity', (
 
 test('service switch treats all other in-flight streams as stale', () => {
   assert.deepEqual(
-    getStaleFindingsStreamKeys(
-      ['thread:svc-a', 'thread:svc-b', 'thread:svc-c'],
-      'thread:svc-b',
-    ),
+    getStaleFindingsStreamKeys(['thread:svc-a', 'thread:svc-b', 'thread:svc-c'], 'thread:svc-b'),
     ['thread:svc-a', 'thread:svc-c'],
   )
 })
@@ -282,6 +290,51 @@ test('node_patch replaces target node and marks hydration success', () => {
   assert.equal(patched?.status, 'abnormal')
   assert.equal(patched?.hydrationStatus, 'success')
   assert.equal(patched?.attempt, 1)
+})
+
+test('node_patch normalizes raw traces before merging stream data', () => {
+  const result = applyFindingsStreamEvent([node('root'), node('db_traces_check', 'root')], {
+    type: 'node_patch',
+    hydrationId: 'hydration-1',
+    nodeId: 'db_traces_check',
+    attempt: 1,
+    node: {
+      ...node('db_traces_check', 'root', 'DB traces'),
+      traces: [
+        {
+          serviceName: 'ts-order-service',
+          operationName: 'SELECT Order',
+          duration: 100,
+          isError: false,
+        },
+      ],
+    } as any,
+  })
+
+  const patched = result.find((item) => item.nodeId === 'db_traces_check')
+  assert.deepEqual(patched?.traces, [
+    {
+      service: 'ts-order-service',
+      calls: [
+        {
+          target: 'SELECT Order',
+          type: 'database',
+          count: 1,
+          avgDuration: 100,
+          maxDuration: 100,
+          errorCount: 0,
+          operations: [
+            {
+              name: 'SELECT Order',
+              count: 1,
+              avgDuration: 100,
+            },
+          ],
+        },
+      ],
+    },
+  ])
+  assert.equal(patched?.hydrationStatus, 'success')
 })
 
 test('node_failed preserves target node and attaches failure metadata', () => {

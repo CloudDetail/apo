@@ -4,14 +4,18 @@ import type {
   StreamFindingsDataHandlers,
   StreamFindingsDataParams,
 } from '../../../../api/conversation'
+import { normalizeFindingsNode } from '../../../../api/findingsDataNormalizer'
 
 export type FindingsHydrationPhase = 'idle' | 'streaming' | 'done' | 'failed'
+
+export const FINDINGS_CACHE_CONTRACT_VERSION = 'report-links-v2'
 
 export interface FindingsCacheEntry {
   nodes: FindingsNodePayload[]
   phase: FindingsHydrationPhase
   hydrationId?: string
   errorMessage?: string
+  contractVersion?: string
 }
 
 export const isTerminalFindingsPhase = (phase?: FindingsHydrationPhase) =>
@@ -24,15 +28,17 @@ export const shouldStartFindingsStream = ({
   cachedPhase,
   isLoading,
   refresh = false,
+  isCacheCurrent = true,
 }: {
   cachedPhase?: FindingsHydrationPhase
   isLoading: boolean
   refresh?: boolean
+  isCacheCurrent?: boolean
 }) => {
   if (isLoading) {
     return false
   }
-  if (!refresh && isTerminalFindingsPhase(cachedPhase)) {
+  if (!refresh && isTerminalFindingsPhase(cachedPhase) && isCacheCurrent) {
     return false
   }
   return true
@@ -127,9 +133,7 @@ export const shouldSyncSelectedFindings = ({
   return buildFindingsCacheKey(currentThreadId, selectedServiceName) === cacheKey
 }
 
-export const createPendingFindingsShell = (
-  nodes: FindingsNodePayload[],
-): FindingsNodePayload[] =>
+export const createPendingFindingsShell = (nodes: FindingsNodePayload[]): FindingsNodePayload[] =>
   nodes.map((node) => ({
     nodeId: node.nodeId,
     title: node.title,
@@ -152,7 +156,11 @@ export const removeNodeAndDescendants = (
   while (changed) {
     changed = false
     for (const node of nodes) {
-      if (typeof node.parentId === 'string' && removed.has(node.parentId) && !removed.has(node.nodeId)) {
+      if (
+        typeof node.parentId === 'string' &&
+        removed.has(node.parentId) &&
+        !removed.has(node.nodeId)
+      ) {
         removed.add(node.nodeId)
         changed = true
       }
@@ -202,7 +210,7 @@ export const applyFindingsStreamEvent = (
 
     case 'node_patch':
       return mergeNodePatch(nodes, {
-        ...event.node,
+        ...(normalizeFindingsNode(event.node) ?? event.node),
         hydrationStatus: 'success',
         attempt: event.attempt,
       })

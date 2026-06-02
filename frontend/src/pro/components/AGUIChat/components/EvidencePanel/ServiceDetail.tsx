@@ -11,11 +11,11 @@ import {
 import { TrendingUp, Eye, EyeOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import DelayLineChart from 'src/core/components/Chart/DelayLineChart'
-import { convertTime } from 'src/core/utils/time'
 import FindingsTree from '../FindingsTree/Tree'
 import NodeDetail from './NodeDetail'
 import StatusLegend from '../StatusLegend'
 import { toFindingsNodeData, type FindingsNodeData } from '../FindingsTree/findingsContract'
+import { formatMetricValue } from './metricValueFormatter'
 
 // ==================== 类型定义 ====================
 interface ServiceDetailProps {
@@ -41,37 +41,6 @@ interface MetricData {
 }
 
 // ==================== 工具函数 ====================
-const convertYValue = (value: number, type: string): string => {
-  const { t } = useTranslation('common')
-
-  switch (type) {
-    case 'logs':
-      return Math.floor(value) + t('units.unit')
-
-    case 'latency':
-    case 'p90':
-      if (value > 0 && value < 10) {
-        return '< 0.01 ms'
-      }
-      return convertTime(value, 'ms', 2) + 'ms'
-
-    case 'errorRate':
-      if (value > 0 && value < 0.01) {
-        return '< 0.01%'
-      }
-      return parseFloat(value.toFixed(2)) + '%'
-
-    case 'tps':
-      if (value > 0 && value < 0.01) {
-        return '< 0.01' + t('units.timesPerMinute')
-      }
-      return parseFloat((Math.floor(value * 100) / 100).toString()) + t('units.timesPerMinute')
-
-    default:
-      return String(value)
-  }
-}
-
 // ==================== 子组件 ====================
 const ServiceIcon: React.FC<ServiceIconProps> = ({
   type,
@@ -210,6 +179,7 @@ const ServiceHeader: React.FC<{ selectedService: any }> = ({ selectedService }) 
 // ==================== 子组件 - 指标卡片 ====================
 const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => {
   const { t } = useTranslation('pro/agui')
+  const { t: tCommon } = useTranslation('common')
 
   return (
     <div
@@ -227,10 +197,13 @@ const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => {
                   ? 'rgb(248 113 113)'
                   : metric.status === 'warning'
                     ? 'var(--ant-color-warning)'
-                    : 'rgb(52, 211, 153)',
+                  : 'rgb(52, 211, 153)',
             }}
           >
-            {convertYValue(metric.value, metric.type)}
+            {formatMetricValue(metric.value, metric.type, {
+              unit: tCommon('units.unit'),
+              timesPerMinute: tCommon('units.timesPerMinute'),
+            })}
             <div className="text-sm">
               {metric.status === 'abnormal' && <ExclamationCircleOutlined />}
               {metric.status === 'warning' && <WarningOutlined />}

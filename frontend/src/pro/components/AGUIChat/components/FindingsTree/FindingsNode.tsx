@@ -94,20 +94,10 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
     badge,
     active = false,
     disabled = false,
-    nodeId,
-    findingsId,
     onClick,
     content,
-    summaryConclusion,
-    metrics,
-    traces,
-    logs,
-    table,
     nodeKind,
-    unsupportedReason,
     hydrationStatus,
-    attempt,
-    retryable,
     errorType,
     errorMessage,
   } = data || {}
@@ -132,26 +122,7 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
 
   const handleClick = () => {
     if (onClick) {
-      onClick({
-        title,
-        content,
-        metrics,
-        traces,
-        logs,
-        nodeId,
-        findingsId,
-        summaryConclusion,
-        status,
-        visualStatus: resolvedStatus,
-        nodeKind,
-        unsupportedReason,
-        table,
-        hydrationStatus,
-        attempt,
-        retryable,
-        errorType,
-        errorMessage,
-      })
+      onClick(buildFindingsNodeClickPayload(data, resolvedStatus))
     }
   }
 
@@ -284,6 +255,18 @@ const FindingsNode = ({ data }: { data: FindingsNodeData }) => {
       />
     </div>
   )
+}
+
+export const buildFindingsNodeClickPayload = (
+  data: FindingsNodeData,
+  resolvedStatus: FindingsNodeData['visualStatus'],
+): FindingsNodeData => {
+  const { active: _active, disabled: _disabled, onClick: _onClick, ...payload } = data
+
+  return {
+    ...payload,
+    visualStatus: resolvedStatus,
+  }
 }
 
 export default React.memo(FindingsNode)

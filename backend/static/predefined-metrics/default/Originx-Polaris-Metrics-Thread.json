@@ -5,7 +5,7 @@
             "describe": "查询节点上被监控的服务列表",
             "targets": [
                 {
-                    "expr": "sum without (tid_key,type) (originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"})",
+                    "expr": "sum without (tid_key,type) (increase(originx_thread_polaris_nanoseconds_sum{node_name=~\"$node_name\",pid=~\"$pid\"}[15m])) > 0",
                     "legendFormat": "{{namespace}}:{{pod}}",
                     "refId": "A",
                     "variables": [
@@ -190,6 +190,38 @@
             "unit": "ns",
             "params": [
                 "pod"
+            ]
+        },
+        {
+            "title": "北极星指标（进程） - 各类型耗时折线图 - 所有类型列表（三场景）",
+            "describe": "同时支持 pod、container_id、node_name+pid 三种查询入口",
+            "targets": [
+                {
+                    "expr": "increase(sum without (tid_key) ((originx_thread_polaris_nanoseconds_sum{__name__=~\"$scene_pod_metric\",pod=~\"$scene_pod\",container_id=~\"$container_id_by_pod\"}) or (originx_thread_polaris_nanoseconds_sum{__name__=~\"$scene_container_metric\",container_id=~\"$scene_container_id\"}) or (originx_thread_polaris_nanoseconds_sum{__name__=~\"$scene_vm_metric\",node_name=~\"$scene_node_name\",pid=~\"$scene_pid\"}))[$__interval])",
+                    "legendFormat": "All",
+                    "refId": "A",
+                    "variables": [
+                        "scene_pod_metric",
+                        "scene_pod",
+                        "container_id_by_pod",
+                        "scene_container_metric",
+                        "scene_container_id",
+                        "scene_vm_metric",
+                        "scene_node_name",
+                        "scene_pid",
+                        "__interval"
+                    ]
+                }
+            ],
+            "unit": "ns",
+            "params": [
+                "scene_pod_metric",
+                "scene_pod",
+                "scene_container_metric",
+                "scene_container_id",
+                "scene_vm_metric",
+                "scene_node_name",
+                "scene_pid"
             ]
         },
         {
@@ -433,6 +465,100 @@
             "query": {
                 "qryType": 1,
                 "query": "label_values(originx_thread_polaris_nanoseconds_count{pod=~\"$pod\"},container_id)",
+                "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            }
+        },
+        {
+            "name": "scene_pod_metric",
+            "type": "custom",
+            "label": "ScenePodMetric",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_pod",
+            "type": "custom",
+            "label": "ScenePod",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_container_metric",
+            "type": "custom",
+            "label": "SceneContainerMetric",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_container_id",
+            "type": "custom",
+            "label": "SceneContainerID",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_vm_metric",
+            "type": "custom",
+            "label": "SceneVMMetric",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_node_name",
+            "type": "custom",
+            "label": "SceneHost",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "scene_pid",
+            "type": "custom",
+            "label": "ScenePID",
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": ""
+        },
+        {
+            "name": "container_id_by_pod",
+            "type": "query",
+            "label": "ContainerIDByPod",
+            "options": null,
+            "current": {
+                "selected": true,
+                "text": "^$",
+                "value": "^$"
+            },
+            "regex": "",
+            "query": {
+                "qryType": 1,
+                "query": "label_values(originx_thread_polaris_nanoseconds_count{pod=~\"$scene_pod\"},container_id)",
                 "refId": "PrometheusVariableQueryEditor-VariableQuery"
             }
         }

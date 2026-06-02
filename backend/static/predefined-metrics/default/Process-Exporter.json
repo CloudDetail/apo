@@ -1,0 +1,147 @@
+{
+  "queries": [
+    {
+      "title": "进程 CPU 使用速率",
+      "describe": "按节点和 PID 查询进程 CPU 使用速率",
+      "targets": [
+        {
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_cpu_seconds_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "legendFormat": "{{instance_name}}/{{pid}}",
+          "variables": [
+            "__rate_interval",
+            "node",
+            "pid"
+          ]
+        }
+      ],
+      "unit": "cpu",
+      "params": [
+        "node",
+        "pid"
+      ]
+    },
+    {
+      "title": "进程内存使用",
+      "describe": "按节点和 PID 查询进程常驻内存使用",
+      "targets": [
+        {
+          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_memory_bytes{instance_name=~\"$node\",pid=~\"$pid\",memtype=\"resident\"})",
+          "legendFormat": "{{instance_name}}/{{pid}}",
+          "variables": [
+            "node",
+            "pid"
+          ]
+        }
+      ],
+      "unit": "bytes",
+      "params": [
+        "node",
+        "pid"
+      ]
+    },
+    {
+      "title": "进程读取字节速率",
+      "describe": "按节点和 PID 查询进程读取字节速率",
+      "targets": [
+        {
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_read_bytes_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "legendFormat": "{{instance_name}}/{{pid}}",
+          "variables": [
+            "__rate_interval",
+            "node",
+            "pid"
+          ]
+        }
+      ],
+      "unit": "bytesps",
+      "params": [
+        "node",
+        "pid"
+      ]
+    },
+    {
+      "title": "进程写入字节速率",
+      "describe": "按节点和 PID 查询进程写入字节速率",
+      "targets": [
+        {
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_write_bytes_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "legendFormat": "{{instance_name}}/{{pid}}",
+          "variables": [
+            "__rate_interval",
+            "node",
+            "pid"
+          ]
+        }
+      ],
+      "unit": "bytesps",
+      "params": [
+        "node",
+        "pid"
+      ]
+    },
+    {
+      "title": "进程打开文件描述符数",
+      "describe": "按节点和 PID 查询进程打开的文件描述符数量",
+      "targets": [
+        {
+          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_open_filedesc{instance_name=~\"$node\",pid=~\"$pid\"})",
+          "legendFormat": "{{instance_name}}/{{pid}}",
+          "variables": [
+            "node",
+            "pid"
+          ]
+        }
+      ],
+      "unit": "count",
+      "params": [
+        "node",
+        "pid"
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "name": "datasource",
+      "type": "datasource",
+      "label": "Datasource",
+      "options": null,
+      "current": {
+        "selected": false,
+        "text": "default",
+        "value": "default"
+      },
+      "regex": "",
+      "query": {
+        "query": "prometheus",
+        "qryType": 1
+      }
+    },
+    {
+      "name": "node",
+      "type": "query",
+      "label": "Host",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(node_uname_info{job_name=~\"$job\"},instance_name)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    },
+    {
+      "name": "pid",
+      "type": "query",
+      "label": "PID",
+      "options": null,
+      "current": {},
+      "regex": "",
+      "query": {
+        "qryType": 1,
+        "query": "label_values(namedprocess_namegroup_cpu_seconds_total{instance_name=~\"$node\"},pid)",
+        "refId": "PrometheusVariableQueryEditor-VariableQuery"
+      }
+    }
+  ],
+  "title": "进程监控指标"
+}
