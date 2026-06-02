@@ -162,7 +162,7 @@ const InlineChart: React.FC<InlineChartProps> = ({ chartData, YFormatter, showLe
   return (
     <>
       {chartData && chartData?.length > 0 && option ? (
-        <div className="w-full flex flex-row h-full text-sm">
+        <div className="w-full flex-1 min-h-0 text-sm">
           <ReactECharts
             ref={chartRef}
             theme={currentTheme}
@@ -195,7 +195,7 @@ const NodeMetrics: React.FC<NodeMetricsProps> = ({ metrics, type }) => {
     <div className="flex flex-col gap-3">
       {metrics?.map((item) => (
         <div
-          className="h-[280px] flex flex-col bg-[var(--ant-color-fill-quaternary)] p-2 rounded-xl relative"
+          className="min-h-[280px] flex flex-col bg-[var(--ant-color-fill-quaternary)] p-2 rounded-xl relative"
           key={item.title}
         >
           {/* 右上角图标 */}
@@ -207,14 +207,16 @@ const NodeMetrics: React.FC<NodeMetricsProps> = ({ metrics, type }) => {
             )}
           </div>
 
-          <div className="pb-2 px-2 pr-8 font-bold">{item.title}</div>
-          <InlineChart
-            chartData={convertMetricsData(item.timeseries)}
-            YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
-          />
+          <div className="pb-2 px-2 pr-8 font-bold shrink-0">{item.title}</div>
+          <div className="flex-1 min-h-[180px]">
+            <InlineChart
+              chartData={convertMetricsData(item.timeseries)}
+              YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
+            />
+          </div>
           {item.detection && (
             <div
-              className="flex items-start gap-2 mx-2 mt-2 px-3 py-2 rounded-lg text-xs leading-relaxed"
+              className="flex items-start gap-2 mx-2 mt-2 px-3 py-2 rounded-lg text-xs leading-relaxed shrink-0"
               style={{
                 backgroundColor: isAbnormal ? 'rgba(255, 77, 79, 0.08)' : 'rgba(82, 196, 26, 0.08)',
                 border: `1px solid ${isAbnormal ? token.colorErrorBorder : token.colorSuccessBorder}`,
