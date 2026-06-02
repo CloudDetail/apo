@@ -167,7 +167,7 @@ const InlineChart: React.FC<InlineChartProps> = ({ chartData, YFormatter, showLe
             ref={chartRef}
             theme={currentTheme}
             option={option}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', minHeight: 180, width: '100%' }}
           />
         </div>
       ) : (

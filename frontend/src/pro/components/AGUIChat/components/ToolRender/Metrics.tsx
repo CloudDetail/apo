@@ -141,12 +141,12 @@ export const ChartComponent = (props) => {
   return (
     <>
       {chartData && chartData?.length > 0 && option ? (
-        <div className="w-full flex flex-row h-full text-sm">
+        <div className="w-full flex-1 min-h-[180px] text-sm">
           <ReactECharts
             ref={chartRef}
             theme={theme}
             option={option}
-            style={{ height: '100%', width: '100%' }}
+            style={{ height: '100%', minHeight: 180, width: '100%' }}
           />
         </div>
       ) : (
@@ -169,17 +169,19 @@ const Metrics = ({ args, showLegend = true }: { args: any; showLegend?: boolean 
     <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-4 max-h-[500px] overflow-y-auto">
       {args?.map((item) => (
         <div
-          className="h-[260px] flex flex-col bg-[var(--ant-color-fill-quaternary)] p-2 rounded-xl "
+          className="min-h-[260px] flex flex-col bg-[var(--ant-color-fill-quaternary)] p-2 rounded-xl"
           key={item.title}
         >
-          <div className="pb-2 px-2 font-bold">{item.title}</div>
+          <div className="pb-2 px-2 font-bold shrink-0">{item.title}</div>
           {/* <LineChart data={data} unit={unit} /> */}
-          <ChartComponent
-            chartData={convertMetricsData(item.timeseries)}
-            unit={item.unit}
-            YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
-            showLegend={showLegend}
-          />
+          <div className="flex-1 min-h-[200px]">
+            <ChartComponent
+              chartData={convertMetricsData(item.timeseries)}
+              unit={item.unit}
+              YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
+              showLegend={showLegend}
+            />
+          </div>
         </div>
       ))}
     </div>
