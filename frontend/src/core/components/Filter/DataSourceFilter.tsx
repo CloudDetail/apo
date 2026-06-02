@@ -25,6 +25,7 @@ interface TreeNode extends Partial<InstanceInfo> {
   id?: string
   name: string
   type: NodeType
+  clusterName?: string
   children?: TreeNode[]
   extraChildren?: TreeNode[]
 }
@@ -61,13 +62,18 @@ export function extractTreeData(nodes: TreeNode[]): TreeExtractedResult {
   const podsMap = new Map<string, GroupedList>()
   const instancesMap = new Map<string, GroupedList>()
 
+  function getNodeLabel(node: TreeNode) {
+    return node.type === 'cluster' && node.clusterName ? node.clusterName : node.name
+  }
+
   function visit(node: TreeNode, path: string[], idPath: string[], parent?: TreeNode) {
-    const currentPath = [...path, node.name]
+    const label = getNodeLabel(node)
+    const currentPath = [...path, label]
     const currentIdPath = [...idPath, node.id || node.name]
     const value = node.id || path.join('-') + node.name
 
     const item: OptionItem = {
-      label: node.name,
+      label,
       value,
       path: currentPath,
       idPath: currentIdPath,
