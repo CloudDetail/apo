@@ -33,6 +33,7 @@ interface InlineChartProps {
 }
 
 const SAFE_GAP = 8 // 视口边缘安全间距
+const POINTER_GAP = 12
 
 const InlineChart: React.FC<InlineChartProps> = ({ chartData, YFormatter, showLegend = true }) => {
   const chartRef = useRef<any>(null)
@@ -89,7 +90,7 @@ const InlineChart: React.FC<InlineChartProps> = ({ chartData, YFormatter, showLe
         'z-index: 2147483646', // 足够大，防止被更高层遮盖
         'pointer-events: auto',
       ].join(';'),
-      position: 'left',
+      position: tooltipPosition,
     },
     backgroundColor: 'rgba(0,0,0,0)',
     legend: { type: 'scroll', data: [] },
@@ -162,12 +163,12 @@ const InlineChart: React.FC<InlineChartProps> = ({ chartData, YFormatter, showLe
   return (
     <>
       {chartData && chartData?.length > 0 && option ? (
-        <div className="w-full flex-1 min-h-0 text-sm">
+        <div className="w-full flex flex-row h-full text-sm">
           <ReactECharts
             ref={chartRef}
             theme={currentTheme}
             option={option}
-            style={{ height: '100%', minHeight: 180, width: '100%' }}
+            style={{ height: '100%', width: '100%' }}
           />
         </div>
       ) : (
@@ -208,7 +209,7 @@ const NodeMetrics: React.FC<NodeMetricsProps> = ({ metrics, type }) => {
           </div>
 
           <div className="pb-2 px-2 pr-8 font-bold shrink-0">{item.title}</div>
-          <div className="flex-1 min-h-[180px]">
+          <div className="h-[150px] shrink-0">
             <InlineChart
               chartData={convertMetricsData(item.timeseries)}
               YFormatter={(value) => value.toLocaleString() + ' ' + item.unit}
