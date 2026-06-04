@@ -8,6 +8,20 @@
     color: #40b1fe;
   }
 }
+.table_step_table {
+  .ant-table-cell {
+    vertical-align: top;
+  }
+}
+.table_step_request_endpoint_cell {
+  white-space: normal;
+}
+.table_step_request_endpoint {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
 .conclusion_div {
   margin-top: 10px;
 }

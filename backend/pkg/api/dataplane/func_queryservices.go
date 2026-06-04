@@ -20,6 +20,7 @@ import (
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"
 // @Param cluster query string false "Query cluster name"
+// @Param groupId query int64 false "data group id"
 // @Success 200 {object} response.QueryServicesResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/dataplane/services [get]

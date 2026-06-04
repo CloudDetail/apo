@@ -19,7 +19,7 @@ const ReportTopology = () => {
       key: 'topology',
       label: isTimeOut ? t(`${i18nKey}.faultPoint`) : t(`${i18nKey}.faultPropagationChain`),
       children: (
-        <div className="h-[300px] overflow-y-hidden">
+        <div className="h-[300px] overflow-x-auto overflow-y-hidden">
           <div className="chart_warp">
             {topologyData ? <SingleLinkTopology data={topologyData} category={category} /> : <></>}
           </div>

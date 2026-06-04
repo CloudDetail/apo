@@ -11,11 +11,32 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model"
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
+	"github.com/CloudDetail/apo/backend/pkg/services/common"
 )
 
 func (s *service) GetServices(ctx core.Context, req *request.QueryServicesRequest) *response.QueryServicesResponse {
+	var serviceNames []string
+	if req.GroupID != 0 {
+		selected, err := s.dbRepo.GetScopeIDsSelectedByGroupID(ctx, req.GroupID)
+		if err != nil {
+			return &response.QueryServicesResponse{
+				Msg: "query data group scopes failed: " + err.Error(),
+			}
+		}
+		for _, serviceName := range common.DataGroupStorage.GetFullPermissionSvcList(selected) {
+			if serviceName != "" {
+				serviceNames = append(serviceNames, serviceName)
+			}
+		}
+		if len(serviceNames) == 0 {
+			return &response.QueryServicesResponse{
+				Results: []*model.Service{},
+			}
+		}
+	}
+
 	// Get the list of service
-	services, _, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, 0, 0, nil, nil)
+	services, _, err := s.chRepo.QueryServices(ctx, req.StartTime, req.EndTime, req.Cluster, 0, 0, serviceNames, nil)
 	if err != nil {
 		return &response.QueryServicesResponse{
 			Msg: "query service failed: " + err.Error(),

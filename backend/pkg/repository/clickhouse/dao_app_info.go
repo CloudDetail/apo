@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model"
@@ -65,6 +66,15 @@ func (ch *chRepo) GetDataplaneServiceList(ctx core.Context, req *request.QuerySe
 		EqualsNotEmpty("host_pid", req.Tags.Pid).
 		NotGreaterThan("start_time", req.EndTime/1000000).
 		NotLessThan("heart_time", req.StartTime/1000000)
+	if req.Tags.ContainerId != "" {
+		queryBuilder.Equals("container_id", req.Tags.ContainerId)
+	} else if req.Tags.Pid != "" {
+		pid, err := strconv.ParseUint(req.Tags.Pid, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("invalid pid %q: %w", req.Tags.Pid, err)
+		}
+		queryBuilder.Equals("host_pid", uint32(pid))
+	}
 	sql := fmt.Sprintf(TEMPLATE_QUERY_APP_INFO, queryBuilder.String())
 	apps := make([]model.AppInfo, 0)
 	if err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &apps, sql, queryBuilder.values...); err != nil {

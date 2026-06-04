@@ -108,12 +108,15 @@ function TraceTopologyCom({ data, category }: any) {
       const left = timeScale.current(node.startTime) as number
       const right = timeScale.current(node.startTime + node.totalTime) as number
       const rectWidth = right - left
+      const visibleRectWidth = Math.max(rectWidth, 3)
       const rect = nodeLevelG
         .append('rect')
         .style('cursor', 'pointer')
-        .attr('width', rectWidth)
+        .attr('width', visibleRectWidth)
         .attr('data-key', node.key)
         .attr('height', 20)
+        .attr('stroke', token.colorBgContainer)
+        .attr('stroke-width', rectWidth < 3 ? 1 : 0)
         .attr('fill', () => {
           if (node.mutatedValue > 0) {
             let precent = node.mutatedValue / maxandminMutatedValue.current[1]
@@ -128,7 +131,7 @@ function TraceTopologyCom({ data, category }: any) {
 
       nodeLevelG
         .append('text')
-        .text(node.id.substring(0, Math.floor(rectWidth / 10)))
+        .text(rectWidth >= 20 ? node.id.substring(0, Math.floor(rectWidth / 10)) : '')
         .attr('class', 'node-text')
         .attr('style', 'font-size: 12px; fill:  var(--ant-color-text-base); pointer-events: none;')
         .attr('x', left + 5)
@@ -332,7 +335,11 @@ function TraceTopologyCom({ data, category }: any) {
       return
     }
 
-    const WIDTH = chartRef.current.clientWidth
+    const values = d3.range(-100, 120, 20)
+    const colorRectWidth = 70
+    const legendWidth = values.length * colorRectWidth
+    const minChartWidth = legendWidth + 220
+    const WIDTH = Math.max(chartRef.current.clientWidth, minChartWidth)
     const HEIGHT = chartRef.current.clientHeight
     timeScale.current = d3
       .scaleLinear()
@@ -342,13 +349,14 @@ function TraceTopologyCom({ data, category }: any) {
     const svg = d3
       .select('#trace_topo')
       .append('svg')
-      .style('width', WIDTH)
-      .style('height', HEIGHT - 20)
+      .attr('width', WIDTH)
+      .attr('height', HEIGHT - 20)
+      .style('width', `${WIDTH}px`)
+      .style('height', `${HEIGHT - 20}px`)
     const g = svg.append('g').attr('id', 'chart_warp').attr('transform', `translate(0, 60)`)
     svgRef.current = svg
 
     // 生成颜色对应比例尺
-    const values = d3.range(-100, 120, 20)
     let colors: string[] = []
     let alphavalue = -1
     values.forEach((value, idx) => {
@@ -367,10 +375,9 @@ function TraceTopologyCom({ data, category }: any) {
       // @ts-ignore
       .range(colors)
 
-    const colorRectWidth = 70
     const colorGWarp = svg
       .append('g')
-      .attr('transform', `translate(${WIDTH / 2 - (values.length * colorRectWidth) / 2}, 10)`)
+      .attr('transform', `translate(${WIDTH / 2 - legendWidth / 2}, 10)`)
     colorGWarp
       .append('text')
       .text('(-)' + t(`${i18nKey}.decrease`))
@@ -481,7 +488,11 @@ function TraceTopologyCom({ data, category }: any) {
 
   return (
     <div className={category === 'slow' ? 'trace_topo_warp' : ''}>
-      <div ref={chartRef} id="trace_topo" style={{ width: '100%', height: '100%' }}></div>
+      <div
+        ref={chartRef}
+        id="trace_topo"
+        style={{ width: '100%', height: '100%', overflowX: 'auto' }}
+      ></div>
       <div id="chart_tooltip" className={'custom_tooltip'}></div>
     </div>
   )

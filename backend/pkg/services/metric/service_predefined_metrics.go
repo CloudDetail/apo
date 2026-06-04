@@ -69,6 +69,7 @@ func (s *service) ListQuerys(ctx core.Context) []Query {
 func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *QueryMetricsResult {
 	// auto params
 
+	req.Params = normalizeMetricParams(req.Params)
 	interval := prometheus.VecFromDuration(time.Duration(req.Step) * time.Microsecond)
 	req.Params["__rate_interval"] = interval
 	req.Params["__interval"] = interval
@@ -101,6 +102,24 @@ func (s *service) QueryMetrics(ctx core.Context, req *QueryMetricsRequest) *Quer
 	return &QueryMetricsResult{
 		Results: resp,
 	}
+}
+
+func normalizeMetricParams(params map[string]string) map[string]string {
+	if params == nil {
+		params = make(map[string]string)
+	}
+
+	if _, exists := params["node"]; !exists {
+		if instanceName := params["instance_name"]; instanceName != "" {
+			params["node"] = instanceName
+		} else if nodeName := params["nodeName"]; nodeName != "" {
+			params["node"] = nodeName
+		} else if nodeName := params["node_name"]; nodeName != "" {
+			params["node"] = nodeName
+		}
+	}
+
+	return params
 }
 
 var legendFormatReg = regexp.MustCompile("{{([^{}]*)}}")

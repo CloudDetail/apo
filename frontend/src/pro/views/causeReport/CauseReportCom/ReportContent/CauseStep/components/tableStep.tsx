@@ -61,6 +61,25 @@ function TableStep({ data }: Props) {
   const { t } = useTranslation('pro/causeReport')
 
   const [tableList, setTableList] = useState<any[]>([])
+  const requestEndpointTitles = [t('requestEndpoint'), '请求端点', 'Request Endpoint']
+
+  const isRequestEndpointColumn = (title: string) => requestEndpointTitles.includes(title)
+
+  const buildTableColumn = (header: any) => {
+    const column: any = {
+      title: header.title,
+      accessor: header.accessor,
+      dataIndex: header.accessor,
+    }
+    if (isRequestEndpointColumn(header.title)) {
+      column.width = '55%'
+      column.render = (value: any) => <div className="table_step_request_endpoint">{value}</div>
+      column.onCell = () => ({
+        className: 'table_step_request_endpoint_cell',
+      })
+    }
+    return column
+  }
 
   const dataHandle = () => {
     let metrics = Object.keys(data.metrics)
@@ -163,12 +182,7 @@ function TableStep({ data }: Props) {
       if (data.type === 'table') {
         columns = []
         data.metrics[metric].header.forEach((header: any) => {
-          columns.push({
-            title: header.title,
-            accessor: header.accessor,
-            dataIndex: header.accessor,
-            // customWidth: '20%',
-          })
+          columns.push(buildTableColumn(header))
           list = data.metrics[metric].rows
         })
       } else {
@@ -190,6 +204,7 @@ function TableStep({ data }: Props) {
         columns: columns,
         tableData: list,
         title: metric,
+        hasRequestEndpointColumn: columns.some((column: any) => isRequestEndpointColumn(column.title)),
       })
     })
     setTableList(tableList)
@@ -236,10 +251,22 @@ function TableStep({ data }: Props) {
               classNames={{ body: 'p-1' }}
               className="mb-2"
             >
-              <Table size="small" dataSource={table.tableData} columns={table.columns} />
+              <Table
+                size="small"
+                dataSource={table.tableData}
+                columns={table.columns}
+                tableLayout={table.hasRequestEndpointColumn ? 'fixed' : undefined}
+                className="table_step_table"
+              />
             </Card>
           ) : (
-            <Table size="small" dataSource={table.tableData} columns={table.columns} />
+            <Table
+              size="small"
+              dataSource={table.tableData}
+              columns={table.columns}
+              tableLayout={table.hasRequestEndpointColumn ? 'fixed' : undefined}
+              className="table_step_table"
+            />
           )
         })}
         {data?.conclusion?.length > 0 && (
