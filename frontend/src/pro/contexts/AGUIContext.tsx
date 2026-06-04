@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSelector } from 'react-redux'
 import { AGUIClient } from '../services/ag-ui-client'
 import {
   AGUISession,
@@ -300,7 +299,6 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
   const [allModels, setAllModels] = useState<ModelOption[]>([])
   const [originalProviders, setOriginalProviders] = useState<Provider[]>([])
   const [defaultModel, setDefaultModel] = useState<ModelOption | null>(null)
-  const { dataGroupId } = useSelector((state: any) => state.dataGroupReducer)
 
   // Findings 相关的独立存储状态 - 使用嵌套 Map 提高性能
   // 外层 key: `${findingsId}-${nodeId}`, 内层 key: toolCallId
@@ -1571,14 +1569,13 @@ export const AGUIProvider: React.FC<AGUIProviderProps> = ({ children, initialCon
           context: [],
           forwardedProps: {
             clientDate: dayjs().format('YYYY-MM-DDTHH:mm:ssZ'),
-            groupId: dataGroupId ?? 0,
             ...(userId ? { userId } : {}),
           },
         },
         handleEvent,
       )
     },
-    [currentSession, currentThreadId, messages, state, client, handleEvent, dataGroupId],
+    [currentSession, currentThreadId, messages, state, client, handleEvent],
   )
 
   // 取消运行
