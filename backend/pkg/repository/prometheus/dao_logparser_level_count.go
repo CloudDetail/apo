@@ -67,3 +67,39 @@ func (repo *promRepo) QueryLogCountByInstanceId(ctx core.Context, instance *mode
 	}
 	return result, nil
 }
+
+func (repo *promRepo) QueryLogCountByInstanceSource(ctx core.Context, nodeName string, source string, startTime int64, endTime int64, step int64) (map[int64]float64, error) {
+	tRange := v1.Range{
+		Start: time.UnixMicro(startTime),
+		End:   time.UnixMicro(endTime),
+		Step:  time.Duration(step * 1000),
+	}
+	queryStep := getDurationFromStep(tRange.Step)
+	queryCondition := fmt.Sprintf(`node="%s", source_from=~"%s"`, nodeName, EscapeRegexp(source))
+	query := fmt.Sprintf(`
+	(
+		sum(increase(originx_logparser_level_count_total{%s, level=~"error|critical"}[%s]))
+	  + (sum(increase(originx_logparser_exception_count_total{%s}[%s])) or 0)
+	) or sum(increase(originx_logparser_exception_count_total{%s}[%s]))
+	`,
+		queryCondition, queryStep,
+		queryCondition, queryStep,
+		queryCondition, queryStep,
+	)
+	res, _, err := repo.GetApi().QueryRange(ctx.GetContext(), query, tRange)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]float64, 0)
+	values, ok := res.(prometheus_model.Matrix)
+	if !ok {
+		return result, nil
+	}
+	if len(values) == 1 {
+		val := values[0]
+		for _, pair := range val.Values {
+			result[int64(pair.Timestamp)*1000] = float64(pair.Value)
+		}
+	}
+	return result, nil
+}

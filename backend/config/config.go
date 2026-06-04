@@ -70,8 +70,9 @@ type Config struct {
 		DialTimeoutSeconds     int `mapstructure:"dial_timeout_seconds"`
 	} `mapstructure:"clickhouse"`
 	Promethues struct {
-		Address string `mapstructure:"address"`
-		Storage string `mapstructure:"storage"`
+		Address                        string `mapstructure:"address"`
+		Storage                        string `mapstructure:"storage"`
+		LogparserPIDSourceQueryEnabled bool   `mapstructure:"logparser_pid_source_query_enabled"`
 	} `mapstructure:"promethues"`
 	Kubernetes struct {
 		AuthType     string `mapstructure:"auth_type"`

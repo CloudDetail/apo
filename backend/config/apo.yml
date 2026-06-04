@@ -48,6 +48,8 @@ promethues:
   address: http://localhost:9090
   # vm / prom
   storage: "vm"
+  # when true, VM log level count queries resolve node+pid to source_from in ClickHouse first
+  logparser_pid_source_query_enabled: false
 
 kubernetes:
   auth_type: serviceAccount

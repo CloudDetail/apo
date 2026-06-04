@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
 	"go.uber.org/zap"
@@ -157,10 +158,17 @@ func (s *service) GetServicesAlert(
 					Pids = append(Pids, services[i].Instances[j].ConvertName)
 				}
 			}
-			_, err = s.AvgLogByPid(ctx, &services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogDODByPid(ctx, &services[i].Instances, Pids, endTime, duration)
-			_, err = s.LogWOWByPid(ctx, &services[i].Instances, Pids, endTime, duration)
-			_, err = s.ServiceLogRangeDataByPid(ctx, &services[i], Pids, startTime, endTime, duration, step)
+			if config.Get().Promethues.LogparserPIDSourceQueryEnabled {
+				_, err = s.AvgLogByPidSource(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.LogDODByPidSource(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.LogWOWByPidSource(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.ServiceLogRangeDataByPidSource(ctx, &services[i], Pids, startTime, endTime, duration, step)
+			} else {
+				_, err = s.AvgLogByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.LogDODByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.LogWOWByPid(ctx, &services[i].Instances, Pids, endTime, duration)
+				_, err = s.ServiceLogRangeDataByPid(ctx, &services[i], Pids, startTime, endTime, duration, step)
+			}
 		}
 	}
 
