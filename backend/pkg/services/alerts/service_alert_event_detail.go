@@ -4,7 +4,6 @@
 package alerts
 
 import (
-	"encoding/json"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -93,41 +92,11 @@ func (s *service) fillSimilarEventWorkflowParams(ctx core.Context, records []ale
 			Edition:   "ee",
 		}
 
-		var services, endpoints []string
-		for _, alertService := range alertServices {
-			services = append(services, alertService.Service)
-			if len(alertService.Endpoint) == 0 {
-				endpoints = append(endpoints, ".*")
-			} else {
-				endpoints = append(endpoints, alertService.Endpoint)
-			}
+		var serviceName string
+		if len(alertServices) == 1 {
+			serviceName = alertServices[0].Service
 		}
-
-		parmas := alert.AlertAnalyzeWorkflowParams{
-			AlertName:    records[i].AlertEvent.Name,
-			Node:         records[i].AlertEvent.GetInfraNodeTag(),
-			Namespace:    records[i].AlertEvent.GetK8sNamespaceTag(),
-			Pod:          records[i].AlertEvent.GetK8sPodTag(),
-			Pid:          records[i].AlertEvent.GetPidTag(),
-			Detail:       records[i].AlertEvent.Detail,
-			ContainerID:  records[i].AlertEvent.GetContainerIDTag(),
-			Tags:         records[i].AlertEvent.EnrichTags,
-			RawTags:      records[i].AlertEvent.Tags,
-			AlertEventId: records[i].Input,
-		}
-		alert.AttachReportOutputContract(&parmas)
-
-		if len(services) == 1 {
-			parmas.Service = services[0]
-			parmas.Endpoint = endpoints[0]
-		}
-
-		jsonStr, err := json.Marshal(parmas)
-		if err != nil {
-			records[i].WorkflowParams.Params = "{}"
-		} else {
-			records[i].WorkflowParams.Params = string(jsonStr)
-		}
+		records[i].WorkflowParams.Params = buildAlertRunOnceParams(&records[i].AlertEvent, records[i].Input, serviceName)
 	}
 }
 

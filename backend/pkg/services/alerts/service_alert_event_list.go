@@ -4,7 +4,6 @@
 package alerts
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strconv"
@@ -163,41 +162,11 @@ func (s *service) fillWorkflowParams(ctx core.Context, record *alert.AEventWithW
 
 	alertServices, _ := tryGetAlertService(ctx, s.chRepo, s.promRepo, &record.AlertEvent, startTime, endTime)
 
-	var services, endpoints []string
-	for _, alertService := range alertServices {
-		services = append(services, alertService.Service)
-		if len(alertService.Endpoint) == 0 {
-			endpoints = append(endpoints, ".*")
-		} else {
-			endpoints = append(endpoints, alertService.Endpoint)
-		}
+	var serviceName string
+	if len(alertServices) == 1 {
+		serviceName = alertServices[0].Service
 	}
-
-	parmas := alert.AlertAnalyzeWorkflowParams{
-		AlertName:    record.AlertEvent.Name,
-		Node:         record.AlertEvent.GetInfraNodeTag(),
-		Namespace:    record.AlertEvent.GetK8sNamespaceTag(),
-		Pod:          record.AlertEvent.GetK8sPodTag(),
-		Pid:          record.AlertEvent.GetPidTag(),
-		Detail:       record.Detail,
-		ContainerID:  record.AlertEvent.GetContainerIDTag(),
-		Tags:         record.Alert.EnrichTags,
-		RawTags:      record.Alert.Tags,
-		AlertEventId: record.EventID,
-	}
-	alert.AttachReportOutputContract(&parmas)
-
-	if len(services) == 1 {
-		parmas.Service = services[0]
-		parmas.Endpoint = endpoints[0]
-	}
-
-	jsonStr, err := json.Marshal(parmas)
-	if err != nil {
-		record.WorkflowParams.Params = "{}"
-	} else {
-		record.WorkflowParams.Params = string(jsonStr)
-	}
+	record.WorkflowParams.Params = buildAlertRunOnceParams(&record.AlertEvent, record.EventID, serviceName)
 }
 
 func tryGetAlertService(ctx core.Context, chRepo clickhouse.Repo, repo prometheus.Repo, event *alert.AlertEvent, startTime time.Time, endTime time.Time) ([]clickhouse.AlertService, error) {
