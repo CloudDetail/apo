@@ -21,7 +21,11 @@ const ReportTopology = () => {
       children: (
         <div className="h-[300px] overflow-x-auto overflow-y-hidden">
           <div className="chart_warp">
-            {topologyData ? <SingleLinkTopology data={topologyData} category={category} /> : <></>}
+            {topologyData?.nodes?.length > 0 ? (
+              <SingleLinkTopology data={topologyData} category={category} />
+            ) : (
+              <></>
+            )}
           </div>
         </div>
       ),
