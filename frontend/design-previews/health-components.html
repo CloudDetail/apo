@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统健康度基础组件</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f5f7fb;
+        color: rgba(37, 43, 54, 0.95);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+      }
+
+      .shell {
+        min-width: 1180px;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 12px;
+      }
+
+      .topbar {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        margin-bottom: 10px;
+        border: 1px solid #e4e7ec;
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: inline-grid;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(135deg, #1677ff, #36cfc9);
+        font-weight: 800;
+      }
+
+      .meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #667085;
+        font-size: 12px;
+      }
+
+      .meta strong {
+        color: #344054;
+      }
+
+      .toolbar-pill {
+        border: 1px solid #d0d5dd;
+        border-radius: 5px;
+        padding: 4px 8px;
+        background: #fff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 12px;
+      }
+
+      .card {
+        border: 1px solid #e4e7ec;
+        border-radius: 6px;
+        background: #fff;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+      }
+
+      .span-3 {
+        grid-column: span 3;
+      }
+
+      .span-4 {
+        grid-column: span 4;
+      }
+
+      .span-5 {
+        grid-column: span 5;
+      }
+
+      .span-6 {
+        grid-column: span 6;
+      }
+
+      .span-7 {
+        grid-column: span 7;
+      }
+
+      .span-8 {
+        grid-column: span 8;
+      }
+
+      .span-12 {
+        grid-column: span 12;
+      }
+
+      .card-head {
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        border-bottom: 1px solid #edf0f5;
+        background: linear-gradient(180deg, #ffffff, #fbfcff);
+        font-weight: 700;
+      }
+
+      .card-head small {
+        color: #667085;
+        font-weight: 500;
+      }
+
+      .card-body {
+        padding: 12px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 22px;
+        padding: 1px 7px;
+        border-radius: 4px;
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        color: #475467;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .tag.blue {
+        color: #175cd3;
+        border-color: #b2ddff;
+        background: #eff8ff;
+      }
+
+      .tag.green {
+        color: #067647;
+        border-color: #abefc6;
+        background: #ecfdf3;
+      }
+
+      .tag.orange {
+        color: #b54708;
+        border-color: #fedf89;
+        background: #fffaeb;
+      }
+
+      .tag.red {
+        color: #b42318;
+        border-color: #fecdca;
+        background: #fef3f2;
+      }
+
+      .tag.gray {
+        color: #667085;
+        border-color: #d0d5dd;
+        background: #f9fafb;
+      }
+
+      .jump {
+        color: #175cd3;
+        font-weight: 650;
+      }
+
+      .muted {
+        color: #667085;
+      }
+
+      .source {
+        margin-top: 10px;
+        padding-top: 9px;
+        border-top: 1px dashed #d9dee8;
+        color: #667085;
+        font-size: 12px;
+        line-height: 18px;
+      }
+
+      .score-wrap {
+        display: grid;
+        grid-template-columns: 112px 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .ring {
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at center, #fff 0 54%, transparent 55%),
+          conic-gradient(#f79009 0 76%, #edf0f5 76% 100%);
+        position: relative;
+      }
+
+      .ring::after {
+        content: "";
+        position: absolute;
+        inset: 9px;
+        border: 1px solid rgba(247, 144, 9, 0.28);
+        border-radius: 50%;
+      }
+
+      .ring strong {
+        font-size: 28px;
+        line-height: 32px;
+      }
+
+      .score-lines {
+        display: grid;
+        gap: 8px;
+      }
+
+      .score-line {
+        display: grid;
+        grid-template-columns: 72px 1fr 48px;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .bar {
+        height: 7px;
+        border-radius: 99px;
+        background: #edf0f5;
+        overflow: hidden;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .blue-fill {
+        background: linear-gradient(90deg, #1677ff, #36cfc9);
+      }
+
+      .orange-fill {
+        background: linear-gradient(90deg, #f79009, #fdb022);
+      }
+
+      .red-fill {
+        background: linear-gradient(90deg, #d92d20, #f97066);
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+
+      .metric {
+        border: 1px solid #edf0f5;
+        border-radius: 6px;
+        padding: 9px;
+        background: #fcfcfd;
+        min-height: 82px;
+      }
+
+      .metric-label {
+        display: flex;
+        justify-content: space-between;
+        color: #667085;
+        margin-bottom: 8px;
+      }
+
+      .metric-value {
+        font-size: 18px;
+        font-weight: 750;
+        margin-bottom: 4px;
+      }
+
+      .trend {
+        display: flex;
+        justify-content: space-between;
+        color: #667085;
+        font-size: 12px;
+        line-height: 18px;
+      }
+
+      .spark {
+        height: 22px;
+        margin-top: 5px;
+        border-radius: 4px;
+        background:
+          linear-gradient(135deg, transparent 0 20%, rgba(22, 119, 255, 0.2) 20% 21%, transparent 21% 42%, rgba(54, 207, 201, 0.34) 42% 43%, transparent 43% 66%, rgba(22, 119, 255, 0.22) 66% 67%, transparent 67%),
+          linear-gradient(180deg, #f9fafb, #fff);
+      }
+
+      .alert-cluster {
+        display: grid;
+        gap: 8px;
+      }
+
+      .alert-item {
+        display: grid;
+        grid-template-columns: 10px 1fr auto;
+        gap: 8px;
+        align-items: start;
+        padding: 9px;
+        border: 1px solid #edf0f5;
+        border-radius: 6px;
+        background: #fcfcfd;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-top: 6px;
+        background: #12b76a;
+      }
+
+      .dot.red {
+        background: #f04438;
+        box-shadow: 0 0 0 3px rgba(240, 68, 56, 0.12);
+      }
+
+      .dot.orange {
+        background: #f79009;
+        box-shadow: 0 0 0 3px rgba(247, 144, 9, 0.14);
+      }
+
+      .alert-title {
+        font-weight: 700;
+        line-height: 20px;
+      }
+
+      .alert-desc {
+        color: #667085;
+        line-height: 18px;
+        margin-top: 2px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #edf0f5;
+        padding: 8px 9px;
+        text-align: left;
+        vertical-align: middle;
+        line-height: 20px;
+      }
+
+      th {
+        background: #fbfcff;
+        color: #667085;
+        font-weight: 700;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .mini-cell {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .evidence {
+        display: grid;
+        grid-template-columns: 1fr 28px 1fr 28px 1fr;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .evidence-node {
+        min-height: 100px;
+        border: 1px solid #edf0f5;
+        border-radius: 6px;
+        background: #fcfcfd;
+        padding: 10px;
+      }
+
+      .evidence-node b {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .edge {
+        height: 2px;
+        background: linear-gradient(90deg, #1677ff, #36cfc9);
+        position: relative;
+      }
+
+      .edge::after {
+        content: "";
+        position: absolute;
+        right: -1px;
+        top: -4px;
+        border-left: 7px solid #36cfc9;
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+      }
+
+      .action-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .action-row {
+        display: grid;
+        grid-template-columns: 42px 1fr 92px 110px;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 9px;
+        border: 1px solid #edf0f5;
+        border-radius: 6px;
+        background: #fcfcfd;
+      }
+
+      .component-note {
+        margin-bottom: 12px;
+        border: 1px solid #e4e7ec;
+        background: #fff;
+        color: #667085;
+        border-radius: 6px;
+        padding: 7px 10px;
+        line-height: 20px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 1200px) {
+        .shell {
+          min-width: 0;
+        }
+
+        .span-3,
+        .span-4,
+        .span-5,
+        .span-6,
+        .span-7,
+        .span-8 {
+          grid-column: span 12;
+        }
+
+        .metric-grid,
+        .evidence {
+          grid-template-columns: 1fr;
+        }
+
+        .edge {
+          height: 18px;
+          width: 2px;
+          margin-left: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="title"><span class="mark">H</span>系统健康度基础组件</div>
+        <div class="meta">
+          <span>场景: <strong>服务 / 告警事件</strong></span>
+          <span class="toolbar-pill">Last 15 minutes</span>
+          <span class="toolbar-pill">数据组 ALL</span>
+          <span>刷新于 <strong>7 秒前</strong></span>
+        </div>
+      </header>
+
+      <div class="component-note">
+        组件基线: 白底浅边框、密集表格、Tag / 状态点、主值 + 同比，适合嵌入服务概览和告警事件页面。
+      </div>
+
+      <section class="layout">
+        <div class="card span-4">
+          <div class="card-head">
+            <span>01 系统健康度总览</span>
+            <small>Global Health Overview</small>
+          </div>
+          <div class="card-body">
+            <div class="score-wrap">
+              <div class="ring"><strong>76</strong></div>
+              <div class="score-lines">
+                <div class="score-line"><span>异常服务</span><div class="bar"><span class="orange-fill" style="width: 48%"></span></div><b>3</b></div>
+                <div class="score-line"><span>活跃告警</span><div class="bar"><span class="red-fill" style="width: 62%"></span></div><b>12</b></div>
+                <div class="score-line"><span>P1事件</span><div class="bar"><span class="orange-fill" style="width: 22%"></span></div><b>1</b></div>
+                <div class="score-line"><span>刷新</span><div class="bar"><span class="blue-fill" style="width: 92%"></span></div><b>7s</b></div>
+              </div>
+            </div>
+            <div class="source">用途: 服务页顶部增强摘要。数据: percentScore、异常服务数、活跃告警数、最近更新时间；健康分必须由规则计算。</div>
+          </div>
+        </div>
+
+        <div class="card span-8">
+          <div class="card-head">
+            <span>02 健康趋势迷你图</span>
+            <small>Mini Trend Strip</small>
+          </div>
+          <div class="card-body">
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label"><span>健康分</span><span class="tag orange">下降</span></div>
+                <div class="metric-value">76</div>
+                <div class="trend"><span>日同比 -8.04%</span><span>周同比 -12.88%</span></div>
+                <div class="spark"></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label"><span>P95 延迟</span><span class="tag orange">风险</span></div>
+                <div class="metric-value">430ms</div>
+                <div class="trend"><span>日同比 8.04%</span><span>周同比 12.88%</span></div>
+                <div class="spark"></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label"><span>错误率</span><span class="tag red">异常</span></div>
+                <div class="metric-value">0.22%</div>
+                <div class="trend"><span>日同比 42.1%</span><span>周同比 88.7%</span></div>
+                <div class="spark"></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label"><span>告警量</span><span class="tag red">上升</span></div>
+                <div class="metric-value">37</div>
+                <div class="trend"><span>日同比 18.3%</span><span>周同比 31.4%</span></div>
+                <div class="spark"></div>
+              </div>
+            </div>
+            <div class="source">用途: 嵌入总览卡、表格单元格或详情页。数据: 健康分、延迟、错误率、告警量时间序列；只展示短周期趋势。</div>
+          </div>
+        </div>
+
+        <div class="card span-5">
+          <div class="card-head">
+            <span>03 告警事件流</span>
+            <small>Alert Event Stream</small>
+          </div>
+          <div class="card-body">
+            <div class="alert-cluster">
+              <div class="alert-item">
+                <span class="dot red"></span>
+                <div>
+                  <div class="alert-title">payment-api P99 延迟异常</div>
+                  <div class="alert-desc">12 条告警聚合为 1 个主事件，持续 18 分钟</div>
+                </div>
+                <span class="tag red">firing</span>
+              </div>
+              <div class="alert-item">
+                <span class="dot orange"></span>
+                <div>
+                  <div class="alert-title">order-db CPU 高水位</div>
+                  <div class="alert-desc">关联慢 SQL、连接池等待、支付链路降级</div>
+                </div>
+                <span class="tag orange">warning</span>
+              </div>
+              <div class="alert-item">
+                <span class="dot"></span>
+                <div>
+                  <div class="alert-title">mq-settlement 队列积压恢复</div>
+                  <div class="alert-desc">最近 10 分钟消费速率已高于生产速率</div>
+                </div>
+                <span class="tag green">resolved</span>
+              </div>
+            </div>
+            <div class="source">用途: 服务详情侧栏、告警页列表增强。数据: alert event list、level、status、duration、service、影响范围。</div>
+          </div>
+        </div>
+
+        <div class="card span-7">
+          <div class="card-head">
+            <span>04 服务健康度表格</span>
+            <small>Service Health Table</small>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>服务</th>
+                <th style="width: 86px">状态</th>
+                <th style="width: 86px">健康分</th>
+                <th>可用率</th>
+                <th>P95 延迟</th>
+                <th>错误率</th>
+                <th style="width: 86px">告警</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="jump">payment-api</span></td>
+                <td><span class="mini-cell"><span class="dot red"></span><span class="tag red">严重</span></span></td>
+                <td>58</td>
+                <td>99.60%</td>
+                <td>890ms</td>
+                <td>0.42%</td>
+                <td><span class="tag red">7</span></td>
+              </tr>
+              <tr>
+                <td><span class="jump">order-service</span></td>
+                <td><span class="mini-cell"><span class="dot orange"></span><span class="tag orange">风险</span></span></td>
+                <td>72</td>
+                <td>99.84%</td>
+                <td>430ms</td>
+                <td>0.18%</td>
+                <td><span class="tag orange">3</span></td>
+              </tr>
+              <tr>
+                <td><span class="jump">user-service</span></td>
+                <td><span class="mini-cell"><span class="dot"></span><span class="tag green">健康</span></span></td>
+                <td>96</td>
+                <td>99.99%</td>
+                <td>120ms</td>
+                <td>0%</td>
+                <td><span class="tag green">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="card-body">
+            <div class="source">用途: 最核心组件，直接嵌入 APO 服务概览。数据: serviceName、status、percentScore、availability、latency、errorRate、alertCount。</div>
+          </div>
+        </div>
+
+        <div class="card span-8">
+          <div class="card-head">
+            <span>05 告警等级 / 状态分布</span>
+            <small>Alert Distribution</small>
+          </div>
+          <div class="card-body">
+            <div class="score-lines">
+              <div class="score-line"><span>Critical</span><div class="bar"><span class="red-fill" style="width: 18%"></span></div><b>4</b></div>
+              <div class="score-line"><span>Major</span><div class="bar"><span class="orange-fill" style="width: 36%"></span></div><b>8</b></div>
+              <div class="score-line"><span>Minor</span><div class="bar"><span class="blue-fill" style="width: 58%"></span></div><b>13</b></div>
+              <div class="score-line"><span>Resolved</span><div class="bar"><span class="blue-fill" style="width: 72%"></span></div><b>21</b></div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">
+              <span class="tag red">firing 12</span>
+              <span class="tag orange">silenced 3</span>
+              <span class="tag green">resolved 21</span>
+              <span class="tag gray">unknown 1</span>
+            </div>
+            <div class="source">用途: 告警页顶部或服务健康侧栏。数据: alert level/status 聚合结果；用于判断风险结构，不替代事件列表。</div>
+          </div>
+        </div>
+
+        <div class="card span-4">
+          <div class="card-head">
+            <span>06 异常服务影响摘要</span>
+            <small>Impact Summary</small>
+          </div>
+          <div class="card-body">
+            <div class="action-list">
+              <div class="action-row"><span class="tag red">接口</span><span>/api/v1/pay</span><span class="jump">Trace</span><span class="muted">P99 高</span></div>
+              <div class="action-row"><span class="tag orange">实例</span><span>payment-api-7d9</span><span class="jump">日志</span><span class="muted">5xx</span></div>
+              <div class="action-row"><span class="tag orange">依赖</span><span>order-db</span><span class="jump">SQL</span><span class="muted">慢查询</span></div>
+              <div class="action-row"><span class="tag blue">分组</span><span>production / ALL</span><span class="jump">筛选</span><span class="muted">3 服务</span></div>
+            </div>
+            <div class="source">用途: 服务异常行展开区或健康页右侧摘要。数据: impacted endpoints、instances、dependencies、dataGroup。</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

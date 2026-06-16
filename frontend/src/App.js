@@ -15,6 +15,7 @@ import { getRuleGroupLabelApi } from 'src/core/api/alerts'
 import { Spin } from 'antd'
 import { useDeployMode } from 'src/core/contexts/DeployModeContext'
 import { useTranslation } from 'react-i18next'
+import { commercialNav } from 'src/_nav'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const UnitedLayout = React.lazy(() => import('src/pro/layout/UnitedLayout'))
@@ -38,6 +39,22 @@ const App = () => {
   const setMonacoPromqlConfig = (value) => {
     dispatch({ type: 'setMonacoPromqlConfig', payload: value })
   }
+  const isDevSystemReportPreview = () =>
+    import.meta.env.DEV && window.location.hash.startsWith('#/healthy-service')
+  const getDevSystemReportGroupId = () => {
+    const [, queryString = ''] = window.location.hash.split('?')
+    const groupId = Number(new URLSearchParams(queryString).get('groupId') ?? 1)
+    return Number.isFinite(groupId) ? groupId : 1
+  }
+  const buildPreviewMenu = () =>
+    commercialNav.map((item) => ({
+      ...item,
+      router: { to: item.to },
+      children: item.children?.map((child) => ({
+        ...child,
+        router: { to: child.to },
+      })),
+    }))
   const getRuleGroupLabels = () => {
     getRuleGroupLabelApi().then((res) => {
       setGroupLabel(res?.groupsLabel ?? [])
@@ -73,7 +90,16 @@ const App = () => {
   }, [loading, getTitle, getFavicon, i18n.language, t])
 
   useEffect(() => {
-    if (window.location.hash !== '#/login') {
+    if (isDevSystemReportPreview()) {
+      dispatch({
+        type: 'setUser',
+        payload: { username: 'APO Preview', userId: 'preview-user', role: 'admin', roleList: 'admin' },
+      })
+      dispatch({ type: 'setMenu', payload: buildPreviewMenu() })
+      dispatch({ type: 'setRoutes', payload: ['/healthy-service'] })
+      dispatch({ type: 'setSelectedDataGroupId', payload: getDevSystemReportGroupId() })
+    }
+    if (window.location.hash !== '#/login' && !isDevSystemReportPreview()) {
       getRuleGroupLabels()
     }
     getMonacoPromqlConfig()
