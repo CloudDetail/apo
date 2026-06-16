@@ -18,7 +18,7 @@ logger:
 
 database:
   # 数据库类型 sqllite / mysql
-  connection: sqllite
+  connection: postgres
   max_open: 10
   max_idle: 60
   max_life_second: 60
@@ -31,11 +31,17 @@ database:
     username: ""
     password: ""
     charset: "utf8mb4"
+  postgres:
+    host: 192.168.1.6
+    port: 5432
+    database: apo_backend
+    username: "postgres"
+    password: "Postgres@123456"
 
 clickhouse:
-  address: localhost:9000
+  address: 192.168.1.6:30112
   username: admin
-  password: admin
+  password: 'WPKf-e9U.X)K)ezTDo9#'
   database: apo
   # Connection pool settings (optional, defaults are provided)
   max_open_conns: 20 # Max open connections. Default: 20. Env: APO_CH_MAX_OPEN_CONNS
@@ -50,6 +56,12 @@ promethues:
   storage: "vm"
   # when true, VM log level count queries resolve node+pid to source_from in ClickHouse first
   logparser_pid_source_query_enabled: false
+
+alertmanager:
+  address: "http://192.168.1.6:30093"
+
+vmalert:
+  address: "http://192.168.1.6:30888"
 
 kubernetes:
   auth_type: serviceAccount
@@ -99,3 +111,12 @@ dify:
   flow_ids:
     alert_check:
     alert_event_analyze:
+
+ai:
+  enable: false
+  base_url: http://192.168.1.8:8319/v1
+  wire_api: responses
+  env_key: COMPANY_API_KEY
+  model: gpt-5.5
+  stream_idle_timeout_ms: 10000000
+  timeout_second: 10000

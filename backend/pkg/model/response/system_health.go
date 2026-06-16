@@ -1,0 +1,206 @@
+// Copyright 2024 CloudDetail
+// SPDX-License-Identifier: Apache-2.0
+
+package response
+
+type SystemHealthReportResp struct {
+	Report       SystemHealthReport        `json:"report"`
+	ScoreFactors []SystemHealthScoreFactor `json:"scoreFactors"`
+	Issues       []SystemHealthIssue       `json:"issues"`
+}
+
+type SystemHealthReport struct {
+	Status           string                 `json:"status"`
+	Score            int                    `json:"score"`
+	AvailableSources []string               `json:"availableSources"`
+	ResourceUsage    int                    `json:"resourceUsage"`
+	InfraAlerts      int                    `json:"infraAlerts"`
+	ServiceRiskCount int                    `json:"serviceRiskCount"`
+	ActiveAlertCount int                    `json:"activeAlertCount"`
+	LogRiskCount     int                    `json:"logRiskCount"`
+	Summary          string                 `json:"summary"`
+	Window           string                 `json:"window"`
+	GeneratedAt      string                 `json:"generatedAt"`
+	AIAnalysis       SystemHealthAIAnalysis `json:"aiAnalysis"`
+}
+
+type SystemHealthAIAnalysis struct {
+	Status        string `json:"status"`
+	Source        string `json:"source"`
+	Endpoint      string `json:"endpoint,omitempty"`
+	WorkflowRunID string `json:"workflowRunId,omitempty"`
+	Error         string `json:"error,omitempty"`
+}
+
+type SystemHealthScoreFactor struct {
+	Key    string `json:"key"`
+	Label  string `json:"label"`
+	Value  int    `json:"value"`
+	Tone   string `json:"tone"`
+	Reason string `json:"reason"`
+}
+
+type SystemHealthIssue struct {
+	Key                   string                       `json:"key"`
+	AggregationKey        string                       `json:"aggregationKey"`
+	Priority              string                       `json:"priority"`
+	Title                 string                       `json:"title"`
+	Status                string                       `json:"status"`
+	Scope                 string                       `json:"scope"`
+	AffectedObjects       []SystemHealthAffectedObject `json:"affectedObjects"`
+	ActiveAlerts          int                          `json:"activeAlerts"`
+	DeduplicatedAlerts    int                          `json:"deduplicatedAlerts"`
+	RawEventCount         int                          `json:"rawEventCount"`
+	Owner                 string                       `json:"owner"`
+	SLA                   string                       `json:"sla"`
+	WorkflowStatus        string                       `json:"workflowStatus"`
+	Progress              string                       `json:"progress"`
+	ScoreImpact           int                          `json:"scoreImpact"`
+	RiskBreakdown         SystemHealthRiskBreakdown    `json:"riskBreakdown"`
+	UpdatedAt             string                       `json:"updatedAt"`
+	StartedAt             string                       `json:"startedAt"`
+	MergeBasis            string                       `json:"mergeBasis"`
+	MergeReasons          []string                     `json:"mergeReasons"`
+	DataQuality           []string                     `json:"dataQuality"`
+	MissingData           []string                     `json:"missingData"`
+	EBPFFinding           SystemHealthEBPFFinding      `json:"ebpfFinding"`
+	SystemProblem         string                       `json:"systemProblem"`
+	AIConclusion          string                       `json:"aiConclusion"`
+	RootCause             string                       `json:"rootCause,omitempty"`
+	EBPFRole              string                       `json:"ebpfRole"`
+	Impact                string                       `json:"impact"`
+	DataSources           []string                     `json:"dataSources"`
+	Actions               []string                     `json:"actions"`
+	ActionPlan            []SystemHealthActionPlanStep `json:"actionPlan"`
+	ExistingAlertAnalyses []SystemHealthAlertAnalysis  `json:"existingAlertAnalyses,omitempty"`
+	Evidence              []SystemHealthEvidence       `json:"evidence"`
+}
+
+type SystemHealthAffectedObject struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+}
+
+type SystemHealthRiskBreakdown struct {
+	EntryImpactScore        int `json:"entryImpactScore"`
+	AlertSeverityScore      int `json:"alertSeverityScore"`
+	RedDegradationScore     int `json:"redDegradationScore"`
+	PropagationScore        int `json:"propagationScore"`
+	DataCompletenessPenalty int `json:"dataCompletenessPenalty"`
+	PathRisk                int `json:"pathRisk"`
+}
+
+type SystemHealthEBPFFinding struct {
+	Observed string `json:"observed"`
+	Excluded string `json:"excluded"`
+	Narrowed string `json:"narrowed"`
+}
+
+type SystemHealthActionPlanStep struct {
+	Phase      string `json:"phase"`
+	Target     string `json:"target"`
+	Action     string `json:"action"`
+	Validation string `json:"validation"`
+	Risk       string `json:"risk"`
+}
+
+type SystemHealthAlertAnalysis struct {
+	EventID        string `json:"eventId,omitempty"`
+	AlertID        string `json:"alertId,omitempty"`
+	AlertName      string `json:"alertName,omitempty"`
+	AlertDirection string `json:"alertDirection,omitempty"`
+	AnalyzeRunID   string `json:"analyzeRunId,omitempty"`
+	AnalyzeError   string `json:"analyzeError,omitempty"`
+	CheckOutput    string `json:"checkOutput,omitempty"`
+	Validity       string `json:"validity,omitempty"`
+}
+
+type SystemHealthEvidence struct {
+	Type           string                             `json:"type"`
+	Source         string                             `json:"source,omitempty"`
+	Severity       string                             `json:"severity,omitempty"`
+	Query          string                             `json:"query"`
+	Result         string                             `json:"result"`
+	AlertEvents    []SystemHealthAlertEventEvidence   `json:"alertEvents,omitempty"`
+	Metric         *SystemHealthMetricEvidence        `json:"metric,omitempty"`
+	ObjectStatuses []SystemHealthObjectStatusEvidence `json:"objectStatuses,omitempty"`
+}
+
+type SystemHealthAlertEventEvidence struct {
+	EventID   string            `json:"eventId,omitempty"`
+	AlertID   string            `json:"alertId,omitempty"`
+	Name      string            `json:"name"`
+	Group     string            `json:"group,omitempty"`
+	Source    string            `json:"source,omitempty"`
+	Status    string            `json:"status,omitempty"`
+	Severity  string            `json:"severity,omitempty"`
+	StartedAt string            `json:"startedAt,omitempty"`
+	UpdatedAt string            `json:"updatedAt,omitempty"`
+	EndedAt   string            `json:"endedAt,omitempty"`
+	Summary   string            `json:"summary,omitempty"`
+	Labels    map[string]string `json:"labels,omitempty"`
+}
+
+type SystemHealthMetricEvidence struct {
+	RuleGroup       string                             `json:"ruleGroup,omitempty"`
+	RuleName        string                             `json:"ruleName,omitempty"`
+	Expression      string                             `json:"expression,omitempty"`
+	Step            string                             `json:"step,omitempty"`
+	SeriesReturned  int                                `json:"seriesReturned"`
+	SeriesMatched   int                                `json:"seriesMatched"`
+	PointCount      int                                `json:"pointCount"`
+	FirstValue      float64                            `json:"firstValue"`
+	LastValue       float64                            `json:"lastValue"`
+	MinValue        float64                            `json:"minValue"`
+	MaxValue        float64                            `json:"maxValue"`
+	Delta           float64                            `json:"delta"`
+	ChangePercent   *float64                           `json:"changePercent,omitempty"`
+	MatchedLabels   map[string]string                  `json:"matchedLabels,omitempty"`
+	MatchExpression string                             `json:"matchExpression,omitempty"`
+	EventScoped     bool                               `json:"eventScoped"`
+	Message         string                             `json:"message,omitempty"`
+	Series          []SystemHealthMetricSeriesEvidence `json:"series,omitempty"`
+	PointLimit      int                                `json:"pointLimit,omitempty"`
+	PointsTruncated bool                               `json:"pointsTruncated,omitempty"`
+}
+
+type SystemHealthMetricSeriesEvidence struct {
+	Labels map[string]string             `json:"labels,omitempty"`
+	Points []SystemHealthMetricDataPoint `json:"points,omitempty"`
+}
+
+type SystemHealthMetricDataPoint struct {
+	Timestamp int64   `json:"timestamp"`
+	Value     float64 `json:"value"`
+}
+
+type SystemHealthObjectStatusEvidence struct {
+	Type       string                                `json:"type"`
+	Name       string                                `json:"name"`
+	Namespace  string                                `json:"namespace,omitempty"`
+	Status     string                                `json:"status,omitempty"`
+	Ready      *bool                                 `json:"ready,omitempty"`
+	Restarts   int                                   `json:"restarts,omitempty"`
+	NodeName   string                                `json:"nodeName,omitempty"`
+	AgeSeconds int64                                 `json:"ageSeconds,omitempty"`
+	Message    string                                `json:"message,omitempty"`
+	Labels     map[string]string                     `json:"labels,omitempty"`
+	Conditions []SystemHealthObjectConditionEvidence `json:"conditions,omitempty"`
+	Containers []SystemHealthContainerStatusEvidence `json:"containers,omitempty"`
+}
+
+type SystemHealthObjectConditionEvidence struct {
+	Type    string `json:"type,omitempty"`
+	Status  string `json:"status,omitempty"`
+	Reason  string `json:"reason,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+type SystemHealthContainerStatusEvidence struct {
+	Name         string `json:"name"`
+	Ready        bool   `json:"ready"`
+	RestartCount int32  `json:"restartCount"`
+	State        string `json:"state,omitempty"`
+	Reason       string `json:"reason,omitempty"`
+	Image        string `json:"image,omitempty"`
+}

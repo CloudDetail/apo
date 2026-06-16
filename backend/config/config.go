@@ -74,6 +74,12 @@ type Config struct {
 		Storage                        string `mapstructure:"storage"`
 		LogparserPIDSourceQueryEnabled bool   `mapstructure:"logparser_pid_source_query_enabled"`
 	} `mapstructure:"promethues"`
+	AlertManager struct {
+		Address string `mapstructure:"address"`
+	} `mapstructure:"alertmanager"`
+	VMAlert struct {
+		Address string `mapstructure:"address"`
+	} `mapstructure:"vmalert"`
 	Kubernetes struct {
 		AuthType     string `mapstructure:"auth_type"`
 		AuthFilePath string `mapstructure:"auth_file_path"`
@@ -121,6 +127,16 @@ type Config struct {
 		AutoCheck      bool   `mapstructure:"auto_check"`
 		AutoAnalyze    bool   `mapstructure:"auto_analyze"`
 	} `mapstructure:"dify"`
+	AI struct {
+		Enable              bool   `mapstructure:"enable"`
+		BaseURL             string `mapstructure:"base_url"`
+		WireAPI             string `mapstructure:"wire_api"`
+		APIKey              string `mapstructure:"api_key"`
+		EnvKey              string `mapstructure:"env_key"`
+		Model               string `mapstructure:"model"`
+		StreamIdleTimeoutMS int    `mapstructure:"stream_idle_timeout_ms"`
+		TimeoutSecond       int    `mapstructure:"timeout_second"`
+	} `mapstructure:"ai"`
 	AlertReceiver struct {
 		Enabled     bool   `mapstructure:"enabled"`
 		ExternalURL string `mapstructure:"external_url"`

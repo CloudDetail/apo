@@ -4,6 +4,7 @@
 package router
 
 import (
+	appconfig "github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
@@ -23,6 +24,7 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/api/role"
 	"github.com/CloudDetail/apo/backend/pkg/api/service"
 	"github.com/CloudDetail/apo/backend/pkg/api/serviceoverview"
+	"github.com/CloudDetail/apo/backend/pkg/api/systemhealth"
 	"github.com/CloudDetail/apo/backend/pkg/api/team"
 	"github.com/CloudDetail/apo/backend/pkg/api/trace"
 	"github.com/CloudDetail/apo/backend/pkg/api/user"
@@ -71,6 +73,12 @@ func setApiRouter(r *resource) {
 
 		serviceApi.Any("/sql/metrics", serviceHandler.GetSQLMetrics())
 		serviceApi.POST("/redcharts", serviceHandler.GetServiceREDCharts())
+	}
+
+	systemHealthApi := r.mux.Group("/api/system-health").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	{
+		systemHealthHandler := systemhealth.New(r.ch, r.pkg_db, r.dify, r.k8sApi, r.prom, appconfig.Get().AlertManager.Address, appconfig.Get().VMAlert.Address)
+		systemHealthApi.GET("/report", systemHealthHandler.GetReport())
 	}
 
 	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
