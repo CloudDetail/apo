@@ -105,10 +105,26 @@ type systemHealthAIIssueInput struct {
 }
 
 type systemHealthAIEvidenceInput struct {
-	Type     string `json:"type"`
-	Source   string `json:"source,omitempty"`
-	Severity string `json:"severity,omitempty"`
-	Result   string `json:"result"`
+	Type     string                     `json:"type"`
+	Source   string                     `json:"source,omitempty"`
+	Severity string                     `json:"severity,omitempty"`
+	Result   string                     `json:"result"`
+	Metric   *systemHealthAIMetricInput `json:"metric,omitempty"`
+}
+
+type systemHealthAIMetricInput struct {
+	RuleName       string   `json:"ruleName,omitempty"`
+	SeriesMatched  int      `json:"seriesMatched"`
+	SeriesReturned int      `json:"seriesReturned"`
+	PointCount     int      `json:"pointCount"`
+	FirstValue     float64  `json:"firstValue"`
+	LastValue      float64  `json:"lastValue"`
+	MinValue       float64  `json:"minValue"`
+	MaxValue       float64  `json:"maxValue"`
+	Delta          float64  `json:"delta"`
+	ChangePercent  *float64 `json:"changePercent,omitempty"`
+	EventScoped    bool     `json:"eventScoped"`
+	Message        string   `json:"message,omitempty"`
 }
 
 type systemHealthAIAlertAnalysisInput struct {
@@ -135,11 +151,12 @@ type systemHealthAISummaryResponse struct {
 }
 
 type systemHealthAIIssueOutput struct {
-	Key        string                                `json:"key"`
-	Analysis   string                                `json:"analysis"`
-	RootCause  string                                `json:"rootCause"`
-	Actions    []string                              `json:"actions"`
-	ActionPlan []response.SystemHealthActionPlanStep `json:"actionPlan"`
+	Key            string                                `json:"key"`
+	Analysis       string                                `json:"analysis"`
+	RootCause      string                                `json:"rootCause"`
+	MetricAnalysis string                                `json:"metricAnalysis"`
+	Actions        []string                              `json:"actions"`
+	ActionPlan     []response.SystemHealthActionPlanStep `json:"actionPlan"`
 }
 
 type openAIResponsesRequest struct {
@@ -560,6 +577,9 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		if strings.TrimSpace(issueOutput.RootCause) != "" {
 			resp.Issues[index].RootCause = strings.TrimSpace(issueOutput.RootCause)
 		}
+		if metricAnalysis := strings.TrimSpace(issueOutput.MetricAnalysis); metricAnalysis != "" && !strings.ContainsRune(metricAnalysis, '\uFFFD') {
+			resp.Issues[index].MetricAnalysis = metricAnalysis
+		}
 		if len(issueOutput.ActionPlan) > 0 {
 			resp.Issues[index].ActionPlan = mergeActionPlanSteps(issueOutput.ActionPlan, reportActionPlan)
 			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
@@ -592,9 +612,12 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 			"summary 必须面向普通用户说明系统情况，按“系统当前处于什么状态 + 发生了什么告警事件 + 有哪些需要关注的问题”组织。",
 			"summary 控制在 120 个中文字符以内，最多 3 句话；不要使用“整体判断”“风险模式”等内部分析口径。",
 			"summary 推荐句式：系统当前处于{状态}状态。窗口内发生过{范围模式}{症状}告警，{当前是否仍触发/是否恢复观察}。需要关注{复发/RED退化/共同根因/规则口径}。",
-			"summary 使用“多入口/多服务/单节点/多实例”等范围模式，不要出现具体服务名、接口名、实例名或对象清单。",
+			"summary 使用“多入口/多服务/单节点/多实例/单目标/多目标”等范围模式，不要出现具体服务名、接口名、实例名或目标清单。",
 			"summary 禁止使用“主要问题集中在 A、B、C”这类服务/接口列表式表达。",
-			"每个 issue.analysis 避免重复 evidence 中已有的数字罗列。",
+			"每个 issue.analysis 要说明该风险对用户可见的系统表现、当前是否恢复、以及 eBPF/RED/指标侧确定的故障方向；不要只说明告警内容或重复 evidence 中已有的数字罗列。",
+			"当输入包含告警指标趋势、eBPF、RED、Trace 或 existingAlertAnalyses 指向时，issue.analysis 必须明确写出“指标/eBPF 方向指向...”或等价表达，说明是入口、下游、资源还是规则口径问题。",
+			"每个 issue.metricAnalysis 专门解释告警指标趋势：用自然语言说明指标是在升高、回落还是缺少可比性；结合告警是否恢复判断该指标对当前风险的意义，不要只复述“命中几条指标、变化百分比、区间”。",
+			"如果 evidence 中没有告警指标趋势或无法形成趋势，issue.metricAnalysis 输出空字符串。",
 			"existingAlertAnalyses 是告警发生时的分析结果，只作为辅助信息；issue.rootCause 要从这些分析结果、事件规律和指标/APM证据中整理根因判断，不要原样罗列辅助分析。",
 			"当多个 existingAlertAnalyses 指向一致时，rootCause 优先归纳共同指向的服务、入口、下游或指标问题；当分析方向冲突时，rootCause 要说明仍为可能根因并指出需要用指标/APM继续确认。",
 			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应分析告警指标、表达式、阈值或标签口径是否存在问题；不能当作服务故障处置。",
@@ -675,12 +698,13 @@ func systemHealthAIResponseSchema() map[string]any {
 	issueSchema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
-		"required":             []string{"key", "analysis", "rootCause", "actionPlan"},
+		"required":             []string{"key", "analysis", "rootCause", "metricAnalysis", "actionPlan"},
 		"properties": map[string]any{
-			"key":        stringSchema,
-			"analysis":   stringSchema,
-			"rootCause":  stringSchema,
-			"actionPlan": map[string]any{"type": "array", "items": actionPlanItemSchema},
+			"key":            stringSchema,
+			"analysis":       stringSchema,
+			"rootCause":      stringSchema,
+			"metricAnalysis": stringSchema,
+			"actionPlan":     map[string]any{"type": "array", "items": actionPlanItemSchema},
 		},
 	}
 	return map[string]any{
@@ -787,9 +811,30 @@ func buildSystemHealthAIEvidenceInput(evidence []response.SystemHealthEvidence) 
 			Source:   item.Source,
 			Severity: item.Severity,
 			Result:   truncateText(item.Result, 360),
+			Metric:   buildSystemHealthAIMetricInput(item.Metric),
 		})
 	}
 	return items
+}
+
+func buildSystemHealthAIMetricInput(metric *response.SystemHealthMetricEvidence) *systemHealthAIMetricInput {
+	if metric == nil {
+		return nil
+	}
+	return &systemHealthAIMetricInput{
+		RuleName:       metric.RuleName,
+		SeriesMatched:  metric.SeriesMatched,
+		SeriesReturned: metric.SeriesReturned,
+		PointCount:     metric.PointCount,
+		FirstValue:     metric.FirstValue,
+		LastValue:      metric.LastValue,
+		MinValue:       metric.MinValue,
+		MaxValue:       metric.MaxValue,
+		Delta:          metric.Delta,
+		ChangePercent:  metric.ChangePercent,
+		EventScoped:    metric.EventScoped,
+		Message:        truncateText(metric.Message, 160),
+	}
 }
 
 func buildSystemHealthAIAlertAnalysisInput(events []alertmodel.AEventWithWRecord) []systemHealthAIAlertAnalysisInput {
@@ -3132,15 +3177,15 @@ func orderedSelectedAlertLabelKeys(source map[string]string, selected map[string
 func buildRealImpact(input reportInput) string {
 	switch input.kind {
 	case issueKindActiveAlert:
-		return fmt.Sprintf("%d 个去重有效告警实例仍在触发，影响对象为 %s；最长持续 %s。", input.activeAlerts, input.scope, formatDurationCN(input.durationSeconds))
+		return fmt.Sprintf("%d 个去重有效告警实例仍在触发，影响目标为 %s；最长持续 %s。", input.activeAlerts, input.scope, formatDurationCN(input.durationSeconds))
 	case issueKindInspection:
-		return fmt.Sprintf("真实巡检/异常检测事件仍在触发，影响对象为 %s。", input.scope)
+		return fmt.Sprintf("真实巡检/异常检测事件仍在触发，影响目标为 %s。", input.scope)
 	case issueKindRecoveredAlert:
-		return fmt.Sprintf("%d 个去重有效告警实例已恢复，影响对象 %s 进入恢复观察。", input.deduplicatedAlerts, input.scope)
+		return fmt.Sprintf("%d 个去重有效告警实例已恢复，影响目标 %s 进入恢复观察。", input.deduplicatedAlerts, input.scope)
 	case issueKindInvalidAlert:
-		return fmt.Sprintf("%d 个告警实例仍在触发但被反复识别为无效，影响对象为 %s；优先判断告警指标、表达式或阈值是否与服务 RED 指标背离。", input.deduplicatedAlerts, input.scope)
+		return fmt.Sprintf("%d 个告警实例仍在触发但被反复识别为无效，影响目标为 %s；优先判断告警指标、表达式或阈值是否与服务 RED 指标背离。", input.deduplicatedAlerts, input.scope)
 	default:
-		return fmt.Sprintf("影响对象为 %s。", input.scope)
+		return fmt.Sprintf("影响目标为 %s。", input.scope)
 	}
 }
 
@@ -3228,6 +3273,7 @@ func buildIssues(scored []scoredIssue) []response.SystemHealthIssue {
 			SystemProblem:         buildSystemProblem(item),
 			AIConclusion:          buildAIConclusion(item),
 			RootCause:             buildRootCause(item),
+			MetricAnalysis:        buildMetricAnalysis(item.input.evidence),
 			EBPFRole:              buildEBPFRole(item),
 			Impact:                item.input.impact,
 			DataSources:           item.input.displaySources,
@@ -3267,11 +3313,11 @@ func buildDefaultActionPlan(item scoredIssue) []response.SystemHealthActionPlanS
 	switch item.input.kind {
 	case issueKindRecoveredAlert:
 		return []response.SystemHealthActionPlanStep{
-			{Phase: "恢复验证", Target: "确认有效告警恢复后不再复发。", Action: "查看该对象的历史告警和最新指标趋势。", Validation: "恢复观察窗口内无新的 firing 事件。", Risk: "恢复期仍可能出现同类告警复发。"},
+			{Phase: "恢复验证", Target: "确认有效告警恢复后不再复发。", Action: "查看该影响目标的历史告警和最新指标趋势。", Validation: "恢复观察窗口内无新的 firing 事件。", Risk: "恢复期仍可能出现同类告警复发。"},
 		}
 	case issueKindInspection:
 		return []response.SystemHealthActionPlanStep{
-			{Phase: "异常确认", Target: "确认巡检异常是否影响业务入口。", Action: "查看该对象相关指标趋势和关联服务状态。", Validation: "指标回到阈值内或确认无业务影响。", Risk: "巡检异常可能提前于正式告警出现。"},
+			{Phase: "异常确认", Target: "确认巡检异常是否影响业务入口。", Action: "查看该影响目标相关指标趋势和关联服务状态。", Validation: "指标回到阈值内或确认无业务影响。", Risk: "巡检异常可能提前于正式告警出现。"},
 		}
 	case issueKindInvalidAlert:
 		return []response.SystemHealthActionPlanStep{
@@ -3280,8 +3326,8 @@ func buildDefaultActionPlan(item scoredIssue) []response.SystemHealthActionPlanS
 		}
 	default:
 		return []response.SystemHealthActionPlanStep{
-			{Phase: "影响控制", Target: "优先处理仍在触发的有效告警。", Action: "进入关联告警，确认告警对象、级别、最近触发时间和影响范围。", Validation: "有效 firing 告警数量下降，关键对象状态恢复。", Risk: "只关闭告警不代表业务影响已经恢复。"},
-			{Phase: "恢复验证", Target: "确认问题不再扩散或复发。", Action: "持续观察该对象的告警状态和相关指标。", Validation: "观察窗口内无新增有效告警。", Risk: "下游影响可能滞后于告警恢复。"},
+			{Phase: "影响控制", Target: "优先处理仍在触发的有效告警。", Action: "进入关联告警，确认告警目标、级别、最近触发时间和影响范围。", Validation: "有效 firing 告警数量下降，关键目标状态恢复。", Risk: "只关闭告警不代表业务影响已经恢复。"},
+			{Phase: "恢复验证", Target: "确认问题不再扩散或复发。", Action: "持续观察该影响目标的告警状态和相关指标。", Validation: "观察窗口内无新增有效告警。", Risk: "下游影响可能滞后于告警恢复。"},
 		}
 	}
 }
@@ -3728,7 +3774,7 @@ func scoreTone(status string) string {
 
 func scoreReason(item scoredIssue) string {
 	return strings.Join([]string{
-		"入口/对象影响 " + strconvRound(item.entryImpactScore),
+		"入口/目标影响 " + strconvRound(item.entryImpactScore),
 		"告警严重度 " + strconvRound(item.alertSeverityScore),
 		"RED退化 " + strconvRound(item.redDegradationScore),
 		"传播风险 " + strconvRound(item.propagationScore),
@@ -3823,7 +3869,7 @@ func reportEventDescriptionText(scored []scoredIssue, activeCount int, recoverin
 		return fmt.Sprintf("%s%s%s告警%s，目前仍有告警未恢复", eventPrefix, reportScopePatternText(scored), reportSymptomText(scored), repeatText)
 	}
 	if recoveringCount > 0 {
-		return fmt.Sprintf("%s%s%s告警%s，目前告警已清零，相关对象处于恢复观察", eventPrefix, reportScopePatternText(scored), reportSymptomText(scored), repeatText)
+		return fmt.Sprintf("%s%s%s告警%s，目前告警已清零，相关影响目标处于恢复观察", eventPrefix, reportScopePatternText(scored), reportSymptomText(scored), repeatText)
 	}
 	return "当前窗口未发现持续触发的核心告警，系统处于观察状态"
 }
@@ -3861,9 +3907,9 @@ func reportScopePatternText(scored []scoredIssue) string {
 		return "单实例"
 	}
 	if len(scored) > 1 {
-		return "多对象"
+		return "多目标"
 	}
-	return "单对象"
+	return "单目标"
 }
 
 func reportSymptomText(scored []scoredIssue) string {
@@ -3943,15 +3989,31 @@ func buildSystemProblem(item scoredIssue) string {
 
 func buildAIConclusion(item scoredIssue) string {
 	if item.input.kind == issueKindInvalidAlert {
-		return "该对象存在持续触发但被识别为无效的告警，优先按 P4 规则诊断处理：对比告警触发指标与服务 RED 指标，确认是否为告警表达式、阈值、标签匹配或同比基线问题。"
+		return "该影响目标存在持续触发但被识别为无效的告警，优先按 P4 规则诊断处理：对比告警触发指标与服务 RED 指标，确认是否为告警表达式、阈值、标签匹配或同比基线问题。"
 	}
-	missing := missingSourceLabels(item.input.availableCalcSources)
-	conclusion := "AI 基于 " + strconv.Itoa(item.input.rawEventCount) + " 条真实事件去重后的 " + strconv.Itoa(item.input.deduplicatedAlerts) +
-		" 个告警实例归纳，风险对象为 " + item.input.scope + "，计算路径风险 " + strconvRound(item.pathRisk) + "，优先级为 " + item.priority + "。"
-	if len(missing) > 0 {
-		conclusion += " 未接入的 " + strings.Join(missing, "、") + " 不参与推断。"
+	state := "当前仍在触发"
+	if item.input.activeAlerts == 0 {
+		state = "当前已恢复，进入恢复观察"
 	}
-	return conclusion
+	symptom := "健康风险"
+	for _, name := range item.input.alertNames {
+		if strings.Contains(name, "延时") || strings.Contains(name, "延迟") || strings.Contains(strings.ToLower(name), "latency") {
+			symptom = "延时类告警"
+			break
+		}
+		if strings.Contains(name, "CPU") || strings.Contains(name, "内存") || strings.Contains(strings.ToLower(name), "memory") {
+			symptom = "资源类告警"
+			break
+		}
+	}
+	metricDirection := buildMetricAnalysis(item.input.evidence)
+	if metricDirection == "" {
+		metricDirection = buildRootCause(item)
+	}
+	if metricDirection != "" {
+		return fmt.Sprintf("%s 出现过有效%s，%s。指标/eBPF 方向指向：%s", item.input.scope, symptom, state, truncateText(metricDirection, 180))
+	}
+	return fmt.Sprintf("%s 出现过有效%s，%s。需要结合 eBPF/RED 指标和调用链继续确认入口、下游或资源方向。", item.input.scope, symptom, state)
 }
 
 func buildRootCause(item scoredIssue) string {
@@ -3976,6 +4038,44 @@ func buildRootCause(item scoredIssue) string {
 		return "告警发生时分析指向：" + truncateText(roots[0], 180)
 	}
 	return "告警发生时分析给出多个可能根因：" + truncateText(strings.Join(roots[:minInt(len(roots), 3)], "；"), 220)
+}
+
+func buildMetricAnalysis(evidence []response.SystemHealthEvidence) string {
+	for _, item := range evidence {
+		if !strings.Contains(item.Type, "告警指标趋势") || item.Metric == nil {
+			continue
+		}
+		metric := item.Metric
+		if metric.PointCount <= 0 {
+			return "未获取到足够的指标采样点，暂时无法判断指标是在升高还是回落。"
+		}
+		if !metric.EventScoped {
+			return "指标查询未能精确匹配到当前告警事件对应的时序，当前趋势只能作为背景参考，不能直接证明该影响目标仍异常。"
+		}
+		changeText := ""
+		if metric.ChangePercent != nil {
+			changeText = "，整体变化约 " + formatSignedMetricFloat(*metric.ChangePercent) + "%"
+		}
+		switch {
+		case metric.Delta < 0:
+			return fmt.Sprintf("告警关联指标在当前窗口内从 %s 回落到 %s%s，说明触发压力正在缓解；仍需观察后续窗口是否再次升高。",
+				formatMetricFloat(metric.FirstValue),
+				formatMetricFloat(metric.LastValue),
+				changeText,
+			)
+		case metric.Delta > 0:
+			return fmt.Sprintf("告警关联指标在当前窗口内从 %s 升高到 %s%s，说明异常压力仍在增强；需要优先确认影响是否继续扩大。",
+				formatMetricFloat(metric.FirstValue),
+				formatMetricFloat(metric.LastValue),
+				changeText,
+			)
+		default:
+			return fmt.Sprintf("告警关联指标在当前窗口内基本持平，数值约为 %s；需要结合告警状态和 RED 指标判断是否仍有用户影响。",
+				formatMetricFloat(metric.LastValue),
+			)
+		}
+	}
+	return ""
 }
 
 func rootCauseFromAlertDirection(direction string) string {

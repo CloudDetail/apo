@@ -203,7 +203,7 @@ const getEvidenceRole = (type) => {
   if (evidenceType.includes('告警事件')) {
     return {
       stage: '告警汇总',
-      effect: '基于当前窗口内真实告警事件确认风险对象、触发状态和告警级别。',
+      effect: '基于当前窗口内真实告警事件确认影响目标、触发状态和告警级别。',
       kind: 'alert',
     }
   }
@@ -253,13 +253,58 @@ const getEvidenceByType = (items, keyword) => safeList(items).find((item) => (it
 
 const objectTypeText = {
   endpoint: '入口',
-  target: '对象',
+  target: '影响目标',
   service: '服务',
   node: '节点',
   database: '数据库',
   namespace: '命名空间',
   pod: 'Pod',
   group: '类型',
+}
+
+const summarizeAffectedObjectScope = (issues = []) => {
+  const byType = new Map()
+  const all = new Set()
+  safeList(issues).forEach((issue) => {
+    const affectedObjects = safeList(issue.affectedObjects)
+    if (affectedObjects.length > 0) {
+      affectedObjects.forEach((item) => {
+        const type = safeText(item.type) || 'unknown'
+        const name = safeText(item.name)
+        if (!name) return
+        const key = `${type}:${name}`
+        all.add(key)
+        if (!byType.has(type)) byType.set(type, new Set())
+        byType.get(type).add(name)
+      })
+      return
+    }
+    safeText(issue.scope).split('/').map((item) => item.trim()).filter(Boolean).forEach((name) => {
+      all.add(`scope:${name}`)
+      if (!byType.has('scope')) byType.set('scope', new Set())
+      byType.get('scope').add(name)
+    })
+  })
+  const priorityTypes = ['endpoint', 'service', 'pod', 'node', 'database', 'namespace', 'target']
+  const parts = priorityTypes
+    .map((type) => {
+      const count = byType.get(type)?.size || 0
+      return count > 0 ? `${objectTypeText[type] || type} ${count}` : ''
+    })
+    .filter(Boolean)
+    .slice(0, 3)
+  if (parts.length > 0) {
+    return {
+      count: all.size,
+      label: '影响范围',
+      value: parts.join(' / '),
+    }
+  }
+  return {
+    count: all.size,
+    label: '影响范围',
+    value: all.size,
+  }
 }
 
 const formatMetricNumber = (value) => {
@@ -464,7 +509,7 @@ const productStructuredSummary = (text = '') =>
   truncateText(text
     .replace(/^AI\s*/, '')
     .replace(/AI\s*/g, '')
-    .replace(/影响对象/g, '故障对象')
+    .replace(/影响对象/g, '故障目标')
     .replace(/、?\d+\s*类已接入数据源/g, '')
     .replace(/，?计算路径风险\s*[\d.]+/g, '')
     .replace(/\s*未接入的.*?不参与推断。?/g, '')
@@ -514,7 +559,7 @@ const reportScopePatternLabel = (issues = []) => {
   if (types.has('service')) return issueCount > 1 ? '多服务' : '单服务'
   if (types.has('node')) return issueCount > 1 ? '多节点' : '单节点'
   if (types.has('pod')) return issueCount > 1 ? '多实例' : '单实例'
-  return issueCount > 1 ? '多对象' : '单对象'
+  return issueCount > 1 ? '多目标' : '单目标'
 }
 
 const isRuleDiagnosticIssue = (issue = {}) => {
@@ -543,7 +588,7 @@ const reportEventDescriptionText = (issues = [], activeCount = 0, recoveringCoun
     return `${eventPrefix}${scopePattern}${symptom}告警${repeatText}，目前仍有告警未恢复`
   }
   if (recoveringCount > 0) {
-    return `${eventPrefix}${scopePattern}${symptom}告警${repeatText}，目前告警已清零，相关对象处于恢复观察`
+    return `${eventPrefix}${scopePattern}${symptom}告警${repeatText}，目前告警已清零，相关影响目标处于恢复观察`
   }
   return `当前窗口未发现持续触发的核心告警，系统处于观察状态`
 }
@@ -659,7 +704,7 @@ const issueObjectLabel = (issue = {}) => {
   if (objectTypes.has('pod')) {
     return 'Pod'
   }
-  return '对象'
+  return '影响目标'
 }
 
 const alertFrequencyLabel = (eventCount) => {
@@ -673,7 +718,7 @@ const extractAlertPatternSummary = (alertEvidence = {}, issue = {}) => {
   const rawResult = safeText(alertEvidence.result)
   const patternMatch = rawResult.match(/事件规律=([^，。]+)/)
   if (patternMatch?.[1]) {
-    return `事件规律：${truncateText(patternMatch[1], 180)}。`
+    return truncateText(patternMatch[1], 180) + '。'
   }
 
   const eventCount = positiveNumber(issue.rawEventCount)
@@ -691,7 +736,7 @@ const extractAlertPatternSummary = (alertEvidence = {}, issue = {}) => {
   if (activeCount === 0) {
     parts.push('事件已恢复但在窗口内反复出现')
   }
-  return parts.length > 0 ? `事件规律：${parts.join('，')}。` : ''
+  return parts.length > 0 ? `${parts.join('，')}。` : ''
 }
 
 const buildMacroEvidenceSummary = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
@@ -714,7 +759,7 @@ const buildMacroEvidenceSummary = (issue = {}, alertEvidence = {}, detailEvidenc
       ? '虽然不处于持续告警状态，但告警频率偏高，需要纳入恢复观察'
       : '更像短时抖动，建议结合后续窗口继续观察'
 
-  return `宏观判断：该${objectLabel}在当前窗口发生过 ${eventText}${instanceText}，${currentState}；${frequency ? `告警呈${frequency}，` : ''}${observation}。`
+  return `该${objectLabel}在当前窗口发生过 ${eventText}${instanceText}，${currentState}；${frequency ? `告警呈${frequency}，` : ''}${observation}。`
 }
 
 const extractAlertEvidenceSummary = (alertEvidence = {}, detailEvidence = {}, issue = {}) => {
@@ -748,7 +793,11 @@ const extractAlertEvidenceSummary = (alertEvidence = {}, detailEvidence = {}, is
   return parts.length > 0 ? `告警侧：${Array.from(new Set(parts)).join('，')}。` : ''
 }
 
-const extractMetricEvidenceSummary = (metricEvidence = {}) => {
+const extractMetricEvidenceSummary = (metricEvidence = {}, issue = {}) => {
+  const metricAnalysis = safeText(issue.metricAnalysis)
+  if (metricAnalysis) {
+    return `指标侧：${truncateText(metricAnalysis, 220)}`
+  }
   const metric = metricEvidence.metric
   if (metric?.eventScoped && positiveNumber(metric.pointCount) > 0) {
     const parts = []
@@ -803,10 +852,10 @@ const extractObjectStatusSummary = (evidence = []) => {
     .filter(Boolean)
     .slice(0, 2)
   if (statuses.length > 0) {
-    return `对象侧：${statuses.join('，')}。`
+    return `运行目标侧：${statuses.join('，')}。`
   }
   if (objectEvidence?.result && !shouldHideDefaultEvidence(objectEvidence)) {
-    return `对象侧：${summarizeEvidenceItem(objectEvidence)}`
+    return `运行目标侧：${summarizeEvidenceItem(objectEvidence)}`
   }
   return ''
 }
@@ -823,7 +872,7 @@ const buildIntegratedEvidenceText = ({
     extractAlertPatternSummary(alertEvidence, issue),
     buildMacroEvidenceSummary(issue, alertEvidence, detailEvidence),
     extractAlertEvidenceSummary(alertEvidence, detailEvidence, issue),
-    extractMetricEvidenceSummary(metricEvidence),
+    extractMetricEvidenceSummary(metricEvidence, issue),
     extractTraceEvidenceSummary(traceEvidence),
     extractLogEvidenceSummary(evidence),
     extractObjectStatusSummary(evidence),
@@ -831,6 +880,47 @@ const buildIntegratedEvidenceText = ({
 
   if (parts.length === 0) return ''
   return truncateText(parts.join(' '), 420)
+}
+
+const buildAlertBehaviorAnalysis = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
+  const eventCount = positiveNumber(issue.rawEventCount)
+  const instanceCount = positiveNumber(issue.deduplicatedAlerts)
+  const activeCount = positiveNumber(issue.activeAlerts)
+  const symptom = inferRiskSymptom(issue, alertEvidence, detailEvidence)
+  const objectLabel = issueObjectLabel(issue)
+  const frequency = alertFrequencyLabel(eventCount)
+  const validAnalyses = safeList(issue.existingAlertAnalyses).filter((item) => safeText(item.validity) === 'valid').length
+  const invalidAnalyses = safeList(issue.existingAlertAnalyses).filter((item) => safeText(item.validity) === 'invalid').length
+  const stateText = activeCount > 0
+    ? `当前仍有 ${activeCount} 条告警触发`
+    : '当前已恢复，进入恢复观察'
+  const scaleText = [
+    eventCount > 0 && `${eventCount} 次告警`,
+    instanceCount > 0 && `${instanceCount} 个去重实例`,
+  ].filter(Boolean).join('、')
+  const validityText = validAnalyses > 0
+    ? `已有分析认为其中 ${validAnalyses} 类告警有效`
+    : invalidAnalyses > 0
+      ? `已有分析认为其中 ${invalidAnalyses} 类告警可能无效`
+      : ''
+
+  return [
+    `${objectLabel}侧表现为${symptom}告警${frequency ? ` ${frequency}` : ''}出现${scaleText ? `，涉及 ${scaleText}` : ''}`,
+    stateText,
+    validityText,
+  ].filter(Boolean).join('；') + '。'
+}
+
+const buildIssueAnalysisText = (issue = {}, aiGenerated = false) => {
+  const base = productIssueConclusion(issue, aiGenerated)
+  const metricAnalysis = safeText(issue.metricAnalysis)
+  const rootCause = safeText(issue.rootCause)
+  const direction = metricAnalysis || rootCause
+  if (!direction) return base
+  const directionText = `指标方向：${truncateText(direction, 180)}`
+  if (!base) return directionText
+  if (base.includes(direction) || base.includes('指标方向')) return base
+  return truncateText(`${base} ${directionText}`, 360)
 }
 
 const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
@@ -844,10 +934,10 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   )
   const items = []
   const existingAlertAnalysisText = buildExistingAlertAnalysisText(issue)
-  const alertStatusText = alertEvidence?.result ? stripTechnicalEvidenceText(alertEvidence.result) : ''
-  const alertAnalysisText = [alertStatusText && `状态：${alertStatusText}`, existingAlertAnalysisText && `分析：${existingAlertAnalysisText}`]
+  const alertBehaviorText = buildAlertBehaviorAnalysis(issue, alertEvidence, detailEvidence)
+  const alertAnalysisText = [alertBehaviorText, existingAlertAnalysisText && `已有告警分析：${existingAlertAnalysisText}`]
     .filter(Boolean)
-    .join('；')
+    .join(' ')
   const rootCauseText = safeText(issue.rootCause)
   const integratedEvidenceText = buildIntegratedEvidenceText({
     evidence,
@@ -882,6 +972,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     })
   }
 
+  const metricAnalysis = safeText(issue.metricAnalysis)
   if (metricEvidence?.metric?.eventScoped && metricEvidence.metric.pointCount > 0) {
     const metric = metricEvidence.metric
     const matched = metric.seriesMatched !== undefined && metric.seriesReturned !== undefined
@@ -889,9 +980,15 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
       : '已返回指标趋势'
     items.push({
       label: '指标变化',
-      text: `${matched}，窗口变化 ${formatPercent(metric.changePercent)}。`,
+      text: metricAnalysis || `${matched}，窗口变化 ${formatPercent(metric.changePercent)}。`,
       tone: metric.eventScoped ? 'metric' : 'warning',
       metric,
+    })
+  } else if (metricAnalysis) {
+    items.push({
+      label: '指标变化',
+      text: metricAnalysis,
+      tone: 'metric',
     })
   } else if (metricEvidence?.result) {
     const metricSummary = summarizeMetricEvidenceText(metricEvidence.result)
@@ -935,7 +1032,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   if (items.length === 0 && missingData.length > 0) {
     items.push({
       label: '数据边界',
-      text: `${missingData.join('、')} 暂不可用，相关趋势或对象状态未参与当前结论。`,
+      text: `${missingData.join('、')} 暂不可用，相关趋势或运行状态未参与当前结论。`,
       tone: 'warning',
     })
   }
@@ -1053,19 +1150,14 @@ export default function ServiceHealthyPage() {
     navigate(`${jumpTargets.alerts}?${params.toString()}`)
   }
 
+  const affectedScopeSummary = summarizeAffectedObjectScope(filteredIssues)
   const impactSummary = {
     p0Count: filteredIssues.filter((issue) => issue.priority === 'P0').length,
     p1Count: filteredIssues.filter((issue) => issue.priority === 'P1').length,
     p2Count: filteredIssues.filter((issue) => issue.priority === 'P2').length,
     p3Count: filteredIssues.filter((issue) => issue.priority === 'P3').length,
     p4Count: filteredIssues.filter((issue) => issue.priority === 'P4').length,
-    affectedObjectCount: new Set(filteredIssues.flatMap((issue) => {
-      const affectedObjects = safeList(issue.affectedObjects)
-      if (affectedObjects.length > 0) {
-        return affectedObjects.map((item) => `${item.type}:${item.name}`)
-      }
-      return (issue.scope || '').split('/').map((item) => item.trim()).filter(Boolean)
-    })).size,
+    affectedObjectCount: affectedScopeSummary.count,
   }
   const visibleKpis = [
     { label: lowerKeyword ? '筛选结果' : '风险项', value: filteredIssues.length, show: true },
@@ -1078,7 +1170,7 @@ export default function ServiceHealthyPage() {
       value: filteredIssues.filter((issue) => issue.status === 'recovering' && positiveNumber(issue.activeAlerts) === 0).length,
       show: filteredIssues.some((issue) => issue.status === 'recovering' && positiveNumber(issue.activeAlerts) === 0),
     },
-    { label: '对象', value: impactSummary.affectedObjectCount, show: impactSummary.affectedObjectCount > 0 },
+    { label: affectedScopeSummary.label, value: affectedScopeSummary.value, show: impactSummary.affectedObjectCount > 0 },
   ].filter((item) => item.show)
   const reportSummaryText = reportExecutiveSummary(report, issues, productReportSummary(report.summary || '', isAISummaryReady))
 
@@ -1175,7 +1267,7 @@ export default function ServiceHealthyPage() {
             }))
           const visibleAffectedObjects = visibleObjectTags(issue)
           const keyEvidence = buildKeyEvidenceItems(evidence, issue)
-          const issueAnalysis = productIssueConclusion(issue, isAISummaryReady)
+          const issueAnalysis = buildIssueAnalysisText(issue, isAISummaryReady)
           const shouldShowRoute = displayTitle !== scope || visibleAffectedObjects.length > 0
           return (
             <div
@@ -1198,7 +1290,7 @@ export default function ServiceHealthyPage() {
               {shouldShowRoute && (
                 <div className="health-impact-route">
                   <div>
-                    <strong>对象</strong>
+                    <strong>影响范围</strong>
                     {displayTitle !== scope && <span>{scope}</span>}
                     {visibleAffectedObjects.length > 0 && (
                       <div className="health-impact-object-row">
@@ -1290,7 +1382,7 @@ export default function ServiceHealthyPage() {
         <Space wrap className="health-report-actions">
           <Input.Search
             allowClear
-            placeholder="过滤问题 / 对象"
+            placeholder="过滤风险 / 服务 / 接口"
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
             style={{ width: 220 }}

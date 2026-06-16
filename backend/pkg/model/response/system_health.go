@@ -67,6 +67,7 @@ type SystemHealthIssue struct {
 	SystemProblem         string                       `json:"systemProblem"`
 	AIConclusion          string                       `json:"aiConclusion"`
 	RootCause             string                       `json:"rootCause,omitempty"`
+	MetricAnalysis        string                       `json:"metricAnalysis,omitempty"`
 	EBPFRole              string                       `json:"ebpfRole"`
 	Impact                string                       `json:"impact"`
 	DataSources           []string                     `json:"dataSources"`

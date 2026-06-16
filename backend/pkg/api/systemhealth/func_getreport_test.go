@@ -512,9 +512,10 @@ func TestCallSystemHealthAIUsesDirectAIEndpoint(t *testing.T) {
 			Summary: "当前 order-service 支付入口存在高优先级延迟问题，应先控制入口影响。",
 			Issues: []systemHealthAIIssueOutput{
 				{
-					Key:       "issue-1",
-					Analysis:  "order-service / POST /orders 延迟持续升高，已有告警分析指向 payment-service。",
-					RootCause: "payment-service 下游响应变慢导致 order-service 入口延迟。",
+					Key:            "issue-1",
+					Analysis:       "order-service / POST /orders 延迟持续升高，已有告警分析指向 payment-service。",
+					RootCause:      "payment-service 下游响应变慢导致 order-service 入口延迟。",
+					MetricAnalysis: "入口延迟指标仍在升高，说明当前告警仍有指标支撑。",
 					ActionPlan: []response.SystemHealthActionPlanStep{
 						{
 							Phase:      "影响控制",
@@ -565,6 +566,9 @@ func TestCallSystemHealthAIUsesDirectAIEndpoint(t *testing.T) {
 	}
 	if aiResp.Issues[0].RootCause != "payment-service 下游响应变慢导致 order-service 入口延迟。" {
 		t.Fatalf("expected rootCause from AI response, got %#v", aiResp.Issues[0])
+	}
+	if aiResp.Issues[0].MetricAnalysis != "入口延迟指标仍在升高，说明当前告警仍有指标支撑。" {
+		t.Fatalf("expected metricAnalysis from AI response, got %#v", aiResp.Issues[0])
 	}
 }
 
@@ -867,6 +871,11 @@ func TestMetricEvidenceMarksEventScopedSeriesMatch(t *testing.T) {
 	}
 	if metric.Series[0].Points[0].Timestamp != 1 || metric.Series[0].Points[0].Value != 1 {
 		t.Fatalf("unexpected first chart point: %#v", metric.Series[0].Points[0])
+	}
+
+	analysis := buildMetricAnalysis([]response.SystemHealthEvidence{{Type: "告警指标趋势", Metric: metric}})
+	if !strings.Contains(analysis, "升高") || !strings.Contains(analysis, "异常压力仍在增强") {
+		t.Fatalf("expected readable metric analysis, got %q", analysis)
 	}
 }
 
