@@ -71,6 +71,19 @@ const TYPE_COLORS: Record<string, string> = {
   POOL: '#6dc8ec',
   DATABASE: '#5ad8a6',
 }
+const SPAN_TYPE_LABELS: Record<string, string> = {
+  CODE: '代码',
+  DATABASE: '数据库',
+  EXTERNAL: '外部服务',
+  POOL: '连接池',
+  NOSQL: 'NoSQL 数据库',
+  MQ: '消息队列',
+}
+const DETAIL_LEVEL_LABELS: Record<string, string> = {
+  full: '完整明细',
+  partial: '部分明细',
+  none: '无明细',
+}
 
 const formatDuration = (value?: number) => {
   if (!value || value <= 0) {
@@ -83,6 +96,13 @@ const formatDuration = (value?: number) => {
 }
 
 const getSpanDetail = (data: any): SpanDetail | undefined => data?.object?.spanDetail
+
+const getSpanTypeLabel = (type: string) => SPAN_TYPE_LABELS[type] || type
+
+const getDetailLevelLabel = (level?: string) => {
+  if (!level) return '-'
+  return DETAIL_LEVEL_LABELS[level] || level
+}
 
 const getShortName = (name?: string) => {
   if (!name) return '-'
@@ -679,22 +699,26 @@ function SpanDetailStep({ data }: Props) {
   return (
     <Card title={data.report_name} className="span_detail_step">
       <Descriptions size="small" column={2} className="span_detail_summary">
-        <Descriptions.Item label="Trace ID">{spanDetail.traceId || '-'}</Descriptions.Item>
-        <Descriptions.Item label="Span ID">{spanDetail.spanId || '-'}</Descriptions.Item>
-        <Descriptions.Item label={t('spanDetail.totalNodes')}>
+        <Descriptions.Item label={t('spanDetail.traceId', { defaultValue: '调用链 ID' })}>
+          {spanDetail.traceId || '-'}
+        </Descriptions.Item>
+        <Descriptions.Item label={t('spanDetail.spanId', { defaultValue: 'Span ID' })}>
+          {spanDetail.spanId || '-'}
+        </Descriptions.Item>
+        <Descriptions.Item label={t('spanDetail.totalNodes', { defaultValue: 'Span 数量' })}>
           {summary?.totalNodes ?? details.length}
         </Descriptions.Item>
-        <Descriptions.Item label={t('spanDetail.maxDepth')}>
+        <Descriptions.Item label={t('spanDetail.maxDepth', { defaultValue: '最大深度' })}>
           {summary?.maxDepth ?? '-'}
         </Descriptions.Item>
-        <Descriptions.Item label={t('spanDetail.detailLevel')}>
-          {summary?.detailLevel || '-'}
+        <Descriptions.Item label={t('spanDetail.detailLevel', { defaultValue: '明细级别' })}>
+          {getDetailLevelLabel(summary?.detailLevel)}
         </Descriptions.Item>
-        <Descriptions.Item label={t('spanDetail.typeCounts')}>
+        <Descriptions.Item label={t('spanDetail.typeCounts', { defaultValue: '类型分布' })}>
           <Space size={[4, 4]} wrap>
             {Object.entries(summary?.typeCounts || {}).map(([key, value]) => (
               <Tag key={key}>
-                {key}: {value}
+                {getSpanTypeLabel(key)}: {value}
               </Tag>
             ))}
           </Space>
