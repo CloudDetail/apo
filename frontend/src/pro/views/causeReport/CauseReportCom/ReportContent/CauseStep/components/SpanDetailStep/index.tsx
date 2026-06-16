@@ -38,7 +38,7 @@ interface TreeNode extends SpanDetailItem {
   compact?: boolean
   compactCount?: number
   compactKind?: 'siblings' | 'parent'
-  compactStack?: string[]
+  compactStack?: StackFrame[]
   compactSourceKeys?: string[]
   subtreeExclusiveTime?: number
   descendantCount?: number
@@ -48,13 +48,22 @@ interface VisibleNode extends TreeNode {
   visibleDepth: number
 }
 
+interface StackFrame {
+  key: string
+  text: string
+  type?: string
+  current?: boolean
+  compacted?: boolean
+}
+
 interface Props {
   data: any
 }
 
 const DEFAULT_COMPACT_PERCENT = 0.5
 const ROW_HEIGHT = 46
-const STACK_ROW_HEIGHT = 190
+const DETAIL_ROW_HEIGHT = 262
+const DETAIL_STACK_ROW_HEIGHT = 430
 const KEY_TYPES = new Set(['EXTERNAL', 'DATABASE', 'NOSQL', 'MQ', 'POOL'])
 const TYPE_COLORS: Record<string, string> = {
   CODE: '#3479e8',
@@ -86,23 +95,57 @@ const formatStackFrame = (node: TreeNode) => {
   const name = node.name || '-'
   const className = node.attributes?.class || node.attributes?.Class || ''
   const methodName = node.attributes?.method || node.attributes?.Method || ''
-  const frameType = node.type && node.type !== 'CODE' ? ` (${node.type})` : ''
+  const frameType = node.type && node.type !== 'CODE' ? node.type : ''
+  let text = name
   if (className && methodName) {
-    return `${className}.${methodName}${frameType}`
+    text = `${className}.${methodName}`
+  } else if (className) {
+    text = `${className}.${getShortName(name)}`
   }
-  if (className) {
-    return `${className}.${getShortName(name)}${frameType}`
+  return {
+    key: node.key,
+    text,
+    type: frameType,
   }
-  return `${name}${frameType}`
 }
 
-const getCompactStack = (nodes: TreeNode[], limit = 80): string[] => {
-  const stack: string[] = []
+const getAttribute = (node: TreeNode | undefined, ...keys: string[]) => {
+  if (!node?.attributes) return ''
+  for (const key of keys) {
+    const value = node.attributes[key]
+    if (value) return value
+  }
+  return ''
+}
+
+const buildSpanInfoItems = (node: TreeNode | undefined) => {
+  if (!node) return []
+  const attrs = node.attributes || {}
+  return [
+    { label: 'Name', value: node.name },
+    { label: 'callerApplication', value: getAttribute(node, 'callerApplication') },
+    { label: 'callerInstance', value: getAttribute(node, 'callerInstance') },
+    { label: 'threadName', value: getAttribute(node, 'threadName') },
+    { label: 'Type', value: node.compact ? '低耗时合并' : node.type },
+    { label: '调用耗时', value: formatDuration(node.duration) },
+    { label: '自身耗时', value: formatDuration(node.exclusiveTime) },
+    { label: 'Offset', value: formatDuration(node.offset) },
+    { label: 'Class', value: getAttribute(node, 'class', 'Class') },
+    { label: 'Method', value: getAttribute(node, 'method', 'Method') },
+    { label: 'URL', value: getAttribute(node, 'url') },
+    { label: 'Operation', value: getAttribute(node, 'operation') },
+    { label: 'System', value: getAttribute(node, 'system') },
+    { label: 'Span ID', value: attrs.spanId },
+  ].filter((item) => item.value !== undefined && item.value !== '')
+}
+
+const getCompactStack = (nodes: TreeNode[], limit = 80): StackFrame[] => {
+  const stack: StackFrame[] = []
   const visitedKeys = new Set<string>()
   const visit = (node: TreeNode) => {
     if (stack.length >= limit || visitedKeys.has(node.key)) return
     visitedKeys.add(node.key)
-    stack.push(formatStackFrame(node))
+    stack.push({ ...formatStackFrame(node), compacted: true })
     node.children.forEach((child) => visit(child))
   }
   nodes.forEach((node) => visit(node))
@@ -397,6 +440,7 @@ function SpanDetailStep({ data }: Props) {
   const [searchValue, setSearchValue] = useState('')
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set())
   const [selectedKey, setSelectedKey] = useState<string>('')
+  const [detailOpenKey, setDetailOpenKey] = useState<string>('')
   const [stackPreviewKey, setStackPreviewKey] = useState<string>('')
   const [restoredNodeKeys, setRestoredNodeKeys] = useState<Set<string>>(new Set())
   const [pendingScrollKey, setPendingScrollKey] = useState<string>('')
@@ -492,6 +536,7 @@ function SpanDetailStep({ data }: Props) {
 
   useEffect(() => {
     setSelectedKey(maxExclusiveKey)
+    setDetailOpenKey('')
     setStackPreviewKey('')
   }, [maxExclusiveKey])
 
@@ -521,16 +566,25 @@ function SpanDetailStep({ data }: Props) {
     )
   }, [maxExclusiveKey, selectedKey, tree, visibleRows])
 
-  const selectedStackLines = useMemo(() => {
+  const selectedStackFrames = useMemo(() => {
     if (!selectedNode) return []
     if (stackPreviewKey !== selectedNode.key) return []
     const sourceKey = selectedNode.compact ? selectedNode.compactSourceKeys?.[0] : selectedNode.key
     const path = sourceKey ? findPathByKey(rawTree, sourceKey) : findPathByKey(tree, selectedNode.key)
+    const frames = selectedNode.compact
+      ? [...path.slice(0, -1).map((node) => formatStackFrame(node)), ...(selectedNode.compactStack || [])]
+      : path.map((node) => formatStackFrame(node))
     if (selectedNode.compact) {
-      return [...path.slice(0, -1).map((node) => formatStackFrame(node)), ...(selectedNode.compactStack || [])]
+      const compactSourceKeys = new Set(selectedNode.compactSourceKeys || [])
+      return frames.map((frame, index) => ({
+        ...frame,
+        current: frame.key === sourceKey || (index === frames.length - 1 && compactSourceKeys.has(frame.key)),
+      }))
     }
-    return path.map((node) => formatStackFrame(node))
+    return frames.map((frame) => ({ ...frame, current: frame.key === selectedNode.key }))
   }, [rawTree, selectedNode, stackPreviewKey, tree])
+
+  const selectedSpanInfoItems = useMemo(() => buildSpanInfoItems(selectedNode), [selectedNode])
 
   const ticks = useMemo(() => {
     return [0, 0.5, 1].map((ratio) => ({
@@ -564,7 +618,16 @@ function SpanDetailStep({ data }: Props) {
       return next
     })
     setSelectedKey(targetKey)
+    setDetailOpenKey(targetKey)
     setPendingScrollKey(targetKey)
+    setStackPreviewKey('')
+  }
+
+  const openSpanDetail = (key: string) => {
+    const path = findPathByKey(tree, key)
+    const targetKey = path[path.length - 1]?.key || key
+    setSelectedKey(targetKey)
+    setDetailOpenKey(targetKey)
     setStackPreviewKey('')
   }
 
@@ -583,13 +646,16 @@ function SpanDetailStep({ data }: Props) {
       return next
     })
     setSelectedKey(compactedSourceKeys[compactedSourceKeys.length - 1] || currentRow.key)
+    setDetailOpenKey('')
     setStackPreviewKey('')
   }
 
   const viewStack = (key: string) => {
     const path = findPathByKey(tree, key)
     const target = path[path.length - 1]
-    setSelectedKey(target?.key || key)
+    const targetKey = target?.key || key
+    setSelectedKey(targetKey)
+    setDetailOpenKey(targetKey)
     setStackPreviewKey((prev) => (prev === (target?.key || key) ? '' : target?.key || key))
   }
 
@@ -598,6 +664,7 @@ function SpanDetailStep({ data }: Props) {
     setExpandedKeys(new Set())
     setRestoredNodeKeys(new Set())
     setStackPreviewKey('')
+    setDetailOpenKey('')
     setSelectedKey('')
   }
 
@@ -700,7 +767,9 @@ function SpanDetailStep({ data }: Props) {
                     const hasChildren = row.children && row.children.length > 0
                     const expanded = mergedExpandedKeys.has(row.key) || !!searchValue.trim()
                     const active = selectedNode?.key === row.key
-                    const stackOpen = stackPreviewKey === row.key && selectedStackLines.length > 0
+                    const detailOpen = detailOpenKey === row.key && active
+                    const stackOpen = detailOpen && stackPreviewKey === row.key && selectedStackFrames.length > 0
+                    const detailHeight = stackOpen ? DETAIL_STACK_ROW_HEIGHT : DETAIL_ROW_HEIGHT
                     return (
                       <React.Fragment key={row.key}>
                         <div
@@ -713,9 +782,9 @@ function SpanDetailStep({ data }: Props) {
                           }}
                           className={`span_detail_tree_row ${active ? 'active' : ''} ${
                             row.compact ? 'compact' : ''
-                          } ${stackOpen ? 'stack-open' : ''}`}
+                          } ${detailOpen ? 'detail-open' : ''}`}
                           style={{ height: ROW_HEIGHT }}
-                          onClick={() => setSelectedKey(row.key)}
+                          onClick={() => openSpanDetail(row.key)}
                         >
                           <div className="span_detail_node" style={{ paddingLeft: row.visibleDepth * 20 + 8 }}>
                             <button
@@ -770,20 +839,8 @@ function SpanDetailStep({ data }: Props) {
                                       >
                                         {t('spanDetail.expandCallTree', { defaultValue: '展开' })}
                                       </button>
-                                      <em>·</em>
                                     </>
                                   )}
-                                  <button
-                                    type="button"
-                                    onClick={(event) => {
-                                      event.stopPropagation()
-                                      viewStack(row.key)
-                                    }}
-                                  >
-                                    {stackOpen
-                                      ? t('spanDetail.closeStack', { defaultValue: '关闭' })
-                                      : t('spanDetail.viewStack', { defaultValue: '查看堆栈' })}
-                                  </button>
                                 </span>
                               </span>
                               <span className="span_detail_node_meta">
@@ -794,19 +851,54 @@ function SpanDetailStep({ data }: Props) {
                             </span>
                           </div>
                         </div>
-                        {stackOpen && (
-                          <div className="span_detail_stack_inline_row" style={{ height: STACK_ROW_HEIGHT }}>
+                        {detailOpen && (
+                          <div className="span_detail_inline_detail_row" style={{ minHeight: detailHeight }}>
                             <div
-                              className="span_detail_stack_inline"
+                              className="span_detail_inline_detail"
                               style={{ marginLeft: row.visibleDepth * 20 + 40 }}
                             >
-                              <div className="span_detail_stack_header">
-                                <span>{t('spanDetail.compactStack', { defaultValue: '调用堆栈' })}</span>
-                                <button type="button" onClick={() => setStackPreviewKey('')}>
-                                  {t('spanDetail.closeStack', { defaultValue: '关闭' })}
+                              <div className="span_detail_inline_detail_header">
+                                <span>{t('spanDetail.spanInfo', { defaultValue: 'Span 详情' })}</span>
+                                <button type="button" onClick={() => setDetailOpenKey('')}>
+                                  {t('spanDetail.closeDetail', { defaultValue: '关闭' })}
                                 </button>
                               </div>
-                              <pre>{selectedStackLines.join('\n') || '-'}</pre>
+                              <div className="span_detail_info_grid">
+                                {selectedSpanInfoItems.map((item) => (
+                                  <div key={item.label} className="span_detail_info_item">
+                                    <span>{item.label}</span>
+                                    <strong title={`${item.value}`}>{item.value}</strong>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="span_detail_stack_section">
+                                <button type="button" onClick={() => viewStack(row.key)}>
+                                  {stackOpen
+                                    ? t('spanDetail.closeStack', { defaultValue: '收起堆栈' })
+                                    : t('spanDetail.viewStack', { defaultValue: '显示堆栈' })}
+                                </button>
+                                {stackOpen && (
+                                  <ol className="span_detail_stack_frames">
+                                    {selectedStackFrames.map((frame, frameIndex) => (
+                                      <li
+                                        key={`${frame.key}-${frameIndex}`}
+                                        className={`${frame.current ? 'current' : ''} ${frame.compacted ? 'compacted' : ''}`}
+                                      >
+                                        <span className="span_detail_stack_index">{frameIndex + 1}</span>
+                                        <span className="span_detail_stack_text" title={frame.text}>
+                                          {frame.text}
+                                        </span>
+                                        {frame.type && <span className="span_detail_stack_type">({frame.type})</span>}
+                                        {frame.current && (
+                                          <span className="span_detail_stack_current">
+                                            {t('spanDetail.currentSpan', { defaultValue: '当前' })}
+                                          </span>
+                                        )}
+                                      </li>
+                                    ))}
+                                  </ol>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}
@@ -832,15 +924,17 @@ function SpanDetailStep({ data }: Props) {
                       maxEnd > 0 ? Math.max(((row.exclusiveTime || 0) / maxEnd) * 100, 0.7) : 0
                     const color = TYPE_COLORS[row.type || ''] || '#8c8c8c'
                     const active = selectedNode?.key === row.key
-                    const stackOpen = stackPreviewKey === row.key && selectedStackLines.length > 0
+                    const detailOpen = detailOpenKey === row.key && active
+                    const stackOpen = detailOpen && stackPreviewKey === row.key && selectedStackFrames.length > 0
+                    const detailHeight = stackOpen ? DETAIL_STACK_ROW_HEIGHT : DETAIL_ROW_HEIGHT
                     return (
                       <React.Fragment key={row.key}>
                         <div
                           className={`span_detail_timeline_row ${active ? 'active' : ''} ${
-                            stackOpen ? 'stack-open' : ''
+                            detailOpen ? 'detail-open' : ''
                           }`}
                           style={{ height: ROW_HEIGHT }}
-                          onClick={() => setSelectedKey(row.key)}
+                          onClick={() => openSpanDetail(row.key)}
                         >
                           <div className="span_detail_chart">
                             <div
@@ -853,8 +947,8 @@ function SpanDetailStep({ data }: Props) {
                             />
                           </div>
                         </div>
-                        {stackOpen && (
-                          <div className="span_detail_timeline_stack_gap" style={{ height: STACK_ROW_HEIGHT }} />
+                        {detailOpen && (
+                          <div className="span_detail_timeline_detail_gap" style={{ minHeight: detailHeight }} />
                         )}
                       </React.Fragment>
                     )
