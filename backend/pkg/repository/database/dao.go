@@ -139,6 +139,9 @@ type Repo interface {
 	CheckScopePermission(ctx core.Context, permGroupIDs []int64, cluster, namespace, service string) (bool, error)
 	DropDataGroupDatasourceConstraint(ctx core.Context) error
 	GetAPIByPath(ctx core.Context, path string, method string) (*API, error)
+	SaveSystemHealthReportRecord(ctx core.Context, record *SystemHealthReportRecord) error
+	ListSystemHealthReportRecords(ctx core.Context, groupID int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error)
+	GetSystemHealthReportRecord(ctx core.Context, recordID string) (*SystemHealthReportRecord, error)
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx core.Context) *gorm.DB
@@ -367,6 +370,7 @@ func migrateTable(db *gorm.DB) error {
 		&ServiceNameRule{},
 		&ServiceNameRuleCondition{},
 		&CustomServiceTopology{},
+		&SystemHealthReportRecord{},
 		&mi.DataPlaneType{},
 		&mi.DataPlane{},
 		&mi.Cluster2DataPlane{},

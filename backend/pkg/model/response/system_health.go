@@ -9,6 +9,34 @@ type SystemHealthReportResp struct {
 	Issues       []SystemHealthIssue       `json:"issues"`
 }
 
+type SystemHealthReportRecordListResp struct {
+	Records  []SystemHealthReportRecordSummary `json:"records"`
+	Total    int64                             `json:"total"`
+	Page     int                               `json:"page"`
+	PageSize int                               `json:"pageSize"`
+}
+
+type SystemHealthReportRecordSummary struct {
+	RecordID         string `json:"recordId"`
+	GroupID          int64  `json:"groupId"`
+	Status           string `json:"status"`
+	Score            int    `json:"score"`
+	Summary          string `json:"summary"`
+	Window           string `json:"window"`
+	StartTime        int64  `json:"startTime"`
+	EndTime          int64  `json:"endTime"`
+	GeneratedAt      string `json:"generatedAt"`
+	IssueCount       int    `json:"issueCount"`
+	ActiveAlertCount int    `json:"activeAlertCount"`
+	AIStatus         string `json:"aiStatus"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+type SystemHealthReportRecordResp struct {
+	Record SystemHealthReportRecordSummary `json:"record"`
+	Data   SystemHealthReportResp          `json:"data"`
+}
+
 type SystemHealthReport struct {
 	Status           string                 `json:"status"`
 	Score            int                    `json:"score"`
@@ -83,12 +111,11 @@ type SystemHealthAffectedObject struct {
 }
 
 type SystemHealthRiskBreakdown struct {
-	EntryImpactScore        int `json:"entryImpactScore"`
-	AlertSeverityScore      int `json:"alertSeverityScore"`
-	RedDegradationScore     int `json:"redDegradationScore"`
-	PropagationScore        int `json:"propagationScore"`
-	DataCompletenessPenalty int `json:"dataCompletenessPenalty"`
-	PathRisk                int `json:"pathRisk"`
+	EntryImpactScore    int `json:"entryImpactScore"`
+	AlertSeverityScore  int `json:"alertSeverityScore"`
+	RedDegradationScore int `json:"redDegradationScore"`
+	PropagationScore    int `json:"propagationScore"`
+	PathRisk            int `json:"pathRisk"`
 }
 
 type SystemHealthEBPFFinding struct {
@@ -103,6 +130,7 @@ type SystemHealthActionPlanStep struct {
 	Action     string `json:"action"`
 	Validation string `json:"validation"`
 	Risk       string `json:"risk"`
+	Source     string `json:"source,omitempty"`
 }
 
 type SystemHealthAlertAnalysis struct {

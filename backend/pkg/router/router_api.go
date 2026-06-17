@@ -79,6 +79,8 @@ func setApiRouter(r *resource) {
 	{
 		systemHealthHandler := systemhealth.New(r.ch, r.pkg_db, r.dify, r.k8sApi, r.prom, appconfig.Get().AlertManager.Address, appconfig.Get().VMAlert.Address)
 		systemHealthApi.GET("/report", systemHealthHandler.GetReport())
+		systemHealthApi.GET("/report/records", systemHealthHandler.ListReportRecords())
+		systemHealthApi.GET("/report/records/:recordId", systemHealthHandler.GetReportRecord())
 	}
 
 	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())

@@ -14,6 +14,8 @@ import (
 
 type Handler interface {
 	GetReport() core.HandlerFunc
+	ListReportRecords() core.HandlerFunc
+	GetReportRecord() core.HandlerFunc
 }
 
 type handler struct {

@@ -9,3 +9,13 @@ type GetSystemHealthReportRequest struct {
 	StartTime    int64  `form:"startTime"`
 	EndTime      int64  `form:"endTime"`
 }
+
+type ListSystemHealthReportRecordsRequest struct {
+	GroupID  int64 `form:"groupId"`
+	Page     int   `form:"page"`
+	PageSize int   `form:"pageSize"`
+}
+
+type GetSystemHealthReportRecordRequest struct {
+	RecordID string `uri:"recordId"`
+}

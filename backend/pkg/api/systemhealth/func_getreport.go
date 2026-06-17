@@ -6,12 +6,18 @@ package systemhealth
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"html"
 	"io"
+	"log"
 	"math"
+	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -27,10 +33,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 	"github.com/CloudDetail/apo/backend/pkg/model/response"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
+	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
 	"github.com/CloudDetail/apo/backend/pkg/services/common"
+	"github.com/google/uuid"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	prommodel "github.com/prometheus/common/model"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -49,6 +59,13 @@ var sourceLabels = map[string]string{
 	"infra":                  "基础设施指标",
 	"alertReport":            "原告警分析报告",
 }
+
+var (
+	htmlDetailsBlockPattern  = regexp.MustCompile(`(?is)<details\b[^>]*>.*?</details>`)
+	htmlTagPattern           = regexp.MustCompile(`(?is)<[^>]+>`)
+	markdownCodeFencePattern = regexp.MustCompile("(?s)```.*?```")
+	cjkTextPattern           = regexp.MustCompile(`\p{Han}`)
+)
 
 const (
 	issueKindActiveAlert              = "activeAlert"
@@ -90,18 +107,19 @@ type systemHealthAIReportInput struct {
 }
 
 type systemHealthAIIssueInput struct {
-	Key                   string                             `json:"key"`
-	Priority              string                             `json:"priority"`
-	Title                 string                             `json:"title"`
-	Status                string                             `json:"status"`
-	Scope                 string                             `json:"scope"`
-	Impact                string                             `json:"impact"`
-	ActiveAlerts          int                                `json:"activeAlerts"`
-	StartedAt             string                             `json:"startedAt"`
-	DataSources           []string                           `json:"dataSources"`
-	Evidence              []systemHealthAIEvidenceInput      `json:"evidence"`
-	ExistingAlertAnalyses []systemHealthAIAlertAnalysisInput `json:"existingAlertAnalyses"`
-	ExistingReportActions []systemHealthAIReportActionInput  `json:"existingReportActions"`
+	Key                    string                             `json:"key"`
+	Priority               string                             `json:"priority"`
+	Title                  string                             `json:"title"`
+	Status                 string                             `json:"status"`
+	Scope                  string                             `json:"scope"`
+	Impact                 string                             `json:"impact"`
+	ActiveAlerts           int                                `json:"activeAlerts"`
+	StartedAt              string                             `json:"startedAt"`
+	DataSources            []string                           `json:"dataSources"`
+	Evidence               []systemHealthAIEvidenceInput      `json:"evidence"`
+	ExistingAlertAnalyses  []systemHealthAIAlertAnalysisInput `json:"existingAlertAnalyses"`
+	ExistingReportFindings []systemHealthAIReportFindingInput `json:"existingReportFindings"`
+	ExistingReportActions  []systemHealthAIReportActionInput  `json:"existingReportActions"`
 }
 
 type systemHealthAIEvidenceInput struct {
@@ -139,9 +157,26 @@ type systemHealthAIAlertAnalysisInput struct {
 }
 
 type systemHealthAIReportActionInput struct {
-	AlertName string `json:"alertName,omitempty"`
-	Level     string `json:"level,omitempty"`
-	Action    string `json:"action"`
+	AlertName  string `json:"alertName,omitempty"`
+	Level      string `json:"level,omitempty"`
+	Phase      string `json:"phase,omitempty"`
+	Target     string `json:"target,omitempty"`
+	Action     string `json:"action"`
+	Validation string `json:"validation,omitempty"`
+	Risk       string `json:"risk,omitempty"`
+}
+
+type systemHealthAIReportFindingInput struct {
+	AlertName      string                              `json:"alertName,omitempty"`
+	RootCause      string                              `json:"rootCause,omitempty"`
+	AnalyzeProcess string                              `json:"analyzeProcess,omitempty"`
+	Detail         string                              `json:"detail,omitempty"`
+	ReportEvidence []systemHealthAIReportEvidenceInput `json:"reportEvidence,omitempty"`
+}
+
+type systemHealthAIReportEvidenceInput struct {
+	Kind    string `json:"kind,omitempty"`
+	Summary string `json:"summary,omitempty"`
 }
 
 type systemHealthAISummaryResponse struct {
@@ -197,6 +232,146 @@ type openAIResponsesOutputContent struct {
 type openAIResponsesAPIError struct {
 	Message string `json:"message"`
 	Type    string `json:"type"`
+}
+
+func systemHealthInfo(message string, fields ...zap.Field) {
+	zap.L().Info(message, fields...)
+	systemHealthStdLog("info", message, fields...)
+}
+
+func systemHealthWarn(message string, fields ...zap.Field) {
+	zap.L().Warn(message, fields...)
+	systemHealthStdLog("warn", message, fields...)
+}
+
+func systemHealthInfoCtx(ctx core.Context, message string, fields ...zap.Field) {
+	systemHealthInfo(message, systemHealthRequestFields(ctx, fields...)...)
+}
+
+func systemHealthWarnCtx(ctx core.Context, message string, fields ...zap.Field) {
+	systemHealthWarn(message, systemHealthRequestFields(ctx, fields...)...)
+}
+
+func systemHealthRequestFields(ctx core.Context, fields ...zap.Field) []zap.Field {
+	requestID := systemHealthRequestID(ctx)
+	result := make([]zap.Field, 0, len(fields)+3)
+	if requestID != "" {
+		result = append(result, zap.String("requestId", requestID))
+	}
+	if ctx != nil {
+		if method, path := ctx.GetMethodPath(); method != "" || path != "" {
+			result = append(result, zap.String("routeMethod", method), zap.String("routePath", path))
+		}
+	}
+	result = append(result, fields...)
+	return result
+}
+
+func systemHealthStageFields(ctx core.Context, startedAt time.Time, stage string, fields ...zap.Field) []zap.Field {
+	result := make([]zap.Field, 0, len(fields)+2)
+	result = append(result,
+		zap.String("stage", stage),
+		zap.Duration("elapsed", time.Since(startedAt)),
+	)
+	result = append(result, fields...)
+	return systemHealthRequestFields(ctx, result...)
+}
+
+func systemHealthRequestID(ctx core.Context) string {
+	if ctx == nil {
+		return ""
+	}
+	value, ok := ctx.Get(core.RequestIDKey)
+	if !ok {
+		return ""
+	}
+	requestID, _ := value.(string)
+	return strings.TrimSpace(requestID)
+}
+
+func systemHealthCompactJSON(value any) string {
+	if value == nil {
+		return ""
+	}
+	payload, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprint(value)
+	}
+	return string(payload)
+}
+
+func systemHealthJSONSize(value any) int {
+	payload, err := json.Marshal(value)
+	if err != nil {
+		return 0
+	}
+	return len(payload)
+}
+
+func systemHealthShortHash(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(value))
+	return fmt.Sprintf("%x", sum[:])[:12]
+}
+
+func systemHealthStdLog(level string, message string, fields ...zap.Field) {
+	parts := make([]string, 0, len(fields)+2)
+	parts = append(parts, "level="+level, "msg="+strconv.Quote(message))
+	for _, field := range fields {
+		if field.Key == "" {
+			continue
+		}
+		parts = append(parts, field.Key+"="+strconv.Quote(systemHealthZapFieldValue(field)))
+	}
+	log.Printf("system-health-diagnostic %s", strings.Join(parts, " "))
+}
+
+func systemHealthZapFieldValue(field zap.Field) string {
+	switch field.Type {
+	case zapcore.StringType:
+		return field.String
+	case zapcore.BoolType:
+		return strconv.FormatBool(field.Integer == 1)
+	case zapcore.Int64Type, zapcore.Int32Type, zapcore.Int16Type, zapcore.Int8Type,
+		zapcore.Uint64Type, zapcore.Uint32Type, zapcore.Uint16Type, zapcore.Uint8Type,
+		zapcore.UintptrType:
+		return strconv.FormatInt(field.Integer, 10)
+	case zapcore.Float64Type:
+		return strconv.FormatFloat(math.Float64frombits(uint64(field.Integer)), 'f', -1, 64)
+	case zapcore.Float32Type:
+		return strconv.FormatFloat(float64(math.Float32frombits(uint32(field.Integer))), 'f', -1, 32)
+	case zapcore.DurationType:
+		return time.Duration(field.Integer).String()
+	case zapcore.TimeType:
+		location, _ := field.Interface.(*time.Location)
+		if location == nil {
+			location = time.Local
+		}
+		return time.Unix(0, field.Integer).In(location).Format(time.RFC3339Nano)
+	case zapcore.ErrorType:
+		if err, ok := field.Interface.(error); ok && err != nil {
+			return err.Error()
+		}
+		return ""
+	case zapcore.StringerType:
+		if stringer, ok := field.Interface.(fmt.Stringer); ok && stringer != nil {
+			return stringer.String()
+		}
+		return fmt.Sprint(field.Interface)
+	case zapcore.ReflectType, zapcore.ObjectMarshalerType, zapcore.ArrayMarshalerType:
+		return fmt.Sprint(field.Interface)
+	default:
+		if field.Interface != nil {
+			return fmt.Sprint(field.Interface)
+		}
+		if field.String != "" {
+			return field.String
+		}
+		return strconv.FormatInt(field.Integer, 10)
+	}
 }
 
 func newSystemHealthReportCache() *systemHealthReportCache {
@@ -259,6 +434,8 @@ type reportInput struct {
 	updatedAt             string
 	activeAlerts          int
 	deduplicatedAlerts    int
+	effectiveAlerts       int
+	invalidAlerts         int
 	rawEventCount         int
 	repeatCount           int
 	durationSeconds       float64
@@ -273,28 +450,45 @@ type reportInput struct {
 	affectedObjects       []response.SystemHealthAffectedObject
 	mergeReasons          []string
 	alertReportActions    []systemHealthAlertReportAction
+	alertReportFindings   []systemHealthAlertReportFinding
 	evidence              []response.SystemHealthEvidence
 	impact                string
 }
 
 type systemHealthAlertReportAction struct {
-	AlertName string
-	Level     string
-	Action    string
+	AlertName  string
+	Level      string
+	Phase      string
+	Target     string
+	Action     string
+	Validation string
+	Risk       string
+}
+
+type systemHealthAlertReportFinding struct {
+	AlertName      string
+	RootCause      string
+	AnalyzeProcess string
+	Detail         string
+	Evidence       []systemHealthAlertReportEvidence
+}
+
+type systemHealthAlertReportEvidence struct {
+	Kind    string
+	Summary string
 }
 
 type scoredIssue struct {
-	input                   reportInput
-	entryImpactScore        float64
-	alertSeverityScore      float64
-	redDegradationScore     float64
-	propagationScore        float64
-	dataCompletenessPenalty float64
-	pathRisk                float64
-	dataQualityScore        int
-	scoreImpact             int
-	priority                string
-	status                  string
+	input               reportInput
+	entryImpactScore    float64
+	alertSeverityScore  float64
+	redDegradationScore float64
+	propagationScore    float64
+	dataCompletenessGap float64
+	pathRisk            float64
+	scoreImpact         int
+	priority            string
+	status              string
 }
 
 type alertMetricSeries struct {
@@ -400,6 +594,7 @@ type normalizedAlertEvent struct {
 	AlertName      string
 	Status         string
 	Severity       string
+	IssueKind      string
 	ServiceName    string
 	Endpoint       string
 	ObjectType     string
@@ -441,45 +636,154 @@ type deduplicatedAlertInstance struct {
 // @Router /api/system-health/report [get]
 func (h *handler) GetReport() core.HandlerFunc {
 	return func(c core.Context) {
+		if req := c.Request(); req != nil && req.URL != nil {
+			systemHealthInfoCtx(c, "system-health report request received",
+				zap.String("rawQuery", req.URL.RawQuery),
+				zap.String("clientIP", c.ClientIP()),
+			)
+		} else {
+			systemHealthInfoCtx(c, "system-health report request received")
+		}
 		req := new(request.GetSystemHealthReportRequest)
 		if err := c.ShouldBindQuery(req); err != nil {
+			systemHealthWarnCtx(c, "system-health report request bind failed",
+				zap.Error(err),
+			)
 			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
 			return
 		}
+		systemHealthInfoCtx(c, "system-health report request bound",
+			zap.Int64("groupId", req.GroupID),
+			zap.String("relativeTime", req.RelativeTime),
+			zap.Int64("startTimeMicros", req.StartTime),
+			zap.Int64("endTimeMicros", req.EndTime),
+		)
 
 		resp, err := h.buildReport(c, req)
 		if err != nil {
+			systemHealthWarnCtx(c, "system-health report request failed",
+				zap.Int64("groupId", req.GroupID),
+				zap.String("relativeTime", req.RelativeTime),
+				zap.Int64("startTimeMicros", req.StartTime),
+				zap.Int64("endTimeMicros", req.EndTime),
+				zap.Error(err),
+			)
 			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
 			return
 		}
+		systemHealthInfoCtx(c, "system-health report response ready",
+			zap.Int64("groupId", req.GroupID),
+			zap.String("status", resp.Report.Status),
+			zap.Int("score", resp.Report.Score),
+			zap.Int("issueCount", len(resp.Issues)),
+			zap.String("aiStatus", resp.Report.AIAnalysis.Status),
+			zap.Int("payloadBytes", systemHealthJSONSize(resp)),
+		)
 		c.Payload(resp)
 	}
 }
 
 func (h *handler) buildReport(ctx core.Context, req *request.GetSystemHealthReportRequest) (response.SystemHealthReportResp, error) {
+	buildStartedAt := time.Now()
 	startTime, endTime, window := resolveTimeRange(req)
+	systemHealthInfo("system-health report build started", systemHealthStageFields(ctx, buildStartedAt, "01_resolve_window",
+		zap.Int64("groupId", req.GroupID),
+		zap.String("window", window),
+		zap.String("relativeTime", req.RelativeTime),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+		zap.Int64("startTimeMicros", startTime.UnixMicro()),
+		zap.Int64("endTimeMicros", endTime.UnixMicro()),
+	)...)
 	now := time.Now()
 	if enableSystemHealthReportCache {
 		cacheKey := systemHealthReportCacheKey(req.GroupID, startTime, endTime)
 		if cached, ok := h.reportCache.get(cacheKey, now); ok {
+			systemHealthInfo("system-health report cache hit", systemHealthStageFields(ctx, buildStartedAt, "02_cache_lookup",
+				zap.Int64("groupId", req.GroupID),
+				zap.String("cacheKey", cacheKey),
+			)...)
 			return cached, nil
 		}
 	}
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "03_query_alert_events",
+		zap.Int64("groupId", req.GroupID),
+	)...)
 	events, err := h.queryRealAlertEvents(ctx, req.GroupID, startTime, endTime)
 	if err != nil {
+		systemHealthWarn("system-health alert event query failed", systemHealthStageFields(ctx, buildStartedAt, "03_query_alert_events",
+			zap.Int64("groupId", req.GroupID),
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Error(err),
+		)...)
 		return response.SystemHealthReportResp{}, err
 	}
-	if alertManagerEvents, err := h.queryAlertManagerActiveEvents(ctx, req.GroupID); err == nil {
-		events = mergeAlertEvents(events, alertManagerEvents)
+	systemHealthInfo("system-health alert event query completed", systemHealthStageFields(ctx, buildStartedAt, "03_query_alert_events",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("eventCount", len(events)),
+	)...)
+	realEventCount := len(events)
+	if strings.TrimSpace(h.alertManagerURL) == "" {
+		systemHealthInfo("system-health alertmanager events query skipped", systemHealthStageFields(ctx, buildStartedAt, "04_merge_alertmanager",
+			zap.Int64("groupId", req.GroupID),
+			zap.String("reason", "not_configured"),
+		)...)
+	} else {
+		systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "04_merge_alertmanager",
+			zap.Int64("groupId", req.GroupID),
+		)...)
+		if alertManagerEvents, err := h.queryAlertManagerActiveEvents(ctx, req.GroupID); err == nil {
+			events = mergeAlertEvents(events, alertManagerEvents)
+			systemHealthInfo("system-health alertmanager events merged", systemHealthStageFields(ctx, buildStartedAt, "04_merge_alertmanager",
+				zap.Int64("groupId", req.GroupID),
+				zap.Int("realEventCount", realEventCount),
+				zap.Int("alertManagerEventCount", len(alertManagerEvents)),
+				zap.Int("mergedEventCount", len(events)),
+			)...)
+		} else {
+			systemHealthWarn("system-health alertmanager events query skipped", systemHealthStageFields(ctx, buildStartedAt, "04_merge_alertmanager",
+				zap.Int64("groupId", req.GroupID),
+				zap.Error(err),
+			)...)
+		}
 	}
 
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "05_query_telemetry_capabilities",
+		zap.Int64("groupId", req.GroupID),
+	)...)
 	capabilities := h.queryTelemetryCapabilities(ctx)
+	systemHealthInfo("system-health telemetry capability query completed", systemHealthStageFields(ctx, buildStartedAt, "05_query_telemetry_capabilities",
+		zap.Int64("groupId", req.GroupID),
+		zap.Strings("enabled", capabilities.Enabled),
+		zap.Strings("disabled", capabilities.Disabled),
+		zap.Strings("sources", capabilities.Sources),
+		zap.String("error", capabilities.Err),
+	)...)
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "06_build_inputs",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("eventCount", len(events)),
+	)...)
 	inputs := h.buildInputsFromRealEvents(ctx, req.GroupID, events, startTime, endTime, capabilities)
+	systemHealthInfo("system-health report inputs built", systemHealthStageFields(ctx, buildStartedAt, "06_build_inputs",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("inputCount", len(inputs)),
+	)...)
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "07_score_and_build_response",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("inputCount", len(inputs)),
+	)...)
 	scored := scoreIssues(inputs)
 	healthScore := calculateHealthScore(scored)
 	status := healthStatus(healthScore)
 	scoreFactors := buildScoreFactors(scored)
 	issues := buildIssues(scored)
+	systemHealthInfo("system-health structured issues built", systemHealthStageFields(ctx, buildStartedAt, "07_score_and_build_response",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("issueCount", len(issues)),
+		zap.Int("healthScore", healthScore),
+		zap.String("healthStatus", status),
+	)...)
 
 	resp := response.SystemHealthReportResp{
 		Report: response.SystemHealthReport{
@@ -502,9 +806,35 @@ func (h *handler) buildReport(ctx core.Context, req *request.GetSystemHealthRepo
 		ScoreFactors: scoreFactors,
 		Issues:       issues,
 	}
+	logSystemHealthIssueDiagnostics(ctx, scored, issues)
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "08_ai_enrichment",
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("issueCount", len(resp.Issues)),
+	)...)
 	h.enrichReportWithAI(ctx, &resp, scored)
 	if enableSystemHealthReportCache {
 		h.reportCache.set(systemHealthReportCacheKey(req.GroupID, startTime, endTime), resp, now)
+	}
+	systemHealthInfo("system-health report build completed", systemHealthStageFields(ctx, buildStartedAt, "09_build_completed",
+		zap.Int64("groupId", req.GroupID),
+		zap.String("status", resp.Report.Status),
+		zap.Int("score", resp.Report.Score),
+		zap.Int("eventCount", len(events)),
+		zap.Int("issueCount", len(resp.Issues)),
+		zap.String("aiStatus", resp.Report.AIAnalysis.Status),
+		zap.Int("payloadBytes", systemHealthJSONSize(resp)),
+	)...)
+	systemHealthInfo("system-health report stage started", systemHealthStageFields(ctx, buildStartedAt, "10_save_report_record",
+		zap.Int64("groupId", req.GroupID),
+		zap.String("aiStatus", resp.Report.AIAnalysis.Status),
+	)...)
+	if err := h.saveReportRecord(ctx, req, startTime, endTime, resp); err != nil {
+		systemHealthWarn("system-health report record save failed", systemHealthStageFields(ctx, buildStartedAt, "10_save_report_record",
+			zap.Int64("groupId", req.GroupID),
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Error(err),
+		)...)
 	}
 	return resp, nil
 }
@@ -516,6 +846,173 @@ func systemHealthReportCacheKey(groupID int64, startTime time.Time, endTime time
 		startTime.UnixMicro(),
 		endTime.UnixMicro(),
 	)
+}
+
+func (h *handler) saveReportRecord(ctx core.Context, req *request.GetSystemHealthReportRequest, startTime time.Time, endTime time.Time, resp response.SystemHealthReportResp) error {
+	if h.dbRepo == nil {
+		systemHealthInfoCtx(ctx, "system-health report record save skipped",
+			zap.Int64("groupId", req.GroupID),
+			zap.String("reason", "db_repository_not_configured"),
+		)
+		return nil
+	}
+	payload, err := json.Marshal(resp)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health report record marshal failed",
+			zap.Int64("groupId", req.GroupID),
+			zap.String("status", resp.Report.Status),
+			zap.Int("issueCount", len(resp.Issues)),
+			zap.String("aiStatus", resp.Report.AIAnalysis.Status),
+			zap.Error(err),
+		)
+		return err
+	}
+	recordID := uuid.NewString()
+	record := &database.SystemHealthReportRecord{
+		RecordID:         recordID,
+		GroupID:          req.GroupID,
+		Status:           resp.Report.Status,
+		Score:            resp.Report.Score,
+		Summary:          truncateText(resp.Report.Summary, 1000),
+		Window:           resp.Report.Window,
+		StartTime:        startTime.UnixMicro(),
+		EndTime:          endTime.UnixMicro(),
+		GeneratedAt:      resp.Report.GeneratedAt,
+		IssueCount:       len(resp.Issues),
+		ActiveAlertCount: resp.Report.ActiveAlertCount,
+		AIStatus:         resp.Report.AIAnalysis.Status,
+		Payload:          string(payload),
+		CreatedAt:        time.Now(),
+	}
+	saveStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health report record save started",
+		zap.String("recordId", recordID),
+		zap.Int64("groupId", req.GroupID),
+		zap.String("status", resp.Report.Status),
+		zap.Int("score", resp.Report.Score),
+		zap.Int("issueCount", len(resp.Issues)),
+		zap.Int("activeAlertCount", resp.Report.ActiveAlertCount),
+		zap.String("aiStatus", resp.Report.AIAnalysis.Status),
+		zap.Int("payloadBytes", len(payload)),
+		zap.Int64("startTimeMicros", startTime.UnixMicro()),
+		zap.Int64("endTimeMicros", endTime.UnixMicro()),
+	)
+	if err := h.dbRepo.SaveSystemHealthReportRecord(ctx, record); err != nil {
+		systemHealthWarnCtx(ctx, "system-health report record save failed",
+			zap.String("recordId", recordID),
+			zap.Int64("groupId", req.GroupID),
+			zap.Int("payloadBytes", len(payload)),
+			zap.Duration("elapsed", time.Since(saveStartedAt)),
+			zap.Error(err),
+		)
+		return err
+	}
+	systemHealthInfoCtx(ctx, "system-health report record save completed",
+		zap.String("recordId", recordID),
+		zap.Int64("groupId", req.GroupID),
+		zap.Int("payloadBytes", len(payload)),
+		zap.Duration("elapsed", time.Since(saveStartedAt)),
+	)
+	return nil
+}
+
+func systemHealthRecordSummaries(records []database.SystemHealthReportRecord) []response.SystemHealthReportRecordSummary {
+	result := make([]response.SystemHealthReportRecordSummary, 0, len(records))
+	for _, record := range records {
+		result = append(result, systemHealthRecordSummary(record))
+	}
+	return result
+}
+
+func systemHealthRecordSummary(record database.SystemHealthReportRecord) response.SystemHealthReportRecordSummary {
+	return response.SystemHealthReportRecordSummary{
+		RecordID:         record.RecordID,
+		GroupID:          record.GroupID,
+		Status:           record.Status,
+		Score:            record.Score,
+		Summary:          record.Summary,
+		Window:           record.Window,
+		StartTime:        record.StartTime,
+		EndTime:          record.EndTime,
+		GeneratedAt:      record.GeneratedAt,
+		IssueCount:       record.IssueCount,
+		ActiveAlertCount: record.ActiveAlertCount,
+		AIStatus:         record.AIStatus,
+		CreatedAt:        record.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+}
+
+// ListReportRecords returns saved system health report snapshots.
+// @Summary list system health report records
+// @Description list saved system health report records
+// @Tags API.systemHealth
+// @Produce json
+// @Param groupId query int false "data group id"
+// @Param page query int false "page"
+// @Param pageSize query int false "page size"
+// @Param Authorization header string false "Bearer accessToken"
+// @Success 200 {object} response.SystemHealthReportRecordListResp
+// @Failure 400 {object} code.Failure
+// @Router /api/system-health/report/records [get]
+func (h *handler) ListReportRecords() core.HandlerFunc {
+	return func(c core.Context) {
+		req := new(request.ListSystemHealthReportRecordsRequest)
+		if err := c.ShouldBindQuery(req); err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
+			return
+		}
+		if req.Page <= 0 {
+			req.Page = 1
+		}
+		if req.PageSize <= 0 {
+			req.PageSize = 20
+		}
+		records, total, err := h.dbRepo.ListSystemHealthReportRecords(c, req.GroupID, req.Page, req.PageSize)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
+			return
+		}
+		c.Payload(response.SystemHealthReportRecordListResp{
+			Records:  systemHealthRecordSummaries(records),
+			Total:    total,
+			Page:     req.Page,
+			PageSize: req.PageSize,
+		})
+	}
+}
+
+// GetReportRecord returns a saved system health report snapshot.
+// @Summary get system health report record
+// @Description get saved system health report record by id
+// @Tags API.systemHealth
+// @Produce json
+// @Param recordId path string true "report record id"
+// @Param Authorization header string false "Bearer accessToken"
+// @Success 200 {object} response.SystemHealthReportRecordResp
+// @Failure 400 {object} code.Failure
+// @Router /api/system-health/report/records/{recordId} [get]
+func (h *handler) GetReportRecord() core.HandlerFunc {
+	return func(c core.Context) {
+		req := new(request.GetSystemHealthReportRecordRequest)
+		if err := c.ShouldBindURI(req); err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
+			return
+		}
+		record, err := h.dbRepo.GetSystemHealthReportRecord(c, req.RecordID)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
+			return
+		}
+		var data response.SystemHealthReportResp
+		if err := json.Unmarshal([]byte(record.Payload), &data); err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
+			return
+		}
+		c.Payload(response.SystemHealthReportRecordResp{
+			Record: systemHealthRecordSummary(*record),
+			Data:   data,
+		})
+	}
 }
 
 func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHealthReportResp, scored []scoredIssue) {
@@ -530,29 +1027,75 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		Endpoint: endpoint,
 	}
 	if !aiConfig.Enable || strings.TrimSpace(aiConfig.BaseURL) == "" || strings.TrimSpace(aiConfig.Model) == "" {
+		systemHealthInfoCtx(ctx, "system-health AI enrichment skipped",
+			zap.Bool("enabled", aiConfig.Enable),
+			zap.Bool("hasBaseURL", strings.TrimSpace(aiConfig.BaseURL) != ""),
+			zap.Bool("hasModel", strings.TrimSpace(aiConfig.Model) != ""),
+			zap.Int("issueCount", len(resp.Issues)),
+		)
 		return
 	}
 	if strings.TrimSpace(aiConfig.WireAPI) != "" && strings.TrimSpace(aiConfig.WireAPI) != "responses" {
 		resp.Report.AIAnalysis.Status = "failed"
 		resp.Report.AIAnalysis.Error = "unsupported AI wire API: " + aiConfig.WireAPI
+		systemHealthWarnCtx(ctx, "system-health AI enrichment failed before request",
+			zap.String("reason", "unsupported_wire_api"),
+			zap.String("wireAPI", aiConfig.WireAPI),
+		)
 		return
 	}
 	if len(resp.Issues) == 0 {
 		resp.Report.AIAnalysis.Status = "skipped"
+		systemHealthInfoCtx(ctx, "system-health AI enrichment skipped",
+			zap.String("reason", "no_issues"),
+		)
 		return
 	}
 
-	aiResp, err := callSystemHealthAI(ctx, aiConfig.BaseURL, resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey), aiConfig.Model, aiConfig.TimeoutSecond, buildSystemHealthAIRequest(resp, scored))
+	aiRequest := buildSystemHealthAIRequest(resp, scored)
+	effectiveTimeoutSecond := effectiveSystemHealthAITimeoutSecond(aiConfig.TimeoutSecond)
+	aiStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health AI enrichment started",
+		zap.String("endpoint", endpoint),
+		zap.String("model", aiConfig.Model),
+		zap.Int("issueCount", len(resp.Issues)),
+		zap.Int("aiIssueCount", len(aiRequest.Issues)),
+		zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(aiRequest.Issues)),
+		zap.Int("requestPayloadBytes", systemHealthJSONSize(aiRequest)),
+		zap.Int("configuredTimeoutSecond", aiConfig.TimeoutSecond),
+		zap.Int("effectiveTimeoutSecond", effectiveTimeoutSecond),
+	)
+	aiResp, err := callSystemHealthAI(ctx, aiConfig.BaseURL, resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey), aiConfig.Model, aiConfig.TimeoutSecond, aiRequest)
 	if err != nil {
 		resp.Report.AIAnalysis.Status = "failed"
 		resp.Report.AIAnalysis.Error = truncateText(err.Error(), 220)
+		systemHealthWarnCtx(ctx, "system-health AI enrichment failed",
+			zap.String("endpoint", endpoint),
+			zap.Int("issueCount", len(resp.Issues)),
+			zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(aiRequest.Issues)),
+			zap.Int("configuredTimeoutSecond", aiConfig.TimeoutSecond),
+			zap.Int("effectiveTimeoutSecond", effectiveTimeoutSecond),
+			zap.Bool("timeout", isTimeoutError(err)),
+			zap.Duration("elapsed", time.Since(aiStartedAt)),
+			zap.Error(err),
+		)
 		return
 	}
 	resp.Report.AIAnalysis.Status = "succeeded"
 	resp.Report.AIAnalysis.Source = "ai-api"
 	resp.Report.AIAnalysis.WorkflowRunID = strings.TrimSpace(aiResp.WorkflowRunID)
-	if strings.TrimSpace(aiResp.Summary) != "" {
-		resp.Report.Summary = strings.TrimSpace(aiResp.Summary)
+	systemHealthInfoCtx(ctx, "system-health AI enrichment completed",
+		zap.String("endpoint", endpoint),
+		zap.Int("issueCount", len(resp.Issues)),
+		zap.Int("aiIssueCount", len(aiResp.Issues)),
+		zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(aiRequest.Issues)),
+		zap.Strings("responseIssueKeys", systemHealthAIIssueOutputKeys(aiResp.Issues)),
+		zap.Bool("summaryPresent", strings.TrimSpace(aiResp.Summary) != ""),
+		zap.String("workflowRunID", strings.TrimSpace(aiResp.WorkflowRunID)),
+		zap.Duration("elapsed", time.Since(aiStartedAt)),
+	)
+	if summary := cleanUserFacingReportText(aiResp.Summary); summary != "" {
+		resp.Report.Summary = summary
 	}
 
 	issueOutputByKey := make(map[string]systemHealthAIIssueOutput, len(aiResp.Issues))
@@ -562,43 +1105,115 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		}
 		issueOutputByKey[issue.Key] = issue
 	}
+	systemHealthInfoCtx(ctx, "system-health AI issue output mapping completed",
+		zap.Int("requestIssueCount", len(aiRequest.Issues)),
+		zap.Int("responseIssueCount", len(issueOutputByKey)),
+		zap.Strings("missingIssueKeys", missingAIIssueKeys(aiRequest.Issues, issueOutputByKey)),
+	)
 	for index := range resp.Issues {
 		issueOutput, ok := issueOutputByKey[resp.Issues[index].Key]
 		if !ok {
+			systemHealthWarnCtx(ctx, "system-health AI issue output missing, keep structured fallback",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+				zap.String("title", resp.Issues[index].Title),
+			)
 			continue
 		}
 		var reportActionPlan []response.SystemHealthActionPlanStep
 		if index < len(scored) {
 			reportActionPlan = alertReportActionPlanSteps(scored[index].input.alertReportActions, resp.Issues[index].Scope)
 		}
-		if strings.TrimSpace(issueOutput.Analysis) != "" {
-			resp.Issues[index].AIConclusion = strings.TrimSpace(issueOutput.Analysis)
+		analysis := cleanUserFacingReportText(issueOutput.Analysis)
+		rootCause := cleanUserFacingReportText(issueOutput.RootCause)
+		metricAnalysis := cleanUserFacingReportText(issueOutput.MetricAnalysis)
+		systemHealthInfoCtx(ctx, "system-health AI issue output received",
+			zap.String("issueKey", resp.Issues[index].Key),
+			zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+			zap.Bool("hasAnalysis", analysis != ""),
+			zap.Bool("hasRootCause", rootCause != ""),
+			zap.Bool("hasMetricAnalysis", metricAnalysis != ""),
+			zap.Int("aiActionPlanSteps", len(issueOutput.ActionPlan)),
+			zap.Int("aiActions", len(issueOutput.Actions)),
+			zap.Int("reportActionPlanSteps", len(reportActionPlan)),
+		)
+		if analysis != "" {
+			resp.Issues[index].AIConclusion = analysis
+		} else {
+			systemHealthWarnCtx(ctx, "system-health issue analysis fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_analysis_empty"),
+			)
 		}
-		if strings.TrimSpace(issueOutput.RootCause) != "" {
-			resp.Issues[index].RootCause = strings.TrimSpace(issueOutput.RootCause)
+		if rootCause != "" {
+			resp.Issues[index].RootCause = rootCause
+		} else {
+			systemHealthWarnCtx(ctx, "system-health issue rootCause fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_root_cause_empty"),
+			)
 		}
-		if metricAnalysis := strings.TrimSpace(issueOutput.MetricAnalysis); metricAnalysis != "" && !strings.ContainsRune(metricAnalysis, '\uFFFD') {
+		if metricAnalysis != "" && !strings.ContainsRune(metricAnalysis, '\uFFFD') {
 			resp.Issues[index].MetricAnalysis = metricAnalysis
+		} else if metricAnalysis == "" {
+			systemHealthWarnCtx(ctx, "system-health issue metricAnalysis fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_metric_analysis_empty"),
+			)
+		} else {
+			systemHealthWarnCtx(ctx, "system-health issue metricAnalysis fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_metric_analysis_invalid_text"),
+			)
 		}
-		if len(issueOutput.ActionPlan) > 0 {
-			resp.Issues[index].ActionPlan = mergeActionPlanSteps(issueOutput.ActionPlan, reportActionPlan)
+		if index < len(scored) {
+			if analysisRootCause, source, reason := buildRootCauseDecision(scored[index]); analysisRootCause != "" {
+				resp.Issues[index].RootCause = analysisRootCause
+				systemHealthInfoCtx(ctx, "system-health issue rootCause normalized from structured sources",
+					zap.String("issueKey", resp.Issues[index].Key),
+					zap.String("source", source),
+					zap.String("reason", reason),
+				)
+			}
+		}
+		if len(reportActionPlan) > 0 {
+			var secondaryPlan []response.SystemHealthActionPlanStep
+			if len(issueOutput.ActionPlan) > 0 {
+				secondaryPlan = normalizeAIActionPlanTargets(markActionPlanSource(issueOutput.ActionPlan, "ai"), resp.Issues[index])
+			} else if len(issueOutput.Actions) > 0 {
+				secondaryPlan = actionsToActionPlanSteps(issueOutput.Actions)
+			} else if index < len(scored) {
+				secondaryPlan = buildDefaultActionPlan(scored[index])
+			}
+			resp.Issues[index].ActionPlan = mergeActionPlanSteps(reportActionPlan, secondaryPlan)
+			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
+		} else if len(issueOutput.ActionPlan) > 0 {
+			resp.Issues[index].ActionPlan = mergeActionPlanSteps(normalizeAIActionPlanTargets(markActionPlanSource(issueOutput.ActionPlan, "ai"), resp.Issues[index]), nil)
 			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
 		} else if len(issueOutput.Actions) > 0 {
-			resp.Issues[index].ActionPlan = mergeActionPlanSteps(actionsToActionPlanSteps(issueOutput.Actions), reportActionPlan)
+			resp.Issues[index].ActionPlan = mergeActionPlanSteps(actionsToActionPlanSteps(issueOutput.Actions), nil)
 			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
 		}
 	}
 }
 
 func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthAISummaryRequest) (systemHealthAISummaryResponse, error) {
-	if timeoutSecond <= 0 {
-		timeoutSecond = 10
-	}
+	timeoutSecond = effectiveSystemHealthAITimeoutSecond(timeoutSecond)
 	if strings.TrimSpace(apiKey) == "" {
+		systemHealthWarnCtx(ctx, "system-health AI request skipped before HTTP",
+			zap.String("reason", "missing_api_key"),
+			zap.String("endpoint", openAIResponsesEndpoint(baseURL)),
+			zap.String("model", model),
+		)
 		return systemHealthAISummaryResponse{}, fmt.Errorf("missing AI API key")
 	}
 	inputPayload, err := json.Marshal(payload)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI request payload marshal failed",
+			zap.String("endpoint", openAIResponsesEndpoint(baseURL)),
+			zap.String("model", model),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	requestBody, err := json.Marshal(openAIResponsesRequest{
@@ -618,12 +1233,16 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 			"当输入包含告警指标趋势、eBPF、RED、Trace 或 existingAlertAnalyses 指向时，issue.analysis 必须明确写出“指标/eBPF 方向指向...”或等价表达，说明是入口、下游、资源还是规则口径问题。",
 			"每个 issue.metricAnalysis 专门解释告警指标趋势：用自然语言说明指标是在升高、回落还是缺少可比性；结合告警是否恢复判断该指标对当前风险的意义，不要只复述“命中几条指标、变化百分比、区间”。",
 			"如果 evidence 中没有告警指标趋势或无法形成趋势，issue.metricAnalysis 输出空字符串。",
-			"existingAlertAnalyses 是告警发生时的分析结果，只作为辅助信息；issue.rootCause 要从这些分析结果、事件规律和指标/APM证据中整理根因判断，不要原样罗列辅助分析。",
+			"existingReportFindings 来自原告警分析报告的根因分析、故障方向和详情，是 issue.rootCause 的最高优先级来源；rootCause 应先总结这些报告结论，不要因为缺少 RED/APM 再否定报告已给出的故障方向。",
+			"如果 existingReportFindings 已给出 rootCause，直接概括报告中的故障方向和关键详情；缺失数据只能作为验证边界，不作为 rootCause 主体。",
+			"existingReportFindings.reportEvidence 来自告警事件方向报告中的证据链，可能包含 APM链路、日志分析、指标趋势和告警事件分析；issue.analysis、rootCause 和 actionPlan 应优先融合这些报告证据。",
+			"existingAlertAnalyses 是告警发生时的分析结果，只作为辅助信息；issue.rootCause 要从报告根因、这些分析结果、事件规律和指标/APM证据中整理根因判断，不要原样罗列辅助分析。",
 			"当多个 existingAlertAnalyses 指向一致时，rootCause 优先归纳共同指向的服务、入口、下游或指标问题；当分析方向冲突时，rootCause 要说明仍为可能根因并指出需要用指标/APM继续确认。",
 			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应分析告警指标、表达式、阈值或标签口径是否存在问题；不能当作服务故障处置。",
 			"P4 invalidAlert 的 actionPlan 重点融合规则诊断、RED 指标对比和告警规则修正，不要输出扩容、重启等业务止血动作，除非输入证据明确支持。",
 			"existingReportActions 来自原告警分析报告的建议行动；生成 actionPlan 时必须融合这些动作，不能无理由丢弃。",
 			"actionPlan 只给可执行的排查、止血、恢复和验证步骤；字段为空时使用空字符串，不要省略字段。",
+			"actionPlan.validation 表示需要用户确认的验收方式或确认项，必须用“确认/检查/观察/回看/对比”等动作表达；不要写成“日志无异常”“指标已恢复”这类已经成立的事实结论。",
 		}, "\n"),
 		Input: string(inputPayload),
 		Text: openAIResponsesTextConfig{
@@ -636,6 +1255,12 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 		},
 	})
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI HTTP request marshal failed",
+			zap.String("endpoint", openAIResponsesEndpoint(baseURL)),
+			zap.String("model", model),
+			zap.Int("inputPayloadBytes", len(inputPayload)),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	requestContext := context.Background()
@@ -648,33 +1273,122 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 	endpoint := openAIResponsesEndpoint(baseURL)
 	req, err := http.NewRequestWithContext(requestContext, http.MethodPost, endpoint, bytes.NewReader(requestBody))
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI HTTP request build failed",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("inputPayloadBytes", len(inputPayload)),
+			zap.Int("requestBodyBytes", len(requestBody)),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(apiKey))
 
+	callStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health AI HTTP request started",
+		zap.String("endpoint", endpoint),
+		zap.String("model", model),
+		zap.Int("inputPayloadBytes", len(inputPayload)),
+		zap.Int("requestBodyBytes", len(requestBody)),
+		zap.Int("timeoutSecond", timeoutSecond),
+		zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(payload.Issues)),
+	)
 	resp, err := (&http.Client{Timeout: time.Duration(timeoutSecond) * time.Second}).Do(req)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI HTTP request failed",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("inputPayloadBytes", len(inputPayload)),
+			zap.Int("requestBodyBytes", len(requestBody)),
+			zap.Bool("timeout", isTimeoutError(err)),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		systemHealthWarnCtx(ctx, "system-health AI HTTP request bad status",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.Int("inputPayloadBytes", len(inputPayload)),
+			zap.Int("requestBodyBytes", len(requestBody)),
+			zap.String("responseBodyPreview", truncateText(strings.TrimSpace(string(body)), 220)),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+		)
 		return systemHealthAISummaryResponse{}, fmt.Errorf("AI summary API returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	var responsesResp openAIResponsesResponse
 	if err := json.NewDecoder(resp.Body).Decode(&responsesResp); err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI response decode failed",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("responseParseStage", "decode_openai_response"),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	if responsesResp.Error != nil {
+		systemHealthWarnCtx(ctx, "system-health AI response API error",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("apiErrorType", responsesResp.Error.Type),
+			zap.String("apiErrorMessage", truncateText(responsesResp.Error.Message, 220)),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+		)
 		return systemHealthAISummaryResponse{}, fmt.Errorf("AI response error: %s", responsesResp.Error.Message)
 	}
-	aiResp, err := parseSystemHealthAIResponseText(extractOpenAIResponsesText(responsesResp))
+	outputText := extractOpenAIResponsesText(responsesResp)
+	aiResp, err := parseSystemHealthAIResponseText(outputText)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI response parse failed",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("responseID", responsesResp.ID),
+			zap.String("responseParseStage", "parse_summary_schema"),
+			zap.Int("outputTextBytes", len(outputText)),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+			zap.Error(err),
+		)
 		return systemHealthAISummaryResponse{}, err
 	}
 	aiResp.WorkflowRunID = firstNonEmpty(aiResp.WorkflowRunID, responsesResp.ID)
+	systemHealthInfoCtx(ctx, "system-health AI HTTP request completed",
+		zap.String("endpoint", endpoint),
+		zap.String("model", model),
+		zap.Int("httpStatus", resp.StatusCode),
+		zap.String("responseID", responsesResp.ID),
+		zap.Int("outputTextBytes", len(outputText)),
+		zap.Int("responseIssueCount", len(aiResp.Issues)),
+		zap.Bool("summaryPresent", strings.TrimSpace(aiResp.Summary) != ""),
+		zap.Duration("elapsed", time.Since(callStartedAt)),
+	)
 	return aiResp, nil
+}
+
+func effectiveSystemHealthAITimeoutSecond(timeoutSecond int) int {
+	if timeoutSecond <= 0 {
+		return 10
+	}
+	return timeoutSecond
+}
+
+func isTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	var netErr net.Error
+	return errors.As(err, &netErr) && netErr.Timeout()
 }
 
 func openAIResponsesEndpoint(baseURL string) string {
@@ -780,27 +1494,29 @@ func buildSystemHealthAIRequest(resp *response.SystemHealthReportResp, scored []
 			input = scored[index].input
 		}
 		request.Issues = append(request.Issues, systemHealthAIIssueInput{
-			Key:                   issue.Key,
-			Priority:              issue.Priority,
-			Title:                 issue.Title,
-			Status:                issue.Status,
-			Scope:                 issue.Scope,
-			Impact:                issue.Impact,
-			ActiveAlerts:          issue.ActiveAlerts,
-			StartedAt:             issue.StartedAt,
-			DataSources:           issue.DataSources,
-			Evidence:              buildSystemHealthAIEvidenceInput(issue.Evidence),
-			ExistingAlertAnalyses: buildSystemHealthAIAlertAnalysisInput(input.events),
-			ExistingReportActions: buildSystemHealthAIReportActionInput(input.alertReportActions),
+			Key:                    issue.Key,
+			Priority:               issue.Priority,
+			Title:                  issue.Title,
+			Status:                 issue.Status,
+			Scope:                  issue.Scope,
+			Impact:                 issue.Impact,
+			ActiveAlerts:           issue.ActiveAlerts,
+			StartedAt:              issue.StartedAt,
+			DataSources:            issue.DataSources,
+			Evidence:               buildSystemHealthAIEvidenceInput(issue.Evidence),
+			ExistingAlertAnalyses:  buildSystemHealthAIAlertAnalysisInput(input.events),
+			ExistingReportFindings: buildSystemHealthAIReportFindingInput(input.alertReportFindings),
+			ExistingReportActions:  buildSystemHealthAIReportActionInput(input.alertReportActions),
 		})
 	}
 	return request
 }
 
 func buildSystemHealthAIEvidenceInput(evidence []response.SystemHealthEvidence) []systemHealthAIEvidenceInput {
-	items := make([]systemHealthAIEvidenceInput, 0, minInt(len(evidence), 4))
+	const maxAIEvidenceItems = 8
+	items := make([]systemHealthAIEvidenceInput, 0, minInt(len(evidence), maxAIEvidenceItems))
 	for _, item := range evidence {
-		if len(items) >= 4 {
+		if len(items) >= maxAIEvidenceItems {
 			break
 		}
 		if strings.TrimSpace(item.Result) == "" {
@@ -846,14 +1562,20 @@ func buildSystemHealthAIAlertAnalysisInput(events []alertmodel.AEventWithWRecord
 		if strings.TrimSpace(event.AlertDirection) == "" && strings.TrimSpace(event.AnalyzeRunID) == "" && strings.TrimSpace(event.AnalyzeErr) == "" && strings.TrimSpace(event.Output) == "" {
 			continue
 		}
+		alertDirection := cleanUserFacingReportText(event.AlertDirection)
+		analyzeError := cleanUserFacingReportText(event.AnalyzeErr)
+		checkOutput := cleanUserFacingReportText(event.Output)
+		if alertDirection == "" && strings.TrimSpace(event.AnalyzeRunID) == "" && analyzeError == "" && checkOutput == "" {
+			continue
+		}
 		items = append(items, systemHealthAIAlertAnalysisInput{
 			EventID:        event.EventID,
 			AlertID:        event.AlertID,
 			AlertName:      event.Name,
-			AlertDirection: truncateText(event.AlertDirection, 220),
+			AlertDirection: truncateText(alertDirection, 220),
 			AnalyzeRunID:   event.AnalyzeRunID,
-			AnalyzeError:   truncateText(event.AnalyzeErr, 220),
-			CheckOutput:    truncateText(event.Output, 260),
+			AnalyzeError:   truncateText(analyzeError, 220),
+			CheckOutput:    truncateText(checkOutput, 260),
 			Validity:       firstNonEmpty(event.Validity, event.IsValid),
 		})
 	}
@@ -870,9 +1592,54 @@ func buildSystemHealthAIReportActionInput(actions []systemHealthAlertReportActio
 			continue
 		}
 		items = append(items, systemHealthAIReportActionInput{
-			AlertName: action.AlertName,
-			Level:     action.Level,
-			Action:    truncateText(action.Action, 220),
+			AlertName:  action.AlertName,
+			Level:      action.Level,
+			Phase:      truncateText(action.Phase, 80),
+			Target:     truncateText(action.Target, 120),
+			Action:     truncateText(action.Action, 220),
+			Validation: truncateText(action.Validation, 180),
+			Risk:       truncateText(action.Risk, 180),
+		})
+	}
+	return items
+}
+
+func buildSystemHealthAIReportFindingInput(findings []systemHealthAlertReportFinding) []systemHealthAIReportFindingInput {
+	items := make([]systemHealthAIReportFindingInput, 0, minInt(len(findings), maxEvidenceSamples))
+	for _, finding := range findings {
+		if len(items) >= maxEvidenceSamples {
+			break
+		}
+		rootCause := cleanUserFacingReportText(finding.RootCause)
+		analyzeProcess := cleanUserFacingReportText(finding.AnalyzeProcess)
+		detail := cleanUserFacingReportText(finding.Detail)
+		if rootCause == "" && analyzeProcess == "" && detail == "" && len(finding.Evidence) == 0 {
+			continue
+		}
+		items = append(items, systemHealthAIReportFindingInput{
+			AlertName:      finding.AlertName,
+			RootCause:      truncateText(rootCause, 260),
+			AnalyzeProcess: truncateText(analyzeProcess, 220),
+			Detail:         truncateText(detail, 220),
+			ReportEvidence: buildSystemHealthAIReportEvidenceInput(finding.Evidence),
+		})
+	}
+	return items
+}
+
+func buildSystemHealthAIReportEvidenceInput(evidence []systemHealthAlertReportEvidence) []systemHealthAIReportEvidenceInput {
+	items := make([]systemHealthAIReportEvidenceInput, 0, minInt(len(evidence), 4))
+	for _, item := range evidence {
+		if len(items) >= 4 {
+			break
+		}
+		summary := cleanUserFacingReportText(item.Summary)
+		if summary == "" {
+			continue
+		}
+		items = append(items, systemHealthAIReportEvidenceInput{
+			Kind:    item.Kind,
+			Summary: truncateText(summary, 220),
 		})
 	}
 	return items
@@ -888,11 +1655,17 @@ func buildIssueExistingAlertAnalyses(events []alertmodel.AEventWithWRecord) []re
 		if strings.TrimSpace(event.AlertDirection) == "" && strings.TrimSpace(event.AnalyzeRunID) == "" && strings.TrimSpace(event.AnalyzeErr) == "" && strings.TrimSpace(event.Output) == "" {
 			continue
 		}
+		alertDirection := cleanUserFacingReportText(event.AlertDirection)
+		analyzeError := cleanUserFacingReportText(event.AnalyzeErr)
+		checkOutput := cleanUserFacingReportText(event.Output)
+		if alertDirection == "" && strings.TrimSpace(event.AnalyzeRunID) == "" && analyzeError == "" && checkOutput == "" {
+			continue
+		}
 		key := strings.Join([]string{
 			event.EventID,
 			event.AlertID,
 			event.Name,
-			event.AlertDirection,
+			alertDirection,
 			event.AnalyzeRunID,
 		}, "\x00")
 		if _, ok := seen[key]; ok {
@@ -903,10 +1676,10 @@ func buildIssueExistingAlertAnalyses(events []alertmodel.AEventWithWRecord) []re
 			EventID:        event.EventID,
 			AlertID:        event.AlertID,
 			AlertName:      event.Name,
-			AlertDirection: truncateText(event.AlertDirection, 300),
+			AlertDirection: truncateText(alertDirection, 300),
 			AnalyzeRunID:   event.AnalyzeRunID,
-			AnalyzeError:   truncateText(event.AnalyzeErr, 220),
-			CheckOutput:    truncateText(event.Output, 260),
+			AnalyzeError:   truncateText(analyzeError, 220),
+			CheckOutput:    truncateText(checkOutput, 260),
 			Validity:       firstNonEmpty(event.Validity, event.IsValid),
 		})
 	}
@@ -914,41 +1687,513 @@ func buildIssueExistingAlertAnalyses(events []alertmodel.AEventWithWRecord) []re
 }
 
 func (h *handler) queryAlertReportActions(ctx core.Context, input reportInput, startTime time.Time, endTime time.Time) []systemHealthAlertReportAction {
+	actions, _ := h.queryAlertReportData(ctx, input, startTime, endTime)
+	return actions
+}
+
+func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, startTime time.Time, endTime time.Time) ([]systemHealthAlertReportAction, []systemHealthAlertReportFinding) {
 	if h == nil || h.chRepo == nil || ctx == nil || len(input.events) == 0 {
-		return nil
+		systemHealthWarnCtx(ctx, "system-health alert report lookup skipped",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("reason", "missing_repository_context_or_events"),
+			zap.Bool("hasHandler", h != nil),
+			zap.Int("eventCount", len(input.events)),
+		)
+		return nil, nil
 	}
 	actions := make([]systemHealthAlertReportAction, 0, maxEvidenceSamples)
+	findings := make([]systemHealthAlertReportFinding, 0, maxEvidenceSamples)
 	seenEvents := make(map[string]struct{}, len(input.events))
 	reportStartTime := startTime.Add(-time.Hour)
 	reportEndTime := endTime.Add(time.Hour)
 	checked := 0
+	hitCount := 0
+	missCount := 0
+	queryFailedCount := 0
+	emptyEventIDCount := 0
+	duplicateEventCount := 0
+	lookupLimitHit := false
+	sampleLimitHit := false
+	lookupStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health alert report lookup started",
+		zap.String("issueKey", input.key),
+		zap.String("aggregationKey", input.aggregationKey),
+		zap.String("scope", input.scope),
+		zap.Int("eventCount", len(input.events)),
+		zap.Int("maxLookups", maxAlertReportLookups),
+		zap.Int("maxEvidenceSamples", maxEvidenceSamples),
+		zap.Time("reportStartTime", reportStartTime),
+		zap.Time("reportEndTime", reportEndTime),
+	)
 	for _, event := range input.events {
-		if len(actions) >= maxEvidenceSamples {
+		if len(actions) >= maxEvidenceSamples && len(findings) >= maxEvidenceSamples {
+			sampleLimitHit = true
 			break
 		}
 		if checked >= maxAlertReportLookups {
+			lookupLimitHit = true
 			break
 		}
 		eventID := strings.TrimSpace(event.EventID)
 		if eventID == "" {
+			emptyEventIDCount++
+			systemHealthWarnCtx(ctx, "system-health alert report lookup skipped for event",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.String("reason", "empty_event_id"),
+			)
 			continue
 		}
 		if _, ok := seenEvents[eventID]; ok {
+			duplicateEventCount++
 			continue
 		}
 		seenEvents[eventID] = struct{}{}
 		checked++
+		eventLookupStartedAt := time.Now()
+		systemHealthInfoCtx(ctx, "system-health alert report lookup event started",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("eventID", eventID),
+			zap.String("alertID", event.AlertID),
+			zap.String("alertName", event.Name),
+			zap.String("tagsKeys", systemHealthCompactJSON([]string{"alertEventId"})),
+		)
 		report, err := h.chRepo.GetAlertEventReport(ctx, reportStartTime, reportEndTime, map[string]string{"alertEventId": eventID})
 		if err != nil || report == nil {
+			fields := []zap.Field{
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("eventID", eventID),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.Time("reportStartTime", reportStartTime),
+				zap.Time("reportEndTime", reportEndTime),
+				zap.Duration("elapsed", time.Since(eventLookupStartedAt)),
+			}
+			if err != nil && strings.Contains(strings.ToLower(err.Error()), "no event found") {
+				missCount++
+				fields = append(fields, zap.String("reason", "report_not_found"), zap.Error(err))
+			} else if err != nil {
+				queryFailedCount++
+				fields = append(fields, zap.String("reason", "query_failed"), zap.Error(err))
+			} else {
+				missCount++
+				fields = append(fields, zap.String("reason", "report_not_found"))
+			}
+			systemHealthWarnCtx(ctx, "system-health alert report lookup missed", fields...)
 			continue
 		}
-		actions = append(actions, parseAlertReportSuggestActions(report.Suggest, event.Name)...)
+		eventFindings := alertReportFindings(report, event.Name)
+		eventActions := parseAlertReportSuggestActions(report.Suggest, event.Name)
+		hitCount++
+		systemHealthInfoCtx(ctx, "system-health alert report lookup hit",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("eventID", eventID),
+			zap.String("alertName", event.Name),
+			zap.Int("suggestRawCount", len(report.Suggest)),
+			zap.Int("actionCount", len(eventActions)),
+			zap.Int("findingCount", len(eventFindings)),
+			zap.Int("evidenceCount", countAlertReportEvidence(eventFindings)),
+			zap.Bool("hasRootCause", strings.TrimSpace(report.RootCause) != "" || len(report.RootCauseOther) > 0),
+			zap.Bool("hasOverview", strings.TrimSpace(report.OverviewReason) != "" || strings.TrimSpace(report.OverviewDetail) != ""),
+			zap.Bool("hasTopology", strings.TrimSpace(report.Topology) != ""),
+			zap.Int("dataCount", len(report.Data)),
+			zap.Duration("elapsed", time.Since(eventLookupStartedAt)),
+		)
+		findings = append(findings, eventFindings...)
+		findings = uniqueAlertReportFindings(findings)
+		actions = append(actions, eventActions...)
 		actions = uniqueAlertReportActions(actions)
 	}
 	if len(actions) > maxEvidenceSamples {
 		actions = actions[:maxEvidenceSamples]
 	}
-	return actions
+	if len(findings) > maxEvidenceSamples {
+		findings = findings[:maxEvidenceSamples]
+	}
+	systemHealthInfoCtx(ctx, "system-health alert report lookup completed",
+		zap.String("issueKey", input.key),
+		zap.String("aggregationKey", input.aggregationKey),
+		zap.Int("eventCount", len(input.events)),
+		zap.Int("uniqueEvents", len(seenEvents)),
+		zap.Int("checkedEvents", checked),
+		zap.Int("hitCount", hitCount),
+		zap.Int("missCount", missCount),
+		zap.Int("queryFailedCount", queryFailedCount),
+		zap.Int("emptyEventIDCount", emptyEventIDCount),
+		zap.Int("duplicateEventCount", duplicateEventCount),
+		zap.Bool("lookupLimitHit", lookupLimitHit),
+		zap.Bool("sampleLimitHit", sampleLimitHit),
+		zap.Int("finalActionCount", len(actions)),
+		zap.Int("finalFindingCount", len(findings)),
+		zap.Duration("elapsed", time.Since(lookupStartedAt)),
+	)
+	return actions, findings
+}
+
+func countAlertReportEvidence(findings []systemHealthAlertReportFinding) int {
+	count := 0
+	for _, finding := range findings {
+		count += len(finding.Evidence)
+	}
+	return count
+}
+
+func alertReportFindings(report *model.AlertEventReport, alertName string) []systemHealthAlertReportFinding {
+	if report == nil {
+		return nil
+	}
+	rootCauseParts := make([]string, 0, 1+len(report.RootCauseOther))
+	if rootCause := cleanUserFacingReportText(report.RootCause); rootCause != "" {
+		rootCauseParts = append(rootCauseParts, rootCause)
+	}
+	for _, raw := range report.RootCauseOther {
+		if text := alertReportJSONText(raw); text != "" {
+			rootCauseParts = append(rootCauseParts, text)
+		}
+	}
+	finding := systemHealthAlertReportFinding{
+		AlertName:      alertName,
+		RootCause:      truncateText(strings.Join(uniqueStrings(rootCauseParts), "；"), 360),
+		AnalyzeProcess: truncateText(cleanUserFacingReportText(report.OverviewReason), 260),
+		Detail:         truncateText(cleanUserFacingReportText(report.OverviewDetail), 260),
+		Evidence:       buildAlertReportEvidenceSummaries(report),
+	}
+	if finding.RootCause == "" && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
+		return nil
+	}
+	return []systemHealthAlertReportFinding{finding}
+}
+
+func buildAlertReportEvidenceSummaries(report *model.AlertEventReport) []systemHealthAlertReportEvidence {
+	if report == nil {
+		return nil
+	}
+	grouped := make(map[string][]string)
+	appendSummary := func(kind string, summary string) {
+		kind = strings.TrimSpace(kind)
+		summary = normalizeReportEvidenceSummary(summary)
+		if kind == "" || summary == "" {
+			return
+		}
+		grouped[kind] = uniqueStrings(append(grouped[kind], summary))
+	}
+
+	for _, raw := range report.Data {
+		item := alertReportJSONMap(raw)
+		text := alertReportEvidenceText(raw)
+		if text == "" {
+			continue
+		}
+		appendSummary(classifyAlertReportEvidence(item, text), text)
+	}
+	if topologySummary := alertReportTopologySummary(report.Topology); topologySummary != "" {
+		appendSummary("apm", topologySummary)
+	}
+	if reportAnalysis := alertReportAnalysisSummary(report); reportAnalysis != "" {
+		appendSummary("alert", reportAnalysis)
+	}
+
+	order := []string{"apm", "logs", "metrics", "alert"}
+	result := make([]systemHealthAlertReportEvidence, 0, len(grouped))
+	for _, kind := range order {
+		summaries := grouped[kind]
+		if len(summaries) == 0 {
+			continue
+		}
+		result = append(result, systemHealthAlertReportEvidence{
+			Kind:    kind,
+			Summary: truncateText(strings.Join(summaries[:minInt(len(summaries), 2)], "；"), 360),
+		})
+	}
+	return result
+}
+
+func alertReportJSONMap(raw string) map[string]any {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	var item map[string]any
+	if err := json.Unmarshal([]byte(raw), &item); err != nil {
+		return nil
+	}
+	return item
+}
+
+func alertReportEvidenceText(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	item := alertReportJSONMap(raw)
+	if item == nil {
+		return truncateText(cleanUserFacingReportText(raw), 260)
+	}
+	values := make([]string, 0, 4)
+	collectReportEvidenceText(item, 0, &values)
+	return truncateText(strings.Join(uniqueStrings(values), "；"), 320)
+}
+
+func collectReportEvidenceText(value any, depth int, values *[]string) {
+	if depth > 3 || len(*values) >= 6 || value == nil {
+		return
+	}
+	switch typed := value.(type) {
+	case string:
+		text := cleanUserFacingReportText(typed)
+		if isUsefulReportEvidenceText(text) {
+			*values = append(*values, text)
+		}
+	case []any:
+		for _, item := range typed {
+			collectReportEvidenceText(item, depth+1, values)
+			if len(*values) >= 6 {
+				return
+			}
+		}
+	case map[string]any:
+		for _, key := range []string{"summary", "conclusion", "result", "analysis", "detail", "description", "content", "message", "reason", "title", "name"} {
+			if raw, ok := typed[key]; ok {
+				collectReportEvidenceText(raw, depth+1, values)
+				if len(*values) >= 6 {
+					return
+				}
+			}
+		}
+		for key, raw := range typed {
+			if isMetadataReportKey(key) {
+				continue
+			}
+			collectReportEvidenceText(raw, depth+1, values)
+			if len(*values) >= 6 {
+				return
+			}
+		}
+	}
+}
+
+func isUsefulReportEvidenceText(text string) bool {
+	text = cleanUserFacingReportText(text)
+	if len([]rune(text)) < 4 {
+		return false
+	}
+	lower := strings.ToLower(text)
+	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
+		return false
+	}
+	return true
+}
+
+func isMetadataReportKey(key string) bool {
+	switch strings.ToLower(strings.TrimSpace(key)) {
+	case "id", "eventid", "alertid", "timestamp", "time", "starttime", "endtime", "traceid", "spanid", "runid", "workflowrunid":
+		return true
+	default:
+		return false
+	}
+}
+
+func classifyAlertReportEvidence(item map[string]any, text string) string {
+	signatureParts := []string{text}
+	for _, key := range []string{"type", "source", "category", "name", "title", "kind", "module"} {
+		if value := stringValueFromMap(item, key); value != "" {
+			signatureParts = append(signatureParts, value)
+		}
+	}
+	signature := strings.ToLower(strings.Join(signatureParts, " "))
+	switch {
+	case strings.Contains(signature, "日志") || strings.Contains(signature, "log"):
+		return "logs"
+	case strings.Contains(signature, "apm") || strings.Contains(signature, "trace") || strings.Contains(signature, "span") || strings.Contains(signature, "链路") || strings.Contains(signature, "拓扑") || strings.Contains(signature, "调用"):
+		return "apm"
+	case strings.Contains(signature, "指标") || strings.Contains(signature, "metric") || strings.Contains(signature, "red") || strings.Contains(signature, "prometheus") || strings.Contains(signature, "pql") || strings.Contains(signature, "latency") || strings.Contains(signature, "duration") || strings.Contains(signature, "error_rate"):
+		return "metrics"
+	case strings.Contains(signature, "告警") || strings.Contains(signature, "alert") || strings.Contains(signature, "分析") || strings.Contains(signature, "有效"):
+		return "alert"
+	default:
+		return "alert"
+	}
+}
+
+func normalizeReportEvidenceSummary(text string) string {
+	text = cleanUserFacingReportText(text)
+	if text == "" {
+		return ""
+	}
+	replacements := []struct {
+		old string
+		new string
+	}{
+		{"raw_tags", "告警标签"},
+		{"span_trace", "链路样本"},
+		{"Prometheus", "指标系统"},
+		{"prometheus", "指标系统"},
+		{"PQL", "指标查询"},
+		{"pql", "指标查询"},
+	}
+	for _, replacement := range replacements {
+		text = strings.ReplaceAll(text, replacement.old, replacement.new)
+	}
+	return truncateText(text, 320)
+}
+
+func alertReportTopologySummary(raw string) string {
+	item := alertReportJSONMap(raw)
+	if item == nil {
+		return ""
+	}
+	names := make([]string, 0, 6)
+	collectTopologyNames(item, 0, &names)
+	names = uniqueStrings(names)
+	if len(names) == 0 {
+		return "方向报告包含调用拓扑，用于确认告警目标与上下游链路关系。"
+	}
+	return fmt.Sprintf("方向报告的调用拓扑涉及 %s，用于确认告警目标与上下游链路关系。", strings.Join(names[:minInt(len(names), 5)], "、"))
+}
+
+func collectTopologyNames(value any, depth int, names *[]string) {
+	if depth > 4 || len(*names) >= 8 || value == nil {
+		return
+	}
+	switch typed := value.(type) {
+	case string:
+		text := strings.TrimSpace(typed)
+		if isUsefulTopologyName(text) {
+			*names = append(*names, text)
+		}
+	case []any:
+		for _, item := range typed {
+			collectTopologyNames(item, depth+1, names)
+			if len(*names) >= 8 {
+				return
+			}
+		}
+	case map[string]any:
+		for _, key := range []string{"service", "serviceName", "name", "endpoint", "contentKey", "url", "target", "source"} {
+			if raw, ok := typed[key]; ok {
+				collectTopologyNames(raw, depth+1, names)
+				if len(*names) >= 8 {
+					return
+				}
+			}
+		}
+		for key, raw := range typed {
+			if isMetadataReportKey(key) {
+				continue
+			}
+			collectTopologyNames(raw, depth+1, names)
+			if len(*names) >= 8 {
+				return
+			}
+		}
+	}
+}
+
+func isUsefulTopologyName(text string) bool {
+	text = strings.TrimSpace(text)
+	if len([]rune(text)) < 3 || len([]rune(text)) > 90 {
+		return false
+	}
+	lower := strings.ToLower(text)
+	if strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") {
+		return false
+	}
+	for _, keyword := range []string{"service", "/api/", "post ", "get ", "put ", "delete ", "入口", "下游", "上游"} {
+		if strings.Contains(lower, keyword) || strings.Contains(text, keyword) {
+			return true
+		}
+	}
+	return strings.Contains(text, "-")
+}
+
+func alertReportAnalysisSummary(report *model.AlertEventReport) string {
+	parts := []string{
+		cleanUserFacingReportText(report.OverviewReason),
+		cleanUserFacingReportText(report.OverviewDetail),
+		cleanUserFacingReportText(report.RootCause),
+	}
+	for _, raw := range report.RootCauseOther {
+		if text := alertReportJSONText(raw); text != "" {
+			parts = append(parts, text)
+		}
+	}
+	parts = uniqueStrings(parts)
+	if len(parts) == 0 {
+		return ""
+	}
+	return truncateText(strings.Join(parts[:minInt(len(parts), 3)], "；"), 360)
+}
+
+func alertReportJSONText(raw string) string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return ""
+	}
+	var item map[string]any
+	if err := json.Unmarshal([]byte(raw), &item); err != nil {
+		return truncateText(cleanUserFacingReportText(raw), 180)
+	}
+	for _, key := range []string{"cause", "rootCause", "reason", "summary", "description", "detail", "content", "message"} {
+		if value := stringValueFromMap(item, key); value != "" {
+			return truncateText(cleanUserFacingReportText(value), 180)
+		}
+	}
+	return truncateText(raw, 180)
+}
+
+func uniqueAlertReportFindings(findings []systemHealthAlertReportFinding) []systemHealthAlertReportFinding {
+	seen := make(map[string]struct{}, len(findings))
+	result := make([]systemHealthAlertReportFinding, 0, len(findings))
+	for _, finding := range findings {
+		finding.AlertName = strings.TrimSpace(finding.AlertName)
+		finding.RootCause = cleanUserFacingReportText(finding.RootCause)
+		finding.AnalyzeProcess = cleanUserFacingReportText(finding.AnalyzeProcess)
+		finding.Detail = cleanUserFacingReportText(finding.Detail)
+		finding.Evidence = uniqueAlertReportEvidence(finding.Evidence)
+		if finding.RootCause == "" && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
+			continue
+		}
+		key := strings.ToLower(strings.Join([]string{finding.AlertName, finding.RootCause, finding.AnalyzeProcess, finding.Detail, alertReportEvidenceKey(finding.Evidence)}, "\x00"))
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		result = append(result, finding)
+	}
+	return result
+}
+
+func uniqueAlertReportEvidence(evidence []systemHealthAlertReportEvidence) []systemHealthAlertReportEvidence {
+	seen := make(map[string]struct{}, len(evidence))
+	result := make([]systemHealthAlertReportEvidence, 0, len(evidence))
+	for _, item := range evidence {
+		item.Kind = strings.TrimSpace(item.Kind)
+		item.Summary = cleanUserFacingReportText(item.Summary)
+		if item.Kind == "" || item.Summary == "" {
+			continue
+		}
+		key := strings.ToLower(item.Kind + "\x00" + item.Summary)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		result = append(result, item)
+	}
+	return result
+}
+
+func alertReportEvidenceKey(evidence []systemHealthAlertReportEvidence) string {
+	parts := make([]string, 0, len(evidence))
+	for _, item := range evidence {
+		parts = append(parts, item.Kind+":"+item.Summary)
+	}
+	return strings.Join(parts, "\x00")
 }
 
 func parseAlertReportSuggestActions(suggests []string, alertName string) []systemHealthAlertReportAction {
@@ -968,18 +2213,32 @@ func parseAlertReportSuggestActions(suggests []string, alertName string) []syste
 		}
 		actionText := firstNonEmpty(
 			stringValueFromMap(item, "action"),
+			stringValueFromMap(item, "建议"),
+			stringValueFromMap(item, "动作"),
+			stringValueFromMap(item, "行动"),
+			stringValueFromMap(item, "处置"),
+			stringValueFromMap(item, "处理建议"),
+			stringValueFromMap(item, "建议行动"),
 			stringValueFromMap(item, "title"),
+			stringValueFromMap(item, "标题"),
 			stringValueFromMap(item, "content"),
+			stringValueFromMap(item, "内容"),
 			stringValueFromMap(item, "description"),
+			stringValueFromMap(item, "描述"),
+			stringValueFromMap(item, "说明"),
 			stringValueFromMap(item, "suggestion"),
 		)
 		if actionText == "" {
 			continue
 		}
 		actions = append(actions, systemHealthAlertReportAction{
-			AlertName: alertName,
-			Level:     strings.ToLower(stringValueFromMap(item, "level")),
-			Action:    truncateText(actionText, 220),
+			AlertName:  alertName,
+			Level:      strings.ToLower(firstNonEmpty(stringValueFromMap(item, "level"), stringValueFromMap(item, "级别"), stringValueFromMap(item, "优先级"))),
+			Phase:      truncateText(firstNonEmpty(stringValueFromMap(item, "phase"), stringValueFromMap(item, "stage"), stringValueFromMap(item, "阶段"), stringValueFromMap(item, "步骤"), stringValueFromMap(item, "环节")), 80),
+			Target:     truncateText(firstNonEmpty(stringValueFromMap(item, "target"), stringValueFromMap(item, "object"), stringValueFromMap(item, "scope"), stringValueFromMap(item, "目标"), stringValueFromMap(item, "对象"), stringValueFromMap(item, "范围"), stringValueFromMap(item, "排查对象")), 120),
+			Action:     truncateText(actionText, 220),
+			Validation: truncateText(firstNonEmpty(stringValueFromMap(item, "validation"), stringValueFromMap(item, "verification"), stringValueFromMap(item, "validate"), stringValueFromMap(item, "expected"), stringValueFromMap(item, "check"), stringValueFromMap(item, "验证"), stringValueFromMap(item, "验证方式"), stringValueFromMap(item, "验收"), stringValueFromMap(item, "确认项"), stringValueFromMap(item, "检查项"), stringValueFromMap(item, "预期"), stringValueFromMap(item, "预期结果")), 220),
+			Risk:       truncateText(firstNonEmpty(stringValueFromMap(item, "risk"), stringValueFromMap(item, "caution"), stringValueFromMap(item, "impact"), stringValueFromMap(item, "风险"), stringValueFromMap(item, "注意"), stringValueFromMap(item, "影响"), stringValueFromMap(item, "注意事项")), 220),
 		})
 	}
 	return uniqueAlertReportActions(actions)
@@ -1033,6 +2292,135 @@ func trimNonEmptyStrings(values []string) []string {
 	return result
 }
 
+func alertEventDistributionFields(events []alertmodel.AEventWithWRecord) []zap.Field {
+	statusCounts := make(map[string]int)
+	validityCounts := make(map[string]int)
+	severityCounts := make(map[string]int)
+	sourceCounts := make(map[string]int)
+	kindCounts := make(map[string]int)
+	services := make(map[string]struct{})
+	endpoints := make(map[string]struct{})
+	alertIDs := make(map[string]struct{})
+	eventIDs := make(map[string]struct{})
+	alertNames := make(map[string]struct{})
+	aggregationKeys := make(map[string]struct{})
+	for _, event := range events {
+		statusCounts[firstNonEmpty(normalizeStatus(event.Status), "unknown")]++
+		validityCounts[strings.ToLower(firstNonEmpty(event.Validity, event.IsValid, "unknown"))]++
+		severityCounts[firstNonEmpty(normalizeSeverity(event.Severity), "unknown")]++
+		sourceCounts[firstNonEmpty(event.Source, event.SourceID, "unknown")]++
+		kind := classifyIssueKind(event)
+		if kind == "" {
+			kind = "unclassified"
+		}
+		kindCounts[kind]++
+		if service := alertServiceName(event); service != "" {
+			services[service] = struct{}{}
+		}
+		if endpoint := alertEndpoint(event); endpoint != "" {
+			endpoints[endpoint] = struct{}{}
+		}
+		if event.AlertID != "" {
+			alertIDs[event.AlertID] = struct{}{}
+		}
+		if event.EventID != "" {
+			eventIDs[event.EventID] = struct{}{}
+		}
+		if event.Name != "" {
+			alertNames[event.Name] = struct{}{}
+		}
+		normalized := normalizeAlertEvent(event)
+		if normalized.AggregationKey != "" {
+			aggregationKeys[normalized.AggregationKey] = struct{}{}
+		}
+	}
+	return []zap.Field{
+		zap.String("statusCounts", systemHealthCompactJSON(statusCounts)),
+		zap.String("validityCounts", systemHealthCompactJSON(validityCounts)),
+		zap.String("severityCounts", systemHealthCompactJSON(severityCounts)),
+		zap.String("sourceCounts", systemHealthCompactJSON(sourceCounts)),
+		zap.String("kindCounts", systemHealthCompactJSON(kindCounts)),
+		zap.Int("firingCount", statusCounts[alertmodel.StatusFiring]),
+		zap.Int("resolvedCount", statusCounts[alertmodel.StatusResolved]),
+		zap.Int("uniqueEventCount", len(eventIDs)),
+		zap.Int("uniqueAlertInstanceCount", len(alertIDs)),
+		zap.Int("uniqueAlertNameCount", len(alertNames)),
+		zap.Int("uniqueServiceCount", len(services)),
+		zap.Int("uniqueEndpointCount", len(endpoints)),
+		zap.Int("uniqueAggregationKeyCount", len(aggregationKeys)),
+		zap.Strings("sampleAlertNames", firstNStrings(stringSetKeys(alertNames), 8)),
+		zap.Strings("sampleAggregationKeys", firstNStrings(stringSetKeys(aggregationKeys), 8)),
+	}
+}
+
+func stringSetKeys(values map[string]struct{}) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	result := make([]string, 0, len(values))
+	for value := range values {
+		if strings.TrimSpace(value) == "" {
+			continue
+		}
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func firstNStrings(values []string, limit int) []string {
+	if len(values) <= limit {
+		return values
+	}
+	return values[:limit]
+}
+
+func evidenceTypes(evidence []response.SystemHealthEvidence) []string {
+	result := make([]string, 0, len(evidence))
+	for _, item := range evidence {
+		result = append(result, item.Type)
+	}
+	return uniqueStrings(result)
+}
+
+func systemHealthAIIssueInputKeys(issues []systemHealthAIIssueInput) []string {
+	result := make([]string, 0, len(issues))
+	for _, issue := range issues {
+		result = append(result, issue.Key)
+	}
+	return uniqueStrings(result)
+}
+
+func systemHealthAIIssueOutputKeys(issues []systemHealthAIIssueOutput) []string {
+	result := make([]string, 0, len(issues))
+	for _, issue := range issues {
+		result = append(result, issue.Key)
+	}
+	return uniqueStrings(result)
+}
+
+func missingAIIssueKeys(inputs []systemHealthAIIssueInput, outputs map[string]systemHealthAIIssueOutput) []string {
+	result := make([]string, 0)
+	for _, issue := range inputs {
+		key := strings.TrimSpace(issue.Key)
+		if key == "" {
+			continue
+		}
+		if _, ok := outputs[key]; !ok {
+			result = append(result, key)
+		}
+	}
+	return result
+}
+
+func prometheusWarnings(warnings v1.Warnings) []string {
+	result := make([]string, 0, len(warnings))
+	for _, warning := range warnings {
+		result = append(result, fmt.Sprint(warning))
+	}
+	return result
+}
+
 func (h *handler) queryRealAlertEvents(ctx core.Context, groupID int64, startTime time.Time, endTime time.Time) ([]alertmodel.AEventWithWRecord, error) {
 	req := &request.AlertEventSearchRequest{
 		StartTime: startTime.UnixMicro(),
@@ -1051,41 +2439,143 @@ func (h *handler) queryRealAlertEvents(ctx core.Context, groupID int64, startTim
 		req.SubGroupIDs = append(req.SubGroupIDs, strconv.FormatInt(groupID, 10))
 	}
 
-	events, _, err := h.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, 0)
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health real alert event query started",
+		zap.Int64("groupId", groupID),
+		zap.Int64("startTimeMicros", req.StartTime),
+		zap.Int64("endTimeMicros", req.EndTime),
+		zap.Int("currentPage", req.Pagination.CurrentPage),
+		zap.Int("pageSize", req.Pagination.PageSize),
+		zap.String("sortBy", req.SortBy),
+		zap.Int("subGroupIDCount", len(req.SubGroupIDs)),
+		zap.Strings("subGroupIDs", req.SubGroupIDs),
+	)
+	events, total, err := h.chRepo.GetAlertEventWithWorkflowRecord(ctx, req, 0)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health real alert event query failed",
+			zap.Int64("groupId", groupID),
+			zap.Int64("startTimeMicros", req.StartTime),
+			zap.Int64("endTimeMicros", req.EndTime),
+			zap.Int("subGroupIDCount", len(req.SubGroupIDs)),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
+		return events, err
+	}
+	fields := []zap.Field{
+		zap.Int64("groupId", groupID),
+		zap.Int64("totalCount", total),
+		zap.Int("eventCount", len(events)),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	}
+	fields = append(fields, alertEventDistributionFields(events)...)
+	systemHealthInfoCtx(ctx, "system-health real alert event query completed", fields...)
 	return events, err
 }
 
 func (h *handler) queryAlertManagerActiveEvents(ctx core.Context, groupID int64) ([]alertmodel.AEventWithWRecord, error) {
 	if strings.TrimSpace(h.alertManagerURL) == "" {
+		systemHealthInfoCtx(ctx, "system-health alertmanager active alert query skipped",
+			zap.Int64("groupId", groupID),
+			zap.String("reason", "not_configured"),
+		)
 		return nil, nil
 	}
 	endpoint := strings.TrimRight(h.alertManagerURL, "/") + "/api/v2/alerts"
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health alertmanager active alert query started",
+		zap.Int64("groupId", groupID),
+		zap.String("endpoint", endpoint),
+	)
 	req, err := http.NewRequestWithContext(ctx.GetContext(), http.MethodGet, endpoint, nil)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health alertmanager active alert query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("endpoint", endpoint),
+			zap.String("reason", "build_request_failed"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	resp, err := (&http.Client{Timeout: 8 * time.Second}).Do(req)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health alertmanager active alert query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("endpoint", endpoint),
+			zap.String("reason", "request_failed"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		systemHealthWarnCtx(ctx, "system-health alertmanager active alert query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("endpoint", endpoint),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "bad_status"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return nil, fmt.Errorf("alertmanager returned status %d", resp.StatusCode)
 	}
 
 	var alerts []alertManagerAPIAlert
 	if err := json.NewDecoder(resp.Body).Decode(&alerts); err != nil {
+		systemHealthWarnCtx(ctx, "system-health alertmanager active alert query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("endpoint", endpoint),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "decode_failed"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
 		return nil, err
 	}
 
 	allowedGroupIDs := allowedAlertGroupIDs(groupID)
 	events := make([]alertmodel.AEventWithWRecord, 0, len(alerts))
+	filteredByState := 0
+	filteredByGroup := 0
+	missingAlertName := 0
+	filteredOther := 0
 	for _, alert := range alerts {
-		event, ok := alertManagerAlertToEvent(alert, allowedGroupIDs)
+		if alert.Status.State != "" && alert.Status.State != "active" && alert.Status.State != alertmodel.StatusFiring {
+			filteredByState++
+			continue
+		}
+		if len(allowedGroupIDs) > 0 {
+			if _, ok := allowedGroupIDs[alertGroupIDLabel(alert.Labels)]; !ok {
+				filteredByGroup++
+				continue
+			}
+		}
+		if strings.TrimSpace(alert.Labels["alertname"]) == "" {
+			missingAlertName++
+			continue
+		}
+		event, ok := alertManagerAlertToEvent(alert, nil)
 		if ok {
 			events = append(events, event)
+		} else {
+			filteredOther++
 		}
 	}
+	systemHealthInfoCtx(ctx, "system-health alertmanager active alert query completed",
+		zap.Int64("groupId", groupID),
+		zap.String("endpoint", endpoint),
+		zap.Int("httpStatus", resp.StatusCode),
+		zap.Int("rawAlertCount", len(alerts)),
+		zap.Int("filteredAlertCount", len(alerts)-len(events)),
+		zap.Int("filteredByStateCount", filteredByState),
+		zap.Int("filteredByGroupCount", filteredByGroup),
+		zap.Int("missingAlertNameCount", missingAlertName),
+		zap.Int("filteredOtherCount", filteredOther),
+		zap.Int("eventCount", len(events)),
+		zap.String("allowedGroupIDs", systemHealthCompactJSON(stringSetKeys(allowedGroupIDs))),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
 	return events, nil
 }
 
@@ -1214,23 +2704,37 @@ func mergeAlertEvents(base []alertmodel.AEventWithWRecord, extra []alertmodel.AE
 }
 
 func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, events []alertmodel.AEventWithWRecord, startTime time.Time, endTime time.Time, capabilities telemetryCapabilityStatus) []reportInput {
+	buildStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health report input grouping started",
+		zap.Int64("groupId", groupID),
+		zap.Int("eventCount", len(events)),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+	)
 	grouped := make(map[string]*reportInput)
+	droppedNoKind := 0
+	kindCounts := make(map[string]int)
+	scopeKindCounts := make(map[string]int)
 	for _, event := range events {
 		kind := classifyIssueKind(event)
 		if kind == "" {
+			droppedNoKind++
 			continue
 		}
+		kindCounts[kind]++
 		normalized := normalizeAlertEvent(event)
+		normalized.IssueKind = kind
 		scope, scopeKind := normalizedAggregationScope(normalized, event)
+		scopeKindCounts[scopeKind]++
 		aggregationKey := normalized.AggregationKey
 		if aggregationKey == "" {
 			aggregationKey = scopeKind + "::" + scope
 		}
-		key := kind + "::" + aggregationKey
+		key := aggregationKey
 		input, exists := grouped[key]
 		if !exists {
 			input = &reportInput{
-				key:                  stableKey(key),
+				key:                  stableKey(kind + "::" + aggregationKey),
 				aggregationKey:       aggregationKey,
 				kind:                 kind,
 				title:                eventTitle(event, kind),
@@ -1244,6 +2748,8 @@ func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, eve
 				objectCriticality:    objectCriticality(normalized.ObjectType, normalized.ObjectName, normalized.ServiceName, normalized.Endpoint),
 			}
 			grouped[key] = input
+		} else {
+			input.kind = mergeIssueKind(input.kind, kind)
 		}
 
 		input.events = append(input.events, event)
@@ -1259,33 +2765,86 @@ func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, eve
 			input.updatedAt = formatEventTime(event.UpdateTime)
 		}
 	}
+	systemHealthInfoCtx(ctx, "system-health report input grouping completed",
+		zap.Int64("groupId", groupID),
+		zap.Int("eventCount", len(events)),
+		zap.Int("droppedNoKindCount", droppedNoKind),
+		zap.Int("groupedInputCount", len(grouped)),
+		zap.String("kindCounts", systemHealthCompactJSON(kindCounts)),
+		zap.String("scopeKindCounts", systemHealthCompactJSON(scopeKindCounts)),
+		zap.Duration("elapsed", time.Since(buildStartedAt)),
+	)
 
 	inputs := make([]reportInput, 0, len(grouped))
 	for _, input := range grouped {
+		inputStartedAt := time.Now()
 		finalizeReportInput(input, endTime)
 		input.alertNames = uniqueStrings(input.alertNames)
+		input.key = stableKey(input.kind + "::" + input.aggregationKey)
 		input.title = buildAggregatedIssueTitle(*input)
-		input.alertReportActions = h.queryAlertReportActions(ctx, *input, startTime, endTime)
-		if len(input.alertReportActions) > 0 {
+		systemHealthInfoCtx(ctx, "system-health report input enrichment started",
+			zap.Int64("groupId", groupID),
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("kind", input.kind),
+			zap.String("scopeKind", input.scopeKind),
+			zap.String("scope", input.scope),
+			zap.Int("eventCount", len(input.events)),
+			zap.Int("deduplicatedAlerts", input.deduplicatedAlerts),
+			zap.Int("repeatCount", input.repeatCount),
+		)
+		input.alertReportActions, input.alertReportFindings = h.queryAlertReportData(ctx, *input, startTime, endTime)
+		if len(input.alertReportActions) > 0 || len(input.alertReportFindings) > 0 {
 			input.availableCalcSources = append(input.availableCalcSources, "alertReport")
 			input.displaySources = append(input.displaySources, sourceLabel("alertReport"))
 		}
 		input.evidence = h.buildRealEvidence(ctx, *input, groupID, startTime, endTime, capabilities)
 		input.displaySources = uniqueStrings(append(input.displaySources, displaySourcesFromEvidence(input.evidence)...))
 		input.impact = buildRealImpact(*input)
+		systemHealthInfoCtx(ctx, "system-health report input enrichment completed",
+			zap.Int64("groupId", groupID),
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("title", input.title),
+			zap.String("kind", input.kind),
+			zap.String("scopeKind", input.scopeKind),
+			zap.Int("eventCount", len(input.events)),
+			zap.Int("rawEventCount", input.rawEventCount),
+			zap.Int("deduplicatedAlerts", input.deduplicatedAlerts),
+			zap.Int("activeAlerts", input.activeAlerts),
+			zap.Int("repeatCount", input.repeatCount),
+			zap.Int("alertReportActions", len(input.alertReportActions)),
+			zap.Int("alertReportFindings", len(input.alertReportFindings)),
+			zap.Int("evidenceCount", len(input.evidence)),
+			zap.Strings("evidenceTypes", evidenceTypes(input.evidence)),
+			zap.Strings("displaySources", input.displaySources),
+			zap.Duration("elapsed", time.Since(inputStartedAt)),
+		)
 		inputs = append(inputs, *input)
 	}
+	systemHealthInfoCtx(ctx, "system-health report input build completed",
+		zap.Int64("groupId", groupID),
+		zap.Int("inputCount", len(inputs)),
+		zap.Duration("elapsed", time.Since(buildStartedAt)),
+	)
 	return inputs
 }
 
 func displaySourcesFromEvidence(evidence []response.SystemHealthEvidence) []string {
 	sources := make([]string, 0, 1)
 	for _, item := range evidence {
-		if item.Type == "Trace链路样本" {
+		switch {
+		case item.Type == "Trace链路样本" || strings.Contains(item.Type, "APM链路"):
 			sources = append(sources, sourceLabel("trace"))
+		case strings.Contains(item.Type, "日志"):
+			sources = append(sources, sourceLabel("logs"))
+		case strings.Contains(item.Type, "指标趋势"):
+			sources = append(sources, sourceLabel("redMetrics"))
+		case strings.Contains(item.Type, "方向报告"):
+			sources = append(sources, sourceLabel("alertReport"))
 		}
 	}
-	return sources
+	return uniqueStrings(sources)
 }
 
 func normalizeAlertEvent(event alertmodel.AEventWithWRecord) normalizedAlertEvent {
@@ -1437,23 +2996,66 @@ func finalizeReportInput(input *reportInput, endTime time.Time) {
 	input.rawEventCount = len(input.events)
 	input.deduplicatedInstances = deduplicateAlertInstances(input.normalizedEvents, endTime)
 	input.deduplicatedAlerts = len(input.deduplicatedInstances)
+	input.effectiveAlerts = 0
+	input.invalidAlerts = 0
 	input.activeAlerts = 0
 	input.repeatCount = 0
 	input.durationSeconds = 0
 	input.alertSeverities = input.alertSeverities[:0]
-	input.mergeReasons = buildMergeReasons(*input)
+	invalidEvents := normalizedEventsMatchingKind(input.normalizedEvents, input.kind, func(kind string) bool {
+		return kind == issueKindInvalidAlert
+	})
+	effectiveEvents := input.normalizedEvents
+	if input.kind != issueKindInvalidAlert {
+		effectiveEvents = normalizedEventsMatchingKind(input.normalizedEvents, input.kind, func(kind string) bool {
+			return kind != issueKindInvalidAlert
+		})
+	}
+	if len(effectiveEvents) == 0 {
+		effectiveEvents = input.normalizedEvents
+	}
+	effectiveInstances := deduplicateAlertInstances(effectiveEvents, endTime)
+	input.effectiveAlerts = len(effectiveInstances)
+	input.invalidAlerts = len(deduplicateAlertInstances(invalidEvents, endTime))
+	activeInstances := deduplicateAlertInstances(normalizedEventsMatchingKind(input.normalizedEvents, input.kind, func(kind string) bool {
+		return kind == issueKindActiveAlert
+	}), endTime)
+	input.activeAlerts = len(activeInstances)
+
 	for _, instance := range input.deduplicatedInstances {
 		input.repeatCount += maxInt(instance.RepeatCount-1, 0)
 		input.durationSeconds = math.Max(input.durationSeconds, instance.DurationSeconds)
+	}
+	for _, instance := range effectiveInstances {
 		input.alertSeverities = append(input.alertSeverities, instance.MaxSeverity)
-		if instance.Status == alertmodel.StatusFiring && input.kind == issueKindActiveAlert {
-			input.activeAlerts++
-		}
 	}
 	if input.deduplicatedAlerts == 0 {
 		input.deduplicatedAlerts = len(input.events)
-		input.activeAlerts = len(input.events)
+		input.effectiveAlerts = input.deduplicatedAlerts
+		if input.kind == issueKindActiveAlert {
+			input.activeAlerts = len(input.events)
+		}
 	}
+	if len(input.alertSeverities) == 0 {
+		for _, instance := range input.deduplicatedInstances {
+			input.alertSeverities = append(input.alertSeverities, instance.MaxSeverity)
+		}
+	}
+	input.mergeReasons = buildMergeReasons(*input)
+}
+
+func normalizedEventsMatchingKind(events []normalizedAlertEvent, fallbackKind string, matches func(string) bool) []normalizedAlertEvent {
+	result := make([]normalizedAlertEvent, 0, len(events))
+	for _, event := range events {
+		kind := event.IssueKind
+		if kind == "" {
+			kind = fallbackKind
+		}
+		if matches(kind) {
+			result = append(result, event)
+		}
+	}
+	return result
 }
 
 func deduplicateAlertInstances(events []normalizedAlertEvent, endTime time.Time) []deduplicatedAlertInstance {
@@ -1533,6 +3135,9 @@ func buildMergeReasons(input reportInput) []string {
 	if input.deduplicatedAlerts > 0 && input.rawEventCount > input.deduplicatedAlerts {
 		reasons = append(reasons, "重复触发已去重")
 	}
+	if input.kind != issueKindInvalidAlert && input.invalidAlerts > 0 {
+		reasons = append(reasons, "包含告警规则诊断")
+	}
 	return uniqueStrings(reasons)
 }
 
@@ -1550,6 +3155,31 @@ func classifyIssueKind(event alertmodel.AEventWithWRecord) string {
 		return issueKindActiveAlert
 	}
 	return ""
+}
+
+func mergeIssueKind(current string, next string) string {
+	if current == "" {
+		return next
+	}
+	if issueKindPriority(next) > issueKindPriority(current) {
+		return next
+	}
+	return current
+}
+
+func issueKindPriority(kind string) int {
+	switch kind {
+	case issueKindActiveAlert:
+		return 4
+	case issueKindInspection:
+		return 3
+	case issueKindRecoveredAlert:
+		return 2
+	case issueKindInvalidAlert:
+		return 1
+	default:
+		return 0
+	}
 }
 
 func isValidAlert(event alertmodel.AEventWithWRecord) bool {
@@ -1645,32 +3275,115 @@ func firstString(values []string) string {
 }
 
 func buildAlertEventEvidenceResult(input reportInput) string {
+	if input.kind == issueKindInvalidAlert {
+		return buildInvalidAlertEventEvidenceResult(input)
+	}
 	alertNames := uniqueStrings(input.alertNames)
 	directions := alertDirections(input.events)
-	patternSummary := buildAlertEventPatternSummary(input, alertNames, directions)
+	scopeLabel := inputScopeLabel(input.scopeKind)
+	symptom := issueSymptomText(scoredIssue{input: input})
 	parts := []string{
-		fmt.Sprintf("%d 条真实告警事件", len(input.events)),
-		fmt.Sprintf("%d 个去重告警实例", input.deduplicatedAlerts),
-		fmt.Sprintf("%d 类告警", len(alertNames)),
-		"状态=" + statusText(input),
-		"聚合对象=" + input.scope,
+		fmt.Sprintf("%s在当前窗口%s，%s。", scopeLabel, alertEventFrequencyText(len(input.events), input.repeatCount, input.deduplicatedAlerts, symptom), alertRecoveryText(input)),
 	}
-	if patternSummary != "" {
-		parts = append(parts, "事件规律="+patternSummary)
+	if len(alertNames) > 1 {
+		parts = append(parts, fmt.Sprintf("多类%s告警共同指向同一%s，说明风险不是单条告警孤立触发。", symptom, inputScopeNoun(input.scopeKind)))
 	}
 	if input.repeatCount > 0 {
-		parts = append(parts, fmt.Sprintf("重复触发=%d次", input.repeatCount))
+		parts = append(parts, "同一告警实例存在反复触发，恢复后仍需要重点观察是否复发。")
+	} else if len(input.events) >= 3 && input.activeAlerts == 0 {
+		parts = append(parts, "虽然当前已恢复，但窗口内出现频率偏高，建议纳入恢复观察。")
 	}
 	if input.durationSeconds > 0 {
-		parts = append(parts, "最长持续="+formatDurationCN(input.durationSeconds))
-	}
-	if len(alertNames) > 0 {
-		parts = append(parts, "告警类型="+strings.Join(alertNames, "、"))
+		parts = append(parts, "最长一次持续约 "+formatDurationCN(input.durationSeconds)+"。")
 	}
 	if len(directions) > 0 {
-		parts = append(parts, "告警方向="+strings.Join(directions, "、"))
+		parts = append(parts, "已有告警分析指向："+strings.Join(directions, "、")+"。")
 	}
-	return truncateText(strings.Join(parts, "，"), 360)
+	if diagnostic := ruleDiagnosticEvidenceText(input); diagnostic != "" {
+		parts = append(parts, diagnostic)
+	}
+	return truncateText(strings.Join(parts, ""), 360)
+}
+
+func buildInvalidAlertEventEvidenceResult(input reportInput) string {
+	scopeLabel := inputScopeLabel(input.scopeKind)
+	count := maxInt(input.invalidAlerts, input.deduplicatedAlerts)
+	if count <= 0 {
+		count = len(input.events)
+	}
+	parts := []string{
+		fmt.Sprintf("%s在当前窗口触发过告警，但已有分析更倾向将其作为告警规则诊断信号处理。", scopeLabel),
+		"需要对比告警指标与服务 RED 指标是否同步变化，并核对表达式、阈值、标签口径和同比基线。",
+	}
+	if count > 1 || input.repeatCount > 0 {
+		parts = append(parts, "同一目标反复出现时，应优先判断规则噪声是否偏高，而不是直接按服务故障处理。")
+	}
+	return truncateText(strings.Join(parts, ""), 360)
+}
+
+func ruleDiagnosticEvidenceText(input reportInput) string {
+	if input.kind == issueKindInvalidAlert || input.invalidAlerts <= 0 {
+		return ""
+	}
+	count := input.invalidAlerts
+	return fmt.Sprintf("同时有 %d 个同目标告警实例更适合作为告警规则诊断信号，处置时需要同步核对规则口径，避免规则噪声干扰服务风险判断。", count)
+}
+
+func inputScopeLabel(scopeKind string) string {
+	switch scopeKind {
+	case "entry":
+		return "该业务入口"
+	case "service":
+		return "该服务"
+	case "node":
+		return "该节点"
+	case "pod":
+		return "该实例"
+	case "database":
+		return "该数据库"
+	default:
+		return "该影响目标"
+	}
+}
+
+func inputScopeNoun(scopeKind string) string {
+	switch scopeKind {
+	case "entry":
+		return "业务入口"
+	case "service":
+		return "服务"
+	case "node":
+		return "节点"
+	case "pod":
+		return "实例"
+	case "database":
+		return "数据库"
+	default:
+		return "影响目标"
+	}
+}
+
+func alertEventFrequencyText(eventCount int, repeatCount int, instanceCount int, symptom string) string {
+	switch {
+	case eventCount >= 5 || repeatCount >= 3:
+		return "多次反复出现" + symptom + "告警"
+	case eventCount >= 2 || instanceCount >= 2:
+		return "多次出现" + symptom + "告警"
+	case eventCount == 1:
+		return "单次出现" + symptom + "告警"
+	default:
+		return "识别到" + symptom + "告警"
+	}
+}
+
+func alertRecoveryText(input reportInput) string {
+	if input.activeAlerts > 0 {
+		return "当前仍有告警未恢复，需要优先确认影响是否仍在扩大"
+	}
+	if len(input.events) >= 3 || input.repeatCount > 0 {
+		return "当前已恢复，但窗口内触发较频繁，需要确认恢复是否稳定"
+	}
+	return "当前已恢复，建议结合后续窗口确认是否复发"
 }
 
 func buildAlertEventPatternSummary(input reportInput, alertNames []string, directions []string) string {
@@ -2037,7 +3750,9 @@ func buildRelatedObjectStatusResult(statuses []response.SystemHealthObjectStatus
 func alertDirections(events []alertmodel.AEventWithWRecord) []string {
 	values := make([]string, 0, len(events))
 	for _, event := range events {
-		values = append(values, event.AlertDirection)
+		if direction := cleanUserFacingReportText(event.AlertDirection); direction != "" {
+			values = append(values, direction)
+		}
 	}
 	return uniqueStrings(values)
 }
@@ -2063,6 +3778,9 @@ func (h *handler) buildRealEvidence(ctx core.Context, input reportInput, groupID
 		AlertEvents: buildAlertEventEvidenceSamples(input),
 	})
 
+	if reportEvidence := buildAlertReportEvidence(input.alertReportFindings, maxSeverity(input.alertSeverities)); len(reportEvidence) > 0 {
+		evidence = append(evidence, reportEvidence...)
+	}
 	if trendEvidence := h.alertRuleMetricTrendEvidence(ctx, input, groupID, startTime, endTime); trendEvidence.Result != "" {
 		evidence = append(evidence, trendEvidence)
 	}
@@ -2110,6 +3828,76 @@ func (h *handler) buildRealEvidence(ctx core.Context, input reportInput, groupID
 		evidence = append(evidence, capabilityEvidence)
 	}
 	return evidence
+}
+
+func buildAlertReportEvidence(findings []systemHealthAlertReportFinding, severity string) []response.SystemHealthEvidence {
+	grouped := make(map[string][]string)
+	for _, finding := range findings {
+		for _, item := range finding.Evidence {
+			if strings.TrimSpace(item.Kind) == "" || strings.TrimSpace(item.Summary) == "" {
+				continue
+			}
+			grouped[item.Kind] = uniqueStrings(append(grouped[item.Kind], item.Summary))
+		}
+	}
+	order := []string{"apm", "logs", "metrics", "alert"}
+	result := make([]response.SystemHealthEvidence, 0, len(order))
+	for _, kind := range order {
+		summaries := grouped[kind]
+		if len(summaries) == 0 {
+			continue
+		}
+		result = append(result, response.SystemHealthEvidence{
+			Type:     alertReportEvidenceType(kind),
+			Source:   sourceLabel("alertReport"),
+			Severity: severity,
+			Query:    alertReportEvidenceQuery(kind),
+			Result:   alertReportEvidenceResult(kind, strings.Join(summaries[:minInt(len(summaries), 3)], "；")),
+		})
+	}
+	return result
+}
+
+func alertReportEvidenceType(kind string) string {
+	switch kind {
+	case "apm":
+		return "方向报告-APM链路"
+	case "logs":
+		return "方向报告-日志分析"
+	case "metrics":
+		return "方向报告-指标趋势"
+	case "alert":
+		return "方向报告-告警事件分析"
+	default:
+		return "方向报告-补充证据"
+	}
+}
+
+func alertReportEvidenceQuery(kind string) string {
+	switch kind {
+	case "apm":
+		return "alert_report.topology + alert_report.data"
+	case "logs", "metrics", "alert":
+		return "alert_report.data"
+	default:
+		return "alert_report"
+	}
+}
+
+func alertReportEvidenceResult(kind string, summary string) string {
+	summary = normalizeReportEvidenceSummary(summary)
+	switch kind {
+	case "apm":
+		return "方向报告中的 APM 链路分析显示：" + summary
+	case "logs":
+		return "方向报告中的日志分析显示：" + summary
+	case "metrics":
+		return "方向报告中的指标趋势显示：" + summary
+	case "alert":
+		return "方向报告中的告警事件分析显示：" + summary
+	default:
+		return "方向报告补充证据显示：" + summary
+	}
 }
 
 func (h *handler) traceSampleEvidence(ctx core.Context, input reportInput, groupID int64, startTime time.Time, endTime time.Time) response.SystemHealthEvidence {
@@ -2296,11 +4084,23 @@ func (h *handler) alertRuleMetricTrendEvidence(ctx core.Context, input reportInp
 		Query:    "alert_event.raw_tags + alert_rule.expr",
 	}
 	if len(input.events) == 0 {
+		systemHealthWarnCtx(ctx, "system-health metric trend skipped",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("reason", "no_events"),
+		)
 		return evidence
 	}
 	trend, err := h.queryAlertMetricTrend(ctx, input.events[:minInt(maxEvidenceSamples, len(input.events))], groupID, startTime, endTime)
 	if err != nil {
 		evidence.Result = err.Error()
+		systemHealthWarnCtx(ctx, "system-health metric trend fallback",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("scope", input.scope),
+			zap.String("reason", "query_failed_or_unavailable"),
+			zap.Error(err),
+		)
 		return evidence
 	}
 	evidence.Query = trend.Expression
@@ -2317,6 +4117,18 @@ func (h *handler) alertRuleMetricTrendEvidence(ctx core.Context, input reportInp
 			selectedAlertLabels(trend.MatchLabels),
 			summary,
 		), 520)
+		systemHealthInfoCtx(ctx, "system-health metric trend matched event series",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("ruleGroup", trend.Rule.Group),
+			zap.String("ruleName", trend.Rule.Alert),
+			zap.Int("seriesReturned", trend.SeriesReturned),
+			zap.Int("seriesMatched", trend.Stats.SeriesCount),
+			zap.Int("pointCount", trend.Stats.PointCount),
+			zap.Bool("eventScoped", trend.EventScoped),
+			zap.Duration("step", trend.Step),
+			zap.Any("matchLabels", trend.MatchLabels),
+		)
 		return evidence
 	}
 	evidence.Result = truncateText(fmt.Sprintf(
@@ -2325,6 +4137,16 @@ func (h *handler) alertRuleMetricTrendEvidence(ctx core.Context, input reportInp
 		trend.Rule.Alert,
 		trend.SeriesReturned,
 	), 420)
+	systemHealthWarnCtx(ctx, "system-health metric trend used global boundary only",
+		zap.String("issueKey", input.key),
+		zap.String("aggregationKey", input.aggregationKey),
+		zap.String("ruleGroup", trend.Rule.Group),
+		zap.String("ruleName", trend.Rule.Alert),
+		zap.Int("seriesReturned", trend.SeriesReturned),
+		zap.Int("pointCount", trend.Stats.PointCount),
+		zap.Bool("eventScoped", trend.EventScoped),
+		zap.String("reason", trend.Message),
+	)
 	return evidence
 }
 
@@ -2333,21 +4155,79 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 		return alertMetricTrendQueryResult{}, fmt.Errorf("未提供告警事件，无法反查 PQL 和指标趋势。")
 	}
 	event := events[0]
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health metric trend query started",
+		zap.Int64("groupId", groupID),
+		zap.Int("eventCount", len(events)),
+		zap.String("eventID", event.EventID),
+		zap.String("alertID", event.AlertID),
+		zap.String("alertName", event.Name),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+	)
 	rule, found := h.findAlertRuleForEvent(ctx, event, groupID)
 	if !found || rule == nil {
+		systemHealthWarnCtx(ctx, "system-health metric trend query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertID", event.AlertID),
+			zap.String("alertName", event.Name),
+			zap.String("reason", "alert_rule_not_found"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return alertMetricTrendQueryResult{}, fmt.Errorf("未找到告警规则：告警事件=%s，无法反查 PQL 和指标趋势。", event.Name)
 	}
 	expr := strings.TrimSpace(rule.Expr)
 	if expr == "" {
+		systemHealthWarnCtx(ctx, "system-health metric trend query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("reason", "empty_rule_expr"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return alertMetricTrendQueryResult{}, fmt.Errorf("已匹配告警规则 %s/%s，但规则未配置 PQL。", rule.Group, rule.Alert)
 	}
 	if h.promRepo == nil {
+		systemHealthWarnCtx(ctx, "system-health metric trend query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("reason", "prometheus_repository_not_configured"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return alertMetricTrendQueryResult{}, fmt.Errorf("已匹配告警规则 %s/%s；Prometheus 仓库未初始化，无法查询窗口趋势。", rule.Group, rule.Alert)
 	}
 
 	step := trendQueryStep(startTime, endTime)
+	systemHealthInfoCtx(ctx, "system-health metric trend raw query prepared",
+		zap.Int64("groupId", groupID),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.String("ruleGroup", rule.Group),
+		zap.String("ruleName", rule.Alert),
+		zap.String("ruleSource", rule.Labels["source"]),
+		zap.Int("exprLength", len(expr)),
+		zap.String("exprHash", systemHealthShortHash(expr)),
+		zap.Duration("step", step),
+	)
 	results, err := h.queryRawMetricSeries(ctx, startTime, endTime, expr, step)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health metric trend query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("ruleSource", rule.Labels["source"]),
+			zap.String("reason", "prometheus_query_failed"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
 		return alertMetricTrendQueryResult{}, fmt.Errorf("已匹配告警规则 %s/%s；查询窗口趋势失败：%w", rule.Group, rule.Alert, err)
 	}
 	for _, candidate := range events {
@@ -2356,6 +4236,19 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 		if !ok {
 			continue
 		}
+		systemHealthInfoCtx(ctx, "system-health metric trend query completed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", candidate.EventID),
+			zap.String("alertName", candidate.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("ruleSource", rule.Labels["source"]),
+			zap.Int("seriesReturned", len(results)),
+			zap.Int("seriesMatched", len(matched)),
+			zap.Int("pointCount", stats.PointCount),
+			zap.Bool("eventScoped", true),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return alertMetricTrendQueryResult{
 			Rule:           rule,
 			Expression:     expr,
@@ -2370,8 +4263,31 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 	}
 	stats, ok := calculateMetricTrendStats(results)
 	if !ok {
+		systemHealthWarnCtx(ctx, "system-health metric trend query failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("ruleSource", rule.Labels["source"]),
+			zap.Int("seriesReturned", len(results)),
+			zap.String("reason", "no_usable_points"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return alertMetricTrendQueryResult{}, fmt.Errorf("已匹配告警规则 %s/%s；规则查询未返回可用时序点。", rule.Group, rule.Alert)
 	}
+	systemHealthWarnCtx(ctx, "system-health metric trend query completed without event scoped series",
+		zap.Int64("groupId", groupID),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.String("ruleGroup", rule.Group),
+		zap.String("ruleName", rule.Alert),
+		zap.String("ruleSource", rule.Labels["source"]),
+		zap.Int("seriesReturned", len(results)),
+		zap.Int("pointCount", stats.PointCount),
+		zap.Bool("eventScoped", false),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
 	return alertMetricTrendQueryResult{
 		Rule:           rule,
 		Expression:     expr,
@@ -2494,10 +4410,36 @@ func metricMatchExpression(labels map[string]string) string {
 }
 
 func (h *handler) findAlertRuleForEvent(ctx core.Context, event alertmodel.AEventWithWRecord, groupID int64) (*request.AlertRule, bool) {
+	lookupStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health alert rule lookup started",
+		zap.Int64("groupId", groupID),
+		zap.String("eventID", event.EventID),
+		zap.String("alertID", event.AlertID),
+		zap.String("alertName", event.Name),
+		zap.String("eventGroup", event.Group),
+	)
 	if rule, found := h.findVMAlertRuleForEvent(ctx, event); found {
+		systemHealthInfoCtx(ctx, "system-health alert rule lookup completed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("ruleSource", rule.Labels["source"]),
+			zap.String("matchedBy", "vmalert"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
 		return rule, true
 	}
 	if h.k8sRepo == nil || strings.TrimSpace(event.Name) == "" {
+		systemHealthWarnCtx(ctx, "system-health alert rule lookup failed",
+			zap.Int64("groupId", groupID),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Bool("k8sRepoConfigured", h.k8sRepo != nil),
+			zap.String("reason", "missing_k8s_repository_or_alert_name"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
 		return nil, false
 	}
 	groupIDs := []int64{groupID}
@@ -2509,16 +4451,41 @@ func (h *handler) findAlertRuleForEvent(ctx core.Context, event alertmodel.AEven
 	groupIDs = append(groupIDs, 0)
 
 	for index, id := range uniqueInt64(groupIDs) {
-		rule, found := h.findAlertRuleByName(event, id, index == 0)
+		rule, found := h.findAlertRuleByName(ctx, event, id, index == 0)
 		if found {
+			systemHealthInfoCtx(ctx, "system-health alert rule lookup completed",
+				zap.Int64("groupId", groupID),
+				zap.Int64("lookupGroupId", id),
+				zap.String("eventID", event.EventID),
+				zap.String("alertName", event.Name),
+				zap.String("ruleGroup", rule.Group),
+				zap.String("ruleName", rule.Alert),
+				zap.String("ruleSource", firstNonEmpty(rule.Labels["source"], "k8s-alert-rules")),
+				zap.String("matchedBy", "k8s_rule_name"),
+				zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			)
 			return rule, true
 		}
 	}
+	systemHealthWarnCtx(ctx, "system-health alert rule lookup failed",
+		zap.Int64("groupId", groupID),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.String("groupIDsTried", systemHealthCompactJSON(uniqueInt64(groupIDs))),
+		zap.String("reason", "rule_not_found"),
+		zap.Duration("elapsed", time.Since(lookupStartedAt)),
+	)
 	return nil, false
 }
 
 func (h *handler) findVMAlertRuleForEvent(ctx core.Context, event alertmodel.AEventWithWRecord) (*request.AlertRule, bool) {
 	if strings.TrimSpace(h.vmAlertURL) == "" || strings.TrimSpace(event.Name) == "" {
+		systemHealthInfoCtx(ctx, "system-health vmalert rule lookup skipped",
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Bool("hasVMAlertURL", strings.TrimSpace(h.vmAlertURL) != ""),
+			zap.String("reason", "missing_vmalert_url_or_alert_name"),
+		)
 		return nil, false
 	}
 	if rule, found := h.findVMAlertActiveRuleForEvent(ctx, event); found {
@@ -2529,38 +4496,85 @@ func (h *handler) findVMAlertRuleForEvent(ctx core.Context, event alertmodel.AEv
 
 func (h *handler) findVMAlertActiveRuleForEvent(ctx core.Context, event alertmodel.AEventWithWRecord) (*request.AlertRule, bool) {
 	endpoint := strings.TrimRight(h.vmAlertURL, "/") + "/api/v1/alerts"
+	lookupStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health vmalert active rule lookup started",
+		zap.String("endpoint", endpoint),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+	)
 	req, err := http.NewRequestWithContext(ctx.GetContext(), http.MethodGet, endpoint, nil)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert active rule lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("reason", "build_request_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
 	resp, err := (&http.Client{Timeout: 8 * time.Second}).Do(req)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert active rule lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("reason", "request_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		systemHealthWarnCtx(ctx, "system-health vmalert active rule lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "bad_status"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
 		return nil, false
 	}
 
 	var apiResp vmAlertAPIAlertsResp
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert active rule lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "decode_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
+	candidateNameCount := 0
+	filteredStateCount := 0
+	filteredLabelCount := 0
+	emptyExprCount := 0
 	for _, alert := range apiResp.Data.Alerts {
 		if strings.TrimSpace(alert.Name) != strings.TrimSpace(event.Name) {
 			continue
 		}
+		candidateNameCount++
 		if alert.State != "" && alert.State != alertmodel.StatusFiring {
+			filteredStateCount++
 			continue
 		}
 		if !labelsMatchAlertEvent(alert.Labels, event) {
+			filteredLabelCount++
 			continue
 		}
 		expr := strings.TrimSpace(firstNonEmpty(alert.Expression, alert.Query))
 		if expr == "" {
+			emptyExprCount++
 			continue
 		}
-		return &request.AlertRule{
+		rule := &request.AlertRule{
 			Group: firstNonEmpty(alert.Labels["alertgroup"], alert.Labels["group"], alert.GroupID),
 			Alert: event.Name,
 			Expr:  expr,
@@ -2569,40 +4583,109 @@ func (h *handler) findVMAlertActiveRuleForEvent(ctx core.Context, event alertmod
 				"rule_id":  alert.ID,
 				"source":   "vmalert-api",
 			},
-		}, true
+		}
+		systemHealthInfoCtx(ctx, "system-health vmalert active rule lookup completed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.Int("candidateRuleCount", candidateNameCount),
+			zap.String("ruleGroup", rule.Group),
+			zap.String("ruleName", rule.Alert),
+			zap.String("matchedBy", "name_labels_state"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
+		return rule, true
 	}
+	systemHealthWarnCtx(ctx, "system-health vmalert active rule lookup not matched",
+		zap.String("endpoint", endpoint),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.Int("httpStatus", resp.StatusCode),
+		zap.Int("rawAlertCount", len(apiResp.Data.Alerts)),
+		zap.Int("candidateRuleCount", candidateNameCount),
+		zap.Int("filteredStateCount", filteredStateCount),
+		zap.Int("filteredLabelCount", filteredLabelCount),
+		zap.Int("emptyExprCount", emptyExprCount),
+		zap.Duration("elapsed", time.Since(lookupStartedAt)),
+	)
 	return nil, false
 }
 
 func (h *handler) findVMAlertRuleDefinitionForEvent(ctx core.Context, event alertmodel.AEventWithWRecord) (*request.AlertRule, bool) {
 	endpoint := strings.TrimRight(h.vmAlertURL, "/") + "/api/v1/rules"
+	lookupStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health vmalert rule definition lookup started",
+		zap.String("endpoint", endpoint),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+	)
 	req, err := http.NewRequestWithContext(ctx.GetContext(), http.MethodGet, endpoint, nil)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert rule definition lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("reason", "build_request_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
 	resp, err := (&http.Client{Timeout: 8 * time.Second}).Do(req)
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert rule definition lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.String("reason", "request_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		systemHealthWarnCtx(ctx, "system-health vmalert rule definition lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "bad_status"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
 		return nil, false
 	}
 
 	var apiResp vmAlertAPIRulesResp
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert rule definition lookup failed",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("reason", "decode_failed"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+			zap.Error(err),
+		)
 		return nil, false
 	}
 
 	rawTags := rawTagsFromEvent(event)
 	var fallback *request.AlertRule
+	totalRuleCount := 0
+	candidateNameCount := 0
+	emptyExprCount := 0
 	for _, group := range apiResp.Data.Groups {
 		for _, rule := range group.Rules {
+			totalRuleCount++
 			if strings.TrimSpace(rule.Name) != strings.TrimSpace(event.Name) {
 				continue
 			}
+			candidateNameCount++
 			expr := strings.TrimSpace(firstNonEmpty(rule.Query, rule.Expr))
 			if expr == "" {
+				emptyExprCount++
 				continue
 			}
 			candidate := &request.AlertRule{
@@ -2619,13 +4702,51 @@ func (h *handler) findVMAlertRuleDefinitionForEvent(ctx core.Context, event aler
 				fallback = candidate
 			}
 			if vmAlertRuleMatchesEvent(rule, group, event) {
+				systemHealthInfoCtx(ctx, "system-health vmalert rule definition lookup completed",
+					zap.String("endpoint", endpoint),
+					zap.String("eventID", event.EventID),
+					zap.String("alertName", event.Name),
+					zap.Int("httpStatus", resp.StatusCode),
+					zap.Int("groupCount", len(apiResp.Data.Groups)),
+					zap.Int("totalRuleCount", totalRuleCount),
+					zap.Int("candidateRuleCount", candidateNameCount),
+					zap.String("ruleGroup", candidate.Group),
+					zap.String("ruleName", candidate.Alert),
+					zap.String("matchedBy", "name_labels_or_group"),
+					zap.Duration("elapsed", time.Since(lookupStartedAt)),
+				)
 				return candidate, true
 			}
 		}
 	}
 	if fallback != nil {
+		systemHealthWarnCtx(ctx, "system-health vmalert rule definition fallback matched by name",
+			zap.String("endpoint", endpoint),
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.Int("groupCount", len(apiResp.Data.Groups)),
+			zap.Int("totalRuleCount", totalRuleCount),
+			zap.Int("candidateRuleCount", candidateNameCount),
+			zap.Int("emptyExprCount", emptyExprCount),
+			zap.String("ruleGroup", fallback.Group),
+			zap.String("ruleName", fallback.Alert),
+			zap.String("matchedBy", "name_fallback"),
+			zap.Duration("elapsed", time.Since(lookupStartedAt)),
+		)
 		return fallback, true
 	}
+	systemHealthWarnCtx(ctx, "system-health vmalert rule definition lookup not matched",
+		zap.String("endpoint", endpoint),
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.Int("httpStatus", resp.StatusCode),
+		zap.Int("groupCount", len(apiResp.Data.Groups)),
+		zap.Int("totalRuleCount", totalRuleCount),
+		zap.Int("candidateRuleCount", candidateNameCount),
+		zap.Int("emptyExprCount", emptyExprCount),
+		zap.Duration("elapsed", time.Since(lookupStartedAt)),
+	)
 	return nil, false
 }
 
@@ -2656,14 +4777,34 @@ func vmAlertRuleMatchesEvent(rule vmAlertAPIRule, group vmAlertAPIGroup, event a
 	return false
 }
 
-func (h *handler) findAlertRuleByName(event alertmodel.AEventWithWRecord, groupID int64, syncNow bool) (*request.AlertRule, bool) {
+func (h *handler) findAlertRuleByName(ctx core.Context, event alertmodel.AEventWithWRecord, groupID int64, syncNow bool) (*request.AlertRule, bool) {
 	filter := &request.AlertRuleFilter{Alert: event.Name}
 	if groupID > 0 {
 		filter.GroupID = groupID
 	}
-	rules, _ := h.k8sRepo.GetAlertRules("", filter, nil, syncNow)
+	lookupStartedAt := time.Now()
+	rules, totalCount := h.k8sRepo.GetAlertRules("", filter, nil, syncNow)
+	systemHealthInfoCtx(ctx, "system-health k8s alert rule lookup returned",
+		zap.String("eventID", event.EventID),
+		zap.String("alertName", event.Name),
+		zap.Int64("lookupGroupId", groupID),
+		zap.Bool("syncNow", syncNow),
+		zap.Int("ruleCount", len(rules)),
+		zap.Int("totalCount", totalCount),
+		zap.Duration("elapsed", time.Since(lookupStartedAt)),
+	)
 	if len(rules) == 0 && !syncNow {
-		rules, _ = h.k8sRepo.GetAlertRules("", filter, nil, true)
+		syncLookupStartedAt := time.Now()
+		rules, totalCount = h.k8sRepo.GetAlertRules("", filter, nil, true)
+		systemHealthInfoCtx(ctx, "system-health k8s alert rule lookup returned",
+			zap.String("eventID", event.EventID),
+			zap.String("alertName", event.Name),
+			zap.Int64("lookupGroupId", groupID),
+			zap.Bool("syncNow", true),
+			zap.Int("ruleCount", len(rules)),
+			zap.Int("totalCount", totalCount),
+			zap.Duration("elapsed", time.Since(syncLookupStartedAt)),
+		)
 	}
 	return selectAlertRule(event, rules)
 }
@@ -2709,16 +4850,45 @@ func trendQueryStep(startTime time.Time, endTime time.Time) time.Duration {
 }
 
 func (h *handler) queryRawMetricSeries(ctx core.Context, startTime time.Time, endTime time.Time, expr string, step time.Duration) ([]alertMetricSeries, error) {
-	value, _, err := h.promRepo.GetApi().QueryRange(ctx.GetContext(), expr, v1.Range{
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health prometheus range query started",
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+		zap.Duration("step", step),
+		zap.Int("exprLength", len(expr)),
+		zap.String("exprHash", systemHealthShortHash(expr)),
+	)
+	value, warnings, err := h.promRepo.GetApi().QueryRange(ctx.GetContext(), expr, v1.Range{
 		Start: startTime,
 		End:   endTime,
 		Step:  step,
 	})
 	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health prometheus range query failed",
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Duration("step", step),
+			zap.Int("exprLength", len(expr)),
+			zap.String("exprHash", systemHealthShortHash(expr)),
+			zap.Strings("promWarnings", prometheusWarnings(warnings)),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
 		return nil, err
 	}
 	matrix, ok := value.(prommodel.Matrix)
 	if !ok {
+		systemHealthWarnCtx(ctx, "system-health prometheus range query failed",
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Duration("step", step),
+			zap.Int("exprLength", len(expr)),
+			zap.String("exprHash", systemHealthShortHash(expr)),
+			zap.String("valueType", fmt.Sprintf("%T", value)),
+			zap.Strings("promWarnings", prometheusWarnings(warnings)),
+			zap.String("reason", "unexpected_value_type"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
 		return nil, fmt.Errorf("unexpected type %T, expected prometheus matrix", value)
 	}
 	series := make([]alertMetricSeries, 0, len(matrix))
@@ -2736,6 +4906,23 @@ func (h *handler) queryRawMetricSeries(ctx core.Context, startTime time.Time, en
 		}
 		series = append(series, alertMetricSeries{Labels: labels, Values: points})
 	}
+	pointCount := 0
+	for _, item := range series {
+		pointCount += len(item.Values)
+	}
+	systemHealthInfoCtx(ctx, "system-health prometheus range query completed",
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+		zap.Duration("step", step),
+		zap.Int("exprLength", len(expr)),
+		zap.String("exprHash", systemHealthShortHash(expr)),
+		zap.String("valueType", fmt.Sprintf("%T", value)),
+		zap.Strings("promWarnings", prometheusWarnings(warnings)),
+		zap.Int("seriesReturned", len(series)),
+		zap.Int("pointCount", pointCount),
+		zap.Bool("emptySeries", len(series) == 0),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
 	return series, nil
 }
 
@@ -2966,9 +5153,20 @@ func alertMetricSummary(event alertmodel.AEventWithWRecord) string {
 		parts = append(parts, "级别="+event.Severity)
 	}
 	if event.Status != "" {
-		parts = append(parts, "状态="+event.Status)
+		parts = append(parts, "当前状态："+alertStatusText(event.Status))
 	}
 	return strings.Join(parts, "，")
+}
+
+func alertStatusText(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case alertmodel.StatusFiring, "active":
+		return "仍在触发"
+	case alertmodel.StatusResolved, "recovering", "recovered":
+		return "已恢复"
+	default:
+		return strings.TrimSpace(status)
+	}
 }
 
 func alertDetailSummary(event alertmodel.AEventWithWRecord) string {
@@ -3177,16 +5375,30 @@ func orderedSelectedAlertLabelKeys(source map[string]string, selected map[string
 func buildRealImpact(input reportInput) string {
 	switch input.kind {
 	case issueKindActiveAlert:
-		return fmt.Sprintf("%d 个去重有效告警实例仍在触发，影响目标为 %s；最长持续 %s。", input.activeAlerts, input.scope, formatDurationCN(input.durationSeconds))
+		return fmt.Sprintf("%d 个去重有效告警实例仍在触发，影响目标为 %s；最长持续 %s%s。", input.activeAlerts, input.scope, formatDurationCN(input.durationSeconds), ruleDiagnosticImpactSuffix(input))
 	case issueKindInspection:
-		return fmt.Sprintf("真实巡检/异常检测事件仍在触发，影响目标为 %s。", input.scope)
+		return fmt.Sprintf("真实巡检/异常检测事件仍在触发，影响目标为 %s%s。", input.scope, ruleDiagnosticImpactSuffix(input))
 	case issueKindRecoveredAlert:
-		return fmt.Sprintf("%d 个去重有效告警实例已恢复，影响目标 %s 进入恢复观察。", input.deduplicatedAlerts, input.scope)
+		return fmt.Sprintf("%d 个去重有效告警实例已恢复，影响目标 %s 进入恢复观察%s。", effectiveAlertCount(input), input.scope, ruleDiagnosticImpactSuffix(input))
 	case issueKindInvalidAlert:
-		return fmt.Sprintf("%d 个告警实例仍在触发但被反复识别为无效，影响目标为 %s；优先判断告警指标、表达式或阈值是否与服务 RED 指标背离。", input.deduplicatedAlerts, input.scope)
+		return fmt.Sprintf("%d 个告警实例更适合作为告警规则诊断信号，影响目标为 %s；优先判断告警指标、表达式或阈值是否与服务 RED 指标背离。", maxInt(input.invalidAlerts, input.deduplicatedAlerts), input.scope)
 	default:
 		return fmt.Sprintf("影响目标为 %s。", input.scope)
 	}
+}
+
+func effectiveAlertCount(input reportInput) int {
+	if input.effectiveAlerts > 0 {
+		return input.effectiveAlerts
+	}
+	return input.deduplicatedAlerts
+}
+
+func ruleDiagnosticImpactSuffix(input reportInput) string {
+	if input.kind == issueKindInvalidAlert || input.invalidAlerts <= 0 {
+		return ""
+	}
+	return fmt.Sprintf("；另有 %d 个同目标告警实例作为规则诊断信号一并合并", input.invalidAlerts)
 }
 
 func scoreIssues(inputs []reportInput) []scoredIssue {
@@ -3199,8 +5411,8 @@ func scoreIssues(inputs []reportInput) []scoredIssue {
 		}
 		redDegradation := redDegradationScore(input)
 		propagation := propagationScore(input)
-		completenessPenalty := dataCompletenessPenalty(input.availableCalcSources)
-		pathRisk := 0.35*entryImpact + 0.25*alertSeverity + 0.20*redDegradation + 0.15*propagation + 0.05*completenessPenalty
+		completenessGap := dataCompletenessGap(input.availableCalcSources)
+		pathRisk := 0.3684*entryImpact + 0.2632*alertSeverity + 0.2105*redDegradation + 0.1579*propagation
 		priority := priority(pathRisk, input.alertSeverities, input.kind)
 		if priority == "" {
 			continue
@@ -3213,16 +5425,15 @@ func scoreIssues(inputs []reportInput) []scoredIssue {
 			status = "minor"
 		}
 		scored = append(scored, scoredIssue{
-			input:                   input,
-			entryImpactScore:        entryImpact,
-			alertSeverityScore:      alertSeverity,
-			redDegradationScore:     redDegradation,
-			propagationScore:        propagation,
-			dataCompletenessPenalty: completenessPenalty,
-			pathRisk:                pathRisk,
-			dataQualityScore:        issueDataQualityScore(input),
-			priority:                priority,
-			status:                  status,
+			input:               input,
+			entryImpactScore:    entryImpact,
+			alertSeverityScore:  alertSeverity,
+			redDegradationScore: redDegradation,
+			propagationScore:    propagation,
+			dataCompletenessGap: completenessGap,
+			pathRisk:            pathRisk,
+			priority:            priority,
+			status:              status,
 		})
 	}
 
@@ -3233,7 +5444,16 @@ func scoreIssues(inputs []reportInput) []scoredIssue {
 		if scored[i].pathRisk != scored[j].pathRisk {
 			return scored[i].pathRisk > scored[j].pathRisk
 		}
-		return scored[i].dataQualityScore > scored[j].dataQualityScore
+		if scored[i].input.activeAlerts != scored[j].input.activeAlerts {
+			return scored[i].input.activeAlerts > scored[j].input.activeAlerts
+		}
+		if scored[i].input.deduplicatedAlerts != scored[j].input.deduplicatedAlerts {
+			return scored[i].input.deduplicatedAlerts > scored[j].input.deduplicatedAlerts
+		}
+		if scored[i].input.rawEventCount != scored[j].input.rawEventCount {
+			return scored[i].input.rawEventCount > scored[j].input.rawEventCount
+		}
+		return scored[i].input.key < scored[j].input.key
 	})
 
 	for i := range scored {
@@ -3286,6 +5506,83 @@ func buildIssues(scored []scoredIssue) []response.SystemHealthIssue {
 	return issues
 }
 
+func logSystemHealthIssueDiagnostics(ctx core.Context, scored []scoredIssue, issues []response.SystemHealthIssue) {
+	for index, item := range scored {
+		var issue response.SystemHealthIssue
+		if index < len(issues) {
+			issue = issues[index]
+		}
+		rootCause, rootCauseSource, rootCauseReason := buildRootCauseDecision(item)
+		metricStatus, metricReason := metricTrendDiagnostic(item.input.evidence)
+		reportEvidenceKinds := alertReportEvidenceKinds(item.input.alertReportFindings)
+		actionPlanSource := "system_default"
+		if len(alertReportActionPlanSteps(item.input.alertReportActions, item.input.scope)) > 0 {
+			actionPlanSource = "alert_report+system_default"
+		}
+		systemHealthInfoCtx(ctx, "system-health issue diagnostics",
+			zap.String("issueKey", item.input.key),
+			zap.String("responseKey", issue.Key),
+			zap.String("aggregationKey", item.input.aggregationKey),
+			zap.String("kind", item.input.kind),
+			zap.String("priority", item.priority),
+			zap.String("status", item.status),
+			zap.String("title", item.input.title),
+			zap.String("scope", item.input.scope),
+			zap.String("scopeKind", item.input.scopeKind),
+			zap.Int("rawEventCount", item.input.rawEventCount),
+			zap.Int("deduplicatedAlerts", item.input.deduplicatedAlerts),
+			zap.Int("activeAlerts", item.input.activeAlerts),
+			zap.Int("repeatCount", item.input.repeatCount),
+			zap.Strings("mergeReasons", item.input.mergeReasons),
+			zap.Strings("alertNames", uniqueStrings(item.input.alertNames)),
+			zap.String("rootCauseSource", rootCauseSource),
+			zap.String("rootCauseFallbackReason", rootCauseReason),
+			zap.Bool("hasRootCause", rootCause != ""),
+			zap.Int("alertReportActions", len(item.input.alertReportActions)),
+			zap.Int("alertReportFindings", len(item.input.alertReportFindings)),
+			zap.Strings("alertReportEvidenceKinds", reportEvidenceKinds),
+			zap.String("actionPlanSource", actionPlanSource),
+			zap.Int("actionPlanSteps", len(issue.ActionPlan)),
+			zap.String("metricTrendStatus", metricStatus),
+			zap.String("metricTrendReason", metricReason),
+			zap.Strings("dataSources", item.input.displaySources),
+			zap.Strings("missingData", missingSourceLabels(item.input.availableCalcSources)),
+		)
+	}
+}
+
+func metricTrendDiagnostic(evidence []response.SystemHealthEvidence) (string, string) {
+	for _, item := range evidence {
+		if !strings.Contains(item.Type, "告警指标趋势") {
+			continue
+		}
+		if item.Metric == nil {
+			if strings.TrimSpace(item.Result) == "" {
+				return "missing", "metric_evidence_empty"
+			}
+			return "unavailable", item.Result
+		}
+		if item.Metric.EventScoped {
+			return "event_scoped", item.Metric.Message
+		}
+		return "global_only", item.Metric.Message
+	}
+	return "missing", "metric_evidence_not_built"
+}
+
+func alertReportEvidenceKinds(findings []systemHealthAlertReportFinding) []string {
+	kinds := make([]string, 0, 4)
+	for _, finding := range findings {
+		for _, item := range finding.Evidence {
+			if strings.TrimSpace(item.Kind) == "" {
+				continue
+			}
+			kinds = append(kinds, item.Kind)
+		}
+	}
+	return uniqueStrings(kinds)
+}
+
 func buildScoreFactors(scored []scoredIssue) []response.SystemHealthScoreFactor {
 	factors := make([]response.SystemHealthScoreFactor, 0, minInt(3, len(scored)))
 	for i, item := range scored {
@@ -3304,32 +5601,162 @@ func buildScoreFactors(scored []scoredIssue) []response.SystemHealthScoreFactor 
 }
 
 func buildActionPlan(item scoredIssue) []response.SystemHealthActionPlanStep {
-	basePlan := buildDefaultActionPlan(item)
 	reportPlan := alertReportActionPlanSteps(item.input.alertReportActions, item.input.scope)
-	return mergeActionPlanSteps(reportPlan, basePlan)
+	if len(reportPlan) > 0 {
+		return mergeActionPlanSteps(reportPlan, buildDefaultActionPlan(item))
+	}
+	return buildDefaultActionPlan(item)
 }
 
 func buildDefaultActionPlan(item scoredIssue) []response.SystemHealthActionPlanStep {
 	switch item.input.kind {
 	case issueKindRecoveredAlert:
-		return []response.SystemHealthActionPlanStep{
-			{Phase: "恢复验证", Target: "确认有效告警恢复后不再复发。", Action: "查看该影响目标的历史告警和最新指标趋势。", Validation: "恢复观察窗口内无新的 firing 事件。", Risk: "恢复期仍可能出现同类告警复发。"},
-		}
+		return buildRecoveredAlertActionPlan(item)
 	case issueKindInspection:
-		return []response.SystemHealthActionPlanStep{
-			{Phase: "异常确认", Target: "确认巡检异常是否影响业务入口。", Action: "查看该影响目标相关指标趋势和关联服务状态。", Validation: "指标回到阈值内或确认无业务影响。", Risk: "巡检异常可能提前于正式告警出现。"},
-		}
+		return appendRuleDiagnosticActionStep(item, []response.SystemHealthActionPlanStep{
+			{Phase: "异常确认", Target: "确认巡检异常是否影响业务入口。", Action: "查看该影响目标相关指标趋势和关联服务状态。", Validation: "指标回到阈值内或确认无业务影响。", Risk: "巡检异常可能提前于正式告警出现。", Source: "system"},
+		})
 	case issueKindInvalidAlert:
 		return []response.SystemHealthActionPlanStep{
-			{Phase: "规则诊断", Target: "判断告警指标是否误报。", Action: "对比告警触发指标与同窗口服务 RED 指标，确认请求量、错误率和延迟是否同步异常。", Validation: "RED 指标无明显变化且告警持续被识别为无效时，进入告警规则修正流程。", Risk: "直接屏蔽告警可能掩盖真实异常，应先确认指标口径。"},
-			{Phase: "规则修正", Target: "降低无效告警反复触发。", Action: "检查告警表达式、标签匹配、阈值、同比基线和聚合维度，必要时调整规则或静默条件。", Validation: "规则调整后无效告警数量下降，真实业务异常仍能触发有效告警。", Risk: "阈值放宽过度会降低告警灵敏度。"},
+			{Phase: "规则诊断", Target: "判断告警指标是否误报。", Action: "对比告警触发指标与同窗口服务 RED 指标，确认请求量、错误率和延迟是否同步异常。", Validation: "RED 指标无明显变化且告警持续被识别为无效时，进入告警规则修正流程。", Risk: "直接屏蔽告警可能掩盖真实异常，应先确认指标口径。", Source: "system"},
+			{Phase: "规则修正", Target: "降低无效告警反复触发。", Action: "检查告警表达式、标签匹配、阈值、同比基线和聚合维度，必要时调整规则或静默条件。", Validation: "规则调整后无效告警数量下降，真实业务异常仍能触发有效告警。", Risk: "阈值放宽过度会降低告警灵敏度。", Source: "system"},
 		}
 	default:
-		return []response.SystemHealthActionPlanStep{
-			{Phase: "影响控制", Target: "优先处理仍在触发的有效告警。", Action: "进入关联告警，确认告警目标、级别、最近触发时间和影响范围。", Validation: "有效 firing 告警数量下降，关键目标状态恢复。", Risk: "只关闭告警不代表业务影响已经恢复。"},
-			{Phase: "恢复验证", Target: "确认问题不再扩散或复发。", Action: "持续观察该影响目标的告警状态和相关指标。", Validation: "观察窗口内无新增有效告警。", Risk: "下游影响可能滞后于告警恢复。"},
+		return appendRuleDiagnosticActionStep(item, []response.SystemHealthActionPlanStep{
+			{Phase: "影响控制", Target: "优先处理仍在触发的有效告警。", Action: "进入关联告警，确认告警目标、级别、最近触发时间和影响范围。", Validation: "有效 firing 告警数量下降，关键目标状态恢复。", Risk: "只关闭告警不代表业务影响已经恢复。", Source: "system"},
+			{Phase: "恢复验证", Target: "确认问题不再扩散或复发。", Action: "持续观察该影响目标的告警状态和相关指标。", Validation: "观察窗口内无新增有效告警。", Risk: "下游影响可能滞后于告警恢复。", Source: "system"},
+		})
+	}
+}
+
+func buildRecoveredAlertActionPlan(item scoredIssue) []response.SystemHealthActionPlanStep {
+	scope := firstNonEmpty(item.input.scope, "当前影响目标")
+	symptom := issueSymptomText(item)
+	steps := []response.SystemHealthActionPlanStep{
+		{
+			Phase:      "复发观察",
+			Target:     scope,
+			Action:     fmt.Sprintf("回看 %s 在当前窗口内的告警触发和恢复时间，确认是否集中在同一对象反复出现。", scope),
+			Validation: "确认后续观察窗口内同一对象没有新的 firing 告警，且告警间隔没有继续缩短。",
+			Risk:       fmt.Sprintf("恢复态%s告警可能在流量波动或下游抖动时再次触发。", symptom),
+			Source:     "system",
+		},
+	}
+
+	steps = append(steps, recoveredMetricActionStep(item, scope))
+	if traceEvidenceAvailable(item.input.evidence) {
+		steps = append(steps, response.SystemHealthActionPlanStep{
+			Phase:      "链路回看",
+			Target:     scope,
+			Action:     fmt.Sprintf("回看 %s 告警触发时段的 Trace 样本，确认慢调用集中在入口处理、下游调用还是资源等待。", scope),
+			Validation: "确认恢复后同一入口不再出现集中慢调用或错误链路样本。",
+			Risk:       "只看告警恢复可能遗漏下游调用偶发变慢，需结合链路样本确认恢复质量。",
+			Source:     "system",
+		})
+	} else if direction := firstString(alertDirections(item.input.events)); direction != "" {
+		steps = append(steps, response.SystemHealthActionPlanStep{
+			Phase:      "报告复核",
+			Target:     scope,
+			Action:     fmt.Sprintf("按已有告警分析指向的“%s”复核相关服务或依赖，确认恢复后该方向不再出现异常信号。", truncateText(direction, 80)),
+			Validation: "确认告警分析指向的服务、依赖或指标在恢复观察窗口内没有继续恶化。",
+			Risk:       "已有分析方向如果未复核，重复告警可能会被误判为单次抖动。",
+			Source:     "system",
+		})
+	}
+
+	return normalizeActionPlanSteps(appendRuleDiagnosticActionStep(item, steps))
+}
+
+func appendRuleDiagnosticActionStep(item scoredIssue, steps []response.SystemHealthActionPlanStep) []response.SystemHealthActionPlanStep {
+	if item.input.kind == issueKindInvalidAlert || item.input.invalidAlerts <= 0 {
+		return steps
+	}
+	scope := firstNonEmpty(item.input.scope, "当前影响目标")
+	steps = append(steps, response.SystemHealthActionPlanStep{
+		Phase:      "规则口径核对",
+		Target:     scope,
+		Action:     fmt.Sprintf("同一影响目标还有 %d 个告警实例更适合作为规则诊断信号；对比告警指标与服务 RED 指标，核对表达式、阈值、标签匹配和同比基线是否合理。", item.input.invalidAlerts),
+		Validation: "确认规则诊断信号没有掩盖真实业务异常；如 RED 指标无同步退化且告警仍反复出现，进入告警规则修正流程。",
+		Risk:       "只处理服务风险、不核对规则口径，后续仍可能因同一规则噪声反复触发。",
+		Source:     "system",
+	})
+	return steps
+}
+
+func recoveredMetricActionStep(item scoredIssue, scope string) response.SystemHealthActionPlanStep {
+	if strings.Contains(strings.Join(item.input.alertNames, " "), "昨天") || strings.Contains(item.input.title, "昨天") {
+		return response.SystemHealthActionPlanStep{
+			Phase:      "基线核对",
+			Target:     scope,
+			Action:     fmt.Sprintf("核对 %s 与昨日同窗口的请求量和延时基线，确认告警是否由低流量或基线差异放大。", scope),
+			Validation: "确认同比基线、当前绝对延时和请求量变化能够解释本次恢复态告警。",
+			Risk:       "同比类告警容易受昨日基线影响，未核对基线可能误判风险程度。",
+			Source:     "system",
 		}
 	}
+	if usableMetricEvidenceAvailable(item.input.evidence) {
+		return response.SystemHealthActionPlanStep{
+			Phase:      "指标复核",
+			Target:     scope,
+			Action:     fmt.Sprintf("对比 %s 的告警指标、入口 RED 延时、请求量和错误率，确认恢复后指标没有继续处于高位。", scope),
+			Validation: "确认告警指标回落后，入口延时、请求量和错误率没有同步退化。",
+			Risk:       "单个告警指标恢复不代表业务影响完全消失，仍需确认 RED 指标一致恢复。",
+			Source:     "system",
+		}
+	}
+	if metricEvidencePresent(item.input.evidence) {
+		return response.SystemHealthActionPlanStep{
+			Phase:      "指标补齐",
+			Target:     scope,
+			Action:     fmt.Sprintf("补齐 %s 的指标查询链路，优先确认告警规则表达式、标签匹配和入口 RED 指标是否可回看。", scope),
+			Validation: "确认同一对象能查到延时、请求量和错误率趋势，再用指标验证恢复是否稳定。",
+			Risk:       "指标趋势不可用时，只能依赖告警事件判断恢复状态，容易漏掉持续退化。",
+			Source:     "system",
+		}
+	}
+	return response.SystemHealthActionPlanStep{
+		Phase:      "指标补齐",
+		Target:     scope,
+		Action:     fmt.Sprintf("补齐 %s 的入口延时、请求量和错误率趋势，用于验证恢复是否稳定。", scope),
+		Validation: "确认恢复观察窗口内关键 RED 指标没有继续退化。",
+		Risk:       "缺少指标趋势时，恢复判断主要依赖告警状态，无法充分判断用户侧影响。",
+		Source:     "system",
+	}
+}
+
+func normalizeActionPlanSteps(steps []response.SystemHealthActionPlanStep) []response.SystemHealthActionPlanStep {
+	result := make([]response.SystemHealthActionPlanStep, 0, len(steps))
+	for _, step := range steps {
+		result = append(result, normalizeActionPlanStep(step))
+	}
+	return result
+}
+
+func metricEvidencePresent(evidence []response.SystemHealthEvidence) bool {
+	for _, item := range evidence {
+		if strings.Contains(item.Type, "指标趋势") {
+			return true
+		}
+	}
+	return false
+}
+
+func usableMetricEvidenceAvailable(evidence []response.SystemHealthEvidence) bool {
+	for _, item := range evidence {
+		if strings.Contains(item.Type, "指标趋势") && item.Metric != nil && item.Metric.PointCount > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func traceEvidenceAvailable(evidence []response.SystemHealthEvidence) bool {
+	for _, item := range evidence {
+		if strings.Contains(item.Type, "Trace") || strings.Contains(item.Type, "APM链路") {
+			return true
+		}
+	}
+	return false
 }
 
 func alertReportActionPlanSteps(actions []systemHealthAlertReportAction, scope string) []response.SystemHealthActionPlanStep {
@@ -3339,14 +5766,15 @@ func alertReportActionPlanSteps(actions []systemHealthAlertReportAction, scope s
 		if actionText == "" {
 			continue
 		}
-		target := firstNonEmpty(action.AlertName, scope)
-		steps = append(steps, response.SystemHealthActionPlanStep{
-			Phase:      alertReportActionPhase(action.Level),
+		target := firstNonEmpty(action.Target, action.AlertName, scope)
+		steps = append(steps, normalizeActionPlanStep(response.SystemHealthActionPlanStep{
+			Phase:      firstNonEmpty(action.Phase, alertReportActionPhase(action.Level)),
 			Target:     target,
 			Action:     actionText,
-			Validation: "执行后回看关联告警、关键指标和报告证据，确认风险已收敛。",
-			Risk:       "来自原告警分析报告，执行前需结合当前系统健康状态确认适用性。",
-		})
+			Validation: firstNonEmpty(action.Validation, "执行后回看关联告警、关键指标和报告证据，确认风险已收敛。"),
+			Risk:       firstNonEmpty(action.Risk, "来自原告警分析报告，执行前需结合当前系统健康状态确认适用性。"),
+			Source:     "alertReport",
+		}))
 	}
 	return steps
 }
@@ -3370,15 +5798,55 @@ func actionsToActionPlanSteps(actions []string) []response.SystemHealthActionPla
 		steps = append(steps, response.SystemHealthActionPlanStep{
 			Phase:  fmt.Sprintf("建议 %d", index+1),
 			Action: action,
+			Source: "ai",
 		})
 	}
 	return steps
+}
+
+func markActionPlanSource(steps []response.SystemHealthActionPlanStep, source string) []response.SystemHealthActionPlanStep {
+	result := make([]response.SystemHealthActionPlanStep, 0, len(steps))
+	for _, step := range steps {
+		if strings.TrimSpace(step.Source) == "" {
+			step.Source = source
+		}
+		result = append(result, step)
+	}
+	return result
+}
+
+func normalizeAIActionPlanTargets(steps []response.SystemHealthActionPlanStep, issue response.SystemHealthIssue) []response.SystemHealthActionPlanStep {
+	result := make([]response.SystemHealthActionPlanStep, 0, len(steps))
+	for _, step := range steps {
+		target := strings.TrimSpace(step.Target)
+		if isInternalIssueKeyTarget(target, issue) {
+			step.Target = strings.TrimSpace(issue.Scope)
+		}
+		result = append(result, step)
+	}
+	return result
+}
+
+func isInternalIssueKeyTarget(target string, issue response.SystemHealthIssue) bool {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return false
+	}
+	normalized := strings.ToLower(target)
+	if issue.Key != "" && normalized == strings.ToLower(strings.TrimSpace(issue.Key)) {
+		return true
+	}
+	if issue.AggregationKey != "" && normalized == strings.ToLower(stableKey(issue.AggregationKey)) {
+		return true
+	}
+	return regexp.MustCompile(`^(activealert|recoveredalert|invalidalert|inspection)-(entry|service|object|group)-[a-z0-9-]+$`).MatchString(normalized)
 }
 
 func mergeActionPlanSteps(primary []response.SystemHealthActionPlanStep, secondary []response.SystemHealthActionPlanStep) []response.SystemHealthActionPlanStep {
 	merged := make([]response.SystemHealthActionPlanStep, 0, len(primary)+len(secondary))
 	seen := make(map[string]struct{}, len(primary)+len(secondary))
 	appendStep := func(step response.SystemHealthActionPlanStep) {
+		step = normalizeActionPlanStep(step)
 		step.Action = strings.TrimSpace(step.Action)
 		if step.Action == "" {
 			return
@@ -3397,6 +5865,54 @@ func mergeActionPlanSteps(primary []response.SystemHealthActionPlanStep, seconda
 		appendStep(step)
 	}
 	return merged
+}
+
+func normalizeActionPlanStep(step response.SystemHealthActionPlanStep) response.SystemHealthActionPlanStep {
+	step.Phase = strings.TrimSpace(step.Phase)
+	step.Target = strings.TrimSpace(step.Target)
+	step.Action = strings.TrimSpace(step.Action)
+	step.Validation = normalizeActionPlanValidation(step.Validation)
+	step.Risk = strings.TrimSpace(step.Risk)
+	step.Source = strings.TrimSpace(step.Source)
+	return step
+}
+
+func normalizeActionPlanValidation(validation string) string {
+	text := strings.TrimSpace(validation)
+	if text == "" {
+		return ""
+	}
+	text = strings.TrimSpace(strings.TrimPrefix(text, "验证："))
+	text = strings.TrimSpace(strings.TrimPrefix(text, "验证:"))
+	text = ensureChinesePeriod(text)
+	normalized := strings.TrimSuffix(text, "。")
+	if normalized == "日志无持续慢请求或异常堆积" || normalized == "日志中无持续慢请求或异常堆积" {
+		return "检查日志中是否仍存在持续慢请求或异常堆积，并确认恢复后不再新增。"
+	}
+	if startsWithAny(text, []string{"确认", "检查", "观察", "回看", "查看", "验证", "对比", "持续观察", "执行后"}) {
+		return text
+	}
+	return "确认" + text
+}
+
+func ensureChinesePeriod(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	if strings.HasSuffix(text, "。") || strings.HasSuffix(text, "；") || strings.HasSuffix(text, "！") || strings.HasSuffix(text, "？") || strings.HasSuffix(text, ".") || strings.HasSuffix(text, ";") || strings.HasSuffix(text, "!") || strings.HasSuffix(text, "?") {
+		return text
+	}
+	return text + "。"
+}
+
+func startsWithAny(text string, prefixes []string) bool {
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(text, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func calculateHealthScore(scored []scoredIssue) int {
@@ -3483,45 +5999,7 @@ func repeatPressure(repeatCount int) float64 {
 	return math.Min(float64(repeatCount)/5, 1) * 100
 }
 
-func evidenceConsistency(input reportInput) float64 {
-	if len(input.normalizedEvents) <= 1 {
-		return 1
-	}
-	aggregationKeys := make([]string, 0, len(input.normalizedEvents))
-	objectKeys := make([]string, 0, len(input.normalizedEvents))
-	for _, event := range input.normalizedEvents {
-		aggregationKeys = append(aggregationKeys, event.AggregationKey)
-		objectKeys = append(objectKeys, event.ObjectType+"::"+event.ObjectName)
-	}
-	aggregationConsistency := 0.0
-	if len(uniqueStrings(aggregationKeys)) == 1 {
-		aggregationConsistency = 1
-	}
-	objectConsistency := 0.0
-	if len(uniqueStrings(objectKeys)) == 1 {
-		objectConsistency = 1
-	}
-	timeConsistency := 1.0
-	if input.durationSeconds == 0 && input.rawEventCount > 1 {
-		timeConsistency = 0.5
-	}
-	return (aggregationConsistency + objectConsistency + timeConsistency) / 3
-}
-
-func topologyCompleteness(input reportInput) float64 {
-	switch input.scopeKind {
-	case "entry":
-		return 1
-	case "service":
-		return 0.75
-	case "database", "pod", "node", "target":
-		return 0.45
-	default:
-		return 0.30
-	}
-}
-
-func dataCompletenessPenalty(available []string) float64 {
+func dataCompletenessGap(available []string) float64 {
 	missing := len(missingSourceLabels(available))
 	if len(expectedSources) == 0 {
 		return 0
@@ -3529,51 +6007,11 @@ func dataCompletenessPenalty(available []string) float64 {
 	return math.Min(float64(missing)*100/float64(len(expectedSources)), 100)
 }
 
-func issueDataQualityScore(input reportInput) int {
-	sourceCoverage := expectedSourceCoverage(input.availableCalcSources)
-	evidenceConsistency := evidenceConsistency(input)
-	topologyCompleteness := topologyCompleteness(input)
-	freshness := 1.0
-	if len(input.events) == 0 {
-		freshness = 0
-	} else {
-		latest := input.events[0].UpdateTime
-		for _, event := range input.events {
-			if event.UpdateTime.After(latest) {
-				latest = event.UpdateTime
-			}
-		}
-		freshness = clamp(1-time.Since(latest).Seconds()/(15*60), 0, 1)
-		if input.kind == issueKindRecoveredAlert {
-			freshness = 1
-		}
-	}
-	dataQualityScore := 100 * (0.45*sourceCoverage + 0.25*evidenceConsistency + 0.20*topologyCompleteness + 0.10*freshness)
-	return int(math.Round(clamp(dataQualityScore, 0, 100)))
-}
-
 func sourceLabel(source string) string {
 	if label, ok := sourceLabels[source]; ok {
 		return label
 	}
 	return source
-}
-
-func expectedSourceCoverage(available []string) float64 {
-	if len(expectedSources) == 0 {
-		return 1
-	}
-	availableSet := make(map[string]struct{}, len(available))
-	for _, source := range available {
-		availableSet[source] = struct{}{}
-	}
-	covered := 0
-	for _, source := range expectedSources {
-		if _, ok := availableSet[source]; ok {
-			covered++
-		}
-	}
-	return float64(covered) / float64(len(expectedSources))
 }
 
 func missingSourceLabels(available []string) []string {
@@ -3604,12 +6042,11 @@ func reportAvailableSources(scored []scoredIssue) []string {
 
 func riskBreakdown(item scoredIssue) response.SystemHealthRiskBreakdown {
 	return response.SystemHealthRiskBreakdown{
-		EntryImpactScore:        int(math.Round(item.entryImpactScore)),
-		AlertSeverityScore:      int(math.Round(item.alertSeverityScore)),
-		RedDegradationScore:     int(math.Round(item.redDegradationScore)),
-		PropagationScore:        int(math.Round(item.propagationScore)),
-		DataCompletenessPenalty: int(math.Round(item.dataCompletenessPenalty)),
-		PathRisk:                int(math.Round(item.pathRisk)),
+		EntryImpactScore:    int(math.Round(item.entryImpactScore)),
+		AlertSeverityScore:  int(math.Round(item.alertSeverityScore)),
+		RedDegradationScore: int(math.Round(item.redDegradationScore)),
+		PropagationScore:    int(math.Round(item.propagationScore)),
+		PathRisk:            int(math.Round(item.pathRisk)),
 	}
 }
 
@@ -3778,7 +6215,6 @@ func scoreReason(item scoredIssue) string {
 		"告警严重度 " + strconvRound(item.alertSeverityScore),
 		"RED退化 " + strconvRound(item.redDegradationScore),
 		"传播风险 " + strconvRound(item.propagationScore),
-		"数据缺口 " + strconvRound(item.dataCompletenessPenalty),
 	}, " / ")
 }
 
@@ -3965,11 +6401,11 @@ func buildMergeBasis(item scoredIssue) string {
 
 func buildDataQuality(item scoredIssue) []string {
 	missing := missingSourceLabels(item.input.availableCalcSources)
-	if item.dataCompletenessPenalty == 0 {
+	if item.dataCompletenessGap == 0 {
 		return []string{"真实告警事件已覆盖", "未使用本地内置样例数据"}
 	}
 	return []string{
-		"真实数据源覆盖不完整，已计入数据完整性惩罚",
+		"真实数据源覆盖不完整，仅作为数据边界展示，不参与健康度计算",
 		"未用内置样例数据补齐缺失字段",
 		"待接入：" + strings.Join(missing, "、"),
 	}
@@ -4017,12 +6453,20 @@ func buildAIConclusion(item scoredIssue) string {
 }
 
 func buildRootCause(item scoredIssue) string {
+	rootCause, _, _ := buildRootCauseDecision(item)
+	return rootCause
+}
+
+func buildRootCauseDecision(item scoredIssue) (string, string, string) {
 	if item.input.kind == issueKindInvalidAlert {
-		return "告警本身持续触发但已有分析判定无效，根因优先考虑告警表达式、阈值、标签匹配或指标口径问题。"
+		return "告警本身持续触发但已有分析判定无效，根因优先考虑告警表达式、阈值、标签匹配或指标口径问题。", "invalid_alert_rule_diagnostic", "issue_kind_invalid_alert"
+	}
+	if reportRootCause := buildRootCauseFromAlertReports(item.input.alertReportFindings); reportRootCause != "" {
+		return reportRootCause, "alert_report", fmt.Sprintf("alert_report_findings=%d", len(uniqueAlertReportFindings(item.input.alertReportFindings)))
 	}
 	directions := alertDirections(item.input.events)
 	if len(directions) == 0 {
-		return ""
+		return "", "empty", "no_alert_report_findings_and_no_alert_direction"
 	}
 	roots := make([]string, 0, len(directions))
 	for _, direction := range directions {
@@ -4032,12 +6476,41 @@ func buildRootCause(item scoredIssue) string {
 	}
 	roots = uniqueStrings(roots)
 	if len(roots) == 0 {
-		return ""
+		return "", "empty", "alert_direction_cleaned_empty"
 	}
 	if len(roots) == 1 {
-		return "告警发生时分析指向：" + truncateText(roots[0], 180)
+		return "综合告警分析和事件表现，可能根因集中在：" + truncateText(roots[0], 180), "alert_direction_fallback", "alert_report_root_cause_missing"
 	}
-	return "告警发生时分析给出多个可能根因：" + truncateText(strings.Join(roots[:minInt(len(roots), 3)], "；"), 220)
+	return "综合告警分析和事件表现，可能根因包括：" + truncateText(strings.Join(roots[:minInt(len(roots), 3)], "；"), 220), "alert_direction_fallback", "alert_report_root_cause_missing"
+}
+
+func buildRootCauseFromAlertReports(findings []systemHealthAlertReportFinding) string {
+	findings = uniqueAlertReportFindings(findings)
+	if len(findings) == 0 {
+		return ""
+	}
+	rootCauses := make([]string, 0, len(findings))
+	details := make([]string, 0, len(findings))
+	for _, finding := range findings {
+		if rootCause := cleanUserFacingReportText(finding.RootCause); rootCause != "" {
+			rootCauses = append(rootCauses, rootCause)
+		}
+		if analyzeProcess := cleanUserFacingReportText(finding.AnalyzeProcess); analyzeProcess != "" {
+			details = append(details, analyzeProcess)
+		} else if detail := cleanUserFacingReportText(finding.Detail); detail != "" {
+			details = append(details, detail)
+		}
+	}
+	rootCauses = uniqueStrings(rootCauses)
+	details = uniqueStrings(details)
+	parts := make([]string, 0, 2)
+	if len(rootCauses) > 0 {
+		parts = append(parts, "告警分析报告判断："+truncateText(strings.Join(rootCauses[:minInt(len(rootCauses), 3)], "；"), 260))
+	}
+	if len(details) > 0 {
+		parts = append(parts, "报告详情："+truncateText(strings.Join(details[:minInt(len(details), 2)], "；"), 220))
+	}
+	return truncateText(strings.Join(parts, "。"), 420)
 }
 
 func buildMetricAnalysis(evidence []response.SystemHealthEvidence) string {
@@ -4079,12 +6552,19 @@ func buildMetricAnalysis(evidence []response.SystemHealthEvidence) string {
 }
 
 func rootCauseFromAlertDirection(direction string) string {
-	root := strings.TrimSpace(direction)
+	root := cleanUserFacingReportText(direction)
 	if root == "" {
 		return ""
 	}
-	for _, prefix := range []string{"疑似", "可能是", "可能为", "可能", "初步判断", "分析认为", "根因可能是", "根因可能为"} {
-		root = strings.TrimSpace(strings.TrimPrefix(root, prefix))
+	for {
+		trimmed := root
+		for _, prefix := range []string{"告警发生时分析指向：", "告警发生时分析指向:", "告警发生时分析指向", "已有告警分析指向：", "已有告警分析指向:", "已有告警分析指向", "疑似", "可能是", "可能为", "可能", "初步判断", "分析认为", "根因可能是", "根因可能为"} {
+			trimmed = strings.TrimSpace(strings.TrimPrefix(trimmed, prefix))
+		}
+		if trimmed == root {
+			break
+		}
+		root = trimmed
 	}
 	for _, separator := range []string{"导致", "引发", "造成", "使得"} {
 		if left, _, ok := strings.Cut(root, separator); ok && strings.TrimSpace(left) != "" {
@@ -4248,6 +6728,159 @@ func formatDurationCN(seconds float64) string {
 		return fmt.Sprintf("%d 分钟", minutes)
 	}
 	return fmt.Sprintf("%d 秒", int(duration.Seconds()))
+}
+
+func cleanUserFacingReportText(value string) string {
+	text := strings.TrimSpace(value)
+	if text == "" {
+		return ""
+	}
+	text = html.UnescapeString(text)
+	text = strings.ReplaceAll(text, "\\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+	text = markdownCodeFencePattern.ReplaceAllString(text, " ")
+	text = htmlDetailsBlockPattern.ReplaceAllString(text, " ")
+	text = htmlTagPattern.ReplaceAllString(text, " ")
+	text = strings.NewReplacer(
+		"**", "",
+		"__", "",
+		"`", "",
+		"&nbsp;", " ",
+		"\u00a0", " ",
+	).Replace(text)
+
+	lines := strings.Split(text, "\n")
+	kept := make([]string, 0, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSpace(strings.TrimLeft(line, "-*#> \t"))
+		line = stripInternalReasoningPrefix(line)
+		line = truncateAtInternalReasoningMarker(line)
+		if line == "" || isInternalReasoningLine(line) || isInternalReportHeadingOnly(line) {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	text = strings.Join(kept, " ")
+	text = strings.Join(strings.Fields(text), " ")
+	text = stripInternalReasoningPrefix(text)
+	text = truncateAtInternalReasoningMarker(text)
+	if isInternalReasoningLine(text) || isInternalReportHeadingOnly(text) {
+		return ""
+	}
+	return text
+}
+
+func isInternalReportHeadingOnly(value string) bool {
+	text := strings.TrimSpace(strings.Trim(value, "：:;；,.，。 "))
+	switch text {
+	case "告警发生时分析指向", "已有告警分析指向", "告警分析指向", "分析指向":
+		return true
+	default:
+		return false
+	}
+}
+
+func stripInternalReasoningPrefix(value string) string {
+	text := strings.TrimSpace(value)
+	if text == "" || !cjkTextPattern.MatchString(text) {
+		return text
+	}
+	lower := strings.ToLower(text)
+	prefixMarkers := []string{
+		"summarizing",
+		"summary",
+		"i need",
+		"i should",
+		"i'll",
+		"let me",
+		"based on",
+		"the user",
+		"we need",
+	}
+	markerIndex := -1
+	for _, marker := range prefixMarkers {
+		index := strings.Index(lower, marker)
+		if index < 0 {
+			continue
+		}
+		if markerIndex < 0 || index < markerIndex {
+			markerIndex = index
+		}
+	}
+	if markerIndex < 0 {
+		return text
+	}
+	firstCJK := cjkTextPattern.FindStringIndex(text)
+	if len(firstCJK) != 2 || firstCJK[0] <= markerIndex {
+		return text
+	}
+	return strings.TrimSpace(text[firstCJK[0]:])
+}
+
+func truncateAtInternalReasoningMarker(value string) string {
+	text := strings.TrimSpace(value)
+	if text == "" {
+		return ""
+	}
+	lower := strings.ToLower(text)
+	markers := []string{
+		"thinking",
+		"extracting fault",
+		"chain-of-thought",
+		"internal reasoning",
+		"i need",
+		"i should",
+		"i'll",
+		"we need",
+		"let's craft",
+		"final answer",
+	}
+	markerIndex := -1
+	for _, marker := range markers {
+		index := strings.Index(lower, marker)
+		if index < 0 {
+			continue
+		}
+		if markerIndex < 0 || index < markerIndex {
+			markerIndex = index
+		}
+	}
+	if markerIndex <= 0 {
+		return text
+	}
+	return strings.TrimSpace(strings.TrimRight(text[:markerIndex], "：:;；,.，。 "))
+}
+
+func isInternalReasoningLine(value string) bool {
+	text := strings.TrimSpace(value)
+	if text == "" {
+		return false
+	}
+	lower := strings.ToLower(text)
+	if cjkTextPattern.MatchString(text) {
+		return strings.Contains(lower, "<details") || strings.Contains(lower, "</details>")
+	}
+	internalMarkers := []string{
+		"thinking",
+		"summarizing",
+		"extracting fault",
+		"chain-of-thought",
+		"internal reasoning",
+		"i need a concise",
+		"i need to",
+		"i should",
+		"i need answer",
+		"we need answer",
+		"we need to answer",
+		"let's craft",
+		"final answer",
+	}
+	for _, marker := range internalMarkers {
+		if strings.Contains(lower, marker) {
+			return true
+		}
+	}
+	return strings.Contains(lower, "<details") || strings.Contains(lower, "</details>")
 }
 
 func truncateText(value string, limit int) string {
