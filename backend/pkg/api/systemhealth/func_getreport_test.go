@@ -1253,7 +1253,7 @@ func TestAlertReportEvidenceKeepsOnlyExplicitErrorLogSignals(t *testing.T) {
 		OverviewReason: "已有分析认为告警有效，延时集中在订单入口。",
 		OverviewDetail: "报告详情指向下游库存服务耗时升高。",
 		Data: []string{
-			`{"type":"log","summary":"库存服务日志出现 ERROR timeout，多个请求返回 5xx，错误堆栈指向数据库查询超时。"}`,
+			`{"type":"log","summary":"库存服务日志出现 ERROR timeout，车次 G1234、订单 orderId=1234567890123 返回 5xx，错误堆栈指向数据库查询超时。"}`,
 			`{"type":"metric","summary":"RED 指标显示入口延时升高。"}`,
 		},
 	}
@@ -1272,6 +1272,12 @@ func TestAlertReportEvidenceKeepsOnlyExplicitErrorLogSignals(t *testing.T) {
 	}
 	if logEvidence.Result == "" || !strings.Contains(logEvidence.Result, "ERROR timeout") {
 		t.Fatalf("expected explicit error log evidence to be kept, got %#v", evidence)
+	}
+	if strings.Contains(logEvidence.Result, "G1234") || strings.Contains(logEvidence.Result, "1234567890123") || strings.Contains(logEvidence.Result, "orderId=1234567890123") {
+		t.Fatalf("expected business log content to be redacted, got %#v", logEvidence)
+	}
+	if !strings.Contains(logEvidence.Result, "车次已脱敏") || !strings.Contains(logEvidence.Result, "orderId=已脱敏") {
+		t.Fatalf("expected redacted log evidence to preserve diagnostic context, got %#v", logEvidence)
 	}
 	if sources := displaySourcesFromEvidence(evidence); !containsString(sources, sourceLabel("logs")) {
 		t.Fatalf("expected explicit error log evidence to add log display source, got %#v from %#v", sources, evidence)
@@ -1511,8 +1517,17 @@ func TestCallSystemHealthAIUsesDirectAIEndpoint(t *testing.T) {
 			"基于 eBPF 数据",
 			"无明确故障方向",
 			"现有证据暂不能归因",
+			"不要从正常业务日志中推断问题",
+			"请求高频、批量查询、返回成功、业务字段取值、默认值",
+			"不能输出“从日志中可以看出”",
+			"日志分析涉及业务内容时必须脱敏",
+			"不要输出车次、订单号、用户号、手机号、证件号",
 			"请求北极星表示单次请求平均耗时分布",
 			"P4 invalidAlert",
+			"actionPlan 不是从 0 开始排查",
+			"沿着已有分析继续定位尚未闭合的问题",
+			"基于已有根因/指标/日志/链路结论执行缓解",
+			"不要输出泛化起手式排查",
 			"existingReportActions 是参考来源",
 			"不能原样复制或机械追加",
 			"target 不得使用 issue.key",
@@ -2408,6 +2423,139 @@ func TestRequestPolarisMetricSpecsIncludeRequestResourceDimensions(t *testing.T)
 	targetText := requestPolarisTargetText("订单下单接口", "order-service", "POST /orders")
 	if targetText != "订单下单接口（服务 order-service，请求路径 POST /orders）" {
 		t.Fatalf("expected user-facing request Polaris target text, got %q", targetText)
+	}
+}
+
+func TestBuildRequestPolarisBreakdownEvidenceIncludesLatencyAndResources(t *testing.T) {
+	netChange := 25.0
+	tpsChange := 50.0
+	trends := []requestPolarisMetricTrend{
+		{
+			Key:          "latency",
+			MetricName:   "请求平均耗时",
+			ResourceKind: "请求耗时",
+			Unit:         "ms/request",
+			PointCount:   3,
+			Stats: alertMetricTrendStats{
+				FirstValue:   80,
+				LastValue:    120,
+				AverageValue: 100,
+				MaxValue:     140,
+				Delta:        40,
+			},
+			Series: []alertMetricSeries{
+				{Values: []prometheus.Points{
+					{TimeStamp: 1000, Value: 80},
+					{TimeStamp: 2000, Value: 100},
+					{TimeStamp: 3000, Value: 120},
+				}},
+			},
+		},
+		{
+			Key:          "net",
+			MetricName:   "请求网络平均耗时",
+			ResourceKind: "网络耗时",
+			Unit:         "ms/request",
+			PointCount:   3,
+			Stats: alertMetricTrendStats{
+				AverageValue:  45,
+				MaxValue:      80,
+				Delta:         20,
+				ChangePercent: &netChange,
+			},
+			Abnormal: true,
+			Reason:   "网络耗时升高约 25%",
+			Series: []alertMetricSeries{
+				{Values: []prometheus.Points{
+					{TimeStamp: 1000, Value: 35},
+					{TimeStamp: 2000, Value: 45},
+					{TimeStamp: 3000, Value: 55},
+				}},
+			},
+		},
+		{
+			Key:          "cpu",
+			MetricName:   "请求CPU执行平均耗时",
+			ResourceKind: "CPU执行耗时",
+			Unit:         "ms/request",
+			PointCount:   3,
+			Stats: alertMetricTrendStats{
+				AverageValue: 30,
+				MaxValue:     45,
+			},
+			Series: []alertMetricSeries{
+				{Values: []prometheus.Points{
+					{TimeStamp: 1000, Value: 25},
+					{TimeStamp: 2000, Value: 30},
+					{TimeStamp: 3000, Value: 35},
+				}},
+			},
+		},
+		{
+			Key:          "epoll",
+			MetricName:   "请求调度等待平均耗时",
+			ResourceKind: "调度等待耗时",
+			Unit:         "ms/request",
+			PointCount:   3,
+			Stats: alertMetricTrendStats{
+				AverageValue: 12,
+				MaxValue:     16,
+			},
+			Series: []alertMetricSeries{
+				{Values: []prometheus.Points{
+					{TimeStamp: 1000, Value: 10},
+					{TimeStamp: 2000, Value: 12},
+					{TimeStamp: 3000, Value: 14},
+				}},
+			},
+		},
+		{
+			Key:          "tps",
+			MetricName:   "请求吞吐量",
+			ResourceKind: "TPS",
+			Unit:         "req/s",
+			PointCount:   3,
+			Stats: alertMetricTrendStats{
+				FirstValue:    10,
+				LastValue:     15,
+				AverageValue:  12,
+				MaxValue:      15,
+				Delta:         5,
+				ChangePercent: &tpsChange,
+			},
+		},
+	}
+
+		startTime := time.Unix(100, 0)
+		endTime := time.Unix(200, 0)
+		breakdown := buildRequestPolarisBreakdownEvidence("order-service / POST /orders", "order-service", "POST /orders", startTime, endTime, trends)
+
+		if breakdown == nil || breakdown.Target != "order-service / POST /orders" {
+			t.Fatalf("expected target breakdown, got %#v", breakdown)
+		}
+		if breakdown.StartTime != startTime.UnixMicro() || breakdown.EndTime != endTime.UnixMicro() {
+			t.Fatalf("expected breakdown window %d-%d, got %d-%d", startTime.UnixMicro(), endTime.UnixMicro(), breakdown.StartTime, breakdown.EndTime)
+		}
+	if breakdown.Latency == nil || breakdown.Latency.Name != "请求平均耗时" || breakdown.Latency.AverageValue != 100 || breakdown.Latency.MaxValue != 140 {
+		t.Fatalf("expected request latency item, got %#v", breakdown.Latency)
+	}
+	if len(breakdown.Resources) != 3 {
+		t.Fatalf("expected three resource items, got %#v", breakdown.Resources)
+	}
+	if breakdown.Resources[0].Key != "net" || !breakdown.Resources[0].Abnormal || breakdown.Resources[0].Reason == "" {
+		t.Fatalf("expected first resource item to be abnormal net duration, got %#v", breakdown.Resources[0])
+	}
+	if breakdown.Resources[1].Key != "cpu" || breakdown.Resources[2].Key != "epoll" {
+		t.Fatalf("expected resource order net/cpu/epoll, got %#v", breakdown.Resources)
+	}
+	if len(breakdown.Latency.Points) != 3 || breakdown.Latency.Points[0].Timestamp != 1000 || breakdown.Latency.Points[0].Value != 80 {
+		t.Fatalf("expected latency chart points, got %#v", breakdown.Latency.Points)
+	}
+	if len(breakdown.Resources[0].Points) != 3 || breakdown.Resources[0].Points[2].Value != 55 {
+		t.Fatalf("expected resource chart points, got %#v", breakdown.Resources[0].Points)
+	}
+	if breakdown.TPS == nil || breakdown.TPS.Unit != "req/s" || breakdown.TPS.LastValue != 15 {
+		t.Fatalf("expected TPS background item, got %#v", breakdown.TPS)
 	}
 }
 

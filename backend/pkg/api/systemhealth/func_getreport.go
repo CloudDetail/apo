@@ -131,11 +131,12 @@ type systemHealthAIIssueInput struct {
 }
 
 type systemHealthAIEvidenceInput struct {
-	Type     string                     `json:"type"`
-	Source   string                     `json:"source,omitempty"`
-	Severity string                     `json:"severity,omitempty"`
-	Result   string                     `json:"result"`
-	Metric   *systemHealthAIMetricInput `json:"metric,omitempty"`
+	Type             string                                         `json:"type"`
+	Source           string                                         `json:"source,omitempty"`
+	Severity         string                                         `json:"severity,omitempty"`
+	Result           string                                         `json:"result"`
+	Metric           *systemHealthAIMetricInput                     `json:"metric,omitempty"`
+	PolarisBreakdown *response.SystemHealthPolarisBreakdownEvidence `json:"polarisBreakdown,omitempty"`
 }
 
 type systemHealthAIMetricInput struct {
@@ -617,6 +618,8 @@ type alertMetricTrendQueryResult struct {
 	MetricName     string
 	Expression     string
 	Step           time.Duration
+	StartTime      time.Time
+	EndTime        time.Time
 	SeriesReturned int
 	MatchedSeries  []alertMetricSeries
 	Stats          alertMetricTrendStats
@@ -1755,6 +1758,9 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 			"如果报告内容表示“无明确故障方向、未定位到明确根因、无法判断故障方向”，不要将其作为 rootCause 输出。",
 			"日志分析只用于明确错误信号：只有出现错误、异常、超时、失败、慢请求、5xx/4xx、panic、exception 等信号时才能写入 analysis、rootCause 或 actionPlan。",
 			"不要对正常日志、INFO 为主、无明显报错、未持续新增异常、恢复后无异常堆积等内容做评价或推测；这类日志不能作为根因、风险或恢复质量结论。",
+			"不要从正常业务日志中推断问题：请求高频、批量查询、返回成功、业务字段取值、默认值或可疑业务语义，都不能作为日志异常、根因或处置依据。",
+			"如果日志只显示业务请求过程、成功返回、常规 INFO 或未见异常，不能输出“从日志中可以看出”这类日志分析结论；只在明确错误日志存在时描述具体错误信号。",
+			"日志分析涉及业务内容时必须脱敏：不要输出车次、订单号、用户号、手机号、证件号、库存/座位明细、token、session、请求参数原值或业务字段原值；只保留错误类型、服务/组件、时间窗口和影响方向。",
 			"existingAlertAnalyses 只作为辅助信息，不要原样罗列；如果所有来源都没有明确方向，输出“现有证据暂不能归因，需要结合告警指标或明确错误日志继续确认。”",
 			"issue.rootCause 控制在 40-120 个中文字符。",
 			"当 evidence 包含“请求北极星”时，rootCause 必须读取网络耗时、CPU 执行耗时、调度等待耗时、TPS 变化和慢调用样本线索。",
@@ -1763,6 +1769,9 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应按告警规则诊断处理，分析指标、表达式、阈值、标签口径或同比基线问题，不能当作服务故障处置。",
 			"P4 invalidAlert 的 rootCause 应指向规则口径或指标口径问题；actionPlan 应聚焦规则诊断、RED 指标对比和告警规则修正；除非输入证据明确支持，不要输出扩容、重启等业务止血动作。",
 			"actionPlan 生成 2-4 个顺序合理、互相呼应、可执行的步骤。",
+			"actionPlan 不是从 0 开始排查；必须承接 issue.analysis、issue.metricAnalysis、issue.rootCause、existingReportFindings、existingAlertAnalyses 和 evidence 中已经形成的判断。",
+			"每个 actionPlan 步骤只能做两类事情：沿着已有分析继续定位尚未闭合的问题，或基于已有根因/指标/日志/链路结论执行缓解、修复、验证和复发观察。",
+			"不要输出泛化起手式排查，例如“检查服务状态、查看日志、查看监控、确认告警详情”；除非已有分析明确指向这些对象，并且 action 写清楚要验证的具体信号。",
 			"existingReportActions 是参考来源，不能原样复制或机械追加；应结合当前健康状态、告警是否仍触发、指标和明确错误日志证据重新组织。",
 			"保留仍适用的排查目标和验证要点，删除与当前状态矛盾、过期或不可执行的动作；如果原报告建议偏单次告警事件，需要上升到当前风险对象。",
 			"actionPlan 优先处理仍在触发或用户影响最大的方向，再做根因确认、恢复验证和复发观察。",
@@ -2084,11 +2093,12 @@ func buildSystemHealthAIEvidenceInput(evidence []response.SystemHealthEvidence) 
 			continue
 		}
 		items = append(items, systemHealthAIEvidenceInput{
-			Type:     item.Type,
-			Source:   item.Source,
-			Severity: item.Severity,
-			Result:   truncateText(item.Result, 360),
-			Metric:   buildSystemHealthAIMetricInput(item.Metric),
+			Type:             item.Type,
+			Source:           item.Source,
+			Severity:         item.Severity,
+			Result:           truncateText(item.Result, 360),
+			Metric:           buildSystemHealthAIMetricInput(item.Metric),
+			PolarisBreakdown: item.PolarisBreakdown,
 		})
 	}
 	return items
@@ -2934,7 +2944,30 @@ func cleanDisplayableLogEvidenceSummary(summary string) string {
 	if summary == "" || !hasConcreteLogEvidence(summary) {
 		return ""
 	}
-	return truncateText(summary, 320)
+	return truncateText(redactLogBusinessContent(summary), 320)
+}
+
+func redactLogBusinessContent(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	replacements := []struct {
+		pattern string
+		value   string
+	}{
+		{`\b[A-Z][0-9]{2,5}(?:\s*[~～-]\s*[A-Z]?[0-9]{2,5})?\b`, "车次已脱敏"},
+		{`\b1[3-9]\d{9}\b`, "手机号已脱敏"},
+		{`(?i)\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b`, "邮箱已脱敏"},
+		{`(?i)\b(token|authorization|session|cookie|password|passwd|secret)\s*[:=]\s*["']?[^"',;\s}]+`, `${1}=凭据已脱敏`},
+		{`\b(orderId|order_id|userId|user_id|passengerId|passenger_id|ticketId|ticket_id|trainNo|train_no|seatNo|seat_no|routeId|route_id)\s*[:=]\s*["']?[^"',;\s}]+`, `${1}=已脱敏`},
+		{`(订单|用户|乘客|车次|座位|席位|库存|余额|票号|身份证|证件号|手机号|路线|站点|始发站|终点站)\s*[:=：]\s*["“']?[^"',，；;\s}”]+`, `${1}=已脱敏`},
+		{`\b\d{8,}\b`, "长数字已脱敏"},
+	}
+	for _, replacement := range replacements {
+		text = regexp.MustCompile(replacement.pattern).ReplaceAllString(text, replacement.value)
+	}
+	return text
 }
 
 func stripLogEvidencePlaceholders(summary string) string {
@@ -6346,19 +6379,23 @@ func (h *handler) requestPolarisEvidence(ctx core.Context, input reportInput, gr
 		return evidence
 	}
 
-	topTrend := topRequestPolarisTrend(trends)
+	latencyTrend := requestPolarisTrendByKey(trends, "latency")
+	topTrend := firstNonNilRequestPolarisTrend(latencyTrend, topRequestPolarisTrend(trends))
 	if topTrend != nil {
-		evidence.Metric = buildMetricEvidence(alertMetricTrendQueryResult{
-			MetricName:     topTrend.MetricName,
-			Expression:     topTrend.Expression,
-			Step:           step,
-			SeriesReturned: topTrend.SeriesCount,
-			MatchedSeries:  topTrend.Series,
-			Stats:          topTrend.Stats,
+			evidence.Metric = buildMetricEvidence(alertMetricTrendQueryResult{
+				MetricName:     topTrend.MetricName,
+				Expression:     topTrend.Expression,
+				Step:           step,
+				StartTime:      startTime,
+				EndTime:        endTime,
+				SeriesReturned: topTrend.SeriesCount,
+				MatchedSeries:  topTrend.Series,
+				Stats:          topTrend.Stats,
 			EventScoped:    strings.TrimSpace(contentKey) != "",
 			Message:        requestPolarisMetricMessage(*topTrend),
 		})
 	}
+	evidence.PolarisBreakdown = buildRequestPolarisBreakdownEvidence(input.scope, serviceName, contentKey, startTime, endTime, trends)
 
 	abnormal := requestPolarisAbnormalTrends(trends)
 	var slowSpans []clickhouse.QueryTraceResult
@@ -6560,6 +6597,15 @@ func topRequestPolarisTrend(trends []requestPolarisMetricTrend) *requestPolarisM
 	return top
 }
 
+func firstNonNilRequestPolarisTrend(trends ...*requestPolarisMetricTrend) *requestPolarisMetricTrend {
+	for _, trend := range trends {
+		if trend != nil && trend.PointCount > 0 {
+			return trend
+		}
+	}
+	return nil
+}
+
 func requestPolarisMetricMessage(trend requestPolarisMetricTrend) string {
 	return fmt.Sprintf("%s在窗口内首值=%s、末值=%s、最高=%s，单位=%s。%s",
 		trend.MetricName,
@@ -6596,6 +6642,62 @@ func (h *handler) queryRequestPolarisSlowSpans(ctx core.Context, groupID int64, 
 		req.ClusterIDs = []string{clusterID}
 	}
 	return h.chRepo.GetTracePageList(ctx, req)
+}
+
+func buildRequestPolarisBreakdownEvidence(scope string, serviceName string, contentKey string, startTime time.Time, endTime time.Time, trends []requestPolarisMetricTrend) *response.SystemHealthPolarisBreakdownEvidence {
+	if len(trends) == 0 {
+		return nil
+	}
+	breakdown := &response.SystemHealthPolarisBreakdownEvidence{
+		ServiceName: serviceName,
+		ContentKey:  contentKey,
+		Target:      requestPolarisTargetText(scope, serviceName, contentKey),
+		StartTime:   startTime.UnixMicro(),
+		EndTime:     endTime.UnixMicro(),
+		Resources:   make([]response.SystemHealthPolarisBreakdownItemEvidence, 0, 3),
+	}
+	for _, key := range []string{"latency", "net", "cpu", "epoll", "tps"} {
+		trend := requestPolarisTrendByKey(trends, key)
+		if trend == nil {
+			continue
+		}
+		item := requestPolarisBreakdownItem(*trend)
+		switch key {
+		case "latency":
+			breakdown.Latency = &item
+		case "tps":
+			breakdown.TPS = &item
+		default:
+			breakdown.Resources = append(breakdown.Resources, item)
+		}
+	}
+	if breakdown.Latency == nil && len(breakdown.Resources) == 0 && breakdown.TPS == nil {
+		return nil
+	}
+	return breakdown
+}
+
+func requestPolarisBreakdownItem(trend requestPolarisMetricTrend) response.SystemHealthPolarisBreakdownItemEvidence {
+	points, pointsTruncated := aggregateAlertMetricSeriesPoints(trend.Series, maxMetricEvidencePoints)
+	return response.SystemHealthPolarisBreakdownItemEvidence{
+		Key:             trend.Key,
+		Name:            trend.MetricName,
+		ResourceKind:    trend.ResourceKind,
+		Unit:            trend.Unit,
+		PointCount:      trend.PointCount,
+		FirstValue:      trend.Stats.FirstValue,
+		LastValue:       trend.Stats.LastValue,
+		AverageValue:    trend.Stats.AverageValue,
+		MinValue:        trend.Stats.MinValue,
+		MaxValue:        trend.Stats.MaxValue,
+		Delta:           trend.Stats.Delta,
+		ChangePercent:   trend.Stats.ChangePercent,
+		Abnormal:        trend.Abnormal,
+		Reason:          trend.Reason,
+		Points:          points,
+		PointLimit:      maxMetricEvidencePoints,
+		PointsTruncated: pointsTruncated,
+	}
 }
 
 func buildRequestPolarisEvidenceResult(scope string, serviceName string, contentKey string, trends []requestPolarisMetricTrend, abnormal []requestPolarisMetricTrend, slowSpans []clickhouse.QueryTraceResult, slowSpanTotal int64, slowSpanErr error) string {
@@ -7046,12 +7148,14 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 			zap.Bool("eventScoped", true),
 			zap.Duration("elapsed", time.Since(queryStartedAt)),
 		)
-		return alertMetricTrendQueryResult{
-			Rule:           rule,
-			Expression:     expr,
-			Step:           step,
-			SeriesReturned: len(results),
-			MatchedSeries:  matched,
+			return alertMetricTrendQueryResult{
+				Rule:           rule,
+				Expression:     expr,
+				Step:           step,
+				StartTime:      startTime,
+				EndTime:        endTime,
+				SeriesReturned: len(results),
+				MatchedSeries:  matched,
 			Stats:          stats,
 			MatchLabels:    selectedAlertLabelMap(rawTagsFromEvent(candidate), 8),
 			EventScoped:    true,
@@ -7089,6 +7193,8 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 		Rule:           rule,
 		Expression:     expr,
 		Step:           step,
+		StartTime:      startTime,
+		EndTime:        endTime,
 		SeriesReturned: len(results),
 		Stats:          stats,
 		EventScoped:    false,
@@ -7104,12 +7210,22 @@ func buildMetricEvidence(trend alertMetricTrendQueryResult) *response.SystemHeal
 		ruleGroup = trend.Rule.Group
 		ruleName = trend.Rule.Alert
 	}
+	var startTimeMicros int64
+	var endTimeMicros int64
+	if !trend.StartTime.IsZero() {
+		startTimeMicros = trend.StartTime.UnixMicro()
+	}
+	if !trend.EndTime.IsZero() {
+		endTimeMicros = trend.EndTime.UnixMicro()
+	}
 	metric := &response.SystemHealthMetricEvidence{
 		RuleGroup:       ruleGroup,
 		RuleName:        ruleName,
 		MetricName:      firstNonEmpty(trend.MetricName, inferMetricNameFromRule(ruleName, trend.Expression)),
 		Expression:      trend.Expression,
 		Step:            trend.Step.String(),
+		StartTime:       startTimeMicros,
+		EndTime:         endTimeMicros,
 		SeriesReturned:  trend.SeriesReturned,
 		SeriesMatched:   trend.Stats.SeriesCount,
 		PointCount:      trend.Stats.PointCount,
@@ -7148,6 +7264,37 @@ func buildMetricSeriesEvidence(series []alertMetricSeries, seriesLimit int, poin
 		})
 	}
 	return items, truncated
+}
+
+func aggregateAlertMetricSeriesPoints(series []alertMetricSeries, pointLimit int) ([]response.SystemHealthMetricDataPoint, bool) {
+	if len(series) == 0 || pointLimit <= 0 {
+		return nil, false
+	}
+	aggregated := make(map[int64]float64)
+	for _, item := range series {
+		for _, point := range item.Values {
+			if point.TimeStamp <= 0 || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) {
+				continue
+			}
+			aggregated[point.TimeStamp] += point.Value
+		}
+	}
+	if len(aggregated) == 0 {
+		return nil, false
+	}
+	timestamps := make([]int64, 0, len(aggregated))
+	for timestamp := range aggregated {
+		timestamps = append(timestamps, timestamp)
+	}
+	sort.Slice(timestamps, func(i, j int) bool { return timestamps[i] < timestamps[j] })
+	points := make([]prometheus.Points, 0, len(timestamps))
+	for _, timestamp := range timestamps {
+		points = append(points, prometheus.Points{
+			TimeStamp: timestamp,
+			Value:     aggregated[timestamp],
+		})
+	}
+	return downsampleMetricPoints(points, pointLimit)
 }
 
 func downsampleMetricPoints(points []prometheus.Points, limit int) ([]response.SystemHealthMetricDataPoint, bool) {

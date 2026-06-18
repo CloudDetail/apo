@@ -29,7 +29,7 @@ const LEVEL_META = {
   minor: { text: '轻微异常', color: '#84cc16', tag: 'lime', score: 82 },
   warning: { text: '警告', color: '#f79009', tag: 'warning', score: 68 },
   severe: { text: '严重', color: '#f04438', tag: 'error', score: 42 },
-  outage: { text: '故障', color: '#b42318', tag: 'error', score: 18 },
+  outage: { text: '故障', color: '#d92d20', tag: 'error', score: 18 },
   recovering: { text: '恢复中', color: '#2e90fa', tag: 'processing', score: 74 },
   unknown: { text: '分析中', color: '#667085', tag: 'default', score: 0 },
 }
@@ -75,47 +75,60 @@ const ExpandableText = ({
 }) => {
   const content = safeText(text)
   const contentRef = useRef(null)
-  const [expanded, setExpanded] = useState(false)
+  const [measured, setMeasured] = useState(false)
   const [overflowing, setOverflowing] = useState(false)
   useEffect(() => {
     const element = contentRef.current
-    if (!element || expanded) return undefined
+    if (!element) return undefined
+    setMeasured(false)
     let frame = 0
     const measure = () => {
       window.cancelAnimationFrame(frame)
       frame = window.requestAnimationFrame(() => {
+        const container = element.closest('details')
+        if (container?.open) return
         setOverflowing(element.scrollHeight > element.clientHeight + 1)
+        setMeasured(true)
       })
     }
     measure()
+    const observer = typeof window.ResizeObserver === 'function'
+      ? new window.ResizeObserver(measure)
+      : null
+    if (observer) observer.observe(element)
     window.addEventListener('resize', measure)
     return () => {
       window.cancelAnimationFrame(frame)
+      if (observer) observer.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [content, expanded])
+  }, [content])
   if (!content) return null
-  const expandable = overflowing || content.length > threshold
+  const expandable = overflowing || (!measured && content.length > threshold)
+  const wrapperClassName = [
+    'health-expandable-text',
+    className,
+  ].filter(Boolean).join(' ')
+  if (!expandable) {
+    return (
+      <div className={wrapperClassName}>
+        <span className="health-expandable-text-content" ref={contentRef}>{content}</span>
+      </div>
+    )
+  }
   return (
-    <div
+    <details
       className={[
         'health-expandable-text',
-        !expanded ? 'health-expandable-text-collapsed' : '',
         className,
       ].filter(Boolean).join(' ')}
     >
-      <span className="health-expandable-text-content" ref={contentRef}>{content}</span>
-      {expandable && (
-        <button
-          type="button"
-          className="health-expandable-text-toggle"
-          aria-expanded={expanded}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          {expanded ? collapseLabel : expandLabel}
-        </button>
-      )}
-    </div>
+      <summary className="health-expandable-text-toggle">
+        <span className="health-expandable-text-content" ref={contentRef}>{content}</span>
+        <span className="health-expandable-text-label health-expandable-text-label-expand">{expandLabel}</span>
+        <span className="health-expandable-text-label health-expandable-text-label-collapse">{collapseLabel}</span>
+      </summary>
+    </details>
   )
 }
 
@@ -527,6 +540,63 @@ const normalizeMetricTimestamp = (timestamp) => {
   return number < 1000000000000 ? number * 1000 : number
 }
 
+const metricStepMsFromValue = (value) => {
+  const text = safeText(value).toLowerCase()
+  if (!text) return 0
+  const numeric = Number(text)
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return numeric < 1000 ? numeric * 1000 : numeric
+  }
+  const unitMs = {
+    ms: 1,
+    s: 1000,
+    m: 60 * 1000,
+    h: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+  }
+  let total = 0
+  Array.from(text.matchAll(/(\d+(?:\.\d+)?)(ms|s|m|h|d)/g)).forEach((match) => {
+    total += Number(match[1]) * unitMs[match[2]]
+  })
+  return Number.isFinite(total) && total > 0 ? total : 0
+}
+
+const inferMetricStepMs = (timestamps = []) => {
+  const sorted = Array.from(new Set(timestamps)).sort((left, right) => left - right)
+  const diffs = sorted.slice(1)
+    .map((timestamp, index) => timestamp - sorted[index])
+    .filter((diff) => diff > 0)
+    .sort((left, right) => left - right)
+  if (diffs.length === 0) return 0
+  return diffs[Math.floor(diffs.length / 2)]
+}
+
+const metricExpectedStepMs = (metric = {}, timestamps = []) =>
+  metricStepMsFromValue(firstText(
+    metric.step,
+    metric.stepMs,
+    metric.stepMillis,
+    metric.interval,
+    metric.granularity,
+  )) || inferMetricStepMs(timestamps)
+
+const buildMetricTimeline = (timestamps = [], metric = {}) => {
+  const sorted = Array.from(new Set(timestamps)).sort((left, right) => left - right)
+  if (sorted.length < 2) return sorted
+  const stepMs = metricExpectedStepMs(metric, sorted)
+  if (!Number.isFinite(stepMs) || stepMs <= 0) return sorted
+  const start = sorted[0]
+  const end = sorted[sorted.length - 1]
+  const pointLimit = Math.max(positiveNumber(metric.pointLimit) || 160, sorted.length)
+  const expectedCount = Math.floor((end - start) / stepMs) + 1
+  if (expectedCount <= sorted.length || expectedCount > pointLimit) return sorted
+  const timeline = []
+  for (let timestamp = start; timestamp <= end + stepMs * 0.25; timestamp += stepMs) {
+    timeline.push(Math.round(timestamp))
+  }
+  return timeline
+}
+
 const normalizeMetricPoint = (point = {}) => {
   if (!point || typeof point !== 'object') return null
   const timestamp = normalizeMetricTimestamp(firstText(point.timestamp, point.time, point.ts))
@@ -536,6 +606,13 @@ const normalizeMetricPoint = (point = {}) => {
   }
   const value = Number(point.value)
   return { timestamp, value: Number.isFinite(value) ? value : null }
+}
+
+const metricWindowRange = (source = {}) => {
+  const start = normalizeMetricTimestamp(firstText(source.startTime, source.start_time, source.from, source.windowStart))
+  const end = normalizeMetricTimestamp(firstText(source.endTime, source.end_time, source.to, source.windowEnd))
+  if (start === null || end === null || end <= start) return null
+  return { start, end }
 }
 
 const metricChartPoints = (metric = {}) =>
@@ -681,8 +758,10 @@ const metricChartSeries = (metric = {}) =>
       }
     })
     .filter((series) => series.hasData)
-    const allTimestamps = Array.from(new Set(rawSeries.flatMap((series) => series.data.map((point) => point[0]))))
-      .sort((left, right) => left - right)
+    const allTimestamps = buildMetricTimeline(
+      rawSeries.flatMap((series) => series.data.map((point) => point[0])),
+      metric,
+    )
     const alignPointLimit = positiveNumber(metric.pointLimit) || 160
     const shouldAlignGaps = allTimestamps.length > 0
       && allTimestamps.length <= alignPointLimit
@@ -705,8 +784,9 @@ const MetricTrendChart = ({ metric, compact = false }) => {
   const series = metricChartSeries(metric)
   if (series.length === 0) return null
   const allTimestamps = series.flatMap((item) => item.data.map((point) => point[0]))
-  const minTime = Math.min(...allTimestamps)
-  const maxTime = Math.max(...allTimestamps)
+  const windowRange = metricWindowRange(metric)
+  const minTime = windowRange?.start ?? Math.min(...allTimestamps)
+  const maxTime = windowRange?.end ?? Math.max(...allTimestamps)
   const rangeMs = Number.isFinite(minTime) && Number.isFinite(maxTime) ? maxTime - minTime : 0
   const lowConfidence = isLowConfidenceMetric(metric)
   const metricNotes = [
@@ -753,6 +833,8 @@ const MetricTrendChart = ({ metric, compact = false }) => {
     xAxis: {
       type: 'time',
       boundaryGap: false,
+      min: Number.isFinite(minTime) ? minTime : undefined,
+      max: Number.isFinite(maxTime) ? maxTime : undefined,
       axisLine: { lineStyle: { color: 'var(--ant-color-border)' } },
       axisTick: { show: false },
       axisLabel: {
@@ -779,7 +861,7 @@ const MetricTrendChart = ({ metric, compact = false }) => {
       smooth: !lowConfidence,
       showSymbol: lowConfidence || item.data.length <= 8,
       symbolSize: 4,
-      connectNulls: true,
+      connectNulls: false,
       lineStyle: { width: compact ? 2 : 2.5 },
       emphasis: { focus: 'series' },
       data: item.data,
@@ -810,35 +892,36 @@ MetricTrendChart.propTypes = {
   compact: PropTypes.bool,
 }
 
+const cleanTechnicalEvidenceText = (text = '') =>
+  safeText(text)
+    .replace(/^方向报告中的\s*/g, '')
+    .replace(/^APM\s*链路分析显示[:：]\s*/g, '')
+    .replace(/^日志分析显示[:：]\s*/g, '')
+    .replace(/^指标趋势显示[:：]\s*/g, '')
+    .replace(/^告警事件分析显示[:：]\s*/g, '')
+    .replace(/\d+\s*条真实告警事件，?/g, '')
+    .replace(/\d+\s*个去重告警实例，?/g, '')
+    .replace(/\d+\s*类告警，?/g, '')
+    .replace(/状态=[^，。；]+[，。；]?/g, '')
+    .replace(/聚合对象=[^，。；]+[，。；]?/g, '')
+    .replace(/告警类型=[^，。；]+[，。；]?/g, '')
+    .replace(/重复触发=\d+次[，。；]?/g, '')
+    .replace(/最长持续=[^，。；]+[，。；]?/g, '')
+    .replace(/PQL=[^；]+；?/g, '')
+    .replace(/规则=[^；]+；?/g, '')
+    .replace(/匹配标签=[^；]+；?/g, '')
+    .replace(/通过 [^；]+?定位当前触发 (series|序列)；?/g, '')
+    .replace(/告警=[^；]+；?/g, '')
+    .replace(/raw_tags/g, '告警标签')
+    .replace(/Prometheus series/g, '指标序列')
+    .replace(/series/g, '序列')
+    .replace(/alertName \+ 告警标签/g, '告警标签')
+    .replace(/alertName \+ raw_tags/g, '告警标签')
+    .replace(/span_trace/g, '链路样本')
+    .trim()
+
 const stripTechnicalEvidenceText = (text = '') =>
-  truncateText(
-    text
-      .replace(/^方向报告中的\s*/g, '')
-      .replace(/^APM\s*链路分析显示[:：]\s*/g, '')
-      .replace(/^日志分析显示[:：]\s*/g, '')
-      .replace(/^指标趋势显示[:：]\s*/g, '')
-      .replace(/^告警事件分析显示[:：]\s*/g, '')
-      .replace(/\d+\s*条真实告警事件，?/g, '')
-      .replace(/\d+\s*个去重告警实例，?/g, '')
-      .replace(/\d+\s*类告警，?/g, '')
-      .replace(/状态=[^，。；]+[，。；]?/g, '')
-      .replace(/聚合对象=[^，。；]+[，。；]?/g, '')
-      .replace(/告警类型=[^，。；]+[，。；]?/g, '')
-      .replace(/重复触发=\d+次[，。；]?/g, '')
-      .replace(/最长持续=[^，。；]+[，。；]?/g, '')
-      .replace(/PQL=[^；]+；?/g, '')
-      .replace(/规则=[^；]+；?/g, '')
-      .replace(/匹配标签=[^；]+；?/g, '')
-      .replace(/通过 [^；]+?定位当前触发 (series|序列)；?/g, '')
-      .replace(/告警=[^；]+；?/g, '')
-      .replace(/raw_tags/g, '告警标签')
-      .replace(/Prometheus series/g, '指标序列')
-      .replace(/series/g, '序列')
-      .replace(/alertName \+ 告警标签/g, '告警标签')
-      .replace(/alertName \+ raw_tags/g, '告警标签')
-      .replace(/span_trace/g, '链路样本'),
-    150,
-  )
+  truncateText(cleanTechnicalEvidenceText(text), 150)
 
 const summarizeMetricEvidenceText = (text = '') => {
   const normalized = text
@@ -910,6 +993,8 @@ const summarizeTraceEvidenceText = (text = '') =>
   )
 
 const summarizeRequestPolarisEvidenceText = (item = {}) => {
+  const breakdownSummary = summarizeRequestPolarisBreakdown(item.polarisBreakdown)
+  if (breakdownSummary) return breakdownSummary
   const metric = item.metric
   const metricName = metricBackendDisplayName(metric)
   const text = safeText(item.result)
@@ -923,6 +1008,444 @@ const summarizeRequestPolarisEvidenceText = (item = {}) => {
   const summary = productReportSummary(stripTechnicalEvidenceText(text), false, 180)
   if (!metricName || summary.includes(metricName)) return summary
   return truncateText(`${metricName}：${summary}`, 200)
+}
+
+const polarisUnitText = (unit = '') => {
+  const text = safeText(unit)
+  if (text === 'ms/request') return 'ms/请求'
+  if (text === 'req/s') return '次/秒'
+  return text
+}
+
+const polarisValueText = (item = {}, field = 'averageValue') => {
+  const value = item[field]
+  if (value === undefined || value === null || Number.isNaN(Number(value))) return '-'
+  const unit = polarisUnitText(item.unit)
+  return `${formatMetricNumber(value)}${unit ? ` ${unit}` : ''}`
+}
+
+const polarisItemName = (item = {}) => firstText(item.resourceKind, item.name, item.key, '资源耗时')
+
+const polarisChangeText = (item = {}) => {
+  if (item.changePercent !== undefined && item.changePercent !== null && !Number.isNaN(Number(item.changePercent))) {
+    const value = Number(item.changePercent)
+    return `变化 ${value > 0 ? '+' : ''}${formatPercent(value)}`
+  }
+  if (item.delta !== undefined && item.delta !== null && !Number.isNaN(Number(item.delta)) && Number(item.delta) !== 0) {
+    return Number(item.delta) > 0 ? '较窗口开始升高' : '较窗口开始回落'
+  }
+  return '基本持平'
+}
+
+const polarisDurationUnit = 'ms/request'
+
+const isPolarisDurationItem = (item = {}) =>
+  positiveNumber(item.pointCount) > 0 &&
+  positiveNumber(item.averageValue) > 0 &&
+  polarisUnitText(item.unit || polarisDurationUnit) === polarisUnitText(polarisDurationUnit)
+
+const polarisCompositionColor = (item = {}) => {
+  const key = safeText(item.key).toLowerCase()
+  const name = safeText(polarisItemName(item))
+  if (key.includes('net') || name.includes('网络')) return '#2e90fa'
+  if (key.includes('cpu') || name.includes('CPU')) return '#12b76a'
+  if (key.includes('epoll') || name.includes('调度')) return '#f79009'
+  if (key.includes('file') || name.includes('文件')) return '#7a5af8'
+  if (key.includes('other')) return '#98a2b3'
+  return '#155eef'
+}
+
+const buildPolarisComposition = (breakdown = {}) => {
+  const latency = breakdown.latency
+  const latencyAverage = positiveNumber(latency?.averageValue)
+  if (!latencyAverage || !isPolarisDurationItem({ ...latency, unit: latency?.unit || polarisDurationUnit })) return null
+  const resources = safeList(breakdown.resources).filter(isPolarisDurationItem)
+  if (resources.length === 0) return null
+  const rawResourceTotal = resources.reduce((total, item) => total + positiveNumber(item.averageValue), 0)
+  if (!rawResourceTotal) return null
+  const scale = rawResourceTotal > latencyAverage ? latencyAverage / rawResourceTotal : 1
+  const segments = resources.map((item) => {
+    const average = positiveNumber(item.averageValue)
+    const value = average * scale
+    return {
+      key: firstText(item.key, item.name),
+      name: polarisItemName(item),
+      average,
+      max: positiveNumber(item.maxValue),
+      ratio: average / latencyAverage,
+      widthRatio: value / latencyAverage,
+      abnormal: Boolean(item.abnormal),
+      reason: firstText(item.reason, polarisChangeText(item)),
+      color: polarisCompositionColor(item),
+    }
+  })
+  const visualTotal = segments.reduce((total, item) => total + item.widthRatio, 0)
+  const remaining = Math.max(0, 1 - visualTotal)
+  if (remaining >= 0.01) {
+    const remainingValue = latencyAverage * remaining
+    segments.push({
+      key: 'other',
+      name: '其他耗时',
+      average: remainingValue,
+      max: 0,
+      ratio: remaining,
+      widthRatio: remaining,
+      abnormal: false,
+      reason: '当前北极星资源分项未覆盖的请求耗时',
+      color: polarisCompositionColor({ key: 'other' }),
+    })
+  }
+  return {
+    latency,
+    latencyAverage,
+    resourceTotal: rawResourceTotal,
+    scaled: rawResourceTotal > latencyAverage,
+    segments: segments.filter((item) => item.widthRatio > 0),
+  }
+}
+
+const polarisItemPointMap = (item = {}) => {
+  const pointMap = new Map()
+  safeList(item.points)
+    .map(normalizeMetricPoint)
+    .filter((point) => point && point.value !== null)
+    .forEach((point) => {
+      pointMap.set(point.timestamp, Math.max(0, point.value))
+    })
+  return pointMap
+}
+
+const buildPolarisStackedArea = (breakdown = {}) => {
+  const resources = safeList(breakdown.resources).filter(isPolarisDurationItem)
+  const resourceSeries = resources
+    .map((item) => ({
+      key: firstText(item.key, item.name),
+      name: polarisItemName(item),
+      color: polarisCompositionColor(item),
+      abnormal: Boolean(item.abnormal),
+      pointMap: polarisItemPointMap(item),
+      item,
+    }))
+    .filter((item) => item.pointMap.size > 0)
+  if (resourceSeries.length === 0) return null
+
+  const latencyPointMap = polarisItemPointMap(breakdown.latency)
+  const allTimestamps = buildMetricTimeline([
+    ...resourceSeries.flatMap((item) => Array.from(item.pointMap.keys())),
+    ...Array.from(latencyPointMap.keys()),
+  ], {
+    pointLimit: positiveNumber(breakdown.latency?.pointLimit)
+      || Math.max(...resourceSeries.map((item) => positiveNumber(item.item.pointLimit) || 0), 160),
+  })
+  if (allTimestamps.length < 2) return null
+
+  const stackedSeries = resourceSeries.map((item) => ({
+    key: item.key,
+    name: item.name,
+    color: item.color,
+    abnormal: item.abnormal,
+    data: allTimestamps.map((timestamp) => [timestamp, item.pointMap.get(timestamp) || 0]),
+  }))
+
+  const hasLatencyLine = latencyPointMap.size > 0
+  if (hasLatencyLine) {
+    const otherData = allTimestamps.map((timestamp) => {
+      const resourceTotal = resourceSeries.reduce((total, item) => total + (item.pointMap.get(timestamp) || 0), 0)
+      const latencyValue = latencyPointMap.get(timestamp)
+      return [timestamp, Math.max(0, (latencyValue || 0) - resourceTotal)]
+    })
+    if (otherData.some(([, value]) => value > 0)) {
+      stackedSeries.push({
+        key: 'other',
+        name: '其他耗时',
+        color: polarisCompositionColor({ key: 'other' }),
+        abnormal: false,
+        data: otherData,
+      })
+    }
+  }
+
+  return {
+    hasLatencyLine,
+    latencyData: hasLatencyLine
+      ? allTimestamps.map((timestamp) => [timestamp, latencyPointMap.get(timestamp) || null])
+      : [],
+    pointCount: allTimestamps.length,
+    pointsTruncated: Boolean(breakdown.latency?.pointsTruncated || resources.some((item) => item.pointsTruncated)),
+    series: stackedSeries,
+  }
+}
+
+const PolarisStackedAreaChart = ({ breakdown }) => {
+  const chart = buildPolarisStackedArea(breakdown)
+  if (!chart) return null
+  const unit = polarisUnitText(breakdown.latency?.unit || polarisDurationUnit)
+  const allTimestamps = chart.series.flatMap((item) => item.data.map((point) => point[0]))
+  const windowRange = metricWindowRange(breakdown)
+  const minTime = windowRange?.start ?? Math.min(...allTimestamps)
+  const maxTime = windowRange?.end ?? Math.max(...allTimestamps)
+  const rangeMs = Number.isFinite(minTime) && Number.isFinite(maxTime) ? maxTime - minTime : 0
+  const timeLabelFormatter = (value) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ''
+    const timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (rangeMs >= 24 * 60 * 60 * 1000) {
+      return `${date.toLocaleDateString([], { month: '2-digit', day: '2-digit' })} ${timeText}`
+    }
+    return timeText
+  }
+  const option = {
+    color: chart.series.map((item) => item.color),
+    backgroundColor: 'transparent',
+    animation: false,
+    grid: {
+      left: 8,
+      right: 10,
+      top: 28,
+      bottom: 24,
+      containLabel: true,
+    },
+    tooltip: {
+      trigger: 'axis',
+      confine: true,
+      valueFormatter: (value) => (value === null || value === undefined ? '-' : `${formatMetricNumber(value)} ${unit}`),
+    },
+    legend: {
+      type: 'scroll',
+      top: 0,
+      right: 0,
+      icon: 'roundRect',
+      itemWidth: 10,
+      itemHeight: 8,
+      textStyle: {
+        color: 'var(--ant-color-text-secondary)',
+        fontSize: 11,
+      },
+    },
+    xAxis: {
+      type: 'time',
+      boundaryGap: false,
+      min: Number.isFinite(minTime) ? minTime : undefined,
+      max: Number.isFinite(maxTime) ? maxTime : undefined,
+      axisLine: { lineStyle: { color: 'var(--ant-color-border)' } },
+      axisTick: { show: false },
+      axisLabel: {
+        color: 'var(--ant-color-text-tertiary)',
+        fontSize: 11,
+        hideOverlap: true,
+        formatter: timeLabelFormatter,
+      },
+      splitLine: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      axisLabel: {
+        color: 'var(--ant-color-text-tertiary)',
+        fontSize: 11,
+        formatter: (value) => formatMetricNumber(value),
+      },
+      splitLine: { lineStyle: { color: 'var(--ant-color-border-secondary)', type: 'dashed' } },
+    },
+    series: [
+      ...chart.series.map((item) => ({
+        name: item.name,
+        type: 'line',
+        stack: 'polaris-duration',
+        smooth: chart.pointCount > 4,
+        showSymbol: chart.pointCount <= 8,
+        symbolSize: 4,
+        areaStyle: { opacity: item.abnormal ? 0.72 : 0.58 },
+        lineStyle: { width: item.abnormal ? 2 : 1.4 },
+        emphasis: { focus: 'series' },
+        data: item.data,
+      })),
+      ...(chart.hasLatencyLine ? [{
+        name: '请求平均耗时',
+        type: 'line',
+        smooth: chart.pointCount > 4,
+        showSymbol: chart.pointCount <= 8,
+        symbolSize: 4,
+        z: 8,
+        lineStyle: { width: 2.4, color: '#1d2939' },
+        itemStyle: { color: '#1d2939' },
+        emphasis: { focus: 'series' },
+        data: chart.latencyData,
+      }] : []),
+    ],
+  }
+
+  return (
+    <div className="health-polaris-stacked-area">
+      <div className="health-polaris-stacked-area-head">
+        <span>请求北极星耗时叠加图</span>
+        <b>{polarisValueText(breakdown.latency, 'averageValue')}</b>
+      </div>
+      <ReactECharts option={option} style={{ width: '100%', height: 168 }} />
+      {chart.pointsTruncated && (
+        <small className="health-polaris-composition-note">已按窗口抽样展示，明细数值以下方资源分项为准。</small>
+      )}
+    </div>
+  )
+}
+
+PolarisStackedAreaChart.propTypes = {
+  breakdown: PropTypes.object,
+}
+
+const buildPolarisResourceHighlights = (resources = []) =>
+  safeList(resources)
+    .filter((item) => positiveNumber(item.pointCount) > 0)
+    .map((item) => ({
+      key: firstText(item.key, item.name),
+      name: polarisItemName(item),
+      average: positiveNumber(item.averageValue),
+      max: positiveNumber(item.maxValue),
+      abnormal: Boolean(item.abnormal),
+      change: firstText(item.reason, polarisChangeText(item)),
+      value: polarisValueText(item, 'averageValue'),
+      peak: polarisValueText(item, 'maxValue'),
+      color: polarisCompositionColor(item),
+    }))
+    .sort((left, right) => {
+      if (left.abnormal !== right.abnormal) return left.abnormal ? -1 : 1
+      return right.average - left.average
+    })
+    .slice(0, 3)
+
+const PolarisResourceHighlights = ({ resources }) => {
+  const highlights = buildPolarisResourceHighlights(resources)
+  if (highlights.length === 0) return null
+  return (
+    <div className="health-polaris-resource-summary">
+      <span className="health-polaris-resource-summary-label">资源重点</span>
+      <div className="health-polaris-resource-summary-items">
+        {highlights.map((item) => (
+          <span
+            className={item.abnormal ? 'health-polaris-resource-chip health-polaris-resource-chip-abnormal' : 'health-polaris-resource-chip'}
+            key={item.key || item.name}
+            title={`${item.name}：均值 ${item.value}，峰值 ${item.peak}，${item.change}`}
+          >
+            <i style={{ backgroundColor: item.color }} />
+            <b>{item.name}</b>
+            <em>{item.change}</em>
+            <strong>{item.value}</strong>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+PolarisResourceHighlights.propTypes = {
+  resources: PropTypes.array,
+}
+
+const PolarisCompositionBar = ({ breakdown }) => {
+  const composition = buildPolarisComposition(breakdown)
+  if (!composition) return null
+  const unit = polarisUnitText(composition.latency.unit || polarisDurationUnit)
+  return (
+    <div className="health-polaris-composition">
+      <div className="health-polaris-composition-head">
+        <span>请求平均耗时分解</span>
+        <b>{polarisValueText(composition.latency, 'averageValue')}</b>
+      </div>
+      <div className="health-polaris-composition-axis">
+        <span>0 {unit}</span>
+        <span>请求平均耗时 {polarisValueText(composition.latency, 'averageValue')}</span>
+      </div>
+      <div className="health-polaris-composition-track" aria-label="请求平均耗时分解">
+        {composition.segments.map((item) => (
+          <div
+            className={item.abnormal ? 'health-polaris-composition-segment health-polaris-composition-segment-abnormal' : 'health-polaris-composition-segment'}
+            key={item.key}
+            style={{
+              backgroundColor: item.color,
+              flexBasis: `${Math.max(item.widthRatio * 100, 2)}%`,
+            }}
+            title={`${item.name}：均值 ${formatMetricNumber(item.average)} ${unit}，约占请求平均耗时 ${formatPercent(item.ratio * 100)}`}
+          />
+        ))}
+      </div>
+      <div className="health-polaris-composition-legend">
+        {composition.segments.map((item) => (
+          <span key={item.key}>
+            <i style={{ backgroundColor: item.color }} />
+            <b>{item.name}</b>
+            <em>{formatMetricNumber(item.average)} {unit}</em>
+            <small>{formatPercent(item.ratio * 100)}</small>
+          </span>
+        ))}
+      </div>
+      {composition.scaled && (
+        <small className="health-polaris-composition-note">
+          资源分项合计高于请求平均耗时，图中按相对贡献展示，具体数值以下方明细为准。
+        </small>
+      )}
+    </div>
+  )
+}
+
+PolarisCompositionBar.propTypes = {
+  breakdown: PropTypes.object,
+}
+
+const summarizeRequestPolarisBreakdown = (breakdown = {}) => {
+  if (!breakdown || typeof breakdown !== 'object') return ''
+  const latency = breakdown.latency
+  const resources = safeList(breakdown.resources).filter((item) => positiveNumber(item.pointCount) > 0)
+  if (!latency && resources.length === 0) return ''
+  const target = firstText(breakdown.target, breakdown.contentKey, breakdown.serviceName, '该请求')
+  const parts = []
+  if (latency) {
+    parts.push(`请求平均耗时均值 ${polarisValueText(latency, 'averageValue')}，峰值 ${polarisValueText(latency, 'maxValue')}`)
+  }
+  if (resources.length > 0) {
+    parts.push(`资源耗时分项：${resources.map((item) => `${polarisItemName(item)}均值 ${polarisValueText(item, 'averageValue')}、峰值 ${polarisValueText(item, 'maxValue')}`).join('；')}`)
+  }
+  if (breakdown.tps) {
+    parts.push(`同期吞吐量 ${polarisValueText(breakdown.tps, 'firstValue')} 到 ${polarisValueText(breakdown.tps, 'lastValue')}`)
+  }
+  return truncateText(`${target} 在问题窗口内${parts.join('；')}。`, 260)
+}
+
+const RequestPolarisBreakdown = ({ breakdown }) => {
+  if (!breakdown || typeof breakdown !== 'object') return null
+  const latency = breakdown.latency
+  const resources = safeList(breakdown.resources).filter((item) => positiveNumber(item.pointCount) > 0)
+  const tps = breakdown.tps
+  const hasStackedArea = Boolean(buildPolarisStackedArea(breakdown))
+  if (!latency && resources.length === 0 && !tps) return null
+  return (
+    <div className="health-polaris-breakdown">
+      {latency && (
+        <div className="health-polaris-breakdown-main">
+          <span>请求平均耗时</span>
+          <b>{polarisValueText(latency, 'averageValue')}</b>
+          <em>峰值 {polarisValueText(latency, 'maxValue')}</em>
+          <small>{polarisChangeText(latency)}</small>
+        </div>
+      )}
+      {resources.length > 0 && (
+        <div className="health-polaris-breakdown-rows">
+          {hasStackedArea ? <PolarisStackedAreaChart breakdown={breakdown} /> : <PolarisCompositionBar breakdown={breakdown} />}
+          <PolarisResourceHighlights resources={resources} />
+        </div>
+      )}
+      {tps && (
+        <div className="health-polaris-breakdown-tps">
+          <span>同期吞吐量</span>
+          <b>{polarisValueText(tps, 'firstValue')} → {polarisValueText(tps, 'lastValue')}</b>
+          <small>{polarisChangeText(tps)}</small>
+        </div>
+      )}
+    </div>
+  )
+}
+
+RequestPolarisBreakdown.propTypes = {
+  breakdown: PropTypes.object,
 }
 
 const productStructuredSummary = (text = '', limit = 260) =>
@@ -1030,8 +1553,7 @@ const reportExecutiveSummary = (report = {}, issues = [], fallback = '') => {
 }
 
 const issueMetaItems = (issue = {}) => [
-  positiveNumber(issue.rawEventCount) > 0 && `事件 ${issue.rawEventCount}`,
-  positiveNumber(issue.deduplicatedAlerts) > 0 && `实例 ${issue.deduplicatedAlerts}`,
+  positiveNumber(issue.rawEventCount) > 0 && `相关告警事件 ${issue.rawEventCount}`,
   positiveNumber(issue.activeAlerts) > 0 && `触发中 ${issue.activeAlerts}`,
   issue.startedAt && `开始 ${issue.startedAt}`,
 ].filter(Boolean)
@@ -1184,6 +1706,26 @@ const rawLogCandidateKeys = [
   'entries',
 ]
 
+const rawLogSectionPattern = /(应用日志|原始日志|异常日志|日志样本|日志明细|日志原文|raw\s+logs?|log\s+samples?)\s*[:：；;]/i
+const rawLogTimePattern = /\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?/
+
+const splitLogEvidenceResult = (result = '') => {
+  const normalized = safeText(result)
+    .replace(/^方向报告中的日志分析显示[:：]\s*/g, '')
+    .replace(/^日志分析显示[:：]\s*/g, '')
+  const match = normalized.match(rawLogSectionPattern)
+  if (!match || match.index === undefined) {
+    return {
+      rawText: '',
+      summaryText: normalized,
+    }
+  }
+  return {
+    rawText: normalized.slice(match.index + match[0].length).trim(),
+    summaryText: normalized.slice(0, match.index).replace(/[，,；;\s]+$/g, '').trim(),
+  }
+}
+
 const formatRawLogObject = (value = {}) => [
   firstText(value.timestamp, value.time, value.ts, value.datetime),
   firstText(value.level, value.severity),
@@ -1202,14 +1744,79 @@ const normalizeRawLogLines = (value) => {
     return formatted ? [formatted] : []
   }
   return `${value}`
+    .replace(/([。；;])\s*(?=\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2})/g, '$1\n')
+    .replace(/(\])\s+(?=\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)/g, '$1\n')
     .split(/\r?\n/)
     .map((line) => line.trimEnd())
     .filter((line) => line.trim())
 }
 
 const extractRawLogLines = (item = {}) => {
-  const lines = rawLogCandidateKeys.flatMap((key) => normalizeRawLogLines(item[key]))
+  const { rawText } = splitLogEvidenceResult(item.result || '')
+  const lines = [
+    ...rawLogCandidateKeys.flatMap((key) => normalizeRawLogLines(item[key])),
+    ...normalizeRawLogLines(rawText).filter((line) => rawLogTimePattern.test(line) || /(^\s+at\s+|^Caused by:|traceId=|spanId=|ERROR|WARN|Exception|Timeout|超时|异常|错误)/i.test(line)),
+  ]
   return Array.from(new Set(lines.map((line) => truncateText(line, 500)))).slice(0, 80)
+}
+
+const redactLogBusinessContent = (text = '') => safeText(text)
+  .replace(/\b[A-Z][0-9]{2,5}(?:\s*[~～-]\s*[A-Z]?[0-9]{2,5})?\b/g, '<车次>')
+  .replace(/\b1[3-9]\d{9}\b/g, '<手机号>')
+  .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '<邮箱>')
+  .replace(/\b(token|authorization|session|cookie|password|passwd|secret)\s*[:=]\s*["']?[^"',;\s}]+/gi, '$1=<凭据>')
+  .replace(/\b(orderId|order_id|userId|user_id|passengerId|passenger_id|ticketId|ticket_id|trainNo|train_no|seatNo|seat_no|routeId|route_id)\s*[:=]\s*["']?[^"',;\s}]+/g, '$1=<已脱敏>')
+  .replace(/(订单|用户|乘客|车次|座位|席位|库存|余额|票号|身份证|证件号|手机号|路线|站点|始发站|终点站)\s*[:=：]\s*["“']?[^"',，；;\s}”]+/g, '$1=<已脱敏>')
+  .replace(/\b\d{8,}\b/g, '<长数字>')
+
+const hasExplicitLogErrorSignal = (text = '') => {
+  const content = safeText(text).replace(
+    /(未发现异常日志|未发现错误日志|未发现慢请求|未发现异常|未见异常(?:日志|数据|错误|报错)?|无异常堆积|无异常|无明显报错|未见明显报错|正常日志|日志正常|info 为主|info为主|未持续新增|没有持续新增|恢复后未持续新增)/ig,
+    ' ',
+  )
+  if (!content) return false
+  return /(error|exception|timeout|fatal|panic|traceback|5xx|4xx|异常|错误|超时|失败|报错|堆栈|慢请求)/i.test(content)
+}
+
+const isNormalBusinessLogSummary = (text = '') => {
+  const content = safeText(text)
+  if (!content) return false
+  if (hasExplicitLogErrorSignal(content)) return false
+  return /(从日志中可以看出|请求并发较高|高频处理|批量检索|查询返回成功|返回成功|默认值|默认超大值|业务字段|业务语义|建议.*业务逻辑|建议.*库存计算)/i.test(content)
+}
+
+const isNoLogEvidenceText = (text = '') => {
+  const content = safeText(text)
+  if (!content) return true
+  return /(无日志数据|无有效日志数据|无可用日志|日志为空|未查询到日志|没有查询到日志|未检索到日志|没有检索到日志|未发现日志|no log|not found)/i.test(content)
+}
+
+const buildLogEvidenceDisplay = (item = {}) => {
+  const { summaryText } = splitLogEvidenceResult(item.result || '')
+  const originalText = productReportSummary(cleanTechnicalEvidenceText(summaryText), false, 1000)
+  const originalRawLogs = extractRawLogLines(item)
+  const combinedText = [originalText, originalRawLogs.join('\n')].filter(Boolean).join('\n')
+  const text = redactLogBusinessContent(originalText)
+  const rawLogs = originalRawLogs.map(redactLogBusinessContent)
+
+  if (!originalText && originalRawLogs.length === 0) return null
+  if (hasExplicitLogErrorSignal(combinedText)) {
+    return {
+      text,
+      rawLogs,
+    }
+  }
+  if (isNoLogEvidenceText(text) && rawLogs.length === 0) return null
+  if (isNormalBusinessLogSummary(combinedText)) {
+    return {
+      text: '日志未发现异常信息',
+      rawLogs,
+    }
+  }
+  return {
+    text: '日志未发现异常信息',
+    rawLogs,
+  }
 }
 
 const inferRiskSymptom = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
@@ -1653,7 +2260,7 @@ const buildAlertAnalysisDisplay = (issue = {}, alertEvidence = {}, detailEvidenc
     return {
       mode: 'history',
       serviceName,
-      title: '近 3 天告警态势',
+      title: '近 3 天告警历史',
       window,
       summary: truncateText(summary, 260),
       problem: truncateText(problem, 180),
@@ -1679,7 +2286,7 @@ const buildAlertAnalysisDisplay = (issue = {}, alertEvidence = {}, detailEvidenc
   return {
     mode: 'current',
     serviceName,
-    title: '当前窗口告警态势',
+    title: '当前窗口告警',
     window: null,
     summary,
     problem,
@@ -1689,22 +2296,6 @@ const buildAlertAnalysisDisplay = (issue = {}, alertEvidence = {}, detailEvidenc
     segments: [],
     episodes: [],
     emptyText: `${objectLabel}侧 ${symptom}，缺少最近 3 天服务告警历史。`,
-  }
-}
-
-const mergeAlertAnalysisSupplement = (analysis = {}, supplementText = '') => {
-  const supplement = truncateText(safeText(supplementText), 140)
-  if (!supplement) return analysis
-  const existingText = [
-    analysis.summary,
-    analysis.problem,
-    analysis.emptyText,
-  ].map(safeText).join(' ')
-  const summaryText = safeText(analysis.summary)
-  if (existingText.includes(supplement) || (summaryText && supplement.includes(summaryText))) return analysis
-  return {
-    ...analysis,
-    supplement,
   }
 }
 
@@ -1728,6 +2319,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   })
   const alertEvidence = getEvidenceByType(evidence, '告警事件', { exclude: ['告警事件分析'] })
   const reportAlertAnalysisEvidence = findEvidence('方向报告-告警事件分析')
+  const alertHistoryEvidence = findEvidence('告警历史')
   const metricEvidenceCandidates = safeList(evidence).filter((item) => {
     const type = safeText(item.type)
     return !type.includes('请求北极星') && ['方向报告-指标趋势', '告警指标趋势', '指标趋势'].some((keyword) => type.includes(keyword))
@@ -1740,9 +2332,10 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   const detailEvidence = getEvidenceByType(evidence, '告警明细')
   const missingData = safeList(issue.missingData)
   const supplementalEvidence = safeList(evidence).filter(
-    (item) => !['告警事件', '告警指标趋势', '指标趋势', '请求北极星', 'Trace链路样本', 'APM链路', '日志分析', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
+    (item) => !['告警事件', '告警事件分析', '告警历史', '告警指标趋势', '指标趋势', '请求北极星', 'Trace链路样本', 'APM链路', '日志分析', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
   )
   const items = []
+  const hasStructuredAlertHistory = Boolean(alertTrendSource(issue))
   const existingAlertAnalysisText = buildExistingAlertAnalysisText(issue)
   const alertBehaviorText = buildAlertBehaviorAnalysis(issue, alertEvidence, detailEvidence)
   const alertAnalysisText = [alertBehaviorText, existingAlertAnalysisText && `已有告警分析：${existingAlertAnalysisText}`]
@@ -1750,6 +2343,9 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     .join(' ')
   const reportAlertText = reportAlertAnalysisEvidence?.result
     ? summarizeEvidenceItem(reportAlertAnalysisEvidence)
+    : ''
+  const alertHistoryText = !hasStructuredAlertHistory && alertHistoryEvidence?.result
+    ? summarizeEvidenceItem(alertHistoryEvidence)
     : ''
   const rootCauseText = safeText(issue.rootCause)
 
@@ -1796,17 +2392,19 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
         tone: 'metric',
         metric: requestPolarisEvidence.metric,
         metricName: metricBackendDisplayName(requestPolarisEvidence.metric),
+        polarisBreakdown: requestPolarisEvidence.polarisBreakdown,
       })
     }
   }
 
-  if (logEvidence?.result) {
+  const logDisplay = logEvidence ? buildLogEvidenceDisplay(logEvidence) : null
+  if (logDisplay) {
     items.push({
       id: 'log-analysis',
       label: '日志分析',
-      text: summarizeEvidenceItem(logEvidence),
+      text: logDisplay.text,
       tone: 'log',
-      rawLogs: extractRawLogLines(logEvidence),
+      rawLogs: logDisplay.rawLogs,
     })
   }
 
@@ -1819,27 +2417,25 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     })
   }
 
-  if (alertAnalysisText || reportAlertText || alertEvidence?.result || detailEvidence?.result) {
-    const alertAnalysis = mergeAlertAnalysisSupplement(
-      buildAlertAnalysisDisplay(issue, alertEvidence, detailEvidence),
-      reportAlertText,
-    )
+  if (alertAnalysisText || reportAlertText || alertHistoryText || alertEvidence?.result || detailEvidence?.result) {
+    const alertAnalysis = buildAlertAnalysisDisplay(issue, alertEvidence, detailEvidence)
     const fallbackAlertText = firstText(
       alertAnalysis.summary,
       reportAlertText,
+      alertHistoryText,
       alertAnalysisText,
       stripTechnicalEvidenceText(detailEvidence?.result || ''),
     )
     items.push({
       id: 'alert-state',
-      label: '告警态势',
+      label: '告警',
       text: truncateText(fallbackAlertText, 220),
       tone: 'analysis',
       alertAnalysis,
     })
   }
 
-  if (!alertEvidence?.result && !reportAlertText && !alertAnalysisText && detailEvidence?.result) {
+  if (!alertEvidence?.result && !reportAlertText && !alertHistoryText && !alertAnalysisText && detailEvidence?.result) {
     items.push({
       id: 'alert-detail',
       label: '告警明细',
@@ -2090,13 +2686,6 @@ const ServiceAlertTrendEvidence = ({ analysis }) => (
       text={analysis.summary}
       threshold={130}
     />
-    {analysis.supplement && (
-      <ExpandableText
-        className="health-alert-trend-supplement"
-        text={`报告补充：${analysis.supplement}`}
-        threshold={100}
-      />
-    )}
     <AlertTrendTimeline analysis={analysis} />
     <div className="health-alert-trend-problem">
       <span>趋势判断</span>
@@ -2134,6 +2723,7 @@ export default function ServiceHealthyPage() {
   const [historyError, setHistoryError] = useState('')
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [recordLoadingId, setRecordLoadingId] = useState('')
+  const [expandedIssueKeys, setExpandedIssueKeys] = useState({})
   const selectedRecordRef = useRef(null)
   const lowerKeyword = keyword.trim().toLowerCase()
   const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
@@ -2319,6 +2909,24 @@ export default function ServiceHealthyPage() {
       },
     )
   }, [lowerKeyword, priorityFilter, serviceFilter, issues])
+  const issueDisplayKey = (issue, index) => firstText(
+    issue.key,
+    issue.aggregationKey,
+    issue.id,
+    issue.scope,
+    `${normalizePriority(issue.priority)}-${index}`,
+  )
+  const isIssueExpanded = (issue, index) => expandedIssueKeys[issueDisplayKey(issue, index)] !== false
+  const setVisibleIssuesExpanded = (expanded) => {
+    const nextIssueKeys = {}
+    filteredIssues.forEach((issue, index) => {
+      nextIssueKeys[issueDisplayKey(issue, index)] = expanded
+    })
+    setExpandedIssueKeys((current) => ({
+      ...current,
+      ...nextIssueKeys,
+    }))
+  }
 
   const report = healthReportData?.report ?? {
     ...EMPTY_REPORT,
@@ -2625,6 +3233,10 @@ export default function ServiceHealthyPage() {
             allowClear
             onChange={(value) => setServiceFilter(value || 'all')}
           />
+          <Space.Compact className="health-impact-collapse-actions">
+            <Button size="small" onClick={() => setVisibleIssuesExpanded(true)}>全部展开</Button>
+            <Button size="small" onClick={() => setVisibleIssuesExpanded(false)}>全部折叠</Button>
+          </Space.Compact>
           <span className="health-impact-detail-count">{filteredIssues.length} 项</span>
         </div>
       </div>
@@ -2644,12 +3256,14 @@ export default function ServiceHealthyPage() {
             )}
           </div>
         )}
-        {filteredIssues.map((issue) => {
+        {filteredIssues.map((issue, index) => {
           const priority = normalizePriority(issue.priority)
           const status = normalizeStatus(issue.status, report.status)
           const title = firstText(issue.title, issue.systemProblem, issue.scope, '未命名问题')
           const scope = firstText(issue.scope, title)
           const displayTitle = title
+          const issueKey = issueDisplayKey(issue, index)
+          const issueExpanded = isIssueExpanded(issue, index)
           const metaItems = issueMetaItems(issue)
           const evidence = mergeEvidenceItems(issue.evidence)
           const actionPlan = safeList(issue.actionPlan)
@@ -2667,18 +3281,32 @@ export default function ServiceHealthyPage() {
           const issueAnalysis = buildIssueAnalysisText(issue, isAISummaryReady)
           const shouldShowRoute = impactObjects.items.length > 0
           return (
-            <div
+            <details
               className={[
                 'health-impact-card',
                 `health-issue-${priority.toLowerCase()}`,
                 actionSteps.length === 0 ? 'health-impact-card-no-actions' : '',
                 !shouldShowRoute ? 'health-impact-card-no-route' : '',
               ].filter(Boolean).join(' ')}
-              key={issue.key || `${priority}-${scope}`}
+              key={issueKey}
+              open={issueExpanded}
+              onToggle={(event) => {
+                const nextOpen = event.currentTarget.open
+                setExpandedIssueKeys((current) => {
+                  if (current[issueKey] === nextOpen) return current
+                  return {
+                    ...current,
+                    [issueKey]: nextOpen,
+                  }
+                })
+              }}
             >
-              <div className="health-impact-card-top">
+              <summary className="health-impact-card-summary">
                 <span className={`health-risk-priority health-risk-priority-${priority.toLowerCase()}`}>{priority}</span>
-                <b>{displayTitle}</b>
+                <div className="health-impact-card-title-block">
+                  <b>{displayTitle}</b>
+                  {scope && scope !== displayTitle && <small>{scope}</small>}
+                </div>
                 <div className="health-impact-card-meta">
                   <StatusTag
                     className="health-impact-status-tag"
@@ -2687,117 +3315,133 @@ export default function ServiceHealthyPage() {
                   />
                   {metaItems.map((item) => <span key={`${issue.key}-${item}`}>{item}</span>)}
                 </div>
-                {issueAnalysis && (
-                  <div className="health-impact-analysis">
-                    <strong>分析结论</strong>
-                    <ExpandableText
-                      className="health-impact-analysis-text"
-                      expandLabel="展开完整结论"
-                      text={issueAnalysis}
-                      threshold={150}
-                    />
-                  </div>
-                )}
-                {shouldShowRoute && (
-                  <div className="health-impact-route">
-                    <div className="health-impact-route-title">
-                      <strong>影响对象</strong>
-                      {impactObjects.overflowCount > 0 && <span>另有 {impactObjects.overflowCount} 项</span>}
+                <span className="health-impact-card-toggle" aria-hidden="true">
+                  <span className="health-impact-card-toggle-expand">展开</span>
+                  <span className="health-impact-card-toggle-collapse">收起</span>
+                </span>
+              </summary>
+              <div className="health-impact-card-body">
+                <div className="health-impact-card-main">
+                  {issueAnalysis && (
+                    <div className="health-impact-analysis">
+                      <strong>分析结论</strong>
+                      <ExpandableText
+                        className="health-impact-analysis-text"
+                        expandLabel="展开完整结论"
+                        text={issueAnalysis}
+                        threshold={150}
+                      />
                     </div>
-                    <div className="health-impact-object-row">
-                      {impactObjects.items.map((object) => (
-                        <div
-                          className="health-impact-object-item"
-                          key={`${issue.key}-${object.label}-${object.name}`}
-                          title={`${object.label}: ${object.name}`}
-                        >
-                          <span className="health-impact-object-label">{object.label}</span>
-                          <span className="health-impact-object-value">{object.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="health-impact-evidence">
-                {keyEvidence.length > 0 && (
-                  <>
-                    <div className="health-impact-evidence-head">
-                      <b>关键依据</b>
-                    </div>
-                    <div className="health-impact-key-evidence">
-                      {keyEvidence.map((item) => (
-                        <div className={`health-impact-key-evidence-item health-impact-key-evidence-${item.tone}`} key={`${issue.key}-${item.id || item.label}`}>
-                          <strong>{item.label}</strong>
-                          {item.metricName && (
-                            <div className="health-metric-name-row" title={item.metricName}>
-                              <span>指标名</span>
-                              <b>{truncateText(item.metricName, 96)}</b>
-                            </div>
-                          )}
-                          {item.alertAnalysis ? (
-                            <ServiceAlertTrendEvidence analysis={item.alertAnalysis} />
-                          ) : (
-                            <ExpandableText
-                              className="health-impact-key-evidence-text"
-                              text={item.text}
-                              threshold={120}
-                            />
-                          )}
-                          {item.rawLogs?.length > 0 && (
-                            <details className="health-raw-log-panel">
-                              <summary>
-                                <span>原始异常日志</span>
-                                <small>{item.rawLogs.length} 行</small>
-                              </summary>
-                              <div className="health-raw-log-scroll">
-                                <ol>
-                                  {item.rawLogs.map((line, index) => (
-                                    <li key={`${issue.key}-${item.id || item.label}-log-${index}`}>
-                                      <code>{line}</code>
-                                    </li>
-                                  ))}
-                                </ol>
-                              </div>
-                            </details>
-                          )}
-                          {item.metric && hasMetricChartData(item.metric) && (
-                            <MetricTrendChart metric={item.metric} compact />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              {actionSteps.length > 0 && (
-                <div className="health-impact-actions">
-                  <div className="health-impact-actions-head">
-                    <div>
-                      <div className="health-impact-actions-title">处置建议</div>
-                      <span>{actionSourceText}</span>
-                    </div>
-                  </div>
-                  {actionSteps.map((step, index) => (
-                    <div className="health-impact-action-step" key={`${issue.key}-legacy-${step.phase}-${index}`}>
-                      <b>{index + 1}</b>
-                      <div>
-                        <strong>{step.phase}</strong>
-                        {displayActionTarget(step.target, issue) && <small>{displayActionTarget(step.target, issue)}</small>}
-                        <span>{step.action}</span>
-                        {step.validation && <em>验证：{step.validation}</em>}
-                        {step.risk && <em>风险：{step.risk}</em>}
+                  )}
+                  {shouldShowRoute && (
+                    <div className="health-impact-route">
+                      <div className="health-impact-route-title">
+                        <strong>影响对象</strong>
+                        {impactObjects.overflowCount > 0 && <span>另有 {impactObjects.overflowCount} 项</span>}
+                      </div>
+                      <div className="health-impact-object-row">
+                        {impactObjects.items.map((object) => (
+                          <div
+                            className="health-impact-object-item"
+                            key={`${issue.key}-${object.label}-${object.name}`}
+                            title={`${object.label}: ${object.name}`}
+                          >
+                            <span className="health-impact-object-label">{object.label}</span>
+                            <span className="health-impact-object-value">{object.name}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                  <div className="health-impact-execute">
-                    <Button size="small" type={priority === 'P0' ? 'primary' : 'default'} onClick={() => handleAlertTriage('risk', scope)}>
-                      查看关联告警
-                    </Button>
+                  )}
+                  <div className="health-impact-evidence">
+                    {keyEvidence.length > 0 && (
+                      <>
+                        <div className="health-impact-evidence-head">
+                          <b>关键依据</b>
+                        </div>
+                        <div className="health-impact-key-evidence">
+                          {keyEvidence.map((item) => (
+                            <div className={`health-impact-key-evidence-item health-impact-key-evidence-${item.tone}`} key={`${issue.key}-${item.id || item.label}`}>
+                              <strong>{item.label}</strong>
+                              {item.metricName && (
+                                <div className="health-metric-name-row" title={item.metricName}>
+                                  <span>指标名</span>
+                                  <b>{truncateText(item.metricName, 96)}</b>
+                                </div>
+                              )}
+                              {item.alertAnalysis ? (
+                                <ServiceAlertTrendEvidence analysis={item.alertAnalysis} />
+                              ) : (
+                                <ExpandableText
+                                  className="health-impact-key-evidence-text"
+                                  text={item.text}
+                                  threshold={120}
+                                />
+                              )}
+                              {item.polarisBreakdown && (
+                                <RequestPolarisBreakdown breakdown={item.polarisBreakdown} />
+                              )}
+                              {item.rawLogs?.length > 0 && (
+                                <details className="health-raw-log-panel">
+                                  <summary>
+                                    <span className="health-raw-log-title">原始异常日志</span>
+                                    <small>{item.rawLogs.length} 行</small>
+                                    <span className="health-raw-log-toggle" aria-hidden="true">
+                                      <span className="health-raw-log-toggle-expand">展开</span>
+                                      <span className="health-raw-log-toggle-collapse">收起</span>
+                                    </span>
+                                  </summary>
+                                  <div className="health-raw-log-scroll">
+                                    <ol>
+                                      {item.rawLogs.map((line, logIndex) => (
+                                        <li key={`${issue.key}-${item.id || item.label}-log-${logIndex}`}>
+                                          <span className="health-raw-log-line-number">{logIndex + 1}</span>
+                                          <code>{line}</code>
+                                        </li>
+                                      ))}
+                                    </ol>
+                                  </div>
+                                </details>
+                              )}
+                              {item.metric && !item.polarisBreakdown && hasMetricChartData(item.metric) && (
+                                <MetricTrendChart metric={item.metric} compact />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
+                {actionSteps.length > 0 && (
+                  <div className="health-impact-actions">
+                    <div className="health-impact-actions-head">
+                      <div>
+                        <div className="health-impact-actions-title">处置建议</div>
+                        <span>{actionSourceText}</span>
+                      </div>
+                    </div>
+                    {actionSteps.map((step, stepIndex) => (
+                      <div className="health-impact-action-step" key={`${issue.key}-legacy-${step.phase}-${stepIndex}`}>
+                        <b>{stepIndex + 1}</b>
+                        <div>
+                          <strong>{step.phase}</strong>
+                          {displayActionTarget(step.target, issue) && <small>{displayActionTarget(step.target, issue)}</small>}
+                          <span>{step.action}</span>
+                          {step.validation && <em>验证：{step.validation}</em>}
+                          {step.risk && <em>风险：{step.risk}</em>}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="health-impact-execute">
+                      <Button size="small" type={priority === 'P0' ? 'primary' : 'default'} onClick={() => handleAlertTriage('risk', scope)}>
+                        查看关联告警
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           )
         })}
       </div>

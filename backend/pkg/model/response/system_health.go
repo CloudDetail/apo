@@ -190,14 +190,15 @@ type SystemHealthAlertTrendSegment struct {
 }
 
 type SystemHealthEvidence struct {
-	Type           string                             `json:"type"`
-	Source         string                             `json:"source,omitempty"`
-	Severity       string                             `json:"severity,omitempty"`
-	Query          string                             `json:"query"`
-	Result         string                             `json:"result"`
-	AlertEvents    []SystemHealthAlertEventEvidence   `json:"alertEvents,omitempty"`
-	Metric         *SystemHealthMetricEvidence        `json:"metric,omitempty"`
-	ObjectStatuses []SystemHealthObjectStatusEvidence `json:"objectStatuses,omitempty"`
+	Type             string                                `json:"type"`
+	Source           string                                `json:"source,omitempty"`
+	Severity         string                                `json:"severity,omitempty"`
+	Query            string                                `json:"query"`
+	Result           string                                `json:"result"`
+	AlertEvents      []SystemHealthAlertEventEvidence      `json:"alertEvents,omitempty"`
+	Metric           *SystemHealthMetricEvidence           `json:"metric,omitempty"`
+	PolarisBreakdown *SystemHealthPolarisBreakdownEvidence `json:"polarisBreakdown,omitempty"`
+	ObjectStatuses   []SystemHealthObjectStatusEvidence    `json:"objectStatuses,omitempty"`
 }
 
 type SystemHealthAlertEventEvidence struct {
@@ -221,6 +222,8 @@ type SystemHealthMetricEvidence struct {
 	MetricName      string                             `json:"metricName,omitempty"`
 	Expression      string                             `json:"expression,omitempty"`
 	Step            string                             `json:"step,omitempty"`
+	StartTime       int64                              `json:"startTime,omitempty"`
+	EndTime         int64                              `json:"endTime,omitempty"`
 	SeriesReturned  int                                `json:"seriesReturned"`
 	SeriesMatched   int                                `json:"seriesMatched"`
 	PointCount      int                                `json:"pointCount"`
@@ -239,6 +242,37 @@ type SystemHealthMetricEvidence struct {
 	Series          []SystemHealthMetricSeriesEvidence `json:"series,omitempty"`
 	PointLimit      int                                `json:"pointLimit,omitempty"`
 	PointsTruncated bool                               `json:"pointsTruncated,omitempty"`
+}
+
+type SystemHealthPolarisBreakdownEvidence struct {
+	ServiceName string                                     `json:"serviceName,omitempty"`
+	ContentKey  string                                     `json:"contentKey,omitempty"`
+	Target      string                                     `json:"target,omitempty"`
+	StartTime   int64                                      `json:"startTime,omitempty"`
+	EndTime     int64                                      `json:"endTime,omitempty"`
+	Latency     *SystemHealthPolarisBreakdownItemEvidence  `json:"latency,omitempty"`
+	Resources   []SystemHealthPolarisBreakdownItemEvidence `json:"resources,omitempty"`
+	TPS         *SystemHealthPolarisBreakdownItemEvidence  `json:"tps,omitempty"`
+}
+
+type SystemHealthPolarisBreakdownItemEvidence struct {
+	Key             string                        `json:"key"`
+	Name            string                        `json:"name"`
+	ResourceKind    string                        `json:"resourceKind,omitempty"`
+	Unit            string                        `json:"unit,omitempty"`
+	PointCount      int                           `json:"pointCount"`
+	FirstValue      float64                       `json:"firstValue"`
+	LastValue       float64                       `json:"lastValue"`
+	AverageValue    float64                       `json:"averageValue"`
+	MinValue        float64                       `json:"minValue"`
+	MaxValue        float64                       `json:"maxValue"`
+	Delta           float64                       `json:"delta"`
+	ChangePercent   *float64                      `json:"changePercent,omitempty"`
+	Abnormal        bool                          `json:"abnormal,omitempty"`
+	Reason          string                        `json:"reason,omitempty"`
+	Points          []SystemHealthMetricDataPoint `json:"points,omitempty"`
+	PointLimit      int                           `json:"pointLimit,omitempty"`
+	PointsTruncated bool                          `json:"pointsTruncated,omitempty"`
 }
 
 type SystemHealthMetricSeriesEvidence struct {
