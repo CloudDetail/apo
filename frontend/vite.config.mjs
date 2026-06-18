@@ -10,6 +10,8 @@ import tailwindcss from 'tailwindcss'
 import strip from '@rollup/plugin-strip'
 export default defineConfig(() => {
   const isPro = process.env.VITE_APP_VERSION === 'pro'
+  const devServerPort = Number(process.env.VITE_DEV_SERVER_PORT || process.env.PORT || 3000)
+  const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://localhost:18080'
   return {
     base: './',
     build: {
@@ -76,10 +78,10 @@ export default defineConfig(() => {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
     server: {
-      port: 3000,
+      port: devServerPort,
       proxy: {
         '/api': {
-          target: 'http://localhost:8080',
+          target: devProxyTarget,
           changeOrigin: true,
         },
       },

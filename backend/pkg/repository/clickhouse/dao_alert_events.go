@@ -110,7 +110,85 @@ const (
 		source,group,id,create_time,update_time,end_time,received_time,severity,name,detail,tags,raw_tags,status,alert_id
 	FROM alert_event
 	%s %s`
+
+	SQL_GET_ALERT_EVENT_HISTORY_STATS = `
+	SELECT
+		alert_id,
+		count() AS record_count,
+		countIf(status = 'firing') AS firing_count,
+		countIf(status = 'resolved') AS resolved_count,
+		min(received_time) AS first_seen_at,
+		max(received_time) AS last_seen_at,
+		argMax(toString(status), received_time) AS latest_status,
+		max(duration_seconds) AS max_duration_seconds,
+		avg(duration_seconds) AS avg_duration_seconds,
+		sum(duration_seconds) AS total_duration_seconds
+	FROM (
+		SELECT
+			alert_id,
+			status,
+			received_time,
+			greatest(
+				toFloat64(dateDiff('second', create_time, multiIf(
+					status = 'resolved' AND end_time > toDateTime64('1971-01-01 00:00:00', 3), end_time,
+					update_time > create_time, update_time,
+					received_time > create_time, received_time,
+					create_time
+				))),
+				0
+			) AS duration_seconds
+		FROM alert_event ae
+		%s
+	)
+	GROUP BY alert_id`
+
+	SQL_GET_ALERT_EVENT_RAW_SEGMENTS = `
+	SELECT
+		alert_id,
+		name,
+		toString(severity) AS severity,
+		toString(status) AS status,
+		create_time,
+		update_time,
+		end_time,
+		received_time,
+		greatest(
+			toFloat64(dateDiff('second', create_time, multiIf(
+				status = 'resolved' AND end_time > toDateTime64('1971-01-01 00:00:00', 3), end_time,
+				update_time > create_time, update_time,
+				received_time > create_time, received_time,
+				create_time
+			))),
+			0
+		) AS duration_seconds
+	FROM alert_event
+	%s %s`
 )
+
+type AlertEventHistoryStats struct {
+	AlertID              string    `ch:"alert_id"`
+	RecordCount          uint64    `ch:"record_count"`
+	FiringCount          uint64    `ch:"firing_count"`
+	ResolvedCount        uint64    `ch:"resolved_count"`
+	FirstSeenAt          time.Time `ch:"first_seen_at"`
+	LastSeenAt           time.Time `ch:"last_seen_at"`
+	LatestStatus         string    `ch:"latest_status"`
+	MaxDurationSeconds   float64   `ch:"max_duration_seconds"`
+	AvgDurationSeconds   float64   `ch:"avg_duration_seconds"`
+	TotalDurationSeconds float64   `ch:"total_duration_seconds"`
+}
+
+type AlertEventRawSegment struct {
+	AlertID         string    `ch:"alert_id" json:"alertId"`
+	Name            string    `ch:"name" json:"name"`
+	Severity        string    `ch:"severity" json:"severity"`
+	Status          string    `ch:"status" json:"status"`
+	CreateTime      time.Time `ch:"create_time" json:"createTime"`
+	UpdateTime      time.Time `ch:"update_time" json:"updateTime"`
+	EndTime         time.Time `ch:"end_time" json:"endTime"`
+	ReceivedTime    time.Time `ch:"received_time" json:"receivedTime"`
+	DurationSeconds float64   `ch:"duration_seconds" json:"durationSeconds"`
+}
 
 // GetAlertEventCountGroupByInstance to quickly query the number of alarms associated with each Instance (counted separately by alarm level)
 func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx core.Context, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]model.AlertEventCount, error) {
@@ -140,6 +218,69 @@ func (ch *chRepo) GetAlertEventCountGroupByInstance(ctx core.Context, startTime 
 	var events []model.AlertEventCount
 	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &events, sql, builder.values...)
 	return events, err
+}
+
+func (ch *chRepo) GetAlertEventHistoryStatsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventHistoryStats, error) {
+	alertIDs = uniqueNonEmptyStrings(alertIDs)
+	if len(alertIDs) == 0 {
+		return nil, nil
+	}
+	builder := NewQueryBuilder().
+		Between("received_time", startTime.Unix(), endTime.Unix()).
+		InStrings("alert_id", alertIDs)
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_HISTORY_STATS, builder.String())
+	var stats []AlertEventHistoryStats
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &stats, sql, builder.values...)
+	return stats, err
+}
+
+func (ch *chRepo) GetAlertEventRawSegmentsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventRawSegment, error) {
+	alertIDs = uniqueNonEmptyStrings(alertIDs)
+	if len(alertIDs) == 0 {
+		return nil, nil
+	}
+	builder := NewQueryBuilder().
+		InStrings("alert_id", alertIDs).
+		And(alertEventLifecycleOverlapWhere(startTime, endTime))
+	orderBuilder := NewByLimitBuilder().
+		OrderBy("alert_id", true).
+		OrderBy("create_time", true).
+		OrderBy("received_time", true)
+
+	sql := fmt.Sprintf(SQL_GET_ALERT_EVENT_RAW_SEGMENTS, builder.String(), orderBuilder.String())
+	var segments []AlertEventRawSegment
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &segments, sql, builder.values...)
+	return segments, err
+}
+
+func alertEventLifecycleOverlapWhere(startTime time.Time, endTime time.Time) *whereSQL {
+	lifecycleEnd := `multiIf(
+		status = 'resolved' AND end_time > toDateTime64('1971-01-01 00:00:00', 3), end_time,
+		update_time > create_time, update_time,
+		received_time > create_time, received_time,
+		create_time
+	)`
+	return &whereSQL{
+		Wheres: fmt.Sprintf(`(create_time <= ? AND (status = 'firing' OR %s >= ?))`, lifecycleEnd),
+		Values: []any{endTime.Unix(), startTime.Unix()},
+	}
+}
+
+func uniqueNonEmptyStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
 }
 
 // Obtain all alarm events of the instance GetAlarmsEvents

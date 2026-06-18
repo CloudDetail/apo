@@ -106,6 +106,10 @@ type Repo interface {
 	GetAlertEventsSample(ctx core.Context, sampleCount int, startTime time.Time, endTime time.Time, filter request.AlertFilter, instances *model.RelatedInstances) ([]AlertEventSample, error)
 
 	GetAlertEventReport(ctx core.Context, startTime time.Time, endTime time.Time, tags map[string]string) (*model.AlertEventReport, error)
+	GetAlertEventReportByAnalyzeRunID(ctx core.Context, startTime time.Time, endTime time.Time, analyzeRunID string) (*model.AlertEventReport, error)
+	GetAlertEventReportsByAlertID(ctx core.Context, startTime time.Time, endTime time.Time, alertID string) ([]model.AlertEventReport, error)
+	GetAlertEventHistoryStatsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventHistoryStats, error)
+	GetAlertEventRawSegmentsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventRawSegment, error)
 
 	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
 

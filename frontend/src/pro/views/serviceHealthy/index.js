@@ -1,17 +1,27 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import {
   Button,
+  Drawer,
   Empty,
   Input,
+  List,
   Progress,
+  Select,
   Space,
+  Spin,
   Tag,
 } from 'antd'
 import ReactECharts from 'echarts-for-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { ChartColorList } from 'src/constants'
-import { getSystemHealthReportApi } from 'src/pro/api/serviceHealthy'
+import { ISOToTimestamp } from 'src/core/utils/time'
+import {
+  getSystemHealthReportApi,
+  getSystemHealthReportRecordApi,
+  getSystemHealthReportRecordsApi,
+} from 'src/pro/api/serviceHealthy'
 import './index.css'
 
 const LEVEL_META = {
@@ -44,12 +54,15 @@ const REPORT_STORAGE_PREFIX = 'apo:system-health-report:'
 const REPORT_STORAGE_MAX_AGE = 30 * 60 * 1000
 const ENABLE_REPORT_STORAGE = false
 
-const StatusTag = ({ status }) => {
+const StatusTag = ({ status, className, hiddenStatuses = [] }) => {
+  if (hiddenStatuses.includes(status)) return null
   const meta = LEVEL_META[status] ?? LEVEL_META.warning
-  return <Tag color={meta.tag}>{meta.text}</Tag>
+  return <Tag className={className} color={meta.tag}>{meta.text}</Tag>
 }
 
 StatusTag.propTypes = {
+  className: PropTypes.string,
+  hiddenStatuses: PropTypes.arrayOf(PropTypes.string),
   status: PropTypes.string,
 }
 
@@ -71,13 +84,13 @@ const positiveNumber = (value) => {
 const aiAnalysisMeta = (analysis = {}) => {
   switch (analysis.status) {
     case 'succeeded':
-      return { text: 'AI增强', color: 'processing' }
+      return { text: '智能摘要', color: 'processing' }
     case 'failed':
-      return { text: 'AI失败，展示结构化分析', color: 'warning' }
+      return { text: '智能摘要暂不可用，已展示基础分析', color: 'warning' }
     case 'skipped':
-      return { text: '无问题，跳过AI', color: 'default' }
+      return { text: '当前无需智能摘要', color: 'default' }
     case 'not_configured':
-      return { text: '结构化分析', color: 'default' }
+      return { text: '基础健康分析', color: 'default' }
     default:
       return null
   }
@@ -90,6 +103,88 @@ const makeReportCacheKey = (params) => {
     .map(([key, value]) => `${key}=${value}`)
     .join('&')
   return `${REPORT_STORAGE_PREFIX}${normalized}`
+}
+
+const normalizeUrlTimeParams = (searchParams) => {
+  const relativeTime = searchParams.get('relativeTime')
+  const startTime = firstText(searchParams.get('startTime'), ISOToTimestamp(searchParams.get('from')))
+  const endTime = firstText(searchParams.get('endTime'), ISOToTimestamp(searchParams.get('to')))
+
+  if (positiveNumber(startTime) > 0 && positiveNumber(endTime) > positiveNumber(startTime)) {
+    return {
+      relativeTime: undefined,
+      startTime,
+      endTime,
+    }
+  }
+
+  if (relativeTime) {
+    return {
+      relativeTime,
+      startTime: undefined,
+      endTime: undefined,
+    }
+  }
+
+  return null
+}
+
+const buildStoreTimeParams = (timeRange = {}) => {
+  const rangeTypeKey = safeText(timeRange.rangeTypeKey)
+  const storeStartTime = positiveNumber(timeRange.startTime)
+  const storeEndTime = positiveNumber(timeRange.endTime)
+
+  if (rangeTypeKey) {
+    return {
+      relativeTime: rangeTypeKey,
+      startTime: undefined,
+      endTime: undefined,
+    }
+  }
+
+  if (storeStartTime > 0 && storeEndTime > storeStartTime) {
+    return {
+      relativeTime: undefined,
+      startTime: storeStartTime,
+      endTime: storeEndTime,
+    }
+  }
+
+  return null
+}
+
+const makeTimeRangeSignature = (timeRange = {}) => [
+  safeText(timeRange.rangeTypeKey),
+  positiveNumber(timeRange.startTime) || '',
+  positiveNumber(timeRange.endTime) || '',
+].join(':')
+
+const buildReportRequestParams = (search, timeRange = {}, options = {}) => {
+  const searchParams = new URLSearchParams(search)
+  const groupId = searchParams.get('groupId') || 1
+  const urlTimeParams = normalizeUrlTimeParams(searchParams)
+  const storeTimeParams = buildStoreTimeParams(timeRange)
+
+  if (!options.preferStore && urlTimeParams) {
+    return {
+      groupId,
+      ...urlTimeParams,
+    }
+  }
+
+  if (storeTimeParams) {
+    return {
+      groupId,
+      ...storeTimeParams,
+    }
+  }
+
+  return {
+    groupId,
+    relativeTime: '15m',
+    startTime: undefined,
+    endTime: undefined,
+  }
 }
 
 const readPersistedReport = (cacheKey) => {
@@ -119,6 +214,63 @@ const persistReport = (cacheKey, data) => {
     // Browser storage can be disabled or full; the live request result is still usable.
   }
 }
+
+const formatRecordTime = (value) => {
+  const text = safeText(value)
+  if (!text) return '-'
+  return text.replace('T', ' ').replace(/\+\d\d:\d\d$/, '')
+}
+
+const recordWindowText = (record = {}) => {
+  if (positiveNumber(record.startTime) > 0 && positiveNumber(record.endTime) > positiveNumber(record.startTime)) {
+    const start = new Date(Number(record.startTime) / 1000)
+    const end = new Date(Number(record.endTime) / 1000)
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      const pad = (value) => `${value}`.padStart(2, '0')
+      const date = `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`
+      const startTime = `${pad(start.getHours())}:${pad(start.getMinutes())}`
+      const endTime = `${pad(end.getHours())}:${pad(end.getMinutes())}`
+      return `${date} ${startTime}-${endTime}`
+    }
+  }
+  return safeText(record.window) || '当前窗口'
+}
+
+const formatElapsedSeconds = (seconds) => {
+  const value = Math.max(0, Math.floor(Number(seconds) || 0))
+  if (value < 60) return `${value} 秒`
+  const minutes = Math.floor(value / 60)
+  const rest = value % 60
+  return rest > 0 ? `${minutes} 分 ${rest} 秒` : `${minutes} 分钟`
+}
+
+const reportWaitingBlocks = [
+  {
+    key: 'range',
+    title: '分析范围',
+    description: '读取当前数据组和时间窗口，确定本次系统健康报告的分析边界。',
+  },
+  {
+    key: 'alerts',
+    title: '告警事件',
+    description: '按服务、入口、实例和告警状态归并真实告警，识别重复触发和共同风险对象。',
+  },
+  {
+    key: 'evidence',
+    title: '证据链',
+    description: '融合指标趋势、APM 链路、日志分析和告警事件方向报告，形成关键依据。',
+  },
+  {
+    key: 'actions',
+    title: '处置建议',
+    description: '结合历史故障报告中的建议行动，生成面向系统健康中心的处置步骤。',
+  },
+  {
+    key: 'summary',
+    title: '报告摘要',
+    description: '汇总系统状态、主要事件和需要关注的问题；智能分析超时时会返回基础报告。',
+  },
+]
 
 const truncateText = (text = '', limit = 220) => {
   if (text.length <= limit) return text
@@ -202,7 +354,7 @@ const getEvidenceRole = (type) => {
   const evidenceType = safeText(type)
   if (evidenceType.includes('告警事件')) {
     return {
-      stage: '告警汇总',
+      stage: evidenceType.includes('方向报告') ? '告警分析' : '告警汇总',
       effect: '基于当前窗口内真实告警事件确认影响目标、触发状态和告警级别。',
       kind: 'alert',
     }
@@ -214,18 +366,25 @@ const getEvidenceRole = (type) => {
       kind: 'alert',
     }
   }
-  if (evidenceType.includes('告警指标趋势')) {
+  if (evidenceType.includes('告警指标趋势') || evidenceType.includes('指标趋势')) {
     return {
       stage: '指标趋势',
-      effect: '根据告警标签定位对应指标，并展示当前窗口变化。',
+      effect: evidenceType.includes('方向报告') ? '来自告警事件分析报告中的指标趋势判断。' : '根据告警标签定位对应指标，并展示当前窗口变化。',
       kind: 'alert',
     }
   }
-  if (evidenceType.includes('Trace链路样本')) {
+  if (evidenceType.includes('Trace链路样本') || evidenceType.includes('APM链路')) {
     return {
-      stage: 'Trace样本',
-      effect: '结合当前窗口链路样本补充影响范围。',
+      stage: 'APM链路',
+      effect: evidenceType.includes('方向报告') ? '来自告警事件分析报告中的链路定位。' : '结合当前窗口链路样本补充影响范围。',
       kind: 'trace',
+    }
+  }
+  if (evidenceType.includes('日志分析')) {
+    return {
+      stage: '日志分析',
+      effect: '来自告警事件分析报告中的日志侧结论。',
+      kind: 'log',
     }
   }
   if (evidenceType.includes('数据边界')) {
@@ -252,59 +411,15 @@ const getEvidenceRole = (type) => {
 const getEvidenceByType = (items, keyword) => safeList(items).find((item) => (item.type || '').includes(keyword))
 
 const objectTypeText = {
-  endpoint: '入口',
-  target: '影响目标',
+  endpoint: '请求路径',
+  target: '对象',
   service: '服务',
+  host: '主机',
   node: '节点',
   database: '数据库',
   namespace: '命名空间',
   pod: 'Pod',
   group: '类型',
-}
-
-const summarizeAffectedObjectScope = (issues = []) => {
-  const byType = new Map()
-  const all = new Set()
-  safeList(issues).forEach((issue) => {
-    const affectedObjects = safeList(issue.affectedObjects)
-    if (affectedObjects.length > 0) {
-      affectedObjects.forEach((item) => {
-        const type = safeText(item.type) || 'unknown'
-        const name = safeText(item.name)
-        if (!name) return
-        const key = `${type}:${name}`
-        all.add(key)
-        if (!byType.has(type)) byType.set(type, new Set())
-        byType.get(type).add(name)
-      })
-      return
-    }
-    safeText(issue.scope).split('/').map((item) => item.trim()).filter(Boolean).forEach((name) => {
-      all.add(`scope:${name}`)
-      if (!byType.has('scope')) byType.set('scope', new Set())
-      byType.get('scope').add(name)
-    })
-  })
-  const priorityTypes = ['endpoint', 'service', 'pod', 'node', 'database', 'namespace', 'target']
-  const parts = priorityTypes
-    .map((type) => {
-      const count = byType.get(type)?.size || 0
-      return count > 0 ? `${objectTypeText[type] || type} ${count}` : ''
-    })
-    .filter(Boolean)
-    .slice(0, 3)
-  if (parts.length > 0) {
-    return {
-      count: all.size,
-      label: '影响范围',
-      value: parts.join(' / '),
-    }
-  }
-  return {
-    count: all.size,
-    label: '影响范围',
-    value: all.size,
-  }
 }
 
 const formatMetricNumber = (value) => {
@@ -331,7 +446,121 @@ const formatPercent = (value) => {
 const normalizeMetricTimestamp = (timestamp) => {
   const number = Number(timestamp)
   if (!Number.isFinite(number)) return null
+  if (number > 100000000000000000) return Math.floor(number / 1000000)
+  if (number > 100000000000000) return Math.floor(number / 1000)
   return number < 1000000000000 ? number * 1000 : number
+}
+
+const normalizeMetricPoint = (point = {}) => {
+  if (!point || typeof point !== 'object') return null
+  const timestamp = normalizeMetricTimestamp(firstText(point.timestamp, point.time, point.ts))
+  if (timestamp === null) return null
+  if (point.value === undefined || point.value === null || point.value === '') {
+    return { timestamp, value: null }
+  }
+  const value = Number(point.value)
+  return { timestamp, value: Number.isFinite(value) ? value : null }
+}
+
+const metricChartPoints = (metric = {}) =>
+  safeList(metric.series).flatMap((series) => safeList(series.points)
+    .map(normalizeMetricPoint)
+    .filter((point) => point && point.value !== null)
+    .map((point) => [point.timestamp, point.value])
+    .filter(Boolean))
+
+const metricDistinctTimestampCount = (metric = {}) => new Set(metricChartPoints(metric).map((point) => point[0])).size
+
+const metricSampleCount = (metric = {}) => positiveNumber(metric.pointCount) || metricChartPoints(metric).length
+
+const isLowConfidenceMetric = (metric = {}) => metricSampleCount(metric) < 3 || metricDistinctTimestampCount(metric) < 3
+
+const metricTrendWord = (metric = {}) => {
+  const delta = Number(metric.delta)
+  const change = metric.changePercent === undefined || metric.changePercent === null ? null : Number(metric.changePercent)
+  if (!Number.isFinite(delta)) return '无法判断'
+  if (change !== null && Number.isFinite(change) && Math.abs(change) < 5) return '基本持平'
+  if (delta > 0) return '有所升高'
+  if (delta < 0) return '有所回落'
+  return '基本持平'
+}
+
+const ruleMetricNameMappings = [
+  { pattern: /平均请求延时.*相比昨天.*升高.*%.*以上/, name: '请求延时日同比' },
+  { pattern: /请求错误率.*相比昨天.*升高.*%.*以上/, name: '请求错误率日同比' },
+  { pattern: /平均请求延时.*超过\s*\d+(?:\.\d+)?\s*(?:s|秒|ms|毫秒)?/i, name: '平均请求延时' },
+  { pattern: /请求错误率.*超过\s*\d+(?:\.\d+)?\s*%?/, name: '请求错误率' },
+]
+
+const inferMetricNameFromRuleName = (ruleName = '') => {
+  const text = safeText(ruleName)
+  if (!text) return ''
+  return ruleMetricNameMappings.find(({ pattern }) => pattern.test(text))?.name || ''
+}
+
+const inferMetricNameFromRuleTexts = (...texts) => texts.map(inferMetricNameFromRuleName).find(Boolean) || ''
+
+const extractRuleNameFromText = (text = '') => {
+  const normalized = safeText(text)
+  if (!normalized) return ''
+  const matches = Array.from(normalized.matchAll(/(?:告警规则|规则|ruleName|rule_name|alertname|告警)[:=：]\s*([^；，。\n]+)/gi))
+  const candidates = matches.flatMap((match) => match[1].split('/').map(safeText).filter(Boolean).reverse())
+  return candidates.find((candidate) => inferMetricNameFromRuleName(candidate)) || firstText(...candidates)
+}
+
+const metricDisplayName = (metric = {}, fallbackText = '') => {
+  const explicit = firstText(metric.metricName, metric.metric_name, metric.displayName, metric.display_name, metric.name)
+  if (explicit) return explicit
+  const ruleMetricName = inferMetricNameFromRuleTexts(metric.ruleName, metric.rule_name, extractRuleNameFromText(fallbackText))
+  return ruleMetricName || '告警指标'
+}
+
+const metricBackendDisplayName = (metric = {}) => firstText(
+  metric.metricName,
+  metric.metric_name,
+  metric.displayName,
+  metric.display_name,
+  metric.name,
+  metric.prometheusMetricName,
+  metric.prometheus_metric_name,
+) || inferMetricNameFromRuleTexts(metric.ruleName, metric.rule_name) || '相关指标'
+
+const ensureMetricNameInText = (metric = {}, text = '', fallbackText = '') => {
+  const content = safeText(text)
+  if (!content) return ''
+  const name = metricDisplayName(metric, fallbackText)
+  if (!name || content.includes(name)) {
+    return content
+  }
+  return `${name}：${content}`
+}
+
+const metricEvidenceDisplayText = (metricEvidence = {}, issue = {}) => {
+  const metric = metricEvidence.metric
+  const aiMetricAnalysis = safeText(issue.metricAnalysis)
+  if (!metric) return aiMetricAnalysis
+
+  const metricName = metricDisplayName(metric, metricEvidence.result)
+  const sampleCount = metricSampleCount(metric)
+  const timestampCount = metricDistinctTimestampCount(metric)
+  if (!metric.eventScoped) {
+    return `${metricName}未能按该告警事件的标签定位到目标序列，只能用于检查告警规则口径，不能直接说明当前影响目标的业务退化。`
+  }
+  if (isLowConfidenceMetric(metric)) {
+    const countText = sampleCount > 0 ? `${sampleCount} 个采样点` : '少量采样点'
+    return `${metricName}仅返回${countText}${timestampCount > 0 ? `、${timestampCount} 个有效时间点` : ''}，样本不足以可靠判断升高或回落；该指标只能作为复发观察信号，需要结合告警事件、RED/APM 和日志确认影响是否持续。`
+  }
+  if (aiMetricAnalysis) return ensureMetricNameInText(metric, aiMetricAnalysis, metricEvidence.result)
+
+  const direction = metricTrendWord(metric)
+  const rangeText = `区间 ${formatMetricNumber(metric.minValue)} 到 ${formatMetricNumber(metric.maxValue)}`
+  const changeText = metric.changePercent === undefined || metric.changePercent === null
+    ? ''
+    : `，变化 ${formatPercent(metric.changePercent)}`
+  const stateText = positiveNumber(issue.activeAlerts) > 0
+    ? '当前仍有告警触发，需继续确认指标是否还在高位。'
+    : '当前告警已恢复，指标更适合作为恢复稳定性和复发观察依据。'
+  return `${metricName}在当前窗口${direction}${changeText}，${rangeText}。${stateText}`
 }
 
 const metricSeriesLabel = (labels = {}, index = 0) => {
@@ -344,29 +573,68 @@ const metricSeriesLabel = (labels = {}, index = 0) => {
 }
 
 const metricChartSeries = (metric = {}) =>
-  safeList(metric.series)
+  (() => {
+    const rawSeries = safeList(metric.series)
     .map((series, index) => {
-      const data = safeList(series.points)
-        .map((point) => {
-          const timestamp = normalizeMetricTimestamp(point.timestamp)
-          const value = Number(point.value)
-          if (timestamp === null || !Number.isFinite(value)) return null
-          return [timestamp, value]
-        })
+      const pointMap = new Map()
+      safeList(series.points)
+        .map(normalizeMetricPoint)
         .filter(Boolean)
+        .forEach((point) => {
+          pointMap.set(point.timestamp, point.value === null ? 0 : point.value)
+        })
+      const data = Array.from(pointMap.entries())
+        .map(([timestamp, value]) => [timestamp, value])
         .sort((left, right) => left[0] - right[0])
       return {
+        hasData: data.length > 0,
         name: metricSeriesLabel(series.labels, index),
+        pointMap,
         data,
       }
     })
-    .filter((series) => series.data.length > 0)
+    .filter((series) => series.hasData)
+    const allTimestamps = Array.from(new Set(rawSeries.flatMap((series) => series.data.map((point) => point[0]))))
+      .sort((left, right) => left - right)
+    const alignPointLimit = positiveNumber(metric.pointLimit) || 160
+    const shouldAlignGaps = allTimestamps.length > 0
+      && allTimestamps.length <= alignPointLimit
+      && rawSeries.some((series) => series.pointMap.size < allTimestamps.length)
+    if (!shouldAlignGaps) {
+      return rawSeries.map(({ name, data }) => ({ name, data }))
+    }
+    return rawSeries.map(({ name, pointMap }) => ({
+      name,
+      data: allTimestamps.map((timestamp) => [
+        timestamp,
+        pointMap.has(timestamp) ? pointMap.get(timestamp) : 0,
+      ]),
+    }))
+  })()
 
 const hasMetricChartData = (metric) => metricChartSeries(metric).length > 0
 
 const MetricTrendChart = ({ metric, compact = false }) => {
   const series = metricChartSeries(metric)
   if (series.length === 0) return null
+  const allTimestamps = series.flatMap((item) => item.data.map((point) => point[0]))
+  const minTime = Math.min(...allTimestamps)
+  const maxTime = Math.max(...allTimestamps)
+  const rangeMs = Number.isFinite(minTime) && Number.isFinite(maxTime) ? maxTime - minTime : 0
+  const lowConfidence = isLowConfidenceMetric(metric)
+  const metricNotes = [
+    lowConfidence && '采样点较少，趋势仅作参考',
+    metric.pointsTruncated && '已按窗口抽样展示',
+  ].filter(Boolean)
+  const timeLabelFormatter = (value) => {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ''
+    const timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (rangeMs >= 24 * 60 * 60 * 1000) {
+      return `${date.toLocaleDateString([], { month: '2-digit', day: '2-digit' })} ${timeText}`
+    }
+    return timeText
+  }
   const option = {
     color: ChartColorList,
     backgroundColor: 'transparent',
@@ -404,7 +672,7 @@ const MetricTrendChart = ({ metric, compact = false }) => {
         color: 'var(--ant-color-text-tertiary)',
         fontSize: 11,
         hideOverlap: true,
-        formatter: (value) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        formatter: timeLabelFormatter,
       },
       splitLine: { show: false },
     },
@@ -421,9 +689,10 @@ const MetricTrendChart = ({ metric, compact = false }) => {
     series: series.map((item) => ({
       name: item.name,
       type: 'line',
-      smooth: true,
-      showSymbol: false,
+      smooth: !lowConfidence,
+      showSymbol: lowConfidence || item.data.length <= 8,
       symbolSize: 4,
+      connectNulls: true,
       lineStyle: { width: compact ? 2 : 2.5 },
       emphasis: { focus: 'series' },
       data: item.data,
@@ -433,7 +702,18 @@ const MetricTrendChart = ({ metric, compact = false }) => {
   return (
     <div className={compact ? 'health-metric-trend-chart health-metric-trend-chart-compact' : 'health-metric-trend-chart'}>
       <ReactECharts option={option} style={{ width: '100%', height: compact ? 120 : 180 }} />
-      {metric.pointsTruncated && <span className="health-metric-trend-note">已按窗口抽样展示</span>}
+      {metricNotes.length > 0 && (
+        <div className="health-metric-trend-notes">
+          {metricNotes.map((note) => (
+            <span
+              className={note.includes('缺失') ? 'health-metric-trend-note health-metric-trend-note-secondary' : 'health-metric-trend-note'}
+              key={note}
+            >
+              {note}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -446,6 +726,19 @@ MetricTrendChart.propTypes = {
 const stripTechnicalEvidenceText = (text = '') =>
   truncateText(
     text
+      .replace(/^方向报告中的\s*/g, '')
+      .replace(/^APM\s*链路分析显示[:：]\s*/g, '')
+      .replace(/^日志分析显示[:：]\s*/g, '')
+      .replace(/^指标趋势显示[:：]\s*/g, '')
+      .replace(/^告警事件分析显示[:：]\s*/g, '')
+      .replace(/\d+\s*条真实告警事件，?/g, '')
+      .replace(/\d+\s*个去重告警实例，?/g, '')
+      .replace(/\d+\s*类告警，?/g, '')
+      .replace(/状态=[^，。；]+[，。；]?/g, '')
+      .replace(/聚合对象=[^，。；]+[，。；]?/g, '')
+      .replace(/告警类型=[^，。；]+[，。；]?/g, '')
+      .replace(/重复触发=\d+次[，。；]?/g, '')
+      .replace(/最长持续=[^，。；]+[，。；]?/g, '')
       .replace(/PQL=[^；]+；?/g, '')
       .replace(/规则=[^；]+；?/g, '')
       .replace(/匹配标签=[^；]+；?/g, '')
@@ -461,7 +754,9 @@ const stripTechnicalEvidenceText = (text = '') =>
   )
 
 const summarizeMetricEvidenceText = (text = '') => {
-  const normalized = text.replace(/series/g, '序列')
+  const normalized = text
+    .replace(/^方向报告中的指标趋势显示[:：]\s*/g, '')
+    .replace(/series/g, '序列')
   if (normalized.includes('没有命中告警事件对应的 序列') || normalized.includes('没有命中告警事件对应的序列')) {
     return ''
   }
@@ -486,9 +781,31 @@ const summarizeMetricEvidenceText = (text = '') => {
   return stripTechnicalEvidenceText(text)
 }
 
+const metricEvidenceUnavailableText = (text = '') => {
+  const normalized = safeText(text).replace(/series/g, '序列')
+  if (!normalized) return ''
+  if (normalized.includes('查询窗口趋势失败')) {
+    return '指标趋势暂不可用：当前无法连接指标查询服务，本次未使用指标趋势判断该风险。'
+  }
+  if (normalized.includes('未找到告警规则')) {
+    return '指标趋势暂不可用：未找到该告警对应的规则表达式，无法回看指标趋势。'
+  }
+  if (normalized.includes('规则未配置 PQL') || normalized.includes('未配置 PQL')) {
+    return '指标趋势暂不可用：告警规则未配置指标查询表达式，无法回看指标趋势。'
+  }
+  if (normalized.includes('没有命中告警事件对应的 序列') || normalized.includes('没有命中告警事件对应的序列')) {
+    return '指标趋势未能按当前告警标签定位到目标序列，暂不作为该风险的趋势依据。'
+  }
+  if (normalized.includes('规则查询未返回可用时序点')) {
+    return '指标趋势暂不可用：规则查询未返回可用时序点，本次未使用指标趋势判断该风险。'
+  }
+  return ''
+}
+
 const summarizeTraceEvidenceText = (text = '') =>
   truncateText(
     text
+      .replace(/^方向报告中的\s*APM\s*链路分析显示[:：]\s*/g, '')
       .replace(/^按告警.*?反查\s*/, '')
       .replace(/span_trace[:：]?/g, '链路样本：')
       .replace(/service=[^；]+；?/g, '')
@@ -557,6 +874,7 @@ const reportScopePatternLabel = (issues = []) => {
   if (types.has('endpoint') && types.has('service') && issueCount > 3) return '多入口/多服务'
   if (types.has('endpoint')) return issueCount > 1 ? '多入口' : '单入口'
   if (types.has('service')) return issueCount > 1 ? '多服务' : '单服务'
+  if (types.has('host')) return issueCount > 1 ? '多主机' : '单主机'
   if (types.has('node')) return issueCount > 1 ? '多节点' : '单节点'
   if (types.has('pod')) return issueCount > 1 ? '多实例' : '单实例'
   return issueCount > 1 ? '多目标' : '单目标'
@@ -615,6 +933,30 @@ const issueMetaItems = (issue = {}) => [
   issue.startedAt && `开始 ${issue.startedAt}`,
 ].filter(Boolean)
 
+const actionPlanSourceText = (steps = []) => {
+  const sources = new Set(safeList(steps).map((step) => safeText(step.source)).filter(Boolean))
+  if (sources.has('alertReport')) return '来自告警事件分析报告'
+  if (sources.has('ai')) return '来自智能分析'
+  if (sources.has('system')) return '基于当前告警状态生成'
+  return '基于当前风险生成'
+}
+
+const isInternalIssueKeyText = (text = '', issue = {}) => {
+  const normalized = safeText(text).toLowerCase()
+  if (!normalized) return false
+  if (normalized === safeText(issue.key).toLowerCase()) return true
+  return /^(activealert|recoveredalert|invalidalert|inspection)-(entry|service|object|group)-[a-z0-9-]+$/.test(normalized)
+}
+
+const displayActionTarget = (target = '', issue = {}) => {
+  const text = safeText(target)
+  if (!text) return ''
+  if (isInternalIssueKeyText(text, issue)) {
+    return firstText(issue.scope, issue.title)
+  }
+  return text
+}
+
 const shouldHideDefaultEvidence = (item = {}) => {
   const type = safeText(item.type)
   const result = safeText(item.result)
@@ -643,18 +985,125 @@ const visibleObjectTags = (issue = {}) => {
   }).slice(0, 3)
 }
 
+const HTTP_METHOD_PATTERN = /^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+\//i
+
+const buildScopeImpactObjects = (scope = '', title = '', affectedObjects = []) => {
+  const scopeText = safeText(scope)
+  if (!scopeText || scopeText === safeText(title)) return []
+
+  const parts = scopeText.split(/\s+\/\s+/).map(safeText).filter(Boolean)
+  if (parts.length >= 2) {
+    const [serviceName, ...rest] = parts
+    const targetName = rest.join(' / ')
+    const objectTypes = new Set(safeList(affectedObjects).map((object) => safeText(object.type)))
+    const looksLikeServiceRoute = objectTypes.has('service')
+      || objectTypes.has('endpoint')
+      || HTTP_METHOD_PATTERN.test(targetName)
+    if (!looksLikeServiceRoute) {
+      return [{ type: 'scope', label: '范围', name: scopeText }]
+    }
+    const items = []
+    if (serviceName) {
+      items.push({ type: 'service', label: objectTypeText.service, name: serviceName })
+    }
+    if (targetName) {
+      items.push({
+        type: HTTP_METHOD_PATTERN.test(targetName) ? 'endpoint' : 'target',
+        label: HTTP_METHOD_PATTERN.test(targetName) ? objectTypeText.endpoint : objectTypeText.target,
+        name: targetName,
+      })
+    }
+    return items
+  }
+
+  return [{ type: 'scope', label: '范围', name: scopeText }]
+}
+
+const buildImpactObjects = (displayTitle = '', scope = '', visibleAffectedObjects = [], affectedObjects = visibleAffectedObjects) => {
+  const seen = new Set()
+  const objects = []
+  const addObject = (object = {}) => {
+    const type = safeText(object.type)
+    const name = safeText(object.name)
+    if (!name) return
+    const label = safeText(object.label) || objectTypeText[type] || type || '对象'
+    const key = `${label}:${name}`.toLowerCase()
+    if (seen.has(key)) return
+    seen.add(key)
+    objects.push({ type, label, name })
+  }
+
+  buildScopeImpactObjects(scope, displayTitle, affectedObjects).forEach(addObject)
+  safeList(visibleAffectedObjects).forEach((object) => {
+    addObject({
+      ...object,
+      label: objectTypeText[object.type] || object.type,
+    })
+  })
+
+  const maxVisibleObjects = 4
+  return {
+    items: objects.slice(0, maxVisibleObjects),
+    overflowCount: Math.max(0, objects.length - maxVisibleObjects),
+  }
+}
+
 const summarizeEvidenceItem = (item = {}) => {
   const type = safeText(item.type)
-  if (type.includes('告警指标趋势')) {
+  if (type.includes('告警指标趋势') || type.includes('指标趋势')) {
     return summarizeMetricEvidenceText(item.result || '')
   }
-  if (type.includes('Trace链路样本')) {
+  if (type.includes('Trace链路样本') || type.includes('APM链路')) {
     return summarizeTraceEvidenceText(item.result || '')
+  }
+  if (type.includes('日志分析')) {
+    return productReportSummary(stripTechnicalEvidenceText((item.result || '').replace(/^方向报告中的日志分析显示[:：]\s*/g, '')))
+  }
+  if (type.includes('告警事件分析')) {
+    return productReportSummary(stripTechnicalEvidenceText((item.result || '').replace(/^方向报告中的告警事件分析显示[:：]\s*/g, '')))
   }
   if (type.includes('告警事件') || type.includes('告警明细')) {
     return stripTechnicalEvidenceText(item.result || '')
   }
   return productReportSummary(stripTechnicalEvidenceText(item.result || ''))
+}
+
+const rawLogCandidateKeys = [
+  'rawLogs',
+  'rawLogLines',
+  'logLines',
+  'logs',
+  'samples',
+  'rawSamples',
+  'entries',
+]
+
+const formatRawLogObject = (value = {}) => [
+  firstText(value.timestamp, value.time, value.ts, value.datetime),
+  firstText(value.level, value.severity),
+  firstText(value.service, value.serviceName, value.svc_name),
+  firstText(value.pod, value.podName, value.instance, value.node),
+  firstText(value.message, value.content, value.log, value.body, value.text, value.stack),
+].filter(Boolean).join(' ')
+
+const normalizeRawLogLines = (value) => {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return value.flatMap(normalizeRawLogLines)
+  }
+  if (typeof value === 'object') {
+    const formatted = formatRawLogObject(value)
+    return formatted ? [formatted] : []
+  }
+  return `${value}`
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim())
+}
+
+const extractRawLogLines = (item = {}) => {
+  const lines = rawLogCandidateKeys.flatMap((key) => normalizeRawLogLines(item[key]))
+  return Array.from(new Set(lines.map((line) => truncateText(line, 500)))).slice(0, 80)
 }
 
 const inferRiskSymptom = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
@@ -693,10 +1142,13 @@ const issueObjectLabel = (issue = {}) => {
   const objectTypes = new Set(safeList(issue.affectedObjects).map((object) => safeText(object.type)))
   const scope = firstText(issue.scope, issue.title)
   if (objectTypes.has('endpoint') || /\b(GET|POST|PUT|DELETE|PATCH)\b/i.test(scope)) {
-    return '入口'
+    return '请求路径'
   }
   if (objectTypes.has('service')) {
     return '服务'
+  }
+  if (objectTypes.has('host')) {
+    return '主机'
   }
   if (objectTypes.has('node')) {
     return '节点'
@@ -707,179 +1159,324 @@ const issueObjectLabel = (issue = {}) => {
   return '影响目标'
 }
 
-const alertFrequencyLabel = (eventCount) => {
-  if (eventCount >= 5) return '频率较高'
-  if (eventCount >= 2) return '反复出现'
-  if (eventCount === 1) return '单次偶发'
-  return ''
+const ALERT_TREND_WINDOW_MS = 3 * 24 * 60 * 60 * 1000
+const ALERT_TREND_DAY_MS = 24 * 60 * 60 * 1000
+const ALERT_TREND_HOUR_MS = 60 * 60 * 1000
+const ALERT_TREND_SHORT_MS = 15 * 60 * 1000
+const ALERT_TREND_CLUSTER_GAP_MS = 90 * 60 * 1000
+const alertTrendCandidateKeys = [
+  'serviceAlertTrend',
+  'alertTrend',
+  'alertHistory',
+  'recentAlertTrend',
+  'serviceAlertHistory',
+]
+
+const alertActivityLabel = ({ eventCount = 0, instanceCount = 0, alertClassCount = 0 }) => {
+  if (eventCount >= 10) return '高频触发'
+  if (eventCount >= 3) return '多次触发'
+  if (eventCount >= 2) return '重复触发'
+  if (eventCount === 1) return '单次触发'
+  if (alertClassCount > 1 || instanceCount > 1) return '存在多个告警对象'
+  return '触发情况待确认'
 }
 
-const extractAlertPatternSummary = (alertEvidence = {}, issue = {}) => {
-  const rawResult = safeText(alertEvidence.result)
-  const patternMatch = rawResult.match(/事件规律=([^，。]+)/)
-  if (patternMatch?.[1]) {
-    return truncateText(patternMatch[1], 180) + '。'
-  }
-
-  const eventCount = positiveNumber(issue.rawEventCount)
-  const instanceCount = positiveNumber(issue.deduplicatedAlerts)
-  const activeCount = positiveNumber(issue.activeAlerts)
-  if (eventCount <= 1) return ''
-
-  const parts = []
-  if (eventCount > instanceCount && instanceCount > 0) {
-    parts.push('同一告警实例存在重复触发')
-  }
-  if (instanceCount > 1) {
-    parts.push(`涉及 ${instanceCount} 个去重实例`)
-  }
-  if (activeCount === 0) {
-    parts.push('事件已恢复但在窗口内反复出现')
-  }
-  return parts.length > 0 ? `${parts.join('，')}。` : ''
+const priorityRank = {
+  P0: 0,
+  P1: 1,
+  P2: 2,
+  P3: 3,
+  P4: 4,
 }
 
-const buildMacroEvidenceSummary = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
-  const eventCount = positiveNumber(issue.rawEventCount)
-  if (eventCount === 0 && !alertEvidence?.result && !detailEvidence?.result) return ''
-
-  const activeCount = positiveNumber(issue.activeAlerts)
-  const instanceCount = positiveNumber(issue.deduplicatedAlerts)
-  const symptom = inferRiskSymptom(issue, alertEvidence, detailEvidence)
-  const objectLabel = issueObjectLabel(issue)
-  const frequency = alertFrequencyLabel(eventCount)
-  const eventText = eventCount > 0 ? `${eventCount} 次${symptom}告警` : `${symptom}告警`
-  const currentState = activeCount > 0
-    ? `当前仍有 ${activeCount} 条告警触发`
-    : '当前未持续触发'
-  const instanceText = instanceCount > 1 ? `，涉及 ${instanceCount} 个实例` : ''
-  const observation = activeCount > 0
-    ? '需要优先确认影响是否仍在扩大'
-    : eventCount >= 3
-      ? '虽然不处于持续告警状态，但告警频率偏高，需要纳入恢复观察'
-      : '更像短时抖动，建议结合后续窗口继续观察'
-
-  return `该${objectLabel}在当前窗口发生过 ${eventText}${instanceText}，${currentState}；${frequency ? `告警呈${frequency}，` : ''}${observation}。`
+const issueServiceName = (issue = {}) => {
+  const serviceObject = safeList(issue.affectedObjects).find((object) => safeText(object.type) === 'service')
+  if (serviceObject?.name) return safeText(serviceObject.name)
+  const explicitName = firstText(issue.service, issue.serviceName, issue.resourceName, issue.objectName, issue.targetName)
+  if (explicitName) return explicitName
+  const primaryObject = safeList(issue.affectedObjects).find((object) => ['host', 'node', 'pod', 'namespace'].includes(safeText(object.type)))
+  if (primaryObject?.name) return safeText(primaryObject.name)
+  const scope = safeText(issue.scope)
+  return firstText(scope.split(/\s+\/\s+/)[0], issue.title)
 }
 
-const extractAlertEvidenceSummary = (alertEvidence = {}, detailEvidence = {}, issue = {}) => {
-  const eventCount = positiveNumber(issue.rawEventCount)
-  const instanceCount = positiveNumber(issue.deduplicatedAlerts)
-  const activeCount = positiveNumber(issue.activeAlerts)
-  const parts = []
-  if (eventCount > 0) {
-    parts.push(`${eventCount} 条告警事件`)
+const issueFocusTarget = (issue = {}) => {
+  const affectedObjects = safeList(issue.affectedObjects)
+  const serviceObject = affectedObjects.find((object) => safeText(object.type) === 'service' && safeText(object.name))
+  if (serviceObject) {
+    return { label: '服务', name: safeText(serviceObject.name) }
   }
-  if (instanceCount > 0) {
-    parts.push(`${instanceCount} 个实例`)
+  const objectTypes = new Set(affectedObjects.map((object) => safeText(object.type)))
+  const explicitName = firstText(issue.service, issue.serviceName, issue.resourceName, issue.objectName, issue.targetName)
+  if (explicitName) {
+    return {
+      label: objectTypes.has('host') ? '主机池' : objectTypes.has('node') ? '节点组' : '对象',
+      name: explicitName,
+    }
   }
-  if (activeCount > 0) {
-    parts.push(`${activeCount} 条仍在触发`)
-  } else if (eventCount > 0) {
-    parts.push('当前未持续触发')
+  const primaryObject = affectedObjects.find(
+    (object) => ['host', 'node', 'pod', 'database', 'namespace', 'target'].includes(safeText(object.type)) && safeText(object.name),
+  )
+  if (primaryObject) {
+    return {
+      label: objectTypeText[safeText(primaryObject.type)] || '对象',
+      name: safeText(primaryObject.name),
+    }
   }
-  safeList(alertEvidence.alertEvents).slice(0, 2).forEach((event) => {
-    const name = firstText(event.name, event.alertName)
-    const status = safeText(event.status)
-    const severity = safeText(event.severity)
-    if (name) {
-      parts.push(`${name}${severity ? ` ${severity}` : ''}${status ? ` ${status}` : ''}`)
+  const fallback = issueServiceName(issue)
+  return fallback ? { label: '对象', name: fallback } : null
+}
+
+const focusTargetKey = (target = {}) => (target?.name ? `${target.label}:${target.name}` : '')
+
+const buildTopFocusTargets = (issues = []) => {
+  const groups = new Map()
+  safeList(issues).forEach((issue) => {
+    const target = issueFocusTarget(issue)
+    if (!target?.name) return
+    const priority = normalizePriority(issue.priority)
+    const key = focusTargetKey(target)
+    const item = groups.get(key) || {
+      activeAlerts: 0,
+      eventCount: 0,
+      issueCount: 0,
+      label: target.label,
+      name: target.name,
+      priority,
+      priorityOrder: priorityRank[priority] ?? 9,
+      scoreImpact: 0,
+    }
+    const order = priorityRank[priority] ?? 9
+    item.issueCount += 1
+    item.activeAlerts += positiveNumber(issue.activeAlerts)
+    item.eventCount += positiveNumber(issue.rawEventCount)
+    item.scoreImpact += Math.abs(Number(issue.scoreImpact) || 0)
+    if (order < item.priorityOrder) {
+      item.priority = priority
+      item.priorityOrder = order
+    }
+    groups.set(key, item)
+  })
+
+  return Array.from(groups.values())
+    .sort((left, right) => (
+      left.priorityOrder - right.priorityOrder
+      || right.activeAlerts - left.activeAlerts
+      || right.scoreImpact - left.scoreImpact
+      || right.eventCount - left.eventCount
+      || right.issueCount - left.issueCount
+      || left.name.localeCompare(right.name)
+    ))
+    .slice(0, 3)
+}
+
+const parseAlertTime = (value) => {
+  const text = safeText(value)
+  if (!text) return null
+  const numeric = Number(text)
+  if (Number.isFinite(numeric) && numeric > 0) {
+    return numeric < 1000000000000 ? numeric * 1000 : numeric
+  }
+  const normalized = text.includes('T') ? text : text.replace(' ', 'T')
+  const timestamp = Date.parse(normalized)
+  return Number.isNaN(timestamp) ? null : timestamp
+}
+
+const isActiveTrendSegment = (segment = {}) => {
+  if (segment.isActive === true || segment.active === true || segment.ongoing === true) return true
+  const statusText = firstText(segment.status, segment.state, segment.lifecycle).toLowerCase()
+  return /(active|firing|triggering|unresolved|open|触发中|未恢复|活跃)/.test(statusText)
+}
+
+const formatDurationBrief = (seconds) => {
+  const value = Math.max(0, Math.floor(Number(seconds) || 0))
+  if (value <= 0) return ''
+  if (value < 60) return `${value} 秒`
+  const minutes = Math.floor(value / 60)
+  if (minutes < 60) return `${minutes} 分钟`
+  const hours = Math.floor(minutes / 60)
+  const restMinutes = minutes % 60
+  if (hours < 24) return restMinutes > 0 ? `${hours} 小时 ${restMinutes} 分钟` : `${hours} 小时`
+  const days = Math.floor(hours / 24)
+  const restHours = hours % 24
+  return restHours > 0 ? `${days} 天 ${restHours} 小时` : `${days} 天`
+}
+
+const alertTrendSource = (issue = {}) => alertTrendCandidateKeys
+  .map((key) => issue[key])
+  .find((value) => value && typeof value === 'object') || null
+
+const alertTrendSegmentType = (segment = {}) => {
+  const text = [
+    segment.category,
+    segment.type,
+    segment.alertType,
+    segment.kind,
+    segment.name,
+    segment.alertName,
+    segment.ruleName,
+    segment.title,
+    segment.summary,
+  ].map(safeText).join(' ').toLowerCase()
+  if (/(latency|duration|timeout|slow|p95|p99|延时|延迟|慢调用|超时)/.test(text)) return '延迟'
+  if (/(error|exception|fail|5xx|4xx|错误|异常|失败)/.test(text)) return '错误率'
+  if (/(log|日志)/.test(text)) return '日志异常'
+  if (/(cpu|memory|oom|disk|load|资源|内存|磁盘|负载)/.test(text)) return '资源压力'
+  if (/(available|unavailable|down|不可用|宕机|断连)/.test(text)) return '可用性'
+  return firstText(segment.category, segment.type, segment.alertType) || '告警信号'
+}
+
+const alertTrendRawSegments = (trend = {}) => [
+  ...safeList(trend.segments),
+  ...safeList(trend.windows),
+  ...safeList(trend.intervals),
+  ...safeList(trend.activityWindows),
+  ...safeList(trend.events),
+  ...safeList(trend.alerts),
+]
+
+const normalizeAlertTrendSegments = (trend = {}) => alertTrendRawSegments(trend)
+  .map((segment, index) => {
+    const start = parseAlertTime(firstText(segment.startTime, segment.startedAt, segment.start, segment.from, segment.time, segment.timestamp))
+    const explicitDuration = positiveNumber(segment.durationSeconds || segment.duration || segment.activeDurationSeconds)
+    const end = parseAlertTime(firstText(segment.endTime, segment.endedAt, segment.resolvedAt, segment.end, segment.to))
+    const trendEnd = parseAlertTime(firstText(trend.endTime, trend.to)) || Date.now()
+    const isActive = isActiveTrendSegment(segment)
+    const safeStart = start || (end && explicitDuration ? end - explicitDuration * 1000 : null)
+    const safeEnd = end || (isActive ? trendEnd : safeStart && explicitDuration ? safeStart + explicitDuration * 1000 : null)
+    if (!safeStart && !safeEnd) return null
+    const segmentStart = safeStart || safeEnd - 5 * 60 * 1000
+    const segmentEnd = Math.max(segmentStart + 60 * 1000, safeEnd || segmentStart + Math.max(explicitDuration, 5 * 60) * 1000)
+    return {
+      key: `${segmentStart}-${segmentEnd}-${index}`,
+      start: segmentStart,
+      end: segmentEnd,
+      count: positiveNumber(segment.count || segment.eventCount || segment.alertCount) || 1,
+      title: firstText(segment.summary, segment.title, segment.alertName, segment.name, segment.ruleName, alertTrendSegmentType(segment)),
+      type: alertTrendSegmentType(segment),
+      severity: safeText(segment.severity, segment.priority, segment.level),
+      isActive,
     }
   })
-  const fallbackText = firstText(alertEvidence.result, detailEvidence.result)
-  if (parts.length === 0 && fallbackText) {
-    return `告警侧：${stripTechnicalEvidenceText(fallbackText)}`
+  .filter(Boolean)
+  .sort((left, right) => left.start - right.start)
+
+const alertTrendWindow = (trend = {}, segments = []) => {
+  const explicitEnd = parseAlertTime(firstText(trend.endTime, trend.to))
+  const explicitStart = parseAlertTime(firstText(trend.startTime, trend.from))
+  const segmentEnd = segments.length > 0 ? Math.max(...segments.map((segment) => segment.end)) : 0
+  const end = explicitEnd || segmentEnd || Date.now()
+  return {
+    end,
+    start: explicitStart || end - ALERT_TREND_WINDOW_MS,
+    text: safeText(trend.window, trend.windowText, trend.rangeText) || '最近 3 天',
   }
-  return parts.length > 0 ? `告警侧：${Array.from(new Set(parts)).join('，')}。` : ''
 }
 
-const extractMetricEvidenceSummary = (metricEvidence = {}, issue = {}) => {
-  const metricAnalysis = safeText(issue.metricAnalysis)
-  if (metricAnalysis) {
-    return `指标侧：${truncateText(metricAnalysis, 220)}`
-  }
-  const metric = metricEvidence.metric
-  if (metric?.eventScoped && positiveNumber(metric.pointCount) > 0) {
-    const parts = []
-    if (metric.seriesMatched !== undefined) {
-      parts.push(`命中 ${metric.seriesMatched} 条事件指标`)
-    } else {
-      parts.push('已命中事件指标')
-    }
-    if (metric.ruleName) {
-      parts.push(`规则 ${metric.ruleName}`)
-    }
-    parts.push(`变化 ${formatPercent(metric.changePercent)}`)
-    parts.push(`区间 ${formatMetricNumber(metric.minValue)} 到 ${formatMetricNumber(metric.maxValue)}`)
-    return `指标侧：${parts.join('，')}。`
-  }
-  const summary = summarizeMetricEvidenceText(metricEvidence.result || '')
-  if (summary) {
-    return `指标侧：${summary}`
-  }
-  if (metricEvidence?.result) {
-    return `指标侧：未能按事件标签形成可用趋势。`
-  }
-  return ''
-}
-
-const extractTraceEvidenceSummary = (traceEvidence = {}) => {
-  const summary = summarizeTraceEvidenceText(traceEvidence.result || '')
-  return summary ? `APM链路侧：${summary}` : ''
-}
-
-const extractLogEvidenceSummary = (evidence = []) => {
-  const logEvidence = safeList(evidence).find((item) => {
-    const type = safeText(item.type)
-    const source = safeText(item.source)
-    return type.includes('日志') || source.includes('日志')
-  })
-  if (logEvidence?.result && !shouldHideDefaultEvidence(logEvidence)) {
-    return `日志分析侧：${summarizeEvidenceItem(logEvidence)}`
-  }
-  return ''
-}
-
-const extractObjectStatusSummary = (evidence = []) => {
-  const objectEvidence = safeList(evidence).find((item) => safeText(item.type).includes('对象状态'))
-  const statuses = safeList(objectEvidence?.objectStatuses)
-    .map((item) => {
-      const name = firstText(item.name, item.namespace)
-      const status = safeText(item.status)
-      if (!name || !status) return ''
-      return `${name} ${status}`
-    })
-    .filter(Boolean)
-    .slice(0, 2)
-  if (statuses.length > 0) {
-    return `运行目标侧：${statuses.join('，')}。`
-  }
-  if (objectEvidence?.result && !shouldHideDefaultEvidence(objectEvidence)) {
-    return `运行目标侧：${summarizeEvidenceItem(objectEvidence)}`
-  }
-  return ''
-}
-
-const buildIntegratedEvidenceText = ({
-  evidence,
-  issue,
-  alertEvidence,
-  metricEvidence,
-  traceEvidence,
-  detailEvidence,
-}) => {
-  const parts = [
-    extractAlertPatternSummary(alertEvidence, issue),
-    buildMacroEvidenceSummary(issue, alertEvidence, detailEvidence),
-    extractAlertEvidenceSummary(alertEvidence, detailEvidence, issue),
-    extractMetricEvidenceSummary(metricEvidence, issue),
-    extractTraceEvidenceSummary(traceEvidence),
-    extractLogEvidenceSummary(evidence),
-    extractObjectStatusSummary(evidence),
+const alertTypeListText = (trend = {}, segments = [], fallback = '') => {
+  const types = [
+    ...safeList(trend.alertTypes).map((item) => safeText(item.name, item.type, item.label, item)),
+    ...segments.map((segment) => segment.type),
+    fallback,
   ].filter(Boolean)
+  return Array.from(new Set(types)).slice(0, 3).join('、')
+}
 
-  if (parts.length === 0) return ''
-  return truncateText(parts.join(' '), 420)
+const buildAlertTrendEpisodes = (segments = [], trend = {}) => {
+  const gap = positiveNumber(trend.clusterGapSeconds) > 0
+    ? positiveNumber(trend.clusterGapSeconds) * 1000
+    : ALERT_TREND_CLUSTER_GAP_MS
+  const groups = []
+  safeList(segments).forEach((segment) => {
+    const last = groups[groups.length - 1]
+    if (!last || segment.start - last.end > gap) {
+      groups.push({
+        start: segment.start,
+        end: segment.end,
+        segments: [segment],
+      })
+      return
+    }
+    last.end = Math.max(last.end, segment.end)
+    last.segments.push(segment)
+  })
+
+  return groups.map((group, index) => {
+    const count = group.segments.reduce((sum, segment) => sum + (segment.count || 1), 0)
+    const types = Array.from(new Set(group.segments.map((segment) => segment.type).filter(Boolean)))
+    const duration = Math.max(0, group.end - group.start)
+    const active = group.segments.some((segment) => segment.isActive)
+    const kind = count > 1 || group.segments.length > 1
+      ? 'cluster'
+      : duration <= ALERT_TREND_SHORT_MS
+        ? 'short'
+        : 'sustained'
+    return {
+      key: `${group.start}-${group.end}-${index}`,
+      start: group.start,
+      end: group.end,
+      count,
+      duration,
+      kind,
+      active,
+      title: group.segments.map((segment) => segment.title).slice(0, 3).join('；'),
+      type: types[0] || '告警信号',
+      types,
+    }
+  })
+}
+
+const alertTrendActivityText = (trend = {}, segments = []) => {
+  const count = positiveNumber(
+    trend.occurrenceCount
+      || trend.eventCount
+      || trend.alertCount
+      || trend.totalCount
+      || trend.rawEventCount,
+  ) || segments.length
+  const explicit = firstText(trend.activityText, trend.activitySummary)
+  if (explicit) {
+    return explicit
+  }
+  if (count >= 8 || segments.length >= 5) return '多次集中出现'
+  if (count >= 3 || segments.length >= 3) return '间歇性反复'
+  if (count > 0 || segments.length > 0) return '少量告警信号'
+  return '缺少历史告警活动数据'
+}
+
+const alertTrendDurationText = (trend = {}, segments = []) => {
+  const explicitDuration = positiveNumber(
+    trend.longestDurationSeconds
+      || trend.maxDurationSeconds
+      || trend.longestActiveSeconds
+      || trend.durationSeconds,
+  )
+  const segmentDuration = segments.length > 0
+    ? Math.max(...segments.map((segment) => Math.max(0, Math.floor((segment.end - segment.start) / 1000))))
+    : 0
+  const duration = formatDurationBrief(explicitDuration || segmentDuration)
+  if (!duration) return '持续特征待补充'
+  return `最长活跃约 ${duration}`
+}
+
+const alertTrendProblemText = ({ activeCount = 0, activityText = '', durationText = '', typeText = '', trend = {} }) => {
+  const explicit = firstText(trend.problem, trend.reflectedProblem, trend.conclusion, trend.insight)
+  if (explicit) return explicit
+  const longRunning = /小时|天/.test(durationText)
+  const repeated = /多次|反复|集中/.test(activityText)
+  if (activeCount > 0 && repeated && longRunning) {
+    return '更像服务稳定性持续波动，而不是单条规则的孤立触发。'
+  }
+  if (activeCount > 0 && repeated) {
+    return '相关告警仍在活跃，应从服务整体确认影响面是否扩大。'
+  }
+  if (repeated) {
+    return '近期存在复发迹象，恢复后仍需要观察同类告警是否再次集中出现。'
+  }
+  if (typeText.includes('错误率') && typeText.includes('延迟')) {
+    return '更接近入口服务稳定性波动，需要结合业务入口表现判断影响。'
+  }
+  return '目前更像局部告警信号，需要更多历史窗口判断是否形成稳定性趋势。'
 }
 
 const buildAlertBehaviorAnalysis = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
@@ -888,15 +1485,15 @@ const buildAlertBehaviorAnalysis = (issue = {}, alertEvidence = {}, detailEviden
   const activeCount = positiveNumber(issue.activeAlerts)
   const symptom = inferRiskSymptom(issue, alertEvidence, detailEvidence)
   const objectLabel = issueObjectLabel(issue)
-  const frequency = alertFrequencyLabel(eventCount)
+  const activityText = alertActivityLabel({ eventCount, instanceCount })
   const validAnalyses = safeList(issue.existingAlertAnalyses).filter((item) => safeText(item.validity) === 'valid').length
   const invalidAnalyses = safeList(issue.existingAlertAnalyses).filter((item) => safeText(item.validity) === 'invalid').length
   const stateText = activeCount > 0
     ? `当前仍有 ${activeCount} 条告警触发`
     : '当前已恢复，进入恢复观察'
   const scaleText = [
-    eventCount > 0 && `${eventCount} 次告警`,
-    instanceCount > 0 && `${instanceCount} 个去重实例`,
+    eventCount > 0 && `${eventCount} 次触发`,
+    instanceCount > 1 && `${instanceCount} 个告警对象`,
   ].filter(Boolean).join('、')
   const validityText = validAnalyses > 0
     ? `已有分析认为其中 ${validAnalyses} 类告警有效`
@@ -905,10 +1502,88 @@ const buildAlertBehaviorAnalysis = (issue = {}, alertEvidence = {}, detailEviden
       : ''
 
   return [
-    `${objectLabel}侧表现为${symptom}告警${frequency ? ` ${frequency}` : ''}出现${scaleText ? `，涉及 ${scaleText}` : ''}`,
+    `${objectLabel}出现${symptom}告警${activityText ? `，${activityText}` : ''}${scaleText ? `，涉及 ${scaleText}` : ''}`,
     stateText,
     validityText,
   ].filter(Boolean).join('；') + '。'
+}
+
+const buildAlertAnalysisDisplay = (issue = {}, alertEvidence = {}, detailEvidence = {}) => {
+  const eventCount = positiveNumber(issue.rawEventCount)
+  const instanceCount = positiveNumber(issue.deduplicatedAlerts)
+  const activeCount = positiveNumber(issue.activeAlerts)
+  const analyses = safeList(issue.existingAlertAnalyses)
+  const alertClassCount = new Set(analyses.map((analysis) => safeText(analysis.alertName)).filter(Boolean)).size
+  const validAnalyses = analyses.filter((item) => safeText(item.validity) === 'valid').length
+  const invalidAnalyses = analyses.filter((item) => safeText(item.validity) === 'invalid').length
+  const symptom = inferRiskSymptom(issue, alertEvidence, detailEvidence)
+  const objectLabel = issueObjectLabel(issue)
+  const validityText = validAnalyses > 0
+    ? '告警有效'
+    : invalidAnalyses > 0
+      ? '需要校验'
+      : '等待分析'
+  const serviceName = issueServiceName(issue)
+  const trend = alertTrendSource(issue)
+
+  if (trend) {
+    const segments = normalizeAlertTrendSegments(trend)
+    const window = alertTrendWindow(trend, segments)
+    const episodes = buildAlertTrendEpisodes(segments, trend)
+    const typeText = alertTypeListText(trend, segments, symptom)
+    const activityText = alertTrendActivityText(trend, segments)
+    const durationText = alertTrendDurationText(trend, segments)
+    const statusText = activeCount > 0 ? '仍有未恢复告警' : '恢复观察'
+    const summary = firstText(trend.summary, trend.narrative)
+      || `${window.text}，${serviceName} 相关告警${activityText}${typeText ? `，主要围绕 ${typeText}` : ''}。${durationText}，${statusText}。`
+    const problem = alertTrendProblemText({
+      activeCount,
+      activityText,
+      durationText,
+      typeText,
+      trend,
+    })
+
+    return {
+      mode: 'history',
+      serviceName,
+      title: '近 3 天告警态势',
+      window,
+      summary: truncateText(summary, 260),
+      problem: truncateText(problem, 180),
+      stateTone: activeCount > 0 ? 'active' : 'stable',
+      stateText: activeCount > 0 ? '仍在触发' : '恢复观察',
+      validityText,
+      segments,
+      episodes,
+    }
+  }
+
+  const activityText = alertActivityLabel({ eventCount, instanceCount, alertClassCount })
+  const scaleText = [
+    eventCount > 0 && `触发 ${eventCount} 次`,
+    alertClassCount > 1 && `涉及 ${alertClassCount} 类告警`,
+    instanceCount > 1 && `覆盖 ${instanceCount} 个告警对象`,
+  ].filter(Boolean).join('，')
+  const summary = `${serviceName} 在本次报告窗口内${activityText}${scaleText ? `，${scaleText}` : ''}。由于缺少最近 3 天服务级告警历史，暂不能判断是否长期复发。`
+  const problem = activeCount > 0
+    ? '当前仍有告警触发，先作为当前窗口态势处理；服务级历史趋势需要后端补充后再判断。'
+    : '当前已恢复，暂不应仅凭当前窗口判断该服务是否存在长期稳定性问题。'
+
+  return {
+    mode: 'current',
+    serviceName,
+    title: '当前窗口告警态势',
+    window: null,
+    summary,
+    problem,
+    stateTone: activeCount > 0 ? 'active' : 'stable',
+    stateText: activeCount > 0 ? '仍在触发' : '恢复观察',
+    validityText,
+    segments: [],
+    episodes: [],
+    emptyText: `${objectLabel}侧 ${symptom}，缺少最近 3 天服务告警历史。`,
+  }
 }
 
 const buildIssueAnalysisText = (issue = {}, aiGenerated = false) => {
@@ -917,20 +1592,27 @@ const buildIssueAnalysisText = (issue = {}, aiGenerated = false) => {
   const rootCause = safeText(issue.rootCause)
   const direction = metricAnalysis || rootCause
   if (!direction) return base
-  const directionText = `指标方向：${truncateText(direction, 180)}`
+  const directionLabel = metricAnalysis ? '指标方向' : '报告判断'
+  const directionText = `${directionLabel}：${truncateText(direction, 180)}`
   if (!base) return directionText
-  if (base.includes(direction) || base.includes('指标方向')) return base
+  if (base.includes(direction) || base.includes(directionLabel)) return base
   return truncateText(`${base} ${directionText}`, 360)
 }
 
 const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
+  const findEvidence = (...keywords) => safeList(evidence).find((item) => {
+    const type = safeText(item.type)
+    return keywords.some((keyword) => type.includes(keyword))
+  })
   const alertEvidence = getEvidenceByType(evidence, '告警事件')
-  const metricEvidence = getEvidenceByType(evidence, '告警指标趋势')
-  const traceEvidence = getEvidenceByType(evidence, 'Trace链路样本')
+  const reportAlertAnalysisEvidence = findEvidence('方向报告-告警事件分析')
+  const metricEvidence = findEvidence('方向报告-指标趋势', '告警指标趋势', '指标趋势')
+  const traceEvidence = findEvidence('方向报告-APM链路', 'Trace链路样本', 'APM链路')
+  const logEvidence = findEvidence('方向报告-日志分析', '日志分析')
   const detailEvidence = getEvidenceByType(evidence, '告警明细')
   const missingData = safeList(issue.missingData)
   const supplementalEvidence = safeList(evidence).filter(
-    (item) => !['告警事件', '告警指标趋势', 'Trace链路样本', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
+    (item) => !['告警事件', '告警指标趋势', '指标趋势', 'Trace链路样本', 'APM链路', '日志分析', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
   )
   const items = []
   const existingAlertAnalysisText = buildExistingAlertAnalysisText(issue)
@@ -939,20 +1621,61 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     .filter(Boolean)
     .join(' ')
   const rootCauseText = safeText(issue.rootCause)
-  const integratedEvidenceText = buildIntegratedEvidenceText({
-    evidence,
-    issue,
-    alertEvidence,
-    metricEvidence,
-    traceEvidence,
-    detailEvidence,
-  })
+  if (reportAlertAnalysisEvidence?.result) {
+    const reportAlertText = summarizeEvidenceItem(reportAlertAnalysisEvidence)
+    if (reportAlertText) {
+      items.push({
+        label: '告警事件分析',
+        text: truncateText(reportAlertText, 300),
+        tone: 'analysis',
+      })
+    }
+  }
 
-  if (integratedEvidenceText) {
+  if (metricEvidence?.metric?.eventScoped && metricSampleCount(metricEvidence.metric) > 0) {
+    const metric = metricEvidence.metric
+    const matched = metric.seriesMatched !== undefined && metric.seriesReturned !== undefined
+      ? `命中 ${metric.seriesMatched} 条事件指标`
+      : '已返回指标趋势'
     items.push({
-      label: '证据汇总',
-      text: integratedEvidenceText,
-      tone: 'summary',
+      label: '指标变化',
+      text: metricEvidenceDisplayText(metricEvidence, issue) || `${matched}，窗口变化 ${formatPercent(metric.changePercent)}。`,
+      tone: metric.eventScoped ? 'metric' : 'warning',
+      metric,
+      metricName: metricBackendDisplayName(metric),
+    })
+  } else if (safeText(issue.metricAnalysis)) {
+    items.push({
+      label: '指标变化',
+      text: ensureMetricNameInText(metricEvidence?.metric, issue.metricAnalysis, metricEvidence?.result),
+      tone: 'metric',
+    })
+  } else if (metricEvidence?.result) {
+    const metricSummary = summarizeMetricEvidenceText(metricEvidence.result)
+    const unavailableText = metricEvidenceUnavailableText(metricEvidence.result)
+    if (metricSummary || unavailableText) {
+      items.push({
+        label: '指标变化',
+        text: ensureMetricNameInText(metricEvidence?.metric, metricSummary || unavailableText, metricEvidence.result),
+        tone: metricSummary ? 'metric' : 'warning',
+      })
+    }
+  }
+
+  if (traceEvidence?.result) {
+    items.push({
+      label: 'APM链路',
+      text: summarizeTraceEvidenceText(traceEvidence.result),
+      tone: 'trace',
+    })
+  }
+
+  if (logEvidence?.result) {
+    items.push({
+      label: '日志分析',
+      text: summarizeEvidenceItem(logEvidence),
+      tone: 'log',
+      rawLogs: extractRawLogLines(logEvidence),
     })
   }
 
@@ -965,47 +1688,12 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   }
 
   if (alertAnalysisText) {
+    const alertAnalysis = buildAlertAnalysisDisplay(issue, alertEvidence, detailEvidence)
     items.push({
       label: '告警分析',
-      text: truncateText(alertAnalysisText, 360),
+      text: alertAnalysis.focus || truncateText(alertAnalysisText, 360),
       tone: 'analysis',
-    })
-  }
-
-  const metricAnalysis = safeText(issue.metricAnalysis)
-  if (metricEvidence?.metric?.eventScoped && metricEvidence.metric.pointCount > 0) {
-    const metric = metricEvidence.metric
-    const matched = metric.seriesMatched !== undefined && metric.seriesReturned !== undefined
-      ? `命中 ${metric.seriesMatched} 条事件指标`
-      : '已返回指标趋势'
-    items.push({
-      label: '指标变化',
-      text: metricAnalysis || `${matched}，窗口变化 ${formatPercent(metric.changePercent)}。`,
-      tone: metric.eventScoped ? 'metric' : 'warning',
-      metric,
-    })
-  } else if (metricAnalysis) {
-    items.push({
-      label: '指标变化',
-      text: metricAnalysis,
-      tone: 'metric',
-    })
-  } else if (metricEvidence?.result) {
-    const metricSummary = summarizeMetricEvidenceText(metricEvidence.result)
-    if (metricSummary) {
-      items.push({
-        label: '指标变化',
-        text: metricSummary,
-        tone: 'metric',
-      })
-    }
-  }
-
-  if (traceEvidence?.result) {
-    items.push({
-      label: '链路样本',
-      text: summarizeTraceEvidenceText(traceEvidence.result),
-      tone: 'trace',
+      alertAnalysis,
     })
   }
 
@@ -1043,27 +1731,335 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     if (!item.text || seen.has(key)) return false
     seen.add(key)
     return true
-  }).slice(0, 6)
+  }).slice(0, 8)
+}
+
+const formatTrendTimelineTime = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return [
+    `${date.getMonth() + 1}/${date.getDate()}`,
+    `${`${date.getHours()}`.padStart(2, '0')}:${`${date.getMinutes()}`.padStart(2, '0')}`,
+  ].join(' ')
+}
+
+const startOfLocalDay = (value) => {
+  const date = new Date(value)
+  date.setHours(0, 0, 0, 0)
+  return date.getTime()
+}
+
+const formatTrendHeatmapDate = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return `${date.getMonth() + 1}/${date.getDate()}`
+}
+
+const alertTrendHeatmapLevel = (cell = {}) => {
+  if (cell.minutes <= 0) return 0
+  if (cell.minutes >= 45) return 4
+  if (cell.minutes >= 30) return 3
+  if (cell.minutes >= 10) return 2
+  return 1
+}
+
+const mergeAlertTrendIntervals = (intervals = []) => {
+  const sorted = safeList(intervals)
+    .filter((interval) => interval.end > interval.start)
+    .sort((left, right) => left.start - right.start)
+  const merged = []
+  sorted.forEach((interval) => {
+    const last = merged[merged.length - 1]
+    if (!last || interval.start > last.end) {
+      merged.push({ ...interval })
+      return
+    }
+    last.end = Math.max(last.end, interval.end)
+  })
+  return merged
+}
+
+const buildAlertTrendHeatmap = (segments = [], window = {}) => {
+  const end = window.end || Date.now()
+  const start = startOfLocalDay(end) - 2 * ALERT_TREND_DAY_MS
+  return Array.from({ length: 3 }, (_, rowIndex) => {
+    const rowStart = start + rowIndex * ALERT_TREND_DAY_MS
+    const rowEnd = rowStart + ALERT_TREND_DAY_MS
+    const cells = Array.from({ length: 24 }, (_, hour) => {
+      const cellStart = rowStart + hour * ALERT_TREND_HOUR_MS
+      const cellEnd = cellStart + ALERT_TREND_HOUR_MS
+      const cell = {
+        key: `${rowIndex}-${hour}`,
+        start: cellStart,
+        end: cellEnd,
+        events: 0,
+        minutes: 0,
+        intervals: [],
+        titles: [],
+        types: [],
+      }
+      safeList(segments).forEach((segment) => {
+        const overlapStart = Math.max(segment.start, cellStart)
+        const overlapEnd = Math.min(segment.end, cellEnd)
+        const overlap = Math.max(0, overlapEnd - overlapStart)
+        if (overlap <= 0) return
+        cell.events += segment.count || 1
+        cell.intervals.push({ start: overlapStart, end: overlapEnd })
+        if (segment.title) cell.titles.push(segment.title)
+        if (segment.type) cell.types.push(segment.type)
+      })
+      const activeMs = mergeAlertTrendIntervals(cell.intervals)
+        .reduce((sum, interval) => sum + interval.end - interval.start, 0)
+      cell.minutes = Math.min(60, Math.ceil(activeMs / 60000))
+      const level = alertTrendHeatmapLevel(cell)
+      const types = Array.from(new Set(cell.types)).slice(0, 3)
+      const titles = Array.from(new Set(cell.titles)).slice(0, 2)
+      return {
+        ...cell,
+        intervals: undefined,
+        level,
+        title: level > 0
+          ? [
+            `${formatTrendTimelineTime(cellStart)} - ${formatTrendTimelineTime(cellEnd)} 出现告警`,
+            cell.events > 1 ? `告警信号 ${cell.events} 条` : '告警信号 1 条',
+            cell.minutes > 0 ? `持续约 ${formatDurationBrief(cell.minutes * 60)}` : '',
+            types.length > 0 ? `类型：${types.join('、')}` : '',
+            titles.length > 0 ? titles.join('；') : '',
+          ].filter(Boolean).join('；')
+          : `${formatTrendTimelineTime(cellStart)} - ${formatTrendTimelineTime(cellEnd)} 未发现相关告警`,
+      }
+    })
+    return {
+      key: `row-${rowIndex}`,
+      start: rowStart,
+      end: rowEnd,
+      label: formatTrendHeatmapDate(rowStart),
+      rangeText: `${formatTrendTimelineTime(rowStart)} - ${formatTrendTimelineTime(rowEnd)}`,
+      cells,
+    }
+  })
+}
+
+const AlertTrendHeatmapLegend = () => (
+  <div className="health-alert-trend-legend">
+    <span>颜色越深，告警持续时间越长</span>
+    <em>Less</em>
+    <i className="health-alert-trend-guide-empty" />
+    <i className="health-alert-trend-guide-hot health-alert-trend-guide-hot-1" />
+    <i className="health-alert-trend-guide-hot health-alert-trend-guide-hot-2" />
+    <i className="health-alert-trend-guide-hot health-alert-trend-guide-hot-3" />
+    <i className="health-alert-trend-guide-hot health-alert-trend-guide-hot-4" />
+    <em>More</em>
+  </div>
+)
+
+const alertTrendHotCellCount = (analysis = {}) => {
+  const segments = safeList(analysis.segments)
+  if (segments.length === 0) return 0
+  const window = analysis.window || alertTrendWindow({}, segments)
+  return buildAlertTrendHeatmap(segments, window)
+    .reduce((sum, row) => sum + row.cells.filter((cell) => cell.level > 0).length, 0)
+}
+
+const alertTrendJudgementText = (analysis = {}) => {
+  const problem = safeText(analysis.problem)
+  const hotCellCount = alertTrendHotCellCount(analysis)
+  if (hotCellCount <= 0) return problem
+  return `最近 3 天共有 ${hotCellCount} 个小时出现告警活动。${problem}`
+}
+
+const AlertTrendTimeline = ({ analysis }) => {
+  const segments = safeList(analysis.segments)
+  if (segments.length === 0) {
+    return (
+      <div className="health-alert-trend-empty">
+        {analysis.emptyText || '最近 3 天服务告警历史暂未返回。'}
+      </div>
+    )
+  }
+  const window = analysis.window || alertTrendWindow({}, segments)
+  const rows = buildAlertTrendHeatmap(segments, window)
+  return (
+    <div className="health-alert-trend-timeline">
+      <div className="health-alert-trend-scale">
+        <span>最近3天告警情况</span>
+        <AlertTrendHeatmapLegend />
+      </div>
+      <div className="health-alert-trend-heatmap">
+        <div className="health-alert-trend-heatmap-axis" aria-hidden="true">
+          <span />
+          {[0, 6, 12, 18, 24].map((hour) => (
+            <b
+              key={hour}
+              style={{ gridColumn: hour === 24 ? '25 / 26' : `${hour + 2} / span 2` }}
+            >
+              {hour}
+              h
+            </b>
+          ))}
+        </div>
+        {rows.map((row) => (
+          <div className="health-alert-trend-heatmap-row" key={row.key}>
+            <div className="health-alert-trend-heatmap-day" title={row.rangeText}>
+              <span>{row.label}</span>
+            </div>
+            <div className="health-alert-trend-heatmap-cells">
+              {row.cells.map((cell) => (
+                <span
+                  aria-label={cell.title}
+                  className={`health-alert-trend-heatmap-cell health-alert-trend-heatmap-cell-${cell.level}`}
+                  key={cell.key}
+                  title={cell.title}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+AlertTrendTimeline.propTypes = {
+  analysis: PropTypes.object,
+}
+
+const ServiceAlertTrendEvidence = ({ analysis }) => (
+  <div className="health-alert-trend">
+    <div className="health-alert-trend-head">
+      <div>
+        <span>{analysis.title}</span>
+        <b>{analysis.serviceName}</b>
+      </div>
+      <div className="health-alert-analysis-tags">
+        <em className={`health-alert-analysis-state health-alert-analysis-state-${analysis.stateTone}`}>
+          {analysis.stateText}
+        </em>
+        <em className="health-alert-analysis-validity">
+          {analysis.validityText}
+        </em>
+      </div>
+    </div>
+    <p className="health-alert-trend-summary">{analysis.summary}</p>
+    <AlertTrendTimeline analysis={analysis} />
+    <div className="health-alert-trend-problem">
+      <span>趋势判断</span>
+      <strong>{alertTrendJudgementText(analysis)}</strong>
+    </div>
+  </div>
+)
+
+ServiceAlertTrendEvidence.propTypes = {
+  analysis: PropTypes.object,
 }
 
 export default function ServiceHealthyPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const timeRange = useSelector((state) => state.timeRange)
+  const pageLoadedAtRef = useRef(Date.now() * 1000)
+  const initialTimeRangeSignatureRef = useRef(null)
   const [keyword, setKeyword] = useState('')
+  const [priorityFilter, setPriorityFilter] = useState('all')
+  const [serviceFilter, setServiceFilter] = useState('all')
   const [healthReportData, setHealthReportData] = useState(null)
   const [reportError, setReportError] = useState('')
   const [isReportRefreshing, setIsReportRefreshing] = useState(false)
+  const [reportGeneratingStartedAt, setReportGeneratingStartedAt] = useState(0)
+  const [reportGeneratingNow, setReportGeneratingNow] = useState(Date.now())
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [historyRecords, setHistoryRecords] = useState([])
+  const [historyTotal, setHistoryTotal] = useState(0)
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState('')
+  const [selectedRecord, setSelectedRecord] = useState(null)
+  const [recordLoadingId, setRecordLoadingId] = useState('')
+  const selectedRecordRef = useRef(null)
   const lowerKeyword = keyword.trim().toLowerCase()
+  const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
+  if (initialTimeRangeSignatureRef.current === null) {
+    initialTimeRangeSignatureRef.current = currentTimeRangeSignature
+  }
+  const timeRangeChangedAfterMount = currentTimeRangeSignature !== initialTimeRangeSignatureRef.current
+  const timeRangeRefreshedAfterMount = positiveNumber(timeRange?.refreshTimestamp) >= pageLoadedAtRef.current
+  const requestParams = useMemo(
+    () => buildReportRequestParams(location.search, timeRange, {
+      preferStore: timeRangeChangedAfterMount || timeRangeRefreshedAfterMount,
+    }),
+    [
+      location.search,
+      timeRange?.rangeTypeKey,
+      timeRange?.startTime,
+      timeRange?.endTime,
+      timeRange?.refreshTimestamp,
+      timeRangeChangedAfterMount,
+      timeRangeRefreshedAfterMount,
+    ],
+  )
+
+  useEffect(() => {
+    selectedRecordRef.current = selectedRecord
+  }, [selectedRecord])
+
+  useEffect(() => {
+    if (!isReportRefreshing || healthReportData) return undefined
+    const timer = window.setInterval(() => {
+      setReportGeneratingNow(Date.now())
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [isReportRefreshing, healthReportData])
+
+  const loadHistoryRecords = () => {
+    setHistoryLoading(true)
+    setHistoryError('')
+    getSystemHealthReportRecordsApi({
+      groupId: requestParams.groupId,
+      page: 1,
+      pageSize: 30,
+    })
+      .then((data) => {
+        setHistoryRecords(safeList(data?.records))
+        setHistoryTotal(positiveNumber(data?.total))
+      })
+      .catch(() => {
+        setHistoryError('历史报告读取失败，请稍后重试。')
+      })
+      .finally(() => {
+        setHistoryLoading(false)
+      })
+  }
+
+  const openHistory = () => {
+    setHistoryOpen(true)
+    loadHistoryRecords()
+  }
+
+  const loadRecordDetail = (record) => {
+    const recordId = safeText(record?.recordId)
+    if (!recordId) return
+    setRecordLoadingId(recordId)
+    setHistoryError('')
+    getSystemHealthReportRecordApi(recordId)
+      .then((data) => {
+        if (data?.data?.report && Array.isArray(data?.data?.issues)) {
+          setHealthReportData(data.data)
+          setSelectedRecord(data.record || record)
+          setReportError('')
+          setHistoryOpen(false)
+        }
+      })
+      .catch(() => {
+        setHistoryError('历史报告详情读取失败，请稍后重试。')
+      })
+      .finally(() => {
+        setRecordLoadingId('')
+      })
+  }
 
   useEffect(() => {
     let ignore = false
-    const searchParams = new URLSearchParams(location.search)
-    const requestParams = {
-      groupId: searchParams.get('groupId') || 1,
-      relativeTime: searchParams.get('relativeTime') || '15m',
-      startTime: searchParams.get('startTime') || undefined,
-      endTime: searchParams.get('endTime') || undefined,
-    }
+    selectedRecordRef.current = null
+    setSelectedRecord(null)
     const cacheKey = makeReportCacheKey(requestParams)
     const cached = readPersistedReport(cacheKey)
     if (cached) {
@@ -1072,11 +2068,15 @@ export default function ServiceHealthyPage() {
     } else {
       setHealthReportData(null)
     }
+    setReportGeneratingStartedAt(Date.now())
+    setReportGeneratingNow(Date.now())
     setIsReportRefreshing(true)
     getSystemHealthReportApi(requestParams)
       .then((data) => {
         if (!ignore && data?.report && Array.isArray(data?.issues)) {
+          if (selectedRecordRef.current) return
           setHealthReportData(data)
+          setSelectedRecord(null)
           setReportError('')
           persistReport(cacheKey, data)
         }
@@ -1087,7 +2087,7 @@ export default function ServiceHealthyPage() {
             setReportError('实时数据刷新失败，正在展示最近一次系统健康报告。')
           } else {
             setHealthReportData(null)
-            setReportError('真实环境数据读取失败，请确认后端 /api/system-health/report 已启动并可访问。')
+            setReportError('暂时无法读取系统健康数据，请稍后刷新或确认数据服务状态。')
           }
         }
       })
@@ -1099,34 +2099,66 @@ export default function ServiceHealthyPage() {
     return () => {
       ignore = true
     }
-  }, [location.search])
+  }, [requestParams])
 
   const issues = healthReportData?.issues ?? []
+  const priorityFilterOptions = useMemo(() => {
+    const counts = new Map()
+    issues.forEach((issue) => {
+      const priority = normalizePriority(issue.priority)
+      counts.set(priority, (counts.get(priority) || 0) + 1)
+    })
+    return [
+      { value: 'P0', label: `P0 故障${counts.has('P0') ? ` (${counts.get('P0')})` : ''}` },
+      { value: 'P1', label: `P1 严重${counts.has('P1') ? ` (${counts.get('P1')})` : ''}` },
+      { value: 'P2', label: `P2 警告${counts.has('P2') ? ` (${counts.get('P2')})` : ''}` },
+      { value: 'P3', label: `P3 观察${counts.has('P3') ? ` (${counts.get('P3')})` : ''}` },
+      { value: 'P4', label: `P4 提示${counts.has('P4') ? ` (${counts.get('P4')})` : ''}` },
+    ].filter((item) => counts.has(item.value))
+  }, [issues])
+  const serviceFilterOptions = useMemo(() => {
+    const options = new Map()
+    issues.forEach((issue) => {
+      const target = issueFocusTarget(issue)
+      const key = focusTargetKey(target)
+      if (!key || options.has(key)) return
+      options.set(key, {
+        value: key,
+        label: target.label === '服务' ? target.name : `${target.name} (${target.label})`,
+      })
+    })
+    return Array.from(options.values()).sort((left, right) => left.label.localeCompare(right.label))
+  }, [issues])
+  const hasIssueFilters = Boolean(lowerKeyword || priorityFilter !== 'all' || serviceFilter !== 'all')
 
   const filteredIssues = useMemo(() => {
-    if (!lowerKeyword) return issues
     return issues.filter(
-      (item) => [
-        item.title,
-        item.scope,
-        item.systemProblem,
-        item.rootCause,
-        item.aiConclusion,
-        item.impact,
-        item.mergeBasis,
-        safeList(item.dataSources).join(' '),
-        safeList(item.actions).join(' '),
-        safeList(item.existingAlertAnalyses).map((analysis) => [
-          analysis.alertName,
-          analysis.alertDirection,
-          analysis.checkOutput,
-          analysis.analyzeError,
-          analysis.validity,
-        ].join(' ')).join(' '),
-        safeList(item.affectedObjects).map((object) => object.name).join(' '),
-      ].join(' ').toLowerCase().includes(lowerKeyword),
+      (item) => {
+        const matchesKeyword = !lowerKeyword || [
+          item.title,
+          item.scope,
+          item.systemProblem,
+          item.rootCause,
+          item.aiConclusion,
+          item.impact,
+          item.mergeBasis,
+          safeList(item.dataSources).join(' '),
+          safeList(item.actions).join(' '),
+          safeList(item.existingAlertAnalyses).map((analysis) => [
+            analysis.alertName,
+            analysis.alertDirection,
+            analysis.checkOutput,
+            analysis.analyzeError,
+            analysis.validity,
+          ].join(' ')).join(' '),
+          safeList(item.affectedObjects).map((object) => object.name).join(' '),
+        ].join(' ').toLowerCase().includes(lowerKeyword)
+        const matchesPriority = priorityFilter === 'all' || normalizePriority(item.priority) === priorityFilter
+        const matchesService = serviceFilter === 'all' || focusTargetKey(issueFocusTarget(item)) === serviceFilter
+        return matchesKeyword && matchesPriority && matchesService
+      },
     )
-  }, [lowerKeyword, issues])
+  }, [lowerKeyword, priorityFilter, serviceFilter, issues])
 
   const report = healthReportData?.report ?? {
     ...EMPTY_REPORT,
@@ -1150,48 +2182,147 @@ export default function ServiceHealthyPage() {
     navigate(`${jumpTargets.alerts}?${params.toString()}`)
   }
 
-  const affectedScopeSummary = summarizeAffectedObjectScope(filteredIssues)
   const impactSummary = {
     p0Count: filteredIssues.filter((issue) => issue.priority === 'P0').length,
     p1Count: filteredIssues.filter((issue) => issue.priority === 'P1').length,
     p2Count: filteredIssues.filter((issue) => issue.priority === 'P2').length,
     p3Count: filteredIssues.filter((issue) => issue.priority === 'P3').length,
     p4Count: filteredIssues.filter((issue) => issue.priority === 'P4').length,
-    affectedObjectCount: affectedScopeSummary.count,
   }
-  const visibleKpis = [
-    { label: lowerKeyword ? '筛选结果' : '风险项', value: filteredIssues.length, show: true },
-    { label: 'P0/P1', value: `${impactSummary.p0Count}/${impactSummary.p1Count}`, show: impactSummary.p0Count + impactSummary.p1Count > 0 },
-    { label: 'P2/P3', value: `${impactSummary.p2Count}/${impactSummary.p3Count}`, show: impactSummary.p2Count + impactSummary.p3Count > 0 },
-    { label: 'P4', value: impactSummary.p4Count, show: impactSummary.p4Count > 0 },
-    { label: '触发中告警', value: report.activeAlertCount, show: report.activeAlertCount > 0 },
-    {
-      label: '恢复观察',
-      value: filteredIssues.filter((issue) => issue.status === 'recovering' && positiveNumber(issue.activeAlerts) === 0).length,
-      show: filteredIssues.some((issue) => issue.status === 'recovering' && positiveNumber(issue.activeAlerts) === 0),
-    },
-    { label: affectedScopeSummary.label, value: affectedScopeSummary.value, show: impactSummary.affectedObjectCount > 0 },
+  const recoveringIssueCount = filteredIssues.filter((issue) => issue.status === 'recovering' && positiveNumber(issue.activeAlerts) === 0).length
+  const topFocusTargets = buildTopFocusTargets(filteredIssues)
+  const priorityDistribution = [
+    { key: 'P0', label: 'P0', name: '故障', count: impactSummary.p0Count },
+    { key: 'P1', label: 'P1', name: '严重', count: impactSummary.p1Count },
+    { key: 'P2', label: 'P2', name: '警告', count: impactSummary.p2Count },
+    { key: 'P3', label: 'P3', name: '观察', count: impactSummary.p3Count },
+    { key: 'P4', label: 'P4', name: '提示', count: impactSummary.p4Count },
+  ]
+  const priorityTotal = Math.max(1, priorityDistribution.reduce((sum, item) => sum + item.count, 0))
+  const highestPriority = priorityDistribution.find((item) => item.count > 0)
+  const urgentIssues = filteredIssues.filter((issue) => ['P0', 'P1'].includes(normalizePriority(issue.priority)) && positiveNumber(issue.activeAlerts) > 0)
+  const urgentAlertCount = urgentIssues.reduce((sum, issue) => sum + positiveNumber(issue.activeAlerts), 0)
+  const ruleDiagnosticIssueCount = filteredIssues.filter(isRuleDiagnosticIssue).length
+  const watchIssueCount = Math.max(0, filteredIssues.length - urgentIssues.length - ruleDiagnosticIssueCount)
+  const triageLeadText = highestPriority
+    ? `${highestPriority.label} ${highestPriority.name}为当前最高风险`
+    : '暂无待处理风险'
+  const commandStats = [
+    { label: hasIssueFilters ? '筛选结果' : '风险项', value: filteredIssues.length, show: true },
+    { label: '触发中告警', value: report.activeAlertCount || 0, show: true },
+    { label: '恢复观察', value: recoveringIssueCount, show: true },
   ].filter((item) => item.show)
   const reportSummaryText = reportExecutiveSummary(report, issues, productReportSummary(report.summary || '', isAISummaryReady))
+  const generationElapsedSeconds = reportGeneratingStartedAt > 0
+    ? Math.max(0, Math.floor((reportGeneratingNow - reportGeneratingStartedAt) / 1000))
+    : 0
+  const historyDrawer = (
+    <Drawer
+      title="历史报告"
+      open={historyOpen}
+      onClose={() => setHistoryOpen(false)}
+      width={420}
+      destroyOnClose={false}
+    >
+      <div className="health-history-toolbar">
+        <span>已保存 {historyTotal || historyRecords.length} 条记录</span>
+        <Button size="small" onClick={loadHistoryRecords} loading={historyLoading}>刷新</Button>
+      </div>
+      {historyError && <div className="health-history-error">{historyError}</div>}
+      <Spin spinning={historyLoading}>
+        <List
+          dataSource={historyRecords}
+          locale={{ emptyText: '暂无历史报告记录' }}
+          renderItem={(record) => (
+            <List.Item
+              className={[
+                'health-history-item',
+                selectedRecord?.recordId === record.recordId ? 'health-history-item-active' : '',
+              ].filter(Boolean).join(' ')}
+              onClick={() => loadRecordDetail(record)}
+            >
+              <div className="health-history-item-main">
+                <div className="health-history-item-title">
+                  <StatusTag status={record.status} />
+                  <strong>{recordWindowText(record)}</strong>
+                </div>
+                <span>{truncateText(record.summary || '系统健康报告快照', 120)}</span>
+                <small>
+                  生成 {formatRecordTime(record.createdAt)}
+                  {' · '}
+                  风险项 {record.issueCount}
+                  {' · '}
+                  健康分 {record.score}
+                </small>
+              </div>
+              <Button
+                size="small"
+                type={selectedRecord?.recordId === record.recordId ? 'primary' : 'default'}
+                loading={recordLoadingId === record.recordId}
+              >
+                查看
+              </Button>
+            </List.Item>
+          )}
+        />
+      </Spin>
+    </Drawer>
+  )
 
   if (!healthReportData) {
+    const waitingDescription = reportError || '正在汇总当前时间窗口内的真实告警、指标趋势、APM 链路、日志分析和已生成的告警分析报告。'
     return (
-      <div className="system-health-page">
-        <div className="health-report-header">
-          <div className="health-report-main">
-            <div className="health-title-row">
-              <div className="health-title">系统健康报告</div>
-              {isReportRefreshing && <Tag color="processing">刷新中</Tag>}
+      <>
+        <div className="system-health-page">
+          <div className="health-report-header">
+            <div className="health-report-main">
+              <div className="health-title-row">
+                <div className="health-title">系统健康报告</div>
+                {isReportRefreshing && !selectedRecord && <Tag color="processing">刷新中</Tag>}
+                {selectedRecord && <Tag color="geekblue">历史快照</Tag>}
+              </div>
+              {selectedRecord && (
+                <div className="health-report-meta">
+                  <span>记录时间：{formatRecordTime(selectedRecord.createdAt)}</span>
+                  <span>快照窗口：{recordWindowText(selectedRecord)}</span>
+                </div>
+              )}
+            </div>
+            <Space wrap className="health-report-actions">
+              <Button onClick={openHistory}>历史记录</Button>
+            </Space>
+          </div>
+          <div className="health-impact-empty">
+            <div className="health-report-generating">
+              <Spin spinning={isReportRefreshing} />
+              <div className="health-report-generating-body">
+                <strong>{reportError ? '暂时无法生成系统健康报告' : '正在生成系统健康报告'}</strong>
+                <span>{waitingDescription}</span>
+                <div className="health-report-generating-blocks">
+                  {reportWaitingBlocks.map((block) => (
+                    <div className="health-report-generating-block" key={block.key}>
+                      <div className="health-report-generating-block-head">
+                        <b>{block.title}</b>
+                      </div>
+                      <span>{block.description}</span>
+                    </div>
+                  ))}
+                </div>
+                <small>
+                  已等待 {formatElapsedSeconds(generationElapsedSeconds)}
+                  {!reportError ? '，分析完成后会自动刷新页面。' : '。'}
+                  {' '}
+                  可先查看历史记录中的已生成快照。
+                </small>
+                <Space wrap>
+                  <Button onClick={openHistory}>查看历史记录</Button>
+                </Space>
+              </div>
             </div>
           </div>
         </div>
-        <div className="health-impact-empty">
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={reportError || '正在生成后端分析'}
-          />
-        </div>
-      </div>
+        {historyDrawer}
+      </>
     )
   }
 
@@ -1217,11 +2348,80 @@ export default function ServiceHealthyPage() {
           {aiMeta && aiAnalysis.status !== 'not_configured' && (
             <small>{aiMeta.text}</small>
           )}
+          <div className="health-impact-command-stats">
+            {commandStats.map((item) => (
+              <span
+                className={item.wide ? 'health-impact-command-stat-wide' : ''}
+                key={item.label}
+              >
+                {item.label}
+                <b>{item.value}</b>
+              </span>
+            ))}
+          </div>
+          {topFocusTargets.length > 0 && (
+            <div className="health-impact-command-focus">
+              <div className="health-impact-command-panel-head">
+                <strong>建议优先关注</strong>
+                <span>按风险影响排序</span>
+              </div>
+              <div className="health-impact-focus-list">
+                {topFocusTargets.map((target, index) => {
+                  const metaText = [
+                    target.label !== '服务' && target.label,
+                    target.activeAlerts > 0 ? `触发中 ${target.activeAlerts}` : '恢复观察',
+                    target.eventCount > 0 && `事件 ${target.eventCount}`,
+                    target.issueCount > 1 && `${target.issueCount} 项风险`,
+                  ].filter(Boolean).join(' · ')
+                  return (
+                    <div className="health-impact-focus-item" key={`${target.label}-${target.name}`}>
+                      <span className="health-impact-focus-rank">{index + 1}</span>
+                      <span className={`health-risk-priority health-risk-priority-${target.priority.toLowerCase()}`}>{target.priority}</span>
+                      <div>
+                        <b title={target.name}>{target.name}</b>
+                        <small>{metaText}</small>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="health-impact-command-kpis">
-          {visibleKpis.map((item) => (
-            <span key={item.label}>{item.label} <b>{item.value}</b></span>
-          ))}
+        <div className="health-impact-command-priority">
+          <div className="health-impact-command-panel-head">
+            <strong>处置优先级</strong>
+            <span>{triageLeadText}</span>
+          </div>
+          <div className="health-impact-priority-stack" aria-label="风险构成">
+            {priorityDistribution.map((item) => (
+              item.count > 0 && (
+                <span
+                  className={`health-impact-priority-stack-item health-impact-priority-${item.key.toLowerCase()}`}
+                  key={item.key}
+                  style={{ width: `${Math.max(8, (item.count / priorityTotal) * 100)}%` }}
+                  title={`${item.label} ${item.name}: ${item.count} 项`}
+                />
+              )
+            ))}
+          </div>
+          <div className="health-impact-triage-list">
+            <div className="health-impact-triage-item health-impact-triage-urgent">
+              <span>立即处理</span>
+              <strong>{urgentIssues.length} 项</strong>
+              <small>{urgentAlertCount > 0 ? `P0/P1 未恢复，触发中 ${urgentAlertCount} 条` : '暂无未恢复高优先级风险'}</small>
+            </div>
+            <div className="health-impact-triage-item health-impact-triage-watch">
+              <span>继续观察</span>
+              <strong>{watchIssueCount} 项</strong>
+              <small>关注恢复稳定性和复发迹象</small>
+            </div>
+            <div className="health-impact-triage-item health-impact-triage-rule">
+              <span>规则校验</span>
+              <strong>{ruleDiagnosticIssueCount} 项</strong>
+              <small>避免无效告警进入故障处置</small>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1231,21 +2431,50 @@ export default function ServiceHealthyPage() {
     <div className="health-version-impact">
       {impactCommandOverview}
       <div className="health-impact-detail-title">
-        <b>健康风险明细</b>
-        <span>{filteredIssues.length} 项</span>
+        <b>当前需要关注的问题</b>
+        <div className="health-impact-detail-tools">
+          <Input.Search
+            allowClear
+            className="health-impact-filter-search"
+            placeholder="搜索问题 / 服务 / 接口"
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+          />
+          <Select
+            className="health-impact-filter-select"
+            options={priorityFilterOptions}
+            placeholder="风险级别"
+            popupMatchSelectWidth={false}
+            value={priorityFilter === 'all' ? undefined : priorityFilter}
+            allowClear
+            onChange={(value) => setPriorityFilter(value || 'all')}
+          />
+          <Select
+            className="health-impact-filter-select health-impact-filter-service"
+            options={serviceFilterOptions}
+            placeholder="服务"
+            popupMatchSelectWidth={false}
+            showSearch
+            optionFilterProp="label"
+            value={serviceFilter === 'all' ? undefined : serviceFilter}
+            allowClear
+            onChange={(value) => setServiceFilter(value || 'all')}
+          />
+          <span className="health-impact-detail-count">{filteredIssues.length} 项</span>
+        </div>
       </div>
       <div className="health-impact-grid">
         {filteredIssues.length === 0 && (
           <div className="health-impact-empty">
             {reportSummaryText ? (
               <div className="health-impact-empty-summary">
-                <strong>健康风险明细</strong>
+                <strong>当前需要关注的问题</strong>
                 <span>{reportSummaryText}</span>
               </div>
             ) : (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={reportError || '暂无健康风险明细'}
+                description={reportError || '暂无需要关注的问题'}
               />
             )}
           </div>
@@ -1264,11 +2493,14 @@ export default function ServiceHealthyPage() {
             : safeList(issue.actions).map((action, index) => ({
               phase: `建议 ${index + 1}`,
               action,
+              source: 'ai',
             }))
+          const actionSourceText = actionPlanSourceText(actionSteps)
           const visibleAffectedObjects = visibleObjectTags(issue)
+          const impactObjects = buildImpactObjects(displayTitle, scope, visibleAffectedObjects, issue.affectedObjects)
           const keyEvidence = buildKeyEvidenceItems(evidence, issue)
           const issueAnalysis = buildIssueAnalysisText(issue, isAISummaryReady)
-          const shouldShowRoute = displayTitle !== scope || visibleAffectedObjects.length > 0
+          const shouldShowRoute = impactObjects.items.length > 0
           return (
             <div
               className={[
@@ -1282,28 +2514,35 @@ export default function ServiceHealthyPage() {
               <div className="health-impact-card-top">
                 <span className={`health-risk-priority health-risk-priority-${priority.toLowerCase()}`}>{priority}</span>
                 <b>{displayTitle}</b>
-                <StatusTag status={status} />
                 <div className="health-impact-card-meta">
+                  <StatusTag
+                    className="health-impact-status-tag"
+                    hiddenStatuses={['recovering']}
+                    status={status}
+                  />
                   {metaItems.map((item) => <span key={`${issue.key}-${item}`}>{item}</span>)}
                 </div>
-              </div>
-              {shouldShowRoute && (
-                <div className="health-impact-route">
-                  <div>
-                    <strong>影响范围</strong>
-                    {displayTitle !== scope && <span>{scope}</span>}
-                    {visibleAffectedObjects.length > 0 && (
-                      <div className="health-impact-object-row">
-                        {visibleAffectedObjects.map((object) => (
-                          <Tag bordered={false} key={`${issue.key}-${object.type}-${object.name}`}>
-                            {objectTypeText[object.type] || object.type}: {object.name}
-                          </Tag>
-                        ))}
-                      </div>
-                    )}
+                {shouldShowRoute && (
+                  <div className="health-impact-route">
+                    <div className="health-impact-route-title">
+                      <strong>影响对象</strong>
+                      {impactObjects.overflowCount > 0 && <span>另有 {impactObjects.overflowCount} 项</span>}
+                    </div>
+                    <div className="health-impact-object-row">
+                      {impactObjects.items.map((object) => (
+                        <div
+                          className="health-impact-object-item"
+                          key={`${issue.key}-${object.label}-${object.name}`}
+                          title={`${object.label}: ${object.name}`}
+                        >
+                          <span className="health-impact-object-label">{object.label}</span>
+                          <span className="health-impact-object-value">{object.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
               <div className="health-impact-evidence">
                 {issueAnalysis && (
                   <div className="health-impact-analysis">
@@ -1320,7 +2559,34 @@ export default function ServiceHealthyPage() {
                       {keyEvidence.map((item) => (
                         <div className={`health-impact-key-evidence-item health-impact-key-evidence-${item.tone}`} key={`${issue.key}-${item.label}`}>
                           <strong>{item.label}</strong>
-                          <span>{item.text}</span>
+                          {item.metricName && (
+                            <div className="health-metric-name-row" title={item.metricName}>
+                              <span>指标名</span>
+                              <b>{truncateText(item.metricName, 96)}</b>
+                            </div>
+                          )}
+                          {item.alertAnalysis ? (
+                            <ServiceAlertTrendEvidence analysis={item.alertAnalysis} />
+                          ) : (
+                            <span className="health-impact-key-evidence-text">{item.text}</span>
+                          )}
+                          {item.rawLogs?.length > 0 && (
+                            <details className="health-raw-log-panel">
+                              <summary>
+                                <span>原始异常日志</span>
+                                <small>{item.rawLogs.length} 行</small>
+                              </summary>
+                              <div className="health-raw-log-scroll">
+                                <ol>
+                                  {item.rawLogs.map((line, index) => (
+                                    <li key={`${issue.key}-${item.label}-log-${index}`}>
+                                      <code>{line}</code>
+                                    </li>
+                                  ))}
+                                </ol>
+                              </div>
+                            </details>
+                          )}
                           {item.metric && hasMetricChartData(item.metric) && (
                             <MetricTrendChart metric={item.metric} compact />
                           )}
@@ -1335,6 +2601,7 @@ export default function ServiceHealthyPage() {
                   <div className="health-impact-actions-head">
                     <div>
                       <div className="health-impact-actions-title">处置建议</div>
+                      <span>{actionSourceText}</span>
                     </div>
                   </div>
                   {actionSteps.map((step, index) => (
@@ -1342,7 +2609,7 @@ export default function ServiceHealthyPage() {
                       <b>{index + 1}</b>
                       <div>
                         <strong>{step.phase}</strong>
-                        {step.target && <small>{step.target}</small>}
+                        {displayActionTarget(step.target, issue) && <small>{displayActionTarget(step.target, issue)}</small>}
                         <span>{step.action}</span>
                         {step.validation && <em>验证：{step.validation}</em>}
                         {step.risk && <em>风险：{step.risk}</em>}
@@ -1364,33 +2631,32 @@ export default function ServiceHealthyPage() {
   )
 
   return (
-    <div className="system-health-page">
-      <div className="health-report-header">
-        <div className="health-report-main">
-          <div className="health-title-row">
-            <div className="health-title">系统健康报告</div>
-            <StatusTag status={report.status} />
-            {isReportRefreshing && <Tag color="processing">刷新中</Tag>}
-            {reportError && healthReportData && <Tag color="warning">已显示缓存</Tag>}
-            {aiMeta && aiAnalysis.status !== 'not_configured' && <Tag color={aiMeta.color}>{aiMeta.text}</Tag>}
+    <>
+      <div className="system-health-page">
+        <div className="health-report-header">
+          <div className="health-report-main">
+            <div className="health-title-row">
+              <div className="health-title">系统健康报告</div>
+              <StatusTag status={report.status} />
+              {isReportRefreshing && !selectedRecord && <Tag color="processing">刷新中</Tag>}
+              {selectedRecord && <Tag color="geekblue">历史快照</Tag>}
+              {reportError && healthReportData && <Tag color="warning">已显示缓存</Tag>}
+              {aiMeta && aiAnalysis.status !== 'not_configured' && <Tag color={aiMeta.color}>{aiMeta.text}</Tag>}
+            </div>
+            <div className="health-report-meta">
+              <span>时间窗口：{selectedRecord ? recordWindowText(selectedRecord) : (report.window || '当前窗口')}</span>
+              {report.generatedAt && <span>分析时间：{report.generatedAt}</span>}
+              {selectedRecord && <span>记录时间：{formatRecordTime(selectedRecord.createdAt)}</span>}
+            </div>
           </div>
-          <div className="health-report-meta">
-            <span>时间窗口：{report.window || '当前窗口'}</span>
-            {report.generatedAt && <span>分析时间：{report.generatedAt}</span>}
-          </div>
+          <Space wrap className="health-report-actions">
+            <Button onClick={openHistory}>历史记录</Button>
+          </Space>
         </div>
-        <Space wrap className="health-report-actions">
-          <Input.Search
-            allowClear
-            placeholder="过滤风险 / 服务 / 接口"
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            style={{ width: 220 }}
-          />
-        </Space>
-      </div>
 
-      {impactPathVersion}
-    </div>
+        {impactPathVersion}
+      </div>
+      {historyDrawer}
+    </>
   )
 }

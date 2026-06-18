@@ -102,6 +102,7 @@ type SystemHealthIssue struct {
 	Actions               []string                     `json:"actions"`
 	ActionPlan            []SystemHealthActionPlanStep `json:"actionPlan"`
 	ExistingAlertAnalyses []SystemHealthAlertAnalysis  `json:"existingAlertAnalyses,omitempty"`
+	AlertTrend            *SystemHealthAlertTrend      `json:"alertTrend,omitempty"`
 	Evidence              []SystemHealthEvidence       `json:"evidence"`
 }
 
@@ -144,6 +145,50 @@ type SystemHealthAlertAnalysis struct {
 	Validity       string `json:"validity,omitempty"`
 }
 
+type SystemHealthAlertTrend struct {
+	Window                 string                          `json:"window,omitempty"`
+	WindowText             string                          `json:"windowText,omitempty"`
+	StartTime              string                          `json:"startTime,omitempty"`
+	EndTime                string                          `json:"endTime,omitempty"`
+	OccurrenceCount        int                             `json:"occurrenceCount"`
+	EventCount             int                             `json:"eventCount"`
+	TotalCount             int                             `json:"totalCount,omitempty"`
+	RawEventCount          int                             `json:"rawEventCount,omitempty"`
+	LongestDurationSeconds float64                         `json:"longestDurationSeconds,omitempty"`
+	MaxDurationSeconds     float64                         `json:"maxDurationSeconds,omitempty"`
+	TotalDurationSeconds   float64                         `json:"totalDurationSeconds,omitempty"`
+	Summary                string                          `json:"summary,omitempty"`
+	ActivityText           string                          `json:"activityText,omitempty"`
+	Problem                string                          `json:"problem,omitempty"`
+	AlertTypes             []SystemHealthAlertTrendType    `json:"alertTypes,omitempty"`
+	Segments               []SystemHealthAlertTrendSegment `json:"segments,omitempty"`
+}
+
+type SystemHealthAlertTrendType struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type SystemHealthAlertTrendSegment struct {
+	AlertID         string  `json:"alertId,omitempty"`
+	AlertName       string  `json:"alertName,omitempty"`
+	RuleName        string  `json:"ruleName,omitempty"`
+	Title           string  `json:"title,omitempty"`
+	Summary         string  `json:"summary,omitempty"`
+	Type            string  `json:"type,omitempty"`
+	Severity        string  `json:"severity,omitempty"`
+	Status          string  `json:"status,omitempty"`
+	StartTime       string  `json:"startTime,omitempty"`
+	StartedAt       string  `json:"startedAt,omitempty"`
+	EndTime         string  `json:"endTime,omitempty"`
+	EndedAt         string  `json:"endedAt,omitempty"`
+	DurationSeconds float64 `json:"durationSeconds,omitempty"`
+	Count           int     `json:"count"`
+	EventCount      int     `json:"eventCount"`
+	AlertCount      int     `json:"alertCount,omitempty"`
+	IsActive        bool    `json:"isActive,omitempty"`
+}
+
 type SystemHealthEvidence struct {
 	Type           string                             `json:"type"`
 	Source         string                             `json:"source,omitempty"`
@@ -173,6 +218,7 @@ type SystemHealthAlertEventEvidence struct {
 type SystemHealthMetricEvidence struct {
 	RuleGroup       string                             `json:"ruleGroup,omitempty"`
 	RuleName        string                             `json:"ruleName,omitempty"`
+	MetricName      string                             `json:"metricName,omitempty"`
 	Expression      string                             `json:"expression,omitempty"`
 	Step            string                             `json:"step,omitempty"`
 	SeriesReturned  int                                `json:"seriesReturned"`

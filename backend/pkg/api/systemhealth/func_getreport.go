@@ -23,6 +23,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -56,6 +57,7 @@ var sourceLabels = map[string]string{
 	"trace":                  "Trace链路",
 	"logs":                   "日志语义",
 	"ebpf":                   "eBPF明细",
+	"requestPolaris":         "请求北极星",
 	"infra":                  "基础设施指标",
 	"alertReport":            "原告警分析报告",
 }
@@ -76,6 +78,9 @@ const (
 	maxAlertReportLookups             = 6
 	maxMetricEvidenceSeries           = 3
 	maxMetricEvidencePoints           = 240
+	requestPolarisResourceThresholdMS = 50.0
+	requestPolarisIncreaseThreshold   = 0.20
+	requestPolarisSlowSpanThresholdMS = 500.0
 	enableSystemHealthReportCache     = false
 	systemHealthReportCacheTTL        = 45 * time.Second
 	maxSystemHealthReportCacheEntries = 64
@@ -110,12 +115,14 @@ type systemHealthAIIssueInput struct {
 	Key                    string                             `json:"key"`
 	Priority               string                             `json:"priority"`
 	Title                  string                             `json:"title"`
+	AlertNames             []string                           `json:"alertNames,omitempty"`
 	Status                 string                             `json:"status"`
 	Scope                  string                             `json:"scope"`
 	Impact                 string                             `json:"impact"`
 	ActiveAlerts           int                                `json:"activeAlerts"`
 	StartedAt              string                             `json:"startedAt"`
 	DataSources            []string                           `json:"dataSources"`
+	MetricNarrativeContext string                             `json:"metricNarrativeContext,omitempty"`
 	Evidence               []systemHealthAIEvidenceInput      `json:"evidence"`
 	ExistingAlertAnalyses  []systemHealthAIAlertAnalysisInput `json:"existingAlertAnalyses"`
 	ExistingReportFindings []systemHealthAIReportFindingInput `json:"existingReportFindings"`
@@ -131,6 +138,7 @@ type systemHealthAIEvidenceInput struct {
 }
 
 type systemHealthAIMetricInput struct {
+	MetricName     string   `json:"metricName,omitempty"`
 	RuleName       string   `json:"ruleName,omitempty"`
 	SeriesMatched  int      `json:"seriesMatched"`
 	SeriesReturned int      `json:"seriesReturned"`
@@ -141,6 +149,11 @@ type systemHealthAIMetricInput struct {
 	MaxValue       float64  `json:"maxValue"`
 	Delta          float64  `json:"delta"`
 	ChangePercent  *float64 `json:"changePercent,omitempty"`
+	Trend          string   `json:"trend,omitempty"`
+	StartAt        string   `json:"startAt,omitempty"`
+	EndAt          string   `json:"endAt,omitempty"`
+	PeakAt         string   `json:"peakAt,omitempty"`
+	MinAt          string   `json:"minAt,omitempty"`
 	EventScoped    bool     `json:"eventScoped"`
 	Message        string   `json:"message,omitempty"`
 }
@@ -169,8 +182,11 @@ type systemHealthAIReportActionInput struct {
 type systemHealthAIReportFindingInput struct {
 	AlertName      string                              `json:"alertName,omitempty"`
 	RootCause      string                              `json:"rootCause,omitempty"`
+	RootCauseOther []string                            `json:"rootCauseOther,omitempty"`
 	AnalyzeProcess string                              `json:"analyzeProcess,omitempty"`
+	OverviewReason string                              `json:"overviewReason,omitempty"`
 	Detail         string                              `json:"detail,omitempty"`
+	OverviewDetail string                              `json:"overviewDetail,omitempty"`
 	ReportEvidence []systemHealthAIReportEvidenceInput `json:"reportEvidence,omitempty"`
 }
 
@@ -187,6 +203,7 @@ type systemHealthAISummaryResponse struct {
 
 type systemHealthAIIssueOutput struct {
 	Key            string                                `json:"key"`
+	Title          string                                `json:"title"`
 	Analysis       string                                `json:"analysis"`
 	RootCause      string                                `json:"rootCause"`
 	MetricAnalysis string                                `json:"metricAnalysis"`
@@ -424,35 +441,40 @@ func (c *systemHealthReportCache) set(key string, report response.SystemHealthRe
 }
 
 type reportInput struct {
-	key                   string
-	aggregationKey        string
-	kind                  string
-	title                 string
-	scope                 string
-	scopeKind             string
-	startedAt             string
-	updatedAt             string
-	activeAlerts          int
-	deduplicatedAlerts    int
-	effectiveAlerts       int
-	invalidAlerts         int
-	rawEventCount         int
-	repeatCount           int
-	durationSeconds       float64
-	objectCriticality     float64
-	alertSeverities       []string
-	alertNames            []string
-	events                []alertmodel.AEventWithWRecord
-	normalizedEvents      []normalizedAlertEvent
-	deduplicatedInstances []deduplicatedAlertInstance
-	availableCalcSources  []string
-	displaySources        []string
-	affectedObjects       []response.SystemHealthAffectedObject
-	mergeReasons          []string
-	alertReportActions    []systemHealthAlertReportAction
-	alertReportFindings   []systemHealthAlertReportFinding
-	evidence              []response.SystemHealthEvidence
-	impact                string
+	key                      string
+	aggregationKey           string
+	kind                     string
+	title                    string
+	scope                    string
+	scopeKind                string
+	startedAt                string
+	updatedAt                string
+	activeAlerts             int
+	deduplicatedAlerts       int
+	effectiveAlerts          int
+	invalidAlerts            int
+	rawEventCount            int
+	repeatCount              int
+	durationSeconds          float64
+	objectCriticality        float64
+	alertSeverities          []string
+	alertNames               []string
+	events                   []alertmodel.AEventWithWRecord
+	normalizedEvents         []normalizedAlertEvent
+	deduplicatedInstances    []deduplicatedAlertInstance
+	availableCalcSources     []string
+	displaySources           []string
+	affectedObjects          []response.SystemHealthAffectedObject
+	mergeReasons             []string
+	alertReportActions       []systemHealthAlertReportAction
+	alertReportFindings      []systemHealthAlertReportFinding
+	alertReportTopologyRoles []systemHealthAlertReportTopologyRole
+	alertHistoryStats        []clickhouse.AlertEventHistoryStats
+	alertHistorySegments     []clickhouse.AlertEventRawSegment
+	alertHistoryStartTime    time.Time
+	alertHistoryEndTime      time.Time
+	evidence                 []response.SystemHealthEvidence
+	impact                   string
 }
 
 type systemHealthAlertReportAction struct {
@@ -468,6 +490,7 @@ type systemHealthAlertReportAction struct {
 type systemHealthAlertReportFinding struct {
 	AlertName      string
 	RootCause      string
+	RootCauseOther []string
 	AnalyzeProcess string
 	Detail         string
 	Evidence       []systemHealthAlertReportEvidence
@@ -476,6 +499,21 @@ type systemHealthAlertReportFinding struct {
 type systemHealthAlertReportEvidence struct {
 	Kind    string
 	Summary string
+}
+
+type systemHealthAlertReportTopologyRole struct {
+	AlertName          string
+	ReportAlertEventID string
+	CurrentService     string
+	CurrentEndpoint    string
+	ParentCount        int
+	ChildCount         int
+	ParentNames        []string
+	ChildNames         []string
+	Role               string
+	Reason             string
+	Summary            string
+	HasTopology        bool
 }
 
 type scoredIssue struct {
@@ -509,6 +547,7 @@ type alertMetricTrendStats struct {
 
 type alertMetricTrendQueryResult struct {
 	Rule           *request.AlertRule
+	MetricName     string
 	Expression     string
 	Step           time.Duration
 	SeriesReturned int
@@ -517,6 +556,20 @@ type alertMetricTrendQueryResult struct {
 	MatchLabels    map[string]string
 	EventScoped    bool
 	Message        string
+}
+
+type requestPolarisMetricTrend struct {
+	Key          string
+	MetricName   string
+	Unit         string
+	Expression   string
+	Stats        alertMetricTrendStats
+	SeriesCount  int
+	PointCount   int
+	QueryErr     string
+	Abnormal     bool
+	Reason       string
+	ResourceKind string
 }
 
 type relatedObjectStatusCandidate struct {
@@ -1124,12 +1177,14 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		if index < len(scored) {
 			reportActionPlan = alertReportActionPlanSteps(scored[index].input.alertReportActions, resp.Issues[index].Scope)
 		}
+		title := cleanUserFacingReportText(issueOutput.Title)
 		analysis := cleanUserFacingReportText(issueOutput.Analysis)
 		rootCause := cleanUserFacingReportText(issueOutput.RootCause)
 		metricAnalysis := cleanUserFacingReportText(issueOutput.MetricAnalysis)
 		systemHealthInfoCtx(ctx, "system-health AI issue output received",
 			zap.String("issueKey", resp.Issues[index].Key),
 			zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+			zap.Bool("hasTitle", title != ""),
 			zap.Bool("hasAnalysis", analysis != ""),
 			zap.Bool("hasRootCause", rootCause != ""),
 			zap.Bool("hasMetricAnalysis", metricAnalysis != ""),
@@ -1137,6 +1192,15 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 			zap.Int("aiActions", len(issueOutput.Actions)),
 			zap.Int("reportActionPlanSteps", len(reportActionPlan)),
 		)
+		if title != "" && isAcceptableAIIssueTitle(title) {
+			resp.Issues[index].Title = title
+		} else if title != "" {
+			systemHealthWarnCtx(ctx, "system-health issue title fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_title_unacceptable"),
+				zap.String("aiTitle", truncateText(title, 120)),
+			)
+		}
 		if analysis != "" {
 			resp.Issues[index].AIConclusion = analysis
 		} else {
@@ -1145,20 +1209,52 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 				zap.String("reason", "ai_analysis_empty"),
 			)
 		}
-		if rootCause != "" {
+		if index < len(scored) {
+			finalRootCause, rootCauseSource, rootCauseReason := resolveAIEnrichedRootCause(rootCause, scored[index])
+			if finalRootCause != "" {
+				resp.Issues[index].RootCause = finalRootCause
+				systemHealthInfoCtx(ctx, "system-health issue rootCause resolved",
+					zap.String("issueKey", resp.Issues[index].Key),
+					zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+					zap.String("source", rootCauseSource),
+					zap.String("reason", rootCauseReason),
+					zap.Bool("hasAIRootCause", rootCause != ""),
+					zap.Int("alertReportOverviewDetailCount", alertReportOverviewDetailCount(scored[index].input.alertReportFindings)),
+					zap.Int("alertReportFindings", len(scored[index].input.alertReportFindings)),
+				)
+			} else {
+				systemHealthWarnCtx(ctx, "system-health issue rootCause fallback kept",
+					zap.String("issueKey", resp.Issues[index].Key),
+					zap.String("reason", rootCauseReason),
+				)
+			}
+		} else if rootCause != "" {
 			resp.Issues[index].RootCause = rootCause
+			systemHealthInfoCtx(ctx, "system-health issue rootCause resolved",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+				zap.String("source", "ai"),
+				zap.String("reason", "scored_context_missing"),
+				zap.Bool("hasAIRootCause", true),
+			)
 		} else {
 			systemHealthWarnCtx(ctx, "system-health issue rootCause fallback kept",
 				zap.String("issueKey", resp.Issues[index].Key),
-				zap.String("reason", "ai_root_cause_empty"),
+				zap.String("reason", "ai_root_cause_empty_and_scored_context_missing"),
 			)
 		}
-		if metricAnalysis != "" && !strings.ContainsRune(metricAnalysis, '\uFFFD') {
+		if metricAnalysis != "" && !strings.ContainsRune(metricAnalysis, '\uFFFD') && !containsMetricQuerySyntax(metricAnalysis) {
 			resp.Issues[index].MetricAnalysis = metricAnalysis
 		} else if metricAnalysis == "" {
 			systemHealthWarnCtx(ctx, "system-health issue metricAnalysis fallback kept",
 				zap.String("issueKey", resp.Issues[index].Key),
 				zap.String("reason", "ai_metric_analysis_empty"),
+			)
+		} else if containsMetricQuerySyntax(metricAnalysis) {
+			systemHealthWarnCtx(ctx, "system-health issue metricAnalysis fallback kept",
+				zap.String("issueKey", resp.Issues[index].Key),
+				zap.String("reason", "ai_metric_analysis_contains_query_expression"),
+				zap.String("metricAnalysisPreview", truncateText(metricAnalysis, 220)),
 			)
 		} else {
 			systemHealthWarnCtx(ctx, "system-health issue metricAnalysis fallback kept",
@@ -1166,35 +1262,94 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 				zap.String("reason", "ai_metric_analysis_invalid_text"),
 			)
 		}
-		if index < len(scored) {
-			if analysisRootCause, source, reason := buildRootCauseDecision(scored[index]); analysisRootCause != "" {
-				resp.Issues[index].RootCause = analysisRootCause
-				systemHealthInfoCtx(ctx, "system-health issue rootCause normalized from structured sources",
-					zap.String("issueKey", resp.Issues[index].Key),
-					zap.String("source", source),
-					zap.String("reason", reason),
-				)
-			}
+		actionPlan, actionPlanMode := resolveAIEnrichedActionPlan(issueOutput, reportActionPlan, resp.Issues[index].ActionPlan, resp.Issues[index])
+		if len(actionPlan) > 0 {
+			resp.Issues[index].ActionPlan = actionPlan
+			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
 		}
-		if len(reportActionPlan) > 0 {
-			var secondaryPlan []response.SystemHealthActionPlanStep
-			if len(issueOutput.ActionPlan) > 0 {
-				secondaryPlan = normalizeAIActionPlanTargets(markActionPlanSource(issueOutput.ActionPlan, "ai"), resp.Issues[index])
-			} else if len(issueOutput.Actions) > 0 {
-				secondaryPlan = actionsToActionPlanSteps(issueOutput.Actions)
-			} else if index < len(scored) {
-				secondaryPlan = buildDefaultActionPlan(scored[index])
+		systemHealthInfoCtx(ctx, "system-health issue actionPlan resolved",
+			zap.String("issueKey", resp.Issues[index].Key),
+			zap.String("aggregationKey", resp.Issues[index].AggregationKey),
+			zap.String("actionPlanMode", actionPlanMode),
+			zap.Int("finalActionPlanSteps", len(resp.Issues[index].ActionPlan)),
+			zap.Int("aiActionPlanSteps", len(issueOutput.ActionPlan)),
+			zap.Int("aiActions", len(issueOutput.Actions)),
+			zap.Int("reportActionPlanSteps", len(reportActionPlan)),
+		)
+	}
+}
+
+func resolveAIEnrichedRootCause(aiRootCause string, item scoredIssue) (string, string, string) {
+	aiRootCause = cleanAlertReportDirectionalText(aiRootCause)
+	structuredRootCause, structuredSource, structuredReason := buildRootCauseDecision(item)
+	if item.input.kind == issueKindInvalidAlert {
+		if structuredRootCause != "" {
+			return structuredRootCause, structuredSource, "invalid_alert_rule_diagnostic_overrides_ai"
+		}
+		if aiRootCause != "" {
+			return aiRootCause, "ai", "invalid_alert_structured_root_cause_empty"
+		}
+		return "", "empty", "ai_root_cause_empty_and_structured_root_cause_empty"
+	}
+	if aiRootCause != "" {
+		if reasonCount := alertReportOverviewReasonCount(item.input.alertReportFindings); reasonCount > 0 {
+			return ensureEBPFRootCauseContext(aiRootCause), "ai_alert_report_overview_reason", fmt.Sprintf("overview_reason_findings=%d", reasonCount)
+		}
+		if detailCount := alertReportOverviewDetailCount(item.input.alertReportFindings); detailCount > 0 {
+			return aiRootCause, "ai_alert_report_overview_detail", fmt.Sprintf("overview_detail_findings=%d", detailCount)
+		}
+		if findingCount := len(uniqueAlertReportFindings(item.input.alertReportFindings)); findingCount > 0 {
+			return aiRootCause, "ai_alert_report", fmt.Sprintf("alert_report_findings=%d", findingCount)
+		}
+		return aiRootCause, "ai", "ai_root_cause_present"
+	}
+	if structuredRootCause != "" {
+		return structuredRootCause, structuredSource, "ai_root_cause_empty_" + structuredReason
+	}
+	return "", "empty", "ai_root_cause_empty_and_structured_root_cause_empty"
+}
+
+func isAcceptableAIIssueTitle(title string) bool {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return false
+	}
+	if strings.ContainsAny(title, "\r\n\t") {
+		return false
+	}
+	runeCount := utf8.RuneCountInString(title)
+	if runeCount < 4 || runeCount > 48 {
+		return false
+	}
+	return !containsMetricQuerySyntax(title)
+}
+
+func resolveAIEnrichedActionPlan(issueOutput systemHealthAIIssueOutput, reportActionPlan []response.SystemHealthActionPlanStep, currentPlan []response.SystemHealthActionPlanStep, issue response.SystemHealthIssue) ([]response.SystemHealthActionPlanStep, string) {
+	if len(issueOutput.ActionPlan) > 0 {
+		aiPlan := mergeActionPlanSteps(normalizeAIActionPlanTargets(markActionPlanSource(issueOutput.ActionPlan, "ai"), issue), nil)
+		if len(aiPlan) > 0 {
+			if len(reportActionPlan) > 0 {
+				return aiPlan, "ai_synthesized_from_alert_report_actions"
 			}
-			resp.Issues[index].ActionPlan = mergeActionPlanSteps(reportActionPlan, secondaryPlan)
-			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
-		} else if len(issueOutput.ActionPlan) > 0 {
-			resp.Issues[index].ActionPlan = mergeActionPlanSteps(normalizeAIActionPlanTargets(markActionPlanSource(issueOutput.ActionPlan, "ai"), resp.Issues[index]), nil)
-			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
-		} else if len(issueOutput.Actions) > 0 {
-			resp.Issues[index].ActionPlan = mergeActionPlanSteps(actionsToActionPlanSteps(issueOutput.Actions), nil)
-			resp.Issues[index].Actions = actionTexts(resp.Issues[index].ActionPlan)
+			return aiPlan, "ai_generated"
 		}
 	}
+	if len(issueOutput.Actions) > 0 {
+		aiPlan := mergeActionPlanSteps(actionsToActionPlanSteps(issueOutput.Actions), nil)
+		if len(aiPlan) > 0 {
+			if len(reportActionPlan) > 0 {
+				return aiPlan, "ai_actions_synthesized_from_alert_report_actions"
+			}
+			return aiPlan, "ai_actions"
+		}
+	}
+	if len(currentPlan) > 0 {
+		if len(reportActionPlan) > 0 {
+			return currentPlan, "alert_report_structured_fallback"
+		}
+		return currentPlan, "structured_fallback"
+	}
+	return nil, "empty"
 }
 
 func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthAISummaryRequest) (systemHealthAISummaryResponse, error) {
@@ -1229,19 +1384,32 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 			"summary 推荐句式：系统当前处于{状态}状态。窗口内发生过{范围模式}{症状}告警，{当前是否仍触发/是否恢复观察}。需要关注{复发/RED退化/共同根因/规则口径}。",
 			"summary 使用“多入口/多服务/单节点/多实例/单目标/多目标”等范围模式，不要出现具体服务名、接口名、实例名或目标清单。",
 			"summary 禁止使用“主要问题集中在 A、B、C”这类服务/接口列表式表达。",
+			"每个 issue.title 要把输入中的真实服务名/接口名和 alertNames 中的实际告警名融合成一个长度合适的风险事件名称，建议 12-32 个中文字符；不要返回“xxx 等 N 类告警”这种机械合并标题。",
+			"issue.title 必须使用输入提供的服务名、接口名和告警名；不要根据服务名推断业务功能、行业含义或用户动作。例如服务名是 order-service 时只能写 order-service，不要推断为下单、订单入口或支付链路，除非这些词已经出现在输入的告警名、scope、impact 或证据中。",
+			"当 alertNames 包含多条告警时，issue.title 应综合共同症状，例如延迟、错误率、资源、可用性或规则口径；保留最关键服务名或 scope，不要逐条罗列所有告警名。",
+			"如果无法生成比输入 title 更清晰的风险事件名称，issue.title 返回原 title。",
 			"每个 issue.analysis 要说明该风险对用户可见的系统表现、当前是否恢复、以及 eBPF/RED/指标侧确定的故障方向；不要只说明告警内容或重复 evidence 中已有的数字罗列。",
 			"当输入包含告警指标趋势、eBPF、RED、Trace 或 existingAlertAnalyses 指向时，issue.analysis 必须明确写出“指标/eBPF 方向指向...”或等价表达，说明是入口、下游、资源还是规则口径问题。",
-			"每个 issue.metricAnalysis 专门解释告警指标趋势：用自然语言说明指标是在升高、回落还是缺少可比性；结合告警是否恢复判断该指标对当前风险的意义，不要只复述“命中几条指标、变化百分比、区间”。",
+			"当 evidence 中包含“请求北极星”时，issue.rootCause 必须读取其中的网络耗时、CPU 执行耗时、调度等待耗时、TPS 变化和异常 span 线索；请求北极星表示单次请求平均花费在不同资源上的耗时，不是线程级北极星，不要写成线程、CPU 火焰图或线程等待结论。",
+			"如果请求北极星显示网络耗时、CPU 执行耗时或调度等待耗时在告警窗口异常升高，应把它作为延时根因方向之一；如果请求北极星全局视角无明显异常但存在超过绝对阈值的慢 span，只能说明需要下钻这些 span，不能直接判定全局资源耗时异常。",
+			"每个 issue.metricAnalysis 专门解释告警指标趋势：必须包含指标名（使用 evidence.metric.metricName）；服务/请求路径、时间段、指标表现和当前意义；evidence.metric.ruleName 是告警规则名，不是指标名，不要把 ruleName 当作指标名输出；用自然语言说明指标是在升高、回落还是缺少可比性；结合告警是否恢复判断该指标对当前风险的意义；不要输出 PQL、PromQL、rate(、sum by(、query 表达式或其它调试查询内容，不要只复述“命中几条指标、变化百分比、区间”。",
 			"如果 evidence 中没有告警指标趋势或无法形成趋势，issue.metricAnalysis 输出空字符串。",
 			"existingReportFindings 来自原告警分析报告的根因分析、故障方向和详情，是 issue.rootCause 的最高优先级来源；rootCause 应先总结这些报告结论，不要因为缺少 RED/APM 再否定报告已给出的故障方向。",
 			"如果 existingReportFindings 已给出 rootCause，直接概括报告中的故障方向和关键详情；缺失数据只能作为验证边界，不作为 rootCause 主体。",
+			"existingReportFindings.overviewReason 来自 alert_report.overview_reason，是基于 eBPF 数据得到的故障方向分析；当使用 overviewReason 生成 issue.rootCause 时，必须体现“基于 eBPF 数据/方向报告分析”的来源。",
+			"existingReportFindings.rootCauseOther 来自 alert_report.root_cause_other，是原报告的补充根因条目；生成 issue.rootCause 时必须和 overviewReason、rootCause 一起归纳，不要只使用 existingAlertAnalyses.alertDirection。",
+			"如果 overviewReason、rootCause 或 overviewDetail 表示“无明确故障方向、未定位到明确根因、无法判断故障方向”，不要把这类无方向结论作为 rootCause 输出；应清理这类内容，只在有明确方向证据时总结可能根因。",
+			"existingReportFindings.overviewDetail 来自 alert_report.overview_detail，是原故障方向报告中更完整的分析详情；生成 issue.rootCause 时必须读取 overviewDetail，归纳可能根因，不要只复述告警方向或原样复制报告详情。",
+			"当 existingReportFindings.rootCause 为空但 overviewDetail、analyzeProcess 或 reportEvidence 有内容时，issue.rootCause 必须基于这些报告详情总结可能根因；如果报告详情指向下游、代码逻辑、资源瓶颈、调用链或告警规则口径，需要用面向系统健康中心的语言概括。",
 			"existingReportFindings.reportEvidence 来自告警事件方向报告中的证据链，可能包含 APM链路、日志分析、指标趋势和告警事件分析；issue.analysis、rootCause 和 actionPlan 应优先融合这些报告证据。",
 			"existingAlertAnalyses 是告警发生时的分析结果，只作为辅助信息；issue.rootCause 要从报告根因、这些分析结果、事件规律和指标/APM证据中整理根因判断，不要原样罗列辅助分析。",
 			"当多个 existingAlertAnalyses 指向一致时，rootCause 优先归纳共同指向的服务、入口、下游或指标问题；当分析方向冲突时，rootCause 要说明仍为可能根因并指出需要用指标/APM继续确认。",
 			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应分析告警指标、表达式、阈值或标签口径是否存在问题；不能当作服务故障处置。",
 			"P4 invalidAlert 的 actionPlan 重点融合规则诊断、RED 指标对比和告警规则修正，不要输出扩容、重启等业务止血动作，除非输入证据明确支持。",
-			"existingReportActions 来自原告警分析报告的建议行动；生成 actionPlan 时必须融合这些动作，不能无理由丢弃。",
-			"actionPlan 只给可执行的排查、止血、恢复和验证步骤；字段为空时使用空字符串，不要省略字段。",
+			"existingReportActions 来自原告警分析报告的建议行动；生成 actionPlan 时必须先理解这些动作的排查对象、建议、验证和风险，再结合当前系统健康状态、告警是否仍触发、指标/APM/日志证据，重新组织为系统健康中心视角的处置建议。",
+			"actionPlan 不是把 existingReportActions 原样复制或机械追加；应汇总并重写为 2-4 个互相呼应、顺序合理、可操作的步骤。保留原报告建议中仍适用的排查目标和验证要点，删除与当前状态矛盾、过期或不可执行的动作。",
+			"如果原报告建议偏单次告警事件，actionPlan 需要上升到当前风险对象：先处理当前仍在触发或用户影响最大的方向，再做根因确认、恢复验证和复发观察。",
+			"actionPlan 只给可执行的排查、止血、恢复和验证步骤；字段为空时使用空字符串，不要省略字段；不要输出泛泛的“持续关注”，必须说明关注哪个对象、用什么信号验证、风险是什么。",
 			"actionPlan.validation 表示需要用户确认的验收方式或确认项，必须用“确认/检查/观察/回看/对比”等动作表达；不要写成“日志无异常”“指标已恢复”这类已经成立的事实结论。",
 		}, "\n"),
 		Input: string(inputPayload),
@@ -1263,6 +1431,14 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 		)
 		return systemHealthAISummaryResponse{}, err
 	}
+	systemHealthInfoCtx(ctx, "system-health AI raw request payload",
+		zap.String("endpoint", openAIResponsesEndpoint(baseURL)),
+		zap.String("model", model),
+		zap.Int("inputPayloadBytes", len(inputPayload)),
+		zap.Int("requestBodyBytes", len(requestBody)),
+		zap.String("rawInputPayload", string(inputPayload)),
+		zap.String("rawRequestBody", string(requestBody)),
+	)
 	requestContext := context.Background()
 	if ctx != nil {
 		requestContext = ctx.GetContext()
@@ -1309,30 +1485,56 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		body, _ := io.ReadAll(resp.Body)
 		systemHealthWarnCtx(ctx, "system-health AI HTTP request bad status",
 			zap.String("endpoint", endpoint),
 			zap.String("model", model),
 			zap.Int("httpStatus", resp.StatusCode),
 			zap.Int("inputPayloadBytes", len(inputPayload)),
 			zap.Int("requestBodyBytes", len(requestBody)),
+			zap.Int("responseBodyBytes", len(body)),
+			zap.String("rawResponseBody", string(body)),
 			zap.String("responseBodyPreview", truncateText(strings.TrimSpace(string(body)), 220)),
 			zap.Duration("elapsed", time.Since(callStartedAt)),
 		)
 		return systemHealthAISummaryResponse{}, fmt.Errorf("AI summary API returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
 	}
-	var responsesResp openAIResponsesResponse
-	if err := json.NewDecoder(resp.Body).Decode(&responsesResp); err != nil {
-		systemHealthWarnCtx(ctx, "system-health AI response decode failed",
+	rawResponseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI response read failed",
 			zap.String("endpoint", endpoint),
 			zap.String("model", model),
 			zap.Int("httpStatus", resp.StatusCode),
-			zap.String("responseParseStage", "decode_openai_response"),
 			zap.Duration("elapsed", time.Since(callStartedAt)),
 			zap.Error(err),
 		)
 		return systemHealthAISummaryResponse{}, err
 	}
+	var responsesResp openAIResponsesResponse
+	if err := json.Unmarshal(rawResponseBody, &responsesResp); err != nil {
+		systemHealthWarnCtx(ctx, "system-health AI response decode failed",
+			zap.String("endpoint", endpoint),
+			zap.String("model", model),
+			zap.Int("httpStatus", resp.StatusCode),
+			zap.String("responseParseStage", "decode_openai_response"),
+			zap.Int("responseBodyBytes", len(rawResponseBody)),
+			zap.String("rawResponseBody", string(rawResponseBody)),
+			zap.Duration("elapsed", time.Since(callStartedAt)),
+			zap.Error(err),
+		)
+		return systemHealthAISummaryResponse{}, err
+	}
+	outputText := extractOpenAIResponsesText(responsesResp)
+	systemHealthInfoCtx(ctx, "system-health AI raw response payload",
+		zap.String("endpoint", endpoint),
+		zap.String("model", model),
+		zap.Int("httpStatus", resp.StatusCode),
+		zap.String("responseID", responsesResp.ID),
+		zap.Int("responseBodyBytes", len(rawResponseBody)),
+		zap.Int("outputTextBytes", len(outputText)),
+		zap.String("rawResponseBody", string(rawResponseBody)),
+		zap.String("rawOutputText", outputText),
+	)
 	if responsesResp.Error != nil {
 		systemHealthWarnCtx(ctx, "system-health AI response API error",
 			zap.String("endpoint", endpoint),
@@ -1344,7 +1546,6 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 		)
 		return systemHealthAISummaryResponse{}, fmt.Errorf("AI response error: %s", responsesResp.Error.Message)
 	}
-	outputText := extractOpenAIResponsesText(responsesResp)
 	aiResp, err := parseSystemHealthAIResponseText(outputText)
 	if err != nil {
 		systemHealthWarnCtx(ctx, "system-health AI response parse failed",
@@ -1412,9 +1613,10 @@ func systemHealthAIResponseSchema() map[string]any {
 	issueSchema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
-		"required":             []string{"key", "analysis", "rootCause", "metricAnalysis", "actionPlan"},
+		"required":             []string{"key", "title", "analysis", "rootCause", "metricAnalysis", "actionPlan"},
 		"properties": map[string]any{
 			"key":            stringSchema,
+			"title":          stringSchema,
 			"analysis":       stringSchema,
 			"rootCause":      stringSchema,
 			"metricAnalysis": stringSchema,
@@ -1497,12 +1699,14 @@ func buildSystemHealthAIRequest(resp *response.SystemHealthReportResp, scored []
 			Key:                    issue.Key,
 			Priority:               issue.Priority,
 			Title:                  issue.Title,
+			AlertNames:             uniqueStrings(input.alertNames),
 			Status:                 issue.Status,
 			Scope:                  issue.Scope,
 			Impact:                 issue.Impact,
 			ActiveAlerts:           issue.ActiveAlerts,
 			StartedAt:              issue.StartedAt,
 			DataSources:            issue.DataSources,
+			MetricNarrativeContext: buildMetricAnalysisForIssueContext(issue.Scope, issue.Status, issue.ActiveAlerts, issue.Evidence),
 			Evidence:               buildSystemHealthAIEvidenceInput(issue.Evidence),
 			ExistingAlertAnalyses:  buildSystemHealthAIAlertAnalysisInput(input.events),
 			ExistingReportFindings: buildSystemHealthAIReportFindingInput(input.alertReportFindings),
@@ -1537,7 +1741,9 @@ func buildSystemHealthAIMetricInput(metric *response.SystemHealthMetricEvidence)
 	if metric == nil {
 		return nil
 	}
+	timeRange := metricTimeRangeText(metric)
 	return &systemHealthAIMetricInput{
+		MetricName:     metricUserFacingLabel(metric),
 		RuleName:       metric.RuleName,
 		SeriesMatched:  metric.SeriesMatched,
 		SeriesReturned: metric.SeriesReturned,
@@ -1548,6 +1754,11 @@ func buildSystemHealthAIMetricInput(metric *response.SystemHealthMetricEvidence)
 		MaxValue:       metric.MaxValue,
 		Delta:          metric.Delta,
 		ChangePercent:  metric.ChangePercent,
+		Trend:          metricTrendPhrase(metric),
+		StartAt:        timeRange.StartAt,
+		EndAt:          timeRange.EndAt,
+		PeakAt:         timeRange.PeakAt,
+		MinAt:          timeRange.MinAt,
 		EventScoped:    metric.EventScoped,
 		Message:        truncateText(metric.Message, 160),
 	}
@@ -1610,17 +1821,21 @@ func buildSystemHealthAIReportFindingInput(findings []systemHealthAlertReportFin
 		if len(items) >= maxEvidenceSamples {
 			break
 		}
-		rootCause := cleanUserFacingReportText(finding.RootCause)
-		analyzeProcess := cleanUserFacingReportText(finding.AnalyzeProcess)
-		detail := cleanUserFacingReportText(finding.Detail)
-		if rootCause == "" && analyzeProcess == "" && detail == "" && len(finding.Evidence) == 0 {
+		rootCause := cleanAlertReportDirectionalText(finding.RootCause)
+		rootCauseOther := cleanAlertReportDirectionalTexts(finding.RootCauseOther, 6, 260)
+		overviewReason := cleanAlertReportDirectionalText(finding.AnalyzeProcess)
+		detail := cleanAlertReportDirectionalText(finding.Detail)
+		if rootCause == "" && len(rootCauseOther) == 0 && overviewReason == "" && detail == "" && len(finding.Evidence) == 0 {
 			continue
 		}
 		items = append(items, systemHealthAIReportFindingInput{
 			AlertName:      finding.AlertName,
 			RootCause:      truncateText(rootCause, 260),
-			AnalyzeProcess: truncateText(analyzeProcess, 220),
-			Detail:         truncateText(detail, 220),
+			RootCauseOther: rootCauseOther,
+			AnalyzeProcess: truncateText(overviewReason, 1200),
+			OverviewReason: truncateText(overviewReason, 1200),
+			Detail:         truncateText(detail, 1200),
+			OverviewDetail: truncateText(detail, 1200),
 			ReportEvidence: buildSystemHealthAIReportEvidenceInput(finding.Evidence),
 		})
 	}
@@ -1687,11 +1902,11 @@ func buildIssueExistingAlertAnalyses(events []alertmodel.AEventWithWRecord) []re
 }
 
 func (h *handler) queryAlertReportActions(ctx core.Context, input reportInput, startTime time.Time, endTime time.Time) []systemHealthAlertReportAction {
-	actions, _ := h.queryAlertReportData(ctx, input, startTime, endTime)
+	actions, _, _ := h.queryAlertReportData(ctx, input, startTime, endTime)
 	return actions
 }
 
-func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, startTime time.Time, endTime time.Time) ([]systemHealthAlertReportAction, []systemHealthAlertReportFinding) {
+func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, startTime time.Time, endTime time.Time) ([]systemHealthAlertReportAction, []systemHealthAlertReportFinding, []systemHealthAlertReportTopologyRole) {
 	if h == nil || h.chRepo == nil || ctx == nil || len(input.events) == 0 {
 		systemHealthWarnCtx(ctx, "system-health alert report lookup skipped",
 			zap.String("issueKey", input.key),
@@ -1700,10 +1915,11 @@ func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, star
 			zap.Bool("hasHandler", h != nil),
 			zap.Int("eventCount", len(input.events)),
 		)
-		return nil, nil
+		return nil, nil, nil
 	}
 	actions := make([]systemHealthAlertReportAction, 0, maxEvidenceSamples)
 	findings := make([]systemHealthAlertReportFinding, 0, maxEvidenceSamples)
+	topologyRoles := make([]systemHealthAlertReportTopologyRole, 0, maxEvidenceSamples)
 	seenEvents := make(map[string]struct{}, len(input.events))
 	reportStartTime := startTime.Add(-time.Hour)
 	reportEndTime := endTime.Add(time.Hour)
@@ -1726,6 +1942,136 @@ func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, star
 		zap.Time("reportStartTime", reportStartTime),
 		zap.Time("reportEndTime", reportEndTime),
 	)
+	eventByReportEventID := make(map[string]alertmodel.AEventWithWRecord, len(input.events)*2)
+	eventsByAlertID := make(map[string]alertmodel.AEventWithWRecord, len(input.events))
+	for _, event := range input.events {
+		for _, candidate := range alertReportLookupEventIDCandidates(event) {
+			eventByReportEventID[candidate.AlertEventID] = event
+		}
+		if alertID := strings.TrimSpace(event.AlertID); alertID != "" {
+			if _, ok := eventsByAlertID[alertID]; !ok {
+				eventsByAlertID[alertID] = event
+			}
+		}
+	}
+	seenReports := make(map[string]struct{}, maxEvidenceSamples)
+	appendReport := func(report *model.AlertEventReport, event alertmodel.AEventWithWRecord, lookupMethodsTried []string, elapsed time.Duration) bool {
+		if report == nil {
+			return false
+		}
+		reportKey := alertReportDedupKey(report)
+		if reportKey != "" {
+			if _, ok := seenReports[reportKey]; ok {
+				return false
+			}
+			seenReports[reportKey] = struct{}{}
+		}
+		reportAlertEventID := strings.TrimSpace(report.Tags["alertEventId"])
+		if matchedEvent, ok := eventByReportEventID[reportAlertEventID]; ok {
+			event = matchedEvent
+		}
+		topologyRole := alertReportTopologyRole(report, event)
+		if topologyRole.HasTopology || topologyRole.Reason != "" {
+			systemHealthInfoCtx(ctx, "system-health alert report topology role parsed",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("eventID", strings.TrimSpace(event.EventID)),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.String("reportAlertEventID", reportAlertEventID),
+				zap.String("topologyRole", topologyRole.Role),
+				zap.String("topologyReason", topologyRole.Reason),
+				zap.String("currentService", topologyRole.CurrentService),
+				zap.String("currentEndpoint", topologyRole.CurrentEndpoint),
+				zap.Int("parentCount", topologyRole.ParentCount),
+				zap.Int("childCount", topologyRole.ChildCount),
+				zap.Strings("parentNames", topologyRole.ParentNames),
+				zap.Strings("childNames", topologyRole.ChildNames),
+				zap.Bool("hasTopology", topologyRole.HasTopology),
+			)
+		}
+		eventFindings := alertReportFindings(report, event.Name, topologyRole)
+		eventActions := parseAlertReportSuggestActions(report.Suggest, event.Name)
+		hitCount++
+		systemHealthInfoCtx(ctx, "system-health alert report lookup hit",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("eventID", strings.TrimSpace(event.EventID)),
+			zap.String("alertID", event.AlertID),
+			zap.String("alertName", event.Name),
+			zap.Strings("lookupMethodsTried", lookupMethodsTried),
+			zap.String("reportAlertEventID", reportAlertEventID),
+			zap.Int("suggestRawCount", len(report.Suggest)),
+			zap.Int("actionCount", len(eventActions)),
+			zap.Int("findingCount", len(eventFindings)),
+			zap.Int("evidenceCount", countAlertReportEvidence(eventFindings)),
+			zap.Bool("hasRootCause", strings.TrimSpace(report.RootCause) != "" || len(report.RootCauseOther) > 0),
+			zap.Bool("hasOverview", strings.TrimSpace(report.OverviewReason) != "" || strings.TrimSpace(report.OverviewDetail) != ""),
+			zap.Bool("hasTopology", strings.TrimSpace(report.Topology) != ""),
+			zap.Int("dataCount", len(report.Data)),
+			zap.Duration("elapsed", elapsed),
+		)
+		findings = append(findings, eventFindings...)
+		findings = uniqueAlertReportFindings(findings)
+		if topologyRole.HasTopology || topologyRole.Reason != "" {
+			topologyRoles = append(topologyRoles, topologyRole)
+			topologyRoles = uniqueAlertReportTopologyRoles(topologyRoles)
+		}
+		actions = append(actions, eventActions...)
+		actions = uniqueAlertReportActions(actions)
+		return true
+	}
+	for _, alertID := range alertIDsFromEvents(input.events) {
+		if len(actions) >= maxEvidenceSamples && len(findings) >= maxEvidenceSamples {
+			sampleLimitHit = true
+			break
+		}
+		attemptStartedAt := time.Now()
+		systemHealthInfoCtx(ctx, "system-health alert report lookup by alert_id started",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("alertID", alertID),
+			zap.Time("reportStartTime", reportStartTime),
+			zap.Time("reportEndTime", reportEndTime),
+		)
+		reports, err := h.chRepo.GetAlertEventReportsByAlertID(ctx, reportStartTime, reportEndTime, alertID)
+		if err != nil {
+			reason, failed := alertReportLookupFailureReason(err)
+			if failed {
+				queryFailedCount++
+			} else {
+				missCount++
+			}
+			systemHealthWarnCtx(ctx, "system-health alert report lookup by alert_id missed",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("alertID", alertID),
+				zap.String("reason", reason),
+				zap.Error(err),
+				zap.Duration("elapsed", time.Since(attemptStartedAt)),
+			)
+			continue
+		}
+		event := eventsByAlertID[alertID]
+		appended := 0
+		for i := range reports {
+			if len(actions) >= maxEvidenceSamples && len(findings) >= maxEvidenceSamples {
+				sampleLimitHit = true
+				break
+			}
+			if appendReport(&reports[i], event, []string{"alert_id_workflow_join"}, time.Since(attemptStartedAt)) {
+				appended++
+			}
+		}
+		systemHealthInfoCtx(ctx, "system-health alert report lookup by alert_id completed",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("alertID", alertID),
+			zap.Int("reportCount", len(reports)),
+			zap.Int("appendedReportCount", appended),
+			zap.Duration("elapsed", time.Since(attemptStartedAt)),
+		)
+	}
 	for _, event := range input.events {
 		if len(actions) >= maxEvidenceSamples && len(findings) >= maxEvidenceSamples {
 			sampleLimitHit = true
@@ -1754,67 +2100,145 @@ func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, star
 		seenEvents[eventID] = struct{}{}
 		checked++
 		eventLookupStartedAt := time.Now()
+		lookupCandidates := alertReportLookupEventIDCandidates(event)
+		lookupMethodsTried := make([]string, 0, len(lookupCandidates)+1)
 		systemHealthInfoCtx(ctx, "system-health alert report lookup event started",
 			zap.String("issueKey", input.key),
 			zap.String("aggregationKey", input.aggregationKey),
 			zap.String("eventID", eventID),
 			zap.String("alertID", event.AlertID),
 			zap.String("alertName", event.Name),
-			zap.String("tagsKeys", systemHealthCompactJSON([]string{"alertEventId"})),
+			zap.String("workflowInputEventID", strings.TrimSpace(event.Input)),
+			zap.String("analyzeRunID", strings.TrimSpace(event.AnalyzeRunID)),
+			zap.String("workflowRunID", strings.TrimSpace(event.WorkflowRunID)),
+			zap.String("lookupCandidates", systemHealthCompactJSON(lookupCandidates)),
 		)
-		report, err := h.chRepo.GetAlertEventReport(ctx, reportStartTime, reportEndTime, map[string]string{"alertEventId": eventID})
-		if err != nil || report == nil {
+		var report *model.AlertEventReport
+		var lastLookupErr error
+		queryFailed := false
+		for _, candidate := range lookupCandidates {
+			lookupMethodsTried = append(lookupMethodsTried, candidate.Method)
+			attemptStartedAt := time.Now()
+			systemHealthInfoCtx(ctx, "system-health alert report lookup attempt started",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("eventID", eventID),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.String("lookupMethod", candidate.Method),
+				zap.String("lookupAlertEventID", candidate.AlertEventID),
+			)
+			candidateReport, err := h.chRepo.GetAlertEventReport(ctx, reportStartTime, reportEndTime, map[string]string{"alertEventId": candidate.AlertEventID})
+			if err == nil && candidateReport != nil {
+				report = candidateReport
+				systemHealthInfoCtx(ctx, "system-health alert report lookup attempt hit",
+					zap.String("issueKey", input.key),
+					zap.String("aggregationKey", input.aggregationKey),
+					zap.String("eventID", eventID),
+					zap.String("alertID", event.AlertID),
+					zap.String("alertName", event.Name),
+					zap.String("lookupMethod", candidate.Method),
+					zap.String("lookupAlertEventID", candidate.AlertEventID),
+					zap.String("reportAlertEventID", strings.TrimSpace(report.Tags["alertEventId"])),
+					zap.Duration("elapsed", time.Since(attemptStartedAt)),
+				)
+				break
+			}
+			lastLookupErr = err
+			reason, failed := alertReportLookupFailureReason(err)
+			queryFailed = queryFailed || failed
+			systemHealthWarnCtx(ctx, "system-health alert report lookup attempt missed",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("eventID", eventID),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.String("lookupMethod", candidate.Method),
+				zap.String("lookupAlertEventID", candidate.AlertEventID),
+				zap.String("reason", reason),
+				zap.Error(err),
+				zap.Duration("elapsed", time.Since(attemptStartedAt)),
+			)
+		}
+		analyzeRunID := strings.TrimSpace(event.AnalyzeRunID)
+		if report == nil && analyzeRunID != "" {
+			lookupMethodsTried = append(lookupMethodsTried, "analyze_run_id")
+			attemptStartedAt := time.Now()
+			systemHealthInfoCtx(ctx, "system-health alert report lookup attempt started",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("eventID", eventID),
+				zap.String("alertID", event.AlertID),
+				zap.String("alertName", event.Name),
+				zap.String("lookupMethod", "analyze_run_id"),
+				zap.String("analyzeRunID", analyzeRunID),
+			)
+			candidateReport, err := h.chRepo.GetAlertEventReportByAnalyzeRunID(ctx, reportStartTime, reportEndTime, analyzeRunID)
+			if err == nil && candidateReport != nil {
+				report = candidateReport
+				systemHealthInfoCtx(ctx, "system-health alert report lookup attempt hit",
+					zap.String("issueKey", input.key),
+					zap.String("aggregationKey", input.aggregationKey),
+					zap.String("eventID", eventID),
+					zap.String("alertID", event.AlertID),
+					zap.String("alertName", event.Name),
+					zap.String("lookupMethod", "analyze_run_id"),
+					zap.String("analyzeRunID", analyzeRunID),
+					zap.String("reportAlertEventID", strings.TrimSpace(report.Tags["alertEventId"])),
+					zap.Duration("elapsed", time.Since(attemptStartedAt)),
+				)
+			} else {
+				lastLookupErr = err
+				reason, failed := alertReportLookupFailureReason(err)
+				queryFailed = queryFailed || failed
+				systemHealthWarnCtx(ctx, "system-health alert report lookup attempt missed",
+					zap.String("issueKey", input.key),
+					zap.String("aggregationKey", input.aggregationKey),
+					zap.String("eventID", eventID),
+					zap.String("alertID", event.AlertID),
+					zap.String("alertName", event.Name),
+					zap.String("lookupMethod", "analyze_run_id"),
+					zap.String("analyzeRunID", analyzeRunID),
+					zap.String("reason", reason),
+					zap.Error(err),
+					zap.Duration("elapsed", time.Since(attemptStartedAt)),
+				)
+			}
+		}
+		if report == nil {
 			fields := []zap.Field{
 				zap.String("issueKey", input.key),
 				zap.String("aggregationKey", input.aggregationKey),
 				zap.String("eventID", eventID),
 				zap.String("alertID", event.AlertID),
 				zap.String("alertName", event.Name),
+				zap.String("workflowInputEventID", strings.TrimSpace(event.Input)),
+				zap.String("analyzeRunID", analyzeRunID),
+				zap.Strings("lookupMethodsTried", lookupMethodsTried),
 				zap.Time("reportStartTime", reportStartTime),
 				zap.Time("reportEndTime", reportEndTime),
 				zap.Duration("elapsed", time.Since(eventLookupStartedAt)),
 			}
-			if err != nil && strings.Contains(strings.ToLower(err.Error()), "no event found") {
-				missCount++
-				fields = append(fields, zap.String("reason", "report_not_found"), zap.Error(err))
-			} else if err != nil {
+			if queryFailed {
 				queryFailedCount++
-				fields = append(fields, zap.String("reason", "query_failed"), zap.Error(err))
+				fields = append(fields, zap.String("reason", "query_failed"), zap.Error(lastLookupErr))
 			} else {
 				missCount++
-				fields = append(fields, zap.String("reason", "report_not_found"))
+				fields = append(fields, zap.String("reason", "report_not_found"), zap.Error(lastLookupErr))
 			}
 			systemHealthWarnCtx(ctx, "system-health alert report lookup missed", fields...)
 			continue
 		}
-		eventFindings := alertReportFindings(report, event.Name)
-		eventActions := parseAlertReportSuggestActions(report.Suggest, event.Name)
-		hitCount++
-		systemHealthInfoCtx(ctx, "system-health alert report lookup hit",
-			zap.String("issueKey", input.key),
-			zap.String("aggregationKey", input.aggregationKey),
-			zap.String("eventID", eventID),
-			zap.String("alertName", event.Name),
-			zap.Int("suggestRawCount", len(report.Suggest)),
-			zap.Int("actionCount", len(eventActions)),
-			zap.Int("findingCount", len(eventFindings)),
-			zap.Int("evidenceCount", countAlertReportEvidence(eventFindings)),
-			zap.Bool("hasRootCause", strings.TrimSpace(report.RootCause) != "" || len(report.RootCauseOther) > 0),
-			zap.Bool("hasOverview", strings.TrimSpace(report.OverviewReason) != "" || strings.TrimSpace(report.OverviewDetail) != ""),
-			zap.Bool("hasTopology", strings.TrimSpace(report.Topology) != ""),
-			zap.Int("dataCount", len(report.Data)),
-			zap.Duration("elapsed", time.Since(eventLookupStartedAt)),
-		)
-		findings = append(findings, eventFindings...)
-		findings = uniqueAlertReportFindings(findings)
-		actions = append(actions, eventActions...)
-		actions = uniqueAlertReportActions(actions)
+		appendReport(report, event, lookupMethodsTried, time.Since(eventLookupStartedAt))
 	}
 	if len(actions) > maxEvidenceSamples {
 		actions = actions[:maxEvidenceSamples]
 	}
 	if len(findings) > maxEvidenceSamples {
 		findings = findings[:maxEvidenceSamples]
+	}
+	if len(topologyRoles) > maxEvidenceSamples {
+		topologyRoles = topologyRoles[:maxEvidenceSamples]
 	}
 	systemHealthInfoCtx(ctx, "system-health alert report lookup completed",
 		zap.String("issueKey", input.key),
@@ -1831,9 +2255,67 @@ func (h *handler) queryAlertReportData(ctx core.Context, input reportInput, star
 		zap.Bool("sampleLimitHit", sampleLimitHit),
 		zap.Int("finalActionCount", len(actions)),
 		zap.Int("finalFindingCount", len(findings)),
+		zap.Int("finalTopologyRoleCount", len(topologyRoles)),
 		zap.Duration("elapsed", time.Since(lookupStartedAt)),
 	)
-	return actions, findings
+	return actions, findings, topologyRoles
+}
+
+type alertReportLookupCandidate struct {
+	Method       string `json:"method"`
+	AlertEventID string `json:"alertEventId"`
+}
+
+func alertReportLookupEventIDCandidates(event alertmodel.AEventWithWRecord) []alertReportLookupCandidate {
+	candidates := make([]alertReportLookupCandidate, 0, 2)
+	seen := make(map[string]struct{}, 2)
+	appendCandidate := func(method string, eventID string) {
+		eventID = strings.TrimSpace(eventID)
+		if eventID == "" {
+			return
+		}
+		if _, ok := seen[eventID]; ok {
+			return
+		}
+		seen[eventID] = struct{}{}
+		candidates = append(candidates, alertReportLookupCandidate{
+			Method:       method,
+			AlertEventID: eventID,
+		})
+	}
+	appendCandidate("event_id", event.EventID)
+	appendCandidate("workflow_input", event.Input)
+	return candidates
+}
+
+func alertReportDedupKey(report *model.AlertEventReport) string {
+	if report == nil {
+		return ""
+	}
+	reportAlertEventID := strings.TrimSpace(report.Tags["alertEventId"])
+	if reportAlertEventID != "" {
+		return reportAlertEventID + "@" + report.OverviewTimestamp.Format(time.RFC3339Nano)
+	}
+	return strings.Join([]string{
+		report.OverviewTimestamp.Format(time.RFC3339Nano),
+		truncateText(report.OverviewDetail, 120),
+		truncateText(report.OverviewReason, 120),
+		truncateText(report.RootCause, 120),
+	}, "\x00")
+}
+
+func alertReportLookupFailureReason(err error) (string, bool) {
+	if err == nil {
+		return "report_not_found", false
+	}
+	lower := strings.ToLower(err.Error())
+	if strings.Contains(lower, "no event found") || strings.Contains(lower, "no alert report found") {
+		return "report_not_found", false
+	}
+	if strings.Contains(lower, "empty analyze_run_id") {
+		return "empty_analyze_run_id", false
+	}
+	return "query_failed", true
 }
 
 func countAlertReportEvidence(findings []systemHealthAlertReportFinding) int {
@@ -1844,33 +2326,56 @@ func countAlertReportEvidence(findings []systemHealthAlertReportFinding) int {
 	return count
 }
 
-func alertReportFindings(report *model.AlertEventReport, alertName string) []systemHealthAlertReportFinding {
+func alertReportOverviewDetailCount(findings []systemHealthAlertReportFinding) int {
+	count := 0
+	for _, finding := range uniqueAlertReportFindings(findings) {
+		if cleanAlertReportDirectionalText(finding.Detail) != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func alertReportOverviewReasonCount(findings []systemHealthAlertReportFinding) int {
+	count := 0
+	for _, finding := range uniqueAlertReportFindings(findings) {
+		if cleanAlertReportDirectionalText(finding.AnalyzeProcess) != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func alertReportFindings(report *model.AlertEventReport, alertName string, topologyRoles ...systemHealthAlertReportTopologyRole) []systemHealthAlertReportFinding {
 	if report == nil {
 		return nil
 	}
 	rootCauseParts := make([]string, 0, 1+len(report.RootCauseOther))
-	if rootCause := cleanUserFacingReportText(report.RootCause); rootCause != "" {
+	if rootCause := cleanAlertReportDirectionalText(report.RootCause); rootCause != "" {
 		rootCauseParts = append(rootCauseParts, rootCause)
 	}
+	rootCauseOther := make([]string, 0, len(report.RootCauseOther))
 	for _, raw := range report.RootCauseOther {
-		if text := alertReportJSONText(raw); text != "" {
+		if text := cleanAlertReportDirectionalText(alertReportJSONText(raw)); text != "" {
 			rootCauseParts = append(rootCauseParts, text)
+			rootCauseOther = append(rootCauseOther, truncateText(text, 260))
 		}
 	}
 	finding := systemHealthAlertReportFinding{
 		AlertName:      alertName,
 		RootCause:      truncateText(strings.Join(uniqueStrings(rootCauseParts), "；"), 360),
-		AnalyzeProcess: truncateText(cleanUserFacingReportText(report.OverviewReason), 260),
-		Detail:         truncateText(cleanUserFacingReportText(report.OverviewDetail), 260),
-		Evidence:       buildAlertReportEvidenceSummaries(report),
+		RootCauseOther: uniqueStrings(rootCauseOther),
+		AnalyzeProcess: truncateText(cleanAlertReportDirectionalText(report.OverviewReason), 1200),
+		Detail:         truncateText(cleanAlertReportDirectionalText(report.OverviewDetail), 1200),
+		Evidence:       buildAlertReportEvidenceSummaries(report, topologyRoles...),
 	}
-	if finding.RootCause == "" && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
+	if finding.RootCause == "" && len(finding.RootCauseOther) == 0 && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
 		return nil
 	}
 	return []systemHealthAlertReportFinding{finding}
 }
 
-func buildAlertReportEvidenceSummaries(report *model.AlertEventReport) []systemHealthAlertReportEvidence {
+func buildAlertReportEvidenceSummaries(report *model.AlertEventReport, topologyRoles ...systemHealthAlertReportTopologyRole) []systemHealthAlertReportEvidence {
 	if report == nil {
 		return nil
 	}
@@ -1892,7 +2397,14 @@ func buildAlertReportEvidenceSummaries(report *model.AlertEventReport) []systemH
 		}
 		appendSummary(classifyAlertReportEvidence(item, text), text)
 	}
-	if topologySummary := alertReportTopologySummary(report.Topology); topologySummary != "" {
+	topologySummary := ""
+	if len(topologyRoles) > 0 {
+		topologySummary = strings.TrimSpace(topologyRoles[0].Summary)
+	}
+	if topologySummary == "" {
+		topologySummary = alertReportTopologySummary(report.Topology)
+	}
+	if topologySummary != "" {
 		appendSummary("apm", topologySummary)
 	}
 	if reportAnalysis := alertReportAnalysisSummary(report); reportAnalysis != "" {
@@ -2057,6 +2569,274 @@ func alertReportTopologySummary(raw string) string {
 	return fmt.Sprintf("方向报告的调用拓扑涉及 %s，用于确认告警目标与上下游链路关系。", strings.Join(names[:minInt(len(names), 5)], "、"))
 }
 
+func alertReportTopologyRole(report *model.AlertEventReport, event alertmodel.AEventWithWRecord) systemHealthAlertReportTopologyRole {
+	role := systemHealthAlertReportTopologyRole{
+		AlertName:          event.Name,
+		ReportAlertEventID: "",
+		Role:               "unknown",
+	}
+	if report == nil {
+		role.Reason = "report_missing"
+		return role
+	}
+	role.ReportAlertEventID = strings.TrimSpace(report.Tags["alertEventId"])
+	raw := strings.TrimSpace(report.Topology)
+	if raw == "" {
+		role.Reason = "topology_missing"
+		return role
+	}
+	role.HasTopology = true
+	var item map[string]any
+	if err := json.Unmarshal([]byte(raw), &item); err != nil {
+		role.Reason = "topology_json_parse_failed"
+		role.Summary = "方向报告包含调用拓扑，但拓扑内容无法解析，暂不能确认该接口是否为入口。"
+		return role
+	}
+	if len(item) == 0 {
+		role.Reason = "topology_empty"
+		role.Summary = "方向报告的调用拓扑为空，暂不能确认该接口是否为入口。"
+		return role
+	}
+
+	current := mapValueFromMap(item, "current")
+	if current == nil {
+		role.Reason = "topology_current_missing"
+		role.Summary = "方向报告包含调用拓扑，但缺少当前告警接口节点，暂不能确认该接口是否为入口。"
+		return role
+	}
+	role.CurrentService = topologyNodeService(current)
+	role.CurrentEndpoint = topologyNodeEndpoint(current)
+	if role.CurrentService == "" {
+		role.CurrentService = firstNonEmpty(report.OverviewTags["service"], report.OverviewTags["serviceName"], report.OverviewTags["svc_name"], alertServiceName(event))
+	}
+	if role.CurrentEndpoint == "" {
+		role.CurrentEndpoint = firstNonEmpty(report.OverviewTags["endpoint"], report.OverviewTags["content_key"], alertEndpoint(event))
+	}
+	if !topologyCurrentMatchesEvent(role.CurrentService, role.CurrentEndpoint, report, event) {
+		role.Reason = "topology_current_mismatch"
+		role.Summary = "方向报告拓扑中的当前节点与告警对象不一致，暂不使用该拓扑判断该接口是否为入口。"
+		return role
+	}
+
+	parents, parentsExists := topologyRelationValue(item, "parents", "parent", "upstreams", "upstream", "parentNodes", "upstreamNodes")
+	children, _ := topologyRelationValue(item, "children", "child", "downstreams", "downstream", "childNodes", "downstreamNodes")
+	role.ParentCount = topologyNodeCount(parents)
+	role.ChildCount = topologyNodeCount(children)
+	role.ParentNames = collectTopologyNodeDisplayNames(parents, 4)
+	role.ChildNames = collectTopologyNodeDisplayNames(children, 4)
+	if !parentsExists {
+		role.Reason = "topology_parents_missing"
+		role.Summary = topologyRoleUnknownSummary(role)
+		return role
+	}
+	if role.ParentCount == 0 {
+		role.Role = "entry"
+		role.Reason = "topology_current_has_no_parents"
+		role.Summary = topologyRoleEntrySummary(role)
+		return role
+	}
+	role.Role = "internalEndpoint"
+	role.Reason = "topology_current_has_upstream_parents"
+	role.Summary = topologyRoleInternalEndpointSummary(role)
+	return role
+}
+
+func mapValueFromMap(item map[string]any, key string) map[string]any {
+	if item == nil {
+		return nil
+	}
+	raw, ok := item[key]
+	if !ok || raw == nil {
+		return nil
+	}
+	if typed, ok := raw.(map[string]any); ok {
+		return typed
+	}
+	return nil
+}
+
+func topologyRelationValue(item map[string]any, keys ...string) (any, bool) {
+	if item == nil {
+		return nil, false
+	}
+	for _, key := range keys {
+		if raw, ok := item[key]; ok {
+			return raw, true
+		}
+	}
+	return nil, false
+}
+
+func topologyNodeService(item map[string]any) string {
+	return firstNonEmpty(
+		stringValueFromMap(item, "service"),
+		stringValueFromMap(item, "serviceName"),
+		stringValueFromMap(item, "svc_name"),
+		stringValueFromMap(item, "service_name"),
+		stringValueFromMap(item, "application"),
+		stringValueFromMap(item, "app"),
+	)
+}
+
+func topologyNodeEndpoint(item map[string]any) string {
+	return firstNonEmpty(
+		stringValueFromMap(item, "endpoint"),
+		stringValueFromMap(item, "contentKey"),
+		stringValueFromMap(item, "content_key"),
+		stringValueFromMap(item, "route"),
+		stringValueFromMap(item, "uri"),
+		stringValueFromMap(item, "path"),
+		stringValueFromMap(item, "url"),
+	)
+}
+
+func topologyCurrentMatchesEvent(currentService string, currentEndpoint string, report *model.AlertEventReport, event alertmodel.AEventWithWRecord) bool {
+	expectedService := firstNonEmpty(report.OverviewTags["service"], report.OverviewTags["serviceName"], report.OverviewTags["svc_name"], alertServiceName(event))
+	expectedEndpoint := firstNonEmpty(report.OverviewTags["endpoint"], report.OverviewTags["content_key"], alertEndpoint(event))
+	if expectedService != "" && currentService != "" && !sameTopologyToken(expectedService, currentService) {
+		return false
+	}
+	if expectedEndpoint != "" && currentEndpoint != "" && !sameTopologyToken(expectedEndpoint, currentEndpoint) {
+		return false
+	}
+	return currentService != "" || currentEndpoint != ""
+}
+
+func sameTopologyToken(left string, right string) bool {
+	left = normalizeTopologyToken(left)
+	right = normalizeTopologyToken(right)
+	if left == "" || right == "" {
+		return false
+	}
+	return left == right
+}
+
+func normalizeTopologyToken(value string) string {
+	value = strings.ToLower(strings.TrimSpace(value))
+	value = strings.ReplaceAll(value, " ", "")
+	value = strings.Trim(value, "/")
+	return value
+}
+
+func topologyNodeCount(value any) int {
+	switch typed := value.(type) {
+	case nil:
+		return 0
+	case []any:
+		count := 0
+		for _, item := range typed {
+			count += topologyNodeCount(item)
+		}
+		return count
+	case map[string]any:
+		if len(typed) == 0 {
+			return 0
+		}
+		return 1
+	case string:
+		if strings.TrimSpace(typed) == "" {
+			return 0
+		}
+		return 1
+	default:
+		return 1
+	}
+}
+
+func collectTopologyNodeDisplayNames(value any, limit int) []string {
+	if limit <= 0 || value == nil {
+		return nil
+	}
+	names := make([]string, 0, limit)
+	var collect func(any)
+	collect = func(raw any) {
+		if len(names) >= limit || raw == nil {
+			return
+		}
+		switch typed := raw.(type) {
+		case []any:
+			for _, item := range typed {
+				collect(item)
+				if len(names) >= limit {
+					return
+				}
+			}
+		case map[string]any:
+			name := topologyNodeDisplayName(typed)
+			if name != "" {
+				names = append(names, name)
+			}
+		case string:
+			if text := strings.TrimSpace(typed); isUsefulTopologyName(text) {
+				names = append(names, text)
+			}
+		}
+	}
+	collect(value)
+	return uniqueStrings(names)
+}
+
+func topologyNodeDisplayName(item map[string]any) string {
+	service := topologyNodeService(item)
+	endpoint := topologyNodeEndpoint(item)
+	if service != "" && endpoint != "" {
+		return service + " / " + endpoint
+	}
+	if service != "" {
+		return service
+	}
+	if endpoint != "" {
+		return endpoint
+	}
+	return firstNonEmpty(stringValueFromMap(item, "name"), stringValueFromMap(item, "target"), stringValueFromMap(item, "source"))
+}
+
+func topologyRoleEntrySummary(role systemHealthAlertReportTopologyRole) string {
+	target := topologyRoleTarget(role)
+	childText := ""
+	if role.ChildCount > 0 {
+		childText = fmt.Sprintf("，下游关联 %d 个调用对象", role.ChildCount)
+		if len(role.ChildNames) > 0 {
+			childText += "（" + strings.Join(role.ChildNames[:minInt(len(role.ChildNames), 3)], "、") + "）"
+		}
+	}
+	return fmt.Sprintf("方向报告拓扑显示%s没有上游调用方%s，说明该接口位于入口侧，告警影响需要优先从入口请求体验和下游调用链路两端确认。", target, childText)
+}
+
+func topologyRoleInternalEndpointSummary(role systemHealthAlertReportTopologyRole) string {
+	target := topologyRoleTarget(role)
+	parentText := fmt.Sprintf("存在 %d 个上游调用方", role.ParentCount)
+	if len(role.ParentNames) > 0 {
+		parentText += "（" + strings.Join(role.ParentNames[:minInt(len(role.ParentNames), 3)], "、") + "）"
+	}
+	childText := ""
+	if role.ChildCount > 0 {
+		childText = fmt.Sprintf("，并继续调用 %d 个下游对象", role.ChildCount)
+		if len(role.ChildNames) > 0 {
+			childText += "（" + strings.Join(role.ChildNames[:minInt(len(role.ChildNames), 3)], "、") + "）"
+		}
+	}
+	return fmt.Sprintf("方向报告拓扑显示%s%s%s，更适合作为服务接口/链路中间节点分析，而不是直接作为入口侧接口处理。", target, parentText, childText)
+}
+
+func topologyRoleUnknownSummary(role systemHealthAlertReportTopologyRole) string {
+	target := topologyRoleTarget(role)
+	return fmt.Sprintf("方向报告包含%s的调用拓扑，但缺少上游调用方信息，暂不能仅凭该报告确认该接口是否位于入口侧。", target)
+}
+
+func topologyRoleTarget(role systemHealthAlertReportTopologyRole) string {
+	if role.CurrentService != "" && role.CurrentEndpoint != "" {
+		return role.CurrentService + " / " + role.CurrentEndpoint
+	}
+	if role.CurrentService != "" {
+		return role.CurrentService
+	}
+	if role.CurrentEndpoint != "" {
+		return role.CurrentEndpoint
+	}
+	return "当前告警接口"
+}
+
 func collectTopologyNames(value any, depth int, names *[]string) {
 	if depth > 4 || len(*names) >= 8 || value == nil {
 		return
@@ -2114,12 +2894,12 @@ func isUsefulTopologyName(text string) bool {
 
 func alertReportAnalysisSummary(report *model.AlertEventReport) string {
 	parts := []string{
-		cleanUserFacingReportText(report.OverviewReason),
-		cleanUserFacingReportText(report.OverviewDetail),
-		cleanUserFacingReportText(report.RootCause),
+		cleanAlertReportDirectionalText(report.OverviewReason),
+		cleanAlertReportDirectionalText(report.OverviewDetail),
+		cleanAlertReportDirectionalText(report.RootCause),
 	}
 	for _, raw := range report.RootCauseOther {
-		if text := alertReportJSONText(raw); text != "" {
+		if text := cleanAlertReportDirectionalText(alertReportJSONText(raw)); text != "" {
 			parts = append(parts, text)
 		}
 	}
@@ -2152,14 +2932,15 @@ func uniqueAlertReportFindings(findings []systemHealthAlertReportFinding) []syst
 	result := make([]systemHealthAlertReportFinding, 0, len(findings))
 	for _, finding := range findings {
 		finding.AlertName = strings.TrimSpace(finding.AlertName)
-		finding.RootCause = cleanUserFacingReportText(finding.RootCause)
-		finding.AnalyzeProcess = cleanUserFacingReportText(finding.AnalyzeProcess)
-		finding.Detail = cleanUserFacingReportText(finding.Detail)
+		finding.RootCause = cleanAlertReportDirectionalText(finding.RootCause)
+		finding.RootCauseOther = cleanAlertReportDirectionalTexts(finding.RootCauseOther, 6, 260)
+		finding.AnalyzeProcess = cleanAlertReportDirectionalText(finding.AnalyzeProcess)
+		finding.Detail = cleanAlertReportDirectionalText(finding.Detail)
 		finding.Evidence = uniqueAlertReportEvidence(finding.Evidence)
-		if finding.RootCause == "" && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
+		if finding.RootCause == "" && len(finding.RootCauseOther) == 0 && finding.AnalyzeProcess == "" && finding.Detail == "" && len(finding.Evidence) == 0 {
 			continue
 		}
-		key := strings.ToLower(strings.Join([]string{finding.AlertName, finding.RootCause, finding.AnalyzeProcess, finding.Detail, alertReportEvidenceKey(finding.Evidence)}, "\x00"))
+		key := strings.ToLower(strings.Join([]string{finding.AlertName, finding.RootCause, strings.Join(finding.RootCauseOther, "；"), finding.AnalyzeProcess, finding.Detail, alertReportEvidenceKey(finding.Evidence)}, "\x00"))
 		if _, ok := seen[key]; ok {
 			continue
 		}
@@ -2703,6 +3484,180 @@ func mergeAlertEvents(base []alertmodel.AEventWithWRecord, extra []alertmodel.AE
 	return base
 }
 
+func (h *handler) queryAlertHistoryStats(ctx core.Context, groupID int64, events []alertmodel.AEventWithWRecord, endTime time.Time) map[string]clickhouse.AlertEventHistoryStats {
+	alertIDs := alertIDsFromEvents(events)
+	if h == nil || h.chRepo == nil || ctx == nil || len(alertIDs) == 0 {
+		systemHealthWarnCtx(ctx, "system-health alert history lookup skipped",
+			zap.Int64("groupId", groupID),
+			zap.Int("eventCount", len(events)),
+			zap.Int("alertIDCount", len(alertIDs)),
+			zap.Bool("hasHandler", h != nil),
+			zap.String("reason", "missing_repository_context_or_alert_ids"),
+		)
+		return nil
+	}
+	startTime := endTime.Add(-72 * time.Hour)
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health alert history lookup started",
+		zap.Int64("groupId", groupID),
+		zap.Int("eventCount", len(events)),
+		zap.Int("alertIDCount", len(alertIDs)),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+	)
+	stats, err := h.chRepo.GetAlertEventHistoryStatsByAlertIDs(ctx, startTime, endTime, alertIDs)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health alert history lookup failed",
+			zap.Int64("groupId", groupID),
+			zap.Int("alertIDCount", len(alertIDs)),
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
+		return nil
+	}
+	result := make(map[string]clickhouse.AlertEventHistoryStats, len(stats))
+	for _, item := range stats {
+		if strings.TrimSpace(item.AlertID) == "" {
+			continue
+		}
+		result[item.AlertID] = item
+	}
+	systemHealthInfoCtx(ctx, "system-health alert history lookup completed",
+		zap.Int64("groupId", groupID),
+		zap.Int("alertIDCount", len(alertIDs)),
+		zap.Int("historyStatCount", len(result)),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
+	return result
+}
+
+func (h *handler) queryAlertHistorySegments(ctx core.Context, groupID int64, events []alertmodel.AEventWithWRecord, endTime time.Time) map[string][]clickhouse.AlertEventRawSegment {
+	alertIDs := alertIDsFromEvents(events)
+	if h == nil || h.chRepo == nil || ctx == nil || len(alertIDs) == 0 {
+		systemHealthWarnCtx(ctx, "system-health alert history segment lookup skipped",
+			zap.Int64("groupId", groupID),
+			zap.Int("eventCount", len(events)),
+			zap.Int("alertIDCount", len(alertIDs)),
+			zap.Bool("hasHandler", h != nil),
+			zap.String("reason", "missing_repository_context_or_alert_ids"),
+		)
+		return nil
+	}
+	startTime := endTime.Add(-72 * time.Hour)
+	queryStartedAt := time.Now()
+	systemHealthInfoCtx(ctx, "system-health alert history segment lookup started",
+		zap.Int64("groupId", groupID),
+		zap.Int("eventCount", len(events)),
+		zap.Int("alertIDCount", len(alertIDs)),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+	)
+	segments, err := h.chRepo.GetAlertEventRawSegmentsByAlertIDs(ctx, startTime, endTime, alertIDs)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health alert history segment lookup failed",
+			zap.Int64("groupId", groupID),
+			zap.Int("alertIDCount", len(alertIDs)),
+			zap.Time("startTime", startTime),
+			zap.Time("endTime", endTime),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+			zap.Error(err),
+		)
+		return nil
+	}
+	result := make(map[string][]clickhouse.AlertEventRawSegment, len(alertIDs))
+	for _, item := range segments {
+		alertID := strings.TrimSpace(item.AlertID)
+		if alertID == "" {
+			continue
+		}
+		result[alertID] = append(result[alertID], item)
+	}
+	systemHealthInfoCtx(ctx, "system-health alert history segment lookup completed",
+		zap.Int64("groupId", groupID),
+		zap.Int("alertIDCount", len(alertIDs)),
+		zap.Int("historySegmentCount", len(segments)),
+		zap.Int("historySegmentAlertIDCount", len(result)),
+		zap.Time("startTime", startTime),
+		zap.Time("endTime", endTime),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
+	return result
+}
+
+func alertIDsFromEvents(events []alertmodel.AEventWithWRecord) []string {
+	seen := make(map[string]struct{}, len(events))
+	result := make([]string, 0, len(events))
+	for _, event := range events {
+		alertID := strings.TrimSpace(event.AlertID)
+		if alertID == "" {
+			continue
+		}
+		if _, ok := seen[alertID]; ok {
+			continue
+		}
+		seen[alertID] = struct{}{}
+		result = append(result, alertID)
+	}
+	return result
+}
+
+func alertHistorySegmentsForInput(events []alertmodel.AEventWithWRecord, history map[string][]clickhouse.AlertEventRawSegment) []clickhouse.AlertEventRawSegment {
+	if len(events) == 0 || len(history) == 0 {
+		return nil
+	}
+	result := make([]clickhouse.AlertEventRawSegment, 0, len(events))
+	seen := make(map[string]struct{}, len(events))
+	for _, event := range events {
+		alertID := strings.TrimSpace(event.AlertID)
+		if alertID == "" {
+			continue
+		}
+		if _, ok := seen[alertID]; ok {
+			continue
+		}
+		seen[alertID] = struct{}{}
+		result = append(result, history[alertID]...)
+	}
+	sort.SliceStable(result, func(i, j int) bool {
+		left := result[i].CreateTime
+		if left.IsZero() {
+			left = result[i].ReceivedTime
+		}
+		right := result[j].CreateTime
+		if right.IsZero() {
+			right = result[j].ReceivedTime
+		}
+		return left.Before(right)
+	})
+	return result
+}
+
+func alertHistoryStatsForInput(events []alertmodel.AEventWithWRecord, history map[string]clickhouse.AlertEventHistoryStats) []clickhouse.AlertEventHistoryStats {
+	if len(events) == 0 || len(history) == 0 {
+		return nil
+	}
+	result := make([]clickhouse.AlertEventHistoryStats, 0, len(events))
+	seen := make(map[string]struct{}, len(events))
+	for _, event := range events {
+		alertID := strings.TrimSpace(event.AlertID)
+		if alertID == "" {
+			continue
+		}
+		if _, ok := seen[alertID]; ok {
+			continue
+		}
+		seen[alertID] = struct{}{}
+		if stats, ok := history[alertID]; ok {
+			result = append(result, stats)
+		}
+	}
+	return result
+}
+
 func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, events []alertmodel.AEventWithWRecord, startTime time.Time, endTime time.Time, capabilities telemetryCapabilityStatus) []reportInput {
 	buildStartedAt := time.Now()
 	systemHealthInfoCtx(ctx, "system-health report input grouping started",
@@ -2776,12 +3731,20 @@ func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, eve
 	)
 
 	inputs := make([]reportInput, 0, len(grouped))
+	alertHistoryStatsByID := h.queryAlertHistoryStats(ctx, groupID, events, endTime)
+	alertHistorySegmentsByID := h.queryAlertHistorySegments(ctx, groupID, events, endTime)
+	alertHistoryStartTime := endTime.Add(-72 * time.Hour)
 	for _, input := range grouped {
 		inputStartedAt := time.Now()
 		finalizeReportInput(input, endTime)
 		input.alertNames = uniqueStrings(input.alertNames)
+		input.alertHistoryStats = alertHistoryStatsForInput(input.events, alertHistoryStatsByID)
+		input.alertHistorySegments = alertHistorySegmentsForInput(input.events, alertHistorySegmentsByID)
+		input.alertHistoryStartTime = alertHistoryStartTime
+		input.alertHistoryEndTime = endTime
 		input.key = stableKey(input.kind + "::" + input.aggregationKey)
 		input.title = buildAggregatedIssueTitle(*input)
+		alertIDCount := len(alertIDsFromEvents(input.events))
 		systemHealthInfoCtx(ctx, "system-health report input enrichment started",
 			zap.Int64("groupId", groupID),
 			zap.String("issueKey", input.key),
@@ -2792,12 +3755,32 @@ func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, eve
 			zap.Int("eventCount", len(input.events)),
 			zap.Int("deduplicatedAlerts", input.deduplicatedAlerts),
 			zap.Int("repeatCount", input.repeatCount),
+			zap.Int("alertIDCount", alertIDCount),
 		)
-		input.alertReportActions, input.alertReportFindings = h.queryAlertReportData(ctx, *input, startTime, endTime)
-		if len(input.alertReportActions) > 0 || len(input.alertReportFindings) > 0 {
+		if len(input.alertHistorySegments) == 0 {
+			reason := "history_segments_not_found"
+			if alertIDCount == 0 {
+				reason = "alert_id_missing"
+			} else if len(input.alertHistoryStats) > 0 {
+				reason = "history_segments_empty_stats_available"
+			}
+			systemHealthWarnCtx(ctx, "system-health alert trend segment fallback",
+				zap.Int64("groupId", groupID),
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("scope", input.scope),
+				zap.Int("eventCount", len(input.events)),
+				zap.Int("alertIDCount", alertIDCount),
+				zap.Int("alertHistoryStats", len(input.alertHistoryStats)),
+				zap.String("reason", reason),
+			)
+		}
+		input.alertReportActions, input.alertReportFindings, input.alertReportTopologyRoles = h.queryAlertReportData(ctx, *input, startTime, endTime)
+		if len(input.alertReportActions) > 0 || len(input.alertReportFindings) > 0 || len(input.alertReportTopologyRoles) > 0 {
 			input.availableCalcSources = append(input.availableCalcSources, "alertReport")
 			input.displaySources = append(input.displaySources, sourceLabel("alertReport"))
 		}
+		applyAlertReportTopologyRoleToInput(ctx, input)
 		input.evidence = h.buildRealEvidence(ctx, *input, groupID, startTime, endTime, capabilities)
 		input.displaySources = uniqueStrings(append(input.displaySources, displaySourcesFromEvidence(input.evidence)...))
 		input.impact = buildRealImpact(*input)
@@ -2813,8 +3796,12 @@ func (h *handler) buildInputsFromRealEvents(ctx core.Context, groupID int64, eve
 			zap.Int("deduplicatedAlerts", input.deduplicatedAlerts),
 			zap.Int("activeAlerts", input.activeAlerts),
 			zap.Int("repeatCount", input.repeatCount),
+			zap.Int("alertHistoryStats", len(input.alertHistoryStats)),
+			zap.Int("alertHistorySegments", len(input.alertHistorySegments)),
 			zap.Int("alertReportActions", len(input.alertReportActions)),
 			zap.Int("alertReportFindings", len(input.alertReportFindings)),
+			zap.Int("alertReportTopologyRoles", len(input.alertReportTopologyRoles)),
+			zap.String("alertReportTopologyRole", dominantAlertReportTopologyRole(input.alertReportTopologyRoles).Role),
 			zap.Int("evidenceCount", len(input.evidence)),
 			zap.Strings("evidenceTypes", evidenceTypes(input.evidence)),
 			zap.Strings("displaySources", input.displaySources),
@@ -2838,6 +3825,8 @@ func displaySourcesFromEvidence(evidence []response.SystemHealthEvidence) []stri
 			sources = append(sources, sourceLabel("trace"))
 		case strings.Contains(item.Type, "日志"):
 			sources = append(sources, sourceLabel("logs"))
+		case strings.Contains(item.Type, "请求北极星"):
+			sources = append(sources, sourceLabel("requestPolaris"))
 		case strings.Contains(item.Type, "指标趋势"):
 			sources = append(sources, sourceLabel("redMetrics"))
 		case strings.Contains(item.Type, "方向报告"):
@@ -2845,6 +3834,122 @@ func displaySourcesFromEvidence(evidence []response.SystemHealthEvidence) []stri
 		}
 	}
 	return uniqueStrings(sources)
+}
+
+func applyAlertReportTopologyRoleToInput(ctx core.Context, input *reportInput) {
+	if input == nil {
+		return
+	}
+	role := dominantAlertReportTopologyRole(input.alertReportTopologyRoles)
+	if role.Role == "" || role.Role == "unknown" {
+		if role.Reason != "" {
+			systemHealthInfoCtx(ctx, "system-health alert report topology role not applied",
+				zap.String("issueKey", input.key),
+				zap.String("aggregationKey", input.aggregationKey),
+				zap.String("scopeKind", input.scopeKind),
+				zap.String("scope", input.scope),
+				zap.String("topologyRole", role.Role),
+				zap.String("topologyReason", role.Reason),
+			)
+		}
+		return
+	}
+	oldScopeKind := input.scopeKind
+	oldScope := input.scope
+	oldCriticality := input.objectCriticality
+	switch role.Role {
+	case "entry":
+		if role.CurrentService != "" && role.CurrentEndpoint != "" {
+			input.scope = role.CurrentService + " / " + role.CurrentEndpoint
+		}
+		if input.scopeKind == "service" && role.CurrentEndpoint != "" {
+			input.scopeKind = "entry"
+		}
+		input.objectCriticality = math.Max(input.objectCriticality, 90)
+	case "internalEndpoint":
+		if role.CurrentService != "" && role.CurrentEndpoint != "" {
+			input.scope = role.CurrentService + " / " + role.CurrentEndpoint
+		}
+		if input.scopeKind == "entry" || (input.scopeKind == "service" && role.CurrentEndpoint != "") {
+			input.scopeKind = "serviceEndpoint"
+		}
+		input.objectCriticality = math.Max(input.objectCriticality, 85)
+	}
+	input.mergeReasons = buildMergeReasons(*input)
+	if reason := topologyRoleMergeReason(role); reason != "" {
+		input.mergeReasons = uniqueStrings(append(input.mergeReasons, reason))
+	}
+	systemHealthInfoCtx(ctx, "system-health alert report topology role applied",
+		zap.String("issueKey", input.key),
+		zap.String("aggregationKey", input.aggregationKey),
+		zap.String("oldScopeKind", oldScopeKind),
+		zap.String("newScopeKind", input.scopeKind),
+		zap.String("oldScope", oldScope),
+		zap.String("newScope", input.scope),
+		zap.Float64("oldObjectCriticality", oldCriticality),
+		zap.Float64("newObjectCriticality", input.objectCriticality),
+		zap.String("topologyRole", role.Role),
+		zap.String("topologyReason", role.Reason),
+		zap.String("currentService", role.CurrentService),
+		zap.String("currentEndpoint", role.CurrentEndpoint),
+		zap.Int("parentCount", role.ParentCount),
+		zap.Int("childCount", role.ChildCount),
+	)
+}
+
+func topologyRoleMergeReason(role systemHealthAlertReportTopologyRole) string {
+	switch role.Role {
+	case "entry":
+		return "方向报告拓扑确认入口侧接口"
+	case "internalEndpoint":
+		return "方向报告拓扑显示存在上游调用方"
+	default:
+		return ""
+	}
+}
+
+func dominantAlertReportTopologyRole(roles []systemHealthAlertReportTopologyRole) systemHealthAlertReportTopologyRole {
+	roles = uniqueAlertReportTopologyRoles(roles)
+	for _, role := range roles {
+		if role.Role == "internalEndpoint" {
+			return role
+		}
+	}
+	for _, role := range roles {
+		if role.Role == "entry" {
+			return role
+		}
+	}
+	for _, role := range roles {
+		if role.Role != "" {
+			return role
+		}
+	}
+	return systemHealthAlertReportTopologyRole{}
+}
+
+func uniqueAlertReportTopologyRoles(roles []systemHealthAlertReportTopologyRole) []systemHealthAlertReportTopologyRole {
+	if len(roles) == 0 {
+		return nil
+	}
+	seen := make(map[string]struct{}, len(roles))
+	result := make([]systemHealthAlertReportTopologyRole, 0, len(roles))
+	for _, role := range roles {
+		key := strings.Join([]string{
+			role.Role,
+			role.Reason,
+			role.CurrentService,
+			role.CurrentEndpoint,
+			strings.Join(role.ParentNames, ","),
+			strings.Join(role.ChildNames, ","),
+		}, "\x00")
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		result = append(result, role)
+	}
+	return result
 }
 
 func normalizeAlertEvent(event alertmodel.AEventWithWRecord) normalizedAlertEvent {
@@ -3120,7 +4225,9 @@ func deduplicateAlertInstances(events []normalizedAlertEvent, endTime time.Time)
 func buildMergeReasons(input reportInput) []string {
 	reasons := make([]string, 0, 4)
 	if input.scopeKind == "entry" {
-		reasons = append(reasons, "同一业务入口")
+		reasons = append(reasons, "同一入口侧接口")
+	} else if input.scopeKind == "serviceEndpoint" {
+		reasons = append(reasons, "同一服务接口")
 	} else if input.scopeKind == "service" {
 		reasons = append(reasons, "同一服务")
 	} else {
@@ -3289,7 +4396,7 @@ func buildAlertEventEvidenceResult(input reportInput) string {
 		parts = append(parts, fmt.Sprintf("多类%s告警共同指向同一%s，说明风险不是单条告警孤立触发。", symptom, inputScopeNoun(input.scopeKind)))
 	}
 	if input.repeatCount > 0 {
-		parts = append(parts, "同一告警实例存在反复触发，恢复后仍需要重点观察是否复发。")
+		parts = append(parts, "同一告警对象存在反复触发，恢复后仍需要重点观察是否复发。")
 	} else if len(input.events) >= 3 && input.activeAlerts == 0 {
 		parts = append(parts, "虽然当前已恢复，但窗口内出现频率偏高，建议纳入恢复观察。")
 	}
@@ -3303,6 +4410,779 @@ func buildAlertEventEvidenceResult(input reportInput) string {
 		parts = append(parts, diagnostic)
 	}
 	return truncateText(strings.Join(parts, ""), 360)
+}
+
+func buildAlertHistoryEvidenceResult(input reportInput) string {
+	if len(input.alertHistoryStats) == 0 {
+		return ""
+	}
+	stats := input.alertHistoryStats
+	sort.SliceStable(stats, func(i, j int) bool {
+		if stats[i].RecordCount == stats[j].RecordCount {
+			return stats[i].LastSeenAt.After(stats[j].LastSeenAt)
+		}
+		return stats[i].RecordCount > stats[j].RecordCount
+	})
+	totalRecords := uint64(0)
+	totalFiring := uint64(0)
+	totalResolved := uint64(0)
+	maxDuration := 0.0
+	totalDuration := 0.0
+	var firstSeen time.Time
+	var lastSeen time.Time
+	latestStatus := ""
+	for _, item := range stats {
+		totalRecords += item.RecordCount
+		totalFiring += item.FiringCount
+		totalResolved += item.ResolvedCount
+		maxDuration = math.Max(maxDuration, item.MaxDurationSeconds)
+		totalDuration += item.TotalDurationSeconds
+		if !item.FirstSeenAt.IsZero() && (firstSeen.IsZero() || item.FirstSeenAt.Before(firstSeen)) {
+			firstSeen = item.FirstSeenAt
+		}
+		if !item.LastSeenAt.IsZero() && (lastSeen.IsZero() || item.LastSeenAt.After(lastSeen)) {
+			lastSeen = item.LastSeenAt
+			latestStatus = item.LatestStatus
+		}
+	}
+	if totalRecords == 0 {
+		return ""
+	}
+	scopeLabel := inputScopeLabel(input.scopeKind)
+	parts := []string{
+		fmt.Sprintf("过去 3 天相同告警共出现 %d 次", totalRecords),
+	}
+	if len(stats) > 1 {
+		parts[0] = fmt.Sprintf("过去 3 天该%s涉及的相同告警共出现 %d 次，覆盖 %d 个告警实例", inputScopeNoun(input.scopeKind), totalRecords, len(stats))
+	}
+	if totalFiring > 0 || totalResolved > 0 {
+		parts = append(parts, fmt.Sprintf("其中触发记录 %d 次、恢复记录 %d 次", totalFiring, totalResolved))
+	}
+	if !firstSeen.IsZero() && !lastSeen.IsZero() {
+		parts = append(parts, fmt.Sprintf("首次出现于 %s，最近出现于 %s", formatEventTime(firstSeen), formatEventTime(lastSeen)))
+	}
+	if maxDuration > 0 {
+		parts = append(parts, "最长一次持续约 "+formatDurationCN(maxDuration))
+	}
+	if totalDuration > 0 && totalRecords > 1 {
+		parts = append(parts, "累计持续约 "+formatDurationCN(totalDuration))
+	}
+	if latestStatus != "" {
+		parts = append(parts, "最近状态为 "+userFacingAlertStatus(latestStatus))
+	}
+	if totalRecords >= 10 {
+		parts = append(parts, scopeLabel+"存在明显反复触发，需要重点关注复发规律和规则口径")
+	} else if totalRecords > 1 {
+		parts = append(parts, scopeLabel+"近期并非首次出现，恢复观察时需要关注是否再次复发")
+	}
+	return truncateText(strings.Join(parts, "；")+"。", 360)
+}
+
+func buildAlertTrend(input reportInput) *response.SystemHealthAlertTrend {
+	if len(input.alertHistorySegments) == 0 && len(input.alertHistoryStats) == 0 {
+		return nil
+	}
+	windowEnd := input.alertHistoryEndTime
+	if windowEnd.IsZero() {
+		windowEnd = latestAlertHistoryTime(input)
+	}
+	if windowEnd.IsZero() {
+		windowEnd = parseDisplayTime(input.updatedAt)
+	}
+	if windowEnd.IsZero() {
+		windowEnd = time.Now()
+	}
+	windowStart := input.alertHistoryStartTime
+	if windowStart.IsZero() {
+		windowStart = windowEnd.Add(-72 * time.Hour)
+	}
+
+	segments := buildAlertTrendSegments(input, windowStart, windowEnd)
+	stats := buildAlertTrendStats(input, segments)
+	if stats.occurrenceCount == 0 && len(segments) == 0 {
+		return nil
+	}
+	scopeLabel := alertTrendScopeLabel(input.scopeKind)
+	symptom := issueSymptomText(scoredIssue{input: input})
+	typeText := alertTrendTypeText(stats.alertTypes, symptom)
+	status := "当前已恢复"
+	if input.activeAlerts > 0 {
+		status = fmt.Sprintf("仍有 %d 个告警处于触发状态", input.activeAlerts)
+	}
+
+	summaryParts := []string{
+		fmt.Sprintf("最近 3 天，%s相关告警出现 %d 次", scopeLabel, stats.occurrenceCount),
+	}
+	if typeText != "" {
+		summaryParts = append(summaryParts, "主要表现为"+typeText)
+	}
+	if stats.longestDurationSeconds > 0 {
+		summaryParts = append(summaryParts, "最长一次持续约 "+formatDurationCN(stats.longestDurationSeconds))
+	}
+	summaryParts = append(summaryParts, status)
+
+	activityText := alertTrendActivityText(stats.occurrenceCount, len(segments), input.activeAlerts)
+	problem := alertTrendProblemText(scopeLabel, stats.occurrenceCount, stats.longestDurationSeconds, input.activeAlerts)
+	return &response.SystemHealthAlertTrend{
+		Window:                 "最近 3 天",
+		WindowText:             "最近 3 天",
+		StartTime:              formatAlertTrendTime(windowStart),
+		EndTime:                formatAlertTrendTime(windowEnd),
+		OccurrenceCount:        stats.occurrenceCount,
+		EventCount:             stats.occurrenceCount,
+		TotalCount:             stats.occurrenceCount,
+		RawEventCount:          len(segments),
+		LongestDurationSeconds: stats.longestDurationSeconds,
+		MaxDurationSeconds:     stats.longestDurationSeconds,
+		TotalDurationSeconds:   stats.totalDurationSeconds,
+		Summary:                truncateText(strings.Join(summaryParts, "；")+"。", 260),
+		ActivityText:           activityText,
+		Problem:                problem,
+		AlertTypes:             stats.alertTypes,
+		Segments:               segments,
+	}
+}
+
+type systemHealthAlertTrendStats struct {
+	occurrenceCount        int
+	longestDurationSeconds float64
+	totalDurationSeconds   float64
+	alertTypes             []response.SystemHealthAlertTrendType
+}
+
+type alertTrendEventMeta struct {
+	Name     string
+	Severity string
+}
+
+type alertTrendTimelineSegment struct {
+	AlertID         string
+	AlertName       string
+	Severity        string
+	Status          string
+	Start           time.Time
+	End             time.Time
+	Count           int
+	DurationSeconds float64
+	IsActive        bool
+}
+
+func buildAlertTrendSegments(input reportInput, windowStart time.Time, windowEnd time.Time) []response.SystemHealthAlertTrendSegment {
+	metaByAlertID := alertTrendEventMetaByID(input.events)
+	timeline := buildAlertTrendTimelineSegments(input.alertHistorySegments, metaByAlertID, windowStart, windowEnd)
+	timeline = mergeAlertTrendTimelineSegmentsForRiskPoint(timeline)
+	segments := make([]response.SystemHealthAlertTrendSegment, 0, len(timeline))
+	for _, item := range timeline {
+		if item.Start.IsZero() && item.End.IsZero() {
+			continue
+		}
+		alertName := strings.TrimSpace(item.AlertName)
+		severity := strings.TrimSpace(item.Severity)
+		alertType := alertTrendType(alertName)
+		status := normalizeStatus(item.Status)
+		summary := alertTrendSegmentSummary(alertName, alertType, status, item.DurationSeconds)
+		segments = append(segments, response.SystemHealthAlertTrendSegment{
+			AlertID:         strings.TrimSpace(item.AlertID),
+			AlertName:       alertName,
+			RuleName:        alertName,
+			Title:           firstNonEmpty(alertName, alertType, "相关告警"),
+			Summary:         summary,
+			Type:            alertType,
+			Severity:        severity,
+			Status:          status,
+			StartTime:       formatAlertTrendTime(item.Start),
+			StartedAt:       formatAlertTrendTime(item.Start),
+			EndTime:         formatAlertTrendTime(item.End),
+			EndedAt:         formatAlertTrendTime(item.End),
+			DurationSeconds: item.DurationSeconds,
+			Count:           item.Count,
+			EventCount:      item.Count,
+			AlertCount:      item.Count,
+			IsActive:        item.IsActive,
+		})
+	}
+	if len(segments) > 0 {
+		return segments
+	}
+	return buildAlertTrendSegmentsFromStats(input, metaByAlertID, windowStart, windowEnd)
+}
+
+func mergeAlertTrendTimelineSegmentsForRiskPoint(segments []alertTrendTimelineSegment) []alertTrendTimelineSegment {
+	if len(segments) <= 1 {
+		return segments
+	}
+	sort.SliceStable(segments, func(i, j int) bool {
+		if segments[i].Start.Equal(segments[j].Start) {
+			return segments[i].End.Before(segments[j].End)
+		}
+		return segments[i].Start.Before(segments[j].Start)
+	})
+
+	merged := make([]alertTrendTimelineSegment, 0, len(segments))
+	current := segments[0]
+	for _, next := range segments[1:] {
+		if !alertTrendTimelineSegmentsOverlap(current, next) {
+			merged = append(merged, current)
+			current = next
+			continue
+		}
+		current = mergeAlertTrendTimelineSegment(current, next)
+	}
+	merged = append(merged, current)
+	return merged
+}
+
+func alertTrendTimelineSegmentsOverlap(left alertTrendTimelineSegment, right alertTrendTimelineSegment) bool {
+	if left.Start.IsZero() || left.End.IsZero() || right.Start.IsZero() || right.End.IsZero() {
+		return false
+	}
+	return !right.Start.After(left.End)
+}
+
+func mergeAlertTrendTimelineSegment(left alertTrendTimelineSegment, right alertTrendTimelineSegment) alertTrendTimelineSegment {
+	if !right.Start.IsZero() && (left.Start.IsZero() || right.Start.Before(left.Start)) {
+		left.Start = right.Start
+	}
+	if right.End.After(left.End) {
+		left.End = right.End
+	}
+	left.Count += maxInt(right.Count, 1)
+	left.DurationSeconds = left.End.Sub(left.Start).Seconds()
+	if left.DurationSeconds <= 0 {
+		left.DurationSeconds = 60
+	}
+	left.AlertID = mergeAlertTrendText(left.AlertID, right.AlertID, ",")
+	left.AlertName = mergeAlertTrendText(left.AlertName, right.AlertName, "、")
+	left.Severity = maxSeverity([]string{left.Severity, right.Severity})
+	left.IsActive = left.IsActive || right.IsActive
+	if left.IsActive {
+		left.Status = alertmodel.StatusFiring
+	} else if normalizeStatus(left.Status) == "" || normalizeStatus(left.Status) == "unknown" {
+		left.Status = right.Status
+	} else if normalizeStatus(right.Status) == alertmodel.StatusResolved {
+		left.Status = alertmodel.StatusResolved
+	}
+	return left
+}
+
+func mergeAlertTrendText(left string, right string, sep string) string {
+	values := make([]string, 0, 4)
+	for _, value := range []string{left, right} {
+		for _, part := range strings.Split(value, sep) {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				values = append(values, part)
+			}
+		}
+	}
+	return strings.Join(uniqueStrings(values), sep)
+}
+
+func buildAlertTrendTimelineSegments(rawSegments []clickhouse.AlertEventRawSegment, metaByAlertID map[string]alertTrendEventMeta, windowStart time.Time, windowEnd time.Time) []alertTrendTimelineSegment {
+	if len(rawSegments) == 0 {
+		return nil
+	}
+	byAlertID := make(map[string][]clickhouse.AlertEventRawSegment, len(rawSegments))
+	for _, raw := range rawSegments {
+		alertID := strings.TrimSpace(raw.AlertID)
+		if alertID == "" {
+			continue
+		}
+		byAlertID[alertID] = append(byAlertID[alertID], raw)
+	}
+	alertIDs := make([]string, 0, len(byAlertID))
+	for alertID := range byAlertID {
+		alertIDs = append(alertIDs, alertID)
+	}
+	sort.Strings(alertIDs)
+
+	result := make([]alertTrendTimelineSegment, 0, len(rawSegments))
+	for _, alertID := range alertIDs {
+		records := byAlertID[alertID]
+		sort.SliceStable(records, func(i, j int) bool {
+			left := alertTrendTransitionTime(records[i])
+			right := alertTrendTransitionTime(records[j])
+			if left.Equal(right) {
+				return alertTrendRecordStart(records[i]).Before(alertTrendRecordStart(records[j]))
+			}
+			return left.Before(right)
+		})
+
+		var open *alertTrendTimelineSegment
+		for _, raw := range records {
+			status := normalizeStatus(raw.Status)
+			start := alertTrendRecordStart(raw)
+			recovery := alertTrendRecordRecovery(raw)
+			name := strings.TrimSpace(raw.Name)
+			severity := strings.TrimSpace(raw.Severity)
+			if meta, ok := metaByAlertID[alertID]; ok {
+				if name == "" {
+					name = meta.Name
+				}
+				if severity == "" {
+					severity = meta.Severity
+				}
+			}
+
+			switch status {
+			case alertmodel.StatusFiring:
+				if start.IsZero() {
+					start = alertTrendTransitionTime(raw)
+				}
+				if open == nil {
+					open = &alertTrendTimelineSegment{
+						AlertID:   alertID,
+						AlertName: name,
+						Severity:  severity,
+						Status:    alertmodel.StatusFiring,
+						Start:     start,
+						Count:     1,
+						IsActive:  true,
+					}
+				} else {
+					if !start.IsZero() && (open.Start.IsZero() || start.Before(open.Start)) {
+						open.Start = start
+					}
+					open.Count++
+				}
+				if open.AlertName == "" {
+					open.AlertName = name
+				}
+				if open.Severity == "" {
+					open.Severity = severity
+				}
+			case alertmodel.StatusResolved:
+				if recovery.IsZero() {
+					recovery = alertTrendTransitionTime(raw)
+				}
+				if open == nil {
+					if start.IsZero() {
+						start = recovery
+					}
+					open = &alertTrendTimelineSegment{
+						AlertID:   alertID,
+						AlertName: name,
+						Severity:  severity,
+						Status:    alertmodel.StatusResolved,
+						Start:     start,
+						Count:     1,
+					}
+				} else {
+					open.Status = alertmodel.StatusResolved
+					open.IsActive = false
+					open.Count++
+					if !start.IsZero() && (open.Start.IsZero() || start.Before(open.Start)) {
+						open.Start = start
+					}
+					if open.AlertName == "" {
+						open.AlertName = name
+					}
+					if open.Severity == "" {
+						open.Severity = severity
+					}
+				}
+				open.End = recovery
+				result = appendAlertTrendTimelineSegment(result, open, windowStart, windowEnd)
+				open = nil
+			default:
+				start, end, _ := alertTrendSegmentTimes(raw, windowStart, windowEnd)
+				result = appendAlertTrendTimelineSegment(result, &alertTrendTimelineSegment{
+					AlertID:   alertID,
+					AlertName: name,
+					Severity:  severity,
+					Status:    status,
+					Start:     start,
+					End:       end,
+					Count:     1,
+				}, windowStart, windowEnd)
+			}
+		}
+		if open != nil {
+			open.Status = alertmodel.StatusFiring
+			open.IsActive = true
+			open.End = windowEnd
+			result = appendAlertTrendTimelineSegment(result, open, windowStart, windowEnd)
+		}
+	}
+	sort.SliceStable(result, func(i, j int) bool {
+		if result[i].Start.Equal(result[j].Start) {
+			return result[i].AlertID < result[j].AlertID
+		}
+		return result[i].Start.Before(result[j].Start)
+	})
+	return result
+}
+
+func appendAlertTrendTimelineSegment(result []alertTrendTimelineSegment, segment *alertTrendTimelineSegment, windowStart time.Time, windowEnd time.Time) []alertTrendTimelineSegment {
+	if segment == nil {
+		return result
+	}
+	start := segment.Start
+	end := segment.End
+	if start.IsZero() {
+		start = windowStart
+	}
+	if end.IsZero() || end.Before(start) || end.Equal(start) {
+		end = start.Add(time.Minute)
+	}
+	if !windowStart.IsZero() && start.Before(windowStart) {
+		start = windowStart
+	}
+	if !windowEnd.IsZero() && end.After(windowEnd) {
+		end = windowEnd
+	}
+	if !windowStart.IsZero() && end.Before(windowStart) {
+		return result
+	}
+	if !windowEnd.IsZero() && start.After(windowEnd) {
+		return result
+	}
+	if !end.After(start) {
+		end = start.Add(time.Minute)
+		if !windowEnd.IsZero() && end.After(windowEnd) {
+			end = windowEnd
+		}
+	}
+	duration := end.Sub(start).Seconds()
+	if duration <= 0 {
+		duration = 60
+	}
+	segment.Start = start
+	segment.End = end
+	segment.DurationSeconds = duration
+	if segment.Count <= 0 {
+		segment.Count = 1
+	}
+	return append(result, *segment)
+}
+
+func alertTrendTransitionTime(raw clickhouse.AlertEventRawSegment) time.Time {
+	if normalizeStatus(raw.Status) == alertmodel.StatusResolved {
+		if recovery := alertTrendRecordRecovery(raw); !recovery.IsZero() {
+			return recovery
+		}
+	}
+	if start := alertTrendRecordStart(raw); !start.IsZero() {
+		return start
+	}
+	return firstNonZeroTime(raw.ReceivedTime, raw.UpdateTime, raw.EndTime)
+}
+
+func alertTrendRecordStart(raw clickhouse.AlertEventRawSegment) time.Time {
+	return firstNonZeroTime(raw.CreateTime, raw.ReceivedTime, raw.UpdateTime)
+}
+
+func alertTrendRecordRecovery(raw clickhouse.AlertEventRawSegment) time.Time {
+	if !raw.EndTime.IsZero() && raw.EndTime.After(time.Date(1971, 1, 1, 0, 0, 0, 0, raw.EndTime.Location())) {
+		return raw.EndTime
+	}
+	return firstNonZeroTime(raw.UpdateTime, raw.ReceivedTime)
+}
+
+func buildAlertTrendSegmentsFromStats(input reportInput, metaByAlertID map[string]alertTrendEventMeta, windowStart time.Time, windowEnd time.Time) []response.SystemHealthAlertTrendSegment {
+	segments := make([]response.SystemHealthAlertTrendSegment, 0, len(input.alertHistoryStats))
+	for _, stat := range input.alertHistoryStats {
+		if stat.RecordCount == 0 {
+			continue
+		}
+		start := stat.LastSeenAt
+		if start.IsZero() {
+			start = stat.FirstSeenAt
+		}
+		duration := stat.MaxDurationSeconds
+		if duration > 0 && !start.IsZero() {
+			start = start.Add(-time.Duration(duration) * time.Second)
+		}
+		if start.IsZero() {
+			start = windowStart
+		}
+		end := stat.LastSeenAt
+		if end.IsZero() || end.Before(start) {
+			end = start.Add(time.Duration(math.Max(duration, 60)) * time.Second)
+		}
+		if end.After(windowEnd) {
+			end = windowEnd
+		}
+		if start.Before(windowStart) {
+			start = windowStart
+		}
+		alertName := ""
+		severity := ""
+		if meta, ok := metaByAlertID[strings.TrimSpace(stat.AlertID)]; ok {
+			alertName = meta.Name
+			severity = meta.Severity
+		}
+		alertType := alertTrendType(alertName)
+		status := normalizeStatus(stat.LatestStatus)
+		count := int(stat.RecordCount)
+		segments = append(segments, response.SystemHealthAlertTrendSegment{
+			AlertID:         strings.TrimSpace(stat.AlertID),
+			AlertName:       alertName,
+			RuleName:        alertName,
+			Title:           firstNonEmpty(alertName, alertType, "相关告警"),
+			Summary:         alertTrendSegmentSummary(alertName, alertType, status, duration),
+			Type:            alertType,
+			Severity:        severity,
+			Status:          status,
+			StartTime:       formatAlertTrendTime(start),
+			StartedAt:       formatAlertTrendTime(start),
+			EndTime:         formatAlertTrendTime(end),
+			EndedAt:         formatAlertTrendTime(end),
+			DurationSeconds: duration,
+			Count:           count,
+			EventCount:      count,
+			AlertCount:      count,
+			IsActive:        status == alertmodel.StatusFiring,
+		})
+	}
+	return segments
+}
+
+func alertTrendSegmentTimes(raw clickhouse.AlertEventRawSegment, windowStart time.Time, windowEnd time.Time) (time.Time, time.Time, float64) {
+	start := raw.CreateTime
+	if start.IsZero() {
+		start = firstNonZeroTime(raw.ReceivedTime, raw.UpdateTime)
+	}
+	end := raw.EndTime
+	status := normalizeStatus(raw.Status)
+	if end.IsZero() || end.Before(start) || end.Equal(start) {
+		switch {
+		case status == alertmodel.StatusFiring && !windowEnd.IsZero():
+			end = windowEnd
+		case !raw.UpdateTime.IsZero() && raw.UpdateTime.After(start):
+			end = raw.UpdateTime
+		case !raw.ReceivedTime.IsZero() && raw.ReceivedTime.After(start):
+			end = raw.ReceivedTime
+		}
+	}
+	duration := raw.DurationSeconds
+	if duration <= 0 && !start.IsZero() && !end.IsZero() && end.After(start) {
+		duration = end.Sub(start).Seconds()
+	}
+	if !start.IsZero() && (end.IsZero() || !end.After(start)) {
+		end = start.Add(time.Duration(math.Max(duration, 60)) * time.Second)
+	}
+	if !windowEnd.IsZero() && end.After(windowEnd) {
+		end = windowEnd
+	}
+	if duration <= 0 && !start.IsZero() && !end.IsZero() && end.After(start) {
+		duration = end.Sub(start).Seconds()
+	}
+	if duration <= 0 {
+		duration = 60
+	}
+	_ = windowStart
+	return start, end, duration
+}
+
+func buildAlertTrendStats(input reportInput, segments []response.SystemHealthAlertTrendSegment) systemHealthAlertTrendStats {
+	stats := systemHealthAlertTrendStats{}
+	typeCounts := make(map[string]int)
+	for _, stat := range input.alertHistoryStats {
+		stats.occurrenceCount += int(stat.RecordCount)
+		stats.longestDurationSeconds = math.Max(stats.longestDurationSeconds, stat.MaxDurationSeconds)
+		stats.totalDurationSeconds += stat.TotalDurationSeconds
+	}
+	if stats.occurrenceCount == 0 {
+		for _, segment := range segments {
+			count := maxInt(segment.Count, 1)
+			stats.occurrenceCount += count
+			stats.longestDurationSeconds = math.Max(stats.longestDurationSeconds, segment.DurationSeconds)
+			stats.totalDurationSeconds += segment.DurationSeconds * float64(count)
+		}
+	}
+	for _, segment := range segments {
+		typeName := firstNonEmpty(segment.Type, alertTrendType(segment.AlertName), "告警信号")
+		typeCounts[typeName] += maxInt(segment.Count, 1)
+	}
+	if len(typeCounts) == 0 {
+		for _, alertName := range uniqueStrings(input.alertNames) {
+			typeCounts[alertTrendType(alertName)]++
+		}
+	}
+	stats.alertTypes = alertTrendTypesFromCounts(typeCounts)
+	return stats
+}
+
+func alertTrendTypesFromCounts(typeCounts map[string]int) []response.SystemHealthAlertTrendType {
+	types := make([]response.SystemHealthAlertTrendType, 0, len(typeCounts))
+	for name, count := range typeCounts {
+		if strings.TrimSpace(name) == "" || count <= 0 {
+			continue
+		}
+		types = append(types, response.SystemHealthAlertTrendType{Name: name, Count: count})
+	}
+	sort.SliceStable(types, func(i, j int) bool {
+		if types[i].Count == types[j].Count {
+			return types[i].Name < types[j].Name
+		}
+		return types[i].Count > types[j].Count
+	})
+	if len(types) > 5 {
+		return types[:5]
+	}
+	return types
+}
+
+func alertTrendEventMetaByID(events []alertmodel.AEventWithWRecord) map[string]alertTrendEventMeta {
+	result := make(map[string]alertTrendEventMeta, len(events))
+	for _, event := range events {
+		alertID := strings.TrimSpace(event.AlertID)
+		if alertID == "" {
+			continue
+		}
+		meta := result[alertID]
+		if meta.Name == "" {
+			meta.Name = strings.TrimSpace(event.Name)
+		}
+		if meta.Severity == "" {
+			meta.Severity = strings.TrimSpace(event.Severity)
+		}
+		result[alertID] = meta
+	}
+	return result
+}
+
+func alertTrendType(value string) string {
+	text := strings.ToLower(strings.TrimSpace(value))
+	switch {
+	case strings.Contains(text, "latency"), strings.Contains(text, "duration"), strings.Contains(text, "timeout"), strings.Contains(text, "slow"), strings.Contains(text, "p95"), strings.Contains(text, "p99"), strings.Contains(text, "延时"), strings.Contains(text, "延迟"), strings.Contains(text, "超时"), strings.Contains(text, "慢"):
+		return "请求延时"
+	case strings.Contains(text, "error"), strings.Contains(text, "exception"), strings.Contains(text, "fail"), strings.Contains(text, "5xx"), strings.Contains(text, "4xx"), strings.Contains(text, "错误"), strings.Contains(text, "异常"), strings.Contains(text, "失败"):
+		return "错误率"
+	case strings.Contains(text, "log"), strings.Contains(text, "日志"):
+		return "日志异常"
+	case strings.Contains(text, "cpu"), strings.Contains(text, "memory"), strings.Contains(text, "oom"), strings.Contains(text, "disk"), strings.Contains(text, "load"), strings.Contains(text, "资源"), strings.Contains(text, "内存"), strings.Contains(text, "磁盘"), strings.Contains(text, "负载"):
+		return "资源压力"
+	case strings.Contains(text, "available"), strings.Contains(text, "unavailable"), strings.Contains(text, "down"), strings.Contains(text, "不可用"):
+		return "可用性"
+	default:
+		return "告警信号"
+	}
+}
+
+func alertTrendTypeText(types []response.SystemHealthAlertTrendType, fallback string) string {
+	names := make([]string, 0, len(types)+1)
+	for _, item := range types {
+		if item.Name == "" || item.Name == "告警信号" {
+			continue
+		}
+		names = append(names, item.Name)
+	}
+	if len(names) == 0 && strings.TrimSpace(fallback) != "" {
+		names = append(names, strings.TrimSpace(fallback))
+	}
+	if len(names) == 0 {
+		return ""
+	}
+	return strings.Join(uniqueStrings(names)[:minInt(len(uniqueStrings(names)), 3)], "、")
+}
+
+func alertTrendActivityText(occurrenceCount int, segmentCount int, activeAlerts int) string {
+	switch {
+	case activeAlerts > 0 && occurrenceCount >= 10:
+		return "仍在触发且近期高频出现"
+	case activeAlerts > 0:
+		return "当前仍在触发"
+	case occurrenceCount >= 10 || segmentCount >= 8:
+		return "近期高频出现"
+	case occurrenceCount >= 3 || segmentCount >= 3:
+		return "近期多次出现"
+	case occurrenceCount > 1:
+		return "近期重复出现"
+	default:
+		return "近期少量出现"
+	}
+}
+
+func alertTrendProblemText(scopeLabel string, occurrenceCount int, longestDurationSeconds float64, activeAlerts int) string {
+	if activeAlerts > 0 {
+		return fmt.Sprintf("%s仍有告警触发，需要优先确认当前业务请求是否受影响。", scopeLabel)
+	}
+	if occurrenceCount >= 10 {
+		return fmt.Sprintf("%s近期反复出现同类告警，恢复后仍需要观察是否再次集中出现。", scopeLabel)
+	}
+	if longestDurationSeconds >= 30*60 {
+		return fmt.Sprintf("%s曾出现持续时间较长的告警，建议结合指标趋势和告警分析确认是否已经稳定恢复。", scopeLabel)
+	}
+	return fmt.Sprintf("%s当前未持续告警，但近期出现过相关信号，建议纳入恢复观察。", scopeLabel)
+}
+
+func alertTrendScopeLabel(scopeKind string) string {
+	switch scopeKind {
+	case "entry", "serviceEndpoint":
+		return "该接口"
+	case "service":
+		return "该服务"
+	case "node":
+		return "该节点"
+	case "pod":
+		return "该实例"
+	case "database":
+		return "该数据库"
+	default:
+		return "该影响目标"
+	}
+}
+
+func alertTrendSegmentSummary(alertName string, alertType string, status string, durationSeconds float64) string {
+	subject := firstNonEmpty(alertName, alertType, "相关告警")
+	parts := []string{subject}
+	if alertType != "" && alertType != "告警信号" && !strings.Contains(subject, alertType) {
+		parts = append(parts, "表现为"+alertType)
+	}
+	if durationSeconds > 0 {
+		parts = append(parts, "持续约"+formatDurationCN(durationSeconds))
+	}
+	if status != "" {
+		parts = append(parts, userFacingAlertStatus(status))
+	}
+	return strings.Join(parts, "，")
+}
+
+func latestAlertHistoryTime(input reportInput) time.Time {
+	var latest time.Time
+	consider := func(value time.Time) {
+		if !value.IsZero() && (latest.IsZero() || value.After(latest)) {
+			latest = value
+		}
+	}
+	for _, segment := range input.alertHistorySegments {
+		consider(segment.ReceivedTime)
+		consider(segment.UpdateTime)
+		consider(segment.EndTime)
+	}
+	for _, stat := range input.alertHistoryStats {
+		consider(stat.LastSeenAt)
+	}
+	return latest
+}
+
+func formatAlertTrendTime(value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	return value.Format(time.RFC3339Nano)
+}
+
+func firstNonZeroTime(values ...time.Time) time.Time {
+	for _, value := range values {
+		if !value.IsZero() {
+			return value
+		}
+	}
+	return time.Time{}
+}
+
+func userFacingAlertStatus(status string) string {
+	switch normalizeStatus(status) {
+	case alertmodel.StatusFiring:
+		return "仍在触发"
+	case alertmodel.StatusResolved:
+		return "已恢复"
+	default:
+		return firstNonEmpty(status, "未知")
+	}
 }
 
 func buildInvalidAlertEventEvidenceResult(input reportInput) string {
@@ -3332,7 +5212,9 @@ func ruleDiagnosticEvidenceText(input reportInput) string {
 func inputScopeLabel(scopeKind string) string {
 	switch scopeKind {
 	case "entry":
-		return "该业务入口"
+		return "该入口侧接口"
+	case "serviceEndpoint":
+		return "该服务接口"
 	case "service":
 		return "该服务"
 	case "node":
@@ -3349,7 +5231,9 @@ func inputScopeLabel(scopeKind string) string {
 func inputScopeNoun(scopeKind string) string {
 	switch scopeKind {
 	case "entry":
-		return "业务入口"
+		return "入口侧接口"
+	case "serviceEndpoint":
+		return "服务接口"
 	case "service":
 		return "服务"
 	case "node":
@@ -3393,15 +5277,15 @@ func buildAlertEventPatternSummary(input reportInput, alertNames []string, direc
 		return ""
 	}
 	if input.repeatCount > 0 {
-		parts = append(parts, fmt.Sprintf("同一告警实例反复出现%d次", input.repeatCount))
+		parts = append(parts, fmt.Sprintf("同一告警对象反复出现%d次", input.repeatCount))
 	} else if eventCount > 1 && input.deduplicatedAlerts <= 1 {
-		parts = append(parts, "同一对象出现多次同类事件")
+		parts = append(parts, "同一影响目标出现多次同类事件")
 	}
 	if len(alertNames) > 1 {
-		parts = append(parts, fmt.Sprintf("%d类告警在同一对象聚合", len(alertNames)))
+		parts = append(parts, fmt.Sprintf("同一影响目标出现%d类告警", len(alertNames)))
 	}
 	if input.deduplicatedAlerts > 1 {
-		parts = append(parts, fmt.Sprintf("涉及%d个去重实例", input.deduplicatedAlerts))
+		parts = append(parts, fmt.Sprintf("覆盖%d个告警对象", input.deduplicatedAlerts))
 	}
 	if timePattern := alertEventTimePattern(input.events); timePattern != "" {
 		parts = append(parts, timePattern)
@@ -3777,12 +5661,24 @@ func (h *handler) buildRealEvidence(ctx core.Context, input reportInput, groupID
 		Result:      buildAlertEventEvidenceResult(input),
 		AlertEvents: buildAlertEventEvidenceSamples(input),
 	})
+	if historyResult := buildAlertHistoryEvidenceResult(input); historyResult != "" {
+		evidence = append(evidence, response.SystemHealthEvidence{
+			Type:     "告警历史",
+			Source:   sourceLabel("alerts"),
+			Severity: maxSeverity(input.alertSeverities),
+			Query:    "alert_event.alert_id last_3d",
+			Result:   historyResult,
+		})
+	}
 
 	if reportEvidence := buildAlertReportEvidence(input.alertReportFindings, maxSeverity(input.alertSeverities)); len(reportEvidence) > 0 {
 		evidence = append(evidence, reportEvidence...)
 	}
 	if trendEvidence := h.alertRuleMetricTrendEvidence(ctx, input, groupID, startTime, endTime); trendEvidence.Result != "" {
 		evidence = append(evidence, trendEvidence)
+	}
+	if requestPolarisEvidence := h.requestPolarisEvidence(ctx, input, groupID, startTime, endTime); requestPolarisEvidence.Result != "" {
+		evidence = append(evidence, requestPolarisEvidence)
 	}
 	if objectStatusEvidence := h.relatedObjectStatusEvidence(ctx, input); objectStatusEvidence.Result != "" {
 		evidence = append(evidence, objectStatusEvidence)
@@ -3898,6 +5794,389 @@ func alertReportEvidenceResult(kind string, summary string) string {
 	default:
 		return "方向报告补充证据显示：" + summary
 	}
+}
+
+func (h *handler) requestPolarisEvidence(ctx core.Context, input reportInput, groupID int64, startTime time.Time, endTime time.Time) response.SystemHealthEvidence {
+	evidence := response.SystemHealthEvidence{
+		Type:     "请求北极星指标趋势",
+		Source:   sourceLabel("requestPolaris"),
+		Severity: maxSeverity(input.alertSeverities),
+		Query:    "kindling_profiling_request_resource_duration",
+	}
+	if !isLatencyIssueInput(input) {
+		return evidence
+	}
+	if h == nil || h.promRepo == nil || len(input.events) == 0 {
+		systemHealthWarnCtx(ctx, "system-health request polaris skipped",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.Bool("hasHandler", h != nil),
+			zap.Bool("hasPromRepo", h != nil && h.promRepo != nil),
+			zap.Int("eventCount", len(input.events)),
+			zap.String("reason", "missing_prometheus_or_events"),
+		)
+		return evidence
+	}
+
+	event, serviceName, contentKey, clusterID := requestPolarisTarget(input.events)
+	if strings.TrimSpace(serviceName) == "" {
+		systemHealthWarnCtx(ctx, "system-health request polaris skipped",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("reason", "service_name_missing"),
+		)
+		return evidence
+	}
+
+	step := trendQueryStep(startTime, endTime)
+	interval := prometheus.VecFromDuration(step)
+	specs := requestPolarisMetricSpecs(serviceName, contentKey, clusterID, interval, step)
+	trends := make([]requestPolarisMetricTrend, 0, len(specs))
+	queryStartedAt := time.Now()
+	for _, spec := range specs {
+		trend := h.queryRequestPolarisMetricTrend(ctx, spec, step, startTime, endTime)
+		if trend.PointCount > 0 || trend.QueryErr != "" {
+			trends = append(trends, trend)
+		}
+	}
+	if len(trends) == 0 {
+		systemHealthWarnCtx(ctx, "system-health request polaris unavailable",
+			zap.String("issueKey", input.key),
+			zap.String("aggregationKey", input.aggregationKey),
+			zap.String("serviceName", serviceName),
+			zap.String("contentKey", contentKey),
+			zap.String("clusterID", clusterID),
+			zap.String("reason", "no_metric_points"),
+			zap.Duration("elapsed", time.Since(queryStartedAt)),
+		)
+		return evidence
+	}
+
+	topTrend := topRequestPolarisTrend(trends)
+	if topTrend != nil {
+		evidence.Metric = buildMetricEvidence(alertMetricTrendQueryResult{
+			MetricName:     topTrend.MetricName,
+			Expression:     topTrend.Expression,
+			Step:           step,
+			SeriesReturned: topTrend.SeriesCount,
+			Stats:          topTrend.Stats,
+			EventScoped:    strings.TrimSpace(contentKey) != "",
+			Message:        requestPolarisMetricMessage(*topTrend),
+		})
+	}
+
+	abnormal := requestPolarisAbnormalTrends(trends)
+	var slowSpans []clickhouse.QueryTraceResult
+	var slowSpanTotal int64
+	var slowSpanErr error
+	if len(abnormal) == 0 && h.chRepo != nil {
+		slowSpans, slowSpanTotal, slowSpanErr = h.queryRequestPolarisSlowSpans(ctx, groupID, startTime, endTime, serviceName, contentKey, clusterID)
+	}
+	evidence.Result = buildRequestPolarisEvidenceResult(input.scope, serviceName, contentKey, trends, abnormal, slowSpans, slowSpanTotal, slowSpanErr)
+	systemHealthInfoCtx(ctx, "system-health request polaris completed",
+		zap.String("issueKey", input.key),
+		zap.String("aggregationKey", input.aggregationKey),
+		zap.String("eventID", event.EventID),
+		zap.String("alertID", event.AlertID),
+		zap.String("alertName", event.Name),
+		zap.String("serviceName", serviceName),
+		zap.String("contentKey", contentKey),
+		zap.String("clusterID", clusterID),
+		zap.Int("trendCount", len(trends)),
+		zap.Int("abnormalTrendCount", len(abnormal)),
+		zap.Int64("slowSpanTotal", slowSpanTotal),
+		zap.Bool("hasSlowSpanError", slowSpanErr != nil),
+		zap.Duration("elapsed", time.Since(queryStartedAt)),
+	)
+	return evidence
+}
+
+func isLatencyIssueInput(input reportInput) bool {
+	text := strings.ToLower(strings.Join(append([]string{input.title, input.scope, input.impact}, input.alertNames...), " "))
+	return strings.Contains(text, "latency") ||
+		strings.Contains(text, "duration") ||
+		strings.Contains(text, "timeout") ||
+		strings.Contains(text, "slow") ||
+		strings.Contains(text, "p95") ||
+		strings.Contains(text, "p99") ||
+		strings.Contains(text, "延时") ||
+		strings.Contains(text, "延迟") ||
+		strings.Contains(text, "耗时") ||
+		strings.Contains(text, "超时") ||
+		strings.Contains(text, "慢")
+}
+
+func requestPolarisTarget(events []alertmodel.AEventWithWRecord) (alertmodel.AEventWithWRecord, string, string, string) {
+	for _, event := range events {
+		rawTags := rawTagsFromEvent(event)
+		serviceName := firstNonEmpty(
+			rawTags["service_name"],
+			rawTags["serviceName"],
+			rawTags["svc_name"],
+			event.GetServiceNameTag(),
+		)
+		if strings.TrimSpace(serviceName) == "" {
+			continue
+		}
+		return event,
+			serviceName,
+			firstNonEmpty(rawTags["content_key"], rawTags["endpoint"]),
+			firstNonEmpty(rawTags["cluster_id"], rawTags["clusterId"])
+	}
+	return alertmodel.AEventWithWRecord{}, "", "", ""
+}
+
+func requestPolarisMetricSpecs(serviceName string, contentKey string, clusterID string, interval string, step time.Duration) []requestPolarisMetricTrend {
+	selector := requestPolarisSelector(serviceName, contentKey, clusterID)
+	stepSeconds := math.Max(step.Seconds(), 1)
+	return []requestPolarisMetricTrend{
+		{
+			Key:          "net",
+			MetricName:   "请求网络平均耗时",
+			Unit:         "ms/request",
+			ResourceKind: "网络耗时",
+			Expression: fmt.Sprintf(
+				`(sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_sum{%s}[%s])) / sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_count{%s}[%s]))) / 1000000`,
+				selector, interval, selector, interval,
+			),
+		},
+		{
+			Key:          "epoll",
+			MetricName:   "请求调度等待平均耗时",
+			Unit:         "ms/request",
+			ResourceKind: "调度等待耗时",
+			Expression: fmt.Sprintf(
+				`(sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_sum{%s}[%s])) / sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_count{%s}[%s]))) / 1000000`,
+				selector, interval, selector, interval,
+			),
+		},
+		{
+			Key:          "cpu",
+			MetricName:   "请求CPU执行平均耗时",
+			Unit:         "ms/request",
+			ResourceKind: "CPU执行耗时",
+			Expression: fmt.Sprintf(
+				`(sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_sum{%s}[%s])) / sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))) / 1000000`,
+				selector, interval, selector, interval,
+			),
+		},
+		{
+			Key:          "latency",
+			MetricName:   "请求平均耗时",
+			Unit:         "ms/request",
+			ResourceKind: "请求耗时",
+			Expression: fmt.Sprintf(
+				`(sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_sum{%s}[%s])) / sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s]))) / 1000000`,
+				selector, interval, selector, interval,
+			),
+		},
+		{
+			Key:          "tps",
+			MetricName:   "请求吞吐量",
+			Unit:         "req/s",
+			ResourceKind: "TPS",
+			Expression: fmt.Sprintf(
+				`sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{%s}[%s])) / %.0f`,
+				selector, interval, stepSeconds,
+			),
+		},
+	}
+}
+
+func requestPolarisSelector(serviceName string, contentKey string, clusterID string) string {
+	matchers := []string{fmt.Sprintf(`svc_name=~"%s"`, prometheus.EscapeRegexp(serviceName))}
+	if strings.TrimSpace(contentKey) != "" {
+		matchers = append(matchers, fmt.Sprintf(`content_key=~"%s"`, prometheus.EscapeRegexp(contentKey)))
+	} else {
+		matchers = append(matchers, `content_key=~".*"`)
+	}
+	if strings.TrimSpace(clusterID) != "" {
+		matchers = append(matchers, fmt.Sprintf(`cluster_id=~"%s"`, prometheus.EscapeRegexp(clusterID)))
+	}
+	return strings.Join(matchers, ",")
+}
+
+func (h *handler) queryRequestPolarisMetricTrend(ctx core.Context, spec requestPolarisMetricTrend, step time.Duration, startTime time.Time, endTime time.Time) requestPolarisMetricTrend {
+	trend := spec
+	results, err := h.queryRawMetricSeries(ctx, startTime, endTime, spec.Expression, step)
+	if err != nil {
+		trend.QueryErr = err.Error()
+		return trend
+	}
+	stats, ok := calculateMetricTrendStats(results)
+	if !ok {
+		trend.QueryErr = "no_usable_points"
+		return trend
+	}
+	trend.Stats = stats
+	trend.SeriesCount = len(results)
+	trend.PointCount = stats.PointCount
+	trend.Abnormal, trend.Reason = requestPolarisTrendAbnormalReason(trend)
+	return trend
+}
+
+func requestPolarisTrendAbnormalReason(trend requestPolarisMetricTrend) (bool, string) {
+	if trend.PointCount == 0 {
+		return false, ""
+	}
+	if trend.Key == "tps" {
+		if trend.Stats.ChangePercent != nil && *trend.Stats.ChangePercent >= requestPolarisIncreaseThreshold*100 && trend.Stats.Delta > 0 {
+			return true, fmt.Sprintf("TPS 升高约 %s%%", formatMetricFloat(*trend.Stats.ChangePercent))
+		}
+		return false, ""
+	}
+	if trend.Key == "latency" {
+		return false, ""
+	}
+	if trend.Stats.MaxValue >= requestPolarisResourceThresholdMS {
+		return true, fmt.Sprintf("%s最高达到 %sms", trend.ResourceKind, formatMetricFloat(trend.Stats.MaxValue))
+	}
+	if trend.Stats.ChangePercent != nil && *trend.Stats.ChangePercent >= requestPolarisIncreaseThreshold*100 && trend.Stats.Delta > 0 {
+		return true, fmt.Sprintf("%s升高约 %s%%", trend.ResourceKind, formatMetricFloat(*trend.Stats.ChangePercent))
+	}
+	return false, ""
+}
+
+func requestPolarisAbnormalTrends(trends []requestPolarisMetricTrend) []requestPolarisMetricTrend {
+	result := make([]requestPolarisMetricTrend, 0, len(trends))
+	for _, trend := range trends {
+		if trend.Abnormal && trend.Key != "tps" {
+			result = append(result, trend)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Stats.MaxValue > result[j].Stats.MaxValue
+	})
+	return result
+}
+
+func topRequestPolarisTrend(trends []requestPolarisMetricTrend) *requestPolarisMetricTrend {
+	var top *requestPolarisMetricTrend
+	for index := range trends {
+		trend := &trends[index]
+		if trend.PointCount == 0 || trend.Key == "tps" {
+			continue
+		}
+		if top == nil || (trend.Abnormal && !top.Abnormal) || trend.Stats.MaxValue > top.Stats.MaxValue {
+			top = trend
+		}
+	}
+	return top
+}
+
+func requestPolarisMetricMessage(trend requestPolarisMetricTrend) string {
+	return fmt.Sprintf("%s在窗口内首值=%s、末值=%s、最高=%s，单位=%s。%s",
+		trend.MetricName,
+		formatMetricFloat(trend.Stats.FirstValue),
+		formatMetricFloat(trend.Stats.LastValue),
+		formatMetricFloat(trend.Stats.MaxValue),
+		trend.Unit,
+		firstNonEmpty(trend.Reason, "未达到请求北极星异常阈值"),
+	)
+}
+
+func (h *handler) queryRequestPolarisSlowSpans(ctx core.Context, groupID int64, startTime time.Time, endTime time.Time, serviceName string, contentKey string, clusterID string) ([]clickhouse.QueryTraceResult, int64, error) {
+	thresholdMicros := int64(requestPolarisSlowSpanThresholdMS * 1000)
+	req := &request.GetTracePageListRequest{
+		GroupID:   groupID,
+		StartTime: startTime.UnixMicro(),
+		EndTime:   endTime.UnixMicro(),
+		Service:   []string{serviceName},
+		EndPoint:  contentKey,
+		PageNum:   1,
+		PageSize:  20,
+		Filters: []*request.ComplexSpanTraceFilter{
+			{
+				SpanTraceFilter: &request.SpanTraceFilter{
+					Key:       "duration",
+					DataType:  request.U64Column,
+					Operation: request.OpGreaterThan,
+					Value:     []string{strconv.FormatInt(thresholdMicros, 10)},
+				},
+			},
+		},
+	}
+	if clusterID != "" {
+		req.ClusterIDs = []string{clusterID}
+	}
+	return h.chRepo.GetTracePageList(ctx, req)
+}
+
+func buildRequestPolarisEvidenceResult(scope string, serviceName string, contentKey string, trends []requestPolarisMetricTrend, abnormal []requestPolarisMetricTrend, slowSpans []clickhouse.QueryTraceResult, slowSpanTotal int64, slowSpanErr error) string {
+	targetDetail := requestPolarisTargetText(scope, serviceName, contentKey)
+	tpsText := requestPolarisTPSText(trends)
+	if len(abnormal) > 0 {
+		top := abnormal[0]
+		parts := []string{
+			fmt.Sprintf("请求北极星显示，%s 在告警窗口内%s异常，最高 %sms，说明单次请求耗时可能被%s放大", targetDetail, top.ResourceKind, formatMetricFloat(top.Stats.MaxValue), top.ResourceKind),
+		}
+		if top.Stats.ChangePercent != nil {
+			parts = append(parts, fmt.Sprintf("窗口变化约 %s%%", formatSignedMetricFloat(*top.Stats.ChangePercent)))
+		}
+		if tpsText != "" {
+			parts = append(parts, tpsText)
+		}
+		if len(abnormal) > 1 {
+			parts = append(parts, "同时可见"+requestPolarisTrendBrief(abnormal[1]))
+		}
+		return truncateText(strings.Join(parts, "；")+"。", 520)
+	}
+	if slowSpanErr != nil {
+		return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高；调用链慢 span 检索失败：%s。%s", requestPolarisResourceThresholdMS, slowSpanErr.Error(), tpsText), 520)
+	}
+	if slowSpanTotal > 0 {
+		return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高；但调用链中检索到 %d 条超过 %.0fms 的慢 span，%s。该结果用于定位慢调用样本，不代表全局资源耗时已异常。%s",
+			requestPolarisResourceThresholdMS,
+			slowSpanTotal,
+			requestPolarisSlowSpanThresholdMS,
+			summarizeTraceSamples(slowSpans),
+			tpsText,
+		), 560)
+	}
+	return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高，调用链也未检索到超过 %.0fms 的慢 span；当前不把请求资源耗时作为主要根因。%s",
+		requestPolarisResourceThresholdMS,
+		requestPolarisSlowSpanThresholdMS,
+		tpsText,
+	), 520)
+}
+
+func requestPolarisTargetText(scope string, serviceName string, contentKey string) string {
+	target := firstNonEmpty(scope, serviceName, contentKey, "该请求")
+	details := make([]string, 0, 2)
+	if serviceName != "" && !strings.Contains(target, serviceName) {
+		details = append(details, "服务 "+serviceName)
+	}
+	if contentKey != "" && !strings.Contains(target, contentKey) {
+		details = append(details, "请求路径 "+contentKey)
+	}
+	if len(details) == 0 {
+		return target
+	}
+	return target + "（" + strings.Join(details, "，") + "）"
+}
+
+func requestPolarisTPSText(trends []requestPolarisMetricTrend) string {
+	for _, trend := range trends {
+		if trend.Key != "tps" || trend.PointCount == 0 {
+			continue
+		}
+		direction := "基本持平"
+		if trend.Stats.Delta > 0 {
+			direction = "升高"
+		} else if trend.Stats.Delta < 0 {
+			direction = "回落"
+		}
+		change := ""
+		if trend.Stats.ChangePercent != nil {
+			change = fmt.Sprintf("，变化约 %s%%", formatSignedMetricFloat(*trend.Stats.ChangePercent))
+		}
+		return fmt.Sprintf("同窗口 TPS 从 %s 到 %s req/s，整体%s%s", formatMetricFloat(trend.Stats.FirstValue), formatMetricFloat(trend.Stats.LastValue), direction, change)
+	}
+	return ""
+}
+
+func requestPolarisTrendBrief(trend requestPolarisMetricTrend) string {
+	return fmt.Sprintf("%s最高 %sms", trend.ResourceKind, formatMetricFloat(trend.Stats.MaxValue))
 }
 
 func (h *handler) traceSampleEvidence(ctx core.Context, input reportInput, groupID int64, startTime time.Time, endTime time.Time) response.SystemHealthEvidence {
@@ -4301,9 +6580,16 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 
 func buildMetricEvidence(trend alertMetricTrendQueryResult) *response.SystemHealthMetricEvidence {
 	series, pointsTruncated := buildMetricSeriesEvidence(trend.MatchedSeries, maxMetricEvidenceSeries, maxMetricEvidencePoints)
+	ruleGroup := ""
+	ruleName := ""
+	if trend.Rule != nil {
+		ruleGroup = trend.Rule.Group
+		ruleName = trend.Rule.Alert
+	}
 	metric := &response.SystemHealthMetricEvidence{
-		RuleGroup:       trend.Rule.Group,
-		RuleName:        trend.Rule.Alert,
+		RuleGroup:       ruleGroup,
+		RuleName:        ruleName,
+		MetricName:      firstNonEmpty(trend.MetricName, inferMetricNameFromRule(ruleName, trend.Expression)),
 		Expression:      trend.Expression,
 		Step:            trend.Step.String(),
 		SeriesReturned:  trend.SeriesReturned,
@@ -5493,13 +7779,14 @@ func buildIssues(scored []scoredIssue) []response.SystemHealthIssue {
 			SystemProblem:         buildSystemProblem(item),
 			AIConclusion:          buildAIConclusion(item),
 			RootCause:             buildRootCause(item),
-			MetricAnalysis:        buildMetricAnalysis(item.input.evidence),
+			MetricAnalysis:        buildMetricAnalysisForIssueContext(item.input.scope, item.status, item.input.activeAlerts, item.input.evidence),
 			EBPFRole:              buildEBPFRole(item),
 			Impact:                item.input.impact,
 			DataSources:           item.input.displaySources,
 			Actions:               actionTexts(actionPlan),
 			ActionPlan:            actionPlan,
 			ExistingAlertAnalyses: buildIssueExistingAlertAnalyses(item.input.events),
+			AlertTrend:            buildAlertTrend(item.input),
 			Evidence:              item.input.evidence,
 		})
 	}
@@ -5515,9 +7802,16 @@ func logSystemHealthIssueDiagnostics(ctx core.Context, scored []scoredIssue, iss
 		rootCause, rootCauseSource, rootCauseReason := buildRootCauseDecision(item)
 		metricStatus, metricReason := metricTrendDiagnostic(item.input.evidence)
 		reportEvidenceKinds := alertReportEvidenceKinds(item.input.alertReportFindings)
+		topologyRole := dominantAlertReportTopologyRole(item.input.alertReportTopologyRoles)
 		actionPlanSource := "system_default"
 		if len(alertReportActionPlanSteps(item.input.alertReportActions, item.input.scope)) > 0 {
 			actionPlanSource = "alert_report+system_default"
+		}
+		alertTrendSegmentCount := 0
+		alertTrendOccurrenceCount := 0
+		if issue.AlertTrend != nil {
+			alertTrendSegmentCount = len(issue.AlertTrend.Segments)
+			alertTrendOccurrenceCount = issue.AlertTrend.OccurrenceCount
 		}
 		systemHealthInfoCtx(ctx, "system-health issue diagnostics",
 			zap.String("issueKey", item.input.key),
@@ -5540,6 +7834,15 @@ func logSystemHealthIssueDiagnostics(ctx core.Context, scored []scoredIssue, iss
 			zap.Bool("hasRootCause", rootCause != ""),
 			zap.Int("alertReportActions", len(item.input.alertReportActions)),
 			zap.Int("alertReportFindings", len(item.input.alertReportFindings)),
+			zap.Int("alertReportTopologyRoles", len(item.input.alertReportTopologyRoles)),
+			zap.Int("alertHistoryStats", len(item.input.alertHistoryStats)),
+			zap.Int("alertHistorySegments", len(item.input.alertHistorySegments)),
+			zap.Int("alertTrendSegments", alertTrendSegmentCount),
+			zap.Int("alertTrendOccurrenceCount", alertTrendOccurrenceCount),
+			zap.String("alertReportTopologyRole", topologyRole.Role),
+			zap.String("alertReportTopologyReason", topologyRole.Reason),
+			zap.Int("alertReportTopologyParentCount", topologyRole.ParentCount),
+			zap.Int("alertReportTopologyChildCount", topologyRole.ChildCount),
 			zap.Strings("alertReportEvidenceKinds", reportEvidenceKinds),
 			zap.String("actionPlanSource", actionPlanSource),
 			zap.Int("actionPlanSteps", len(issue.ActionPlan)),
@@ -5971,7 +8274,7 @@ func propagationScore(input reportInput) float64 {
 	instanceSpread := math.Min(float64(maxInt(input.deduplicatedAlerts-1, 0))/3, 1) * 100
 	repeatSpread := repeatPressure(input.repeatCount)
 	scopeBoost := 0.0
-	if input.scopeKind == "entry" || input.scopeKind == "service" {
+	if input.scopeKind == "entry" || input.scopeKind == "serviceEndpoint" || input.scopeKind == "service" {
 		scopeBoost = 15
 	}
 	return clamp(0.55*instanceSpread+0.30*repeatSpread+scopeBoost, 0, 65)
@@ -6315,6 +8618,9 @@ func reportScopePatternText(scored []scoredIssue) string {
 	for _, item := range scored {
 		countByKind[item.input.scopeKind]++
 	}
+	if countByKind["entry"] > 0 && countByKind["serviceEndpoint"] > 0 && len(scored) > 3 {
+		return "多入口/多服务接口"
+	}
 	if countByKind["entry"] > 0 && countByKind["service"] > 0 && len(scored) > 3 {
 		return "多入口/多服务"
 	}
@@ -6323,6 +8629,12 @@ func reportScopePatternText(scored []scoredIssue) string {
 			return "多入口"
 		}
 		return "单入口"
+	}
+	if countByKind["serviceEndpoint"] > 0 {
+		if len(scored) > 1 {
+			return "多服务接口"
+		}
+		return "单服务接口"
 	}
 	if countByKind["service"] > 0 {
 		if len(scored) > 1 {
@@ -6442,7 +8754,7 @@ func buildAIConclusion(item scoredIssue) string {
 			break
 		}
 	}
-	metricDirection := buildMetricAnalysis(item.input.evidence)
+	metricDirection := buildMetricAnalysisForIssueContext(item.input.scope, item.status, item.input.activeAlerts, item.input.evidence)
 	if metricDirection == "" {
 		metricDirection = buildRootCause(item)
 	}
@@ -6463,6 +8775,9 @@ func buildRootCauseDecision(item scoredIssue) (string, string, string) {
 	}
 	if reportRootCause := buildRootCauseFromAlertReports(item.input.alertReportFindings); reportRootCause != "" {
 		return reportRootCause, "alert_report", fmt.Sprintf("alert_report_findings=%d", len(uniqueAlertReportFindings(item.input.alertReportFindings)))
+	}
+	if requestPolarisRootCause := buildRootCauseFromRequestPolaris(item.input.evidence); requestPolarisRootCause != "" {
+		return requestPolarisRootCause, "request_polaris", "alert_report_root_cause_missing_request_polaris_abnormal"
 	}
 	directions := alertDirections(item.input.events)
 	if len(directions) == 0 {
@@ -6492,12 +8807,13 @@ func buildRootCauseFromAlertReports(findings []systemHealthAlertReportFinding) s
 	rootCauses := make([]string, 0, len(findings))
 	details := make([]string, 0, len(findings))
 	for _, finding := range findings {
-		if rootCause := cleanUserFacingReportText(finding.RootCause); rootCause != "" {
+		if rootCause := cleanAlertReportDirectionalText(finding.RootCause); rootCause != "" {
 			rootCauses = append(rootCauses, rootCause)
 		}
-		if analyzeProcess := cleanUserFacingReportText(finding.AnalyzeProcess); analyzeProcess != "" {
+		rootCauses = append(rootCauses, cleanAlertReportDirectionalTexts(finding.RootCauseOther, 6, 260)...)
+		if analyzeProcess := cleanAlertReportDirectionalText(finding.AnalyzeProcess); analyzeProcess != "" {
 			details = append(details, analyzeProcess)
-		} else if detail := cleanUserFacingReportText(finding.Detail); detail != "" {
+		} else if detail := cleanAlertReportDirectionalText(finding.Detail); detail != "" {
 			details = append(details, detail)
 		}
 	}
@@ -6513,42 +8829,346 @@ func buildRootCauseFromAlertReports(findings []systemHealthAlertReportFinding) s
 	return truncateText(strings.Join(parts, "。"), 420)
 }
 
+func buildRootCauseFromRequestPolaris(evidence []response.SystemHealthEvidence) string {
+	for _, item := range evidence {
+		if !strings.Contains(item.Type, "请求北极星") {
+			continue
+		}
+		result := cleanUserFacingReportText(item.Result)
+		if result == "" {
+			continue
+		}
+		if strings.Contains(result, "未见网络耗时") || strings.Contains(result, "未见请求资源耗时") || strings.Contains(result, "检索失败") || strings.Contains(result, "不把请求资源耗时作为主要根因") || strings.Contains(result, "不代表全局资源耗时已异常") {
+			continue
+		}
+		if !strings.Contains(result, "异常") && !strings.Contains(result, "升高") && !strings.Contains(result, "达到") && !strings.Contains(result, "放大") {
+			continue
+		}
+		return "请求北极星显示单次请求资源耗时存在异常波动，可能根因集中在：" + truncateText(result, 260)
+	}
+	return ""
+}
+
+type metricTimeRangeSummary struct {
+	StartAt string
+	EndAt   string
+	PeakAt  string
+	MinAt   string
+}
+
 func buildMetricAnalysis(evidence []response.SystemHealthEvidence) string {
+	return buildMetricAnalysisForIssueContext("该影响目标", "", 0, evidence)
+}
+
+func buildMetricAnalysisForIssueContext(scope string, status string, activeAlerts int, evidence []response.SystemHealthEvidence) string {
 	for _, item := range evidence {
 		if !strings.Contains(item.Type, "告警指标趋势") || item.Metric == nil {
 			continue
 		}
 		metric := item.Metric
+		subject := strings.TrimSpace(scope)
+		if subject == "" {
+			subject = "该影响目标"
+		}
+		metricLabel := metricUserFacingLabel(metric)
 		if metric.PointCount <= 0 {
-			return "未获取到足够的指标采样点，暂时无法判断指标是在升高还是回落。"
+			return fmt.Sprintf("%s的%s暂未获取到足够采样点，暂时无法判断指标是在升高还是回落。", subject, metricLabel)
 		}
 		if !metric.EventScoped {
-			return "指标查询未能精确匹配到当前告警事件对应的时序，当前趋势只能作为背景参考，不能直接证明该影响目标仍异常。"
+			return fmt.Sprintf("%s的%s未能精确匹配到当前告警事件对应的时序，当前趋势只能作为背景参考，不能直接证明该影响目标仍异常。", subject, metricLabel)
 		}
 		changeText := ""
 		if metric.ChangePercent != nil {
-			changeText = "，整体变化约 " + formatSignedMetricFloat(*metric.ChangePercent) + "%"
+			changeText = "，变化约 " + formatSignedMetricFloat(*metric.ChangePercent) + "%"
 		}
+		timeText := "在当前窗口内"
+		if rangeText := metricTimeRangePhrase(metric); rangeText != "" {
+			timeText = "在 " + rangeText
+		}
+		peakText := metricPeakPhrase(metric)
+		meaning := metricRiskMeaning(metric, status, activeAlerts)
 		switch {
 		case metric.Delta < 0:
-			return fmt.Sprintf("告警关联指标在当前窗口内从 %s 回落到 %s%s，说明触发压力正在缓解；仍需观察后续窗口是否再次升高。",
+			return fmt.Sprintf("%s的%s显示，%s从 %s 回落到 %s%s%s；%s",
+				subject,
+				metricLabel,
+				timeText,
 				formatMetricFloat(metric.FirstValue),
 				formatMetricFloat(metric.LastValue),
 				changeText,
+				peakText,
+				meaning,
 			)
 		case metric.Delta > 0:
-			return fmt.Sprintf("告警关联指标在当前窗口内从 %s 升高到 %s%s，说明异常压力仍在增强；需要优先确认影响是否继续扩大。",
+			return fmt.Sprintf("%s的%s显示，%s从 %s 升高到 %s%s%s；%s",
+				subject,
+				metricLabel,
+				timeText,
 				formatMetricFloat(metric.FirstValue),
 				formatMetricFloat(metric.LastValue),
 				changeText,
+				peakText,
+				meaning,
 			)
 		default:
-			return fmt.Sprintf("告警关联指标在当前窗口内基本持平，数值约为 %s；需要结合告警状态和 RED 指标判断是否仍有用户影响。",
+			return fmt.Sprintf("%s的%s显示，%s基本持平，数值约为 %s%s；%s",
+				subject,
+				metricLabel,
+				timeText,
 				formatMetricFloat(metric.LastValue),
+				peakText,
+				meaning,
 			)
 		}
 	}
 	return ""
+}
+
+func metricUserFacingLabel(metric *response.SystemHealthMetricEvidence) string {
+	if metric == nil {
+		return "相关指标"
+	}
+	if metricName := strings.TrimSpace(metric.MetricName); metricName != "" {
+		return metricName
+	}
+	return inferMetricNameFromRule(metric.RuleName, metric.Expression)
+}
+
+func inferMetricNameFromRule(ruleName string, expression string) string {
+	signatureText := strings.Join([]string{
+		strings.TrimSpace(ruleName),
+		strings.TrimSpace(expression),
+	}, " ")
+	signature := strings.ToLower(signatureText)
+	dayOverDay := containsAnyText(signatureText, "相比昨天", "较昨天", "比昨天", "昨日", "昨天", "日同比") ||
+		strings.Contains(signature, "offset 24h") ||
+		strings.Contains(signature, "day_over_day") ||
+		strings.Contains(signature, "dayoverday") ||
+		strings.Contains(signature, "dod")
+
+	logMetric := containsAnyText(signatureText, "日志") || strings.Contains(signature, "log")
+	latencyMetric := containsAnyText(signatureText, "平均请求延时", "平均延时", "请求延时", "请求延迟", "延时", "延迟", "耗时", "超时", "慢请求") ||
+		strings.Contains(signature, "latency") ||
+		strings.Contains(signature, "duration") ||
+		strings.Contains(signature, "response_time") ||
+		strings.Contains(signature, "request_time") ||
+		strings.Contains(signature, "rt_") ||
+		strings.Contains(signature, "p95") ||
+		strings.Contains(signature, "p99")
+	errorMetric := containsAnyText(signatureText, "请求错误率", "错误率", "错误", "异常", "失败") ||
+		strings.Contains(signature, "error") ||
+		strings.Contains(signature, "exception") ||
+		strings.Contains(signature, "fail") ||
+		strings.Contains(signature, "5xx") ||
+		strings.Contains(signature, "4xx")
+
+	switch {
+	case logMetric && errorMetric && dayOverDay:
+		return "日志错误数日同比"
+	case logMetric && errorMetric:
+		return "日志错误数"
+	case latencyMetric && dayOverDay:
+		return "请求延时日同比"
+	case latencyMetric && (containsAnyText(signatureText, "平均请求延时", "平均延时") || strings.Contains(signature, "avg") || strings.Contains(signature, "average") || strings.Contains(signature, "mean")):
+		return "平均请求延时"
+	case latencyMetric:
+		return "请求延时"
+	case errorMetric && dayOverDay:
+		return "请求错误率日同比"
+	case errorMetric:
+		return "请求错误率"
+	case strings.Contains(signature, "cpu"):
+		if dayOverDay {
+			return "CPU 使用率日同比"
+		}
+		return "CPU 使用率"
+	case strings.Contains(signature, "memory") || containsAnyText(signatureText, "内存"):
+		if dayOverDay {
+			return "内存使用率日同比"
+		}
+		return "内存使用率"
+	case strings.Contains(signature, "disk") || containsAnyText(signatureText, "磁盘"):
+		if dayOverDay {
+			return "磁盘使用率日同比"
+		}
+		return "磁盘使用率"
+	default:
+		return "相关指标"
+	}
+}
+
+func containsAnyText(text string, patterns ...string) bool {
+	for _, pattern := range patterns {
+		if pattern != "" && strings.Contains(text, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+func metricTrendPhrase(metric *response.SystemHealthMetricEvidence) string {
+	if metric == nil || metric.PointCount <= 0 {
+		return "无法判断"
+	}
+	switch {
+	case metric.Delta < 0:
+		return "整体回落"
+	case metric.Delta > 0:
+		return "整体升高"
+	default:
+		return "基本持平"
+	}
+}
+
+func metricRiskMeaning(metric *response.SystemHealthMetricEvidence, status string, activeAlerts int) string {
+	trend := metricTrendPhrase(metric)
+	active := activeAlerts > 0 || strings.EqualFold(status, "active") || strings.EqualFold(status, "firing")
+	if active {
+		switch trend {
+		case "整体回落":
+			return "虽然指标已有缓解，但告警仍在触发，需要继续确认是否已经脱离影响区间"
+		case "整体升高":
+			return "告警仍在触发且指标继续抬升，说明当前风险仍有指标支撑，需要优先确认用户请求是否受影响"
+		default:
+			return "告警仍在触发，指标未明显回落，需要结合 RED 和调用链确认影响是否持续"
+		}
+	}
+	switch trend {
+	case "整体回落":
+		return "随着指标回落且告警已清零，本次风险更适合作为恢复观察和复发监控"
+	case "整体升高":
+		return "虽然当前告警已清零，但窗口内指标仍有抬升，需要观察后续是否复发"
+	default:
+		return "当前告警已清零，指标未继续放大，后续重点观察是否再次触发"
+	}
+}
+
+func metricTimeRangeText(metric *response.SystemHealthMetricEvidence) metricTimeRangeSummary {
+	points := aggregateMetricEvidencePoints(metric)
+	if len(points) == 0 {
+		return metricTimeRangeSummary{}
+	}
+	start := points[0]
+	end := points[len(points)-1]
+	peak := start
+	minPoint := start
+	for _, point := range points {
+		if point.Value > peak.Value {
+			peak = point
+		}
+		if point.Value < minPoint.Value {
+			minPoint = point
+		}
+	}
+	return metricTimeRangeSummary{
+		StartAt: formatMetricTimestamp(start.Timestamp),
+		EndAt:   formatMetricTimestamp(end.Timestamp),
+		PeakAt:  formatMetricTimestamp(peak.Timestamp),
+		MinAt:   formatMetricTimestamp(minPoint.Timestamp),
+	}
+}
+
+func metricTimeRangePhrase(metric *response.SystemHealthMetricEvidence) string {
+	timeRange := metricTimeRangeText(metric)
+	if timeRange.StartAt == "" || timeRange.EndAt == "" {
+		return ""
+	}
+	if timeRange.StartAt == timeRange.EndAt {
+		return timeRange.StartAt + " 附近"
+	}
+	return timeRange.StartAt + " 到 " + timeRange.EndAt
+}
+
+func metricPeakPhrase(metric *response.SystemHealthMetricEvidence) string {
+	timeRange := metricTimeRangeText(metric)
+	if timeRange.PeakAt == "" || metric == nil || metric.PointCount <= 0 {
+		return ""
+	}
+	if math.Abs(metric.MaxValue-metric.FirstValue) < 1e-9 && math.Abs(metric.MaxValue-metric.LastValue) < 1e-9 {
+		return ""
+	}
+	return "，峰值约 " + formatMetricFloat(metric.MaxValue) + "（" + timeRange.PeakAt + "）"
+}
+
+func aggregateMetricEvidencePoints(metric *response.SystemHealthMetricEvidence) []response.SystemHealthMetricDataPoint {
+	if metric == nil || len(metric.Series) == 0 {
+		return nil
+	}
+	aggregated := make(map[int64]float64)
+	for _, series := range metric.Series {
+		for _, point := range series.Points {
+			if point.Timestamp <= 0 || math.IsNaN(point.Value) || math.IsInf(point.Value, 0) {
+				continue
+			}
+			aggregated[point.Timestamp] += point.Value
+		}
+	}
+	if len(aggregated) == 0 {
+		return nil
+	}
+	timestamps := make([]int64, 0, len(aggregated))
+	for timestamp := range aggregated {
+		timestamps = append(timestamps, timestamp)
+	}
+	sort.Slice(timestamps, func(i, j int) bool { return timestamps[i] < timestamps[j] })
+	points := make([]response.SystemHealthMetricDataPoint, 0, len(timestamps))
+	for _, timestamp := range timestamps {
+		points = append(points, response.SystemHealthMetricDataPoint{
+			Timestamp: timestamp,
+			Value:     aggregated[timestamp],
+		})
+	}
+	return points
+}
+
+func formatMetricTimestamp(timestamp int64) string {
+	if timestamp <= 0 {
+		return ""
+	}
+	var value time.Time
+	switch {
+	case timestamp > 1e15:
+		value = time.Unix(0, timestamp*int64(time.Microsecond))
+	case timestamp > 1e12:
+		value = time.UnixMilli(timestamp)
+	case timestamp > 1e9:
+		value = time.Unix(timestamp, 0)
+	default:
+		return ""
+	}
+	return value.In(time.Local).Format("2006-01-02 15:04")
+}
+
+func containsMetricQuerySyntax(text string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(text))
+	if normalized == "" {
+		return false
+	}
+	for _, marker := range []string{
+		"pql",
+		"promql",
+		"query=",
+		"expr=",
+		"查询表达式",
+		"prometheus 查询",
+		"rate(",
+		"irate(",
+		"increase(",
+		"sum by",
+		"avg by",
+		"max by",
+		"min by",
+		"histogram_quantile(",
+		"last_over_time(",
+		"avg_over_time(",
+		"max_over_time(",
+		"min_over_time(",
+	} {
+		if strings.Contains(normalized, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func rootCauseFromAlertDirection(direction string) string {
@@ -6768,6 +9388,71 @@ func cleanUserFacingReportText(value string) string {
 		return ""
 	}
 	return text
+}
+
+func cleanAlertReportDirectionalText(value string) string {
+	text := cleanUserFacingReportText(value)
+	if text == "" || isNonDiagnosticDirectionText(text) {
+		return ""
+	}
+	return text
+}
+
+func cleanAlertReportDirectionalTexts(values []string, limit int, textLimit int) []string {
+	items := make([]string, 0, minInt(len(values), limit))
+	for _, value := range values {
+		if len(items) >= limit {
+			break
+		}
+		text := cleanAlertReportDirectionalText(value)
+		if text == "" {
+			continue
+		}
+		items = append(items, truncateText(text, textLimit))
+	}
+	return uniqueStrings(items)
+}
+
+func isNonDiagnosticDirectionText(value string) bool {
+	text := strings.TrimSpace(strings.Trim(value, "：:;；,.，。 "))
+	if text == "" {
+		return false
+	}
+	compact := strings.ToLower(strings.Join(strings.Fields(text), ""))
+	markers := []string{
+		"无明确故障方向",
+		"无明显故障方向",
+		"没有明确故障方向",
+		"没有明显故障方向",
+		"未发现明确故障方向",
+		"未发现明显故障方向",
+		"未发现故障方向",
+		"未定位到明确故障方向",
+		"未定位到明确根因",
+		"无法判断故障方向",
+		"无法明确故障方向",
+		"无法判断根因",
+		"无法明确根因",
+		"暂无法判断故障方向",
+		"暂无法定位根因",
+		"暂未定位到根因",
+		"暂无明确根因",
+		"无明确根因",
+	}
+	for _, marker := range markers {
+		if strings.Contains(compact, marker) {
+			return true
+		}
+	}
+	return false
+}
+
+func ensureEBPFRootCauseContext(value string) string {
+	text := strings.TrimSpace(value)
+	if text == "" || strings.Contains(strings.ToLower(text), "ebpf") || strings.Contains(text, "eBPF") {
+		return text
+	}
+	return "基于 eBPF 数据的方向报告分析，" + text
 }
 
 func isInternalReportHeadingOnly(value string) bool {

@@ -6,6 +6,7 @@ package clickhouse
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -17,6 +18,50 @@ const (
 	SQL_GET_ALERT_EVENT_REPORT = `
 	SELECT report_type,overview_timestamp,overview_detail,overview_reason,overview_tags,tags,topology,rootcause,rootcause,rootcause_other,suggest,data
 	FROM alert_report %s %s %s`
+
+	SQL_GET_ALERT_EVENT_REPORT_BY_ANALYZE_RUN_ID = `
+	SELECT
+		ar.report_type AS report_type,
+		ar.overview_timestamp AS overview_timestamp,
+		ar.overview_detail AS overview_detail,
+		ar.overview_reason AS overview_reason,
+		ar.overview_tags AS overview_tags,
+		ar.tags AS tags,
+		ar.topology AS topology,
+		ar.rootcause AS rootcause,
+		ar.rootcause_other AS rootcause_other,
+		ar.suggest AS suggest,
+		ar.data AS data
+	FROM workflow_records wr
+	INNER JOIN alert_report ar ON ar.tags['alertEventId'] = wr.input
+	WHERE wr.analyze_run_id = ?
+	  AND ar.overview_timestamp BETWEEN ? AND ?
+	ORDER BY ar.overview_timestamp DESC
+	LIMIT 1`
+
+	SQL_GET_ALERT_EVENT_REPORTS_BY_ALERT_ID = `
+	SELECT
+		ar.report_type AS report_type,
+		ar.overview_timestamp AS overview_timestamp,
+		ar.overview_detail AS overview_detail,
+		ar.overview_reason AS overview_reason,
+		ar.overview_tags AS overview_tags,
+		ar.tags AS tags,
+		ar.topology AS topology,
+		ar.rootcause AS rootcause,
+		ar.rootcause_other AS rootcause_other,
+		ar.suggest AS suggest,
+		ar.data AS data
+	FROM (
+		SELECT DISTINCT input
+		FROM workflow_records
+		WHERE ref = ?
+		  AND created_at BETWEEN ? AND ?
+		  AND input != ''
+	) wr
+	INNER JOIN alert_report ar ON ar.tags['alertEventId'] = wr.input
+	WHERE ar.overview_timestamp BETWEEN ? AND ?
+	ORDER BY ar.overview_timestamp DESC`
 )
 
 func querytagsCondition(tags map[string]string) string {
@@ -47,6 +92,36 @@ func (ch *chRepo) GetAlertEventReport(ctx core.Context, startTime time.Time, end
 		return nil, fmt.Errorf("no event found with tags %s", sqltags)
 	}
 	return &event[0], err
+}
+
+func (ch *chRepo) GetAlertEventReportByAnalyzeRunID(ctx core.Context, startTime time.Time, endTime time.Time, analyzeRunID string) (*model.AlertEventReport, error) {
+	analyzeRunID = strings.TrimSpace(analyzeRunID)
+	if analyzeRunID == "" {
+		return nil, fmt.Errorf("empty analyze_run_id")
+	}
+	var reports []model.AlertEventReport
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &reports, SQL_GET_ALERT_EVENT_REPORT_BY_ANALYZE_RUN_ID, analyzeRunID, startTime, endTime)
+	if err != nil {
+		return nil, err
+	} else if len(reports) == 0 {
+		return nil, fmt.Errorf("no alert report found with analyze_run_id = '%s'", analyzeRunID)
+	}
+	return &reports[0], nil
+}
+
+func (ch *chRepo) GetAlertEventReportsByAlertID(ctx core.Context, startTime time.Time, endTime time.Time, alertID string) ([]model.AlertEventReport, error) {
+	alertID = strings.TrimSpace(alertID)
+	if alertID == "" {
+		return nil, fmt.Errorf("empty alert_id")
+	}
+	var reports []model.AlertEventReport
+	err := ch.GetContextDB(ctx).Select(ctx.GetContext(), &reports, SQL_GET_ALERT_EVENT_REPORTS_BY_ALERT_ID, alertID, startTime, endTime, startTime, endTime)
+	if err != nil {
+		return nil, err
+	} else if len(reports) == 0 {
+		return nil, fmt.Errorf("no alert report found with alert_id = '%s'", alertID)
+	}
+	return reports, nil
 }
 
 func convertJSONS2Strings(datas []map[string]any) []string {
