@@ -66,6 +66,67 @@ StatusTag.propTypes = {
   status: PropTypes.string,
 }
 
+const ExpandableText = ({
+  className = '',
+  collapseLabel = '收起',
+  expandLabel = '展开',
+  text = '',
+  threshold = 140,
+}) => {
+  const content = safeText(text)
+  const contentRef = useRef(null)
+  const [expanded, setExpanded] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
+  useEffect(() => {
+    const element = contentRef.current
+    if (!element || expanded) return undefined
+    let frame = 0
+    const measure = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(() => {
+        setOverflowing(element.scrollHeight > element.clientHeight + 1)
+      })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('resize', measure)
+    }
+  }, [content, expanded])
+  if (!content) return null
+  const expandable = overflowing || content.length > threshold
+  return (
+    <div
+      className={[
+        'health-expandable-text',
+        !expanded ? 'health-expandable-text-collapsed' : '',
+        className,
+      ].filter(Boolean).join(' ')}
+    >
+      <span className="health-expandable-text-content" ref={contentRef}>{content}</span>
+      {expandable && (
+        <button
+          type="button"
+          className="health-expandable-text-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? collapseLabel : expandLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
+ExpandableText.propTypes = {
+  className: PropTypes.string,
+  collapseLabel: PropTypes.string,
+  expandLabel: PropTypes.string,
+  text: PropTypes.string,
+  threshold: PropTypes.number,
+}
+
 const safeList = (value) => (Array.isArray(value) ? value : [])
 
 const safeText = (value) => (value === undefined || value === null ? '' : `${value}`.trim())
@@ -85,6 +146,8 @@ const aiAnalysisMeta = (analysis = {}) => {
   switch (analysis.status) {
     case 'succeeded':
       return { text: '智能摘要', color: 'processing' }
+    case 'partial':
+      return { text: '智能分析已部分生成', color: 'warning' }
     case 'failed':
       return { text: '智能摘要暂不可用，已展示基础分析', color: 'warning' }
     case 'skipped':
@@ -258,7 +321,7 @@ const reportWaitingBlocks = [
   {
     key: 'evidence',
     title: '证据链',
-    description: '融合指标趋势、APM 链路、日志分析和告警事件方向报告，形成关键依据。',
+    description: '融合指标趋势、请求北极星、日志分析和告警事件方向报告，形成关键依据。',
   },
   {
     key: 'actions',
@@ -352,6 +415,13 @@ const buildExistingAlertAnalysisText = (issue = {}) => {
 
 const getEvidenceRole = (type) => {
   const evidenceType = safeText(type)
+  if (evidenceType.includes('请求北极星')) {
+    return {
+      stage: '北极星耗时分解',
+      effect: '基于单次请求在网络、调度、CPU 等资源上的平均耗时变化判断延时方向。',
+      kind: 'metric',
+    }
+  }
   if (evidenceType.includes('告警事件')) {
     return {
       stage: evidenceType.includes('方向报告') ? '告警分析' : '告警汇总',
@@ -402,13 +472,19 @@ const getEvidenceRole = (type) => {
     }
   }
   return {
-    stage: '证据补充',
+    stage: evidenceType || '补充依据',
     effect: '来自当前已接入告警事件的补充信息。',
     kind: 'default',
   }
 }
 
-const getEvidenceByType = (items, keyword) => safeList(items).find((item) => (item.type || '').includes(keyword))
+const getEvidenceByType = (items, keyword, options = {}) => {
+  const exclude = safeList(options.exclude)
+  return safeList(items).find((item) => {
+    const type = item.type || ''
+    return type.includes(keyword) && !exclude.some((excluded) => type.includes(excluded))
+  })
+}
 
 const objectTypeText = {
   endpoint: '请求路径',
@@ -535,6 +611,15 @@ const ensureMetricNameInText = (metric = {}, text = '', fallbackText = '') => {
   return `${name}：${content}`
 }
 
+const isMixedMetricAnalysis = (metric = {}, text = '') => {
+  const content = safeText(text)
+  if (!content) return false
+  const metricName = metricDisplayName(metric)
+  return content.includes('请求北极星')
+    || (metricName !== '请求平均耗时' && content.includes('请求平均耗时'))
+    || (metricName !== '请求吞吐量' && (content.includes('TPS') || content.includes('吞吐量')))
+}
+
 const metricEvidenceDisplayText = (metricEvidence = {}, issue = {}) => {
   const metric = metricEvidence.metric
   const aiMetricAnalysis = safeText(issue.metricAnalysis)
@@ -548,9 +633,11 @@ const metricEvidenceDisplayText = (metricEvidence = {}, issue = {}) => {
   }
   if (isLowConfidenceMetric(metric)) {
     const countText = sampleCount > 0 ? `${sampleCount} 个采样点` : '少量采样点'
-    return `${metricName}仅返回${countText}${timestampCount > 0 ? `、${timestampCount} 个有效时间点` : ''}，样本不足以可靠判断升高或回落；该指标只能作为复发观察信号，需要结合告警事件、RED/APM 和日志确认影响是否持续。`
+    return `${metricName}仅返回${countText}${timestampCount > 0 ? `、${timestampCount} 个有效时间点` : ''}，样本不足以可靠判断升高或回落；该指标只能作为复发观察信号，需要结合告警事件和日志确认影响是否持续。`
   }
-  if (aiMetricAnalysis) return ensureMetricNameInText(metric, aiMetricAnalysis, metricEvidence.result)
+  if (aiMetricAnalysis && !isMixedMetricAnalysis(metric, aiMetricAnalysis)) {
+    return ensureMetricNameInText(metric, aiMetricAnalysis, metricEvidence.result)
+  }
 
   const direction = metricTrendWord(metric)
   const rangeText = `区间 ${formatMetricNumber(metric.minValue)} 到 ${formatMetricNumber(metric.maxValue)}`
@@ -822,7 +909,23 @@ const summarizeTraceEvidenceText = (text = '') =>
     150,
   )
 
-const productStructuredSummary = (text = '') =>
+const summarizeRequestPolarisEvidenceText = (item = {}) => {
+  const metric = item.metric
+  const metricName = metricBackendDisplayName(metric)
+  const text = safeText(item.result)
+    .replace(/请求北极星全局视角/g, '请求北极星')
+    .replace(/调用链慢 span/g, '慢调用样本')
+    .replace(/慢 span/g, '慢调用样本')
+    .replace(/span/g, '调用样本')
+    .replace(/req\/s/g, '次/秒')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  const summary = productReportSummary(stripTechnicalEvidenceText(text), false, 180)
+  if (!metricName || summary.includes(metricName)) return summary
+  return truncateText(`${metricName}：${summary}`, 200)
+}
+
+const productStructuredSummary = (text = '', limit = 260) =>
   truncateText(text
     .replace(/^AI\s*/, '')
     .replace(/AI\s*/g, '')
@@ -831,16 +934,16 @@ const productStructuredSummary = (text = '') =>
     .replace(/，?计算路径风险\s*[\d.]+/g, '')
     .replace(/\s*未接入的.*?不参与推断。?/g, '')
     .replace(/\s{2,}/g, ' ')
-    .trim(), 260)
+    .trim(), limit)
 
-const productReportSummary = (text = '', aiGenerated = false) => {
+const productReportSummary = (text = '', aiGenerated = false, limit = 260) => {
   const summary = safeText(text).trim()
-  if (aiGenerated) return truncateText(summary, 260)
-  return productStructuredSummary(summary)
+  if (aiGenerated) return truncateText(summary, limit)
+  return productStructuredSummary(summary, limit)
 }
 
-const productIssueConclusion = (issue = {}, aiGenerated = false) =>
-  productReportSummary(firstText(issue.aiConclusion, issue.systemProblem, issue.impact, issue.mergeBasis), aiGenerated)
+const productIssueConclusion = (issue = {}, aiGenerated = false, limit = 260) =>
+  productReportSummary(firstText(issue.aiConclusion, issue.systemProblem, issue.impact, issue.mergeBasis), aiGenerated, limit)
 
 const issueSymptomText = (issue = {}) => {
   const text = [
@@ -1050,6 +1153,9 @@ const buildImpactObjects = (displayTitle = '', scope = '', visibleAffectedObject
 
 const summarizeEvidenceItem = (item = {}) => {
   const type = safeText(item.type)
+  if (type.includes('请求北极星')) {
+    return summarizeRequestPolarisEvidenceText(item)
+  }
   if (type.includes('告警指标趋势') || type.includes('指标趋势')) {
     return summarizeMetricEvidenceText(item.result || '')
   }
@@ -1586,17 +1692,33 @@ const buildAlertAnalysisDisplay = (issue = {}, alertEvidence = {}, detailEvidenc
   }
 }
 
+const mergeAlertAnalysisSupplement = (analysis = {}, supplementText = '') => {
+  const supplement = truncateText(safeText(supplementText), 140)
+  if (!supplement) return analysis
+  const existingText = [
+    analysis.summary,
+    analysis.problem,
+    analysis.emptyText,
+  ].map(safeText).join(' ')
+  const summaryText = safeText(analysis.summary)
+  if (existingText.includes(supplement) || (summaryText && supplement.includes(summaryText))) return analysis
+  return {
+    ...analysis,
+    supplement,
+  }
+}
+
 const buildIssueAnalysisText = (issue = {}, aiGenerated = false) => {
-  const base = productIssueConclusion(issue, aiGenerated)
+  const base = productIssueConclusion(issue, aiGenerated, Number.POSITIVE_INFINITY)
   const metricAnalysis = safeText(issue.metricAnalysis)
   const rootCause = safeText(issue.rootCause)
   const direction = metricAnalysis || rootCause
   if (!direction) return base
   const directionLabel = metricAnalysis ? '指标方向' : '报告判断'
-  const directionText = `${directionLabel}：${truncateText(direction, 180)}`
+  const directionText = `${directionLabel}：${direction}`
   if (!base) return directionText
   if (base.includes(direction) || base.includes(directionLabel)) return base
-  return truncateText(`${base} ${directionText}`, 360)
+  return `${base} ${directionText}`
 }
 
 const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
@@ -1604,15 +1726,21 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     const type = safeText(item.type)
     return keywords.some((keyword) => type.includes(keyword))
   })
-  const alertEvidence = getEvidenceByType(evidence, '告警事件')
+  const alertEvidence = getEvidenceByType(evidence, '告警事件', { exclude: ['告警事件分析'] })
   const reportAlertAnalysisEvidence = findEvidence('方向报告-告警事件分析')
-  const metricEvidence = findEvidence('方向报告-指标趋势', '告警指标趋势', '指标趋势')
-  const traceEvidence = findEvidence('方向报告-APM链路', 'Trace链路样本', 'APM链路')
+  const metricEvidenceCandidates = safeList(evidence).filter((item) => {
+    const type = safeText(item.type)
+    return !type.includes('请求北极星') && ['方向报告-指标趋势', '告警指标趋势', '指标趋势'].some((keyword) => type.includes(keyword))
+  })
+  const metricEvidence = metricEvidenceCandidates.find((item) => safeText(item.type).includes('告警指标趋势') && item.metric)
+    || metricEvidenceCandidates.find((item) => item.metric)
+    || metricEvidenceCandidates[0]
+  const requestPolarisEvidence = findEvidence('请求北极星')
   const logEvidence = findEvidence('方向报告-日志分析', '日志分析')
   const detailEvidence = getEvidenceByType(evidence, '告警明细')
   const missingData = safeList(issue.missingData)
   const supplementalEvidence = safeList(evidence).filter(
-    (item) => !['告警事件', '告警指标趋势', '指标趋势', 'Trace链路样本', 'APM链路', '日志分析', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
+    (item) => !['告警事件', '告警指标趋势', '指标趋势', '请求北极星', 'Trace链路样本', 'APM链路', '日志分析', '告警明细'].some((keyword) => (item.type || '').includes(keyword)),
   )
   const items = []
   const existingAlertAnalysisText = buildExistingAlertAnalysisText(issue)
@@ -1620,17 +1748,10 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
   const alertAnalysisText = [alertBehaviorText, existingAlertAnalysisText && `已有告警分析：${existingAlertAnalysisText}`]
     .filter(Boolean)
     .join(' ')
+  const reportAlertText = reportAlertAnalysisEvidence?.result
+    ? summarizeEvidenceItem(reportAlertAnalysisEvidence)
+    : ''
   const rootCauseText = safeText(issue.rootCause)
-  if (reportAlertAnalysisEvidence?.result) {
-    const reportAlertText = summarizeEvidenceItem(reportAlertAnalysisEvidence)
-    if (reportAlertText) {
-      items.push({
-        label: '告警事件分析',
-        text: truncateText(reportAlertText, 300),
-        tone: 'analysis',
-      })
-    }
-  }
 
   if (metricEvidence?.metric?.eventScoped && metricSampleCount(metricEvidence.metric) > 0) {
     const metric = metricEvidence.metric
@@ -1638,6 +1759,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
       ? `命中 ${metric.seriesMatched} 条事件指标`
       : '已返回指标趋势'
     items.push({
+      id: 'metric-trend',
       label: '指标变化',
       text: metricEvidenceDisplayText(metricEvidence, issue) || `${matched}，窗口变化 ${formatPercent(metric.changePercent)}。`,
       tone: metric.eventScoped ? 'metric' : 'warning',
@@ -1646,6 +1768,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     })
   } else if (safeText(issue.metricAnalysis)) {
     items.push({
+      id: 'metric-trend',
       label: '指标变化',
       text: ensureMetricNameInText(metricEvidence?.metric, issue.metricAnalysis, metricEvidence?.result),
       tone: 'metric',
@@ -1655,6 +1778,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     const unavailableText = metricEvidenceUnavailableText(metricEvidence.result)
     if (metricSummary || unavailableText) {
       items.push({
+        id: 'metric-trend',
         label: '指标变化',
         text: ensureMetricNameInText(metricEvidence?.metric, metricSummary || unavailableText, metricEvidence.result),
         tone: metricSummary ? 'metric' : 'warning',
@@ -1662,16 +1786,23 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     }
   }
 
-  if (traceEvidence?.result) {
-    items.push({
-      label: 'APM链路',
-      text: summarizeTraceEvidenceText(traceEvidence.result),
-      tone: 'trace',
-    })
+  if (requestPolarisEvidence?.result) {
+    const requestPolarisText = summarizeRequestPolarisEvidenceText(requestPolarisEvidence)
+    if (requestPolarisText) {
+      items.push({
+        id: 'request-polaris',
+        label: '北极星耗时分解',
+        text: requestPolarisText,
+        tone: 'metric',
+        metric: requestPolarisEvidence.metric,
+        metricName: metricBackendDisplayName(requestPolarisEvidence.metric),
+      })
+    }
   }
 
   if (logEvidence?.result) {
     items.push({
+      id: 'log-analysis',
       label: '日志分析',
       text: summarizeEvidenceItem(logEvidence),
       tone: 'log',
@@ -1681,24 +1812,36 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
 
   if (rootCauseText) {
     items.push({
+      id: 'root-cause',
       label: '根因判断',
-      text: truncateText(rootCauseText, 260),
+      text: rootCauseText,
       tone: 'rootcause',
     })
   }
 
-  if (alertAnalysisText) {
-    const alertAnalysis = buildAlertAnalysisDisplay(issue, alertEvidence, detailEvidence)
+  if (alertAnalysisText || reportAlertText || alertEvidence?.result || detailEvidence?.result) {
+    const alertAnalysis = mergeAlertAnalysisSupplement(
+      buildAlertAnalysisDisplay(issue, alertEvidence, detailEvidence),
+      reportAlertText,
+    )
+    const fallbackAlertText = firstText(
+      alertAnalysis.summary,
+      reportAlertText,
+      alertAnalysisText,
+      stripTechnicalEvidenceText(detailEvidence?.result || ''),
+    )
     items.push({
-      label: '告警分析',
-      text: alertAnalysis.focus || truncateText(alertAnalysisText, 360),
+      id: 'alert-state',
+      label: '告警态势',
+      text: truncateText(fallbackAlertText, 220),
       tone: 'analysis',
       alertAnalysis,
     })
   }
 
-  if (!alertEvidence?.result && detailEvidence?.result) {
+  if (!alertEvidence?.result && !reportAlertText && !alertAnalysisText && detailEvidence?.result) {
     items.push({
+      id: 'alert-detail',
       label: '告警明细',
       text: stripTechnicalEvidenceText(detailEvidence.result),
       tone: 'alert',
@@ -1711,6 +1854,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
     if (!text) return
     const role = getEvidenceRole(item.type)
     items.push({
+      id: `supplemental-${safeText(item.type) || 'evidence'}`,
       label: role.stage,
       text,
       tone: role.kind === 'boundary' ? 'warning' : role.kind,
@@ -1719,6 +1863,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
 
   if (items.length === 0 && missingData.length > 0) {
     items.push({
+      id: 'data-boundary',
       label: '数据边界',
       text: `${missingData.join('、')} 暂不可用，相关趋势或运行状态未参与当前结论。`,
       tone: 'warning',
@@ -1727,7 +1872,7 @@ const buildKeyEvidenceItems = (evidence = [], issue = {}) => {
 
   const seen = new Set()
   return items.filter((item) => {
-    const key = `${item.label}:${item.text}`
+    const key = `${item.id || item.label}:${item.text}`
     if (!item.text || seen.has(key)) return false
     seen.add(key)
     return true
@@ -1940,11 +2085,26 @@ const ServiceAlertTrendEvidence = ({ analysis }) => (
         </em>
       </div>
     </div>
-    <p className="health-alert-trend-summary">{analysis.summary}</p>
+    <ExpandableText
+      className="health-alert-trend-summary"
+      text={analysis.summary}
+      threshold={130}
+    />
+    {analysis.supplement && (
+      <ExpandableText
+        className="health-alert-trend-supplement"
+        text={`报告补充：${analysis.supplement}`}
+        threshold={100}
+      />
+    )}
     <AlertTrendTimeline analysis={analysis} />
     <div className="health-alert-trend-problem">
       <span>趋势判断</span>
-      <strong>{alertTrendJudgementText(analysis)}</strong>
+      <ExpandableText
+        className="health-alert-trend-problem-text"
+        text={alertTrendJudgementText(analysis)}
+        threshold={120}
+      />
     </div>
   </div>
 )
@@ -2167,7 +2327,7 @@ export default function ServiceHealthyPage() {
   const reportStatusMeta = LEVEL_META[report.status] ?? LEVEL_META.warning
   const reportScore = Number.isFinite(Number(report.score)) ? Number(report.score) : 0
   const aiAnalysis = report.aiAnalysis || {}
-  const isAISummaryReady = aiAnalysis.status === 'succeeded'
+  const isAISummaryReady = ['succeeded', 'partial'].includes(aiAnalysis.status)
   const aiMeta = aiAnalysisMeta(aiAnalysis)
 
   const handleAlertTriage = (objectType, objectName) => {
@@ -2270,7 +2430,7 @@ export default function ServiceHealthyPage() {
   )
 
   if (!healthReportData) {
-    const waitingDescription = reportError || '正在汇总当前时间窗口内的真实告警、指标趋势、APM 链路、日志分析和已生成的告警分析报告。'
+    const waitingDescription = reportError || '正在汇总当前时间窗口内的真实告警、指标趋势、请求北极星、日志分析和已生成的告警分析报告。'
     return (
       <>
         <div className="system-health-page">
@@ -2330,24 +2490,20 @@ export default function ServiceHealthyPage() {
     <div className="health-impact-command">
       <div className="health-impact-command-strip">
         <div className="health-impact-command-status">
-          <Progress
-            type="circle"
-            percent={reportScore}
-            strokeColor={reportStatusMeta.color}
-            width={74}
-            format={() => reportScore}
-          />
-          <div>
-            <span>健康度</span>
-            <b>{reportStatusMeta.text}</b>
-            <small>{report.window || '当前窗口'}</small>
+          <div className="health-impact-command-status-main">
+            <Progress
+              type="circle"
+              percent={reportScore}
+              strokeColor={reportStatusMeta.color}
+              width={74}
+              format={() => reportScore}
+            />
+            <div>
+              <span>健康度</span>
+              <b>{reportStatusMeta.text}</b>
+              <small>{report.window || '当前窗口'}</small>
+            </div>
           </div>
-        </div>
-        <div className="health-impact-command-readout">
-          <strong>{reportSummaryText}</strong>
-          {aiMeta && aiAnalysis.status !== 'not_configured' && (
-            <small>{aiMeta.text}</small>
-          )}
           <div className="health-impact-command-stats">
             {commandStats.map((item) => (
               <span
@@ -2359,10 +2515,19 @@ export default function ServiceHealthyPage() {
               </span>
             ))}
           </div>
+        </div>
+        <div className="health-impact-command-readout">
+          <div className="health-impact-command-lead">
+            <span>当前判断</span>
+            <strong>{reportSummaryText}</strong>
+            {aiMeta && aiAnalysis.status !== 'not_configured' && (
+              <small>{aiMeta.text}</small>
+            )}
+          </div>
           {topFocusTargets.length > 0 && (
             <div className="health-impact-command-focus">
               <div className="health-impact-command-panel-head">
-                <strong>建议优先关注</strong>
+                <strong>优先排查对象</strong>
                 <span>按风险影响排序</span>
               </div>
               <div className="health-impact-focus-list">
@@ -2390,7 +2555,7 @@ export default function ServiceHealthyPage() {
         </div>
         <div className="health-impact-command-priority">
           <div className="health-impact-command-panel-head">
-            <strong>处置优先级</strong>
+            <strong>处置队列</strong>
             <span>{triageLeadText}</span>
           </div>
           <div className="health-impact-priority-stack" aria-label="风险构成">
@@ -2431,7 +2596,7 @@ export default function ServiceHealthyPage() {
     <div className="health-version-impact">
       {impactCommandOverview}
       <div className="health-impact-detail-title">
-        <b>当前需要关注的问题</b>
+        <b>系统风险项</b>
         <div className="health-impact-detail-tools">
           <Input.Search
             allowClear
@@ -2468,7 +2633,7 @@ export default function ServiceHealthyPage() {
           <div className="health-impact-empty">
             {reportSummaryText ? (
               <div className="health-impact-empty-summary">
-                <strong>当前需要关注的问题</strong>
+                <strong>系统风险项</strong>
                 <span>{reportSummaryText}</span>
               </div>
             ) : (
@@ -2522,6 +2687,17 @@ export default function ServiceHealthyPage() {
                   />
                   {metaItems.map((item) => <span key={`${issue.key}-${item}`}>{item}</span>)}
                 </div>
+                {issueAnalysis && (
+                  <div className="health-impact-analysis">
+                    <strong>分析结论</strong>
+                    <ExpandableText
+                      className="health-impact-analysis-text"
+                      expandLabel="展开完整结论"
+                      text={issueAnalysis}
+                      threshold={150}
+                    />
+                  </div>
+                )}
                 {shouldShowRoute && (
                   <div className="health-impact-route">
                     <div className="health-impact-route-title">
@@ -2544,12 +2720,6 @@ export default function ServiceHealthyPage() {
                 )}
               </div>
               <div className="health-impact-evidence">
-                {issueAnalysis && (
-                  <div className="health-impact-analysis">
-                    <strong>分析结论</strong>
-                    <span>{issueAnalysis}</span>
-                  </div>
-                )}
                 {keyEvidence.length > 0 && (
                   <>
                     <div className="health-impact-evidence-head">
@@ -2557,7 +2727,7 @@ export default function ServiceHealthyPage() {
                     </div>
                     <div className="health-impact-key-evidence">
                       {keyEvidence.map((item) => (
-                        <div className={`health-impact-key-evidence-item health-impact-key-evidence-${item.tone}`} key={`${issue.key}-${item.label}`}>
+                        <div className={`health-impact-key-evidence-item health-impact-key-evidence-${item.tone}`} key={`${issue.key}-${item.id || item.label}`}>
                           <strong>{item.label}</strong>
                           {item.metricName && (
                             <div className="health-metric-name-row" title={item.metricName}>
@@ -2568,7 +2738,11 @@ export default function ServiceHealthyPage() {
                           {item.alertAnalysis ? (
                             <ServiceAlertTrendEvidence analysis={item.alertAnalysis} />
                           ) : (
-                            <span className="health-impact-key-evidence-text">{item.text}</span>
+                            <ExpandableText
+                              className="health-impact-key-evidence-text"
+                              text={item.text}
+                              threshold={120}
+                            />
                           )}
                           {item.rawLogs?.length > 0 && (
                             <details className="health-raw-log-panel">
@@ -2579,7 +2753,7 @@ export default function ServiceHealthyPage() {
                               <div className="health-raw-log-scroll">
                                 <ol>
                                   {item.rawLogs.map((line, index) => (
-                                    <li key={`${issue.key}-${item.label}-log-${index}`}>
+                                    <li key={`${issue.key}-${item.id || item.label}-log-${index}`}>
                                       <code>{line}</code>
                                     </li>
                                   ))}

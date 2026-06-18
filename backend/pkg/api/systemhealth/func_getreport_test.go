@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -96,7 +97,7 @@ func TestBuildIssueResponseDeduplicatesAlertInstances(t *testing.T) {
 	assertAffectedObject(t, issue.AffectedObjects, "endpoint", "POST /orders")
 }
 
-func TestNormalizeAlertEventBuildsServiceEndpointAggregationKey(t *testing.T) {
+func TestNormalizeAlertEventBuildsServiceAggregationKey(t *testing.T) {
 	now := time.Date(2026, 6, 16, 10, 30, 0, 0, time.UTC)
 	event := newSystemHealthTestAlert("evt-1", "HighLatency", "High", "active", now.Add(-5*time.Minute), now)
 
@@ -108,7 +109,7 @@ func TestNormalizeAlertEventBuildsServiceEndpointAggregationKey(t *testing.T) {
 	if normalized.Severity != alertmodel.SeverityErrorLevel {
 		t.Fatalf("expected High severity to normalize to error, got %s", normalized.Severity)
 	}
-	if normalized.AggregationKey != "entry::order-service::POST /orders" {
+	if normalized.AggregationKey != "service::order-service" {
 		t.Fatalf("unexpected aggregation key: %s", normalized.AggregationKey)
 	}
 	if normalized.DedupKey == "" {
@@ -127,11 +128,11 @@ func TestBuildAggregatedIssueTitleUsesAlertSymptomNotObject(t *testing.T) {
 
 	title := buildAggregatedIssueTitle(input)
 
-	if title != "平均请求延时相比昨天升高50%以上" {
+	if title != "ts-gateway-service / POST travel-plan 请求延时上升" {
 		t.Fatalf("expected alert symptom title, got %q", title)
 	}
-	if strings.Contains(title, input.scope) || strings.Contains(title, "告警汇总") {
-		t.Fatalf("title should not fall back to object or aggregation wording: %q", title)
+	if !strings.Contains(title, "ts-gateway-service") || !strings.Contains(title, "请求延时上升") || strings.Contains(title, "告警汇总") {
+		t.Fatalf("title should use object + problem style: %q", title)
 	}
 }
 
@@ -146,7 +147,7 @@ func TestBuildAggregatedIssueTitleNamesMergedAlertTypes(t *testing.T) {
 
 	title := buildAggregatedIssueTitle(input)
 
-	if title != "已恢复告警：平均请求延时相比昨天升高50%以上等 2 类告警" {
+	if !strings.HasPrefix(title, "已恢复：") || !strings.Contains(title, "ts-gateway-service") || !strings.Contains(title, "请求延时上升") {
 		t.Fatalf("unexpected merged title: %q", title)
 	}
 }
@@ -155,11 +156,17 @@ func TestAcceptableAIIssueTitleRejectsUnsafeTitles(t *testing.T) {
 	if !isAcceptableAIIssueTitle("order-service 延迟和错误率风险") {
 		t.Fatal("expected concise AI issue title to be accepted")
 	}
+	if !isAcceptableAIIssueTitle("已恢复：order-service 存在请求延时问题") {
+		t.Fatal("expected recovered prefix AI issue title to be accepted")
+	}
 	for _, title := range []string{
 		"",
 		"abc",
 		"order-service\n延迟风险",
 		"sum by(svc_name)(rate(http_requests_total[5m]))",
+		"ts-station-service请求延时恢复观察",
+		"order-service 延迟已恢复",
+		"payment-service 触发中错误率风险",
 		strings.Repeat("服务", 25),
 	} {
 		if isAcceptableAIIssueTitle(title) {
@@ -283,7 +290,7 @@ func TestRecoveredAlertsRemainRecoveringAndLowImpact(t *testing.T) {
 	}
 }
 
-func TestBuildInputsFromRealEventsKeepsIndependentIssuesSeparate(t *testing.T) {
+func TestBuildInputsFromRealEventsKeepsIndependentServicesSeparate(t *testing.T) {
 	now := time.Date(2026, 6, 16, 10, 30, 0, 0, time.UTC)
 	orderAlert := newSystemHealthTestAlert("evt-order", "HighLatency", alertmodel.SeverityCriticalLevel, alertmodel.StatusFiring, now.Add(-15*time.Minute), now.Add(-1*time.Minute))
 	paymentAlert := newSystemHealthTestAlert("evt-payment", "HighLatency", alertmodel.SeverityCriticalLevel, alertmodel.StatusFiring, now.Add(-15*time.Minute), now.Add(-1*time.Minute))
@@ -306,11 +313,69 @@ func TestBuildInputsFromRealEventsKeepsIndependentIssuesSeparate(t *testing.T) {
 			t.Fatalf("expected single alert instance for %s, got raw=%d dedup=%d active=%d", input.aggregationKey, input.rawEventCount, input.deduplicatedAlerts, input.activeAlerts)
 		}
 	}
-	if _, ok := keys["entry::order-service::POST /orders"]; !ok {
+	if _, ok := keys["service::order-service"]; !ok {
 		t.Fatalf("missing order issue in %#v", keys)
 	}
-	if _, ok := keys["entry::payment-service::POST /payments"]; !ok {
+	if _, ok := keys["service::payment-service"]; !ok {
 		t.Fatalf("missing payment issue in %#v", keys)
+	}
+}
+
+func TestBuildInputsFromRealEventsMergesSameServiceEndpoints(t *testing.T) {
+	now := time.Date(2026, 6, 16, 10, 30, 0, 0, time.UTC)
+	tripsAlert := newSystemHealthTestAlert("evt-trips", "HighLatency", alertmodel.SeverityWarnLevel, alertmodel.StatusResolved, now.Add(-20*time.Minute), now.Add(-10*time.Minute))
+	routesAlert := newSystemHealthTestAlert("evt-routes", "HighLatency", alertmodel.SeverityWarnLevel, alertmodel.StatusResolved, now.Add(-18*time.Minute), now.Add(-8*time.Minute))
+	setAlertTags(&routesAlert, map[string]string{
+		"serviceName": "order-service",
+		"endpoint":    "GET /routes/{tripId}",
+		"namespace":   "prod",
+		"pod":         "order-service-1",
+	})
+
+	inputs := (&handler{}).buildInputsFromRealEvents(nil, 1, []alertmodel.AEventWithWRecord{tripsAlert, routesAlert}, now.Add(-30*time.Minute), now, telemetryCapabilityStatus{})
+	if len(inputs) != 1 {
+		t.Fatalf("expected same service endpoints to merge into one issue, got %d", len(inputs))
+	}
+	input := inputs[0]
+	if input.aggregationKey != "service::order-service" || input.scope != "order-service" || input.scopeKind != "service" {
+		t.Fatalf("expected service-level aggregation, got key=%s scope=%s scopeKind=%s", input.aggregationKey, input.scope, input.scopeKind)
+	}
+	if input.rawEventCount != 2 || input.deduplicatedAlerts != 2 {
+		t.Fatalf("expected both endpoint alerts to remain represented, got raw=%d dedup=%d", input.rawEventCount, input.deduplicatedAlerts)
+	}
+	assertStringSliceContains(t, input.mergeReasons, "同一服务")
+	assertAffectedObject(t, input.affectedObjects, "endpoint", "POST /orders")
+	assertAffectedObject(t, input.affectedObjects, "endpoint", "GET /routes/{tripId}")
+}
+
+func TestApplyAlertReportTopologyRolePreservesServiceAggregation(t *testing.T) {
+	input := reportInput{
+		key:               "recovered-service-order-service",
+		aggregationKey:    "service::order-service",
+		kind:              issueKindRecoveredAlert,
+		scope:             "order-service",
+		scopeKind:         "service",
+		objectCriticality: 80,
+		alertReportTopologyRoles: []systemHealthAlertReportTopologyRole{
+			{
+				Role:            "internalEndpoint",
+				Reason:          "topology_current_has_upstream_parents",
+				CurrentService:  "order-service",
+				CurrentEndpoint: "POST /orders",
+				ParentCount:     1,
+			},
+		},
+	}
+	input.mergeReasons = buildMergeReasons(input)
+
+	applyAlertReportTopologyRoleToInput(nil, &input)
+
+	if input.aggregationKey != "service::order-service" || input.scope != "order-service" || input.scopeKind != "service" {
+		t.Fatalf("topology role should not downgrade service aggregation, got key=%s scope=%s scopeKind=%s", input.aggregationKey, input.scope, input.scopeKind)
+	}
+	assertStringSliceContains(t, input.mergeReasons, "同一服务")
+	if !strings.Contains(strings.Join(input.mergeReasons, "、"), "上游调用方") {
+		t.Fatalf("expected topology context to remain in merge reasons, got %#v", input.mergeReasons)
 	}
 }
 
@@ -365,7 +430,7 @@ func TestBuildInputsFromRealEventsKeepsPureInvalidAlertsAsP4Diagnostics(t *testi
 		t.Fatalf("expected one invalid diagnostic issue, got %d", len(inputs))
 	}
 	input := inputs[0]
-	if input.kind != issueKindInvalidAlert || input.invalidAlerts != 1 || !strings.Contains(input.title, "疑似告警规则问题") {
+	if input.kind != issueKindInvalidAlert || input.invalidAlerts != 1 || !strings.Contains(input.title, "存在告警规则问题") {
 		t.Fatalf("expected pure invalid event to remain standalone diagnostic issue, got %#v", input)
 	}
 	scored := scoreIssues(inputs)
@@ -476,7 +541,7 @@ func TestBuildSystemHealthAIRequestIncludesExistingAlertAnalysis(t *testing.T) {
 		t.Fatalf("expected one AI issue input, got %d", len(aiReq.Issues))
 	}
 	issue := aiReq.Issues[0]
-	if issue.Key != issues[0].Key || issue.Scope != "order-service / POST /orders" {
+	if issue.Key != issues[0].Key || issue.Scope != "order-service" {
 		t.Fatalf("unexpected issue input: %#v", issue)
 	}
 	if len(issue.AlertNames) != 1 || issue.AlertNames[0] != "HighLatency" {
@@ -1031,7 +1096,7 @@ func TestRecoveredDefaultActionPlanUsesIssueContext(t *testing.T) {
 	item := scoredIssue{
 		input: reportInput{
 			kind:       issueKindRecoveredAlert,
-			title:      "已恢复告警：平均请求延时超过1s等 3 类告警",
+			title:      "平均请求延时超过1s等 3 类告警",
 			scope:      "ts-route-plan-service / POST /api/v1/routeplanservice/routePlan/cheapestRoute",
 			alertNames: []string{"平均请求延时超过1s"},
 			evidence: []response.SystemHealthEvidence{
@@ -1065,7 +1130,7 @@ func TestRecoveredDefaultActionPlanUsesBaselineStepForCompareAlert(t *testing.T)
 	item := scoredIssue{
 		input: reportInput{
 			kind:       issueKindRecoveredAlert,
-			title:      "已恢复告警：平均请求延时相比昨天升高50%以上",
+			title:      "平均请求延时相比昨天升高50%以上",
 			scope:      "ts-seat-service / POST /api/v1/seatservice/seats/left_tickets",
 			alertNames: []string{"平均请求延时相比昨天升高50%以上"},
 			evidence: []response.SystemHealthEvidence{
@@ -1099,7 +1164,7 @@ func TestParseAlertReportSuggestActionsSupportsChineseKeys(t *testing.T) {
 	}
 }
 
-func TestAlertReportEvidenceBuildsUserFacingEvidenceChain(t *testing.T) {
+func TestAlertReportEvidenceBuildsUserFacingVisibleEvidenceChain(t *testing.T) {
 	report := &model.AlertEventReport{
 		OverviewReason: "已有分析认为告警有效，延时集中在订单入口。",
 		OverviewDetail: "报告详情指向下游库存服务耗时升高。",
@@ -1110,13 +1175,12 @@ func TestAlertReportEvidenceBuildsUserFacingEvidenceChain(t *testing.T) {
 		},
 		Data: []string{
 			`{"type":"apm","summary":"Trace 慢调用集中在 ts-order-service 到 ts-stock-service 的调用段。"}`,
-			`{"type":"log","summary":"日志分析发现恢复后未持续新增慢请求或异常堆积。"}`,
 			`{"type":"metric","summary":"RED 指标显示入口延时在恢复观察窗口内回落。"}`,
 			`{"type":"alert","summary":"告警事件多次集中在同一入口，当前已恢复。"}`,
 		},
 	}
 	findings := alertReportFindings(report, "HighLatency")
-	if len(findings) != 1 || len(findings[0].Evidence) < 4 {
+	if len(findings) != 1 {
 		t.Fatalf("expected report evidence to be extracted, got %#v", findings)
 	}
 
@@ -1128,14 +1192,23 @@ func TestAlertReportEvidenceBuildsUserFacingEvidenceChain(t *testing.T) {
 			t.Fatalf("expected user-facing report evidence result, got %#v", item)
 		}
 	}
-	for _, expected := range []string{"方向报告-APM链路", "方向报告-日志分析", "方向报告-指标趋势", "方向报告-告警事件分析"} {
+	if types["方向报告-APM链路"] != "" {
+		t.Fatalf("expected APM report evidence to stay hidden from final evidence, got %#v", evidence)
+	}
+	for _, expected := range []string{"方向报告-指标趋势", "方向报告-告警事件分析"} {
 		if types[expected] == "" {
 			t.Fatalf("expected %s evidence, got %#v", expected, evidence)
 		}
 	}
+	if types["方向报告-日志分析"] != "" {
+		t.Fatalf("expected normal log report evidence to stay hidden, got %#v", evidence)
+	}
+	if sources := displaySourcesFromEvidence(evidence); containsString(sources, sourceLabel("trace")) {
+		t.Fatalf("expected APM report evidence not to add trace display source, got %#v from %#v", sources, evidence)
+	}
 
 	aiFindings := buildSystemHealthAIReportFindingInput(findings)
-	if len(aiFindings) != 1 || len(aiFindings[0].ReportEvidence) < 4 {
+	if len(aiFindings) != 1 || len(aiFindings[0].ReportEvidence) < 2 {
 		t.Fatalf("expected report evidence in AI input, got %#v", aiFindings)
 	}
 	if !strings.Contains(aiFindings[0].OverviewDetail, "下游库存服务耗时升高") || aiFindings[0].OverviewDetail != aiFindings[0].Detail {
@@ -1146,6 +1219,62 @@ func TestAlertReportEvidenceBuildsUserFacingEvidenceChain(t *testing.T) {
 	}
 	if len(aiFindings[0].RootCauseOther) != 1 || !strings.Contains(aiFindings[0].RootCauseOther[0], "库存服务数据库查询排队时间升高") {
 		t.Fatalf("expected alert_report root_cause_other to be explicit in AI input, got %#v", aiFindings[0])
+	}
+}
+
+func TestAlertReportEvidenceSkipsLogAnalysisWithoutValidLogData(t *testing.T) {
+	report := &model.AlertEventReport{
+		OverviewReason: "已有分析认为告警有效，延时集中在订单入口。",
+		OverviewDetail: "报告详情指向下游库存服务耗时升高。",
+		Data: []string{
+			`{"type":"log","summary":"无有效日志数据，无法进行日志分析。"}`,
+			`{"type":"metric","summary":"RED 指标显示入口延时在恢复观察窗口内回落。"}`,
+			`{"type":"alert","summary":"告警事件多次集中在同一入口，当前已恢复。"}`,
+		},
+	}
+
+	findings := alertReportFindings(report, "HighLatency")
+	if len(findings) != 1 {
+		t.Fatalf("expected report finding to be extracted, got %#v", findings)
+	}
+	evidence := buildAlertReportEvidence(findings, alertmodel.SeverityWarnLevel)
+	for _, item := range evidence {
+		if item.Type == "方向报告-日志分析" {
+			t.Fatalf("expected log report evidence without valid log data to stay hidden, got %#v", evidence)
+		}
+	}
+	if sources := displaySourcesFromEvidence(evidence); containsString(sources, sourceLabel("logs")) {
+		t.Fatalf("expected invalid log report evidence not to add log display source, got %#v from %#v", sources, evidence)
+	}
+}
+
+func TestAlertReportEvidenceKeepsOnlyExplicitErrorLogSignals(t *testing.T) {
+	report := &model.AlertEventReport{
+		OverviewReason: "已有分析认为告警有效，延时集中在订单入口。",
+		OverviewDetail: "报告详情指向下游库存服务耗时升高。",
+		Data: []string{
+			`{"type":"log","summary":"库存服务日志出现 ERROR timeout，多个请求返回 5xx，错误堆栈指向数据库查询超时。"}`,
+			`{"type":"metric","summary":"RED 指标显示入口延时升高。"}`,
+		},
+	}
+
+	findings := alertReportFindings(report, "HighLatency")
+	if len(findings) != 1 {
+		t.Fatalf("expected report finding to be extracted, got %#v", findings)
+	}
+	evidence := buildAlertReportEvidence(findings, alertmodel.SeverityErrorLevel)
+	var logEvidence response.SystemHealthEvidence
+	for _, item := range evidence {
+		if item.Type == "方向报告-日志分析" {
+			logEvidence = item
+			break
+		}
+	}
+	if logEvidence.Result == "" || !strings.Contains(logEvidence.Result, "ERROR timeout") {
+		t.Fatalf("expected explicit error log evidence to be kept, got %#v", evidence)
+	}
+	if sources := displaySourcesFromEvidence(evidence); !containsString(sources, sourceLabel("logs")) {
+		t.Fatalf("expected explicit error log evidence to add log display source, got %#v from %#v", sources, evidence)
 	}
 }
 
@@ -1194,13 +1323,8 @@ func TestAlertReportTopologyRoleDetectsEntryEndpoint(t *testing.T) {
 	if role.Role != "entry" || role.ParentCount != 0 || role.ChildCount != 1 {
 		t.Fatalf("expected entry topology role, got %#v", role)
 	}
-	if !strings.Contains(role.Summary, "没有上游调用方") || !strings.Contains(role.Summary, "入口侧") {
+	if !strings.Contains(role.Summary, "未发现上游调用方") || !strings.Contains(role.Summary, "优先核对该请求") {
 		t.Fatalf("expected user-facing entry topology summary, got %s", role.Summary)
-	}
-	findings := alertReportFindings(report, "HighLatency", role)
-	evidence := buildAlertReportEvidence(findings, alertmodel.SeverityWarnLevel)
-	if len(evidence) == 0 || !strings.Contains(evidence[0].Result, "入口侧") {
-		t.Fatalf("expected topology role to enrich APM evidence, got %#v", evidence)
 	}
 }
 
@@ -1350,7 +1474,50 @@ func TestCallSystemHealthAIUsesDirectAIEndpoint(t *testing.T) {
 		if strings.Contains(gotRequest.Instructions, `{"summary"`) {
 			t.Fatalf("instructions should not rely on an example JSON literal: %s", gotRequest.Instructions)
 		}
-		for _, expected := range []string{"issue.title", "真实服务名", "alertNames", "实际告警名", "不要根据服务名推断业务功能", "不要返回“xxx 等 N 类告警”", "issue.metricAnalysis", "指标名", "metricName", "ruleName", "不是指标名", "服务/请求路径", "时间段", "指标表现", "当前意义", "不要输出 PQL", "PromQL", "rate(", "sum by(", "query 表达式", "existingReportActions", "重新组织", "不是把 existingReportActions 原样复制或机械追加", "existingReportFindings.overviewReason", "alert_report.overview_reason", "基于 eBPF 数据", "无明确故障方向", "existingReportFindings.overviewDetail", "alert_report.overview_detail", "生成 issue.rootCause"} {
+		for _, expected := range []string{
+			"任务：把当前窗口的系统健康状态",
+			"普通用户可理解、可处置的系统健康报告",
+			"各字段职责必须清晰",
+			"summary 用于历史列表或空状态",
+			"避免在 analysis、metricAnalysis、rootCause 和 actionPlan 中重复同一段结论",
+			"issue.title",
+			"真实服务名",
+			"alertNames",
+			"不要根据服务名推断业务功能",
+			"issue.title 是风险名称，不是分析结论",
+			"issue.title 优先使用“{对象} 存在{问题类型}问题”",
+			"状态前缀“已恢复：{对象} 存在{问题类型}问题”",
+			"issue.title 不要包含“恢复观察”",
+			"不要返回“xxx 等 N 类告警”",
+			"issue.analysis 只说明当前风险是什么",
+			"不复述 metricAnalysis 的指标细节",
+			"不复述 rootCause 的完整根因判断",
+			"issue.metricAnalysis",
+			"指标名",
+			"metricName",
+			"ruleName",
+			"不是指标名",
+			"服务/请求路径",
+			"时间段",
+			"指标表现",
+			"当前风险含义",
+			"不要输出 PQL",
+			"PromQL",
+			"rate(",
+			"sum by(",
+			"query 表达式",
+			"issue.rootCause 来源优先级",
+			"existingReportFindings",
+			"基于 eBPF 数据",
+			"无明确故障方向",
+			"现有证据暂不能归因",
+			"请求北极星表示单次请求平均耗时分布",
+			"P4 invalidAlert",
+			"existingReportActions 是参考来源",
+			"不能原样复制或机械追加",
+			"target 不得使用 issue.key",
+			"validation 必须使用“确认/检查/观察/回看/对比”",
+		} {
 			if !strings.Contains(gotRequest.Instructions, expected) {
 				t.Fatalf("expected metricAnalysis instruction to mention %q, got: %s", expected, gotRequest.Instructions)
 			}
@@ -1521,6 +1688,113 @@ func TestCallSystemHealthAIUsesDirectAIEndpoint(t *testing.T) {
 		t.Fatalf("expected metricAnalysis from AI response, got %#v", aiResp.Issues[0])
 	}
 	assertNoUserFacingMetricDebugContent(t, aiResp.Issues[0].MetricAnalysis)
+}
+
+func TestCallSystemHealthAIEnrichmentSplitsIssueRequestsInParallel(t *testing.T) {
+	var inFlight int32
+	var maxInFlight int32
+	var summaryCalls int32
+	var issueCalls int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		current := atomic.AddInt32(&inFlight, 1)
+		defer atomic.AddInt32(&inFlight, -1)
+		for {
+			observed := atomic.LoadInt32(&maxInFlight)
+			if current <= observed || atomic.CompareAndSwapInt32(&maxInFlight, observed, current) {
+				break
+			}
+		}
+		time.Sleep(80 * time.Millisecond)
+
+		var gotRequest openAIResponsesRequest
+		if err := json.NewDecoder(r.Body).Decode(&gotRequest); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		var gotInput systemHealthAISummaryRequest
+		if err := json.Unmarshal([]byte(gotRequest.Input), &gotInput); err != nil {
+			t.Fatalf("decode AI input payload: %v", err)
+		}
+		aiOutput := systemHealthAISummaryResponse{
+			Summary: "当前系统处于警告状态，多个风险需要结合指标趋势和告警分析继续确认。",
+		}
+		if len(gotInput.Issues) == 0 {
+			atomic.AddInt32(&summaryCalls, 1)
+		} else if len(gotInput.Issues) == 1 {
+			atomic.AddInt32(&issueCalls, 1)
+			issue := gotInput.Issues[0]
+			aiOutput.Issues = []systemHealthAIIssueOutput{
+				{
+					Key:            issue.Key,
+					Title:          issue.Title,
+					Analysis:       issue.Scope + " 当前风险已完成智能分析。",
+					RootCause:      "现有证据暂不能归因，需要结合告警指标或明确错误日志继续确认。",
+					MetricAnalysis: "",
+					ActionPlan: []response.SystemHealthActionPlanStep{
+						{
+							Phase:      "确认影响",
+							Target:     issue.Scope,
+							Action:     "回看该风险对象的告警指标和请求表现，确认是否仍存在用户影响。",
+							Validation: "确认后续窗口未继续出现同类告警。",
+							Risk:       "若同类告警复发，说明风险仍需进一步排查。",
+						},
+						{
+							Phase:      "复发观察",
+							Target:     issue.Scope,
+							Action:     "对比恢复后的告警指标趋势和日志错误信号，确认是否存在反复波动。",
+							Validation: "观察后续窗口没有新的异常峰值。",
+							Risk:       "只看单次恢复可能遗漏短时波动。",
+						},
+					},
+				},
+			}
+		} else {
+			t.Fatalf("expected summary-only or single-issue AI input, got %d issues", len(gotInput.Issues))
+		}
+		outputBytes, err := json.Marshal(aiOutput)
+		if err != nil {
+			t.Fatalf("marshal AI output: %v", err)
+		}
+		_ = json.NewEncoder(w).Encode(openAIResponsesResponse{
+			ID:         "resp-" + systemHealthShortHash(gotRequest.Input),
+			OutputText: string(outputBytes),
+		})
+	}))
+	defer server.Close()
+
+	payload := systemHealthAISummaryRequest{
+		Window: "30m",
+		Report: systemHealthAIReportInput{
+			Status:  "warning",
+			Score:   70,
+			Summary: "结构化摘要",
+		},
+		Issues: []systemHealthAIIssueInput{
+			{Key: "issue-1", Priority: "P3", Title: "service-a 存在请求延时问题", Scope: "service-a", Status: "recovered"},
+			{Key: "issue-2", Priority: "P3", Title: "service-b 存在请求延时问题", Scope: "service-b", Status: "recovered"},
+			{Key: "issue-3", Priority: "P3", Title: "service-c 存在请求延时问题", Scope: "service-c", Status: "recovered"},
+			{Key: "issue-4", Priority: "P3", Title: "service-d 存在请求延时问题", Scope: "service-d", Status: "recovered"},
+		},
+	}
+
+	aiResp, stats, err := callSystemHealthAIEnrichment(nil, server.URL, "test-key", "gpt-5.5", 3, payload)
+	if err != nil {
+		t.Fatalf("call parallel AI enrichment: %v, stats=%#v", err, stats)
+	}
+	if stats.Mode != "parallel_per_issue" || stats.TotalCalls != 5 || stats.SucceededCalls != 5 || stats.SucceededIssues != 4 {
+		t.Fatalf("unexpected AI stats: %#v", stats)
+	}
+	if atomic.LoadInt32(&summaryCalls) != 1 || atomic.LoadInt32(&issueCalls) != 4 {
+		t.Fatalf("expected one summary call and four issue calls, got summary=%d issue=%d", summaryCalls, issueCalls)
+	}
+	if atomic.LoadInt32(&maxInFlight) < 2 {
+		t.Fatalf("expected concurrent AI requests, max in-flight=%d", maxInFlight)
+	}
+	if len(aiResp.Issues) != 4 || aiResp.Issues[0].Key != "issue-1" || aiResp.Issues[3].Key != "issue-4" {
+		t.Fatalf("expected issue outputs to preserve request order, got %#v", aiResp.Issues)
+	}
+	if status := systemHealthAIAnalysisStatus(stats, len(payload.Issues)); status != "succeeded" {
+		t.Fatalf("expected succeeded AI status, got %s", status)
+	}
 }
 
 func TestCallSystemHealthAIIntegrationUsesRealCompanyResponsesAPI(t *testing.T) {
@@ -2324,7 +2598,7 @@ func TestBuildRequestPolarisEvidenceResultSummarizesFallbacks(t *testing.T) {
 		0,
 		errors.New("clickhouse unavailable"),
 	)
-	for _, expected := range []string{"未见请求资源耗时超过 50ms/请求或明显升高", "调用链慢 span 检索失败", "clickhouse unavailable", "整体回落"} {
+	for _, expected := range []string{"资源分项未见超过 50ms/请求或明显升高", "慢调用样本检索失败", "clickhouse unavailable", "整体回落"} {
 		if !strings.Contains(errResult, expected) {
 			t.Fatalf("expected %q in slow-span error result: %s", expected, errResult)
 		}
@@ -2343,7 +2617,7 @@ func TestBuildRequestPolarisEvidenceResultSummarizesFallbacks(t *testing.T) {
 		7,
 		nil,
 	)
-	for _, expected := range []string{"检索到 7 条超过 500ms 的慢 span", "本页2条样本中 error=1、slow=1、最大耗时=800.00ms、代表trace=trace-1、span=span-1", "不代表全局资源耗时已异常"} {
+	for _, expected := range []string{"检索到 7 条超过 500ms 的慢调用样本", "本页2条样本中 error=1、slow=1、最大耗时=800.00ms、代表trace=trace-1、span=span-1", "不代表整体资源耗时已异常"} {
 		if !strings.Contains(slowSpanResult, expected) {
 			t.Fatalf("expected %q in slow-span result: %s", expected, slowSpanResult)
 		}
@@ -2359,7 +2633,7 @@ func TestBuildRequestPolarisEvidenceResultSummarizesFallbacks(t *testing.T) {
 		0,
 		nil,
 	)
-	for _, expected := range []string{"调用链也未检索到超过 500ms 的慢 span", "当前不把请求资源耗时作为主要根因"} {
+	for _, expected := range []string{"未检索到超过 500ms 的慢调用样本", "当前不把资源分项耗时作为主要根因"} {
 		if !strings.Contains(noAbnormalResult, expected) {
 			t.Fatalf("expected %q in no-abnormal result: %s", expected, noAbnormalResult)
 		}
@@ -2420,6 +2694,15 @@ func assertStringSliceContains(t *testing.T, values []string, expected string) {
 		}
 	}
 	t.Fatalf("expected %q in %#v", expected, values)
+}
+
+func containsString(values []string, expected string) bool {
+	for _, value := range values {
+		if value == expected {
+			return true
+		}
+	}
+	return false
 }
 
 func assertNoUserFacingMetricDebugContent(t *testing.T, text string) {

@@ -226,8 +226,10 @@ type SystemHealthMetricEvidence struct {
 	PointCount      int                                `json:"pointCount"`
 	FirstValue      float64                            `json:"firstValue"`
 	LastValue       float64                            `json:"lastValue"`
+	AverageValue    float64                            `json:"averageValue"`
 	MinValue        float64                            `json:"minValue"`
 	MaxValue        float64                            `json:"maxValue"`
+	MaxDeviation    float64                            `json:"maxDeviation"`
 	Delta           float64                            `json:"delta"`
 	ChangePercent   *float64                           `json:"changePercent,omitempty"`
 	MatchedLabels   map[string]string                  `json:"matchedLabels,omitempty"`

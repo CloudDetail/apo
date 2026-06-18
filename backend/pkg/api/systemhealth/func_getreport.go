@@ -78,6 +78,7 @@ const (
 	maxAlertReportLookups             = 6
 	maxMetricEvidenceSeries           = 3
 	maxMetricEvidencePoints           = 240
+	systemHealthAIParallelism         = 4
 	requestPolarisResourceThresholdMS = 50.0
 	requestPolarisIncreaseThreshold   = 0.20
 	requestPolarisSlowSpanThresholdMS = 500.0
@@ -145,8 +146,10 @@ type systemHealthAIMetricInput struct {
 	PointCount     int      `json:"pointCount"`
 	FirstValue     float64  `json:"firstValue"`
 	LastValue      float64  `json:"lastValue"`
+	AverageValue   float64  `json:"averageValue"`
 	MinValue       float64  `json:"minValue"`
 	MaxValue       float64  `json:"maxValue"`
+	MaxDeviation   float64  `json:"maxDeviation"`
 	Delta          float64  `json:"delta"`
 	ChangePercent  *float64 `json:"changePercent,omitempty"`
 	Trend          string   `json:"trend,omitempty"`
@@ -209,6 +212,29 @@ type systemHealthAIIssueOutput struct {
 	MetricAnalysis string                                `json:"metricAnalysis"`
 	Actions        []string                              `json:"actions"`
 	ActionPlan     []response.SystemHealthActionPlanStep `json:"actionPlan"`
+}
+
+type systemHealthAIEnrichmentStats struct {
+	Mode             string
+	TotalCalls       int
+	SucceededCalls   int
+	FailedCalls      int
+	SucceededIssues  int
+	SummarySucceeded bool
+	SummaryFailed    bool
+	FailedIssueKeys  []string
+	MissingIssueKeys []string
+	ErrorMessages    []string
+}
+
+type systemHealthAICallResult struct {
+	Kind         string
+	IssueIndex   int
+	IssueKey     string
+	SubRequestID string
+	Response     systemHealthAISummaryResponse
+	Error        error
+	Elapsed      time.Duration
 }
 
 type openAIResponsesRequest struct {
@@ -304,6 +330,45 @@ func systemHealthRequestID(ctx core.Context) string {
 	}
 	requestID, _ := value.(string)
 	return strings.TrimSpace(requestID)
+}
+
+type systemHealthAIRequestContext struct {
+	core.Context
+	requestContext context.Context
+	requestID      string
+	routeMethod    string
+	routePath      string
+}
+
+func systemHealthAIRequestLogContext(ctx core.Context) core.Context {
+	if ctx == nil {
+		return nil
+	}
+	method, path := ctx.GetMethodPath()
+	return systemHealthAIRequestContext{
+		requestContext: context.Background(),
+		requestID:      systemHealthRequestID(ctx),
+		routeMethod:    method,
+		routePath:      path,
+	}
+}
+
+func (c systemHealthAIRequestContext) GetContext() context.Context {
+	if c.requestContext == nil {
+		return context.Background()
+	}
+	return c.requestContext
+}
+
+func (c systemHealthAIRequestContext) Get(key string) (any, bool) {
+	if key == core.RequestIDKey && c.requestID != "" {
+		return c.requestID, true
+	}
+	return nil, false
+}
+
+func (c systemHealthAIRequestContext) GetMethodPath() (method string, path string) {
+	return c.routeMethod, c.routePath
 }
 
 func systemHealthCompactJSON(value any) string {
@@ -539,8 +604,10 @@ type alertMetricTrendStats struct {
 	PointCount    int
 	FirstValue    float64
 	LastValue     float64
+	AverageValue  float64
 	MinValue      float64
 	MaxValue      float64
+	MaxDeviation  float64
 	Delta         float64
 	ChangePercent *float64
 }
@@ -564,6 +631,7 @@ type requestPolarisMetricTrend struct {
 	Unit         string
 	Expression   string
 	Stats        alertMetricTrendStats
+	Series       []alertMetricSeries
 	SeriesCount  int
 	PointCount   int
 	QueryErr     string
@@ -1118,14 +1186,17 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		zap.Int("configuredTimeoutSecond", aiConfig.TimeoutSecond),
 		zap.Int("effectiveTimeoutSecond", effectiveTimeoutSecond),
 	)
-	aiResp, err := callSystemHealthAI(ctx, aiConfig.BaseURL, resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey), aiConfig.Model, aiConfig.TimeoutSecond, aiRequest)
+	aiResp, aiStats, err := callSystemHealthAIEnrichment(ctx, aiConfig.BaseURL, resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey), aiConfig.Model, aiConfig.TimeoutSecond, aiRequest)
 	if err != nil {
 		resp.Report.AIAnalysis.Status = "failed"
 		resp.Report.AIAnalysis.Error = truncateText(err.Error(), 220)
 		systemHealthWarnCtx(ctx, "system-health AI enrichment failed",
 			zap.String("endpoint", endpoint),
+			zap.String("aiMode", aiStats.Mode),
 			zap.Int("issueCount", len(resp.Issues)),
 			zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(aiRequest.Issues)),
+			zap.Strings("failedIssueKeys", aiStats.FailedIssueKeys),
+			zap.Strings("missingIssueKeys", aiStats.MissingIssueKeys),
 			zap.Int("configuredTimeoutSecond", aiConfig.TimeoutSecond),
 			zap.Int("effectiveTimeoutSecond", effectiveTimeoutSecond),
 			zap.Bool("timeout", isTimeoutError(err)),
@@ -1134,15 +1205,29 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 		)
 		return
 	}
-	resp.Report.AIAnalysis.Status = "succeeded"
+	resp.Report.AIAnalysis.Status = systemHealthAIAnalysisStatus(aiStats, len(aiRequest.Issues))
 	resp.Report.AIAnalysis.Source = "ai-api"
+	if aiStats.Mode == "parallel_per_issue" {
+		resp.Report.AIAnalysis.Source = "ai-api-parallel"
+	}
 	resp.Report.AIAnalysis.WorkflowRunID = strings.TrimSpace(aiResp.WorkflowRunID)
+	if resp.Report.AIAnalysis.Status == "partial" {
+		resp.Report.AIAnalysis.Error = truncateText(systemHealthAIStatsError(aiStats), 220)
+	}
 	systemHealthInfoCtx(ctx, "system-health AI enrichment completed",
 		zap.String("endpoint", endpoint),
+		zap.String("aiMode", aiStats.Mode),
+		zap.String("aiStatus", resp.Report.AIAnalysis.Status),
 		zap.Int("issueCount", len(resp.Issues)),
 		zap.Int("aiIssueCount", len(aiResp.Issues)),
+		zap.Int("aiTotalCalls", aiStats.TotalCalls),
+		zap.Int("aiSucceededCalls", aiStats.SucceededCalls),
+		zap.Int("aiFailedCalls", aiStats.FailedCalls),
+		zap.Int("aiSucceededIssues", aiStats.SucceededIssues),
 		zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(aiRequest.Issues)),
 		zap.Strings("responseIssueKeys", systemHealthAIIssueOutputKeys(aiResp.Issues)),
+		zap.Strings("failedIssueKeys", aiStats.FailedIssueKeys),
+		zap.Strings("missingIssueKeys", aiStats.MissingIssueKeys),
 		zap.Bool("summaryPresent", strings.TrimSpace(aiResp.Summary) != ""),
 		zap.String("workflowRunID", strings.TrimSpace(aiResp.WorkflowRunID)),
 		zap.Duration("elapsed", time.Since(aiStartedAt)),
@@ -1279,6 +1364,240 @@ func (h *handler) enrichReportWithAI(ctx core.Context, resp *response.SystemHeal
 	}
 }
 
+func callSystemHealthAIEnrichment(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthAISummaryRequest) (systemHealthAISummaryResponse, systemHealthAIEnrichmentStats, error) {
+	if len(payload.Issues) <= 1 {
+		stats := systemHealthAIEnrichmentStats{
+			Mode:       "single_request",
+			TotalCalls: 1,
+		}
+		aiResp, err := callSystemHealthAI(ctx, baseURL, apiKey, model, timeoutSecond, payload)
+		if err != nil {
+			stats.FailedCalls = 1
+			stats.ErrorMessages = append(stats.ErrorMessages, err.Error())
+			stats.FailedIssueKeys = systemHealthAIIssueInputKeys(payload.Issues)
+			return systemHealthAISummaryResponse{}, stats, err
+		}
+		stats.SucceededCalls = 1
+		stats.SummarySucceeded = strings.TrimSpace(aiResp.Summary) != ""
+		outputByKey := systemHealthAIIssueOutputMap(aiResp.Issues)
+		stats.MissingIssueKeys = missingAIIssueKeys(payload.Issues, outputByKey)
+		stats.SucceededIssues = len(payload.Issues) - len(stats.MissingIssueKeys)
+		return aiResp, stats, nil
+	}
+	return callSystemHealthAIForIssuesParallel(ctx, baseURL, apiKey, model, timeoutSecond, payload)
+}
+
+func callSystemHealthAIForIssuesParallel(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthAISummaryRequest) (systemHealthAISummaryResponse, systemHealthAIEnrichmentStats, error) {
+	stats := systemHealthAIEnrichmentStats{
+		Mode:       "parallel_per_issue",
+		TotalCalls: len(payload.Issues) + 1,
+	}
+	resultCh := make(chan systemHealthAICallResult, len(payload.Issues)+1)
+	sem := make(chan struct{}, systemHealthAIParallelism)
+	var wg sync.WaitGroup
+	logCtx := systemHealthAIRequestLogContext(ctx)
+	startCall := func(kind string, issueIndex int, issueKey string, request systemHealthAISummaryRequest) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			subRequestID := systemHealthAISubRequestID(kind, issueIndex, issueKey)
+			startedAt := time.Now()
+			systemHealthInfoCtx(logCtx, "system-health AI subrequest started",
+				zap.String("aiMode", "parallel_per_issue"),
+				zap.String("subRequestKind", kind),
+				zap.String("aiSubRequestID", subRequestID),
+				zap.Int("issueIndex", issueIndex),
+				zap.String("issueKey", issueKey),
+				zap.Strings("requestIssueKeys", systemHealthAIIssueInputKeys(request.Issues)),
+				zap.Int("requestPayloadBytes", systemHealthJSONSize(request)),
+			)
+			aiResp, err := callSystemHealthAI(logCtx, baseURL, apiKey, model, timeoutSecond, request)
+			resultCh <- systemHealthAICallResult{
+				Kind:         kind,
+				IssueIndex:   issueIndex,
+				IssueKey:     issueKey,
+				SubRequestID: subRequestID,
+				Response:     aiResp,
+				Error:        err,
+				Elapsed:      time.Since(startedAt),
+			}
+		}()
+	}
+
+	startCall("summary", -1, "", systemHealthAISummaryOnlyRequest(payload))
+	for index, issue := range payload.Issues {
+		startCall("issue", index, issue.Key, systemHealthAIIssueOnlyRequest(payload, issue))
+	}
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+
+	var merged systemHealthAISummaryResponse
+	issueOutputs := make([]systemHealthAIIssueOutput, len(payload.Issues))
+	issueOutputPresent := make([]bool, len(payload.Issues))
+	workflowRunIDs := make([]string, 0, len(payload.Issues)+1)
+	for result := range resultCh {
+		if result.Error != nil {
+			stats.FailedCalls++
+			if result.Kind == "summary" {
+				stats.SummaryFailed = true
+			} else if result.IssueKey != "" {
+				stats.FailedIssueKeys = append(stats.FailedIssueKeys, result.IssueKey)
+			}
+			stats.ErrorMessages = append(stats.ErrorMessages, systemHealthAISubRequestError(result))
+			systemHealthWarnCtx(logCtx, "system-health AI subrequest failed",
+				zap.String("aiMode", "parallel_per_issue"),
+				zap.String("subRequestKind", result.Kind),
+				zap.String("aiSubRequestID", result.SubRequestID),
+				zap.Int("issueIndex", result.IssueIndex),
+				zap.String("issueKey", result.IssueKey),
+				zap.Bool("timeout", isTimeoutError(result.Error)),
+				zap.Duration("elapsed", result.Elapsed),
+				zap.Error(result.Error),
+			)
+			continue
+		}
+		stats.SucceededCalls++
+		if workflowRunID := strings.TrimSpace(result.Response.WorkflowRunID); workflowRunID != "" {
+			workflowRunIDs = append(workflowRunIDs, workflowRunID)
+		}
+		systemHealthInfoCtx(logCtx, "system-health AI subrequest completed",
+			zap.String("aiMode", "parallel_per_issue"),
+			zap.String("subRequestKind", result.Kind),
+			zap.String("aiSubRequestID", result.SubRequestID),
+			zap.Int("issueIndex", result.IssueIndex),
+			zap.String("issueKey", result.IssueKey),
+			zap.String("workflowRunID", strings.TrimSpace(result.Response.WorkflowRunID)),
+			zap.Int("responseIssueCount", len(result.Response.Issues)),
+			zap.Bool("summaryPresent", strings.TrimSpace(result.Response.Summary) != ""),
+			zap.Duration("elapsed", result.Elapsed),
+		)
+		if result.Kind == "summary" {
+			stats.SummarySucceeded = strings.TrimSpace(result.Response.Summary) != ""
+			merged.Summary = result.Response.Summary
+			continue
+		}
+		output, ok := selectSystemHealthAIIssueOutput(result.Response.Issues, result.IssueKey)
+		if !ok {
+			stats.MissingIssueKeys = append(stats.MissingIssueKeys, result.IssueKey)
+			stats.ErrorMessages = append(stats.ErrorMessages, fmt.Sprintf("%s: AI response did not include matching issue output", result.IssueKey))
+			systemHealthWarnCtx(logCtx, "system-health AI issue subrequest missing output",
+				zap.String("aiMode", "parallel_per_issue"),
+				zap.String("aiSubRequestID", result.SubRequestID),
+				zap.Int("issueIndex", result.IssueIndex),
+				zap.String("issueKey", result.IssueKey),
+				zap.Strings("responseIssueKeys", systemHealthAIIssueOutputKeys(result.Response.Issues)),
+			)
+			continue
+		}
+		if strings.TrimSpace(output.Key) == "" {
+			output.Key = result.IssueKey
+		}
+		if result.IssueIndex >= 0 && result.IssueIndex < len(issueOutputs) {
+			issueOutputs[result.IssueIndex] = output
+			issueOutputPresent[result.IssueIndex] = true
+			stats.SucceededIssues++
+		}
+	}
+	for index, output := range issueOutputs {
+		if issueOutputPresent[index] {
+			merged.Issues = append(merged.Issues, output)
+		}
+	}
+	merged.WorkflowRunID = truncateText(strings.Join(uniqueStrings(workflowRunIDs), ","), 220)
+	stats.FailedIssueKeys = uniqueStrings(stats.FailedIssueKeys)
+	stats.MissingIssueKeys = uniqueStrings(stats.MissingIssueKeys)
+	stats.ErrorMessages = uniqueStrings(stats.ErrorMessages)
+	if stats.SucceededIssues == 0 {
+		err := fmt.Errorf("all AI issue subrequests failed or returned no matching issue output: %s", systemHealthAIStatsError(stats))
+		return merged, stats, err
+	}
+	return merged, stats, nil
+}
+
+func systemHealthAISummaryOnlyRequest(payload systemHealthAISummaryRequest) systemHealthAISummaryRequest {
+	payload.Issues = []systemHealthAIIssueInput{}
+	return payload
+}
+
+func systemHealthAIIssueOnlyRequest(payload systemHealthAISummaryRequest, issue systemHealthAIIssueInput) systemHealthAISummaryRequest {
+	payload.Issues = []systemHealthAIIssueInput{issue}
+	return payload
+}
+
+func selectSystemHealthAIIssueOutput(outputs []systemHealthAIIssueOutput, expectedKey string) (systemHealthAIIssueOutput, bool) {
+	expectedKey = strings.TrimSpace(expectedKey)
+	for _, output := range outputs {
+		if strings.TrimSpace(output.Key) == expectedKey {
+			return output, true
+		}
+	}
+	if len(outputs) == 1 && strings.TrimSpace(outputs[0].Key) == "" && expectedKey != "" {
+		output := outputs[0]
+		output.Key = expectedKey
+		return output, true
+	}
+	return systemHealthAIIssueOutput{}, false
+}
+
+func systemHealthAIIssueOutputMap(outputs []systemHealthAIIssueOutput) map[string]systemHealthAIIssueOutput {
+	result := make(map[string]systemHealthAIIssueOutput, len(outputs))
+	for _, output := range outputs {
+		key := strings.TrimSpace(output.Key)
+		if key == "" {
+			continue
+		}
+		result[key] = output
+	}
+	return result
+}
+
+func systemHealthAISubRequestID(kind string, issueIndex int, issueKey string) string {
+	return systemHealthShortHash(fmt.Sprintf("%s:%d:%s", strings.TrimSpace(kind), issueIndex, strings.TrimSpace(issueKey)))
+}
+
+func systemHealthAISubRequestError(result systemHealthAICallResult) string {
+	if result.Error == nil {
+		return ""
+	}
+	prefix := result.Kind
+	if result.IssueKey != "" {
+		prefix = result.IssueKey
+	}
+	return prefix + ": " + result.Error.Error()
+}
+
+func systemHealthAIAnalysisStatus(stats systemHealthAIEnrichmentStats, totalIssueCount int) string {
+	if stats.SucceededIssues <= 0 {
+		return "failed"
+	}
+	if stats.FailedCalls > 0 || stats.SummaryFailed || !stats.SummarySucceeded || len(stats.FailedIssueKeys) > 0 || len(stats.MissingIssueKeys) > 0 || stats.SucceededIssues < totalIssueCount {
+		return "partial"
+	}
+	return "succeeded"
+}
+
+func systemHealthAIStatsError(stats systemHealthAIEnrichmentStats) string {
+	parts := make([]string, 0, 4+len(stats.ErrorMessages))
+	if stats.SummaryFailed {
+		parts = append(parts, "全局摘要生成失败")
+	}
+	if len(stats.FailedIssueKeys) > 0 {
+		parts = append(parts, "失败风险="+strings.Join(stats.FailedIssueKeys, ","))
+	}
+	if len(stats.MissingIssueKeys) > 0 {
+		parts = append(parts, "缺失风险="+strings.Join(stats.MissingIssueKeys, ","))
+	}
+	parts = append(parts, stats.ErrorMessages...)
+	if len(parts) == 0 {
+		return ""
+	}
+	return strings.Join(uniqueStrings(parts), "；")
+}
+
 func resolveAIEnrichedRootCause(aiRootCause string, item scoredIssue) (string, string, string) {
 	aiRootCause = cleanAlertReportDirectionalText(aiRootCause)
 	structuredRootCause, structuredSource, structuredReason := buildRootCauseDecision(item)
@@ -1321,7 +1640,37 @@ func isAcceptableAIIssueTitle(title string) bool {
 	if runeCount < 4 || runeCount > 48 {
 		return false
 	}
-	return !containsMetricQuerySyntax(title)
+	if containsMetricQuerySyntax(title) {
+		return false
+	}
+	return !containsIssueTitleStateWording(title)
+}
+
+func containsIssueTitleStateWording(title string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(title))
+	if normalized == "" {
+		return false
+	}
+	normalized = strings.TrimSpace(strings.TrimPrefix(normalized, "已恢复："))
+	normalized = strings.TrimSpace(strings.TrimPrefix(normalized, "已恢复:"))
+	stateWords := []string{
+		"恢复观察",
+		"已恢复",
+		"未恢复",
+		"仍在触发",
+		"触发中",
+		"当前仍",
+		"当前已",
+		"firing",
+		"resolved",
+		"recovering",
+	}
+	for _, word := range stateWords {
+		if strings.Contains(normalized, strings.ToLower(word)) {
+			return true
+		}
+	}
+	return false
 }
 
 func resolveAIEnrichedActionPlan(issueOutput systemHealthAIIssueOutput, reportActionPlan []response.SystemHealthActionPlanStep, currentPlan []response.SystemHealthActionPlanStep, issue response.SystemHealthIssue) ([]response.SystemHealthActionPlanStep, string) {
@@ -1375,42 +1724,51 @@ func callSystemHealthAI(ctx core.Context, baseURL string, apiKey string, model s
 		Model: strings.TrimSpace(model),
 		Instructions: strings.Join([]string{
 			"你是系统健康中心的告警汇总助手。",
-			"只基于输入中的真实监控数据、已有告警分析产出和证据生成总结。",
-			"不要解释告警为何被聚合，不要输出置信度，不要编造输入中不存在的根因。",
+			"任务：把当前窗口的系统健康状态、告警事件、已有分析结论和证据，整理成普通用户可理解、可处置的系统健康报告。",
+			"全局原则：只能基于输入中的真实监控数据、已有告警分析产出和证据生成内容；不得编造输入中不存在的服务、接口、实例、根因、指标趋势或处置动作。",
+			"不要输出置信度，不要解释告警为何被聚合。",
 			"输出必须严格符合请求中的 json_schema。",
 			"issues 只返回输入中已有的 issue.key，不能新增、改写或翻译 key。",
-			"summary 必须面向普通用户说明系统情况，按“系统当前处于什么状态 + 发生了什么告警事件 + 有哪些需要关注的问题”组织。",
-			"summary 控制在 120 个中文字符以内，最多 3 句话；不要使用“整体判断”“风险模式”等内部分析口径。",
-			"summary 推荐句式：系统当前处于{状态}状态。窗口内发生过{范围模式}{症状}告警，{当前是否仍触发/是否恢复观察}。需要关注{复发/RED退化/共同根因/规则口径}。",
-			"summary 使用“多入口/多服务/单节点/多实例/单目标/多目标”等范围模式，不要出现具体服务名、接口名、实例名或目标清单。",
-			"summary 禁止使用“主要问题集中在 A、B、C”这类服务/接口列表式表达。",
-			"每个 issue.title 要把输入中的真实服务名/接口名和 alertNames 中的实际告警名融合成一个长度合适的风险事件名称，建议 12-32 个中文字符；不要返回“xxx 等 N 类告警”这种机械合并标题。",
-			"issue.title 必须使用输入提供的服务名、接口名和告警名；不要根据服务名推断业务功能、行业含义或用户动作。例如服务名是 order-service 时只能写 order-service，不要推断为下单、订单入口或支付链路，除非这些词已经出现在输入的告警名、scope、impact 或证据中。",
-			"当 alertNames 包含多条告警时，issue.title 应综合共同症状，例如延迟、错误率、资源、可用性或规则口径；保留最关键服务名或 scope，不要逐条罗列所有告警名。",
+			"各字段职责必须清晰：summary 用于历史列表或空状态；issue.title 用于风险卡片标题；issue.analysis 用于风险卡片主结论；issue.metricAnalysis 用于指标变化依据；issue.rootCause 用于根因判断依据；issue.actionPlan 用于处置建议。",
+			"避免在 analysis、metricAnalysis、rootCause 和 actionPlan 中重复同一段结论。",
+			"summary 控制在 60-100 个中文字符，最多 2 句话；只说明系统状态、告警概况和主要关注方向。",
+			"summary 使用“多入口/多服务/单节点/多实例/单目标/多目标”等范围模式描述影响面；不要出现具体服务名、接口名、实例名或目标清单。",
+			"summary 不写证据链、根因详情或处置步骤；不要使用“整体判断”“风险模式”等内部分析口径；不要写成“主要问题集中在 A、B、C”这类列表式表达。",
+			"issue.title 是风险名称，不是分析结论；使用输入中的真实服务名、接口名、scope 和 alertNames，生成 12-32 个中文字符左右的风险事件名称。",
+			"issue.title 优先使用“{对象} 存在{问题类型}问题”或“{对象} {指标/请求}上升”这类风格，例如“ts-station-service 存在请求延时问题”“ts-station-service 请求延时上升”。",
+			"如果风险已恢复，issue.title 可以使用状态前缀“已恢复：{对象} 存在{问题类型}问题”；不要把状态词放在标题末尾。",
+			"当 alertNames 包含多条告警时，issue.title 应归纳共同症状，例如延迟、错误率、资源、可用性或规则口径；保留最关键服务名或 scope，不要逐条罗列所有告警名。",
+			"issue.title 不要包含“恢复观察”“当前仍在触发”“触发中”“未恢复”等状态词；除开头的“已恢复：”前缀外，状态只能写在 issue.analysis 中。",
+			"issue.title 不要返回“xxx 等 N 类告警”这种机械标题；不要根据服务名推断业务功能、行业含义或用户动作。",
 			"如果无法生成比输入 title 更清晰的风险事件名称，issue.title 返回原 title。",
-			"每个 issue.analysis 要说明该风险对用户可见的系统表现、当前是否恢复、以及 eBPF/RED/指标侧确定的故障方向；不要只说明告警内容或重复 evidence 中已有的数字罗列。",
-			"当输入包含告警指标趋势、eBPF、RED、Trace 或 existingAlertAnalyses 指向时，issue.analysis 必须明确写出“指标/eBPF 方向指向...”或等价表达，说明是入口、下游、资源还是规则口径问题。",
-			"当 evidence 中包含“请求北极星”时，issue.rootCause 必须读取其中的网络耗时、CPU 执行耗时、调度等待耗时、TPS 变化和异常 span 线索；请求北极星表示单次请求平均花费在不同资源上的耗时，不是线程级北极星，不要写成线程、CPU 火焰图或线程等待结论。",
-			"如果请求北极星显示网络耗时、CPU 执行耗时或调度等待耗时在告警窗口异常升高，应把它作为延时根因方向之一；如果请求北极星全局视角无明显异常但存在超过绝对阈值的慢 span，只能说明需要下钻这些 span，不能直接判定全局资源耗时异常。",
-			"每个 issue.metricAnalysis 专门解释告警指标趋势：必须包含指标名（使用 evidence.metric.metricName）；服务/请求路径、时间段、指标表现和当前意义；evidence.metric.ruleName 是告警规则名，不是指标名，不要把 ruleName 当作指标名输出；用自然语言说明指标是在升高、回落还是缺少可比性；结合告警是否恢复判断该指标对当前风险的意义；不要输出 PQL、PromQL、rate(、sum by(、query 表达式或其它调试查询内容，不要只复述“命中几条指标、变化百分比、区间”。",
-			"如果 evidence 中没有告警指标趋势或无法形成趋势，issue.metricAnalysis 输出空字符串。",
-			"existingReportFindings 来自原告警分析报告的根因分析、故障方向和详情，是 issue.rootCause 的最高优先级来源；rootCause 应先总结这些报告结论，不要因为缺少 RED/APM 再否定报告已给出的故障方向。",
-			"如果 existingReportFindings 已给出 rootCause，直接概括报告中的故障方向和关键详情；缺失数据只能作为验证边界，不作为 rootCause 主体。",
-			"existingReportFindings.overviewReason 来自 alert_report.overview_reason，是基于 eBPF 数据得到的故障方向分析；当使用 overviewReason 生成 issue.rootCause 时，必须体现“基于 eBPF 数据/方向报告分析”的来源。",
-			"existingReportFindings.rootCauseOther 来自 alert_report.root_cause_other，是原报告的补充根因条目；生成 issue.rootCause 时必须和 overviewReason、rootCause 一起归纳，不要只使用 existingAlertAnalyses.alertDirection。",
-			"如果 overviewReason、rootCause 或 overviewDetail 表示“无明确故障方向、未定位到明确根因、无法判断故障方向”，不要把这类无方向结论作为 rootCause 输出；应清理这类内容，只在有明确方向证据时总结可能根因。",
-			"existingReportFindings.overviewDetail 来自 alert_report.overview_detail，是原故障方向报告中更完整的分析详情；生成 issue.rootCause 时必须读取 overviewDetail，归纳可能根因，不要只复述告警方向或原样复制报告详情。",
-			"当 existingReportFindings.rootCause 为空但 overviewDetail、analyzeProcess 或 reportEvidence 有内容时，issue.rootCause 必须基于这些报告详情总结可能根因；如果报告详情指向下游、代码逻辑、资源瓶颈、调用链或告警规则口径，需要用面向系统健康中心的语言概括。",
-			"existingReportFindings.reportEvidence 来自告警事件方向报告中的证据链，可能包含 APM链路、日志分析、指标趋势和告警事件分析；issue.analysis、rootCause 和 actionPlan 应优先融合这些报告证据。",
-			"existingAlertAnalyses 是告警发生时的分析结果，只作为辅助信息；issue.rootCause 要从报告根因、这些分析结果、事件规律和指标/APM证据中整理根因判断，不要原样罗列辅助分析。",
-			"当多个 existingAlertAnalyses 指向一致时，rootCause 优先归纳共同指向的服务、入口、下游或指标问题；当分析方向冲突时，rootCause 要说明仍为可能根因并指出需要用指标/APM继续确认。",
-			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应分析告警指标、表达式、阈值或标签口径是否存在问题；不能当作服务故障处置。",
-			"P4 invalidAlert 的 actionPlan 重点融合规则诊断、RED 指标对比和告警规则修正，不要输出扩容、重启等业务止血动作，除非输入证据明确支持。",
-			"existingReportActions 来自原告警分析报告的建议行动；生成 actionPlan 时必须先理解这些动作的排查对象、建议、验证和风险，再结合当前系统健康状态、告警是否仍触发、指标/APM/日志证据，重新组织为系统健康中心视角的处置建议。",
-			"actionPlan 不是把 existingReportActions 原样复制或机械追加；应汇总并重写为 2-4 个互相呼应、顺序合理、可操作的步骤。保留原报告建议中仍适用的排查目标和验证要点，删除与当前状态矛盾、过期或不可执行的动作。",
-			"如果原报告建议偏单次告警事件，actionPlan 需要上升到当前风险对象：先处理当前仍在触发或用户影响最大的方向，再做根因确认、恢复验证和复发观察。",
-			"actionPlan 只给可执行的排查、止血、恢复和验证步骤；字段为空时使用空字符串，不要省略字段；不要输出泛泛的“持续关注”，必须说明关注哪个对象、用什么信号验证、风险是什么。",
-			"actionPlan.validation 表示需要用户确认的验收方式或确认项，必须用“确认/检查/观察/回看/对比”等动作表达；不要写成“日志无异常”“指标已恢复”这类已经成立的事实结论。",
+			"issue.analysis 只说明当前风险是什么、影响什么对象、当前仍在触发还是已恢复观察；可以简要说明故障方向指向入口、下游、资源、指标退化或规则口径。",
+			"issue.analysis 不复述 metricAnalysis 的指标细节，不复述 rootCause 的完整根因判断，不罗列 evidence 中的数字，控制在 80-150 个中文字符。",
+			"issue.metricAnalysis 只解释告警指标趋势和证据边界，必须使用 evidence.metric.metricName 作为指标名。",
+			"issue.metricAnalysis 只能使用“告警指标趋势”证据，不要引用“请求北极星”的请求平均耗时、TPS 或资源分项；请求北极星只能用于 rootCause 或 analysis 的故障方向说明。",
+			"issue.metricAnalysis 说明服务/请求路径、时间段、指标表现、趋势意义和当前风险含义；如果样本不足、未匹配到目标序列或只能作为背景参考，必须明确说明。",
+			"evidence.metric.ruleName 是告警规则名，不是指标名；不要输出 PQL、PromQL、rate(、sum by(、query 表达式或其它调试查询内容；不要只复述“命中几条指标、变化百分比、区间”。",
+			"如果 evidence 中没有告警指标趋势或无法形成趋势，issue.metricAnalysis 输出空字符串；否则控制在 40-100 个中文字符。",
+			"issue.rootCause 来源优先级：1 existingReportFindings 中的 rootCause、overviewReason、overviewDetail、rootCauseOther、reportEvidence；2 请求北极星证据；3 existingAlertAnalyses 中一致的故障方向；4 告警事件规律和指标证据。",
+			"issue.rootCause 只输出根因判断，不写处置建议；如果高优先级来源已有明确方向，不能被低优先级来源推翻。",
+			"existingReportFindings 是最高优先级来源，应优先总结原告警分析报告的故障方向和关键详情；缺失数据只能作为验证边界，不能作为 rootCause 主体。",
+			"overviewReason 来自基于 eBPF 数据的故障方向分析，使用时要体现“基于 eBPF 数据/方向报告分析”的来源；rootCauseOther 需要和 rootCause、overviewReason、overviewDetail 一起归纳。",
+			"如果报告内容表示“无明确故障方向、未定位到明确根因、无法判断故障方向”，不要将其作为 rootCause 输出。",
+			"日志分析只用于明确错误信号：只有出现错误、异常、超时、失败、慢请求、5xx/4xx、panic、exception 等信号时才能写入 analysis、rootCause 或 actionPlan。",
+			"不要对正常日志、INFO 为主、无明显报错、未持续新增异常、恢复后无异常堆积等内容做评价或推测；这类日志不能作为根因、风险或恢复质量结论。",
+			"existingAlertAnalyses 只作为辅助信息，不要原样罗列；如果所有来源都没有明确方向，输出“现有证据暂不能归因，需要结合告警指标或明确错误日志继续确认。”",
+			"issue.rootCause 控制在 40-120 个中文字符。",
+			"当 evidence 包含“请求北极星”时，rootCause 必须读取网络耗时、CPU 执行耗时、调度等待耗时、TPS 变化和慢调用样本线索。",
+			"请求北极星表示单次请求平均耗时分布，不是线程级北极星；不要写成线程、CPU 火焰图或线程等待结论。",
+			"如果请求北极星显示网络耗时、CPU 执行耗时或调度等待耗时在告警窗口异常升高，应作为延时根因方向之一；如果整体趋势无明显异常但存在超过绝对阈值的慢调用样本，只能建议下钻这些样本，不能直接判定整体资源耗时异常。",
+			"P4 invalidAlert 表示告警持续触发但已有分析反复判定无效，应按告警规则诊断处理，分析指标、表达式、阈值、标签口径或同比基线问题，不能当作服务故障处置。",
+			"P4 invalidAlert 的 rootCause 应指向规则口径或指标口径问题；actionPlan 应聚焦规则诊断、RED 指标对比和告警规则修正；除非输入证据明确支持，不要输出扩容、重启等业务止血动作。",
+			"actionPlan 生成 2-4 个顺序合理、互相呼应、可执行的步骤。",
+			"existingReportActions 是参考来源，不能原样复制或机械追加；应结合当前健康状态、告警是否仍触发、指标和明确错误日志证据重新组织。",
+			"保留仍适用的排查目标和验证要点，删除与当前状态矛盾、过期或不可执行的动作；如果原报告建议偏单次告警事件，需要上升到当前风险对象。",
+			"actionPlan 优先处理仍在触发或用户影响最大的方向，再做根因确认、恢复验证和复发观察。",
+			"不要输出泛泛的“持续关注”，必须说明关注对象、验证信号和风险；target 不得使用 issue.key、aggregationKey 或 activeAlert/recoveredAlert/invalidAlert 这类内部标识。",
+			"actionPlan.phase 控制在 4-12 个中文字符；target 控制在 4-40 个中文字符；action 控制在 30-80 个中文字符；validation 和 risk 控制在 20-70 个中文字符。",
+			"actionPlan.validation 必须使用“确认/检查/观察/回看/对比”等动作表达；不要写成“日志无异常”“指标已恢复”这类已经成立的事实结论。",
 		}, "\n"),
 		Input: string(inputPayload),
 		Text: openAIResponsesTextConfig{
@@ -1597,17 +1955,16 @@ func openAIResponsesEndpoint(baseURL string) string {
 }
 
 func systemHealthAIResponseSchema() map[string]any {
-	stringSchema := map[string]any{"type": "string"}
 	actionPlanItemSchema := map[string]any{
 		"type":                 "object",
 		"additionalProperties": false,
 		"required":             []string{"phase", "target", "action", "validation", "risk"},
 		"properties": map[string]any{
-			"phase":      stringSchema,
-			"target":     stringSchema,
-			"action":     stringSchema,
-			"validation": stringSchema,
-			"risk":       stringSchema,
+			"phase":      map[string]any{"type": "string", "minLength": 2, "maxLength": 16},
+			"target":     map[string]any{"type": "string", "minLength": 2, "maxLength": 60},
+			"action":     map[string]any{"type": "string", "minLength": 10, "maxLength": 120},
+			"validation": map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
+			"risk":       map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
 		},
 	}
 	issueSchema := map[string]any{
@@ -1615,12 +1972,12 @@ func systemHealthAIResponseSchema() map[string]any {
 		"additionalProperties": false,
 		"required":             []string{"key", "title", "analysis", "rootCause", "metricAnalysis", "actionPlan"},
 		"properties": map[string]any{
-			"key":            stringSchema,
-			"title":          stringSchema,
-			"analysis":       stringSchema,
-			"rootCause":      stringSchema,
-			"metricAnalysis": stringSchema,
-			"actionPlan":     map[string]any{"type": "array", "items": actionPlanItemSchema},
+			"key":            map[string]any{"type": "string", "minLength": 1},
+			"title":          map[string]any{"type": "string", "minLength": 4, "maxLength": 64},
+			"analysis":       map[string]any{"type": "string", "minLength": 20, "maxLength": 240},
+			"rootCause":      map[string]any{"type": "string", "minLength": 0, "maxLength": 180},
+			"metricAnalysis": map[string]any{"type": "string", "minLength": 0, "maxLength": 160},
+			"actionPlan":     map[string]any{"type": "array", "minItems": 2, "maxItems": 4, "items": actionPlanItemSchema},
 		},
 	}
 	return map[string]any{
@@ -1628,7 +1985,7 @@ func systemHealthAIResponseSchema() map[string]any {
 		"additionalProperties": false,
 		"required":             []string{"summary", "issues"},
 		"properties": map[string]any{
-			"summary": stringSchema,
+			"summary": map[string]any{"type": "string", "minLength": 20, "maxLength": 140},
 			"issues":  map[string]any{"type": "array", "items": issueSchema},
 		},
 	}
@@ -1750,8 +2107,10 @@ func buildSystemHealthAIMetricInput(metric *response.SystemHealthMetricEvidence)
 		PointCount:     metric.PointCount,
 		FirstValue:     metric.FirstValue,
 		LastValue:      metric.LastValue,
+		AverageValue:   metric.AverageValue,
 		MinValue:       metric.MinValue,
 		MaxValue:       metric.MaxValue,
+		MaxDeviation:   metric.MaxDeviation,
 		Delta:          metric.Delta,
 		ChangePercent:  metric.ChangePercent,
 		Trend:          metricTrendPhrase(metric),
@@ -1848,7 +2207,7 @@ func buildSystemHealthAIReportEvidenceInput(evidence []systemHealthAlertReportEv
 		if len(items) >= 4 {
 			break
 		}
-		summary := cleanUserFacingReportText(item.Summary)
+		summary := displayableAlertReportEvidenceSummary(item.Kind, item.Summary)
 		if summary == "" {
 			continue
 		}
@@ -2382,7 +2741,7 @@ func buildAlertReportEvidenceSummaries(report *model.AlertEventReport, topologyR
 	grouped := make(map[string][]string)
 	appendSummary := func(kind string, summary string) {
 		kind = strings.TrimSpace(kind)
-		summary = normalizeReportEvidenceSummary(summary)
+		summary = displayableAlertReportEvidenceSummary(kind, summary)
 		if kind == "" || summary == "" {
 			return
 		}
@@ -2411,7 +2770,7 @@ func buildAlertReportEvidenceSummaries(report *model.AlertEventReport, topologyR
 		appendSummary("alert", reportAnalysis)
 	}
 
-	order := []string{"apm", "logs", "metrics", "alert"}
+	order := []string{"logs", "metrics", "alert"}
 	result := make([]systemHealthAlertReportEvidence, 0, len(grouped))
 	for _, kind := range order {
 		summaries := grouped[kind]
@@ -2553,6 +2912,75 @@ func normalizeReportEvidenceSummary(text string) string {
 		text = strings.ReplaceAll(text, replacement.old, replacement.new)
 	}
 	return truncateText(text, 320)
+}
+
+func displayableAlertReportEvidenceSummary(kind string, summary string) string {
+	kind = strings.ToLower(strings.TrimSpace(kind))
+	if kind == "apm" {
+		return ""
+	}
+	summary = normalizeReportEvidenceSummary(summary)
+	if summary == "" {
+		return ""
+	}
+	if kind == "logs" {
+		return cleanDisplayableLogEvidenceSummary(summary)
+	}
+	return summary
+}
+
+func cleanDisplayableLogEvidenceSummary(summary string) string {
+	summary = stripLogEvidencePlaceholders(summary)
+	if summary == "" || !hasConcreteLogEvidence(summary) {
+		return ""
+	}
+	return truncateText(summary, 320)
+}
+
+func stripLogEvidencePlaceholders(summary string) string {
+	summary = strings.TrimSpace(summary)
+	if summary == "" {
+		return ""
+	}
+	replacer := strings.NewReplacer(
+		"服务xx在xx时间段内出现了xxx日志错误", " ",
+		"服务 xx 在 xx 时间段内出现了 xxx 日志错误", " ",
+		"服务xx在xx时间段内出现xxx日志错误", " ",
+		"服务 xx 在 xx 时间段内出现 xxx 日志错误", " ",
+		"Let's get this organized!", " ",
+		"Let''s get this organized!", " ",
+		"Let’s get this organized!", " ",
+	)
+	summary = replacer.Replace(summary)
+	summary = strings.TrimSpace(strings.Trim(summary, "：:;；,.，。\"'“”‘’ "))
+	return strings.Join(strings.Fields(summary), " ")
+}
+
+func hasConcreteLogEvidence(summary string) bool {
+	text := strings.TrimSpace(summary)
+	if text == "" {
+		return false
+	}
+	lower := strings.ToLower(text)
+	negativeMarkers := []string{
+		"无日志数据", "无可用日志", "日志为空", "未查询到日志", "没有查询到日志",
+		"未检索到日志", "没有检索到日志", "未发现日志", "未发现异常日志",
+		"未发现错误日志", "未发现慢请求", "无持续慢请求", "no log", "not found",
+		"正常日志", "日志正常", "info 为主", "info为主", "无明显报错", "未见明显报错",
+		"未持续新增", "没有持续新增", "无异常堆积", "恢复后未持续新增",
+	}
+	for _, marker := range negativeMarkers {
+		if strings.Contains(lower, strings.ToLower(marker)) {
+			return false
+		}
+	}
+	if containsAnyText(lower, "error", "exception", "timeout", "fatal", "panic", "traceback", "5xx", "4xx") {
+		return true
+	}
+	if containsAnyText(text, "异常", "错误", "超时", "堆栈", "报错", "失败", "慢请求", "错误日志") {
+		return true
+	}
+	return false
 }
 
 func alertReportTopologySummary(raw string) string {
@@ -2800,7 +3228,7 @@ func topologyRoleEntrySummary(role systemHealthAlertReportTopologyRole) string {
 			childText += "（" + strings.Join(role.ChildNames[:minInt(len(role.ChildNames), 3)], "、") + "）"
 		}
 	}
-	return fmt.Sprintf("方向报告拓扑显示%s没有上游调用方%s，说明该接口位于入口侧，告警影响需要优先从入口请求体验和下游调用链路两端确认。", target, childText)
+	return fmt.Sprintf("方向报告拓扑显示%s未发现上游调用方%s；若延时复发，优先核对该请求的延时、错误率和主要下游耗时。", target, childText)
 }
 
 func topologyRoleInternalEndpointSummary(role systemHealthAlertReportTopologyRole) string {
@@ -3859,18 +4287,18 @@ func applyAlertReportTopologyRoleToInput(ctx core.Context, input *reportInput) {
 	oldCriticality := input.objectCriticality
 	switch role.Role {
 	case "entry":
-		if role.CurrentService != "" && role.CurrentEndpoint != "" {
+		if input.scopeKind != "service" && role.CurrentService != "" && role.CurrentEndpoint != "" {
 			input.scope = role.CurrentService + " / " + role.CurrentEndpoint
 		}
-		if input.scopeKind == "service" && role.CurrentEndpoint != "" {
+		if input.scopeKind != "service" && role.CurrentEndpoint != "" {
 			input.scopeKind = "entry"
 		}
 		input.objectCriticality = math.Max(input.objectCriticality, 90)
 	case "internalEndpoint":
-		if role.CurrentService != "" && role.CurrentEndpoint != "" {
+		if input.scopeKind != "service" && role.CurrentService != "" && role.CurrentEndpoint != "" {
 			input.scope = role.CurrentService + " / " + role.CurrentEndpoint
 		}
-		if input.scopeKind == "entry" || (input.scopeKind == "service" && role.CurrentEndpoint != "") {
+		if input.scopeKind == "entry" {
 			input.scopeKind = "serviceEndpoint"
 		}
 		input.objectCriticality = math.Max(input.objectCriticality, 85)
@@ -4046,9 +4474,6 @@ func buildDedupKey(event normalizedAlertEvent) string {
 }
 
 func buildAggregationKey(event normalizedAlertEvent) string {
-	if event.ServiceName != "" && event.Endpoint != "" {
-		return "entry::" + event.ServiceName + "::" + event.Endpoint
-	}
 	if event.ServiceName != "" {
 		return "service::" + event.ServiceName
 	}
@@ -4059,9 +4484,6 @@ func buildAggregationKey(event normalizedAlertEvent) string {
 }
 
 func normalizedAggregationScope(event normalizedAlertEvent, rawEvent alertmodel.AEventWithWRecord) (string, string) {
-	if event.ServiceName != "" && event.Endpoint != "" {
-		return event.ServiceName + " / " + event.Endpoint, "entry"
-	}
 	if event.ServiceName != "" {
 		return event.ServiceName, "service"
 	}
@@ -4347,9 +4769,6 @@ func eventTitle(event alertmodel.AEventWithWRecord, kind string) string {
 	if kind == issueKindInspection {
 		return "巡检指标异常：" + event.Name
 	}
-	if kind == issueKindRecoveredAlert {
-		return "已恢复告警：" + event.Name
-	}
 	if kind == issueKindInvalidAlert {
 		return "疑似告警规则问题：" + event.Name
 	}
@@ -4357,21 +4776,96 @@ func eventTitle(event alertmodel.AEventWithWRecord, kind string) string {
 }
 
 func buildAggregatedIssueTitle(input reportInput) string {
-	alertNames := uniqueStrings(input.alertNames)
-	baseTitle := firstNonEmpty(firstString(alertNames), input.title)
-	if len(alertNames) > 1 {
-		baseTitle = fmt.Sprintf("%s等 %d 类告警", baseTitle, len(alertNames))
-	}
+	baseTitle := buildRiskIssueTitle(input)
 	if input.kind == issueKindInspection {
-		return "巡检指标异常：" + baseTitle
-	}
-	if input.kind == issueKindRecoveredAlert {
-		return "已恢复告警：" + baseTitle
+		return truncateText(baseTitle, 48)
 	}
 	if input.kind == issueKindInvalidAlert {
-		return "疑似告警规则问题：" + baseTitle
+		return truncateText(baseTitle, 48)
 	}
-	return baseTitle
+	if input.kind == issueKindRecoveredAlert {
+		return truncateText("已恢复："+baseTitle, 48)
+	}
+	return truncateText(baseTitle, 48)
+}
+
+func buildRiskIssueTitle(input reportInput) string {
+	target := issueTitleTarget(input)
+	problem := issueTitleProblem(input)
+	switch problem {
+	case "请求延时":
+		if issueTitleSuggestsIncrease(input) {
+			return target + " 请求延时上升"
+		}
+		return target + " 存在请求延时问题"
+	case "错误异常":
+		if issueTitleSuggestsIncrease(input) {
+			return target + " 错误异常上升"
+		}
+		return target + " 存在错误异常问题"
+	case "资源压力":
+		return target + " 存在资源压力问题"
+	case "可用性":
+		return target + " 存在可用性问题"
+	case "告警规则":
+		return target + " 存在告警规则问题"
+	case "巡检指标":
+		return target + " 存在巡检指标异常"
+	default:
+		alertName := firstString(uniqueStrings(input.alertNames))
+		if alertName != "" && !strings.Contains(alertName, "告警汇总") {
+			return target + " 存在" + alertName + "问题"
+		}
+		return target + " 存在健康风险"
+	}
+}
+
+func issueTitleTarget(input reportInput) string {
+	target := strings.TrimSpace(input.scope)
+	if target == "" {
+		target = firstNonEmpty(input.aggregationKey, input.title, "当前影响目标")
+	}
+	return target
+}
+
+func issueTitleProblem(input reportInput) string {
+	if input.kind == issueKindInspection {
+		return "巡检指标"
+	}
+	if input.kind == issueKindInvalidAlert {
+		return "告警规则"
+	}
+	text := strings.ToLower(strings.Join(append([]string{
+		input.title,
+		input.scope,
+		input.impact,
+	}, input.alertNames...), " "))
+	switch {
+	case strings.Contains(text, "latency"), strings.Contains(text, "duration"), strings.Contains(text, "timeout"), strings.Contains(text, "slow"),
+		strings.Contains(text, "p95"), strings.Contains(text, "p99"), strings.Contains(text, "耗时"), strings.Contains(text, "延时"), strings.Contains(text, "延迟"), strings.Contains(text, "慢调用"), strings.Contains(text, "超时"):
+		return "请求延时"
+	case strings.Contains(text, "error"), strings.Contains(text, "exception"), strings.Contains(text, "fail"),
+		strings.Contains(text, "失败"), strings.Contains(text, "错误"), strings.Contains(text, "异常"), strings.Contains(text, "5xx"), strings.Contains(text, "4xx"):
+		return "错误异常"
+	case strings.Contains(text, "cpu"), strings.Contains(text, "memory"), strings.Contains(text, "oom"), strings.Contains(text, "磁盘"), strings.Contains(text, "内存"), strings.Contains(text, "负载"), strings.Contains(text, "资源"):
+		return "资源压力"
+	case strings.Contains(text, "unavailable"), strings.Contains(text, "down"), strings.Contains(text, "不可用"), strings.Contains(text, "宕机"), strings.Contains(text, "断连"):
+		return "可用性"
+	case strings.Contains(text, "规则"), strings.Contains(text, "阈值"), strings.Contains(text, "表达式"), strings.Contains(text, "无效告警"), strings.Contains(text, "invalid"):
+		return "告警规则"
+	default:
+		return "健康风险"
+	}
+}
+
+func issueTitleSuggestsIncrease(input reportInput) bool {
+	text := strings.ToLower(strings.Join(append([]string{input.title}, input.alertNames...), " "))
+	return strings.Contains(text, "升高") ||
+		strings.Contains(text, "上升") ||
+		strings.Contains(text, "增加") ||
+		strings.Contains(text, "变高") ||
+		strings.Contains(text, "increase") ||
+		strings.Contains(text, "high")
 }
 
 func firstString(values []string) string {
@@ -5683,10 +6177,6 @@ func (h *handler) buildRealEvidence(ctx core.Context, input reportInput, groupID
 	if objectStatusEvidence := h.relatedObjectStatusEvidence(ctx, input); objectStatusEvidence.Result != "" {
 		evidence = append(evidence, objectStatusEvidence)
 	}
-	if traceEvidence := h.traceSampleEvidence(ctx, input, groupID, startTime, endTime); traceEvidence.Result != "" {
-		evidence = append(evidence, traceEvidence)
-	}
-
 	detailSamples := make([]string, 0, minInt(maxEvidenceSamples, len(input.events)))
 	for _, event := range input.events {
 		result := alertDetailSummary(event)
@@ -5733,10 +6223,14 @@ func buildAlertReportEvidence(findings []systemHealthAlertReportFinding, severit
 			if strings.TrimSpace(item.Kind) == "" || strings.TrimSpace(item.Summary) == "" {
 				continue
 			}
-			grouped[item.Kind] = uniqueStrings(append(grouped[item.Kind], item.Summary))
+			summary := displayableAlertReportEvidenceSummary(item.Kind, item.Summary)
+			if summary == "" {
+				continue
+			}
+			grouped[item.Kind] = uniqueStrings(append(grouped[item.Kind], summary))
 		}
 	}
-	order := []string{"apm", "logs", "metrics", "alert"}
+	order := []string{"logs", "metrics", "alert"}
 	result := make([]response.SystemHealthEvidence, 0, len(order))
 	for _, kind := range order {
 		summaries := grouped[kind]
@@ -5859,6 +6353,7 @@ func (h *handler) requestPolarisEvidence(ctx core.Context, input reportInput, gr
 			Expression:     topTrend.Expression,
 			Step:           step,
 			SeriesReturned: topTrend.SeriesCount,
+			MatchedSeries:  topTrend.Series,
 			Stats:          topTrend.Stats,
 			EventScoped:    strings.TrimSpace(contentKey) != "",
 			Message:        requestPolarisMetricMessage(*topTrend),
@@ -6009,6 +6504,7 @@ func (h *handler) queryRequestPolarisMetricTrend(ctx core.Context, spec requestP
 		return trend
 	}
 	trend.Stats = stats
+	trend.Series = results
 	trend.SeriesCount = len(results)
 	trend.PointCount = stats.PointCount
 	trend.Abnormal, trend.Reason = requestPolarisTrendAbnormalReason(trend)
@@ -6105,6 +6601,7 @@ func (h *handler) queryRequestPolarisSlowSpans(ctx core.Context, groupID int64, 
 func buildRequestPolarisEvidenceResult(scope string, serviceName string, contentKey string, trends []requestPolarisMetricTrend, abnormal []requestPolarisMetricTrend, slowSpans []clickhouse.QueryTraceResult, slowSpanTotal int64, slowSpanErr error) string {
 	targetDetail := requestPolarisTargetText(scope, serviceName, contentKey)
 	tpsText := requestPolarisTPSText(trends)
+	latencyTrend := requestPolarisTrendByKey(trends, "latency")
 	if len(abnormal) > 0 {
 		top := abnormal[0]
 		parts := []string{
@@ -6121,11 +6618,21 @@ func buildRequestPolarisEvidenceResult(scope string, serviceName string, content
 		}
 		return truncateText(strings.Join(parts, "；")+"。", 520)
 	}
+	latencyText := ""
+	if latencyTrend != nil && latencyTrend.PointCount > 0 {
+		latencyText = fmt.Sprintf("请求平均耗时从 %sms 到 %sms，最高 %sms；", formatMetricFloat(latencyTrend.Stats.FirstValue), formatMetricFloat(latencyTrend.Stats.LastValue), formatMetricFloat(latencyTrend.Stats.MaxValue))
+	}
+	targetText := targetDetail
+	if targetText != "" {
+		targetText += "，"
+	}
 	if slowSpanErr != nil {
-		return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高；调用链慢 span 检索失败：%s。%s", requestPolarisResourceThresholdMS, slowSpanErr.Error(), tpsText), 520)
+		return truncateText(fmt.Sprintf("请求北极星显示，%s%s网络、CPU执行、调度等待等资源分项未见超过 %.0fms/请求或明显升高；慢调用样本检索失败：%s。%s", targetText, latencyText, requestPolarisResourceThresholdMS, slowSpanErr.Error(), tpsText), 560)
 	}
 	if slowSpanTotal > 0 {
-		return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高；但调用链中检索到 %d 条超过 %.0fms 的慢 span，%s。该结果用于定位慢调用样本，不代表全局资源耗时已异常。%s",
+		return truncateText(fmt.Sprintf("请求北极星显示，%s%s网络、CPU执行、调度等待等资源分项未见超过 %.0fms/请求或明显升高；但检索到 %d 条超过 %.0fms 的慢调用样本，%s。该结果用于定位慢调用样本，不代表整体资源耗时已异常。%s",
+			targetText,
+			latencyText,
 			requestPolarisResourceThresholdMS,
 			slowSpanTotal,
 			requestPolarisSlowSpanThresholdMS,
@@ -6133,11 +6640,22 @@ func buildRequestPolarisEvidenceResult(scope string, serviceName string, content
 			tpsText,
 		), 560)
 	}
-	return truncateText(fmt.Sprintf("请求北极星全局视角未见请求资源耗时超过 %.0fms/请求或明显升高，调用链也未检索到超过 %.0fms 的慢 span；当前不把请求资源耗时作为主要根因。%s",
+	return truncateText(fmt.Sprintf("请求北极星显示，%s%s网络、CPU执行、调度等待等资源分项未见超过 %.0fms/请求或明显升高，也未检索到超过 %.0fms 的慢调用样本；当前不把资源分项耗时作为主要根因。%s",
+		targetText,
+		latencyText,
 		requestPolarisResourceThresholdMS,
 		requestPolarisSlowSpanThresholdMS,
 		tpsText,
 	), 520)
+}
+
+func requestPolarisTrendByKey(trends []requestPolarisMetricTrend, key string) *requestPolarisMetricTrend {
+	for index := range trends {
+		if trends[index].Key == key && trends[index].PointCount > 0 {
+			return &trends[index]
+		}
+	}
+	return nil
 }
 
 func requestPolarisTargetText(scope string, serviceName string, contentKey string) string {
@@ -6597,8 +7115,10 @@ func buildMetricEvidence(trend alertMetricTrendQueryResult) *response.SystemHeal
 		PointCount:      trend.Stats.PointCount,
 		FirstValue:      trend.Stats.FirstValue,
 		LastValue:       trend.Stats.LastValue,
+		AverageValue:    trend.Stats.AverageValue,
 		MinValue:        trend.Stats.MinValue,
 		MaxValue:        trend.Stats.MaxValue,
+		MaxDeviation:    trend.Stats.MaxDeviation,
 		Delta:           trend.Stats.Delta,
 		ChangePercent:   trend.Stats.ChangePercent,
 		MatchedLabels:   trend.MatchLabels,
@@ -7360,11 +7880,15 @@ func calculateMetricTrendStats(results []alertMetricSeries) (alertMetricTrendSta
 	last := aggregated[timestamps[len(timestamps)-1]]
 	minValue := first
 	maxValue := first
+	sumValue := 0.0
 	for _, timestamp := range timestamps {
 		value := aggregated[timestamp]
+		sumValue += value
 		minValue = math.Min(minValue, value)
 		maxValue = math.Max(maxValue, value)
 	}
+	averageValue := sumValue / float64(len(timestamps))
+	maxDeviation := math.Max(math.Abs(maxValue-averageValue), math.Abs(minValue-averageValue))
 	delta := last - first
 	var changePercent *float64
 	if first != 0 {
@@ -7376,8 +7900,10 @@ func calculateMetricTrendStats(results []alertMetricSeries) (alertMetricTrendSta
 		PointCount:    pointCount,
 		FirstValue:    first,
 		LastValue:     last,
+		AverageValue:  averageValue,
 		MinValue:      minValue,
 		MaxValue:      maxValue,
+		MaxDeviation:  maxDeviation,
 		Delta:         delta,
 		ChangePercent: changePercent,
 	}, true
@@ -8037,7 +8563,7 @@ func normalizeActionPlanSteps(steps []response.SystemHealthActionPlanStep) []res
 
 func metricEvidencePresent(evidence []response.SystemHealthEvidence) bool {
 	for _, item := range evidence {
-		if strings.Contains(item.Type, "指标趋势") {
+		if strings.Contains(item.Type, "指标趋势") && !strings.Contains(item.Type, "请求北极星") {
 			return true
 		}
 	}
@@ -8046,7 +8572,7 @@ func metricEvidencePresent(evidence []response.SystemHealthEvidence) bool {
 
 func usableMetricEvidenceAvailable(evidence []response.SystemHealthEvidence) bool {
 	for _, item := range evidence {
-		if strings.Contains(item.Type, "指标趋势") && item.Metric != nil && item.Metric.PointCount > 0 {
+		if strings.Contains(item.Type, "告警指标趋势") && item.Metric != nil && item.Metric.PointCount > 0 {
 			return true
 		}
 	}
@@ -8838,7 +9364,7 @@ func buildRootCauseFromRequestPolaris(evidence []response.SystemHealthEvidence) 
 		if result == "" {
 			continue
 		}
-		if strings.Contains(result, "未见网络耗时") || strings.Contains(result, "未见请求资源耗时") || strings.Contains(result, "检索失败") || strings.Contains(result, "不把请求资源耗时作为主要根因") || strings.Contains(result, "不代表全局资源耗时已异常") {
+		if strings.Contains(result, "未见网络耗时") || strings.Contains(result, "未见请求资源耗时") || strings.Contains(result, "未见超过") || strings.Contains(result, "检索失败") || strings.Contains(result, "不把请求资源耗时作为主要根因") || strings.Contains(result, "不把资源分项耗时作为主要根因") || strings.Contains(result, "不代表全局资源耗时已异常") || strings.Contains(result, "不代表整体资源耗时已异常") {
 			continue
 		}
 		if !strings.Contains(result, "异常") && !strings.Contains(result, "升高") && !strings.Contains(result, "达到") && !strings.Contains(result, "放大") {
