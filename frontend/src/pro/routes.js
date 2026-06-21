@@ -7,8 +7,8 @@ const AlertAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/alert
 const ServiceAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/serviceAnalyze/index')))
 const CauseReportPage = AuthRouter(React.lazy(() => import('src/pro/views/causeReport/index')))
 
-const ServiceHealthyPage = React.lazy(() => import('src/pro/views/serviceHealthy/index'))
-const ServiceHealthy = import.meta.env.DEV ? ServiceHealthyPage : AuthRouter(ServiceHealthyPage)
+const SystemHealthOverviewPage = React.lazy(() => import('src/pro/views/systemHealthOverview/index'))
+const SystemHealthOverview = import.meta.env.DEV ? SystemHealthOverviewPage : AuthRouter(SystemHealthOverviewPage)
 const HealthLabPage = AuthRouter(React.lazy(() => import('src/pro/views/healthLab/index')))
 const MysqlDashboard = AuthRouter(React.lazy(() => import('src/pro/views/MysqlDashboard/index')))
 const ChatAIPage = AuthRouter(React.lazy(() => import('src/pro/views/chatAI/index')))
@@ -52,8 +52,8 @@ let proRoutes = [
   { path: '/mysql-dashboard', name: t('pro/routes:mysqlDashboard'), element: MysqlDashboard },
   {
     path: '/healthy-service',
-    name: 'AI 系统报告',
-    element: ServiceHealthy,
+    name: '系统健康评分',
+    element: SystemHealthOverview,
     showDataGroup: true,
   },
   {

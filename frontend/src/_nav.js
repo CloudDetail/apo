@@ -129,8 +129,8 @@ let _nav = [
   },
   {
     key: 'healthy',
-    label: 'AI 系统报告',
-    abbreviation: 'AI 报告',
+    label: '系统健康评分',
+    abbreviation: '健康评分',
     to: '/healthy-service',
     icon: <TbWaveSawTool />,
   },

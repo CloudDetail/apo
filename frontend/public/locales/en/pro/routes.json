@@ -3,7 +3,7 @@
   "businessAlertAnalyze": "Business Alert Analysis",
   "causeReport": "Failure Report",
   "mysqlDashboard": "MySQL Dashboard",
-  "serviceHealth": "Service Health Status",
+  "serviceHealth": "System Health Score",
   "aiRootCauseAnalysis": "AI Root Cause Analysis",
   "free": "Public Beta",
   "licenseManage": "License"
