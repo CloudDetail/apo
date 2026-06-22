@@ -10,6 +10,30 @@ type GetSystemHealthReportRequest struct {
 	EndTime      int64  `form:"endTime"`
 }
 
+type GetSystemHealthOverviewRequest struct {
+	RelativeTime string `form:"relativeTime"`
+	StartTime    int64  `form:"startTime"`
+	EndTime      int64  `form:"endTime"`
+}
+
+type GetSystemHealthSystemDetailRequest struct {
+	GroupID int64 `uri:"groupId" binding:"required"`
+
+	RelativeTime string `form:"relativeTime"`
+	StartTime    int64  `form:"startTime"`
+	EndTime      int64  `form:"endTime"`
+}
+
+type AnalyzeSystemHealthPendingIssueRequest struct {
+	GroupID     int64  `json:"groupId" binding:"required"`
+	ServiceName string `json:"serviceName" binding:"required"`
+	MetricKey   string `json:"metricKey" binding:"required"`
+
+	RelativeTime string `json:"relativeTime"`
+	StartTime    int64  `json:"startTime"`
+	EndTime      int64  `json:"endTime"`
+}
+
 type ListSystemHealthReportRecordsRequest struct {
 	GroupID  int64 `form:"groupId"`
 	Page     int   `form:"page"`

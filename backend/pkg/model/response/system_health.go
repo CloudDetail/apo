@@ -3,6 +3,105 @@
 
 package response
 
+type SystemHealthOverviewResp struct {
+	Summary       SystemHealthOverviewSummary `json:"summary"`
+	Systems       []SystemHealthSystem        `json:"systems"`
+	PendingIssues []SystemHealthPendingIssue  `json:"pendingIssues"`
+	Window        string                      `json:"window"`
+	GeneratedAt   string                      `json:"generatedAt"`
+	Source        string                      `json:"source"`
+}
+
+type SystemHealthSystemDetailResp struct {
+	System      SystemHealthSystem `json:"system"`
+	Window      string             `json:"window"`
+	GeneratedAt string             `json:"generatedAt"`
+	Source      string             `json:"source"`
+}
+
+type SystemHealthOverviewSummary struct {
+	TotalSystems       int `json:"totalSystems"`
+	AbnormalSystems    int `json:"abnormalSystems"`
+	LowScoreSystems    int `json:"lowScoreSystems"`
+	AbnormalMetrics    int `json:"abnormalMetrics"`
+	SevereMetrics      int `json:"severeMetrics"`
+	NewAbnormalMetrics int `json:"newAbnormalMetrics"`
+	NoDataSystems      int `json:"noDataSystems"`
+	Services           int `json:"services"`
+	AbnormalServices   int `json:"abnormalServices"`
+}
+
+type SystemHealthSystem struct {
+	ID            int64                               `json:"id"`
+	GroupID       int64                               `json:"groupId"`
+	Name          string                              `json:"name"`
+	Score         int                                 `json:"score"`
+	Status        string                              `json:"status"`
+	Metrics       map[string]string                   `json:"metrics"`
+	MetricDetails map[string]SystemHealthMetricDetail `json:"metricDetails"`
+	Services      []SystemHealthService               `json:"services"`
+	Source        string                              `json:"source"`
+}
+
+type SystemHealthService struct {
+	Name          string                              `json:"name"`
+	Desc          string                              `json:"desc"`
+	Score         int                                 `json:"score"`
+	Status        string                              `json:"status"`
+	Metrics       map[string]string                   `json:"metrics"`
+	MetricDetails map[string]SystemHealthMetricDetail `json:"metricDetails"`
+}
+
+type SystemHealthMetricDetail struct {
+	Status     string                        `json:"status"`
+	Value      string                        `json:"value"`
+	Note       string                        `json:"note"`
+	Unit       string                        `json:"unit,omitempty"`
+	Source     string                        `json:"source,omitempty"`
+	Series     []SystemHealthMetricPoint     `json:"series,omitempty"`
+	Thresholds []SystemHealthMetricThreshold `json:"thresholds,omitempty"`
+}
+
+type SystemHealthMetricPoint struct {
+	Timestamp int64   `json:"timestamp"`
+	Value     float64 `json:"value"`
+}
+
+type SystemHealthMetricThreshold struct {
+	Label  string  `json:"label"`
+	Value  float64 `json:"value"`
+	Status string  `json:"status"`
+}
+
+type SystemHealthPendingIssue struct {
+	ID           string `json:"id"`
+	GroupID      int64  `json:"groupId"`
+	SystemName   string `json:"systemName"`
+	ServiceName  string `json:"serviceName"`
+	MetricKey    string `json:"metricKey"`
+	MetricLabel  string `json:"metricLabel"`
+	Status       string `json:"status"`
+	Value        string `json:"value"`
+	Note         string `json:"note"`
+	ServiceScore int    `json:"serviceScore"`
+	SystemScore  int    `json:"systemScore"`
+}
+
+type SystemHealthPendingIssueAnalyzeResp struct {
+	AIStatus      string                       `json:"aiStatus"`
+	Source        string                       `json:"source"`
+	Endpoint      string                       `json:"endpoint,omitempty"`
+	WorkflowRunID string                       `json:"workflowRunId,omitempty"`
+	Error         string                       `json:"error,omitempty"`
+	Issue         SystemHealthPendingIssue     `json:"issue"`
+	Analysis      string                       `json:"analysis"`
+	Impact        string                       `json:"impact"`
+	ActionPlan    []SystemHealthActionPlanStep `json:"actionPlan"`
+	Validation    string                       `json:"validation"`
+	Risk          string                       `json:"risk"`
+	DataBoundary  string                       `json:"dataBoundary"`
+}
+
 type SystemHealthReportResp struct {
 	Report       SystemHealthReport        `json:"report"`
 	ScoreFactors []SystemHealthScoreFactor `json:"scoreFactors"`

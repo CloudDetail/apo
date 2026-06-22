@@ -78,6 +78,9 @@ func setApiRouter(r *resource) {
 	systemHealthApi := r.mux.Group("/api/system-health").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
 		systemHealthHandler := systemhealth.New(r.ch, r.pkg_db, r.dify, r.k8sApi, r.prom, appconfig.Get().AlertManager.Address, appconfig.Get().VMAlert.Address)
+		systemHealthApi.GET("/overview", systemHealthHandler.GetOverview())
+		systemHealthApi.GET("/overview/:groupId", systemHealthHandler.GetSystemDetail())
+		systemHealthApi.POST("/pending-issues/analyze", systemHealthHandler.AnalyzePendingIssue())
 		systemHealthApi.GET("/report", systemHealthHandler.GetReport())
 		systemHealthApi.GET("/report/records", systemHealthHandler.ListReportRecords())
 		systemHealthApi.GET("/report/records/:recordId", systemHealthHandler.GetReportRecord())

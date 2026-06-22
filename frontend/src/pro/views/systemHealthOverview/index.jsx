@@ -1,7 +1,29 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Button, Input, Select, Space, Tag, Tooltip } from 'antd'
+import { Alert, Button, Input, Select, Space, Spin, Switch, Tag, Tooltip } from 'antd'
+import ReactECharts from 'echarts-for-react'
 import { ArrowLeft, HelpCircle, Search, Sparkles } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
+import { MetricsLineChartColor } from 'src/constants'
+import { ISOToTimestamp } from 'src/core/utils/time'
+import {
+  analyzeSystemHealthPendingIssueApi,
+  getSystemHealthOverviewApi,
+  getSystemHealthSystemDetailApi,
+} from 'src/pro/api/serviceHealthy'
+import {
+  buildMetricTrendOption,
+  buildOverviewSummaryCards,
+  buildStatusDistribution,
+  metricSourceTitleFor,
+  metricVisualFor,
+  safePercent,
+} from './metricVisuals.mjs'
+import { buildPendingIssueQueueRows } from './pendingIssueQueue.mjs'
+import { describePendingIssue } from './pendingIssueDescription.mjs'
+import { shouldRenderDetailBody } from './detailViewState.mjs'
+import { shouldRenderInitialOverviewLoading } from './overviewViewState.mjs'
 import './index.css'
 
 const metricLabels = [
@@ -21,277 +43,23 @@ const statusMeta = {
   gray: { label: '无数据', color: '#98a2b3' },
 }
 
-const metricSamples = {
-  resource: {
-    green: ['43%', 'CPU / 内存处于可用区间'],
-    yellow: ['74%', '接近资源阈值'],
-    red: ['91%', '资源使用已超过阈值'],
-    gray: ['--', '暂无资源数据'],
-  },
-  resourceShift: {
-    green: ['8%', '波动低于基线'],
-    yellow: ['31%', '波动接近异常阈值'],
-    red: ['57%', '短时间剧烈波动'],
-    gray: ['--', '暂无波动数据'],
-  },
-  errorRate: {
-    green: ['0.12%', '错误率稳定'],
-    yellow: ['1.9%', '错误率高于基线'],
-    red: ['5.7%', '错误率超过异常阈值'],
-    gray: ['--', '暂无请求数据'],
-  },
-  latency: {
-    green: ['128ms', 'P95 响应延时稳定'],
-    yellow: ['420ms', 'P95 响应延时升高'],
-    red: ['960ms', 'P95 响应延时明显异常'],
-    gray: ['--', '暂无响应延时数据'],
-  },
-  errorLog: {
-    green: ['12', '错误日志未异常增长'],
-    yellow: ['146', '错误日志高于基线'],
-    red: ['621', '错误日志激增'],
-    gray: ['--', '日志源未上报'],
-  },
-  badRequests: {
-    green: ['18', '异常请求稳定'],
-    yellow: ['233', '异常请求升高'],
-    red: ['874', '异常请求集中出现'],
-    gray: ['--', '暂无请求明细'],
-  },
-  lockCost: {
-    green: ['24ms', '锁等待稳定'],
-    yellow: ['188ms', '锁等待升高'],
-    red: ['740ms', '锁等待严重异常'],
-    gray: ['--', '暂无锁等待数据'],
-  },
+const statusOrder = ['red', 'yellow', 'green', 'gray']
+
+const metricTrendColors = {
+  latency: MetricsLineChartColor.latency,
+  errorRate: MetricsLineChartColor.errorRate,
+  logs: MetricsLineChartColor.logs,
+  resourceShift: '#ff8a45',
 }
 
-const systems = [
-  {
-    id: 'order',
-    name: '订单系统',
-    score: 38,
-    metrics: {
-      resource: 'green',
-      resourceShift: 'yellow',
-      errorRate: 'red',
-      latency: 'yellow',
-      errorLog: 'red',
-      badRequests: 'yellow',
-      lockCost: 'green',
-    },
-    services: [
-      {
-        name: 'order-api',
-        desc: '核心下单接口',
-        score: 35,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'yellow',
-          errorRate: 'red',
-          latency: 'yellow',
-          errorLog: 'red',
-          badRequests: 'yellow',
-          lockCost: 'green',
-        },
-      },
-      {
-        name: 'order-callback',
-        desc: '支付结果回调',
-        score: 46,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'green',
-          errorRate: 'yellow',
-          latency: 'green',
-          errorLog: 'red',
-          badRequests: 'yellow',
-          lockCost: 'green',
-        },
-      },
-      {
-        name: 'order-scheduler',
-        desc: '超时订单处理',
-        score: 61,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'yellow',
-          errorRate: 'green',
-          latency: 'yellow',
-          errorLog: 'green',
-          badRequests: 'green',
-          lockCost: 'red',
-        },
-      },
-    ],
-  },
-  {
-    id: 'payment',
-    name: '支付系统',
-    score: 52,
-    metrics: {
-      resource: 'red',
-      resourceShift: 'yellow',
-      errorRate: 'yellow',
-      latency: 'red',
-      errorLog: 'yellow',
-      badRequests: 'green',
-      lockCost: 'green',
-    },
-    services: [
-      {
-        name: 'payment-gateway',
-        desc: '收银台与支付网关',
-        score: 44,
-        metrics: {
-          resource: 'red',
-          resourceShift: 'yellow',
-          errorRate: 'yellow',
-          latency: 'red',
-          errorLog: 'yellow',
-          badRequests: 'green',
-          lockCost: 'green',
-        },
-      },
-      {
-        name: 'refund-worker',
-        desc: '退款异步任务',
-        score: 67,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'green',
-          errorRate: 'green',
-          latency: 'yellow',
-          errorLog: 'green',
-          badRequests: 'green',
-          lockCost: 'yellow',
-        },
-      },
-    ],
-  },
-  {
-    id: 'promotion',
-    name: '营销系统',
-    score: 64,
-    metrics: {
-      resource: 'yellow',
-      resourceShift: 'red',
-      errorRate: 'green',
-      latency: 'yellow',
-      errorLog: 'green',
-      badRequests: 'green',
-      lockCost: 'green',
-    },
-    services: [
-      {
-        name: 'coupon-center',
-        desc: '优惠券中心',
-        score: 58,
-        metrics: {
-          resource: 'yellow',
-          resourceShift: 'red',
-          errorRate: 'green',
-          latency: 'yellow',
-          errorLog: 'green',
-          badRequests: 'green',
-          lockCost: 'green',
-        },
-      },
-    ],
-  },
-  {
-    id: 'member',
-    name: '会员系统',
-    score: 71,
-    metrics: {
-      resource: 'green',
-      resourceShift: 'green',
-      errorRate: 'green',
-      latency: 'yellow',
-      errorLog: 'yellow',
-      badRequests: 'green',
-      lockCost: 'red',
-    },
-    services: [
-      {
-        name: 'member-profile',
-        desc: '会员资料服务',
-        score: 69,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'green',
-          errorRate: 'green',
-          latency: 'yellow',
-          errorLog: 'yellow',
-          badRequests: 'green',
-          lockCost: 'red',
-        },
-      },
-    ],
-  },
-  {
-    id: 'report',
-    name: '报表系统',
-    score: 79,
-    metrics: {
-      resource: 'green',
-      resourceShift: 'green',
-      errorRate: 'green',
-      latency: 'green',
-      errorLog: 'gray',
-      badRequests: 'green',
-      lockCost: 'yellow',
-    },
-    services: [
-      {
-        name: 'export-worker',
-        desc: '报表导出任务',
-        score: 72,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'green',
-          errorRate: 'green',
-          latency: 'green',
-          errorLog: 'gray',
-          badRequests: 'green',
-          lockCost: 'yellow',
-        },
-      },
-    ],
-  },
-  {
-    id: 'inventory',
-    name: '库存系统',
-    score: 86,
-    metrics: {
-      resource: 'green',
-      resourceShift: 'green',
-      errorRate: 'green',
-      latency: 'green',
-      errorLog: 'green',
-      badRequests: 'green',
-      lockCost: 'green',
-    },
-    services: [
-      {
-        name: 'stock-query',
-        desc: '库存查询接口',
-        score: 88,
-        metrics: {
-          resource: 'green',
-          resourceShift: 'green',
-          errorRate: 'green',
-          latency: 'green',
-          errorLog: 'green',
-          badRequests: 'green',
-          lockCost: 'green',
-        },
-      },
-    ],
-  },
-]
+const severityValue = (status) => ({ red: 4, yellow: 3, gray: 2, green: 1 })[status] || 0
 
-const severityValue = (status) => ({ red: 4, yellow: 3, gray: 2, green: 1 }[status] || 0)
+const safeText = (value) => (value === undefined || value === null ? '' : `${value}`.trim())
+
+const positiveNumber = (value) => {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : 0
+}
 
 const ringColor = (score) => {
   if (score < 60) return '#f04438'
@@ -299,15 +67,122 @@ const ringColor = (score) => {
   return '#12b76a'
 }
 
-const scoreState = (score) => {
-  if (score < 60) {
+const normalizeSystem = (system = {}) => ({
+  id: system.id ?? system.groupId,
+  groupId: system.groupId ?? system.id,
+  name: system.name || '未命名系统',
+  score: Number.isFinite(Number(system.score)) ? Number(system.score) : 0,
+  status: system.status || 'gray',
+  metrics: normalizeMetrics(system.metrics),
+  metricDetails: system.metricDetails || {},
+  services: Array.isArray(system.services) ? system.services.map(normalizeService) : [],
+  source: system.source || 'data_group',
+})
+
+const normalizePendingIssue = (issue = {}) => ({
+  id: issue.id || `${issue.groupId || ''}:${issue.serviceName || ''}:${issue.metricKey || ''}`,
+  groupId: issue.groupId,
+  systemName: issue.systemName || '未命名系统',
+  serviceName: issue.serviceName || '未命名服务',
+  metricKey: issue.metricKey || '',
+  metricLabel: issue.metricLabel || issue.metricKey || '未知指标',
+  status: issue.status || 'gray',
+  value: issue.value || '--',
+  note: issue.note || '暂无指标说明',
+})
+
+const buildPendingIssueAnalysisKey = (issue = {}, params = {}) =>
+  JSON.stringify([
+    issue.groupId || '',
+    issue.serviceName || '',
+    issue.metricKey || '',
+    issue.status || '',
+    issue.value || '',
+    issue.note || '',
+    params.relativeTime || '',
+    params.startTime || '',
+    params.endTime || '',
+  ])
+
+const normalizeService = (service = {}) => ({
+  name: service.name || '未命名服务',
+  desc: service.desc || '',
+  score: Number.isFinite(Number(service.score)) ? Number(service.score) : 0,
+  status: service.status || 'gray',
+  metrics: normalizeMetrics(service.metrics),
+  metricDetails: service.metricDetails || {},
+})
+
+const normalizeMetrics = (metrics = {}) =>
+  metricLabels.reduce((result, [key]) => {
+    result[key] = metrics[key] || 'gray'
+    return result
+  }, {})
+
+const normalizeUrlTimeParams = (searchParams) => {
+  const relativeTime = searchParams.get('relativeTime')
+  const startTime =
+    safeText(searchParams.get('startTime')) || ISOToTimestamp(searchParams.get('from'))
+  const endTime = safeText(searchParams.get('endTime')) || ISOToTimestamp(searchParams.get('to'))
+
+  if (positiveNumber(startTime) > 0 && positiveNumber(endTime) > positiveNumber(startTime)) {
+    return {
+      startTime,
+      endTime,
+    }
+  }
+
+  if (relativeTime) {
+    return { relativeTime }
+  }
+
+  return null
+}
+
+const buildStoreTimeParams = (timeRange = {}) => {
+  const rangeTypeKey = safeText(timeRange.rangeTypeKey)
+  const storeStartTime = positiveNumber(timeRange.startTime)
+  const storeEndTime = positiveNumber(timeRange.endTime)
+
+  if (rangeTypeKey) return { relativeTime: rangeTypeKey }
+  if (storeStartTime > 0 && storeEndTime > storeStartTime) {
+    return { startTime: storeStartTime, endTime: storeEndTime }
+  }
+  return null
+}
+
+const makeTimeRangeSignature = (timeRange = {}) =>
+  [
+    safeText(timeRange.rangeTypeKey),
+    positiveNumber(timeRange.startTime) || '',
+    positiveNumber(timeRange.endTime) || '',
+  ].join(':')
+
+const buildOverviewRequestParams = (search, timeRange = {}, options = {}) => {
+  const urlTimeParams = normalizeUrlTimeParams(new URLSearchParams(search))
+  const storeTimeParams = buildStoreTimeParams(timeRange)
+
+  if (!options.preferStore && urlTimeParams) return urlTimeParams
+  if (storeTimeParams) return storeTimeParams
+  return { relativeTime: '15m' }
+}
+
+const scoreState = (system) => {
+  if (!system || system.status === 'gray' || !system.services?.length) {
+    return {
+      className: 'gray',
+      note: '该系统暂无可用于评分的服务健康数据',
+      text: '暂无数据',
+    }
+  }
+  if (system.score < 60) {
     return {
       className: 'red',
       note: '低于健康线，建议优先处理红灯指标',
       text: '严重异常',
     }
   }
-  if (score < 80) {
+  if (system.score < 80) {
     return {
       className: 'yellow',
       note: '存在持续黄灯指标，需要关注变化',
@@ -321,14 +196,17 @@ const scoreState = (score) => {
   }
 }
 
-const serviceSeverity = (service) => Object
-  .values(service.metrics)
-  .reduce((sum, status) => sum + severityValue(status), 0)
+const serviceSeverity = (service) =>
+  Object.values(service.metrics).reduce((sum, status) => sum + severityValue(status), 0)
 
-const isAbnormal = (system) => system.score < 80 ||
-  Object.values(system.metrics).some((value) => value === 'red' || value === 'yellow')
+const isAbnormal = (system) =>
+  system.status !== 'gray' &&
+  system.services?.length > 0 &&
+  (system.score < 80 ||
+    Object.values(system.metrics).some((value) => value === 'red' || value === 'yellow'))
 
-const statusCount = (metrics, status) => Object.values(metrics).filter((value) => value === status).length
+const statusCount = (metrics, status) =>
+  Object.values(metrics).filter((value) => value === status).length
 
 const statusTags = (metrics, status, emptyText) => {
   const tags = metricLabels
@@ -337,31 +215,123 @@ const statusTags = (metrics, status, emptyText) => {
 
   if (!tags.length) return <Tag>{emptyText}</Tag>
   return tags.map((item) => (
-    <Tag className={`sho-tag sho-tag-${status}`} key={item.label}>{item.label}</Tag>
+    <Tag className={`sho-tag sho-tag-${status}`} key={item.label}>
+      {item.label}
+    </Tag>
   ))
 }
 
-const abnormalMetricTags = (metrics, limit = 3) => {
-  const tags = metricLabels
-    .map(([key, label]) => ({ key, label, status: metrics[key] }))
-    .filter((item) => item.status === 'red' || item.status === 'yellow')
-    .sort((left, right) => severityValue(right.status) - severityValue(left.status))
-    .slice(0, limit)
-
-  if (!tags.length) return <Tag>无明显异常</Tag>
-  return tags.map((item) => (
-    <Tag className={`sho-tag sho-tag-${item.status}`} key={item.key}>{item.label}</Tag>
-  ))
+const metricDetail = (target, key) => {
+  const detail = target?.metricDetails?.[key]
+  if (detail) return detail
+  const status = target?.metrics?.[key] || 'gray'
+  return {
+    status,
+    value: '--',
+    note: status === 'gray' ? '暂无数据' : `${statusMeta[status]?.label || '未知'}状态`,
+  }
 }
 
 const Lamp = ({ status }) => (
   <Tooltip title={statusMeta[status]?.label || '无数据'}>
-    <span className={`sho-lamp sho-lamp-${status}`} />
+    <span className={`sho-lamp sho-lamp-${status || 'gray'}`} />
   </Tooltip>
 )
 
 Lamp.propTypes = {
   status: PropTypes.string,
+}
+
+const StatusDistributionBar = ({ distribution }) => {
+  const total = positiveNumber(distribution.total)
+
+  return (
+    <div className="sho-status-distribution" aria-label="系统状态分布">
+      {statusOrder.map((status) => {
+        const count = positiveNumber(distribution[status])
+        if (!count) return null
+        const meta = statusMeta[status]
+        return (
+          <Tooltip title={`${meta.label}：${count} 个系统`} key={status}>
+            <span
+              className={`sho-status-distribution-segment sho-status-distribution-${status}`}
+              style={{ flexGrow: count, '--sho-segment-percent': `${safePercent(count, total)}%` }}
+            />
+          </Tooltip>
+        )
+      })}
+      {!total && <span className="sho-status-distribution-empty" />}
+    </div>
+  )
+}
+
+StatusDistributionBar.propTypes = {
+  distribution: PropTypes.shape({
+    total: PropTypes.number,
+    red: PropTypes.number,
+    yellow: PropTypes.number,
+    green: PropTypes.number,
+    gray: PropTypes.number,
+  }).isRequired,
+}
+
+const SummaryMetricCard = ({
+  label,
+  value,
+  caption,
+  percent,
+  tone = 'neutral',
+  visual = 'meter',
+  children,
+}) => {
+  const shouldShowMeter = visual === 'meter' && !children
+  const shouldShowRing = visual === 'ring'
+
+  if (shouldShowRing) {
+    return (
+      <div className={`sho-summary-card sho-summary-card-${tone} sho-summary-card-${visual}`}>
+        <div className="sho-summary-card-ring-copy">
+          <div className="sho-summary-card-head">
+            <span>{label}</span>
+          </div>
+          <small>{caption}</small>
+        </div>
+        <div
+          className="sho-summary-ring"
+          aria-label={`${label} ${value}`}
+          style={{ '--sho-ring-fill': `${percent}%` }}
+        >
+          <strong>{value}</strong>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`sho-summary-card sho-summary-card-${tone} sho-summary-card-${visual}`}>
+      <div className="sho-summary-card-head">
+        <span>{label}</span>
+        <strong>{value}</strong>
+      </div>
+      {children}
+      {shouldShowMeter ? (
+        <div className="sho-summary-meter" aria-hidden="true">
+          <span style={{ '--sho-fill': `${percent}%` }} />
+        </div>
+      ) : null}
+      <small>{caption}</small>
+    </div>
+  )
+}
+
+SummaryMetricCard.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.node.isRequired,
+  caption: PropTypes.string.isRequired,
+  percent: PropTypes.number,
+  tone: PropTypes.oneOf(['critical', 'warning', 'stable', 'neutral']),
+  visual: PropTypes.oneOf(['meter', 'number', 'ring']),
+  children: PropTypes.node,
 }
 
 const HealthRing = ({ score, size = 'small' }) => (
@@ -381,6 +351,132 @@ HealthRing.propTypes = {
   size: PropTypes.oneOf(['small', 'large']),
 }
 
+const SystemMetricTrendChart = ({ chart }) => {
+  const option = useMemo(
+    () =>
+      buildMetricTrendOption(chart, {
+        color: metricTrendColors[chart.colorRole] || '#4992ff',
+        warningColor: statusMeta.yellow.color,
+        criticalColor: statusMeta.red.color,
+        textColor: '#667085',
+        gridColor: 'rgba(102, 112, 133, 0.16)',
+      }),
+    [chart],
+  )
+
+  return (
+    <div className="sho-metric-trend" aria-label={`${chart.key}趋势图`}>
+      <ReactECharts notMerge option={option} style={{ width: '100%', height: 72 }} />
+    </div>
+  )
+}
+
+SystemMetricTrendChart.propTypes = {
+  chart: PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    colorRole: PropTypes.string.isRequired,
+    unit: PropTypes.string,
+    series: PropTypes.arrayOf(
+      PropTypes.shape({
+        timestamp: PropTypes.number.isRequired,
+        value: PropTypes.number.isRequired,
+      }),
+    ).isRequired,
+    thresholds: PropTypes.arrayOf(
+      PropTypes.shape({
+        label: PropTypes.string,
+        value: PropTypes.number,
+        status: PropTypes.string,
+      }),
+    ),
+  }).isRequired,
+}
+
+const splitMetricDisplayValue = (value) => {
+  const text = safeText(value) || '--'
+  const spacedUnit = text.match(/^([+-]?\d+(?:\.\d+)?)(?:\s+)(.+)$/)
+  if (spacedUnit) {
+    return { main: spacedUnit[1], unit: spacedUnit[2] }
+  }
+
+  const attachedUnit = text.match(/^([+-]?\d+(?:\.\d+)?)([a-zA-Z][\w/%]*)$/)
+  if (attachedUnit) {
+    return { main: attachedUnit[1], unit: attachedUnit[2] }
+  }
+
+  return { main: text, unit: '' }
+}
+
+const MetricValue = ({ value }) => {
+  const displayValue = splitMetricDisplayValue(value)
+
+  return (
+    <b>
+      <span className="sho-metric-value-main">{displayValue.main}</span>
+      {displayValue.unit ? (
+        <span className="sho-metric-value-unit">{displayValue.unit}</span>
+      ) : null}
+    </b>
+  )
+}
+
+MetricValue.propTypes = {
+  value: PropTypes.node.isRequired,
+}
+
+const MetricVisualTile = ({ metricKey, label, detail, status }) => {
+  const visual = metricVisualFor(metricKey, detail, status)
+  const sourceTitle = metricSourceTitleFor(metricKey, detail)
+
+  return (
+    <div className={`sho-metric-tile sho-metric-tile-${visual.tone}`}>
+      <div className="sho-metric-tile-head">
+        <Tooltip title={sourceTitle}>
+          <strong>{label}</strong>
+        </Tooltip>
+        <Lamp status={visual.status} />
+      </div>
+      <div className={`sho-metric-visual sho-metric-visual-${visual.kind}`}>
+        <div className="sho-metric-value-block">
+          <MetricValue value={visual.value} />
+          <span>{visual.helper}</span>
+        </div>
+        {visual.chart ? (
+          <SystemMetricTrendChart chart={visual.chart} />
+        ) : visual.kind === 'number' ? null : visual.kind === 'waterline' ? (
+          <div className="sho-waterline" aria-label={`${label}${visual.helper}${visual.percent}%`}>
+            <span className="sho-waterline-marker" />
+            <span className="sho-waterline-fill" style={{ '--sho-fill': `${visual.percent}%` }} />
+          </div>
+        ) : (
+          <div className="sho-risk-meter" aria-label={`${label}${visual.helper}${visual.percent}%`}>
+            <span style={{ '--sho-fill': `${visual.percent}%` }} />
+          </div>
+        )}
+      </div>
+      <div className="sho-metric-foot">
+        <small>{visual.note}</small>
+        {!visual.chart && visual.marker ? <em>{visual.marker}</em> : null}
+      </div>
+    </div>
+  )
+}
+
+MetricVisualTile.propTypes = {
+  metricKey: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+  detail: PropTypes.shape({
+    status: PropTypes.string,
+    value: PropTypes.string,
+    note: PropTypes.string,
+    unit: PropTypes.string,
+    source: PropTypes.string,
+    series: PropTypes.array,
+    thresholds: PropTypes.array,
+  }).isRequired,
+  status: PropTypes.string,
+}
+
 const serviceMatchesFilter = (service, filter) => {
   const values = Object.values(service.metrics)
   if (filter === 'red') return values.includes('red')
@@ -389,377 +485,736 @@ const serviceMatchesFilter = (service, filter) => {
   return true
 }
 
-const priorityItems = (system) => {
-  const items = []
-  system.services.forEach((service) => {
-    metricLabels.forEach(([key, label]) => {
-      const status = service.metrics[key]
-      if (status === 'red' || status === 'yellow') {
-        items.push({
-          key,
-          label,
-          service: service.name,
-          status,
-          score: severityValue(status) * 10 + (100 - service.score),
-        })
-      }
-    })
-  })
-  return items.sort((left, right) => right.score - left.score).slice(0, 6)
-}
+const OverviewInitialLoading = () => (
+  <div className="sho-overview-loading" role="status" aria-live="polite">
+    <div className="sho-loading-summary" aria-hidden="true">
+      {[0, 1, 2, 3].map((item) => (
+        <div className="sho-loading-card" key={item}>
+          <span className="sho-loading-line sho-loading-line-title" />
+          <span className="sho-loading-line sho-loading-line-value" />
+          <span className="sho-loading-line sho-loading-line-meter" />
+          <span className="sho-loading-line sho-loading-line-caption" />
+        </div>
+      ))}
+    </div>
 
-const priorityInsightMap = {
-  resource: {
-    analysis: '资源水位偏高，服务容量余量不足，继续上涨会放大响应延时和错误率。',
-    action: '先确认突增流量、批任务或实例异常；必要时临时扩容，并回收异常任务占用的 CPU / 内存。',
-  },
-  resourceShift: {
-    analysis: '资源波动超过近期基线，说明负载或实例状态不稳定，容易触发间歇性故障。',
-    action: '对比发布时间、批处理窗口和节点重启记录，优先稳定实例分布，再观察波动是否回落。',
-  },
-  errorRate: {
-    analysis: '错误率已经进入异常区间，用户请求正在直接失败，是当前优先级最高的问题之一。',
-    action: '先看该服务最近 5 分钟错误 Top 接口和状态码；若集中在新版本或依赖调用，优先回滚或降级依赖。',
-  },
-  latency: {
-    analysis: '响应延时持续升高，可能来自下游等待、慢查询、队列堆积或资源竞争。',
-    action: '按 P95 延时拆解接口和下游依赖，先隔离最慢链路；必要时启用限流或降级非核心路径。',
-  },
-  errorLog: {
-    analysis: '错误日志短时间集中出现，说明异常路径已经形成稳定复现信号。',
-    action: '聚合错误堆栈和关键字段，先处理出现频次最高且关联请求失败的日志类型。',
-  },
-  badRequests: {
-    analysis: '异常请求量升高，可能是参数、鉴权、依赖返回或客户端调用模式发生变化。',
-    action: '按接口、来源和错误码聚合异常请求，确认是否需要拦截异常流量或修复调用方参数。',
-  },
-  lockCost: {
-    analysis: '锁等待耗时过高，说明并发竞争或事务持有时间正在影响服务吞吐。',
-    action: '定位最长锁等待的接口、SQL 或任务，优先缩短事务范围，并暂停高冲突的批处理任务。',
-  },
-}
+    <section className="sho-panel sho-overview-loading-panel">
+      <div className="sho-panel-head">
+        <div className="sho-panel-title">系统健康评分</div>
+        <span className="sho-muted">正在同步指标状态</span>
+      </div>
+      <div className="sho-overview-loading-body">
+        <Spin />
+        <div>
+          <strong>正在加载系统健康评分</strong>
+          <span>获取系统、指标和待处理问题，完成后展示当前状态。</span>
+        </div>
+      </div>
+      <div className="sho-loading-table" aria-hidden="true">
+        {[0, 1, 2, 3].map((row) => (
+          <div className="sho-loading-table-row" key={row}>
+            <span />
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        ))}
+      </div>
+    </section>
 
-const priorityInsight = (item) => {
-  const fallback = {
-    analysis: `${item.service} 的 ${item.label} 已偏离正常区间，可能继续影响核心链路稳定性。`,
-    action: '先确认最近变更和依赖状态，再按影响面从红灯指标开始处理。',
-  }
-  const insight = priorityInsightMap[item.key] || fallback
-  return {
-    analysis: `${item.service}：${insight.analysis}`,
-    action: insight.action,
-  }
-}
+    <section className="sho-panel sho-overview-loading-pending">
+      <div className="sho-panel-head">
+        <div className="sho-panel-title">待处理问题</div>
+        <span className="sho-muted">等待风险排序</span>
+      </div>
+      <div className="sho-loading-pending-lines" aria-hidden="true">
+        <span />
+        <span />
+      </div>
+    </section>
+  </div>
+)
 
 export default function SystemHealthOverviewPage() {
+  const location = useLocation()
+  const timeRange = useSelector((state) => state.timeRange)
+  const pageLoadedAtRef = useRef(Date.now() * 1000)
+  const initialTimeRangeSignatureRef = useRef(null)
+  const [systems, setSystems] = useState([])
+  const [summary, setSummary] = useState({})
+  const [pendingIssues, setPendingIssues] = useState([])
+  const [issueAnalyses, setIssueAnalyses] = useState({})
+  const [expandedIssueAnalyses, setExpandedIssueAnalyses] = useState({})
+  const [overviewLoading, setOverviewLoading] = useState(false)
+  const [overviewError, setOverviewError] = useState('')
   const [selectedSystemId, setSelectedSystemId] = useState('')
+  const [selectedSystem, setSelectedSystem] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
   const [onlyAbnormal, setOnlyAbnormal] = useState(true)
   const [systemKeyword, setSystemKeyword] = useState('')
   const [serviceKeyword, setServiceKeyword] = useState('')
   const [serviceFilter, setServiceFilter] = useState('all')
-  const [expandedPriorityKey, setExpandedPriorityKey] = useState('')
 
-  const selectedSystem = useMemo(
-    () => systems.find((system) => system.id === selectedSystemId),
-    [selectedSystemId],
+  const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
+  if (initialTimeRangeSignatureRef.current === null) {
+    initialTimeRangeSignatureRef.current = currentTimeRangeSignature
+  }
+  const timeRangeChangedAfterMount =
+    currentTimeRangeSignature !== initialTimeRangeSignatureRef.current
+  const timeRangeRefreshedAfterMount =
+    positiveNumber(timeRange?.refreshTimestamp) >= pageLoadedAtRef.current
+  const queryParams = useMemo(
+    () =>
+      buildOverviewRequestParams(location.search, timeRange, {
+        preferStore: timeRangeChangedAfterMount || timeRangeRefreshedAfterMount,
+      }),
+    [
+      location.search,
+      timeRange?.rangeTypeKey,
+      timeRange?.startTime,
+      timeRange?.endTime,
+      timeRange?.refreshTimestamp,
+      timeRangeChangedAfterMount,
+      timeRangeRefreshedAfterMount,
+    ],
   )
 
-  const overviewSystems = useMemo(() => systems
-    .filter((system) => !onlyAbnormal || isAbnormal(system))
-    .filter((system) => !systemKeyword.trim() ||
-      system.name.toLowerCase().includes(systemKeyword.trim().toLowerCase()))
-    .sort((left, right) => left.score - right.score), [onlyAbnormal, systemKeyword])
+  const loadOverview = useCallback(async () => {
+    setOverviewLoading(true)
+    setOverviewError('')
+    try {
+      const resp = await getSystemHealthOverviewApi(queryParams)
+      const nextSystems = Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : []
+      setSystems(nextSystems)
+      setSummary(resp?.summary || {})
+      setPendingIssues(
+        Array.isArray(resp?.pendingIssues) ? resp.pendingIssues.map(normalizePendingIssue) : [],
+      )
+    } catch (error) {
+      setOverviewError(error?.message || '系统健康评分加载失败')
+      setSystems([])
+      setSummary({})
+      setPendingIssues([])
+    } finally {
+      setOverviewLoading(false)
+    }
+  }, [queryParams])
+
+  useEffect(() => {
+    loadOverview()
+  }, [loadOverview])
+
+  const overviewSystems = useMemo(
+    () =>
+      systems
+        .filter((system) => !onlyAbnormal || isAbnormal(system))
+        .filter(
+          (system) =>
+            !systemKeyword.trim() ||
+            system.name.toLowerCase().includes(systemKeyword.trim().toLowerCase()),
+        )
+        .sort((left, right) => left.score - right.score),
+    [systems, onlyAbnormal, systemKeyword],
+  )
+  const pendingIssueRows = useMemo(() => buildPendingIssueQueueRows(pendingIssues), [pendingIssues])
+  const pendingServiceCount = useMemo(
+    () => new Set(pendingIssueRows.map((issue) => issue.serviceName)).size,
+    [pendingIssueRows],
+  )
 
   const filteredServices = useMemo(() => {
     if (!selectedSystem) return []
     const keyword = serviceKeyword.trim().toLowerCase()
     return [...selectedSystem.services]
-      .filter((service) => !keyword ||
-        `${service.name} ${service.desc}`.toLowerCase().includes(keyword))
+      .filter(
+        (service) =>
+          !keyword || `${service.name} ${service.desc || ''}`.toLowerCase().includes(keyword),
+      )
       .filter((service) => serviceMatchesFilter(service, serviceFilter))
       .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
   }, [selectedSystem, serviceKeyword, serviceFilter])
 
-  const openDetail = (system) => {
-    setSelectedSystemId(system.id)
+  const openDetail = async (system) => {
+    setSelectedSystemId(String(system.groupId))
+    setSelectedSystem(system)
     setServiceKeyword('')
     setServiceFilter('all')
-    setExpandedPriorityKey('')
+    setDetailLoading(true)
+    setDetailError('')
+    try {
+      const resp = await getSystemHealthSystemDetailApi(system.groupId, queryParams)
+      setSelectedSystem(normalizeSystem(resp?.system))
+    } catch (error) {
+      setDetailError(error?.message || '系统详情加载失败')
+    } finally {
+      setDetailLoading(false)
+    }
   }
 
-  const renderOverview = () => (
-    <>
-      <div className="sho-toolbar">
-        <div>
-          <div className="sho-title">系统健康概览</div>
-          <div className="sho-subtitle">默认优先展示异常系统，按健康度和指标状态快速定位问题系统。</div>
-        </div>
-      </div>
+  const closeDetail = () => {
+    setSelectedSystemId('')
+    setSelectedSystem(null)
+    setDetailError('')
+  }
 
-      <div className="sho-summary">
-        <div className="sho-stat sho-stat-red">
-          <span>异常系统</span>
-          <strong>4 / 12</strong>
-          <small>2 个系统健康度低于 60</small>
-        </div>
-        <div className="sho-stat sho-stat-yellow">
-          <span>异常指标</span>
-          <strong>31</strong>
-          <small>错误率、响应延时、错误日志占比最高</small>
-        </div>
-        <div className="sho-stat sho-stat-red">
-          <span>严重异常</span>
-          <strong>7</strong>
-          <small>集中在订单、支付、会员系统</small>
-        </div>
-        <div className="sho-stat">
-          <span>新增异常</span>
-          <strong>5</strong>
-          <small>最近 10 分钟新增</small>
-        </div>
-      </div>
+  const toggleIssueAnalysis = (analysisKey) => {
+    setExpandedIssueAnalyses((current) => ({
+      ...current,
+      [analysisKey]: !(current[analysisKey] !== false),
+    }))
+  }
 
-      <section className="sho-panel">
-        <div className="sho-panel-head">
-          <div className="sho-panel-title">
-            系统健康评分
-            <Tooltip title="由资源水位、资源波动、错误率、响应延时、错误日志、异常请求、锁等待综合计算">
-              <HelpCircle size={15} className="sho-help-icon" />
-            </Tooltip>
+  const analyzeIssue = async (issue, analysisKey) => {
+    setIssueAnalyses((current) => ({
+      ...current,
+      [analysisKey]: {
+        ...(current[analysisKey] || {}),
+        loading: true,
+        error: '',
+      },
+    }))
+    try {
+      const data = await analyzeSystemHealthPendingIssueApi({
+        groupId: issue.groupId,
+        serviceName: issue.serviceName,
+        metricKey: issue.metricKey,
+        ...queryParams,
+      })
+      setIssueAnalyses((current) => ({
+        ...current,
+        [analysisKey]: {
+          data,
+          error: '',
+          loading: false,
+        },
+      }))
+      if (data?.aiStatus === 'succeeded') {
+        setExpandedIssueAnalyses((current) => ({
+          ...current,
+          [analysisKey]: true,
+        }))
+      }
+    } catch (error) {
+      setIssueAnalyses((current) => ({
+        ...current,
+        [analysisKey]: {
+          ...(current[analysisKey] || {}),
+          error: error?.message || 'AI 分析失败',
+          loading: false,
+        },
+      }))
+    }
+  }
+
+  const renderOverviewState = () => {
+    if (overviewLoading) {
+      return (
+        <div className="sho-state-panel">
+          <Spin />
+          <span>正在加载系统健康评分</span>
+        </div>
+      )
+    }
+    if (overviewError) {
+      return (
+        <Alert
+          action={
+            <Button size="small" onClick={loadOverview}>
+              重试
+            </Button>
+          }
+          message="系统健康评分加载失败"
+          description={overviewError}
+          type="error"
+          showIcon
+        />
+      )
+    }
+    if (!systems.length) {
+      return <div className="sho-empty-block">暂无系统健康评分数据</div>
+    }
+    if (!overviewSystems.length) {
+      return <div className="sho-empty-block">没有匹配的系统</div>
+    }
+    return null
+  }
+
+  const renderPendingIssueAnalysis = (analysisState, isExpanded) => {
+    if (!analysisState?.data && !analysisState?.error) return null
+    if (analysisState.error) {
+      return (
+        <div className="sho-pending-analysis sho-pending-analysis-error">{analysisState.error}</div>
+      )
+    }
+
+    const data = analysisState.data || {}
+    if (data.aiStatus !== 'succeeded') {
+      return (
+        <div className="sho-pending-analysis sho-pending-analysis-error">
+          {data.error || 'AI 分析暂不可用'}
+        </div>
+      )
+    }
+    if (!isExpanded) return null
+
+    return (
+      <div className="sho-pending-analysis">
+        {data.analysis && (
+          <div className="sho-pending-analysis-block">
+            <strong>分析</strong>
+            <span>{data.analysis}</span>
           </div>
-          <Space wrap size={8}>
-            <Space size={6}>
-              <span className="sho-muted">只看异常</span>
-              <Button
-                size="small"
-                type={onlyAbnormal ? 'primary' : 'default'}
-                onClick={() => setOnlyAbnormal((value) => !value)}
-              >
-                {onlyAbnormal ? '开' : '关'}
-              </Button>
-            </Space>
-            <Input
-              allowClear
-              className="sho-search"
-              placeholder="搜索系统"
-              prefix={<Search size={14} />}
-              value={systemKeyword}
-              onChange={(event) => setSystemKeyword(event.target.value)}
-            />
-            <Legend />
-          </Space>
-        </div>
-        <HealthTable>
-          <thead>
-            <tr>
-              <th>系统</th>
-              <th>健康度</th>
-              {metricLabels.map(([, label]) => <th key={label}>{label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {overviewSystems.map((system) => (
-              <tr key={system.id} onClick={() => openDetail(system)}>
-                <td>
-                  <div className="sho-name-cell">
-                    <Lamp status={statusCount(system.metrics, 'red') > 0 ? 'red' : statusCount(system.metrics, 'yellow') > 0 ? 'yellow' : 'green'} />
-                    <strong>{system.name}</strong>
-                  </div>
-                </td>
-                <td><HealthRing score={system.score} /></td>
-                {metricLabels.map(([key]) => (
-                  <td key={key}><Lamp status={system.metrics[key]} /></td>
-                ))}
-              </tr>
+        )}
+        {data.impact && (
+          <div className="sho-pending-analysis-block">
+            <strong>影响</strong>
+            <span>{data.impact}</span>
+          </div>
+        )}
+        {Array.isArray(data.actionPlan) && data.actionPlan.length > 0 && (
+          <div className="sho-pending-steps">
+            {data.actionPlan.map((step, index) => (
+              <div className="sho-pending-step" key={`${step.phase}-${index}`}>
+                <b>{index + 1}</b>
+                <div>
+                  <strong>{step.phase}</strong>
+                  {step.target && <small>{step.target}</small>}
+                  <span>{step.action}</span>
+                  {step.validation && <em>验证：{step.validation}</em>}
+                  {step.risk && <em>风险：{step.risk}</em>}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </HealthTable>
-      </section>
-    </>
+          </div>
+        )}
+        {data.dataBoundary && <small className="sho-pending-boundary">{data.dataBoundary}</small>}
+      </div>
+    )
+  }
+
+  const renderPendingIssues = () => (
+    <section className="sho-panel sho-pending-panel">
+      <div className="sho-panel-head">
+        <div className="sho-panel-title">
+          待处理问题
+          <Tooltip title="当前用户有权访问的所有系统中，按风险排序的红灯和黄灯服务指标">
+            <HelpCircle size={15} className="sho-help-icon" />
+          </Tooltip>
+        </div>
+        <span className="sho-muted">
+          {pendingServiceCount} 个服务 / {pendingIssueRows.length} 类问题
+        </span>
+      </div>
+      {pendingIssueRows.length ? (
+        <div className="sho-pending-table-wrap">
+          <table className="sho-pending-table">
+            <colgroup>
+              <col className="sho-pending-col-service" />
+              <col className="sho-pending-col-issue" />
+              <col className="sho-pending-col-status" />
+              <col className="sho-pending-col-system" />
+              <col className="sho-pending-col-value" />
+              <col className="sho-pending-col-action" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>服务</th>
+                <th>问题</th>
+                <th>状态</th>
+                <th>系统</th>
+                <th>当前值</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingIssueRows.map((issue) => {
+                const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
+                const analysisState = issueAnalyses[analysisKey] || {}
+                const hasSucceededAnalysis = analysisState.data?.aiStatus === 'succeeded'
+                const isAnalysisExpanded =
+                  hasSucceededAnalysis && expandedIssueAnalyses[analysisKey] !== false
+                const analysisNode = renderPendingIssueAnalysis(analysisState, isAnalysisExpanded)
+                const statusLabel = statusMeta[issue.status]?.label || '未知'
+
+                return (
+                  <React.Fragment key={issue.queueId}>
+                    <tr className="sho-pending-row">
+                      <td className="sho-pending-service-cell">
+                        <div className="sho-pending-service-inline">
+                          <span className="sho-pending-service-name" title={issue.serviceName}>
+                            {issue.serviceName}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="sho-pending-issue-cell">
+                        <div className="sho-pending-issue-content">
+                          <div className="sho-pending-issue-title">
+                            <Lamp status={issue.status} />
+                            <strong>{issue.metricLabel}</strong>
+                          </div>
+                          <small title={issue.note}>{describePendingIssue(issue)}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <Tag className={`sho-tag sho-tag-${issue.status}`}>{statusLabel}</Tag>
+                      </td>
+                      <td>
+                        <span className="sho-pending-system" title={issue.systemName}>
+                          {issue.systemName}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="sho-pending-value">{issue.value}</span>
+                      </td>
+                      <td className="sho-pending-action-cell">
+                        <Button
+                          icon={<Sparkles size={13} />}
+                          loading={analysisState.loading}
+                          size="small"
+                          type={hasSucceededAnalysis && isAnalysisExpanded ? 'primary' : 'default'}
+                          onClick={() => {
+                            if (hasSucceededAnalysis) {
+                              toggleIssueAnalysis(analysisKey)
+                              return
+                            }
+                            analyzeIssue(issue, analysisKey)
+                          }}
+                        >
+                          {hasSucceededAnalysis
+                            ? isAnalysisExpanded
+                              ? '收起分析'
+                              : '展开分析'
+                            : 'AI 分析'}
+                        </Button>
+                      </td>
+                    </tr>
+                    {analysisNode && (
+                      <tr className="sho-pending-analysis-row">
+                        <td colSpan={6}>{analysisNode}</td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="sho-empty-block">暂无需要优先处理的系统问题</div>
+      )}
+    </section>
   )
 
-  const renderDetail = () => {
-    const state = scoreState(selectedSystem.score)
-    const keyServices = [...selectedSystem.services]
-      .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
-      .slice(0, 4)
-    const priorities = priorityItems(selectedSystem)
+  const renderOverview = () => {
+    const initialOverviewLoading = shouldRenderInitialOverviewLoading({
+      overviewLoading,
+      systems,
+      pendingIssues,
+      summary,
+    })
+    const overviewState = renderOverviewState()
+    const statusDistribution = buildStatusDistribution(systems)
+    const summaryCards = buildOverviewSummaryCards(summary, systems, metricLabels)
 
     return (
       <>
         <div className="sho-toolbar">
-          <Button icon={<ArrowLeft size={15} />} onClick={() => setSelectedSystemId('')}>返回</Button>
+          <div>
+            <div className="sho-title">系统健康概览</div>
+            <div className="sho-subtitle">
+              默认优先展示异常系统，按健康度和指标状态快速定位问题系统。
+            </div>
+          </div>
+        </div>
+
+        {initialOverviewLoading ? (
+          <OverviewInitialLoading />
+        ) : (
+          <>
+            <div className="sho-summary">
+              {summaryCards.map((card) => (
+                <SummaryMetricCard
+                  caption={card.caption}
+                  key={card.key}
+                  label={card.label}
+                  percent={card.percent}
+                  tone={card.tone}
+                  value={card.value}
+                  visual={card.visual}
+                >
+                  {card.distribution ? (
+                    <StatusDistributionBar distribution={statusDistribution} />
+                  ) : null}
+                </SummaryMetricCard>
+              ))}
+            </div>
+
+            <section className="sho-panel">
+              <div className="sho-panel-head">
+                <div className="sho-panel-title">
+                  系统健康评分
+                  <Tooltip title="由资源水位、资源波动、错误率、响应延时、错误日志、异常请求、锁等待综合计算">
+                    <HelpCircle size={15} className="sho-help-icon" />
+                  </Tooltip>
+                </div>
+                <Space wrap size={8}>
+                  <Space size={6}>
+                    <span className="sho-muted">只看异常</span>
+                    <Switch
+                      checked={onlyAbnormal}
+                      checkedChildren="开"
+                      unCheckedChildren="关"
+                      onChange={setOnlyAbnormal}
+                    />
+                  </Space>
+                  <Input
+                    allowClear
+                    className="sho-search"
+                    placeholder="搜索系统"
+                    prefix={<Search size={14} />}
+                    value={systemKeyword}
+                    onChange={(event) => setSystemKeyword(event.target.value)}
+                  />
+                  <Legend />
+                </Space>
+              </div>
+              {overviewState || (
+                <HealthTable>
+                  <thead>
+                    <tr>
+                      <th>系统</th>
+                      <th>健康度</th>
+                      {metricLabels.map(([, label]) => (
+                        <th key={label}>{label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {overviewSystems.map((system) => (
+                      <tr key={system.groupId} onClick={() => openDetail(system)}>
+                        <td>
+                          <div className="sho-name-cell">
+                            <Lamp
+                              status={
+                                statusCount(system.metrics, 'red') > 0
+                                  ? 'red'
+                                  : statusCount(system.metrics, 'yellow') > 0
+                                    ? 'yellow'
+                                    : system.status
+                              }
+                            />
+                            <strong>{system.name}</strong>
+                          </div>
+                        </td>
+                        <td>
+                          <HealthRing score={system.score} />
+                        </td>
+                        {metricLabels.map(([key]) => (
+                          <td key={key}>
+                            <Lamp status={system.metrics[key]} />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </HealthTable>
+              )}
+            </section>
+            {renderPendingIssues()}
+          </>
+        )}
+      </>
+    )
+  }
+
+  const renderDetail = () => {
+    if (!selectedSystem) return null
+
+    const state = scoreState(selectedSystem)
+    const shouldShowDetailBody = shouldRenderDetailBody({ selectedSystem, detailLoading })
+    const keyServices = [...selectedSystem.services]
+      .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
+      .slice(0, 4)
+
+    return (
+      <>
+        <div className="sho-toolbar">
+          <Button icon={<ArrowLeft size={15} />} onClick={closeDetail}>
+            返回
+          </Button>
           <div className="sho-toolbar-main">
             <div className="sho-title">{selectedSystem.name}</div>
             <div className="sho-subtitle">按服务查看健康状态，优先处理红灯和持续黄灯指标。</div>
           </div>
         </div>
 
-        <div className="sho-detail-summary">
-          <div className="sho-score-card">
-            <HealthRing score={selectedSystem.score} size="large" />
-            <div>
-              <span>健康评分</span>
-              <strong className={`sho-score-state sho-score-state-${state.className}`}>{state.text}</strong>
-              <small>{state.note}</small>
-            </div>
-          </div>
-          <div className="sho-stat">
-            <span>主要异常</span>
-            <div className="sho-tags">{statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}</div>
-          </div>
-          <div className="sho-stat">
-            <span>关注指标</span>
-            <div className="sho-tags">{statusTags(selectedSystem.metrics, 'yellow', '暂无黄灯指标')}</div>
-          </div>
-          <div className="sho-stat">
-            <span>
-              系统关键服务
-              <Tooltip title="系统中被依赖最多的服务">
-                <HelpCircle size={14} className="sho-help-icon" />
-              </Tooltip>
-            </span>
-            <div className="sho-tags">
-              {keyServices.map((service) => <Tag color="blue" key={service.name}>{service.name}</Tag>)}
-            </div>
-          </div>
-        </div>
+        {detailError && (
+          <Alert
+            className="sho-detail-alert"
+            action={
+              <Button size="small" onClick={() => openDetail(selectedSystem)}>
+                重试
+              </Button>
+            }
+            message="系统详情加载失败"
+            description={detailError}
+            type="error"
+            showIcon
+          />
+        )}
 
-        <section className="sho-panel">
-          <div className="sho-panel-head">
-            <div className="sho-panel-title">系统级指标</div>
-            <Legend />
+        {detailLoading && (
+          <div className="sho-state-panel sho-detail-loading">
+            <Spin />
+            <span>正在加载系统详情</span>
           </div>
-          <div className="sho-metric-grid">
-            {metricLabels.map(([key, label]) => {
-              const status = selectedSystem.metrics[key] || 'gray'
-              const [value, note] = metricSamples[key]?.[status] || ['--', '暂无数据']
-              return (
-                <div className="sho-metric-tile" key={key}>
-                  <div className="sho-metric-tile-head">
-                    <strong>{label}</strong>
-                    <Lamp status={status} />
-                  </div>
-                  <b>{value}</b>
-                  <small>{note}</small>
+        )}
+
+        {shouldShowDetailBody && (
+          <>
+            <div className="sho-detail-summary">
+              <div className="sho-score-card">
+                <HealthRing score={selectedSystem.score} size="large" />
+                <div>
+                  <span>健康评分</span>
+                  <strong className={`sho-score-state sho-score-state-${state.className}`}>
+                    {state.text}
+                  </strong>
+                  <small>{state.note}</small>
                 </div>
-              )
-            })}
-          </div>
-        </section>
-
-        <section className="sho-panel">
-          <div className="sho-panel-head">
-            <div className="sho-panel-title">服务列表</div>
-            <Space wrap size={8}>
-              <Input
-                allowClear
-                className="sho-search"
-                placeholder="搜索服务"
-                prefix={<Search size={14} />}
-                value={serviceKeyword}
-                onChange={(event) => setServiceKeyword(event.target.value)}
-              />
-              <Select
-                value={serviceFilter}
-                onChange={setServiceFilter}
-                style={{ width: 116 }}
-                options={[
-                  { value: 'all', label: '全部服务' },
-                  { value: 'red', label: '只看异常' },
-                  { value: 'yellow', label: '只看关注' },
-                  { value: 'green', label: '只看正常' },
-                ]}
-              />
-            </Space>
-          </div>
-          <HealthTable className="sho-service-table">
-            <thead>
-              <tr>
-                <th>服务</th>
-                <th>健康度</th>
-                {metricLabels.map(([, label]) => <th key={label}>{label}</th>)}
-                <th>主要异常</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredServices.map((service) => (
-                <tr key={service.name}>
-                  <td>
-                    <div className="sho-service-name">
-                      <strong>{service.name}</strong>
-                      <span>{service.desc}</span>
-                    </div>
-                  </td>
-                  <td><HealthRing score={service.score} /></td>
-                  {metricLabels.map(([key]) => (
-                    <td key={key}><Lamp status={service.metrics[key]} /></td>
-                  ))}
-                  <td><div className="sho-tags">{abnormalMetricTags(service.metrics)}</div></td>
-                </tr>
-              ))}
-              {!filteredServices.length && (
-                <tr>
-                  <td className="sho-empty-cell" colSpan={10}>没有匹配的服务</td>
-                </tr>
-              )}
-            </tbody>
-          </HealthTable>
-        </section>
-
-        <section className="sho-panel">
-          <div className="sho-panel-head">
-            <div className="sho-panel-title">优先处理</div>
-          </div>
-          <div className="sho-priority-list">
-            {priorities.map((item) => {
-              const itemKey = `${item.service}-${item.key}`
-              const isExpanded = expandedPriorityKey === itemKey
-              const insight = priorityInsight(item)
-
-              return (
-                <div
-                  className={`sho-priority-item ${isExpanded ? 'sho-priority-item-expanded' : ''}`}
-                  key={itemKey}
-                >
-                  <Lamp status={item.status} />
-                  <div className="sho-priority-main">
-                    <strong>{item.label}</strong>
-                    <span>{item.service} · {item.status === 'red' ? '已超过异常阈值' : '接近异常阈值'}</span>
-                  </div>
-                  <Button
-                    className="sho-ai-button"
-                    icon={<Sparkles size={13} />}
-                    size="small"
-                    type={isExpanded ? 'primary' : 'default'}
-                    onClick={() => setExpandedPriorityKey(isExpanded ? '' : itemKey)}
-                  >
-                    AI 分析
-                  </Button>
-                  {isExpanded && (
-                    <div className="sho-priority-ai-detail">
-                      <div>
-                        <b>分析</b>
-                        <span>{insight.analysis}</span>
-                      </div>
-                      <div>
-                        <b>处理建议</b>
-                        <span>{insight.action}</span>
-                      </div>
-                    </div>
+              </div>
+              <div className="sho-stat">
+                <span>主要异常</span>
+                <div className="sho-tags">
+                  {statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}
+                </div>
+              </div>
+              <div className="sho-stat">
+                <span>关注指标</span>
+                <div className="sho-tags">
+                  {statusTags(selectedSystem.metrics, 'yellow', '暂无黄灯指标')}
+                </div>
+              </div>
+              <div className="sho-stat">
+                <span>
+                  系统关键服务
+                  <Tooltip title="按健康风险排序的重点服务">
+                    <HelpCircle size={14} className="sho-help-icon" />
+                  </Tooltip>
+                </span>
+                <div className="sho-tags">
+                  {keyServices.length ? (
+                    keyServices.map((service) => (
+                      <Tooltip title={service.name} key={service.name}>
+                        <Tag className="sho-key-service-tag">{service.name}</Tag>
+                      </Tooltip>
+                    ))
+                  ) : (
+                    <Tag>暂无服务</Tag>
                   )}
                 </div>
-              )
-            })}
-          </div>
-        </section>
+              </div>
+            </div>
+
+            <section className="sho-panel sho-system-metrics-panel">
+              <div className="sho-panel-head">
+                <div className="sho-panel-title">系统级指标</div>
+                <Legend />
+              </div>
+              <div className="sho-metric-grid">
+                {metricLabels.map(([key, label]) => {
+                  const status = selectedSystem.metrics[key] || 'gray'
+                  const detail = metricDetail(selectedSystem, key)
+                  return (
+                    <MetricVisualTile
+                      detail={detail}
+                      key={key}
+                      label={label}
+                      metricKey={key}
+                      status={status}
+                    />
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="sho-panel">
+              <div className="sho-panel-head">
+                <div className="sho-panel-title">服务列表</div>
+                <Space wrap size={8}>
+                  <Input
+                    allowClear
+                    className="sho-search"
+                    placeholder="搜索服务"
+                    prefix={<Search size={14} />}
+                    value={serviceKeyword}
+                    onChange={(event) => setServiceKeyword(event.target.value)}
+                  />
+                  <Select
+                    value={serviceFilter}
+                    onChange={setServiceFilter}
+                    style={{ width: 116 }}
+                    options={[
+                      { value: 'all', label: '全部服务' },
+                      { value: 'red', label: '只看异常' },
+                      { value: 'yellow', label: '只看关注' },
+                      { value: 'green', label: '只看正常' },
+                    ]}
+                  />
+                </Space>
+              </div>
+              <HealthTable className="sho-service-table">
+                <thead>
+                  <tr>
+                    <th>服务</th>
+                    <th>健康度</th>
+                    {metricLabels.map(([, label]) => (
+                      <th key={label}>{label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredServices.map((service) => (
+                    <tr key={service.name}>
+                      <td>
+                        <div className="sho-service-name">
+                          <Tooltip title={service.name}>
+                            <strong>{service.name}</strong>
+                          </Tooltip>
+                          {service.desc ? <span>{service.desc}</span> : null}
+                        </div>
+                      </td>
+                      <td>
+                        <HealthRing score={service.score} />
+                      </td>
+                      {metricLabels.map(([key]) => (
+                        <td key={key}>
+                          <Lamp status={service.metrics[key]} />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {!filteredServices.length && (
+                    <tr>
+                      <td className="sho-empty-cell" colSpan={9}>
+                        没有匹配的服务
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </HealthTable>
+            </section>
+          </>
+        )}
       </>
     )
   }
 
   return (
     <div className="system-health-overview-page">
-      {selectedSystem ? renderDetail() : renderOverview()}
+      {selectedSystemId ? renderDetail() : renderOverview()}
     </div>
   )
 }
@@ -778,9 +1233,9 @@ HealthTable.propTypes = {
 const Legend = () => (
   <div className="sho-legend">
     {Object.entries(statusMeta).map(([key, meta]) => (
-      <span key={key}>
+      <span className="sho-legend-item" key={key}>
         <Lamp status={key} />
-        {meta.label}
+        <b>{meta.label}</b>
       </span>
     ))}
   </div>

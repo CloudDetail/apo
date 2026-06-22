@@ -13,31 +13,36 @@ import (
 )
 
 type Handler interface {
+	GetOverview() core.HandlerFunc
+	GetSystemDetail() core.HandlerFunc
+	AnalyzePendingIssue() core.HandlerFunc
 	GetReport() core.HandlerFunc
 	ListReportRecords() core.HandlerFunc
 	GetReportRecord() core.HandlerFunc
 }
 
 type handler struct {
-	chRepo          clickhouse.Repo
-	dbRepo          database.Repo
-	difyRepo        dify.DifyRepo
-	k8sRepo         kubernetes.Repo
-	promRepo        prometheus.Repo
-	reportCache     *systemHealthReportCache
-	alertManagerURL string
-	vmAlertURL      string
+	chRepo                    clickhouse.Repo
+	dbRepo                    database.Repo
+	difyRepo                  dify.DifyRepo
+	k8sRepo                   kubernetes.Repo
+	promRepo                  prometheus.Repo
+	reportCache               *systemHealthReportCache
+	pendingIssueAnalysisCache *systemHealthPendingIssueAnalysisCache
+	alertManagerURL           string
+	vmAlertURL                string
 }
 
 func New(chRepo clickhouse.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo, k8sRepo kubernetes.Repo, promRepo prometheus.Repo, alertManagerURL string, vmAlertURL string) Handler {
 	return &handler{
-		chRepo:          chRepo,
-		dbRepo:          dbRepo,
-		difyRepo:        difyRepo,
-		k8sRepo:         k8sRepo,
-		promRepo:        promRepo,
-		reportCache:     newSystemHealthReportCache(),
-		alertManagerURL: alertManagerURL,
-		vmAlertURL:      vmAlertURL,
+		chRepo:                    chRepo,
+		dbRepo:                    dbRepo,
+		difyRepo:                  difyRepo,
+		k8sRepo:                   k8sRepo,
+		promRepo:                  promRepo,
+		reportCache:               newSystemHealthReportCache(),
+		pendingIssueAnalysisCache: newSystemHealthPendingIssueAnalysisCache(0, 512),
+		alertManagerURL:           alertManagerURL,
+		vmAlertURL:                vmAlertURL,
 	}
 }

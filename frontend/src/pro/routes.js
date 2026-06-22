@@ -4,19 +4,31 @@ import AuthRouter from 'src/core/components/AuthRouter'
 
 // 商业版
 const AlertAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/alertAnalyze/index')))
-const ServiceAnalyzePage = AuthRouter(React.lazy(() => import('src/pro/views/serviceAnalyze/index')))
+const ServiceAnalyzePage = AuthRouter(
+  React.lazy(() => import('src/pro/views/serviceAnalyze/index')),
+)
 const CauseReportPage = AuthRouter(React.lazy(() => import('src/pro/views/causeReport/index')))
 
-const SystemHealthOverviewPage = React.lazy(() => import('src/pro/views/systemHealthOverview/index'))
-const SystemHealthOverview = import.meta.env.DEV ? SystemHealthOverviewPage : AuthRouter(SystemHealthOverviewPage)
+const SystemHealthOverviewPage = React.lazy(
+  () => import('src/pro/views/systemHealthOverview/index'),
+)
+const SystemHealthOverview = import.meta.env.DEV
+  ? SystemHealthOverviewPage
+  : AuthRouter(SystemHealthOverviewPage)
 const HealthLabPage = AuthRouter(React.lazy(() => import('src/pro/views/healthLab/index')))
 const MysqlDashboard = AuthRouter(React.lazy(() => import('src/pro/views/MysqlDashboard/index')))
 const ChatAIPage = AuthRouter(React.lazy(() => import('src/pro/views/chatAI/index')))
 const SlowReportPage = AuthRouter(React.lazy(() => import('src/pro/views/report/index')))
-const AgentDataplanePage = AuthRouter(React.lazy(() => import('src/pro/views/agentDataplane/index')))
+const AgentDataplanePage = AuthRouter(
+  React.lazy(() => import('src/pro/views/agentDataplane/index')),
+)
 const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index')))
-const KnowledgeBasesPage = AuthRouter(React.lazy(() => import('src/pro/views/knowledgeBases/index')))
-const ProbeManagementPage = AuthRouter(React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')))
+const KnowledgeBasesPage = AuthRouter(
+  React.lazy(() => import('src/pro/views/knowledgeBases/index')),
+)
+const ProbeManagementPage = AuthRouter(
+  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')),
+)
 
 const IntegrationSettings = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
@@ -54,7 +66,6 @@ let proRoutes = [
     path: '/healthy-service',
     name: '系统健康评分',
     element: SystemHealthOverview,
-    showDataGroup: true,
   },
   {
     path: '/health-lab',
@@ -83,7 +94,7 @@ let proRoutes = [
   {
     path: '/system/platform-manage',
     name: t('pro/routes:licenseManage'),
-    element: PlatformManage
+    element: PlatformManage,
   },
   // {
   //   path: '/report/error',
