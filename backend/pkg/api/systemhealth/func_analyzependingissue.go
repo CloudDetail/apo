@@ -39,6 +39,20 @@ type systemHealthPendingIssueAIResponse struct {
 	DataBoundary  string                                `json:"dataBoundary"`
 }
 
+type openAIChatCompletionsResponse struct {
+	ID      string                        `json:"id"`
+	Choices []openAIChatCompletionsChoice `json:"choices"`
+	Error   *openAIResponsesAPIError      `json:"error,omitempty"`
+}
+
+type openAIChatCompletionsChoice struct {
+	Message openAIChatCompletionsMessage `json:"message"`
+}
+
+type openAIChatCompletionsMessage struct {
+	Content any `json:"content"`
+}
+
 type systemHealthPendingIssueAnalysisCache struct {
 	mutex      sync.RWMutex
 	ttl        time.Duration
@@ -159,7 +173,7 @@ func (h *handler) analyzePendingIssue(ctx core.Context, req *request.AnalyzeSyst
 	}
 
 	aiConfig := config.Get().AI
-	endpoint := openAIResponsesEndpoint(aiConfig.BaseURL)
+	endpoint := systemHealthPendingIssueAIEndpoint(aiConfig.BaseURL, aiConfig.WireAPI)
 	result := response.SystemHealthPendingIssueAnalyzeResp{
 		AIStatus: "not_configured",
 		Source:   "ai-api",
@@ -171,18 +185,20 @@ func (h *handler) analyzePendingIssue(ctx core.Context, req *request.AnalyzeSyst
 		result.Error = "AI 未配置"
 		return result, nil
 	}
-	if strings.TrimSpace(aiConfig.WireAPI) != "" && strings.TrimSpace(aiConfig.WireAPI) != "responses" {
+	wireAPI := normalizeSystemHealthAIWireAPI(aiConfig.WireAPI)
+	if wireAPI == "" {
 		result.AIStatus = "failed"
 		result.Error = "unsupported AI wire API: " + aiConfig.WireAPI
 		return result, nil
 	}
 
-	aiResp, err := callSystemHealthPendingIssueAI(
+	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(
 		ctx,
 		aiConfig.BaseURL,
 		resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey),
 		aiConfig.Model,
 		aiConfig.TimeoutSecond,
+		wireAPI,
 		systemHealthPendingIssueAIRequest{
 			Window: window,
 			Issue:  issue,
@@ -204,6 +220,24 @@ func (h *handler) analyzePendingIssue(ctx core.Context, req *request.AnalyzeSyst
 	result.DataBoundary = cleanUserFacingReportText(aiResp.DataBoundary)
 	h.pendingIssueAnalysisCache.set(cacheKey, result, now)
 	return result, nil
+}
+
+func normalizeSystemHealthAIWireAPI(wireAPI string) string {
+	switch strings.ToLower(strings.TrimSpace(wireAPI)) {
+	case "", "responses":
+		return "responses"
+	case "chat", "chat_completions", "chat-completions", "chat/completions":
+		return "chat_completions"
+	default:
+		return ""
+	}
+}
+
+func systemHealthPendingIssueAIEndpoint(baseURL string, wireAPI string) string {
+	if normalizeSystemHealthAIWireAPI(wireAPI) == "chat_completions" {
+		return openAIChatCompletionsEndpoint(baseURL)
+	}
+	return openAIResponsesEndpoint(baseURL)
 }
 
 func (h *handler) resolvePendingIssue(ctx core.Context, req *request.AnalyzeSystemHealthPendingIssueRequest) (response.SystemHealthPendingIssue, string, error) {
@@ -248,6 +282,34 @@ func sanitizePendingIssueActionPlan(steps []response.SystemHealthActionPlanStep,
 	return result
 }
 
+func callSystemHealthPendingIssueAIWithWireAPI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, wireAPI string, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
+	switch normalizeSystemHealthAIWireAPI(wireAPI) {
+	case "responses":
+		return callSystemHealthPendingIssueAI(ctx, baseURL, apiKey, model, timeoutSecond, payload)
+	case "chat_completions":
+		return callSystemHealthPendingIssueAIChatCompletions(ctx, baseURL, apiKey, model, timeoutSecond, payload)
+	default:
+		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("unsupported AI wire API: %s", wireAPI)
+	}
+}
+
+func systemHealthPendingIssueAIInstructions() string {
+	return strings.Join([]string{
+		"你是系统健康中心的服务指标异常分析助手。",
+		"任务：根据输入中的服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的分析和处理建议。",
+		"如果输入包含多个系统名，只把它们当作该服务异常出现的范围提示，不逐一分析多个系统差异。",
+		"只能基于输入中的真实字段生成内容；不得编造日志、Trace、告警事件、变更记录、根因或未提供的上下文。",
+		"如果输入证据不足以判断根因，应在 dataBoundary 中说明数据边界，并把 actionPlan 写成验证和定位步骤。",
+		"输出必须严格符合请求中的 json_schema。",
+		"analysis 说明该指标为什么需要处理，控制在 40-140 个中文字符。",
+		"impact 说明可能影响，控制在 20-100 个中文字符。",
+		"actionPlan 生成 2-4 个步骤，每一步必须可执行，不能写泛泛的“查看监控”。",
+		"validation 必须说明如何确认恢复。",
+		"risk 必须说明忽略或误判该问题的风险。",
+		"dataBoundary 必须说明本次分析只使用了哪些输入，缺少哪些下钻证据。",
+	}, "\n")
+}
+
 func callSystemHealthPendingIssueAI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
 	timeoutSecond = effectiveSystemHealthAITimeoutSecond(timeoutSecond)
 	if strings.TrimSpace(apiKey) == "" {
@@ -259,22 +321,9 @@ func callSystemHealthPendingIssueAI(ctx core.Context, baseURL string, apiKey str
 		return systemHealthPendingIssueAIResponse{}, err
 	}
 	requestBody, err := json.Marshal(openAIResponsesRequest{
-		Model: strings.TrimSpace(model),
-		Instructions: strings.Join([]string{
-			"你是系统健康中心的服务指标异常分析助手。",
-			"任务：根据输入中的服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的分析和处理建议。",
-			"如果输入包含多个系统名，只把它们当作该服务异常出现的范围提示，不逐一分析多个系统差异。",
-			"只能基于输入中的真实字段生成内容；不得编造日志、Trace、告警事件、变更记录、根因或未提供的上下文。",
-			"如果输入证据不足以判断根因，应在 dataBoundary 中说明数据边界，并把 actionPlan 写成验证和定位步骤。",
-			"输出必须严格符合请求中的 json_schema。",
-			"analysis 说明该指标为什么需要处理，控制在 40-140 个中文字符。",
-			"impact 说明可能影响，控制在 20-100 个中文字符。",
-			"actionPlan 生成 2-4 个步骤，每一步必须可执行，不能写泛泛的“查看监控”。",
-			"validation 必须说明如何确认恢复。",
-			"risk 必须说明忽略或误判该问题的风险。",
-			"dataBoundary 必须说明本次分析只使用了哪些输入，缺少哪些下钻证据。",
-		}, "\n"),
-		Input: string(inputPayload),
+		Model:        strings.TrimSpace(model),
+		Instructions: systemHealthPendingIssueAIInstructions(),
+		Input:        string(inputPayload),
 		Text: openAIResponsesTextConfig{
 			Format: openAIResponsesTextFormat{
 				Type:   "json_schema",
@@ -337,6 +386,134 @@ func callSystemHealthPendingIssueAI(ctx core.Context, baseURL string, apiKey str
 	}
 	aiResp.WorkflowRunID = firstNonEmpty(aiResp.WorkflowRunID, responsesResp.ID)
 	return aiResp, nil
+}
+
+func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
+	timeoutSecond = effectiveSystemHealthAITimeoutSecond(timeoutSecond)
+	if strings.TrimSpace(apiKey) == "" {
+		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("missing AI API key")
+	}
+
+	inputPayload, err := json.Marshal(payload)
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	schemaBytes, err := json.Marshal(systemHealthPendingIssueAIResponseSchema())
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	requestBody, err := json.Marshal(map[string]any{
+		"model": strings.TrimSpace(model),
+		"messages": []map[string]string{
+			{
+				"role": "system",
+				"content": strings.Join([]string{
+					systemHealthPendingIssueAIInstructions(),
+					"Chat Completions 兼容接口必须只返回一个 JSON 对象，不要使用 Markdown 代码块。",
+					"本次请求的 json_schema 如下：" + string(schemaBytes),
+				}, "\n"),
+			},
+			{
+				"role":    "user",
+				"content": string(inputPayload),
+			},
+		},
+		"response_format": map[string]string{
+			"type": "json_object",
+		},
+		"stream": false,
+	})
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+
+	requestContext := context.Background()
+	if ctx != nil {
+		requestContext = ctx.GetContext()
+	}
+	requestContext, cancel := context.WithTimeout(requestContext, time.Duration(timeoutSecond)*time.Second)
+	defer cancel()
+
+	endpoint := openAIChatCompletionsEndpoint(baseURL)
+	req, err := http.NewRequestWithContext(requestContext, http.MethodPost, endpoint, bytes.NewReader(requestBody))
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(apiKey))
+
+	startedAt := time.Now()
+	resp, err := (&http.Client{Timeout: time.Duration(timeoutSecond) * time.Second}).Do(req)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health pending issue AI chat completions HTTP request failed",
+			zap.String("endpoint", endpoint),
+			zap.Bool("timeout", isTimeoutError(err)),
+			zap.Duration("elapsed", time.Since(startedAt)),
+			zap.Error(err),
+		)
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	defer resp.Body.Close()
+	rawBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI pending issue chat completions API returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(rawBody)))
+	}
+
+	var chatResp openAIChatCompletionsResponse
+	if err := json.Unmarshal(rawBody, &chatResp); err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	if chatResp.Error != nil {
+		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI response error: %s", chatResp.Error.Message)
+	}
+	outputText := extractOpenAIChatCompletionsText(chatResp)
+	aiResp, err := parseSystemHealthPendingIssueAIResponseText(outputText)
+	if err != nil {
+		return systemHealthPendingIssueAIResponse{}, err
+	}
+	aiResp.WorkflowRunID = firstNonEmpty(aiResp.WorkflowRunID, chatResp.ID)
+	return aiResp, nil
+}
+
+func openAIChatCompletionsEndpoint(baseURL string) string {
+	endpoint := strings.TrimRight(strings.TrimSpace(baseURL), "/")
+	if strings.HasSuffix(endpoint, "/chat/completions") {
+		return endpoint
+	}
+	return endpoint + "/chat/completions"
+}
+
+func extractOpenAIChatCompletionsText(resp openAIChatCompletionsResponse) string {
+	for _, choice := range resp.Choices {
+		switch content := choice.Message.Content.(type) {
+		case string:
+			if strings.TrimSpace(content) != "" {
+				return strings.TrimSpace(content)
+			}
+		case []any:
+			parts := make([]string, 0, len(content))
+			for _, item := range content {
+				itemMap, ok := item.(map[string]any)
+				if !ok {
+					continue
+				}
+				if text, ok := itemMap["text"].(string); ok && strings.TrimSpace(text) != "" {
+					parts = append(parts, strings.TrimSpace(text))
+				}
+			}
+			if len(parts) > 0 {
+				return strings.Join(parts, "")
+			}
+		case map[string]any:
+			if raw, err := json.Marshal(content); err == nil {
+				return string(raw)
+			}
+		}
+	}
+	return ""
 }
 
 func parseSystemHealthPendingIssueAIResponseText(text string) (systemHealthPendingIssueAIResponse, error) {

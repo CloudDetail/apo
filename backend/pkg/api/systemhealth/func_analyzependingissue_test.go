@@ -86,6 +86,169 @@ func TestCallSystemHealthPendingIssueAIUsesMetricContext(t *testing.T) {
 	}
 }
 
+func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageContent(t *testing.T) {
+	var gotRequest map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/chat/completions" {
+			t.Fatalf("expected /chat/completions path, got %s", r.URL.Path)
+		}
+		if auth := r.Header.Get("Authorization"); auth != "Bearer test-key" {
+			t.Fatalf("expected bearer auth, got %q", auth)
+		}
+		if err := json.NewDecoder(r.Body).Decode(&gotRequest); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		responseFormat, _ := gotRequest["response_format"].(map[string]any)
+		if responseFormat["type"] != "json_object" {
+			t.Fatalf("expected json_object response format, got %+v", responseFormat)
+		}
+		messages, _ := gotRequest["messages"].([]any)
+		if len(messages) != 2 {
+			t.Fatalf("expected system and user messages, got %+v", gotRequest["messages"])
+		}
+		userMessage, _ := messages[1].(map[string]any)
+		userContent, _ := userMessage["content"].(string)
+		if !strings.Contains(userContent, "order-api") || !strings.Contains(userContent, "5.70%") {
+			t.Fatalf("expected metric context in chat completion input, got %s", userContent)
+		}
+
+		output := `{
+			"analysis":"order-api has a sustained error-rate pending issue that needs operator triage.",
+			"impact":"Users may see failed order requests until the error rate returns to baseline.",
+			"actionPlan":[
+				{"phase":"Locate","target":"order-api","action":"Group recent failed requests by endpoint and status code to find the concentrated failure path.","validation":"The failing endpoint and status code group is identified.","risk":"Broad aggregation can hide a narrow endpoint spike."},
+				{"phase":"Verify","target":"order-api","action":"After mitigation, compare the error-rate metric with the previous analysis window.","validation":"Error rate stays below the alert threshold for two windows.","risk":"Short recovery windows can miss recurring failures."}
+			],
+			"validation":"Confirm the metric is below threshold for consecutive windows.",
+			"risk":"Ignoring the issue can prolong user-visible request failures.",
+			"dataBoundary":"Only pending issue metric context was provided; logs and traces were not provided."
+		}`
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "chatcmpl-pending-1",
+			"choices": []map[string]any{
+				{
+					"message": map[string]any{
+						"role":    "assistant",
+						"content": output,
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	payload := systemHealthPendingIssueAIRequest{
+		Window: "15m",
+		Issue: response.SystemHealthPendingIssue{
+			GroupID:      101,
+			SystemName:   "order-system",
+			ServiceName:  "order-api",
+			MetricKey:    healthMetricErrorRate,
+			MetricLabel:  "error rate",
+			Status:       healthStatusRed,
+			Value:        "5.70%",
+			Note:         "error rate exceeds threshold",
+			ServiceScore: 35,
+			SystemScore:  38,
+		},
+	}
+
+	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-4-flash", 3, "chat_completions", payload)
+	if err != nil {
+		t.Fatalf("call pending issue AI with chat completions: %v", err)
+	}
+
+	if aiResp.WorkflowRunID != "chatcmpl-pending-1" {
+		t.Fatalf("expected workflow id from chat completion id, got %q", aiResp.WorkflowRunID)
+	}
+	if aiResp.Analysis == "" || len(aiResp.ActionPlan) != 2 || aiResp.DataBoundary == "" {
+		t.Fatalf("expected structured pending issue AI output, got %+v", aiResp)
+	}
+}
+
+func TestSystemHealthPendingIssueAIWireAPIsShareBusinessInstructions(t *testing.T) {
+	var responsesInstructions string
+	var chatSystemPrompt string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		output := `{
+			"analysis":"order-api has a pending issue that needs immediate triage.",
+			"impact":"Users may see failed order requests until the issue recovers.",
+			"actionPlan":[
+				{"phase":"Locate","target":"order-api","action":"Group recent failures by endpoint and status code to identify the affected path.","validation":"The affected endpoint and status code are identified.","risk":"Wide grouping can hide a narrow failure spike."},
+				{"phase":"Verify","target":"order-api","action":"Compare the metric after mitigation with the previous analysis window.","validation":"The metric stays below threshold for two windows.","risk":"Short recovery windows may miss recurring failures."}
+			],
+			"validation":"Confirm the metric returns below threshold for consecutive windows.",
+			"risk":"Ignoring the issue can prolong user-visible request failures.",
+			"dataBoundary":"Only pending issue metric context was provided; logs and traces were not provided."
+		}`
+
+		switch r.URL.Path {
+		case "/responses":
+			var req openAIResponsesRequest
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				t.Fatalf("decode responses request: %v", err)
+			}
+			responsesInstructions = req.Instructions
+			_ = json.NewEncoder(w).Encode(openAIResponsesResponse{
+				ID:         "resp-prompt",
+				OutputText: output,
+			})
+		case "/chat/completions":
+			var req map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				t.Fatalf("decode chat completions request: %v", err)
+			}
+			messages, _ := req["messages"].([]any)
+			if len(messages) > 0 {
+				systemMessage, _ := messages[0].(map[string]any)
+				chatSystemPrompt, _ = systemMessage["content"].(string)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"id": "chat-prompt",
+				"choices": []map[string]any{
+					{
+						"message": map[string]any{
+							"role":    "assistant",
+							"content": output,
+						},
+					},
+				},
+			})
+		default:
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	payload := systemHealthPendingIssueAIRequest{
+		Window: "15m",
+		Issue: response.SystemHealthPendingIssue{
+			GroupID:     101,
+			ServiceName: "order-api",
+			MetricKey:   healthMetricErrorRate,
+			Status:      healthStatusRed,
+			Value:       "5.70%",
+			Note:        "error rate exceeds threshold",
+		},
+	}
+
+	if _, err := callSystemHealthPendingIssueAI(nil, server.URL, "test-key", "gpt-test", 3, payload); err != nil {
+		t.Fatalf("call responses pending issue AI: %v", err)
+	}
+	if _, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-test", 3, "chat_completions", payload); err != nil {
+		t.Fatalf("call chat completions pending issue AI: %v", err)
+	}
+
+	responsesInstructions = strings.TrimSpace(responsesInstructions)
+	chatSystemPrompt = strings.TrimSpace(chatSystemPrompt)
+	if responsesInstructions == "" {
+		t.Fatal("expected responses instructions to be captured")
+	}
+	if !strings.Contains(chatSystemPrompt, responsesInstructions) {
+		t.Fatalf("expected chat completions system prompt to include shared responses instructions\nresponses: %q\nchat: %q", responsesInstructions, chatSystemPrompt)
+	}
+}
+
 func TestSystemHealthPendingIssueAIResponseSchemaRequiresAllObjectProperties(t *testing.T) {
 	assertStrictObjectSchema(t, systemHealthPendingIssueAIResponseSchema(), "root")
 }
