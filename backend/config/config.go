@@ -134,6 +134,7 @@ type Config struct {
 		APIKey              string `mapstructure:"api_key"`
 		EnvKey              string `mapstructure:"env_key"`
 		Model               string `mapstructure:"model"`
+		MaxTokens           int    `mapstructure:"max_tokens"`
 		StreamIdleTimeoutMS int    `mapstructure:"stream_idle_timeout_ms"`
 		TimeoutSecond       int    `mapstructure:"timeout_second"`
 	} `mapstructure:"ai"`

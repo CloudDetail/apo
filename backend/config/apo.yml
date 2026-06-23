@@ -118,5 +118,6 @@ ai:
   wire_api: responses
   env_key: COMPANY_API_KEY
   model: gpt-5.5
+  max_tokens: 1024
   stream_idle_timeout_ms: 10000000
   timeout_second: 10000

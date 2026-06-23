@@ -111,6 +111,10 @@ func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageCont
 		if !strings.Contains(userContent, "order-api") || !strings.Contains(userContent, "5.70%") {
 			t.Fatalf("expected metric context in chat completion input, got %s", userContent)
 		}
+		maxTokens, ok := gotRequest["max_tokens"].(float64)
+		if !ok || int(maxTokens) != defaultSystemHealthPendingIssueAIChatMaxTokens {
+			t.Fatalf("expected default max_tokens %d, got %#v", defaultSystemHealthPendingIssueAIChatMaxTokens, gotRequest["max_tokens"])
+		}
 
 		output := `{
 			"analysis":"order-api has a sustained error-rate pending issue that needs operator triage.",
@@ -153,7 +157,7 @@ func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageCont
 		},
 	}
 
-	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-4-flash", 3, "chat_completions", payload)
+	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-4-flash", 3, 0, "chat_completions", payload)
 	if err != nil {
 		t.Fatalf("call pending issue AI with chat completions: %v", err)
 	}
@@ -235,7 +239,7 @@ func TestSystemHealthPendingIssueAIWireAPIsShareBusinessInstructions(t *testing.
 	if _, err := callSystemHealthPendingIssueAI(nil, server.URL, "test-key", "gpt-test", 3, payload); err != nil {
 		t.Fatalf("call responses pending issue AI: %v", err)
 	}
-	if _, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-test", 3, "chat_completions", payload); err != nil {
+	if _, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "glm-test", 3, 0, "chat_completions", payload); err != nil {
 		t.Fatalf("call chat completions pending issue AI: %v", err)
 	}
 

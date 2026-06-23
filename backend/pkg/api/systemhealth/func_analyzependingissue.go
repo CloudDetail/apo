@@ -39,6 +39,8 @@ type systemHealthPendingIssueAIResponse struct {
 	DataBoundary  string                                `json:"dataBoundary"`
 }
 
+const defaultSystemHealthPendingIssueAIChatMaxTokens = 1024
+
 type openAIChatCompletionsResponse struct {
 	ID      string                        `json:"id"`
 	Choices []openAIChatCompletionsChoice `json:"choices"`
@@ -198,6 +200,7 @@ func (h *handler) analyzePendingIssue(ctx core.Context, req *request.AnalyzeSyst
 		resolveSystemHealthAIAPIKey(aiConfig.APIKey, aiConfig.EnvKey),
 		aiConfig.Model,
 		aiConfig.TimeoutSecond,
+		aiConfig.MaxTokens,
 		wireAPI,
 		systemHealthPendingIssueAIRequest{
 			Window: window,
@@ -282,12 +285,12 @@ func sanitizePendingIssueActionPlan(steps []response.SystemHealthActionPlanStep,
 	return result
 }
 
-func callSystemHealthPendingIssueAIWithWireAPI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, wireAPI string, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
+func callSystemHealthPendingIssueAIWithWireAPI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, maxTokens int, wireAPI string, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
 	switch normalizeSystemHealthAIWireAPI(wireAPI) {
 	case "responses":
 		return callSystemHealthPendingIssueAI(ctx, baseURL, apiKey, model, timeoutSecond, payload)
 	case "chat_completions":
-		return callSystemHealthPendingIssueAIChatCompletions(ctx, baseURL, apiKey, model, timeoutSecond, payload)
+		return callSystemHealthPendingIssueAIChatCompletions(ctx, baseURL, apiKey, model, timeoutSecond, maxTokens, payload)
 	default:
 		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("unsupported AI wire API: %s", wireAPI)
 	}
@@ -388,7 +391,14 @@ func callSystemHealthPendingIssueAI(ctx core.Context, baseURL string, apiKey str
 	return aiResp, nil
 }
 
-func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
+func effectiveSystemHealthPendingIssueAIChatMaxTokens(maxTokens int) int {
+	if maxTokens > 0 {
+		return maxTokens
+	}
+	return defaultSystemHealthPendingIssueAIChatMaxTokens
+}
+
+func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, maxTokens int, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
 	timeoutSecond = effectiveSystemHealthAITimeoutSecond(timeoutSecond)
 	if strings.TrimSpace(apiKey) == "" {
 		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("missing AI API key")
@@ -421,7 +431,8 @@ func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL str
 		"response_format": map[string]string{
 			"type": "json_object",
 		},
-		"stream": false,
+		"stream":     false,
+		"max_tokens": effectiveSystemHealthPendingIssueAIChatMaxTokens(maxTokens),
 	})
 	if err != nil {
 		return systemHealthPendingIssueAIResponse{}, err
