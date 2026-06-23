@@ -2,7 +2,7 @@
 
 ## Business Semantics That Cannot Be Fully Inferred From Code
 
-1. `To Be Confirmed`: `/healthy-service` 的 RYG 健康评分是否面向运维诊断、SRE 巡检，还是面向业务方的服务健康摘要，目前只能从评分逻辑推断。
+1. `To Be Confirmed`: `/healthy-service` 的 RYG 健康度是否面向运维诊断、SRE 巡检，还是面向业务方的服务健康摘要，目前只能从评分逻辑推断。
 2. `To Be Confirmed`: `/api/service/monitor/status` 与 `/healthy-service` 的关系是否本应更紧密，目前代码里二者并未在前端接通。
 
 ## Legacy Or Dead-Code Suspicion

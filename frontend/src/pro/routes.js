@@ -64,7 +64,7 @@ let proRoutes = [
   { path: '/mysql-dashboard', name: t('pro/routes:mysqlDashboard'), element: MysqlDashboard },
   {
     path: '/healthy-service',
-    name: '系统健康评分',
+    name: '系统健康度',
     element: SystemHealthOverview,
   },
   {

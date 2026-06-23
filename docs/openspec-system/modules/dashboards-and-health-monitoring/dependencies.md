@@ -5,11 +5,11 @@
 | Dependency | Evidence | Why It Matters |
 |---|---|---|
 | `identity-access-and-organization` | `UserContext`, `menuItems`, `AuthRouter`, `/api/permission/config` | dashboard 页面要靠权限配置下发 `router.page.url`。 |
-| `data-scope-governance` | `dataGroupReducer`, `CheckGroupPermission`, `GetPQLFilterByGroupID` | `/healthy-service` 的健康评分依赖数据组权限。 |
+| `data-scope-governance` | `dataGroupReducer`, `CheckGroupPermission`, `GetPQLFilterByGroupID` | `/healthy-service` 的健康度依赖数据组权限。 |
 | Shared Time Range Infrastructure | `timeRangeReducer` | dashboard URL 拼接与健康页查询都依赖统一时间范围。 |
 | Grafana / Jaeger Embedding | `init_router_page.go`, `IframeDashboard.jsx` | dashboard 页面本质上是外部页面嵌入。 |
-| Prometheus | `service_ryg_light.go`, `service_get_monitor_status.go` | 健康评分与监控状态的主要数据来源。 |
-| ClickHouse | `service_ryg_light.go` | 健康评分中的告警事件统计依赖它。 |
+| Prometheus | `service_ryg_light.go`, `service_get_monitor_status.go` | 健康度与监控状态的主要数据来源。 |
+| ClickHouse | `service_ryg_light.go` | 健康度中的告警事件统计依赖它。 |
 
 ## Downstream Dependencies
 
@@ -42,8 +42,8 @@
 |---|---|---|
 | Grafana page URLs | `init_router_page.go` | `/system-dashboard`、`/basic-dashboard`、`/application-dashboard`、`/middleware-dashboard`、`/mysql-dashboard` 的实际内容来源。 |
 | Jaeger page URL | `init_router_page.go` | `trace/full` 也采用相同的 router page 配置模式，表明 dashboard 嵌入能力是通用机制。 |
-| Prometheus | `QueryMetricsWithPQLFilter`, `QueryAggMetricsWithFilter`, `GetInstanceList` | 提供健康评分与监控状态所需指标。 |
-| ClickHouse | `GetAlertEventCountGroupByInstance` | 提供健康评分中的告警事件统计。 |
+| Prometheus | `QueryMetricsWithPQLFilter`, `QueryAggMetricsWithFilter`, `GetInstanceList` | 提供健康度与监控状态所需指标。 |
+| ClickHouse | `GetAlertEventCountGroupByInstance` | 提供健康度中的告警事件统计。 |
 
 ## Cross-Module Linkage Notes
 

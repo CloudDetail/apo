@@ -37,7 +37,7 @@
 
 ## Edge Cases
 
-1. 如果某个同比指标查不到昨日数据，健康评分会进入“跳过检查”或“昨日同时期无错误”的分支，而不是直接报错。
+1. 如果某个同比指标查不到昨日数据，健康度会进入“跳过检查”或“昨日同时期无错误”的分支，而不是直接报错。
 2. 如果 service 实例数小于 2，`replica` 检查项会直接给 0 分。
 3. `MiddlewareDashboard` 除 iframe 外还会在页面顶部额外展示一个文档提示框。
 4. dashboard URL 依赖 `menuItems` 提供；如果菜单里没有对应 `dashboardKey`，`IframeDashboard` 不会生成有效 `src`。

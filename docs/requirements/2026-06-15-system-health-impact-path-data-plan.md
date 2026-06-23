@@ -2,7 +2,7 @@
 
 本文档面向 `/healthy-service?groupId=1&relativeTime=15m` 的“版本B 影响路径”页面，逐行说明页面信息的正式数据来源和计算方式。
 
-当前页面草稿在 `frontend/src/pro/views/serviceHealthy/index.js` 中使用 `MOCK_INFRASTRUCTURE`、`MOCK_SERVICES`、`MOCK_LOGS`、`MOCK_ALERTS`、`HEALTH_RISK_CLUSTERS` 等本地常量。这些常量只能作为版式样例，不能作为正式数据来源。正式实现不得沿用 `/api/service/ryglight` 的 `percentScore/status/scoreDetail` 作为新版系统健康评分标准；新版健康度以“业务入口受影响程度 + 告警严重度 + RED退化 + 下游传播 + 数据完整性”为主。
+当前页面草稿在 `frontend/src/pro/views/serviceHealthy/index.js` 中使用 `MOCK_INFRASTRUCTURE`、`MOCK_SERVICES`、`MOCK_LOGS`、`MOCK_ALERTS`、`HEALTH_RISK_CLUSTERS` 等本地常量。这些常量只能作为版式样例，不能作为正式数据来源。正式实现不得沿用 `/api/service/ryglight` 的 `percentScore/status/scoreDetail` 作为新版系统健康度标准；新版健康度以“业务入口受影响程度 + 告警严重度 + RED退化 + 下游传播 + 数据完整性”为主。
 
 ## 查询上下文
 
@@ -865,7 +865,7 @@ type SystemHealthIssue = {
 
 ## 落地原则
 
-1. `/api/service/ryglight` 不作为版本B健康评分来源；最多作为节点侧辅助标签，且默认不参与主分。
+1. `/api/service/ryglight` 不作为版本B健康度来源；最多作为节点侧辅助标签，且默认不参与主分。
 2. 页面中每个数字都必须能回溯到接口字段或本文公式。
 3. 缺失数据不推断为健康，进入内部数据质量评分和数据完整性惩罚。
 4. 没有真实来源的业务名、对象名、指标数值、处置动作不得固定展示。

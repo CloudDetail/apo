@@ -824,7 +824,7 @@
           <div class="panel">
             <div class="panel-head">
               <div class="panel-title">
-                系统健康评分
+                系统健康度
                 <span
                   class="info-tip"
                   data-tip="由资源水位、资源波动、错误率、响应延时、错误日志、异常请求、锁等待综合计算"
@@ -1327,7 +1327,7 @@
         return `
           ${healthRing(system.score, "detail-score")}
           <div class="score-card-copy">
-            <span class="score-card-label">健康评分</span>
+            <span class="score-card-label">健康度</span>
             <strong class="score-card-state ${state.className}">${state.text}</strong>
             <span class="score-card-note">${state.note}</span>
           </div>

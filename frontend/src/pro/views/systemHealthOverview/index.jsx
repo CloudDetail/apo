@@ -503,13 +503,13 @@ const OverviewInitialLoading = () => (
 
     <section className="sho-panel sho-overview-loading-panel">
       <div className="sho-panel-head">
-        <div className="sho-panel-title">系统健康评分</div>
+        <div className="sho-panel-title">系统健康度</div>
         <span className="sho-muted">正在同步指标状态</span>
       </div>
       <div className="sho-overview-loading-body">
         <Spin />
         <div>
-          <strong>正在加载系统健康评分</strong>
+          <strong>正在加载系统健康度</strong>
           <span>获取系统、指标和待处理问题，完成后展示当前状态。</span>
         </div>
       </div>
@@ -606,7 +606,7 @@ export default function SystemHealthOverviewPage() {
       )
     } catch (error) {
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
-      setOverviewError(error?.message || '系统健康评分加载失败')
+      setOverviewError(error?.message || '系统健康度加载失败')
       setSystems([])
       setSummary({})
       setPendingIssues([])
@@ -749,7 +749,7 @@ export default function SystemHealthOverviewPage() {
       return (
         <div className="sho-state-panel">
           <Spin />
-          <span>正在加载系统健康评分</span>
+          <span>正在加载系统健康度</span>
         </div>
       )
     }
@@ -761,7 +761,7 @@ export default function SystemHealthOverviewPage() {
               重试
             </Button>
           }
-          message="系统健康评分加载失败"
+          message="系统健康度加载失败"
           description={overviewError}
           type="error"
           showIcon
@@ -769,7 +769,7 @@ export default function SystemHealthOverviewPage() {
       )
     }
     if (!systems.length) {
-      return <div className="sho-empty-block">暂无系统健康评分数据</div>
+      return <div className="sho-empty-block">暂无系统健康度数据</div>
     }
     if (!overviewSystems.length) {
       return <div className="sho-empty-block">没有匹配的系统</div>
@@ -990,7 +990,7 @@ export default function SystemHealthOverviewPage() {
             <section className="sho-panel">
               <div className="sho-panel-head">
                 <div className="sho-panel-title">
-                  系统健康评分
+                  系统健康度
                   <Tooltip title="由资源水位、资源波动、错误率、响应延时、错误日志、异常请求、锁等待综合计算">
                     <HelpCircle size={15} className="sho-help-icon" />
                   </Tooltip>
@@ -1114,7 +1114,7 @@ export default function SystemHealthOverviewPage() {
               <div className="sho-score-card">
                 <HealthRing score={selectedSystem.score} size="large" />
                 <div>
-                  <span>健康评分</span>
+                  <span>健康度</span>
                   <strong className={`sho-score-state sho-score-state-${state.className}`}>
                     {state.text}
                   </strong>
