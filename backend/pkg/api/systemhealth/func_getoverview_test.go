@@ -344,21 +344,26 @@ func TestBuildOverviewSystemsForGroupsRunsConcurrentlyAndSorts(t *testing.T) {
 	}
 }
 
-func TestBuildOverviewSystemsForGroupsReturnsBuilderError(t *testing.T) {
-	wantErr := errors.New("build failed")
+func TestBuildOverviewSystemsForGroupsKeepsGraySystemWhenBuilderFails(t *testing.T) {
 	groups := []*datagroup.DataGroupTreeNode{
 		{DataGroup: datagroup.DataGroup{GroupID: 1, GroupName: "orders"}},
 	}
 
 	systems, err := buildOverviewSystemsForGroups(groups, 1, func(group *datagroup.DataGroupTreeNode) (response.SystemHealthSystem, error) {
-		return response.SystemHealthSystem{}, wantErr
+		return response.SystemHealthSystem{}, errors.New("build failed")
 	})
 
-	if !errors.Is(err, wantErr) {
-		t.Fatalf("expected builder error, got %v", err)
+	if err != nil {
+		t.Fatalf("expected degraded systems, got error: %v", err)
 	}
-	if systems != nil {
-		t.Fatalf("expected no systems on error, got %+v", systems)
+	if len(systems) != 1 {
+		t.Fatalf("expected one degraded system, got %d", len(systems))
+	}
+	if systems[0].GroupID != 1 || systems[0].Name != "orders" {
+		t.Fatalf("expected degraded system identity from group, got %+v", systems[0])
+	}
+	if systems[0].Status != healthStatusGray || len(systems[0].Services) != 0 {
+		t.Fatalf("expected gray system without services, got %+v", systems[0])
 	}
 }
 

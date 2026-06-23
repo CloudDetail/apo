@@ -22,8 +22,11 @@ import {
 } from './metricVisuals.mjs'
 import { buildPendingIssueQueueRows } from './pendingIssueQueue.mjs'
 import { describePendingIssue } from './pendingIssueDescription.mjs'
-import { shouldRenderDetailBody } from './detailViewState.mjs'
-import { shouldRenderInitialOverviewLoading } from './overviewViewState.mjs'
+import { buildDetailRequestKey, shouldRenderDetailBody } from './detailViewState.mjs'
+import {
+  isLatestOverviewRequest,
+  shouldRenderInitialOverviewLoading,
+} from './overviewViewState.mjs'
 import './index.css'
 
 const metricLabels = [
@@ -541,6 +544,7 @@ export default function SystemHealthOverviewPage() {
   const timeRange = useSelector((state) => state.timeRange)
   const pageLoadedAtRef = useRef(Date.now() * 1000)
   const initialTimeRangeSignatureRef = useRef(null)
+  const overviewRequestSeqRef = useRef(0)
   const [systems, setSystems] = useState([])
   const [summary, setSummary] = useState({})
   const [pendingIssues, setPendingIssues] = useState([])
@@ -552,6 +556,7 @@ export default function SystemHealthOverviewPage() {
   const [selectedSystem, setSelectedSystem] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
+  const [detailRefreshToken, setDetailRefreshToken] = useState(0)
   const [onlyAbnormal, setOnlyAbnormal] = useState(true)
   const [systemKeyword, setSystemKeyword] = useState('')
   const [serviceKeyword, setServiceKeyword] = useState('')
@@ -580,12 +585,19 @@ export default function SystemHealthOverviewPage() {
       timeRangeRefreshedAfterMount,
     ],
   )
+  const detailRequestKey = useMemo(
+    () => buildDetailRequestKey(selectedSystemId, queryParams),
+    [selectedSystemId, queryParams],
+  )
 
   const loadOverview = useCallback(async () => {
+    const requestId = overviewRequestSeqRef.current + 1
+    overviewRequestSeqRef.current = requestId
     setOverviewLoading(true)
     setOverviewError('')
     try {
       const resp = await getSystemHealthOverviewApi(queryParams)
+      if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
       const nextSystems = Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : []
       setSystems(nextSystems)
       setSummary(resp?.summary || {})
@@ -593,18 +605,50 @@ export default function SystemHealthOverviewPage() {
         Array.isArray(resp?.pendingIssues) ? resp.pendingIssues.map(normalizePendingIssue) : [],
       )
     } catch (error) {
+      if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
       setOverviewError(error?.message || '系统健康评分加载失败')
       setSystems([])
       setSummary({})
       setPendingIssues([])
     } finally {
-      setOverviewLoading(false)
+      if (isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) {
+        setOverviewLoading(false)
+      }
     }
   }, [queryParams])
 
   useEffect(() => {
     loadOverview()
   }, [loadOverview])
+
+  useEffect(() => {
+    if (!detailRequestKey || !selectedSystemId) return undefined
+
+    let cancelled = false
+    const loadDetail = async () => {
+      setDetailLoading(true)
+      setDetailError('')
+      try {
+        const resp = await getSystemHealthSystemDetailApi(selectedSystemId, queryParams)
+        if (!cancelled) {
+          setSelectedSystem(normalizeSystem(resp?.system))
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDetailError(error?.message || '系统详情加载失败')
+        }
+      } finally {
+        if (!cancelled) {
+          setDetailLoading(false)
+        }
+      }
+    }
+
+    loadDetail()
+    return () => {
+      cancelled = true
+    }
+  }, [detailRequestKey, detailRefreshToken, queryParams, selectedSystemId])
 
   const overviewSystems = useMemo(
     () =>
@@ -636,21 +680,13 @@ export default function SystemHealthOverviewPage() {
       .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
   }, [selectedSystem, serviceKeyword, serviceFilter])
 
-  const openDetail = async (system) => {
+  const openDetail = (system) => {
     setSelectedSystemId(String(system.groupId))
     setSelectedSystem(system)
     setServiceKeyword('')
     setServiceFilter('all')
-    setDetailLoading(true)
     setDetailError('')
-    try {
-      const resp = await getSystemHealthSystemDetailApi(system.groupId, queryParams)
-      setSelectedSystem(normalizeSystem(resp?.system))
-    } catch (error) {
-      setDetailError(error?.message || '系统详情加载失败')
-    } finally {
-      setDetailLoading(false)
-    }
+    setDetailRefreshToken((current) => current + 1)
   }
 
   const closeDetail = () => {
@@ -1054,7 +1090,7 @@ export default function SystemHealthOverviewPage() {
           <Alert
             className="sho-detail-alert"
             action={
-              <Button size="small" onClick={() => openDetail(selectedSystem)}>
+              <Button size="small" onClick={() => setDetailRefreshToken((current) => current + 1)}>
                 重试
               </Button>
             }

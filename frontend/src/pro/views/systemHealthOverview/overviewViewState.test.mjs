@@ -1,7 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import { hasOverviewContent, shouldRenderInitialOverviewLoading } from './overviewViewState.mjs'
+import {
+  hasOverviewContent,
+  isLatestOverviewRequest,
+  shouldRenderInitialOverviewLoading,
+} from './overviewViewState.mjs'
 
 test('initial overview loading is used before any overview data is available', () => {
   assert.equal(
@@ -64,4 +68,9 @@ test('overview content exists when systems, pending issues, or summary data exis
     }),
     true,
   )
+})
+
+test('overview responses only apply for the latest request', () => {
+  assert.equal(isLatestOverviewRequest(2, 2), true)
+  assert.equal(isLatestOverviewRequest(1, 2), false)
 })

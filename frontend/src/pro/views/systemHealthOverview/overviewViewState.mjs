@@ -7,3 +7,5 @@ export const shouldRenderInitialOverviewLoading = ({
   pendingIssues = [],
   summary = {},
 }) => Boolean(overviewLoading) && !hasOverviewContent({ systems, pendingIssues, summary })
+
+export const isLatestOverviewRequest = (requestId, latestRequestId) => requestId === latestRequestId

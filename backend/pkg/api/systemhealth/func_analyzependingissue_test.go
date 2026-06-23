@@ -69,8 +69,11 @@ func TestCallSystemHealthPendingIssueAIUsesMetricContext(t *testing.T) {
 	if gotRequest.Text.Format.Name != "system_health_pending_issue_analysis" {
 		t.Fatalf("expected pending issue schema, got %q", gotRequest.Text.Format.Name)
 	}
-	if !strings.Contains(gotRequest.Instructions, "单个系统健康待处理指标") {
-		t.Fatalf("expected pending issue instructions, got %q", gotRequest.Instructions)
+	if !strings.Contains(gotRequest.Instructions, "服务指标异常") {
+		t.Fatalf("expected service metric issue instructions, got %q", gotRequest.Instructions)
+	}
+	if !strings.Contains(gotRequest.Instructions, "不逐一分析多个系统差异") {
+		t.Fatalf("expected instructions to avoid per-system analysis, got %q", gotRequest.Instructions)
 	}
 	if !strings.Contains(gotRequest.Input, "订单系统") || !strings.Contains(gotRequest.Input, "5.70%") {
 		t.Fatalf("expected metric context in AI input, got %s", gotRequest.Input)

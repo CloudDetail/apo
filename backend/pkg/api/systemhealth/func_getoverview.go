@@ -273,7 +273,6 @@ func buildOverviewSystemsForGroups(groups []*datagroup.DataGroupTreeNode, concur
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, concurrency)
-	errCh := make(chan error, len(groups))
 	for index, group := range groups {
 		index, group := index, group
 		sem <- struct{}{}
@@ -286,17 +285,13 @@ func buildOverviewSystemsForGroups(groups []*datagroup.DataGroupTreeNode, concur
 
 			system, err := build(group)
 			if err != nil {
-				errCh <- err
+				systems[index] = buildSystemHealthSystem(group.DataGroup, nil)
 				return
 			}
 			systems[index] = system
 		}()
 	}
 	wg.Wait()
-	close(errCh)
-	if err := <-errCh; err != nil {
-		return nil, err
-	}
 	sort.SliceStable(systems, func(i, j int) bool {
 		if systems[i].Score == systems[j].Score {
 			return systems[i].GroupID < systems[j].GroupID

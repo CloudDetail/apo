@@ -261,8 +261,9 @@ func callSystemHealthPendingIssueAI(ctx core.Context, baseURL string, apiKey str
 	requestBody, err := json.Marshal(openAIResponsesRequest{
 		Model: strings.TrimSpace(model),
 		Instructions: strings.Join([]string{
-			"你是系统健康中心的单个系统健康待处理指标分析助手。",
-			"任务：根据输入中的一个系统、服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的分析和处理建议。",
+			"你是系统健康中心的服务指标异常分析助手。",
+			"任务：根据输入中的服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的分析和处理建议。",
+			"如果输入包含多个系统名，只把它们当作该服务异常出现的范围提示，不逐一分析多个系统差异。",
 			"只能基于输入中的真实字段生成内容；不得编造日志、Trace、告警事件、变更记录、根因或未提供的上下文。",
 			"如果输入证据不足以判断根因，应在 dataBoundary 中说明数据边界，并把 actionPlan 写成验证和定位步骤。",
 			"输出必须严格符合请求中的 json_schema。",

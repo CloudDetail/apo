@@ -84,7 +84,12 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, req *request.GetRy
 	)
 
 	for svcKey, status := range servicesMap.MetricGroupMap {
-		instances, err := s.promRepo.GetInstanceList(ctx, req.StartTime, req.EndTime, svcKey.SvcName, "")
+		instances, err := s.promRepo.GetInstanceListByPQLFilter(
+			ctx,
+			req.StartTime,
+			req.EndTime,
+			buildRYGServiceInstanceFilter(groupFilter, filters, svcKey.SvcName),
+		)
 		if err != nil {
 			continue
 		}
@@ -102,6 +107,14 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, req *request.GetRy
 	}
 
 	return resp, nil
+}
+
+func buildRYGServiceInstanceFilter(groupFilter prometheus.PQLFilter, baseFilter prometheus.PQLFilter, serviceName string) prometheus.PQLFilter {
+	serviceFilter := prometheus.NewFilter()
+	if serviceName != "" {
+		serviceFilter.Equal(prometheus.ServiceNameKey, serviceName)
+	}
+	return prometheus.And(groupFilter, baseFilter, serviceFilter)
 }
 
 // RYGLightStatus
