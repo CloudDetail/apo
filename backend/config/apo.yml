@@ -113,7 +113,7 @@ dify:
     alert_event_analyze:
 
 ai:
-  enable: false
+  enable: true
   base_url: http://192.168.1.8:8319/v1
   wire_api: responses
   env_key: COMPANY_API_KEY

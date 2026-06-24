@@ -68,16 +68,17 @@ const resourceTypeFromNote = (note) => {
   return '资源'
 }
 
-const compactResourceNote = (note, status) => {
+const compactResourceNote = (note, status, value) => {
   const resourceType = resourceTypeFromNote(note)
   const resourceLabel = resourceType === 'CPU' ? ' CPU ' : resourceType
   if (status === 'gray') return '暂无资源水位数据'
+  if (percentFromValue(value) === null) return safeText(note) || '暂无资源水位数据'
   if (status === 'green') return `当前${resourceLabel}水位正常`
   return `当前${resourceLabel}水位偏高`
 }
 
-const compactMetricNote = (key, note, status) => {
-  if (key === 'resource') return compactResourceNote(note, status)
+const compactMetricNote = (key, note, status, value) => {
+  if (key === 'resource') return compactResourceNote(note, status, value)
   return safeText(note) || '暂无指标说明'
 }
 
@@ -290,11 +291,12 @@ export const buildStatusDistribution = (systems = []) => {
 
 export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
   const status = normalizeStatus(detail.status || fallbackStatus)
+  const value = safeText(detail.value) || '--'
   const base = {
     status,
     tone: statusTone(status),
-    value: safeText(detail.value) || '--',
-    note: compactMetricNote(key, detail.note, status),
+    value,
+    note: compactMetricNote(key, detail.note, status, value),
   }
   const source = safeText(detail.source)
   const chart = metricChartFor(key, detail)
@@ -306,12 +308,12 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
     if (Array.isArray(detail.series) && detail.series.length) {
       base.chart = null
     }
+    const currentPercent = percentFromValue(base.value)
     return {
       kind: 'waterline',
       ...base,
-      percent: percentFromValue(base.value) ?? statusRatio(status),
+      percent: currentPercent ?? 0,
       helper: '当前水位',
-      marker: '90%',
     }
   }
 

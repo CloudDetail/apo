@@ -191,7 +191,6 @@ test('metricVisualFor turns resource metrics into waterline visuals', () => {
       note: '当前 CPU 水位偏高',
       percent: 83,
       helper: '当前水位',
-      marker: '90%',
     },
   )
 })
@@ -208,6 +207,18 @@ test('metricVisualFor keeps resource notes readable and does not expose source p
   assert.equal(visual.source, 'dev/train-ticket/ts-train-service-787984cc59-8gbnh')
   assert.equal(visual.note.includes('资源副本'), false)
   assert.equal(visual.note.includes('dev/train-ticket'), false)
+})
+
+test('metricVisualFor does not infer current resource waterline from status when value is missing', () => {
+  const visual = metricVisualFor('resource', {
+    status: 'red',
+    value: '--',
+    note: '资源副本健康存在风险',
+  })
+
+  assert.equal(visual.percent, 0)
+  assert.equal(visual.note, '资源副本健康存在风险')
+  assert.equal('marker' in visual, false)
 })
 
 test('metricSourceTitleFor summarizes metric data sources for title tooltips', () => {
