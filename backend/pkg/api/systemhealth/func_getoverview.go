@@ -1177,7 +1177,7 @@ func buildSystemHealthVMHostCPUWaterlinePQL(nodes []string, window string, offse
 	filter := systemHealthVMHostNodeFilter(nodes)
 	filter.AddPatternFilter("mode!~", "idle|iowait|steal")
 	return fmt.Sprintf(
-		`avg by (node_name) (label_replace(rate(%s), "node_name", "$1", "instance_name", "(.*)"))`,
+		`avg by (node_name) (sum by (node_name,cpu) (label_replace(rate(%s), "node_name", "$1", "instance_name", "(.*)")))`,
 		systemHealthRangeSelector("node_cpu_seconds_total", filter, window, offset),
 	)
 }

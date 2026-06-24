@@ -711,6 +711,7 @@ func TestBuildSystemHealthVMHostResourcePQLUsesNodeExporterInstanceName(t *testi
 		`node_cpu_seconds_total{instance_name=~"vm-a|vm-b",mode!~"idle|iowait|steal"}[15m]`,
 		`label_replace(rate(`,
 		`"node_name", "$1", "instance_name", "(.*)"`,
+		`sum by (node_name,cpu)`,
 		`avg by (node_name)`,
 	} {
 		if !strings.Contains(cpuQuery, part) {
