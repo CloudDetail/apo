@@ -1,5 +1,5 @@
 export const SYSTEM_HEALTH_PATH = '/healthy-service'
-export const SYSTEM_HEALTH_LABEL = '系统健康度'
+export const SYSTEM_HEALTH_LABEL = '健康度'
 export const SYSTEM_HEALTH_ABBREVIATION = '健康度'
 
 export const isSystemHealthPreviewRoute = () =>

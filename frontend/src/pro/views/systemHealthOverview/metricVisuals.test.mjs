@@ -112,7 +112,7 @@ test('buildOverviewSummaryCards restores prototype overview metrics', () => {
     cards.map((card) => card.value),
     ['4 / 12', 31, 7, 5],
   )
-  assert.equal(cards[0].caption, '2 个系统健康度低于 60')
+  assert.equal(cards[0].caption, '2 个健康度低于 60')
   assert.equal(cards[1].caption, '错误率、响应延时、错误日志占比最高')
   assert.equal(cards[2].caption, '集中在订单系统、支付系统')
   assert.equal(cards[3].caption, '最近 10 分钟新增')

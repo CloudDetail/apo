@@ -3,7 +3,7 @@
   "businessAlertAnalyze": "业务告警分析",
   "causeReport": "故障报告",
   "mysqlDashboard": "MySQL大盘",
-  "serviceHealth": "系统健康度",
+  "serviceHealth": "健康度",
   "aiRootCauseAnalysis": "大模型根因分析",
   "free": "公测",
   "licenseManage": "许可证"

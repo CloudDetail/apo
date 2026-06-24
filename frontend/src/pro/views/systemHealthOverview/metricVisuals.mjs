@@ -231,7 +231,7 @@ export const buildOverviewSummaryCards = (summary = {}, systems = [], metricDefi
       key: 'abnormalSystems',
       label: '异常系统',
       value: `${abnormalSystems} / ${totalSystems}`,
-      caption: `${lowScoreSystems} 个系统健康度低于 60`,
+      caption: `${lowScoreSystems} 个健康度低于 60`,
       percent: safePercent(abnormalSystems, totalSystems),
       tone: 'critical',
       visual: 'ring',

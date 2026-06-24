@@ -501,7 +501,7 @@ export default function HealthLabPage() {
     <div className="hl-page">
       <div className="hl-toolbar">
         <div>
-          <div className="hl-title">系统健康度组件实验室</div>
+          <div className="hl-title">健康度组件实验室</div>
           <div className="hl-subtitle">
             面向 APO 服务概览和告警事件的基础组件，聚焦可解释健康分、服务状态和告警影响。
           </div>

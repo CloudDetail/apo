@@ -129,7 +129,7 @@ let _nav = [
   },
   {
     key: 'healthy',
-    label: '系统健康度',
+    label: '健康度',
     abbreviation: '健康度',
     to: '/healthy-service',
     icon: <TbWaveSawTool />,
