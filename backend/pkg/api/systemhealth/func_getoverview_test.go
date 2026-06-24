@@ -700,6 +700,57 @@ func TestSystemHealthVMHostResourceScopeKeepsOnlyVMInstances(t *testing.T) {
 	}
 }
 
+func TestSystemHealthVMHostResourceWaterlineDetailsMapHostsToServices(t *testing.T) {
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-b", Pid: 2202})
+	scope.addInstance("order-worker", &model.ServiceInstance{ServiceName: "order-worker", NodeName: "vm-b", Pid: 3301})
+
+	details := systemHealthVMHostResourceWaterlineDetails(
+		scope,
+		[]prometheus.MetricResult{
+			{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.72}}},
+			{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 0.42}}},
+		},
+		[]prometheus.MetricResult{
+			{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.65}}},
+			{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 0.93}}},
+		},
+	)
+
+	api := details["order-api"]
+	if api.Status != healthStatusRed || api.Value != "93.00%" || api.Source != "host/vm-b" || api.Note != "Current host memory resource waterline" {
+		t.Fatalf("expected order-api to use highest related host waterline, got %+v", api)
+	}
+
+	worker := details["order-worker"]
+	if worker.Status != healthStatusRed || worker.Value != "93.00%" || worker.Source != "host/vm-b" {
+		t.Fatalf("expected order-worker to inherit vm-b host waterline, got %+v", worker)
+	}
+}
+
+func TestSystemHealthVMHostResourceShiftDetailsMapHostsToServices(t *testing.T) {
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-b", Pid: 2202})
+	scope.addInstance("order-worker", &model.ServiceInstance{ServiceName: "order-worker", NodeName: "vm-b", Pid: 3301})
+
+	details := systemHealthVMHostResourceShiftDetails(scope, []prometheus.MetricResult{
+		{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 1.35}}},
+		{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 1.75}}},
+	})
+
+	api := details["order-api"]
+	if api.Status != healthStatusRed || api.Value != "75.00%" || api.Source != "host/vm-b" || api.Note != "Host CPU/memory resource shift against 24h baseline" {
+		t.Fatalf("expected order-api to use highest related host shift, got %+v", api)
+	}
+
+	worker := details["order-worker"]
+	if worker.Status != healthStatusRed || worker.Value != "75.00%" || worker.Source != "host/vm-b" {
+		t.Fatalf("expected order-worker to inherit vm-b host shift, got %+v", worker)
+	}
+}
+
 func TestBuildSystemHealthVMHostResourcePQLUsesNodeExporterInstanceName(t *testing.T) {
 	nodes := []string{"vm-a", "vm-b"}
 

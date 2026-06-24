@@ -1926,6 +1926,144 @@ func systemHealthResourceSource(labels prometheus.Labels) string {
 	return strings.Join(parts, "/")
 }
 
+type systemHealthVMHostResourceCandidate struct {
+	value  float64
+	note   string
+	source string
+}
+
+func systemHealthVMHostResourceWaterlineDetails(scope systemHealthVMHostResourceScope, cpuResults []prometheus.MetricResult, memoryResults []prometheus.MetricResult) map[string]response.SystemHealthMetricDetail {
+	candidates := systemHealthVMHostResourceWaterlineCandidates(cpuResults, memoryResults)
+	details := make(map[string]response.SystemHealthMetricDetail, len(scope.NodesByService))
+	for serviceName := range scope.NodesByService {
+		detail, ok := systemHealthVMHostDetailForServiceNodes(scope.sortedServiceNodes(serviceName), candidates, 70, 90)
+		if ok {
+			details[serviceName] = detail
+		}
+	}
+	return details
+}
+
+func systemHealthVMHostSystemResourceWaterlineDetail(scope systemHealthVMHostResourceScope, cpuResults []prometheus.MetricResult, memoryResults []prometheus.MetricResult) (response.SystemHealthMetricDetail, bool) {
+	return systemHealthVMHostDetailForServiceNodes(
+		scope.sortedNodes(),
+		systemHealthVMHostResourceWaterlineCandidates(cpuResults, memoryResults),
+		70,
+		90,
+	)
+}
+
+func systemHealthVMHostResourceWaterlineCandidates(cpuResults []prometheus.MetricResult, memoryResults []prometheus.MetricResult) map[string]systemHealthVMHostResourceCandidate {
+	candidates := make(map[string]systemHealthVMHostResourceCandidate, len(cpuResults)+len(memoryResults))
+	collect := func(results []prometheus.MetricResult, note string) {
+		for _, result := range results {
+			if len(result.Values) == 0 {
+				continue
+			}
+			nodeName := systemHealthVMHostNodeName(result.Metric)
+			if nodeName == "" {
+				continue
+			}
+			value := result.Values[0].Value
+			if !isValidSystemHealthMetricValue(value) {
+				continue
+			}
+			percent := value * 100
+			current, ok := candidates[nodeName]
+			if !ok || percent > current.value {
+				candidates[nodeName] = systemHealthVMHostResourceCandidate{
+					value:  percent,
+					note:   note,
+					source: systemHealthVMHostResourceSource(nodeName),
+				}
+			}
+		}
+	}
+	collect(cpuResults, "Current host CPU resource waterline")
+	collect(memoryResults, "Current host memory resource waterline")
+	return candidates
+}
+
+func systemHealthVMHostResourceShiftDetails(scope systemHealthVMHostResourceScope, results []prometheus.MetricResult) map[string]response.SystemHealthMetricDetail {
+	candidates := systemHealthVMHostResourceShiftCandidates(results)
+	details := make(map[string]response.SystemHealthMetricDetail, len(scope.NodesByService))
+	for serviceName := range scope.NodesByService {
+		detail, ok := systemHealthVMHostDetailForServiceNodes(scope.sortedServiceNodes(serviceName), candidates, 30, 60)
+		if ok {
+			details[serviceName] = detail
+		}
+	}
+	return details
+}
+
+func systemHealthVMHostResourceShiftCandidates(results []prometheus.MetricResult) map[string]systemHealthVMHostResourceCandidate {
+	candidates := make(map[string]systemHealthVMHostResourceCandidate, len(results))
+	for _, result := range results {
+		if len(result.Values) == 0 {
+			continue
+		}
+		nodeName := systemHealthVMHostNodeName(result.Metric)
+		if nodeName == "" {
+			continue
+		}
+		value := result.Values[0].Value
+		if math.IsNaN(value) || value < 1 {
+			continue
+		}
+		shiftPercent := ratioToShiftPercent(value)
+		current, ok := candidates[nodeName]
+		if !ok || shiftPercent > current.value {
+			candidates[nodeName] = systemHealthVMHostResourceCandidate{
+				value:  shiftPercent,
+				note:   "Host CPU/memory resource shift against 24h baseline",
+				source: systemHealthVMHostResourceSource(nodeName),
+			}
+		}
+	}
+	return candidates
+}
+
+func systemHealthVMHostDetailForServiceNodes(nodes []string, candidates map[string]systemHealthVMHostResourceCandidate, yellowThreshold float64, redThreshold float64) (response.SystemHealthMetricDetail, bool) {
+	var selected *systemHealthVMHostResourceCandidate
+	for _, nodeName := range nodes {
+		candidate, ok := candidates[nodeName]
+		if !ok {
+			continue
+		}
+		if selected == nil || candidate.value > selected.value {
+			selected = &candidate
+		}
+	}
+	if selected == nil {
+		return response.SystemHealthMetricDetail{}, false
+	}
+
+	status := healthStatusGreen
+	if math.IsInf(selected.value, 0) || selected.value >= redThreshold {
+		status = healthStatusRed
+	} else if selected.value >= yellowThreshold {
+		status = healthStatusYellow
+	}
+	return response.SystemHealthMetricDetail{
+		Status: status,
+		Value:  formatPercentValue(selected.value),
+		Unit:   "%",
+		Source: selected.source,
+		Note:   selected.note,
+	}, true
+}
+
+func systemHealthVMHostNodeName(labels prometheus.Labels) string {
+	return labels.NodeName
+}
+
+func systemHealthVMHostResourceSource(nodeName string) string {
+	if nodeName == "" {
+		return ""
+	}
+	return "host/" + nodeName
+}
+
 func systemHealthResourceShiftDetails(results []prometheus.MetricResult) map[string]response.SystemHealthMetricDetail {
 	details := make(map[string]response.SystemHealthMetricDetail, len(results))
 	for _, result := range results {
