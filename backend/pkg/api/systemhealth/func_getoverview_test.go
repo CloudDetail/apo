@@ -539,6 +539,83 @@ func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) 
 	}
 }
 
+func TestApplySystemHealthExtraMetricsKeepsWorseContainerOrVMResource(t *testing.T) {
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: defaultSystemMetricStatus(), MetricDetails: defaultSystemMetricDetails()},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+
+	extra := systemHealthExtraMetricResults{
+		ResourceCPU: []prometheus.MetricResult{
+			{Metric: prometheus.Labels{SvcName: "order-api"}, Values: []prometheus.Points{{Value: 0.91}}},
+		},
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			Memory: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.72}}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	detail := system.Services[0].MetricDetails[healthMetricResource]
+	if system.Services[0].Metrics[healthMetricResource] != healthStatusRed || detail.Value != "91.00%" || detail.Source != "" {
+		t.Fatalf("expected worse container resource detail to win, metrics=%+v detail=%+v", system.Services[0].Metrics, detail)
+	}
+}
+
+func TestApplySystemHealthExtraMetricsAddsVMHostShiftTrendToSystemTrend(t *testing.T) {
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: map[string]string{healthMetricResourceShift: healthStatusYellow}, MetricDetails: defaultSystemMetricDetails()},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+
+	extra := systemHealthExtraMetricResults{
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			ShiftTrend: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{TimeStamp: 1000, Value: 1.20}, {TimeStamp: 2000, Value: 1.75}}},
+			},
+		},
+		SystemResourceShiftTrend: []prometheus.MetricResult{
+			{Metric: prometheus.Labels{SvcName: "container-api"}, Values: []prometheus.Points{{TimeStamp: 1000, Value: 1.45}, {TimeStamp: 2000, Value: 1.10}}},
+		},
+	}
+	extra.SystemResourceShiftTrend = append(extra.SystemResourceShiftTrend, extra.VMHostResource.ShiftTrend...)
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	detail := system.MetricDetails[healthMetricResourceShift]
+	if detail.Unit != "%" {
+		t.Fatalf("expected resource shift trend unit percent, got %+v", detail)
+	}
+	if len(detail.Thresholds) != 2 || detail.Thresholds[0].Value != 30 || detail.Thresholds[1].Value != 60 {
+		t.Fatalf("expected resource shift thresholds, got %+v", detail.Thresholds)
+	}
+	if len(detail.Series) != 2 {
+		t.Fatalf("expected two trend points, got %+v", detail.Series)
+	}
+	if detail.Series[0].Timestamp != 1000 || detail.Series[0].Value != 45 {
+		t.Fatalf("expected timestamp 1000 to use container 45%% shift, got %+v", detail.Series[0])
+	}
+	if detail.Series[1].Timestamp != 2000 || detail.Series[1].Value != 75 {
+		t.Fatalf("expected timestamp 2000 to use VM host 75%% shift, got %+v", detail.Series[1])
+	}
+}
+
 func TestApplySystemHealthExtraMetricsKeepsWorseServiceResourceDetailWhenVMHostIsLessSevere(t *testing.T) {
 	serviceMetrics := defaultSystemMetricStatus()
 	serviceMetrics[healthMetricResource] = healthStatusRed
