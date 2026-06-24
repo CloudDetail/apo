@@ -485,6 +485,60 @@ func TestApplySystemHealthExtraMetricsAggregatesResourceShiftAndLockCost(t *test
 	}
 }
 
+func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) {
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: defaultSystemMetricStatus(), MetricDetails: defaultSystemMetricDetails()},
+			{Name: "order-worker", Metrics: defaultSystemMetricStatus(), MetricDetails: defaultSystemMetricDetails()},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	scope.addInstance("order-worker", &model.ServiceInstance{ServiceName: "order-worker", NodeName: "vm-b", Pid: 3301})
+
+	extra := systemHealthExtraMetricResults{
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			CPU: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.72}}},
+				{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 0.32}}},
+			},
+			Memory: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.64}}},
+				{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 0.93}}},
+			},
+			Shift: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 1.35}}},
+				{Metric: prometheus.Labels{NodeName: "vm-b"}, Values: []prometheus.Points{{Value: 1.05}}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	apiResource := system.Services[0].MetricDetails[healthMetricResource]
+	if system.Services[0].Metrics[healthMetricResource] != healthStatusYellow || apiResource.Value != "72.00%" || apiResource.Source != "host/vm-a" {
+		t.Fatalf("expected order-api host CPU waterline yellow, metrics=%+v detail=%+v", system.Services[0].Metrics, apiResource)
+	}
+	apiShift := system.Services[0].MetricDetails[healthMetricResourceShift]
+	if system.Services[0].Metrics[healthMetricResourceShift] != healthStatusYellow || apiShift.Value != "35.00%" || apiShift.Source != "host/vm-a" {
+		t.Fatalf("expected order-api host resource shift yellow, metrics=%+v detail=%+v", system.Services[0].Metrics, apiShift)
+	}
+
+	workerResource := system.Services[1].MetricDetails[healthMetricResource]
+	if system.Services[1].Metrics[healthMetricResource] != healthStatusRed || workerResource.Value != "93.00%" || workerResource.Source != "host/vm-b" {
+		t.Fatalf("expected order-worker host memory waterline red, metrics=%+v detail=%+v", system.Services[1].Metrics, workerResource)
+	}
+
+	systemResource := system.MetricDetails[healthMetricResource]
+	if system.Metrics[healthMetricResource] != healthStatusRed || systemResource.Value != "93.00%" || systemResource.Source != "host/vm-b" {
+		t.Fatalf("expected system resource to use highest VM host waterline, metrics=%+v detail=%+v", system.Metrics, systemResource)
+	}
+}
+
 func TestSystemMetricDetailDoesNotFallbackToServiceCountWithoutValues(t *testing.T) {
 	services := []response.SystemHealthService{
 		{

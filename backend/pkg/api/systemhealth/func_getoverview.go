@@ -932,6 +932,15 @@ type systemHealthExtraMetricResults struct {
 	SystemErrorRateTrend     []prometheus.MetricResult
 	SystemErrorLogTrend      []prometheus.MetricResult
 	SystemResourceShiftTrend []prometheus.MetricResult
+	VMHostResource           systemHealthVMHostResourceResults
+}
+
+type systemHealthVMHostResourceResults struct {
+	Scope      systemHealthVMHostResourceScope
+	CPU        []prometheus.MetricResult
+	Memory     []prometheus.MetricResult
+	Shift      []prometheus.MetricResult
+	ShiftTrend []prometheus.MetricResult
 }
 
 type systemHealthVMHostResourceScope struct {
@@ -1073,6 +1082,27 @@ func (h *handler) querySystemHealthExtraMetrics(ctx core.Context, startTime time
 	resourceShiftTrendQuery := buildSystemHealthResourceShiftPQL(groupFilter, prometheus.VecFromDuration(trendStep))
 	if resourceShiftTrend, err := h.promRepo.QueryRangeData(ctx, startTime, endTime, resourceShiftTrendQuery, trendStep); err == nil {
 		result.SystemResourceShiftTrend = resourceShiftTrend
+	}
+	if vmHostScope, err := h.buildSystemHealthVMHostResourceScope(ctx, startTime, endTime, groupFilter, services); err == nil && vmHostScope.hasNodes() {
+		nodes := vmHostScope.sortedNodes()
+		result.VMHostResource.Scope = vmHostScope
+		if resourceCPU, err := h.promRepo.QueryData(ctx, queryTime, buildSystemHealthVMHostCPUWaterlinePQL(nodes, window, "")); err == nil {
+			result.VMHostResource.CPU = resourceCPU
+		}
+		if resourceMemory, err := h.promRepo.QueryData(ctx, queryTime, buildSystemHealthVMHostMemoryWaterlinePQL(nodes, window, "")); err == nil {
+			result.VMHostResource.Memory = resourceMemory
+		}
+		hostShiftQuery := buildSystemHealthVMHostResourceShiftPQL(nodes, window)
+		if resourceShift, err := h.promRepo.QueryData(ctx, queryTime, hostShiftQuery); err == nil {
+			result.VMHostResource.Shift = resourceShift
+		}
+		hostShiftTrendQuery := buildSystemHealthVMHostResourceShiftPQL(nodes, prometheus.VecFromDuration(trendStep))
+		if resourceShiftTrend, err := h.promRepo.QueryRangeData(ctx, startTime, endTime, hostShiftTrendQuery, trendStep); err == nil {
+			result.VMHostResource.ShiftTrend = resourceShiftTrend
+			result.SystemResourceShiftTrend = append(result.SystemResourceShiftTrend, resourceShiftTrend...)
+		}
+	} else if err != nil {
+		systemHealthWarnCtx(ctx, "system-health VM host resource scope skipped", zap.Error(err))
 	}
 
 	lockCostQuery := buildSystemHealthLockCostPQL(groupFilter, window)
@@ -1472,11 +1502,13 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 	}
 
 	resourceByService := systemHealthResourceWaterlineDetails(extra.ResourceCPU, extra.ResourceMemory)
+	vmHostResourceByService := systemHealthVMHostResourceWaterlineDetails(extra.VMHostResource.Scope, extra.VMHostResource.CPU, extra.VMHostResource.Memory)
 	latencyByService := systemHealthLatencyDetails(extra.Latency)
 	errorRateByService := systemHealthErrorRateDetails(extra.ErrorRate)
 	errorLogByService := systemHealthCountDetails(extra.ErrorLog, "当前时间窗口错误日志数")
 	badRequestsByService := systemHealthCountDetails(extra.BadRequests, "当前活动告警数")
 	resourceShiftByService := systemHealthResourceShiftDetails(extra.ResourceShift)
+	vmHostResourceShiftByService := systemHealthVMHostResourceShiftDetails(extra.VMHostResource.Scope, extra.VMHostResource.Shift)
 	lockCostByService := systemHealthLockCostDetails(extra.LockCost)
 	for i := range system.Services {
 		service := &system.Services[i]
@@ -1496,8 +1528,13 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 			applySystemHealthCurrentValue(service, healthMetricBadRequests, detail)
 		}
 		if detail, ok := resourceShiftByService[service.Name]; ok {
-			service.Metrics[healthMetricResourceShift] = detail.Status
-			service.MetricDetails[healthMetricResourceShift] = detail
+			applySystemHealthResourceShift(service, detail)
+		}
+		if detail, ok := vmHostResourceByService[service.Name]; ok {
+			applySystemHealthResourceWaterline(service, detail)
+		}
+		if detail, ok := vmHostResourceShiftByService[service.Name]; ok {
+			applySystemHealthResourceShift(service, detail)
 		}
 		if detail, ok := lockCostByService[service.Name]; ok {
 			service.Metrics[healthMetricLockCost] = detail.Status
@@ -1512,15 +1549,70 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 }
 
 func applySystemHealthResourceWaterline(service *response.SystemHealthService, detail response.SystemHealthMetricDetail) {
-	status := detail.Status
-	replicaStatus := service.Metrics[healthMetricResource]
-	mergedStatus := worseHealthStatus(replicaStatus, status)
-	if mergedStatus != status && replicaStatus != "" && replicaStatus != healthStatusGray {
-		detail.Note = strings.Join([]string{detail.Note, systemMetricNote(healthMetricResource, replicaStatus)}, "；")
+	applySystemHealthMergedDetail(service, healthMetricResource, detail, true)
+}
+
+func applySystemHealthResourceShift(service *response.SystemHealthService, detail response.SystemHealthMetricDetail) {
+	applySystemHealthMergedDetail(service, healthMetricResourceShift, detail, false)
+}
+
+func applySystemHealthMergedDetail(service *response.SystemHealthService, key string, detail response.SystemHealthMetricDetail, appendCurrentNote bool) {
+	currentStatus := service.Metrics[key]
+	current := service.MetricDetails[key]
+	if shouldKeepCurrentSystemHealthDetail(currentStatus, current, detail) {
+		currentRankMissing := true
+		if _, ok := parseSystemMetricDetailRank(current.Value); ok {
+			currentRankMissing = false
+		}
+		_, nextRankOK := parseSystemMetricDetailRank(detail.Value)
+		if appendCurrentNote && healthStatusSeverity(currentStatus) > healthStatusSeverity(detail.Status) && currentRankMissing && nextRankOK {
+			detail.Note = strings.Join([]string{detail.Note, systemMetricNote(key, currentStatus)}, "；")
+			detail.Status = currentStatus
+			service.Metrics[key] = currentStatus
+			service.MetricDetails[key] = detail
+		}
+		return
 	}
-	detail.Status = mergedStatus
-	service.Metrics[healthMetricResource] = mergedStatus
-	service.MetricDetails[healthMetricResource] = detail
+	if currentStatus == "" {
+		currentStatus = healthStatusGray
+	}
+	detail.Status = worseHealthStatus(currentStatus, detail.Status)
+	service.Metrics[key] = detail.Status
+	service.MetricDetails[key] = detail
+}
+
+func shouldKeepCurrentSystemHealthDetail(currentStatus string, current response.SystemHealthMetricDetail, next response.SystemHealthMetricDetail) bool {
+	if currentStatus == "" {
+		currentStatus = current.Status
+	}
+	if currentStatus == "" {
+		currentStatus = healthStatusGray
+	}
+	nextStatus := next.Status
+	if nextStatus == "" {
+		nextStatus = healthStatusGray
+	}
+
+	mergedStatus := worseHealthStatus(currentStatus, nextStatus)
+	if mergedStatus != nextStatus {
+		return true
+	}
+	if mergedStatus != currentStatus {
+		return false
+	}
+
+	currentRank, currentOK := parseSystemMetricDetailRank(current.Value)
+	nextRank, nextOK := parseSystemMetricDetailRank(next.Value)
+	if currentOK && nextOK {
+		return currentRank > nextRank
+	}
+	if currentOK {
+		return true
+	}
+	if nextOK {
+		return false
+	}
+	return current.Value != "" && current.Value != "--"
 }
 
 func applySystemHealthCurrentValue(service *response.SystemHealthService, key string, detail response.SystemHealthMetricDetail) {
@@ -1538,14 +1630,10 @@ func applySystemHealthSystemMetricDetails(system *response.SystemHealthSystem, e
 	}
 
 	if detail, ok := systemHealthSystemResourceWaterlineDetail(extra.SystemResourceCPU, extra.SystemResourceMemory); ok {
-		existingStatus := system.Metrics[healthMetricResource]
-		mergedStatus := worseHealthStatus(existingStatus, detail.Status)
-		if mergedStatus != detail.Status && existingStatus != "" && existingStatus != healthStatusGray {
-			detail.Note = strings.Join([]string{detail.Note, systemMetricNote(healthMetricResource, existingStatus)}, "；")
-		}
-		detail.Status = mergedStatus
-		system.Metrics[healthMetricResource] = mergedStatus
-		system.MetricDetails[healthMetricResource] = detail
+		applySystemHealthSystemResourceWaterline(system, detail)
+	}
+	if detail, ok := systemHealthVMHostSystemResourceWaterlineDetail(extra.VMHostResource.Scope, extra.VMHostResource.CPU, extra.VMHostResource.Memory); ok {
+		applySystemHealthSystemResourceWaterline(system, detail)
 	}
 
 	if detail, ok := systemHealthSingleValueDetail(extra.SystemLatency, formatMillisecondsValue, "ms", "系统请求平均响应延时"); ok {
@@ -1576,6 +1664,31 @@ func applySystemHealthSystemMetricDetails(system *response.SystemHealthSystem, e
 		systemHealthMaxResourceShiftSeries(extra.SystemResourceShiftTrend),
 		systemHealthResourceShiftThresholds(),
 	)
+}
+
+func applySystemHealthSystemResourceWaterline(system *response.SystemHealthSystem, detail response.SystemHealthMetricDetail) {
+	currentStatus := system.Metrics[healthMetricResource]
+	current := system.MetricDetails[healthMetricResource]
+	if shouldKeepCurrentSystemHealthDetail(currentStatus, current, detail) {
+		currentRankMissing := true
+		if _, ok := parseSystemMetricDetailRank(current.Value); ok {
+			currentRankMissing = false
+		}
+		_, nextRankOK := parseSystemMetricDetailRank(detail.Value)
+		if healthStatusSeverity(currentStatus) > healthStatusSeverity(detail.Status) && currentRankMissing && nextRankOK {
+			detail.Note = strings.Join([]string{detail.Note, systemMetricNote(healthMetricResource, currentStatus)}, "；")
+			detail.Status = currentStatus
+			system.Metrics[healthMetricResource] = currentStatus
+			system.MetricDetails[healthMetricResource] = detail
+		}
+		return
+	}
+	if currentStatus == "" {
+		currentStatus = healthStatusGray
+	}
+	detail.Status = worseHealthStatus(currentStatus, detail.Status)
+	system.Metrics[healthMetricResource] = detail.Status
+	system.MetricDetails[healthMetricResource] = detail
 }
 
 func applySystemHealthSystemValue(system *response.SystemHealthSystem, key string, detail response.SystemHealthMetricDetail) {
