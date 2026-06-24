@@ -539,6 +539,121 @@ func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) 
 	}
 }
 
+func TestApplySystemHealthExtraMetricsKeepsWorseServiceResourceDetailWhenVMHostIsLessSevere(t *testing.T) {
+	serviceMetrics := defaultSystemMetricStatus()
+	serviceMetrics[healthMetricResource] = healthStatusRed
+	serviceDetails := defaultSystemMetricDetails()
+	serviceDetails[healthMetricResource] = response.SystemHealthMetricDetail{
+		Status: healthStatusRed,
+		Value:  "--",
+		Note:   "existing replica detail",
+		Source: "replica",
+	}
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: serviceMetrics, MetricDetails: serviceDetails},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	extra := systemHealthExtraMetricResults{
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			CPU: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.72}}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	resource := system.Services[0].MetricDetails[healthMetricResource]
+	if system.Services[0].Metrics[healthMetricResource] != healthStatusRed || resource.Value != "--" || resource.Source != "replica" {
+		t.Fatalf("expected existing red replica detail to remain, metrics=%+v detail=%+v", system.Services[0].Metrics, resource)
+	}
+}
+
+func TestApplySystemHealthExtraMetricsKeepsWorseSystemResourceDetailWhenVMHostIsLessSevere(t *testing.T) {
+	apiMetrics := defaultSystemMetricStatus()
+	apiMetrics[healthMetricResource] = healthStatusGreen
+	apiDetails := defaultSystemMetricDetails()
+	apiDetails[healthMetricResource] = response.SystemHealthMetricDetail{
+		Status: healthStatusGreen,
+		Value:  "42.00%",
+		Source: "container",
+	}
+	workerMetrics := defaultSystemMetricStatus()
+	workerMetrics[healthMetricResource] = healthStatusRed
+	workerDetails := defaultSystemMetricDetails()
+	workerDetails[healthMetricResource] = response.SystemHealthMetricDetail{
+		Status: healthStatusRed,
+		Value:  "--",
+		Note:   "existing system detail",
+		Source: "replica",
+	}
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: apiMetrics, MetricDetails: apiDetails},
+			{Name: "order-worker", Metrics: workerMetrics, MetricDetails: workerDetails},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	extra := systemHealthExtraMetricResults{
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			CPU: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.72}}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	resource := system.MetricDetails[healthMetricResource]
+	if system.Metrics[healthMetricResource] != healthStatusRed || resource.Value != "--" || resource.Source == "host/vm-a" {
+		t.Fatalf("expected existing red system detail to avoid VM host overwrite, metrics=%+v detail=%+v", system.Metrics, resource)
+	}
+}
+
+func TestApplySystemHealthResourceWaterlineKeepsLargestSameStatusNumericDetail(t *testing.T) {
+	lower := response.SystemHealthService{
+		Metrics: map[string]string{healthMetricResource: healthStatusYellow},
+		MetricDetails: map[string]response.SystemHealthMetricDetail{
+			healthMetricResource: {Status: healthStatusYellow, Value: "72.00%", Source: "container-a"},
+		},
+	}
+	applySystemHealthResourceWaterline(&lower, response.SystemHealthMetricDetail{
+		Status: healthStatusYellow,
+		Value:  "75.00%",
+		Source: "host/vm-a",
+	})
+	if detail := lower.MetricDetails[healthMetricResource]; lower.Metrics[healthMetricResource] != healthStatusYellow || detail.Value != "75.00%" || detail.Source != "host/vm-a" {
+		t.Fatalf("expected larger same-status detail to replace current, metrics=%+v detail=%+v", lower.Metrics, detail)
+	}
+
+	higher := response.SystemHealthService{
+		Metrics: map[string]string{healthMetricResource: healthStatusYellow},
+		MetricDetails: map[string]response.SystemHealthMetricDetail{
+			healthMetricResource: {Status: healthStatusYellow, Value: "75.00%", Source: "container-b"},
+		},
+	}
+	applySystemHealthResourceWaterline(&higher, response.SystemHealthMetricDetail{
+		Status: healthStatusYellow,
+		Value:  "72.00%",
+		Source: "host/vm-b",
+	})
+	if detail := higher.MetricDetails[healthMetricResource]; higher.Metrics[healthMetricResource] != healthStatusYellow || detail.Value != "75.00%" || detail.Source != "container-b" {
+		t.Fatalf("expected larger existing same-status detail to remain, metrics=%+v detail=%+v", higher.Metrics, detail)
+	}
+}
+
 func TestSystemMetricDetailDoesNotFallbackToServiceCountWithoutValues(t *testing.T) {
 	services := []response.SystemHealthService{
 		{

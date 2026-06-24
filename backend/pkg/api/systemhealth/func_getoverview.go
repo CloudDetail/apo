@@ -1549,28 +1549,17 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 }
 
 func applySystemHealthResourceWaterline(service *response.SystemHealthService, detail response.SystemHealthMetricDetail) {
-	applySystemHealthMergedDetail(service, healthMetricResource, detail, true)
+	applySystemHealthMergedDetail(service, healthMetricResource, detail)
 }
 
 func applySystemHealthResourceShift(service *response.SystemHealthService, detail response.SystemHealthMetricDetail) {
-	applySystemHealthMergedDetail(service, healthMetricResourceShift, detail, false)
+	applySystemHealthMergedDetail(service, healthMetricResourceShift, detail)
 }
 
-func applySystemHealthMergedDetail(service *response.SystemHealthService, key string, detail response.SystemHealthMetricDetail, appendCurrentNote bool) {
+func applySystemHealthMergedDetail(service *response.SystemHealthService, key string, detail response.SystemHealthMetricDetail) {
 	currentStatus := service.Metrics[key]
 	current := service.MetricDetails[key]
 	if shouldKeepCurrentSystemHealthDetail(currentStatus, current, detail) {
-		currentRankMissing := true
-		if _, ok := parseSystemMetricDetailRank(current.Value); ok {
-			currentRankMissing = false
-		}
-		_, nextRankOK := parseSystemMetricDetailRank(detail.Value)
-		if appendCurrentNote && healthStatusSeverity(currentStatus) > healthStatusSeverity(detail.Status) && currentRankMissing && nextRankOK {
-			detail.Note = strings.Join([]string{detail.Note, systemMetricNote(key, currentStatus)}, "；")
-			detail.Status = currentStatus
-			service.Metrics[key] = currentStatus
-			service.MetricDetails[key] = detail
-		}
 		return
 	}
 	if currentStatus == "" {
@@ -1670,17 +1659,6 @@ func applySystemHealthSystemResourceWaterline(system *response.SystemHealthSyste
 	currentStatus := system.Metrics[healthMetricResource]
 	current := system.MetricDetails[healthMetricResource]
 	if shouldKeepCurrentSystemHealthDetail(currentStatus, current, detail) {
-		currentRankMissing := true
-		if _, ok := parseSystemMetricDetailRank(current.Value); ok {
-			currentRankMissing = false
-		}
-		_, nextRankOK := parseSystemMetricDetailRank(detail.Value)
-		if healthStatusSeverity(currentStatus) > healthStatusSeverity(detail.Status) && currentRankMissing && nextRankOK {
-			detail.Note = strings.Join([]string{detail.Note, systemMetricNote(healthMetricResource, currentStatus)}, "；")
-			detail.Status = currentStatus
-			system.Metrics[healthMetricResource] = currentStatus
-			system.MetricDetails[healthMetricResource] = detail
-		}
 		return
 	}
 	if currentStatus == "" {
