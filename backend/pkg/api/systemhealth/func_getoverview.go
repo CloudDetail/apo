@@ -934,6 +934,86 @@ type systemHealthExtraMetricResults struct {
 	SystemResourceShiftTrend []prometheus.MetricResult
 }
 
+type systemHealthVMHostResourceScope struct {
+	NodesByService map[string]map[string]struct{}
+	SystemNodes    map[string]struct{}
+}
+
+func newSystemHealthVMHostResourceScope() systemHealthVMHostResourceScope {
+	return systemHealthVMHostResourceScope{
+		NodesByService: map[string]map[string]struct{}{},
+		SystemNodes:    map[string]struct{}{},
+	}
+}
+
+func (s *systemHealthVMHostResourceScope) addInstance(serviceName string, instance *model.ServiceInstance) {
+	if instance == nil || instance.PodName != "" || instance.ContainerId != "" || instance.NodeName == "" || instance.Pid <= 1 {
+		return
+	}
+	if s.NodesByService == nil {
+		s.NodesByService = map[string]map[string]struct{}{}
+	}
+	if s.SystemNodes == nil {
+		s.SystemNodes = map[string]struct{}{}
+	}
+	if serviceName == "" {
+		serviceName = instance.ServiceName
+	}
+	if serviceName == "" {
+		return
+	}
+	if _, ok := s.NodesByService[serviceName]; !ok {
+		s.NodesByService[serviceName] = map[string]struct{}{}
+	}
+	s.NodesByService[serviceName][instance.NodeName] = struct{}{}
+	s.SystemNodes[instance.NodeName] = struct{}{}
+}
+
+func (s systemHealthVMHostResourceScope) hasNodes() bool {
+	return len(s.SystemNodes) > 0
+}
+
+func (s systemHealthVMHostResourceScope) sortedNodes() []string {
+	return systemHealthSortedVMHostNodes(s.SystemNodes)
+}
+
+func (s systemHealthVMHostResourceScope) sortedServiceNodes(serviceName string) []string {
+	return systemHealthSortedVMHostNodes(s.NodesByService[serviceName])
+}
+
+func systemHealthSortedVMHostNodes(nodes map[string]struct{}) []string {
+	result := make([]string, 0, len(nodes))
+	for node := range nodes {
+		result = append(result, node)
+	}
+	sort.Strings(result)
+	return result
+}
+
+func (h *handler) buildSystemHealthVMHostResourceScope(ctx core.Context, startTime, endTime time.Time, groupFilter prometheus.PQLFilter, services []response.SystemHealthService) (systemHealthVMHostResourceScope, error) {
+	scope := newSystemHealthVMHostResourceScope()
+	serviceNames := systemHealthServiceNames(services)
+	if len(serviceNames) == 0 {
+		return scope, nil
+	}
+
+	spanFilter := prometheus.Clone(groupFilter).RegexMatch(prometheus.ServiceNameKey, prometheus.RegexMultipleValue(serviceNames...))
+	instancesByService, err := h.promRepo.GetMultiSVCInstanceListByPQLFilter(ctx, startTime.UnixMicro(), endTime.UnixMicro(), spanFilter)
+	if err != nil {
+		return scope, err
+	}
+	for _, serviceName := range serviceNames {
+		serviceInstances := instancesByService[serviceName]
+		if serviceInstances == nil {
+			continue
+		}
+		for _, instance := range serviceInstances.GetInstances() {
+			scope.addInstance(serviceName, instance)
+		}
+	}
+	return scope, nil
+}
+
 func (h *handler) querySystemHealthExtraMetrics(ctx core.Context, startTime time.Time, endTime time.Time, groupID int64, services []response.SystemHealthService) (systemHealthExtraMetricResults, error) {
 	groupFilter, err := common.GetPQLFilterByGroupID(ctx, h.dbRepo, "apm", groupID)
 	if err != nil {
@@ -1091,6 +1171,51 @@ func buildSystemHealthResourceShiftPQL(filter prometheus.PQLFilter, window strin
 		memoryRatio,
 		memoryRatio,
 	)
+}
+
+func buildSystemHealthVMHostCPUWaterlinePQL(nodes []string, window string, offset string) string {
+	filter := systemHealthVMHostNodeFilter(nodes)
+	filter.AddPatternFilter("mode!~", "idle|iowait|steal")
+	return fmt.Sprintf(
+		`avg by (node_name) (label_replace(rate(%s), "node_name", "$1", "instance_name", "(.*)"))`,
+		systemHealthRangeSelector("node_cpu_seconds_total", filter, window, offset),
+	)
+}
+
+func buildSystemHealthVMHostMemoryWaterlinePQL(nodes []string, window string, offset string) string {
+	available := fmt.Sprintf(
+		`label_replace(avg_over_time(%s), "node_name", "$1", "instance_name", "(.*)")`,
+		systemHealthRangeSelector("node_memory_MemAvailable_bytes", systemHealthVMHostNodeFilter(nodes), window, offset),
+	)
+	total := fmt.Sprintf(
+		`label_replace(avg_over_time(%s), "node_name", "$1", "instance_name", "(.*)")`,
+		systemHealthRangeSelector("node_memory_MemTotal_bytes", systemHealthVMHostNodeFilter(nodes), window, offset),
+	)
+	return fmt.Sprintf(`max by (node_name) (1 - ((%s) / (%s)))`, available, total)
+}
+
+func buildSystemHealthVMHostResourceShiftPQL(nodes []string, window string) string {
+	cpuRatio := fmt.Sprintf(
+		`(%s) / (%s)`,
+		buildSystemHealthVMHostCPUWaterlinePQL(nodes, window, ""),
+		buildSystemHealthVMHostCPUWaterlinePQL(nodes, window, "offset 24h"),
+	)
+	memoryRatio := fmt.Sprintf(
+		`(%s) / (%s)`,
+		buildSystemHealthVMHostMemoryWaterlinePQL(nodes, window, ""),
+		buildSystemHealthVMHostMemoryWaterlinePQL(nodes, window, "offset 24h"),
+	)
+	return fmt.Sprintf(
+		`max by (node_name) (((%s) >= 1) or (1 / (%s)) or ((%s) >= 1) or (1 / (%s)))`,
+		cpuRatio,
+		cpuRatio,
+		memoryRatio,
+		memoryRatio,
+	)
+}
+
+func systemHealthVMHostNodeFilter(nodes []string) prometheus.PQLFilter {
+	return prometheus.NewFilter().RegexMatch("instance_name", prometheus.RegexMultipleValue(nodes...))
 }
 
 func buildSystemHealthLockCostPQL(filter prometheus.PQLFilter, window string) string {

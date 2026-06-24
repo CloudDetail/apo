@@ -6,6 +6,7 @@ package systemhealth
 import (
 	"context"
 	"errors"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -669,6 +670,75 @@ func TestBuildSystemHealthResourceWaterlinePQLJoinsContainerMetricsToServices(t 
 	} {
 		if !strings.Contains(memoryQuery, part) {
 			t.Fatalf("expected memory resource query to contain %q, got %s", part, memoryQuery)
+		}
+	}
+}
+
+func TestSystemHealthVMHostResourceScopeKeepsOnlyVMInstances(t *testing.T) {
+	scope := systemHealthVMHostResourceScope{
+		NodesByService: map[string]map[string]struct{}{},
+		SystemNodes:    map[string]struct{}{},
+	}
+
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-b", Pid: 2202})
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "node-with-pod", PodName: "order-api-0", Pid: 1})
+	scope.addInstance("order-worker", &model.ServiceInstance{ServiceName: "order-worker", NodeName: "node-with-container", ContainerId: "container-1", Pid: 3310})
+	scope.addInstance("ignored", &model.ServiceInstance{ServiceName: "ignored", NodeName: "pid-one", Pid: 1})
+
+	if !scope.hasNodes() {
+		t.Fatalf("expected VM host scope to contain nodes")
+	}
+	if got := scope.sortedNodes(); !reflect.DeepEqual(got, []string{"vm-a", "vm-b"}) {
+		t.Fatalf("expected only VM hosts, got %+v", got)
+	}
+	if got := scope.sortedServiceNodes("order-api"); !reflect.DeepEqual(got, []string{"vm-a", "vm-b"}) {
+		t.Fatalf("expected order-api VM hosts, got %+v", got)
+	}
+	if got := scope.sortedServiceNodes("order-worker"); len(got) != 0 {
+		t.Fatalf("expected container service to have no VM host nodes, got %+v", got)
+	}
+}
+
+func TestBuildSystemHealthVMHostResourcePQLUsesNodeExporterInstanceName(t *testing.T) {
+	nodes := []string{"vm-a", "vm-b"}
+
+	cpuQuery := buildSystemHealthVMHostCPUWaterlinePQL(nodes, "15m", "")
+	memoryQuery := buildSystemHealthVMHostMemoryWaterlinePQL(nodes, "15m", "")
+	shiftQuery := buildSystemHealthVMHostResourceShiftPQL(nodes, "15m")
+
+	for _, part := range []string{
+		`node_cpu_seconds_total{instance_name=~"vm-a|vm-b",mode!~"idle|iowait|steal"}[15m]`,
+		`label_replace(rate(`,
+		`"node_name", "$1", "instance_name", "(.*)"`,
+		`avg by (node_name)`,
+	} {
+		if !strings.Contains(cpuQuery, part) {
+			t.Fatalf("expected VM host CPU query to contain %q, got %s", part, cpuQuery)
+		}
+	}
+
+	for _, part := range []string{
+		`node_memory_MemAvailable_bytes{instance_name=~"vm-a|vm-b"}[15m]`,
+		`node_memory_MemTotal_bytes{instance_name=~"vm-a|vm-b"}[15m]`,
+		`label_replace(avg_over_time(`,
+		`"node_name", "$1", "instance_name", "(.*)"`,
+		`max by (node_name)`,
+	} {
+		if !strings.Contains(memoryQuery, part) {
+			t.Fatalf("expected VM host memory query to contain %q, got %s", part, memoryQuery)
+		}
+	}
+
+	for _, part := range []string{
+		`offset 24h`,
+		`max by (node_name)`,
+		`1 / (`,
+		`node_cpu_seconds_total{instance_name=~"vm-a|vm-b",mode!~"idle|iowait|steal"}[15m]`,
+		`node_memory_MemAvailable_bytes{instance_name=~"vm-a|vm-b"}[15m]`,
+	} {
+		if !strings.Contains(shiftQuery, part) {
+			t.Fatalf("expected VM host shift query to contain %q, got %s", part, shiftQuery)
 		}
 	}
 }
