@@ -958,7 +958,7 @@ export default function SystemHealthOverviewPage() {
       <>
         <div className="sho-toolbar">
           <div>
-            <div className="sho-title">建康度概览</div>
+            <div className="sho-title">健康度概览</div>
             <div className="sho-subtitle">
               默认优先展示异常系统，按健康度和指标状态快速定位问题系统。
             </div>
