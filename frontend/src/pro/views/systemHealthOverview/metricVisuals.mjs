@@ -314,6 +314,7 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       ...base,
       percent: currentPercent ?? 0,
       helper: '当前水位',
+      showThresholdMarker: status !== 'green' && status !== 'gray',
     }
   }
 

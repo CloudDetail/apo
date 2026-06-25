@@ -448,7 +448,7 @@ const MetricVisualTile = ({ metricKey, label, detail, status }) => {
           <SystemMetricTrendChart chart={visual.chart} />
         ) : visual.kind === 'number' ? null : visual.kind === 'waterline' ? (
           <div className="sho-waterline" aria-label={`${label}${visual.helper}${visual.percent}%`}>
-            <span className="sho-waterline-marker" />
+            {visual.showThresholdMarker ? <span className="sho-waterline-marker" /> : null}
             <span className="sho-waterline-fill" style={{ '--sho-fill': `${visual.percent}%` }} />
           </div>
         ) : (

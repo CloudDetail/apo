@@ -1971,7 +1971,7 @@ func systemHealthResourceWaterlineDetails(cpuResults []prometheus.MetricResult, 
 		}
 		details[serviceName] = response.SystemHealthMetricDetail{
 			Status: status,
-			Value:  formatPercentValue(candidate.value * 100),
+			Value:  formatWaterlinePercentValue(candidate.value * 100),
 			Note:   candidate.note,
 		}
 	}
@@ -2020,7 +2020,7 @@ func systemHealthSystemResourceWaterlineDetail(cpuResults []prometheus.MetricRes
 
 	return response.SystemHealthMetricDetail{
 		Status: status,
-		Value:  formatPercentValue(selected.value * 100),
+		Value:  formatWaterlinePercentValue(selected.value * 100),
 		Unit:   "%",
 		Source: selected.source,
 		Note:   selected.note,
@@ -2163,7 +2163,7 @@ func systemHealthVMHostDetailForServiceNodes(nodes []string, candidates map[stri
 	}
 	return response.SystemHealthMetricDetail{
 		Status: status,
-		Value:  formatPercentValue(selected.value),
+		Value:  formatWaterlinePercentValue(selected.value),
 		Unit:   "%",
 		Source: selected.source,
 		Note:   selected.note,
@@ -2282,6 +2282,19 @@ func scoreFromMetricStatuses(metrics map[string]string) int {
 func formatPercentValue(value float64) string {
 	if math.IsInf(value, 0) {
 		return "Inf%"
+	}
+	return fmt.Sprintf("%.2f%%", value)
+}
+
+func formatWaterlinePercentValue(value float64) string {
+	if math.IsNaN(value) {
+		return "--"
+	}
+	if math.IsInf(value, 0) || value > 100 {
+		value = 100
+	}
+	if value < 0 {
+		value = 0
 	}
 	return fmt.Sprintf("%.2f%%", value)
 }

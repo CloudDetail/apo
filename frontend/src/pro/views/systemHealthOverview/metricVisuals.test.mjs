@@ -191,6 +191,7 @@ test('metricVisualFor turns resource metrics into waterline visuals', () => {
       note: '当前 CPU 水位偏高',
       percent: 83,
       helper: '当前水位',
+      showThresholdMarker: true,
     },
   )
 })

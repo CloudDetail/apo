@@ -571,6 +571,29 @@ func TestApplySystemHealthExtraMetricsKeepsWorseContainerOrVMResource(t *testing
 	}
 }
 
+func TestApplySystemHealthExtraMetricsClampsServiceResourceWaterlineAtHundredPercent(t *testing.T) {
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: defaultSystemMetricStatus(), MetricDetails: defaultSystemMetricDetails()},
+		},
+	}
+
+	extra := systemHealthExtraMetricResults{
+		ResourceCPU: []prometheus.MetricResult{
+			{Metric: prometheus.Labels{SvcName: "order-api"}, Values: []prometheus.Points{{Value: 1.18}}},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	detail := system.Services[0].MetricDetails[healthMetricResource]
+	if system.Services[0].Metrics[healthMetricResource] != healthStatusRed || detail.Value != "100.00%" {
+		t.Fatalf("expected service resource waterline to clamp at 100%%, metrics=%+v detail=%+v", system.Services[0].Metrics, detail)
+	}
+}
+
 func TestApplySystemHealthExtraMetricsAddsVMHostShiftTrendToSystemTrend(t *testing.T) {
 	system := response.SystemHealthSystem{
 		Metrics:       defaultSystemMetricStatus(),
@@ -1012,6 +1035,24 @@ func TestSystemHealthVMHostResourceWaterlineDetailsMapHostsToServices(t *testing
 	}
 }
 
+func TestSystemHealthVMHostResourceWaterlineDetailsClampValuesAtHundredPercent(t *testing.T) {
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+
+	details := systemHealthVMHostResourceWaterlineDetails(
+		scope,
+		[]prometheus.MetricResult{
+			{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 1.24}}},
+		},
+		nil,
+	)
+
+	api := details["order-api"]
+	if api.Status != healthStatusRed || api.Value != "100.00%" || api.Source != "host/vm-a" {
+		t.Fatalf("expected VM host resource waterline to clamp at 100%%, got %+v", api)
+	}
+}
+
 func TestSystemHealthVMHostResourceShiftDetailsMapHostsToServices(t *testing.T) {
 	scope := newSystemHealthVMHostResourceScope()
 	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
@@ -1247,6 +1288,33 @@ func TestApplySystemHealthExtraMetricsUsesSystemPodWaterlineSource(t *testing.T)
 	}
 	if len(detail.Series) != 0 {
 		t.Fatalf("resource waterline should remain current snapshot only, got %+v", detail.Series)
+	}
+}
+
+func TestApplySystemHealthExtraMetricsClampsSystemPodWaterlineAtHundredPercent(t *testing.T) {
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{
+				Name:          "order-api",
+				Score:         95,
+				Metrics:       map[string]string{healthMetricResource: healthStatusGreen},
+				MetricDetails: defaultSystemMetricDetails(),
+			},
+		},
+	}
+	extra := systemHealthExtraMetricResults{
+		SystemResourceCPU: []prometheus.MetricResult{
+			{Metric: prometheus.Labels{ClusterID: "dev", Namespace: "prod", POD: "order-a"}, Values: []prometheus.Points{{Value: 1.42}}},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	detail := system.MetricDetails[healthMetricResource]
+	if system.Metrics[healthMetricResource] != healthStatusRed || detail.Value != "100.00%" {
+		t.Fatalf("expected system resource waterline to clamp at 100%%, got %+v", detail)
 	}
 }
 
