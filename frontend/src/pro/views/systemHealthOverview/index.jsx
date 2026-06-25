@@ -990,7 +990,7 @@ export default function SystemHealthOverviewPage() {
             <section className="sho-panel">
               <div className="sho-panel-head">
                 <div className="sho-panel-title">
-                  健康度
+                  系统健康度
                   <Tooltip title="由资源水位、资源波动、错误率、响应延时、错误日志、异常请求、锁等待综合计算">
                     <HelpCircle size={15} className="sho-help-icon" />
                   </Tooltip>
