@@ -653,7 +653,7 @@ func TestApplySystemHealthExtraMetricsKeepsWorseServiceResourceDetailWhenVMHostI
 	}
 }
 
-func TestApplySystemHealthExtraMetricsKeepsWorseSystemResourceDetailWhenVMHostIsLessSevere(t *testing.T) {
+func TestApplySystemHealthExtraMetricsFillsSystemResourceValueWhenVMHostIsLessSevere(t *testing.T) {
 	apiMetrics := defaultSystemMetricStatus()
 	apiMetrics[healthMetricResource] = healthStatusGreen
 	apiDetails := defaultSystemMetricDetails()
@@ -694,8 +694,45 @@ func TestApplySystemHealthExtraMetricsKeepsWorseSystemResourceDetailWhenVMHostIs
 	applySystemHealthExtraMetrics(&system, extra)
 
 	resource := system.MetricDetails[healthMetricResource]
-	if system.Metrics[healthMetricResource] != healthStatusRed || resource.Value != "--" || resource.Source == "host/vm-a" {
-		t.Fatalf("expected existing red system detail to avoid VM host overwrite, metrics=%+v detail=%+v", system.Metrics, resource)
+	if system.Metrics[healthMetricResource] != healthStatusRed || resource.Value != "72.00%" || resource.Source != "host/vm-a" || resource.Note != "资源副本健康存在风险" {
+		t.Fatalf("expected existing red system detail to keep status and fill value, metrics=%+v detail=%+v", system.Metrics, resource)
+	}
+}
+
+func TestApplySystemHealthExtraMetricsPopulatesSystemResourceValueWhenVMHostIsLessSevere(t *testing.T) {
+	apiMetrics := defaultSystemMetricStatus()
+	apiMetrics[healthMetricResource] = healthStatusRed
+	apiDetails := defaultSystemMetricDetails()
+	apiDetails[healthMetricResource] = response.SystemHealthMetricDetail{
+		Status: healthStatusRed,
+		Value:  "--",
+		Note:   "existing system detail",
+		Source: "replica",
+	}
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{Name: "order-api", Metrics: apiMetrics, MetricDetails: apiDetails},
+		},
+	}
+
+	scope := newSystemHealthVMHostResourceScope()
+	scope.addInstance("order-api", &model.ServiceInstance{ServiceName: "order-api", NodeName: "vm-a", Pid: 2201})
+	extra := systemHealthExtraMetricResults{
+		VMHostResource: systemHealthVMHostResourceResults{
+			Scope: scope,
+			Memory: []prometheus.MetricResult{
+				{Metric: prometheus.Labels{NodeName: "vm-a"}, Values: []prometheus.Points{{Value: 0.695}}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	resource := system.MetricDetails[healthMetricResource]
+	if system.Metrics[healthMetricResource] != healthStatusRed || resource.Value != "69.50%" || resource.Source != "host/vm-a" || resource.Note != "资源副本健康存在风险" {
+		t.Fatalf("expected existing red system detail to keep status and fill value, metrics=%+v detail=%+v", system.Metrics, resource)
 	}
 }
 

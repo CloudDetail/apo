@@ -1659,6 +1659,9 @@ func applySystemHealthSystemResourceWaterline(system *response.SystemHealthSyste
 	currentStatus := system.Metrics[healthMetricResource]
 	current := system.MetricDetails[healthMetricResource]
 	if shouldKeepCurrentSystemHealthDetail(currentStatus, current, detail) {
+		if merged, ok := supplementSystemHealthMetricDetailValue(current, detail); ok {
+			system.MetricDetails[healthMetricResource] = merged
+		}
 		return
 	}
 	if currentStatus == "" {
@@ -1667,6 +1670,29 @@ func applySystemHealthSystemResourceWaterline(system *response.SystemHealthSyste
 	detail.Status = worseHealthStatus(currentStatus, detail.Status)
 	system.Metrics[healthMetricResource] = detail.Status
 	system.MetricDetails[healthMetricResource] = detail
+}
+
+func supplementSystemHealthMetricDetailValue(current response.SystemHealthMetricDetail, next response.SystemHealthMetricDetail) (response.SystemHealthMetricDetail, bool) {
+	if _, currentOK := parseSystemMetricDetailRank(current.Value); currentOK {
+		return current, false
+	}
+
+	_, nextOK := parseSystemMetricDetailRank(next.Value)
+	if !nextOK {
+		return current, false
+	}
+
+	current.Value = next.Value
+	if current.Unit == "" {
+		current.Unit = next.Unit
+	}
+	if current.Source == "" {
+		current.Source = next.Source
+	}
+	if current.Note == "" {
+		current.Note = next.Note
+	}
+	return current, true
 }
 
 func applySystemHealthSystemValue(system *response.SystemHealthSystem, key string, detail response.SystemHealthMetricDetail) {
