@@ -839,12 +839,10 @@ export default function SystemHealthOverviewPage() {
     return (
       <div className="sho-threshold-popover">
         <div className="sho-threshold-popover-title">异常判定</div>
-        <div className="sho-threshold-rule">
-          健康度低于 <b>{abnormalScoreThreshold}</b> 分时，系统判定为异常。
-        </div>
         <Space className="sho-threshold-editor" size={6}>
-          <span className="sho-muted">健康度低于</span>
+          <span>当系统健康度低于</span>
           <InputNumber
+            aria-label="异常健康度阈值"
             max={100}
             min={1}
             precision={0}
@@ -853,7 +851,7 @@ export default function SystemHealthOverviewPage() {
             onChange={(value) => setThresholdDraft(value)}
             onPressEnter={saveAbnormalScoreThreshold}
           />
-          <span className="sho-muted">分</span>
+          <span>分时，判定为异常。</span>
           <Tooltip title={hasThresholdChange ? '保存阈值' : '阈值未变化'}>
             <span className="sho-threshold-save-wrap">
               <Button

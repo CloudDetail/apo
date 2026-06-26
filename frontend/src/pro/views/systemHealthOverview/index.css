@@ -615,7 +615,7 @@
 }
 
 .sho-threshold-popover {
-  width: 258px;
+  width: 318px;
   display: grid;
   gap: 8px;
 }
@@ -627,20 +627,12 @@
   line-height: 18px;
 }
 
-.sho-threshold-rule {
-  color: var(--ant-color-text-secondary);
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.sho-threshold-rule b {
-  color: var(--ant-color-error);
-  font-variant-numeric: tabular-nums;
-}
-
 .sho-threshold-editor {
   align-items: center;
-  flex-wrap: nowrap;
+  color: var(--ant-color-text-secondary);
+  flex-wrap: wrap;
+  font-size: 12px;
+  line-height: 24px;
   margin-top: 2px;
 }
 
