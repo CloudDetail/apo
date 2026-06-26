@@ -11,7 +11,7 @@ import { MdArrowDropDown } from 'react-icons/md'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
-export default function RefreshDateTime({ size = 'normal', disableAutoRefresh = false }) {
+export default function RefreshDateTime({ size = 'normal' }) {
   const { t } = useTranslation('core/dateTime')
   const [refreshKey, setRefreshKey] = useState(null)
   const { refreshTimestamp } = useSelector((state) => state.timeRange)
@@ -82,7 +82,6 @@ export default function RefreshDateTime({ size = 'normal', disableAutoRefresh = 
   }
 
   useEffect(() => {
-    if (disableAutoRefresh) return undefined
     let time = items[0].children.find((item) => item.key === refreshKey)?.value
     let intervalId
     if (time) {
@@ -91,18 +90,17 @@ export default function RefreshDateTime({ size = 'normal', disableAutoRefresh = 
       }, time)
     }
     return () => clearInterval(intervalId)
-  }, [disableAutoRefresh, refreshKey, refreshTimestamp])
+  }, [refreshKey, refreshTimestamp])
 
   // 刷新函数
   const handleRefresh = () => {
     refreshTime()
   }
   useEffect(() => {
-    if (disableAutoRefresh) return
     if (localStorage.getItem('refreshKey')) {
       setRefreshKey(localStorage.getItem('refreshKey'))
     }
-  }, [disableAutoRefresh])
+  }, [])
   return (
     <div className={`mx-1 refresh-date-time ${size === 'small' ? 'text-xs' : ''}`}>
       <Dropdown.Button
@@ -126,5 +124,4 @@ export default function RefreshDateTime({ size = 'normal', disableAutoRefresh = 
 
 RefreshDateTime.propTypes = {
   size: PropTypes.oneOf(['normal', 'small']),
-  disableAutoRefresh: PropTypes.bool,
 }

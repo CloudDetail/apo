@@ -10,15 +10,6 @@ import {
 } from './timeParams.mjs'
 
 const viewSource = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
-const proRoutesSource = readFileSync(new URL('../../routes.js', import.meta.url), 'utf8')
-const appHeaderSource = readFileSync(
-  new URL('../../../core/components/AppHeader.js', import.meta.url),
-  'utf8',
-)
-const dateTimeCombineSource = readFileSync(
-  new URL('../../../core/components/DateTime/DateTimeCombine.jsx', import.meta.url),
-  'utf8',
-)
 
 test('system health page uses shared concrete time request params', () => {
   assert.ok(
@@ -169,20 +160,5 @@ test('system health page debounces overview loads while time params settle', () 
   assert.ok(
     viewSource.includes('window.setTimeout(() => {'),
     'page should debounce the overview request instead of firing immediately',
-  )
-})
-
-test('system health route disables header auto refresh', () => {
-  const routeStart = proRoutesSource.indexOf("path: '/healthy-service'")
-  assert.notEqual(routeStart, -1, 'healthy-service route should exist')
-  const routeSource = proRoutesSource.slice(routeStart, routeStart + 220)
-
-  assert.ok(routeSource.includes('disableSystemTimeAutoRefresh: true'))
-  assert.ok(
-    appHeaderSource.includes('disableAutoRefresh={currentRoute?.disableSystemTimeAutoRefresh}'),
-  )
-  assert.ok(
-    dateTimeCombineSource.includes('<RefreshDateTime disableAutoRefresh={disableAutoRefresh} />'),
-    'manual refresh should remain visible while auto refresh is disabled',
   )
 })

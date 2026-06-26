@@ -66,7 +66,6 @@ let proRoutes = [
     path: '/healthy-service',
     name: '健康度',
     element: SystemHealthOverview,
-    disableSystemTimeAutoRefresh: true,
   },
   {
     path: '/health-lab',

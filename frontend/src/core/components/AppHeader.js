@@ -121,9 +121,7 @@ const AppHeader = ({ type = 'default' }) => {
         </div>
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
-          {checkRoute() && (
-            <DateTimeCombine disableAutoRefresh={currentRoute?.disableSystemTimeAutoRefresh} />
-          )}
+          {checkRoute() && <DateTimeCombine />}
           <Button
             type="text"
             icon={<SkinOutlined />}

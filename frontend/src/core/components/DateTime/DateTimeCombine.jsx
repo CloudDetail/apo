@@ -4,7 +4,6 @@
  */
 
 import React, { useEffect, useState } from 'react'
-import PropTypes from 'prop-types'
 import TimeSinceRefresh from './TimeSinceRefresh'
 import DateTimeRangePicker from './DateTimeRangePicker'
 import { Button, Input, Popover, Segmented, theme } from 'antd'
@@ -83,19 +82,15 @@ function ShareLink() {
   )
 }
 
-export default function DateTimeCombine({ disableAutoRefresh = false }) {
+export default function DateTimeCombine() {
   const { rangeTypeKey } = useSelector((state) => state.timeRange)
 
   return (
     <div className="flex items-center">
       {rangeTypeKey && <TimeSinceRefresh />}
       <DateTimeRangePicker />
-      {rangeTypeKey && <RefreshDateTime disableAutoRefresh={disableAutoRefresh} />}
+      {rangeTypeKey && <RefreshDateTime />}
       <ShareLink />
     </div>
   )
-}
-
-DateTimeCombine.propTypes = {
-  disableAutoRefresh: PropTypes.bool,
 }
