@@ -807,6 +807,12 @@ export default function SystemHealthOverviewPage() {
     setPendingIssuePageSize(pageSize)
   }
 
+  const handleThresholdSettingsOpenChange = (open) => {
+    if (!open) {
+      setThresholdDraft(abnormalScoreThreshold)
+    }
+  }
+
   const saveAbnormalScoreThreshold = async () => {
     const nextThreshold = normalizeAbnormalScoreThreshold(thresholdDraft)
     setThresholdDraft(nextThreshold)
@@ -1160,6 +1166,7 @@ export default function SystemHealthOverviewPage() {
                     card.key === 'abnormalSystems' ? (
                       <Popover
                         content={renderThresholdSettings()}
+                        onOpenChange={handleThresholdSettingsOpenChange}
                         placement="bottomLeft"
                         trigger="click"
                       >
