@@ -19,9 +19,9 @@ import {
 import ReactECharts from 'echarts-for-react'
 import {
   ArrowLeft,
+  Check,
   CircleAlert,
   HelpCircle,
-  Save,
   Search,
   Settings,
   Sparkles,
@@ -832,36 +832,47 @@ export default function SystemHealthOverviewPage() {
     }
   }
 
-  const renderThresholdSettings = () => (
-    <div className="sho-threshold-popover">
-      <div className="sho-threshold-popover-title">异常判定</div>
-      <div className="sho-threshold-rule">
-        健康度低于 <b>{abnormalScoreThreshold}</b> 分的系统计入异常
+  const renderThresholdSettings = () => {
+    const hasThresholdChange =
+      normalizeAbnormalScoreThreshold(thresholdDraft) !== abnormalScoreThreshold
+
+    return (
+      <div className="sho-threshold-popover">
+        <div className="sho-threshold-popover-title">异常系统判定</div>
+        <div className="sho-threshold-rule">
+          当前口径：健康度低于 <b>{abnormalScoreThreshold}</b> 分，计入异常系统。
+        </div>
+        <div className="sho-threshold-note">该阈值全局共享，保存后重新计算异常统计。</div>
+        <Space className="sho-threshold-editor" size={6}>
+          <span className="sho-muted">健康度低于</span>
+          <InputNumber
+            max={100}
+            min={1}
+            precision={0}
+            size="small"
+            value={thresholdDraft}
+            onChange={(value) => setThresholdDraft(value)}
+            onPressEnter={saveAbnormalScoreThreshold}
+          />
+          <span className="sho-muted">分</span>
+          <Tooltip title={hasThresholdChange ? '保存阈值' : '阈值未变化'}>
+            <span className="sho-threshold-save-wrap">
+              <Button
+                aria-label="保存异常阈值"
+                className="sho-threshold-save"
+                disabled={!hasThresholdChange}
+                icon={<Check size={14} />}
+                loading={thresholdSaving}
+                size="small"
+                type="primary"
+                onClick={saveAbnormalScoreThreshold}
+              />
+            </span>
+          </Tooltip>
+        </Space>
       </div>
-      <Space className="sho-threshold-editor" size={6}>
-        <span className="sho-muted">低于</span>
-        <InputNumber
-          max={100}
-          min={1}
-          precision={0}
-          size="small"
-          value={thresholdDraft}
-          onChange={(value) => setThresholdDraft(value)}
-          onPressEnter={saveAbnormalScoreThreshold}
-        />
-        <span className="sho-muted">分</span>
-        <Button
-          icon={<Save size={13} />}
-          loading={thresholdSaving}
-          size="small"
-          type="primary"
-          onClick={saveAbnormalScoreThreshold}
-        >
-          保存
-        </Button>
-      </Space>
-    </div>
-  )
+    )
+  }
 
   const analyzeIssue = async (issue, analysisKey) => {
     setIssueAnalyses((current) => ({
@@ -1177,7 +1188,7 @@ export default function SystemHealthOverviewPage() {
                   }
                   key={card.key}
                   label={card.label}
-                  help={card.help}
+                  help={card.key === 'abnormalSystems' ? null : card.help}
                   numerator={card.numerator}
                   percent={card.percent}
                   tone={card.tone}

@@ -615,9 +615,9 @@
 }
 
 .sho-threshold-popover {
-  width: 238px;
+  width: 258px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sho-threshold-popover-title {
@@ -634,16 +634,36 @@
 }
 
 .sho-threshold-rule b {
-  color: #f04438;
+  color: var(--ant-color-error);
   font-variant-numeric: tabular-nums;
 }
 
+.sho-threshold-note {
+  color: var(--ant-color-text-tertiary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .sho-threshold-editor {
+  align-items: center;
   flex-wrap: nowrap;
+  margin-top: 2px;
 }
 
 .sho-threshold-editor .ant-input-number {
   width: 68px;
+}
+
+.sho-threshold-save-wrap {
+  display: inline-flex;
+}
+
+.sho-threshold-save {
+  width: 26px;
+  min-width: 26px;
+  padding: 0;
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 .sho-lamp {
