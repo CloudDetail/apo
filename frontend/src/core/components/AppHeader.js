@@ -4,11 +4,10 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react'
+import PropTypes from 'prop-types'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
-import logo from 'src/core/assets/brand/logo.svg'
 import { SkinOutlined } from '@ant-design/icons'
-import { CHeader, CHeaderNav, useColorModes, CImage } from '@coreui/react'
+import { CHeader, CHeaderNav, CImage } from '@coreui/react'
 import { AppBreadcrumb } from './index'
 import routes from 'src/routes'
 import CoachMask from './Mask/CoachMask'
@@ -27,11 +26,6 @@ const AppHeader = ({ type = 'default' }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const headerRef = useRef()
-  const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
-  const [toolVisibal, setToolVisibal] = useState(false)
-  const [username, setUsername] = useState('')
-  const dispatch = useDispatch()
-  const sidebarShow = useSelector((state) => state.sidebarShow)
   const [selectedKeys, setSelectedKeys] = useState([])
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -79,17 +73,26 @@ const AppHeader = ({ type = 'default' }) => {
   const { useToken } = theme
   const { token } = useToken()
   return (
-    <CHeader position="sticky" className="flex-shrink-0 flex-grow-0 mb-1 p-0" ref={headerRef} style={vars}>
+    <CHeader
+      position="sticky"
+      className="flex-shrink-0 flex-grow-0 mb-1 p-0"
+      ref={headerRef}
+      style={vars}
+    >
       <div className="flex justify-between items-center w-full">
         <div className="flex items-center">
           {type === 'united' ? (
             <div className="flex items-center">
               <div className="h-[50px] flex overflow-hidden items-center mr-5">
-                <CImage src={getLogo()} className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3" />
+                <CImage
+                  src={getLogo()}
+                  className="w-[42px] sidebar-brand-narrow flex-shrink-0 mx-3"
+                />
                 <span className="flex-shrink-0 text-lg">{getTitle()}</span>
               </div>
               {commercialNav.map((item) => (
                 <div
+                  key={item.key}
                   onClick={() => onClick(item.to)}
                   className="h-[50px] items-center px-3 flex justify-center text-sm cursor-pointer"
                   style={{
@@ -118,7 +121,9 @@ const AppHeader = ({ type = 'default' }) => {
         </div>
         <CHeaderNav className="pr-4 flex items-center">
           {location.pathname === '/service/info' && <CoachMask />}
-          {checkRoute() && <DateTimeCombine />}
+          {checkRoute() && (
+            <DateTimeCombine disableAutoRefresh={currentRoute?.disableSystemTimeAutoRefresh} />
+          )}
           <Button
             type="text"
             icon={<SkinOutlined />}
@@ -131,6 +136,10 @@ const AppHeader = ({ type = 'default' }) => {
       </div>
     </CHeader>
   )
+}
+
+AppHeader.propTypes = {
+  type: PropTypes.oneOf(['default', 'united']),
 }
 
 export default AppHeader

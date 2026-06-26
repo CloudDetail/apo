@@ -5,12 +5,13 @@
 
 import { Dropdown, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import { LuRefreshCw } from 'react-icons/lu'
 import { MdArrowDropDown } from 'react-icons/md'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
-export default function RefreshDateTime({ size = 'normal' }) {
+export default function RefreshDateTime({ size = 'normal', disableAutoRefresh = false }) {
   const { t } = useTranslation('core/dateTime')
   const [refreshKey, setRefreshKey] = useState(null)
   const { refreshTimestamp } = useSelector((state) => state.timeRange)
@@ -81,6 +82,7 @@ export default function RefreshDateTime({ size = 'normal' }) {
   }
 
   useEffect(() => {
+    if (disableAutoRefresh) return undefined
     let time = items[0].children.find((item) => item.key === refreshKey)?.value
     let intervalId
     if (time) {
@@ -89,17 +91,18 @@ export default function RefreshDateTime({ size = 'normal' }) {
       }, time)
     }
     return () => clearInterval(intervalId)
-  }, [refreshKey, refreshTimestamp])
+  }, [disableAutoRefresh, refreshKey, refreshTimestamp])
 
   // 刷新函数
   const handleRefresh = () => {
     refreshTime()
   }
   useEffect(() => {
+    if (disableAutoRefresh) return
     if (localStorage.getItem('refreshKey')) {
       setRefreshKey(localStorage.getItem('refreshKey'))
     }
-  }, [])
+  }, [disableAutoRefresh])
   return (
     <div className={`mx-1 refresh-date-time ${size === 'small' ? 'text-xs' : ''}`}>
       <Dropdown.Button
@@ -119,4 +122,9 @@ export default function RefreshDateTime({ size = 'normal' }) {
       </Dropdown.Button>
     </div>
   )
+}
+
+RefreshDateTime.propTypes = {
+  size: PropTypes.oneOf(['normal', 'small']),
+  disableAutoRefresh: PropTypes.bool,
 }

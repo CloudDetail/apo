@@ -4,12 +4,13 @@
  */
 
 import React, { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import TimeSinceRefresh from './TimeSinceRefresh'
 import DateTimeRangePicker from './DateTimeRangePicker'
 import { Button, Input, Popover, Segmented, theme } from 'antd'
 import { FiSend } from 'react-icons/fi'
 import CopyButton from '../CopyButton'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { convertTime, TimestampToISO } from 'src/core/utils/time'
 import { timeRangeMap } from 'src/core/store/reducers/timeRangeReducer'
@@ -22,7 +23,6 @@ function ShareLink() {
   const [shareType, setShareType] = useState(t('dataTimeCombine.absoluteTimeText'))
   const { rangeTypeKey, startTime, endTime } = useSelector((state) => state.timeRange)
   const [copyUrl, setCopyUrl] = useState(window.location.href)
-  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     // 在翻译加载完成后设置shareType
@@ -83,15 +83,19 @@ function ShareLink() {
   )
 }
 
-export default function DateTimeCombine() {
+export default function DateTimeCombine({ disableAutoRefresh = false }) {
   const { rangeTypeKey } = useSelector((state) => state.timeRange)
 
   return (
     <div className="flex items-center">
       {rangeTypeKey && <TimeSinceRefresh />}
       <DateTimeRangePicker />
-      {rangeTypeKey && <RefreshDateTime />}
+      {rangeTypeKey && <RefreshDateTime disableAutoRefresh={disableAutoRefresh} />}
       <ShareLink />
     </div>
   )
+}
+
+DateTimeCombine.propTypes = {
+  disableAutoRefresh: PropTypes.bool,
 }

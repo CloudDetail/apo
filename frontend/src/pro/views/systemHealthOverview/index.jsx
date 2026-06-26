@@ -172,9 +172,6 @@ const isAbnormal = (system, threshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD) =>
   system.services?.length > 0 &&
   system.score < normalizeAbnormalScoreThreshold(threshold)
 
-const statusCount = (metrics, status) =>
-  Object.values(metrics).filter((value) => value === status).length
-
 const statusTags = (metrics, status, emptyText) => {
   const tags = metricLabels
     .map(([key, label]) => ({ label, status: metrics[key] }))
@@ -408,9 +405,10 @@ const splitMetricDisplayValue = (value) => {
 
 const MetricValue = ({ value }) => {
   const displayValue = splitMetricDisplayValue(value)
+  const isEmptyValue = displayValue.main === '暂无数据' && !displayValue.unit
 
   return (
-    <b>
+    <b className={isEmptyValue ? 'sho-metric-value-empty' : undefined}>
       <span className="sho-metric-value-main">{displayValue.main}</span>
       {displayValue.unit ? (
         <span className="sho-metric-value-unit">{displayValue.unit}</span>
@@ -426,6 +424,7 @@ MetricValue.propTypes = {
 const MetricVisualTile = ({ metricKey, label, detail, status }) => {
   const visual = metricVisualFor(metricKey, detail, status)
   const sourceTitle = metricSourceTitleFor(metricKey, detail)
+  const isEmptyValue = visual.value === '暂无数据'
 
   return (
     <div className={`sho-metric-tile sho-metric-tile-${visual.tone}`}>
@@ -435,11 +434,15 @@ const MetricVisualTile = ({ metricKey, label, detail, status }) => {
         </Tooltip>
         <Lamp status={visual.status} />
       </div>
-      <div className={`sho-metric-visual sho-metric-visual-${visual.kind}`}>
+      <div
+        className={`sho-metric-visual sho-metric-visual-${visual.kind}${
+          isEmptyValue ? ' sho-metric-visual-empty' : ''
+        }`}
+      >
         <div className="sho-metric-value-block">
           <MetricValue value={visual.value} />
         </div>
-        {visual.chart ? (
+        {isEmptyValue ? null : visual.chart ? (
           <SystemMetricTrendChart chart={visual.chart} />
         ) : visual.kind === 'number' ? null : visual.kind === 'waterline' ? (
           <div className="sho-waterline" aria-label={`${label}${visual.helper}${visual.percent}%`}>

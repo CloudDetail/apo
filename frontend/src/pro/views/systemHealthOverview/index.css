@@ -1028,6 +1028,25 @@
   line-height: 32px;
 }
 
+.sho-metric-visual-empty {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 118px;
+  place-items: center;
+}
+
+.sho-metric-visual-empty .sho-metric-value-block {
+  align-self: center;
+  justify-self: center;
+}
+
+.sho-metric-value-block b.sho-metric-value-empty,
+.sho-metric-visual-number .sho-metric-value-block b.sho-metric-value-empty {
+  color: var(--ant-color-text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
 .sho-waterline {
   position: relative;
   grid-column: 2;
