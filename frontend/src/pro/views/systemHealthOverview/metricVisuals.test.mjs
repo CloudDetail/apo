@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 
 import {
   buildStatusDistribution,
+  healthScoreLegendItems,
   metricSourceTitleFor,
   metricVisualFor,
   safePercent,
@@ -62,7 +63,16 @@ test('buildStatusDistribution derives system severity from score, data, and metr
   })
 })
 
-test('buildOverviewSummaryCards restores prototype overview metrics', () => {
+test('healthScoreLegendItems documents actual score ranges without sample scores', () => {
+  assert.deepEqual(healthScoreLegendItems, [
+    { status: 'green', range: '80-100分', label: '正常' },
+    { status: 'yellow', range: '60-79分', label: '关注' },
+    { status: 'red', range: '0-59分', label: '异常' },
+    { status: 'gray', range: '无可评分数据', label: '无数据' },
+  ])
+})
+
+test('buildOverviewSummaryCards presents compact anomaly cards in priority order', () => {
   assert.equal(typeof metricVisuals.buildOverviewSummaryCards, 'function')
 
   const cards = metricVisuals.buildOverviewSummaryCards(
@@ -72,7 +82,6 @@ test('buildOverviewSummaryCards restores prototype overview metrics', () => {
       lowScoreSystems: 2,
       abnormalMetrics: 31,
       severeMetrics: 7,
-      newAbnormalMetrics: 5,
     },
     [
       {
@@ -106,19 +115,19 @@ test('buildOverviewSummaryCards restores prototype overview metrics', () => {
 
   assert.deepEqual(
     cards.map((card) => card.label),
-    ['异常系统', '异常指标', '严重异常', '新增异常'],
+    ['异常系统', '严重异常', '一般异常'],
   )
   assert.deepEqual(
     cards.map((card) => card.value),
-    ['4 / 12', 31, 7, 5],
+    ['4 / 12', 7, 24],
   )
-  assert.equal(cards[0].caption, '2 个健康度低于 60')
-  assert.equal(cards[1].caption, '错误率、响应延时、错误日志占比最高')
-  assert.equal(cards[2].caption, '集中在订单系统、支付系统')
-  assert.equal(cards[3].caption, '最近 10 分钟新增')
+  assert.deepEqual(
+    cards.map((card) => card.caption),
+    [undefined, undefined, undefined],
+  )
 })
 
-test('buildOverviewSummaryCards presents abnormal systems as a right-side ring ratio', () => {
+test('buildOverviewSummaryCards presents abnormal systems as text without a ring', () => {
   const cards = metricVisuals.buildOverviewSummaryCards({
     totalSystems: 4,
     abnormalSystems: 3,
@@ -127,9 +136,23 @@ test('buildOverviewSummaryCards presents abnormal systems as a right-side ring r
 
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
 
-  assert.equal(abnormalSystemsCard.visual, 'ring')
+  assert.equal(abnormalSystemsCard.visual, 'ratio')
+  assert.equal(abnormalSystemsCard.help, '健康度低于 80 分，或存在关注/异常指标时计入异常系统。')
   assert.equal(abnormalSystemsCard.value, '3 / 4')
-  assert.equal(abnormalSystemsCard.percent, 75)
+  assert.equal(abnormalSystemsCard.percent, undefined)
+  assert.equal(abnormalSystemsCard.highlightNumerator, true)
+})
+
+test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () => {
+  const cards = metricVisuals.buildOverviewSummaryCards({
+    totalSystems: 4,
+    abnormalSystems: 0,
+  })
+
+  const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
+
+  assert.equal(abnormalSystemsCard.value, '0 / 4')
+  assert.equal(abnormalSystemsCard.highlightNumerator, false)
 })
 
 test('buildOverviewSummaryCards presents absolute anomaly counts as big numbers', () => {
@@ -138,7 +161,6 @@ test('buildOverviewSummaryCards presents absolute anomaly counts as big numbers'
       totalSystems: 4,
       abnormalMetrics: 12,
       severeMetrics: 3,
-      newAbnormalMetrics: 8,
     },
     [],
     [
@@ -147,33 +169,13 @@ test('buildOverviewSummaryCards presents absolute anomaly counts as big numbers'
     ],
   )
 
-  const abnormalMetricsCard = cards.find((card) => card.key === 'abnormalMetrics')
+  const abnormalMetricsCard = cards.find((card) => card.key === 'generalMetrics')
   const severeMetricsCard = cards.find((card) => card.key === 'severeMetrics')
 
   assert.equal(abnormalMetricsCard.visual, 'number')
   assert.equal(abnormalMetricsCard.percent, undefined)
   assert.equal(severeMetricsCard.visual, 'number')
   assert.equal(severeMetricsCard.percent, undefined)
-})
-
-test('buildOverviewSummaryCards presents new abnormal metrics as a number instead of progress', () => {
-  const cards = metricVisuals.buildOverviewSummaryCards(
-    {
-      totalSystems: 4,
-      abnormalMetrics: 12,
-      newAbnormalMetrics: 8,
-    },
-    [],
-    [
-      ['errorRate', '错误率'],
-      ['latency', '响应延时'],
-    ],
-  )
-
-  const newAbnormalCard = cards.find((card) => card.key === 'newAbnormalMetrics')
-
-  assert.equal(newAbnormalCard.visual, 'number')
-  assert.equal(newAbnormalCard.percent, undefined)
 })
 
 test('metricVisualFor turns resource metrics into waterline visuals', () => {
@@ -222,17 +224,37 @@ test('metricVisualFor does not infer current resource waterline from status when
   assert.equal('marker' in visual, false)
 })
 
-test('metricSourceTitleFor summarizes metric data sources for title tooltips', () => {
+test('metricVisualFor renders missing metric values as empty data text', () => {
+  const visual = metricVisualFor('latency', {
+    status: 'gray',
+    value: '',
+    note: '暂无数据',
+  })
+  const sentinelVisual = metricVisualFor('latency', {
+    status: 'gray',
+    value: '--',
+    note: '暂无数据',
+  })
+
+  assert.equal(visual.value, '暂无数据')
+  assert.equal(sentinelVisual.value, '暂无数据')
+})
+
+test('metricSourceTitleFor explains title tooltip values in readable language', () => {
   assert.equal(
     metricSourceTitleFor('resource', {
       source: 'dev/train-ticket/ts-train-service-787984cc59-8gbnh',
     }),
-    '数据来源：Pod 资源水位，最高水位 Pod：ts-train-service-787984cc59-8gbnh',
+    '当前窗口内 CPU 或内存压力最高的 Pod 水位。最高水位 Pod：ts-train-service-787984cc59-8gbnh',
   )
+  assert.equal(metricSourceTitleFor('errorRate'), '当前窗口内失败请求占全部请求的比例。')
+  assert.equal(metricSourceTitleFor('latency'), '当前窗口内所有请求的平均响应时间。')
   assert.equal(
-    metricSourceTitleFor('errorRate'),
-    '数据来源：Trace 请求指标，系统错误请求数 / 总请求数',
+    metricSourceTitleFor('errorLog'),
+    '当前窗口内 error、critical 和 exception 日志总数。',
   )
+  assert.equal(metricSourceTitleFor('badRequests'), '当前仍在触发中的告警数量。')
+  assert.equal(metricSourceTitleFor('lockCost'), '当前窗口内每个请求平均分摊到的锁等待耗时。')
 })
 
 test('metricVisualFor scales resource shift against the abnormal threshold', () => {
@@ -250,7 +272,6 @@ test('metricVisualFor scales resource shift against the abnormal threshold', () 
       note: 'CPU/内存资源相对 24h 前基线波动',
       percent: 75,
       helper: '相对 24h 基线',
-      marker: '60%',
     },
   )
 })
@@ -270,7 +291,6 @@ test('metricVisualFor keeps latency as a big value with status risk gauge', () =
       note: '当前平均响应延时',
       percent: 64,
       helper: '延时风险',
-      marker: '状态',
     },
   )
 })
@@ -286,26 +306,25 @@ test('metricVisualFor formats count metrics as counter visuals', () => {
       kind: 'counter',
       status: 'red',
       tone: 'critical',
-      value: '12',
+      value: '12 条',
       note: '当前时间窗口错误日志数',
       percent: 92,
       helper: '窗口计数',
-      marker: '严重度',
     },
   )
 })
 
-test('metricVisualFor renders bad requests as a plain big number without a meter', () => {
+test('metricVisualFor renders active alerts as a plain big number with count unit', () => {
   const visual = metricVisualFor('badRequests', {
     status: 'yellow',
     value: '3',
-    note: '当前活动告警数',
+    note: '当前活跃告警数',
   })
 
   assert.equal(visual.kind, 'number')
-  assert.equal(visual.value, '3')
-  assert.equal(visual.helper, '活动告警')
-  assert.equal(visual.marker, '当前值')
+  assert.equal(visual.value, '3 个')
+  assert.equal(visual.helper, '活跃告警')
+  assert.equal('marker' in visual, false)
   assert.equal('percent' in visual, false)
 })
 
@@ -319,7 +338,7 @@ test('metricVisualFor renders lock cost as a plain big number without a meter', 
   assert.equal(visual.kind, 'number')
   assert.equal(visual.value, '12.00 ms/请求')
   assert.equal(visual.helper, '锁等待均摊')
-  assert.equal(visual.marker, '当前值')
+  assert.equal('marker' in visual, false)
   assert.equal('percent' in visual, false)
 })
 
@@ -361,7 +380,7 @@ test('metricVisualFor keeps resource waterline as a current snapshot even if ser
   assert.equal(visual.source, 'dev/prod/order-b')
 })
 
-test('buildMetricTrendOption adds threshold mark lines for resource shift', () => {
+test('buildMetricTrendOption omits baseline mark lines for resource shift', () => {
   assert.equal(typeof metricVisuals.buildMetricTrendOption, 'function')
 
   const option = metricVisuals.buildMetricTrendOption(
@@ -388,13 +407,7 @@ test('buildMetricTrendOption adds threshold mark lines for resource shift', () =
   )
 
   assert.deepEqual(option.series[0].data, [35, 75])
-  assert.deepEqual(
-    option.series[0].markLine.data.map((line) => [line.name, line.yAxis]),
-    [
-      ['关注线', 30],
-      ['异常线', 60],
-    ],
-  )
+  assert.equal(option.series[0].markLine, undefined)
   assert.equal(option.xAxis.axisLabel.show, false)
   assert.equal(option.yAxis.axisLabel.show, false)
   assert.equal(option.yAxis.splitLine.show, false)

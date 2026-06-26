@@ -11,6 +11,13 @@ type GetSystemHealthReportRequest struct {
 }
 
 type GetSystemHealthOverviewRequest struct {
+	RelativeTime           string `form:"relativeTime"`
+	StartTime              int64  `form:"startTime"`
+	EndTime                int64  `form:"endTime"`
+	SkipNewAbnormalMetrics bool   `form:"skipNewAbnormalMetrics"`
+}
+
+type GetSystemHealthNewAbnormalMetricsRequest struct {
 	RelativeTime string `form:"relativeTime"`
 	StartTime    int64  `form:"startTime"`
 	EndTime      int64  `form:"endTime"`

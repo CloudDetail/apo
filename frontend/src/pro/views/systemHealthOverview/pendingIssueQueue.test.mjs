@@ -52,3 +52,21 @@ test('buildPendingIssueQueueRows aggregates pending issues by service and metric
   assert.equal(rows[1].systemName, '支付系统、订单系统')
   assert.equal(rows[1].groupId, 1002)
 })
+
+test('buildPendingIssueQueueRows labels replica-only resource issues as availability', () => {
+  const rows = buildPendingIssueQueueRows([
+    {
+      id: 'red-resource-replica',
+      groupId: 1001,
+      systemName: '订单系统',
+      serviceName: 'ts-route-plan-service',
+      metricKey: 'resource',
+      metricLabel: '资源水位',
+      status: 'red',
+      value: '异常',
+      note: '应用实例数小于2，存在服务不可用风险',
+    },
+  ])
+
+  assert.equal(rows[0].metricLabel, '资源可用性')
+})

@@ -14,6 +14,7 @@ import (
 
 type Handler interface {
 	GetOverview() core.HandlerFunc
+	GetNewAbnormalMetrics() core.HandlerFunc
 	GetSystemDetail() core.HandlerFunc
 	AnalyzePendingIssue() core.HandlerFunc
 	GetReport() core.HandlerFunc

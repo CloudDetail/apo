@@ -25,3 +25,30 @@ test('health score legend keeps only primary status labels', () => {
   assert.doesNotMatch(legendSource, /meta\.description/)
   assert.doesNotMatch(legendSource, /<small>/)
 })
+
+test('health score tooltip uses score-ring samples without numbers and existing legend tags', () => {
+  const tooltipSource = between(
+    'const HealthScoreTooltip = () => (',
+    'const SystemMetricTrendChart',
+  )
+
+  assert.match(tooltipSource, /sho-health-score-help-ring/)
+  assert.match(
+    tooltipSource,
+    /className=\{`sho-legend-item sho-health-score-help-tag sho-health-score-help-tag-\$\{item\.status\}`\}/,
+  )
+  assert.doesNotMatch(tooltipSource, /HealthRing/)
+  assert.doesNotMatch(tooltipSource, /sho-tag/)
+  assert.doesNotMatch(tooltipSource, /sampleScore/)
+})
+
+test('summary anomaly cards add severity icons to severe and general anomaly titles', () => {
+  const summarySource = between('{summaryCards.map((card) => (', '</SummaryMetricCard>')
+
+  assert.match(summarySource, /card\.key === 'severeMetrics'/)
+  assert.match(summarySource, /<TriangleAlert/)
+  assert.match(summarySource, /sho-summary-title-icon-critical/)
+  assert.match(summarySource, /card\.key === 'generalMetrics'/)
+  assert.match(summarySource, /<CircleAlert/)
+  assert.match(summarySource, /sho-summary-title-icon-warning/)
+})

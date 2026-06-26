@@ -62,6 +62,18 @@ const uniqueTexts = (issues = [], key) => {
   return values.join('、')
 }
 
+const hasPercentValue = (value) => textValue(value).includes('%')
+
+const isResourceAvailabilityIssue = (issue = {}) => {
+  if (issue.metricKey !== 'resource' || hasPercentValue(issue.value)) return false
+  return /副本|实例|可用|replica/i.test(textValue(issue.note))
+}
+
+const pendingIssueMetricLabel = (issue = {}) => {
+  if (isResourceAvailabilityIssue(issue)) return '资源可用性'
+  return textValue(issue.metricLabel) || textValue(issue.metricKey) || '未知指标'
+}
+
 export const buildPendingIssueQueueRows = (issues = []) => {
   const groups = new Map()
 
@@ -86,6 +98,7 @@ export const buildPendingIssueQueueRows = (issues = []) => {
         ...leadIssue,
         queueId: group.queueId,
         issueCount: group.issues.length,
+        metricLabel: pendingIssueMetricLabel(leadIssue),
         systemName: uniqueTexts(sortedIssues, 'systemName') || leadIssue.systemName,
         value: uniqueValues(sortedIssues),
       }

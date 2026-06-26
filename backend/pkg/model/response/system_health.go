@@ -12,6 +12,13 @@ type SystemHealthOverviewResp struct {
 	Source        string                      `json:"source"`
 }
 
+type SystemHealthNewAbnormalMetricsResp struct {
+	NewAbnormalMetrics int    `json:"newAbnormalMetrics"`
+	Window             string `json:"window"`
+	GeneratedAt        string `json:"generatedAt"`
+	Source             string `json:"source"`
+}
+
 type SystemHealthSystemDetailResp struct {
 	System      SystemHealthSystem `json:"system"`
 	Window      string             `json:"window"`

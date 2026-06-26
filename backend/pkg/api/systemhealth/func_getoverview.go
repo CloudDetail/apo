@@ -63,7 +63,7 @@ var systemHealthMetricLabels = map[string]string{
 	healthMetricErrorRate:     "错误率",
 	healthMetricLatency:       "响应延时",
 	healthMetricErrorLog:      "错误日志",
-	healthMetricBadRequests:   "异常请求",
+	healthMetricBadRequests:   "活跃告警",
 	healthMetricLockCost:      "锁等待",
 }
 
@@ -84,6 +84,23 @@ func (h *handler) GetOverview() core.HandlerFunc {
 		}
 
 		resp, err := h.buildOverview(c, req)
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.GetDataGroupError, err)
+			return
+		}
+		c.Payload(resp)
+	}
+}
+
+func (h *handler) GetNewAbnormalMetrics() core.HandlerFunc {
+	return func(c core.Context) {
+		req := new(request.GetSystemHealthNewAbnormalMetricsRequest)
+		if err := c.ShouldBindQuery(req); err != nil {
+			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
+			return
+		}
+
+		resp, err := h.buildNewAbnormalMetrics(c, req)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, code.GetDataGroupError, err)
 			return
@@ -149,33 +166,15 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 	)...)
 
 	summary := buildSystemHealthOverviewSummary(systems)
-	recentStartTime, previousStartTime, previousEndTime := newAbnormalMetricWindows(endTime)
-	stageStartedAt = time.Now()
-	recentSystems, recentErr := h.buildOverviewSystems(ctx, recentStartTime, endTime, groups, "recent")
-	if recentErr != nil {
-		systemHealthWarn("system-health overview recent systems failed", systemHealthStageFields(ctx, stageStartedAt, "04_recent_systems",
-			zap.Error(recentErr),
-		)...)
-	} else {
-		systemHealthInfo("system-health overview recent systems built", systemHealthStageFields(ctx, stageStartedAt, "04_recent_systems",
-			zap.Int("systems", len(recentSystems)),
-		)...)
-	}
-
-	stageStartedAt = time.Now()
-	previousSystems, previousErr := h.buildOverviewSystems(ctx, previousStartTime, previousEndTime, groups, "previous")
-	if previousErr != nil {
-		systemHealthWarn("system-health overview previous systems failed", systemHealthStageFields(ctx, stageStartedAt, "05_previous_systems",
-			zap.Error(previousErr),
-		)...)
-	} else {
-		systemHealthInfo("system-health overview previous systems built", systemHealthStageFields(ctx, stageStartedAt, "05_previous_systems",
-			zap.Int("systems", len(previousSystems)),
-		)...)
-	}
-
-	if recentErr == nil && previousErr == nil {
-		summary.NewAbnormalMetrics = countNewAbnormalMetrics(recentSystems, previousSystems)
+	if !req.SkipNewAbnormalMetrics {
+		newAbnormalMetrics, err := h.calculateNewAbnormalMetrics(ctx, endTime, groups)
+		if err != nil {
+			systemHealthWarn("system-health overview new abnormal metrics failed", systemHealthStageFields(ctx, buildStartedAt, "04_new_abnormal_metrics",
+				zap.Error(err),
+			)...)
+		} else {
+			summary.NewAbnormalMetrics = newAbnormalMetrics
+		}
 	}
 
 	resp := response.SystemHealthOverviewResp{
@@ -191,6 +190,59 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 		zap.Int("pendingIssues", len(resp.PendingIssues)),
 	)...)
 	return resp, nil
+}
+
+func (h *handler) buildNewAbnormalMetrics(ctx core.Context, req *request.GetSystemHealthNewAbnormalMetricsRequest) (response.SystemHealthNewAbnormalMetricsResp, error) {
+	_, endTime, window := resolveTimeRange(&request.GetSystemHealthReportRequest{
+		RelativeTime: req.RelativeTime,
+		StartTime:    req.StartTime,
+		EndTime:      req.EndTime,
+	})
+
+	groups, err := h.visibleSystemGroups(ctx)
+	if err != nil {
+		return response.SystemHealthNewAbnormalMetricsResp{}, err
+	}
+	newAbnormalMetrics, err := h.calculateNewAbnormalMetrics(ctx, endTime, groups)
+	if err != nil {
+		return response.SystemHealthNewAbnormalMetricsResp{}, err
+	}
+	return response.SystemHealthNewAbnormalMetricsResp{
+		NewAbnormalMetrics: newAbnormalMetrics,
+		Window:             window,
+		GeneratedAt:        time.Now().Format(time.RFC3339),
+		Source:             systemHealthSourceDataGroup,
+	}, nil
+}
+
+func (h *handler) calculateNewAbnormalMetrics(ctx core.Context, endTime time.Time, groups []*datagroup.DataGroupTreeNode) (int, error) {
+	recentStartTime, previousStartTime, previousEndTime := newAbnormalMetricWindows(endTime)
+
+	stageStartedAt := time.Now()
+	recentSystems, err := h.buildOverviewSystems(ctx, recentStartTime, endTime, groups, "recent")
+	if err != nil {
+		systemHealthWarn("system-health overview recent systems failed", systemHealthStageFields(ctx, stageStartedAt, "04_recent_systems",
+			zap.Error(err),
+		)...)
+		return 0, err
+	}
+	systemHealthInfo("system-health overview recent systems built", systemHealthStageFields(ctx, stageStartedAt, "04_recent_systems",
+		zap.Int("systems", len(recentSystems)),
+	)...)
+
+	stageStartedAt = time.Now()
+	previousSystems, err := h.buildOverviewSystems(ctx, previousStartTime, previousEndTime, groups, "previous")
+	if err != nil {
+		systemHealthWarn("system-health overview previous systems failed", systemHealthStageFields(ctx, stageStartedAt, "05_previous_systems",
+			zap.Error(err),
+		)...)
+		return 0, err
+	}
+	systemHealthInfo("system-health overview previous systems built", systemHealthStageFields(ctx, stageStartedAt, "05_previous_systems",
+		zap.Int("systems", len(previousSystems)),
+	)...)
+
+	return countNewAbnormalMetrics(recentSystems, previousSystems), nil
 }
 
 func (h *handler) buildOverviewSystems(ctx core.Context, startTime time.Time, endTime time.Time, groups []*datagroup.DataGroupTreeNode, windowLabel string) ([]response.SystemHealthSystem, error) {
@@ -894,7 +946,7 @@ func systemMetricNote(key string, status string) string {
 	case healthMetricErrorLog:
 		return statusMetricNote(status, "错误日志数稳定", "错误日志数波动增加", "错误日志数超过异常阈值")
 	case healthMetricBadRequests:
-		return statusMetricNote(status, "异常请求处于稳定区间", "异常请求数升高", "异常请求超过异常阈值")
+		return statusMetricNote(status, "活跃告警处于稳定区间", "活跃告警数升高", "活跃告警超过异常阈值")
 	case healthMetricLockCost:
 		return statusMetricNote(status, "锁等待稳定", "锁等待耗时升高", "锁等待耗时超过异常阈值")
 	default:
@@ -1506,7 +1558,7 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 	latencyByService := systemHealthLatencyDetails(extra.Latency)
 	errorRateByService := systemHealthErrorRateDetails(extra.ErrorRate)
 	errorLogByService := systemHealthCountDetails(extra.ErrorLog, "当前时间窗口错误日志数")
-	badRequestsByService := systemHealthCountDetails(extra.BadRequests, "当前活动告警数")
+	badRequestsByService := systemHealthCountDetails(extra.BadRequests, "当前活跃告警数")
 	resourceShiftByService := systemHealthResourceShiftDetails(extra.ResourceShift)
 	vmHostResourceShiftByService := systemHealthVMHostResourceShiftDetails(extra.VMHostResource.Scope, extra.VMHostResource.Shift)
 	lockCostByService := systemHealthLockCostDetails(extra.LockCost)

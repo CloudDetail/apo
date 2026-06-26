@@ -6382,15 +6382,15 @@ func (h *handler) requestPolarisEvidence(ctx core.Context, input reportInput, gr
 	latencyTrend := requestPolarisTrendByKey(trends, "latency")
 	topTrend := firstNonNilRequestPolarisTrend(latencyTrend, topRequestPolarisTrend(trends))
 	if topTrend != nil {
-			evidence.Metric = buildMetricEvidence(alertMetricTrendQueryResult{
-				MetricName:     topTrend.MetricName,
-				Expression:     topTrend.Expression,
-				Step:           step,
-				StartTime:      startTime,
-				EndTime:        endTime,
-				SeriesReturned: topTrend.SeriesCount,
-				MatchedSeries:  topTrend.Series,
-				Stats:          topTrend.Stats,
+		evidence.Metric = buildMetricEvidence(alertMetricTrendQueryResult{
+			MetricName:     topTrend.MetricName,
+			Expression:     topTrend.Expression,
+			Step:           step,
+			StartTime:      startTime,
+			EndTime:        endTime,
+			SeriesReturned: topTrend.SeriesCount,
+			MatchedSeries:  topTrend.Series,
+			Stats:          topTrend.Stats,
 			EventScoped:    strings.TrimSpace(contentKey) != "",
 			Message:        requestPolarisMetricMessage(*topTrend),
 		})
@@ -7148,14 +7148,14 @@ func (h *handler) queryAlertMetricTrend(ctx core.Context, events []alertmodel.AE
 			zap.Bool("eventScoped", true),
 			zap.Duration("elapsed", time.Since(queryStartedAt)),
 		)
-			return alertMetricTrendQueryResult{
-				Rule:           rule,
-				Expression:     expr,
-				Step:           step,
-				StartTime:      startTime,
-				EndTime:        endTime,
-				SeriesReturned: len(results),
-				MatchedSeries:  matched,
+		return alertMetricTrendQueryResult{
+			Rule:           rule,
+			Expression:     expr,
+			Step:           step,
+			StartTime:      startTime,
+			EndTime:        endTime,
+			SeriesReturned: len(results),
+			MatchedSeries:  matched,
 			Stats:          stats,
 			MatchLabels:    selectedAlertLabelMap(rawTagsFromEvent(candidate), 8),
 			EventScoped:    true,
@@ -9247,10 +9247,10 @@ func reportEventPatternText(scored []scoredIssue, activeCount int, recoveringCou
 	}
 	repeatSeen := totalEvents >= 5 || (totalInstances > 0 && totalEvents > totalInstances)
 	if activeCount > 0 && repeatSeen {
-		return "活动告警仍在触发，且窗口内出现反复事件"
+		return "活跃告警仍在触发，且窗口内出现反复事件"
 	}
 	if activeCount > 0 {
-		return "活动告警尚未清零"
+		return "活跃告警尚未清零"
 	}
 	if recoveringCount > 0 && repeatSeen {
 		return "告警已清零，但窗口内反复出现后进入恢复观察"

@@ -12,6 +12,21 @@ const STATUS_TONES = {
   gray: 'muted',
 }
 
+export const HEALTH_SCORE_CRITICAL_THRESHOLD = 60
+export const HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD = 80
+export const abnormalSystemsHelpText = `健康度低于 ${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD} 分，或存在关注/异常指标时计入异常系统。`
+
+export const healthScoreLegendItems = [
+  { status: 'green', range: `${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD}-100分`, label: '正常' },
+  {
+    status: 'yellow',
+    range: `${HEALTH_SCORE_CRITICAL_THRESHOLD}-${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD - 1}分`,
+    label: '关注',
+  },
+  { status: 'red', range: `0-${HEALTH_SCORE_CRITICAL_THRESHOLD - 1}分`, label: '异常' },
+  { status: 'gray', range: '无可评分数据', label: '无数据' },
+]
+
 const VALID_STATUSES = new Set(['red', 'yellow', 'green', 'gray'])
 const TREND_COLOR_ROLES = {
   resourceShift: 'resourceShift',
@@ -26,13 +41,13 @@ const TREND_UNITS = {
   errorLog: 'count',
 }
 const METRIC_SOURCE_TITLES = {
-  resource: '数据来源：Pod 资源水位',
-  resourceShift: '数据来源：Pod / 服务资源指标，对比 24h 基线',
-  errorRate: '数据来源：Trace 请求指标，系统错误请求数 / 总请求数',
-  latency: '数据来源：Trace 请求指标，系统总耗时 / 总请求数',
-  errorLog: '数据来源：日志指标，error / critical / exception 总数',
-  badRequests: '数据来源：告警事件，当前 firing 告警数',
-  lockCost: '数据来源：eBPF 锁等待指标，按请求数均摊',
+  resource: '当前窗口内 CPU 或内存压力最高的 Pod 水位。',
+  resourceShift: '当前窗口的 CPU 或内存用量，相比 24 小时前同一时间段的最大变化。',
+  errorRate: '当前窗口内失败请求占全部请求的比例。',
+  latency: '当前窗口内所有请求的平均响应时间。',
+  errorLog: '当前窗口内 error、critical 和 exception 日志总数。',
+  badRequests: '当前仍在触发中的告警数量。',
+  lockCost: '当前窗口内每个请求平均分摊到的锁等待耗时。',
 }
 
 const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
@@ -80,6 +95,21 @@ const compactResourceNote = (note, status, value) => {
 const compactMetricNote = (key, note, status, value) => {
   if (key === 'resource') return compactResourceNote(note, status, value)
   return safeText(note) || '暂无指标说明'
+}
+
+const metricDisplayValue = (value) => {
+  const text = safeText(value)
+  return !text || text === '--' ? '暂无数据' : text
+}
+
+const countDisplayValue = (value) => {
+  const text = metricDisplayValue(value)
+  return text === '暂无数据' || /\D/.test(text) ? text : `${text} 个`
+}
+
+const logCountDisplayValue = (value) => {
+  const text = metricDisplayValue(value)
+  return text === '暂无数据' || /\D/.test(text) ? text : `${text} 条`
 }
 
 const normalizeSeries = (series) => {
@@ -158,7 +188,7 @@ export const metricSourceTitleFor = (key, detail = {}) => {
   if (key !== 'resource') return title
   const sourceName = sourceObjectName(detail.source)
   if (!sourceName) return title
-  return `${title}，最高水位 Pod：${sourceName}`
+  return `${title}最高水位 Pod：${sourceName}`
 }
 
 export const safePercent = (numerator, denominator) => {
@@ -179,88 +209,42 @@ const summaryNumber = (value) => {
   return Number.isFinite(number) ? number : 0
 }
 
-const metricStatusLeaders = (systems = [], metricDefinitions = [], statuses = []) => {
-  const statusSet = new Set(statuses)
-  return metricDefinitions
-    .map(([key, label], index) => ({
-      key,
-      label,
-      index,
-      count: systems.reduce(
-        (total, system) => (statusSet.has(system?.metrics?.[key]) ? total + 1 : total),
-        0,
-      ),
-    }))
-    .filter((item) => item.count > 0)
-    .sort((left, right) => {
-      if (left.count !== right.count) return right.count - left.count
-      return left.index - right.index
-    })
-}
-
-const severeSystemLeaders = (systems = []) =>
-  systems
-    .map((system, index) => ({
-      name: safeText(system?.name),
-      index,
-      count: Object.values(system?.metrics || {}).filter((status) => status === 'red').length,
-    }))
-    .filter((item) => item.name && item.count > 0)
-    .sort((left, right) => {
-      if (left.count !== right.count) return right.count - left.count
-      return left.index - right.index
-    })
-
-export const buildOverviewSummaryCards = (summary = {}, systems = [], metricDefinitions = []) => {
+export const buildOverviewSummaryCards = (summary = {}, systems = []) => {
   const totalSystems = summaryNumber(summary.totalSystems) || systems.length
   const abnormalSystems = summaryNumber(summary.abnormalSystems)
-  const lowScoreSystems = summaryNumber(summary.lowScoreSystems)
   const abnormalMetrics = summaryNumber(summary.abnormalMetrics)
   const severeMetrics = summaryNumber(summary.severeMetrics)
-  const newAbnormalMetrics = summaryNumber(
-    summary.newAbnormalMetrics ?? summary.recentAbnormalMetrics,
+  const generalMetrics = summaryNumber(
+    summary.generalMetrics ??
+      summary.warningMetrics ??
+      summary.yellowMetrics ??
+      Math.max(abnormalMetrics - severeMetrics, 0),
   )
-  const abnormalMetricLabels = metricStatusLeaders(systems, metricDefinitions, ['red', 'yellow'])
-    .slice(0, 3)
-    .map((item) => item.label)
-  const severeSystemNames = severeSystemLeaders(systems)
-    .slice(0, 3)
-    .map((item) => item.name)
 
   return [
     {
       key: 'abnormalSystems',
       label: '异常系统',
+      help: abnormalSystemsHelpText,
       value: `${abnormalSystems} / ${totalSystems}`,
-      caption: `${lowScoreSystems} 个健康度低于 60`,
-      percent: safePercent(abnormalSystems, totalSystems),
+      numerator: abnormalSystems,
+      denominator: totalSystems,
+      highlightNumerator: abnormalSystems > 0,
       tone: 'critical',
-      visual: 'ring',
-    },
-    {
-      key: 'abnormalMetrics',
-      label: '异常指标',
-      value: abnormalMetrics,
-      caption: abnormalMetricLabels.length
-        ? `${abnormalMetricLabels.join('、')}占比最高`
-        : '暂无异常指标',
-      tone: 'warning',
-      visual: 'number',
+      visual: 'ratio',
     },
     {
       key: 'severeMetrics',
       label: '严重异常',
       value: severeMetrics,
-      caption: severeSystemNames.length ? `集中在${severeSystemNames.join('、')}` : '暂无红灯指标',
       tone: 'critical',
       visual: 'number',
     },
     {
-      key: 'newAbnormalMetrics',
-      label: '新增异常',
-      value: newAbnormalMetrics,
-      caption: '最近 10 分钟新增',
-      tone: newAbnormalMetrics > 0 ? 'warning' : 'neutral',
+      key: 'generalMetrics',
+      label: '一般异常',
+      value: generalMetrics,
+      tone: 'warning',
       visual: 'number',
     },
   ]
@@ -270,8 +254,15 @@ const effectiveSystemStatus = (system = {}) => {
   if (!Array.isArray(system.services) || system.services.length === 0 || system.status === 'gray') {
     return 'gray'
   }
-  if (Number(system.score) < 60 || hasStatus(system.metrics, 'red')) return 'red'
-  if (Number(system.score) < 80 || hasStatus(system.metrics, 'yellow')) return 'yellow'
+  if (Number(system.score) < HEALTH_SCORE_CRITICAL_THRESHOLD || hasStatus(system.metrics, 'red')) {
+    return 'red'
+  }
+  if (
+    Number(system.score) < HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD ||
+    hasStatus(system.metrics, 'yellow')
+  ) {
+    return 'yellow'
+  }
   return 'green'
 }
 
@@ -291,7 +282,7 @@ export const buildStatusDistribution = (systems = []) => {
 
 export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
   const status = normalizeStatus(detail.status || fallbackStatus)
-  const value = safeText(detail.value) || '--'
+  const value = metricDisplayValue(detail.value)
   const base = {
     status,
     tone: statusTone(status),
@@ -326,7 +317,6 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       ...(chart ? { chart } : {}),
       percent: shiftPercent === null ? statusRatio(status) : safePercent(shiftPercent, 60),
       helper: '相对 24h 基线',
-      marker: '60%',
     }
   }
 
@@ -335,9 +325,9 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       kind: 'counter',
       ...base,
       ...(chart ? { chart } : {}),
+      value: logCountDisplayValue(detail.value),
       percent: statusRatio(status),
       helper: '窗口计数',
-      marker: '严重度',
     }
   }
 
@@ -345,8 +335,8 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
     return {
       kind: 'number',
       ...base,
-      helper: '活动告警',
-      marker: '当前值',
+      value: countDisplayValue(detail.value),
+      helper: '活跃告警',
     }
   }
 
@@ -357,7 +347,6 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       ...(chart ? { chart } : {}),
       percent: statusRatio(status),
       helper: '延时风险',
-      marker: '状态',
     }
   }
 
@@ -366,7 +355,6 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       kind: 'number',
       ...base,
       helper: '锁等待均摊',
-      marker: '当前值',
     }
   }
 
@@ -376,7 +364,6 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
     ...(chart ? { chart } : {}),
     percent: statusRatio(status),
     helper: '状态风险',
-    marker: '状态',
   }
 }
 
@@ -404,7 +391,7 @@ export const buildMetricTrendOption = (chart = {}, colors = {}) => {
     },
   }
 
-  if (thresholds.length) {
+  if (chart.key !== 'resourceShift' && thresholds.length) {
     optionSeries.markLine = {
       symbol: 'none',
       silent: true,

@@ -157,12 +157,14 @@ func TestBuildSystemHealthPendingIssuesAggregatesAllAccessibleSystems(t *testing
 					Name:  "order-api",
 					Score: 35,
 					Metrics: map[string]string{
-						healthMetricErrorRate: healthStatusRed,
-						healthMetricLatency:   healthStatusYellow,
+						healthMetricErrorRate:   healthStatusRed,
+						healthMetricLatency:     healthStatusYellow,
+						healthMetricBadRequests: healthStatusYellow,
 					},
 					MetricDetails: map[string]response.SystemHealthMetricDetail{
-						healthMetricErrorRate: {Status: healthStatusRed, Value: "5.70%", Note: "错误率超过异常阈值"},
-						healthMetricLatency:   {Status: healthStatusYellow, Value: "380ms", Note: "响应延时升高"},
+						healthMetricErrorRate:   {Status: healthStatusRed, Value: "5.70%", Note: "错误率超过异常阈值"},
+						healthMetricLatency:     {Status: healthStatusYellow, Value: "380ms", Note: "响应延时升高"},
+						healthMetricBadRequests: {Status: healthStatusYellow, Value: "3", Note: "当前活跃告警数"},
 					},
 				},
 			},
@@ -171,8 +173,8 @@ func TestBuildSystemHealthPendingIssuesAggregatesAllAccessibleSystems(t *testing
 
 	issues := buildSystemHealthPendingIssues(systems, 20)
 
-	if len(issues) != 3 {
-		t.Fatalf("expected three pending issues, got %d: %+v", len(issues), issues)
+	if len(issues) != 4 {
+		t.Fatalf("expected four pending issues, got %d: %+v", len(issues), issues)
 	}
 	first := issues[0]
 	if first.GroupID != 101 || first.SystemName != "订单系统" || first.ServiceName != "order-api" || first.MetricKey != healthMetricErrorRate {
@@ -186,6 +188,16 @@ func TestBuildSystemHealthPendingIssuesAggregatesAllAccessibleSystems(t *testing
 	}
 	if issues[1].MetricKey != healthMetricLatency || issues[1].GroupID != 101 {
 		t.Fatalf("expected lower-score yellow issue second, got %+v", issues[1])
+	}
+	badRequestsIssue := response.SystemHealthPendingIssue{}
+	for _, issue := range issues {
+		if issue.MetricKey == healthMetricBadRequests {
+			badRequestsIssue = issue
+			break
+		}
+	}
+	if badRequestsIssue.MetricLabel != "活跃告警" {
+		t.Fatalf("expected badRequests issue label to be active alerts, got %+v", badRequestsIssue)
 	}
 }
 
@@ -399,7 +411,7 @@ func TestSystemHealthOverviewWorkerContextUsesSnapshots(t *testing.T) {
 	}
 }
 
-func TestSystemHealthOverviewExtraMetricTimeoutCapsHistoricalWindows(t *testing.T) {
+func TestSystemHealthOverviewExtraMetricTimeoutCapsCurrentAndHistoricalWindows(t *testing.T) {
 	if timeout := systemHealthOverviewExtraMetricTimeout("current"); timeout != 2*time.Second {
 		t.Fatalf("expected current window extra metrics timeout 2s, got %s", timeout)
 	}

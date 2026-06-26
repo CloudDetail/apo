@@ -32,9 +32,9 @@ func TestCallSystemHealthPendingIssueAIUsesMetricContext(t *testing.T) {
 			"impact":"请求失败会直接影响订单系统核心链路。",
 			"actionPlan":[
 				{"phase":"定位失败","target":"order-api","action":"按接口和状态码聚合最近窗口失败请求，确认错误是否集中在单一接口。","validation":"确认错误率回落且失败请求不再集中增长。","risk":"若只看平均值可能遗漏局部接口失败。"},
-				{"phase":"验证恢复","target":"订单系统","action":"处理后回看错误率和异常请求指标，确认系统健康分同步恢复。","validation":"观察连续两个窗口错误率保持稳定。","risk":"短时恢复后仍可能再次波动。"}
+				{"phase":"验证恢复","target":"订单系统","action":"处理后回看错误率和活跃告警指标，确认系统健康分同步恢复。","validation":"观察连续两个窗口错误率保持稳定。","risk":"短时恢复后仍可能再次波动。"}
 			],
-			"validation":"确认错误率和异常请求指标回到稳定区间。",
+			"validation":"确认错误率和活跃告警指标回到稳定区间。",
 			"risk":"当前分析只基于系统健康指标，未包含日志和 Trace 下钻证据。",
 			"dataBoundary":"仅基于当前待处理指标上下文生成。"
 		}`

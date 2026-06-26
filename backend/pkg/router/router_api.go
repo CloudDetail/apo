@@ -79,6 +79,7 @@ func setApiRouter(r *resource) {
 	{
 		systemHealthHandler := systemhealth.New(r.ch, r.pkg_db, r.dify, r.k8sApi, r.prom, appconfig.Get().AlertManager.Address, appconfig.Get().VMAlert.Address)
 		systemHealthApi.GET("/overview", systemHealthHandler.GetOverview())
+		systemHealthApi.GET("/new-abnormal-metrics", systemHealthHandler.GetNewAbnormalMetrics())
 		systemHealthApi.GET("/overview/:groupId", systemHealthHandler.GetSystemDetail())
 		systemHealthApi.POST("/pending-issues/analyze", systemHealthHandler.AnalyzePendingIssue())
 		systemHealthApi.GET("/report", systemHealthHandler.GetReport())
