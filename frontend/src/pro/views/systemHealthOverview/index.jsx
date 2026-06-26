@@ -838,11 +838,10 @@ export default function SystemHealthOverviewPage() {
 
     return (
       <div className="sho-threshold-popover">
-        <div className="sho-threshold-popover-title">异常标准</div>
+        <div className="sho-threshold-popover-title">异常判定</div>
         <div className="sho-threshold-rule">
-          健康度低于 <b>{abnormalScoreThreshold}</b> 分，就算异常。
+          健康度低于 <b>{abnormalScoreThreshold}</b> 分时，系统判定为异常。
         </div>
-        <div className="sho-threshold-note">所有人使用同一个设置。</div>
         <Space className="sho-threshold-editor" size={6}>
           <span className="sho-muted">健康度低于</span>
           <InputNumber

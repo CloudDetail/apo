@@ -638,12 +638,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sho-threshold-note {
-  color: var(--ant-color-text-tertiary);
-  font-size: 12px;
-  line-height: 18px;
-}
-
 .sho-threshold-editor {
   align-items: center;
   flex-wrap: nowrap;
