@@ -1212,7 +1212,7 @@ export default function SystemHealthOverviewPage() {
                 </div>
                 <Space wrap size={8}>
                   <Space size={6}>
-                    <span className="sho-muted">只看异常</span>
+                    <span className="sho-muted">只看异常系统</span>
                     <Switch
                       checked={onlyAbnormal}
                       checkedChildren="开"
