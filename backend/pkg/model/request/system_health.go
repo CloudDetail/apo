@@ -23,6 +23,10 @@ type GetSystemHealthNewAbnormalMetricsRequest struct {
 	EndTime      int64  `form:"endTime"`
 }
 
+type UpdateSystemHealthConfigRequest struct {
+	AbnormalScoreThreshold int `json:"abnormalScoreThreshold" binding:"required,min=1,max=100"`
+}
+
 type GetSystemHealthSystemDetailRequest struct {
 	GroupID int64 `uri:"groupId" binding:"required"`
 

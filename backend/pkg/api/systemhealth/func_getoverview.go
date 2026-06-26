@@ -165,7 +165,15 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 		zap.Int("systems", len(systems)),
 	)...)
 
-	summary := buildSystemHealthOverviewSummary(systems)
+	configResp, err := h.systemHealthConfig(ctx)
+	if err != nil {
+		systemHealthWarn("system-health overview config failed, using default threshold", systemHealthStageFields(ctx, buildStartedAt, "04_config",
+			zap.Error(err),
+		)...)
+	}
+	abnormalThreshold := normalizeSystemHealthAbnormalScoreThreshold(configResp.AbnormalScoreThreshold)
+
+	summary := buildSystemHealthOverviewSummary(systems, abnormalThreshold)
 	if !req.SkipNewAbnormalMetrics {
 		newAbnormalMetrics, err := h.calculateNewAbnormalMetrics(ctx, endTime, groups)
 		if err != nil {
@@ -181,6 +189,7 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 		Summary:       summary,
 		Systems:       systems,
 		PendingIssues: buildSystemHealthPendingIssues(systems, 20),
+		Config:        response.SystemHealthConfigResp{AbnormalScoreThreshold: abnormalThreshold},
 		Window:        window,
 		GeneratedAt:   time.Now().Format(time.RFC3339),
 		Source:        systemHealthSourceDataGroup,
@@ -651,7 +660,8 @@ func systemHealthTrendStep(startTime time.Time, endTime time.Time) time.Duration
 	return step
 }
 
-func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, previousSystems ...[]response.SystemHealthSystem) response.SystemHealthOverviewSummary {
+func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, abnormalThreshold int, previousSystems ...[]response.SystemHealthSystem) response.SystemHealthOverviewSummary {
+	abnormalThreshold = normalizeSystemHealthAbnormalScoreThreshold(abnormalThreshold)
 	summary := response.SystemHealthOverviewSummary{TotalSystems: len(systems)}
 	for _, system := range systems {
 		summary.Services += len(system.Services)
@@ -662,12 +672,12 @@ func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, pre
 			if system.Score < 60 {
 				summary.LowScoreSystems++
 			}
-			if system.Score < 80 || hasAbnormalMetric(system.Metrics) {
+			if system.Score < abnormalThreshold {
 				summary.AbnormalSystems++
 			}
 		}
 		for _, service := range system.Services {
-			if service.Score < 80 || hasAbnormalMetric(service.Metrics) {
+			if service.Score < abnormalThreshold {
 				summary.AbnormalServices++
 			}
 		}
@@ -719,15 +729,6 @@ func systemOverviewKey(system response.SystemHealthSystem) string {
 
 func isAbnormalMetricStatus(status string) bool {
 	return status == healthStatusRed || status == healthStatusYellow
-}
-
-func hasAbnormalMetric(metrics map[string]string) bool {
-	for _, status := range metrics {
-		if isAbnormalMetricStatus(status) {
-			return true
-		}
-	}
-	return false
 }
 
 func buildSystemHealthPendingIssues(systems []response.SystemHealthSystem, limit int) []response.SystemHealthPendingIssue {

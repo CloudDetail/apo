@@ -36,6 +36,8 @@ type Repo interface {
 	CreateOrUpdateThreshold(ctx core.Context, model *Threshold) error
 	GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error
+	GetOrCreateSystemHealthConfig(ctx core.Context) (SystemHealthConfig, error)
+	UpdateSystemHealthConfig(ctx core.Context, abnormalScoreThreshold int) (SystemHealthConfig, error)
 	OperateLogTableInfo(ctx core.Context, model *LogTableInfo, op Operator) error
 	GetAllLogTable(ctx core.Context) ([]LogTableInfo, error)
 	UpdateLogParseRule(ctx core.Context, model *LogTableInfo) error
@@ -358,6 +360,7 @@ func migrateTable(db *gorm.DB) error {
 		&profile.UserRole{},
 		&Router{},
 		&Threshold{},
+		&SystemHealthConfig{},
 		&profile.User{},
 		&API{},
 		&AuthDataGroup{},

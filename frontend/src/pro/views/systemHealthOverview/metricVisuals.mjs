@@ -14,7 +14,16 @@ const STATUS_TONES = {
 
 export const HEALTH_SCORE_CRITICAL_THRESHOLD = 60
 export const HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD = 80
-export const abnormalSystemsHelpText = `健康度低于 ${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD} 分，或存在关注/异常指标时计入异常系统。`
+export const DEFAULT_ABNORMAL_SCORE_THRESHOLD = 80
+export const normalizeAbnormalScoreThreshold = (value) => {
+  const number = Number(value)
+  if (!Number.isFinite(number)) return DEFAULT_ABNORMAL_SCORE_THRESHOLD
+  const threshold = Math.trunc(number)
+  if (threshold < 1 || threshold > 100) return DEFAULT_ABNORMAL_SCORE_THRESHOLD
+  return threshold
+}
+export const abnormalSystemsHelpText = (threshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD) =>
+  `当前阈值：低于 ${normalizeAbnormalScoreThreshold(threshold)} 分计入异常系统。`
 
 export const healthScoreLegendItems = [
   { status: 'green', range: `${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD}-100分`, label: '正常' },
@@ -209,7 +218,11 @@ const summaryNumber = (value) => {
   return Number.isFinite(number) ? number : 0
 }
 
-export const buildOverviewSummaryCards = (summary = {}, systems = []) => {
+export const buildOverviewSummaryCards = (
+  summary = {},
+  systems = [],
+  abnormalScoreThreshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD,
+) => {
   const totalSystems = summaryNumber(summary.totalSystems) || systems.length
   const abnormalSystems = summaryNumber(summary.abnormalSystems)
   const abnormalMetrics = summaryNumber(summary.abnormalMetrics)
@@ -225,7 +238,7 @@ export const buildOverviewSummaryCards = (summary = {}, systems = []) => {
     {
       key: 'abnormalSystems',
       label: '异常系统',
-      help: abnormalSystemsHelpText,
+      help: abnormalSystemsHelpText(abnormalScoreThreshold),
       value: `${abnormalSystems} / ${totalSystems}`,
       numerator: abnormalSystems,
       denominator: totalSystems,

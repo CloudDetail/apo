@@ -4,6 +4,8 @@ import {
   Alert,
   Button,
   Input,
+  InputNumber,
+  message,
   Pagination,
   Select,
   Space,
@@ -14,7 +16,7 @@ import {
   Tooltip,
 } from 'antd'
 import ReactECharts from 'echarts-for-react'
-import { ArrowLeft, CircleAlert, HelpCircle, Search, Sparkles, TriangleAlert } from 'lucide-react'
+import { ArrowLeft, CircleAlert, HelpCircle, Save, Search, Sparkles, TriangleAlert } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { MetricsLineChartColor } from 'src/constants'
@@ -22,16 +24,19 @@ import {
   analyzeSystemHealthPendingIssueApi,
   getSystemHealthOverviewApi,
   getSystemHealthSystemDetailApi,
+  setSystemHealthConfigApi,
 } from 'src/pro/api/serviceHealthy'
 import {
   buildMetricTrendOption,
   buildOverviewSummaryCards,
   buildStatusDistribution,
+  DEFAULT_ABNORMAL_SCORE_THRESHOLD,
   HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD,
   HEALTH_SCORE_CRITICAL_THRESHOLD,
   healthScoreLegendItems,
   metricSourceTitleFor,
   metricVisualFor,
+  normalizeAbnormalScoreThreshold,
   safePercent,
 } from './metricVisuals.mjs'
 import { buildPendingIssueQueueRows } from './pendingIssueQueue.mjs'
@@ -152,11 +157,10 @@ const normalizeMetrics = (metrics = {}) =>
 const serviceSeverity = (service) =>
   Object.values(service.metrics).reduce((sum, status) => sum + severityValue(status), 0)
 
-const isAbnormal = (system) =>
+const isAbnormal = (system, threshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD) =>
   system.status !== 'gray' &&
   system.services?.length > 0 &&
-  (system.score < 80 ||
-    Object.values(system.metrics).some((value) => value === 'red' || value === 'yellow'))
+  system.score < normalizeAbnormalScoreThreshold(threshold)
 
 const statusCount = (metrics, status) =>
   Object.values(metrics).filter((value) => value === status).length
@@ -586,6 +590,11 @@ export default function SystemHealthOverviewPage() {
   const overviewRequestTimerRef = useRef(null)
   const [systems, setSystems] = useState([])
   const [summary, setSummary] = useState({})
+  const [abnormalScoreThreshold, setAbnormalScoreThreshold] = useState(
+    DEFAULT_ABNORMAL_SCORE_THRESHOLD,
+  )
+  const [thresholdDraft, setThresholdDraft] = useState(DEFAULT_ABNORMAL_SCORE_THRESHOLD)
+  const [thresholdSaving, setThresholdSaving] = useState(false)
   const [pendingIssuePage, setPendingIssuePage] = useState(DEFAULT_PENDING_ISSUE_PAGE)
   const [pendingIssuePageSize, setPendingIssuePageSize] = useState(DEFAULT_PENDING_ISSUE_PAGE_SIZE)
   const [issueAnalyses, setIssueAnalyses] = useState({})
@@ -645,7 +654,10 @@ export default function SystemHealthOverviewPage() {
       })
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
       const nextSystems = Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : []
+      const nextThreshold = normalizeAbnormalScoreThreshold(resp?.config?.abnormalScoreThreshold)
       setSystems(nextSystems)
+      setAbnormalScoreThreshold(nextThreshold)
+      setThresholdDraft(nextThreshold)
       setSummary(resp?.summary || {})
     } catch (error) {
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
@@ -721,14 +733,14 @@ export default function SystemHealthOverviewPage() {
   const overviewSystems = useMemo(
     () =>
       systems
-        .filter((system) => !onlyAbnormal || isAbnormal(system))
+        .filter((system) => !onlyAbnormal || isAbnormal(system, abnormalScoreThreshold))
         .filter(
           (system) =>
             !systemKeyword.trim() ||
             system.name.toLowerCase().includes(systemKeyword.trim().toLowerCase()),
         )
         .sort((left, right) => left.score - right.score),
-    [systems, onlyAbnormal, systemKeyword],
+    [systems, onlyAbnormal, systemKeyword, abnormalScoreThreshold],
   )
   const allPendingIssues = useMemo(
     () => buildPendingIssuesFromSystems(systems).map(normalizePendingIssue),
@@ -783,6 +795,31 @@ export default function SystemHealthOverviewPage() {
   const handlePendingIssuePageChange = (page, pageSize) => {
     setPendingIssuePage(page)
     setPendingIssuePageSize(pageSize)
+  }
+
+  const saveAbnormalScoreThreshold = async () => {
+    const nextThreshold = normalizeAbnormalScoreThreshold(thresholdDraft)
+    setThresholdDraft(nextThreshold)
+    if (nextThreshold === abnormalScoreThreshold) return
+
+    setThresholdSaving(true)
+    try {
+      const resp = await setSystemHealthConfigApi({
+        abnormalScoreThreshold: nextThreshold,
+      })
+      const savedThreshold = normalizeAbnormalScoreThreshold(
+        resp?.abnormalScoreThreshold ?? nextThreshold,
+      )
+      setAbnormalScoreThreshold(savedThreshold)
+      setThresholdDraft(savedThreshold)
+      message.success('异常阈值已更新')
+      await loadOverview()
+    } catch (error) {
+      message.error(error?.message || '异常阈值保存失败')
+      setThresholdDraft(abnormalScoreThreshold)
+    } finally {
+      setThresholdSaving(false)
+    }
   }
 
   const analyzeIssue = async (issue, analysisKey) => {
@@ -1051,7 +1088,7 @@ export default function SystemHealthOverviewPage() {
     })
     const overviewState = renderOverviewState()
     const statusDistribution = buildStatusDistribution(systems)
-    const summaryCards = buildOverviewSummaryCards(summary, systems)
+    const summaryCards = buildOverviewSummaryCards(summary, systems, abnormalScoreThreshold)
 
     return (
       <>
@@ -1111,6 +1148,28 @@ export default function SystemHealthOverviewPage() {
                   </Tooltip>
                 </div>
                 <Space wrap size={8}>
+                  <Space className="sho-threshold-control" size={4}>
+                    <span className="sho-muted">异常阈值</span>
+                    <span className="sho-muted">低于</span>
+                    <InputNumber
+                      max={100}
+                      min={1}
+                      precision={0}
+                      size="small"
+                      value={thresholdDraft}
+                      onChange={(value) => setThresholdDraft(value)}
+                      onPressEnter={saveAbnormalScoreThreshold}
+                    />
+                    <span className="sho-muted">分</span>
+                    <Button
+                      icon={<Save size={13} />}
+                      loading={thresholdSaving}
+                      size="small"
+                      onClick={saveAbnormalScoreThreshold}
+                    >
+                      保存
+                    </Button>
+                  </Space>
                   <Space size={6}>
                     <span className="sho-muted">只看异常</span>
                     <Switch

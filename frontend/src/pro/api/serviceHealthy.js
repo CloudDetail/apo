@@ -14,6 +14,14 @@ export const getSystemHealthSystemDetailApi = (groupId, params) => {
   return get(`/api/system-health/overview/${groupId}`, params)
 }
 
+export const getSystemHealthConfigApi = () => {
+  return get('/api/system-health/config')
+}
+
+export const setSystemHealthConfigApi = (data) => {
+  return post('/api/system-health/config', data)
+}
+
 export const analyzeSystemHealthPendingIssueApi = (data) => {
   return post('/api/system-health/pending-issues/analyze', data)
 }

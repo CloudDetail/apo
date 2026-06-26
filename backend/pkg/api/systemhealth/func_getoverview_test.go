@@ -228,6 +228,70 @@ func TestBuildSystemHealthPendingIssuesHonorsLimit(t *testing.T) {
 	}
 }
 
+func TestBuildSystemHealthOverviewSummaryUsesScoreThresholdOnly(t *testing.T) {
+	systems := []response.SystemHealthSystem{
+		{
+			GroupID: 101,
+			Name:    "订单系统",
+			Score:   79,
+			Services: []response.SystemHealthService{
+				{Name: "order-api", Score: 79},
+			},
+			Metrics: map[string]string{
+				healthMetricErrorRate: healthStatusGreen,
+			},
+		},
+		{
+			GroupID: 102,
+			Name:    "支付系统",
+			Score:   80,
+			Services: []response.SystemHealthService{
+				{Name: "payment-api", Score: 80},
+			},
+			Metrics: map[string]string{
+				healthMetricLatency: healthStatusRed,
+			},
+		},
+		{
+			GroupID: 103,
+			Name:    "库存系统",
+			Score:   95,
+			Services: []response.SystemHealthService{
+				{Name: "inventory-api", Score: 95},
+			},
+			Metrics: map[string]string{
+				healthMetricErrorLog: healthStatusYellow,
+			},
+		},
+		{
+			GroupID: 104,
+			Name:    "空系统",
+			Score:   0,
+			Metrics: map[string]string{
+				healthMetricLatency: healthStatusRed,
+			},
+		},
+	}
+
+	summary := buildSystemHealthOverviewSummary(systems, 80)
+
+	if summary.AbnormalSystems != 1 {
+		t.Fatalf("expected only the below-threshold system to be abnormal, got %d", summary.AbnormalSystems)
+	}
+	if summary.AbnormalServices != 1 {
+		t.Fatalf("expected only the below-threshold service to be abnormal, got %d", summary.AbnormalServices)
+	}
+	if summary.AbnormalMetrics != 3 {
+		t.Fatalf("expected red/yellow metric counting to stay unchanged, got %d", summary.AbnormalMetrics)
+	}
+	if summary.SevereMetrics != 2 {
+		t.Fatalf("expected red metric counting to stay unchanged, got %d", summary.SevereMetrics)
+	}
+	if summary.NoDataSystems != 1 {
+		t.Fatalf("expected no-data system count to stay unchanged, got %d", summary.NoDataSystems)
+	}
+}
+
 func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) {
 	current := []response.SystemHealthSystem{
 		{
@@ -274,10 +338,10 @@ func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) 
 		},
 	}
 
-	summary := buildSystemHealthOverviewSummary(current, previous)
+	summary := buildSystemHealthOverviewSummary(current, 80, previous)
 
-	if summary.AbnormalSystems != 2 {
-		t.Fatalf("expected two abnormal systems, got %d", summary.AbnormalSystems)
+	if summary.AbnormalSystems != 1 {
+		t.Fatalf("expected one abnormal system by score only, got %d", summary.AbnormalSystems)
 	}
 	if summary.AbnormalMetrics != 3 {
 		t.Fatalf("expected three abnormal metrics, got %d", summary.AbnormalMetrics)
@@ -287,6 +351,18 @@ func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) 
 	}
 	if summary.NewAbnormalMetrics != 2 {
 		t.Fatalf("expected two newly abnormal metrics, got %d", summary.NewAbnormalMetrics)
+	}
+}
+
+func TestNormalizeSystemHealthAbnormalScoreThresholdFallsBackToDefault(t *testing.T) {
+	if got := normalizeSystemHealthAbnormalScoreThreshold(75); got != 75 {
+		t.Fatalf("expected valid threshold to be kept, got %d", got)
+	}
+	if got := normalizeSystemHealthAbnormalScoreThreshold(0); got != 80 {
+		t.Fatalf("expected low threshold to fall back to 80, got %d", got)
+	}
+	if got := normalizeSystemHealthAbnormalScoreThreshold(101); got != 80 {
+		t.Fatalf("expected high threshold to fall back to 80, got %d", got)
 	}
 }
 

@@ -7,9 +7,14 @@ type SystemHealthOverviewResp struct {
 	Summary       SystemHealthOverviewSummary `json:"summary"`
 	Systems       []SystemHealthSystem        `json:"systems"`
 	PendingIssues []SystemHealthPendingIssue  `json:"pendingIssues"`
+	Config        SystemHealthConfigResp      `json:"config"`
 	Window        string                      `json:"window"`
 	GeneratedAt   string                      `json:"generatedAt"`
 	Source        string                      `json:"source"`
+}
+
+type SystemHealthConfigResp struct {
+	AbnormalScoreThreshold int `json:"abnormalScoreThreshold"`
 }
 
 type SystemHealthNewAbnormalMetricsResp struct {

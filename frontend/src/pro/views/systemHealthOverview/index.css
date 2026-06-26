@@ -576,6 +576,14 @@
   width: 220px;
 }
 
+.sho-threshold-control {
+  flex-wrap: nowrap;
+}
+
+.sho-threshold-control .ant-input-number {
+  width: 68px;
+}
+
 .sho-legend {
   display: flex;
   align-items: center;
@@ -1452,6 +1460,10 @@
   .sho-panel-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .sho-threshold-control {
+    width: 100%;
   }
 
   .sho-metric-grid {
