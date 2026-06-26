@@ -7,6 +7,7 @@ import {
   InputNumber,
   message,
   Pagination,
+  Popover,
   Select,
   Space,
   Spin,
@@ -16,7 +17,16 @@ import {
   Tooltip,
 } from 'antd'
 import ReactECharts from 'echarts-for-react'
-import { ArrowLeft, CircleAlert, HelpCircle, Save, Search, Sparkles, TriangleAlert } from 'lucide-react'
+import {
+  ArrowLeft,
+  CircleAlert,
+  HelpCircle,
+  Save,
+  Search,
+  Settings,
+  Sparkles,
+  TriangleAlert,
+} from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { MetricsLineChartColor } from 'src/constants'
@@ -822,6 +832,37 @@ export default function SystemHealthOverviewPage() {
     }
   }
 
+  const renderThresholdSettings = () => (
+    <div className="sho-threshold-popover">
+      <div className="sho-threshold-popover-title">异常判定</div>
+      <div className="sho-threshold-rule">
+        健康度低于 <b>{abnormalScoreThreshold}</b> 分的系统计入异常
+      </div>
+      <Space className="sho-threshold-editor" size={6}>
+        <span className="sho-muted">低于</span>
+        <InputNumber
+          max={100}
+          min={1}
+          precision={0}
+          size="small"
+          value={thresholdDraft}
+          onChange={(value) => setThresholdDraft(value)}
+          onPressEnter={saveAbnormalScoreThreshold}
+        />
+        <span className="sho-muted">分</span>
+        <Button
+          icon={<Save size={13} />}
+          loading={thresholdSaving}
+          size="small"
+          type="primary"
+          onClick={saveAbnormalScoreThreshold}
+        >
+          保存
+        </Button>
+      </Space>
+    </div>
+  )
+
   const analyzeIssue = async (issue, analysisKey) => {
     setIssueAnalyses((current) => ({
       ...current,
@@ -1108,7 +1149,21 @@ export default function SystemHealthOverviewPage() {
                   denominator={card.denominator}
                   highlightNumerator={card.highlightNumerator}
                   icon={
-                    card.key === 'severeMetrics' ? (
+                    card.key === 'abnormalSystems' ? (
+                      <Popover
+                        content={renderThresholdSettings()}
+                        placement="bottomLeft"
+                        trigger="click"
+                      >
+                        <Button
+                          aria-label="异常判定设置"
+                          className="sho-threshold-trigger"
+                          icon={<Settings size={15} />}
+                          size="small"
+                          type="text"
+                        />
+                      </Popover>
+                    ) : card.key === 'severeMetrics' ? (
                       <TriangleAlert
                         className="sho-summary-title-icon sho-summary-title-icon-critical"
                         size={17}
@@ -1148,28 +1203,6 @@ export default function SystemHealthOverviewPage() {
                   </Tooltip>
                 </div>
                 <Space wrap size={8}>
-                  <Space className="sho-threshold-control" size={4}>
-                    <span className="sho-muted">异常阈值</span>
-                    <span className="sho-muted">低于</span>
-                    <InputNumber
-                      max={100}
-                      min={1}
-                      precision={0}
-                      size="small"
-                      value={thresholdDraft}
-                      onChange={(value) => setThresholdDraft(value)}
-                      onPressEnter={saveAbnormalScoreThreshold}
-                    />
-                    <span className="sho-muted">分</span>
-                    <Button
-                      icon={<Save size={13} />}
-                      loading={thresholdSaving}
-                      size="small"
-                      onClick={saveAbnormalScoreThreshold}
-                    >
-                      保存
-                    </Button>
-                  </Space>
                   <Space size={6}>
                     <span className="sho-muted">只看异常</span>
                     <Switch

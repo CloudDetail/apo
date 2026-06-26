@@ -576,14 +576,6 @@
   width: 220px;
 }
 
-.sho-threshold-control {
-  flex-wrap: nowrap;
-}
-
-.sho-threshold-control .ant-input-number {
-  width: 68px;
-}
-
 .sho-legend {
   display: flex;
   align-items: center;
@@ -608,6 +600,50 @@
   font-size: 12px;
   font-weight: 650;
   line-height: 14px;
+}
+
+.sho-threshold-trigger {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  color: var(--ant-color-text-secondary);
+}
+
+.sho-threshold-trigger:hover {
+  color: var(--ant-color-primary);
+  background: var(--ant-color-fill-secondary);
+}
+
+.sho-threshold-popover {
+  width: 238px;
+  display: grid;
+  gap: 10px;
+}
+
+.sho-threshold-popover-title {
+  color: var(--ant-color-text);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 18px;
+}
+
+.sho-threshold-rule {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.sho-threshold-rule b {
+  color: #f04438;
+  font-variant-numeric: tabular-nums;
+}
+
+.sho-threshold-editor {
+  flex-wrap: nowrap;
+}
+
+.sho-threshold-editor .ant-input-number {
+  width: 68px;
 }
 
 .sho-lamp {
@@ -1460,10 +1496,6 @@
   .sho-panel-head {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .sho-threshold-control {
-    width: 100%;
   }
 
   .sho-metric-grid {
