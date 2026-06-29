@@ -24,7 +24,9 @@ type GetSystemHealthNewAbnormalMetricsRequest struct {
 }
 
 type UpdateSystemHealthConfigRequest struct {
-	AbnormalScoreThreshold int `json:"abnormalScoreThreshold" binding:"required,min=1,max=100"`
+	AbnormalScoreThreshold        int `json:"abnormalScoreThreshold"`
+	SevereAbnormalScoreThreshold  int `json:"severeAbnormalScoreThreshold" binding:"required,min=1,max=99"`
+	GeneralAbnormalScoreThreshold int `json:"generalAbnormalScoreThreshold" binding:"required,min=2,max=100"`
 }
 
 type GetSystemHealthSystemDetailRequest struct {

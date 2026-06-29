@@ -14,7 +14,9 @@ type SystemHealthOverviewResp struct {
 }
 
 type SystemHealthConfigResp struct {
-	AbnormalScoreThreshold int `json:"abnormalScoreThreshold"`
+	AbnormalScoreThreshold        int `json:"abnormalScoreThreshold"`
+	SevereAbnormalScoreThreshold  int `json:"severeAbnormalScoreThreshold"`
+	GeneralAbnormalScoreThreshold int `json:"generalAbnormalScoreThreshold"`
 }
 
 type SystemHealthNewAbnormalMetricsResp struct {

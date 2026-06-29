@@ -100,10 +100,60 @@ test('summary metric cards render their large values through Statistic', () => {
   assert.equal(viewSource.includes('<strong>{renderedValue}</strong>'), false)
 })
 
-test('abnormal system summary title renders a help tooltip', () => {
-  assert.ok(viewSource.includes('help={card.help}'))
-  assert.ok(viewSource.includes('title={help}'))
-  assert.ok(viewSource.includes('sho-summary-help'))
+test('abnormal system summary title uses a question tooltip while settings live in toolbar', () => {
+  assert.equal(viewSource.includes('help={card.help}'), false)
+  assert.match(viewSource, /help=\{card\.key === 'abnormalSystems' \? null : card\.help\}/)
+  assert.ok(viewSource.includes('className="sho-toolbar-actions"'))
+  assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
+  assert.ok(viewSource.includes('content={renderThresholdSettings()}'))
+  assert.ok(viewSource.includes('className="sho-summary-question-trigger"'))
+  assert.ok(viewSource.includes('当前健康度低于'))
+})
+
+test('abnormal system help can open threshold settings from its link', () => {
+  assert.ok(
+    viewSource.includes(
+      'const [thresholdSettingsOpen, setThresholdSettingsOpen] = useState(false)',
+    ),
+  )
+  assert.ok(viewSource.includes('open={thresholdSettingsOpen}'))
+  assert.ok(viewSource.includes('className="sho-abnormal-system-help-link"'))
+  assert.ok(viewSource.includes('前往设置'))
+  assert.ok(viewSource.includes('setThresholdSettingsOpen(true)'))
+})
+
+test('threshold popover separates input rows from status legend rows', () => {
+  const popoverDeclarations = declarationsFor('.sho-threshold-popover')
+  const inputDeclarations = declarationsFor('.sho-threshold-input-row')
+  const noteDeclarations = declarationsFor('.sho-threshold-abnormal-note')
+  const legendDeclarations = declarationsFor('.sho-threshold-legend-row')
+  const ringDeclarations = declarationsFor('.sho-threshold-status-ring')
+  const actionDeclarations = declarationsFor('.sho-threshold-actions')
+  const saveDeclarations = declarationsFor('.sho-threshold-save')
+  const toolbarTriggerDeclarations = declarationsFor('.sho-threshold-toolbar-trigger')
+  const summaryQuestionDeclarations = declarationsFor('.sho-summary-question-trigger')
+
+  assert.ok(viewSource.includes('className="sho-threshold-inputs"'))
+  assert.ok(viewSource.includes('className="sho-threshold-abnormal-note"'))
+  assert.ok(viewSource.includes('系统健康度低于 {generalThreshold} 分，计为异常系统'))
+  assert.ok(viewSource.includes('className="sho-threshold-legend"'))
+  assert.ok(viewSource.includes('<ThresholdStatusRing status="red" />'))
+  assert.ok(viewSource.includes('<ThresholdStatusRing status="yellow" />'))
+  assert.ok(viewSource.includes('<ThresholdStatusRing status="green" />'))
+  assert.ok(viewSource.includes('severeRange'))
+  assert.ok(viewSource.includes('一般异常（亚健康）'))
+  assert.ok(viewSource.includes('健康'))
+  assert.equal(viewSource.includes('icon={<Check'), false)
+  assert.ok(popoverDeclarations.includes('width: 360px'))
+  assert.ok(inputDeclarations.includes('grid-template-columns: auto 72px 1fr'))
+  assert.ok(noteDeclarations.includes('background: var(--ant-color-fill-quaternary)'))
+  assert.ok(noteDeclarations.includes('font-weight: 650'))
+  assert.ok(legendDeclarations.includes('grid-template-columns: 30px 76px minmax(0, 1fr)'))
+  assert.ok(ringDeclarations.some((declaration) => declaration.includes('conic-gradient')))
+  assert.ok(actionDeclarations.includes('justify-content: flex-end'))
+  assert.ok(saveDeclarations.includes('min-width: 64px'))
+  assert.ok(toolbarTriggerDeclarations.includes('height: 30px'))
+  assert.ok(summaryQuestionDeclarations.includes('width: 24px'))
 })
 
 test('summary Statistic value uses compact tabular digits beside the centered title', () => {
@@ -157,6 +207,8 @@ test('compact detail monitor aligns groups without changing theme colors', () =>
 test('compact detail score label style does not override the health ring score', () => {
   const labelDeclarations = declarationsFor('.sho-detail-compact-score-label')
 
+  assert.ok(labelDeclarations.includes('display: inline-flex'))
+  assert.ok(labelDeclarations.includes('align-items: center'))
   assert.ok(labelDeclarations.includes('font-size: 16px'))
   assert.ok(labelDeclarations.includes('line-height: 22px'))
   assert.ok(labelDeclarations.includes('font-weight: 700'))
@@ -200,20 +252,30 @@ test('compact detail exception icon uses error red', () => {
   assert.ok(declarations.includes('color: var(--ant-color-error)'))
 })
 
-test('health score tooltip reserves space for color examples and score ranges', () => {
+test('health score tooltip only keeps compact calculation copy', () => {
   const popoverDeclarations = declarationsFor('.sho-health-score-popover .ant-tooltip-inner')
-  const itemDeclarations = declarationsFor('.sho-health-score-help-item')
-  const ringDeclarations = declarationsFor('.sho-health-score-help-ring')
+  const helpDeclarations = declarationsFor('.sho-health-score-help')
 
-  assert.ok(popoverDeclarations.includes('width: 300px'))
-  assert.ok(itemDeclarations.includes('grid-template-columns: 30px minmax(0, 1fr) auto'))
-  assert.ok(ringDeclarations.includes('width: 30px'))
-  assert.ok(ringDeclarations.includes('height: 30px'))
+  assert.ok(popoverDeclarations.includes('width: 260px'))
+  assert.ok(helpDeclarations.includes('font-size: 12px'))
+  assert.ok(helpDeclarations.includes('line-height: 1.55'))
+  assert.equal(css.includes('.sho-health-score-help-ring'), false)
+  assert.equal(css.includes('.sho-health-score-help-range'), false)
+})
+
+test('health score range tooltip shows score bands with ring samples', () => {
+  const popoverDeclarations = declarationsFor('.sho-health-score-range-popover .ant-tooltip-inner')
+  const titleDeclarations = declarationsFor('.sho-health-score-title')
+  const rowDeclarations = declarationsFor('.sho-health-score-range-row')
+  const ringDeclarations = declarationsFor('.sho-health-score-range-row .sho-threshold-status-ring')
+
+  assert.ok(popoverDeclarations.includes('width: 210px'))
+  assert.ok(titleDeclarations.includes('display: inline-flex'))
+  assert.ok(titleDeclarations.includes('gap: 5px'))
+  assert.ok(rowDeclarations.includes('grid-template-columns: 26px 70px minmax(0, 1fr)'))
+  assert.ok(ringDeclarations.includes('width: 24px'))
+  assert.ok(ringDeclarations.includes('height: 24px'))
   assert.ok(ringDeclarations.some((declaration) => declaration.includes('conic-gradient')))
-  assert.equal(
-    ringDeclarations.some((declaration) => declaration.startsWith('content:')),
-    false,
-  )
 })
 
 test('system metric tiles reserve consistent vertical slots', () => {

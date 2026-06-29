@@ -229,6 +229,10 @@ func TestBuildSystemHealthPendingIssuesHonorsLimit(t *testing.T) {
 }
 
 func TestBuildSystemHealthOverviewSummaryUsesScoreThresholdOnly(t *testing.T) {
+	scoreThresholds := response.SystemHealthConfigResp{
+		SevereAbnormalScoreThreshold:  60,
+		GeneralAbnormalScoreThreshold: 80,
+	}
 	systems := []response.SystemHealthSystem{
 		{
 			GroupID: 101,
@@ -273,7 +277,7 @@ func TestBuildSystemHealthOverviewSummaryUsesScoreThresholdOnly(t *testing.T) {
 		},
 	}
 
-	summary := buildSystemHealthOverviewSummary(systems, 80)
+	summary := buildSystemHealthOverviewSummary(systems, scoreThresholds)
 
 	if summary.AbnormalSystems != 1 {
 		t.Fatalf("expected only the below-threshold system to be abnormal, got %d", summary.AbnormalSystems)
@@ -292,7 +296,31 @@ func TestBuildSystemHealthOverviewSummaryUsesScoreThresholdOnly(t *testing.T) {
 	}
 }
 
+func TestScoreHealthStatusUsesConfiguredScoreThresholds(t *testing.T) {
+	scoreThresholds := response.SystemHealthConfigResp{
+		SevereAbnormalScoreThreshold:  45,
+		GeneralAbnormalScoreThreshold: 82,
+	}
+
+	if got := scoreHealthStatus(44, scoreThresholds); got != healthStatusRed {
+		t.Fatalf("expected score below severe threshold to be red, got %s", got)
+	}
+	if got := scoreHealthStatus(45, scoreThresholds); got != healthStatusYellow {
+		t.Fatalf("expected score equal to severe threshold to be yellow, got %s", got)
+	}
+	if got := scoreHealthStatus(81, scoreThresholds); got != healthStatusYellow {
+		t.Fatalf("expected score below general threshold to be yellow, got %s", got)
+	}
+	if got := scoreHealthStatus(82, scoreThresholds); got != healthStatusGreen {
+		t.Fatalf("expected score equal to general threshold to be green, got %s", got)
+	}
+}
+
 func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) {
+	scoreThresholds := response.SystemHealthConfigResp{
+		SevereAbnormalScoreThreshold:  60,
+		GeneralAbnormalScoreThreshold: 80,
+	}
 	current := []response.SystemHealthSystem{
 		{
 			GroupID: 101,
@@ -338,7 +366,7 @@ func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) 
 		},
 	}
 
-	summary := buildSystemHealthOverviewSummary(current, 80, previous)
+	summary := buildSystemHealthOverviewSummary(current, scoreThresholds, previous)
 
 	if summary.AbnormalSystems != 1 {
 		t.Fatalf("expected one abnormal system by score only, got %d", summary.AbnormalSystems)
@@ -354,15 +382,21 @@ func TestBuildSystemHealthOverviewSummaryCountsNewAbnormalMetrics(t *testing.T) 
 	}
 }
 
-func TestNormalizeSystemHealthAbnormalScoreThresholdFallsBackToDefault(t *testing.T) {
-	if got := normalizeSystemHealthAbnormalScoreThreshold(75); got != 75 {
-		t.Fatalf("expected valid threshold to be kept, got %d", got)
+func TestNormalizeSystemHealthScoreThresholdsFallsBackToDefault(t *testing.T) {
+	valid := normalizeSystemHealthScoreThresholds(response.SystemHealthConfigResp{
+		SevereAbnormalScoreThreshold:  45,
+		GeneralAbnormalScoreThreshold: 82,
+	})
+	if valid.SevereAbnormalScoreThreshold != 45 || valid.GeneralAbnormalScoreThreshold != 82 {
+		t.Fatalf("expected valid thresholds to be kept, got %+v", valid)
 	}
-	if got := normalizeSystemHealthAbnormalScoreThreshold(0); got != 80 {
-		t.Fatalf("expected low threshold to fall back to 80, got %d", got)
-	}
-	if got := normalizeSystemHealthAbnormalScoreThreshold(101); got != 80 {
-		t.Fatalf("expected high threshold to fall back to 80, got %d", got)
+
+	invalid := normalizeSystemHealthScoreThresholds(response.SystemHealthConfigResp{
+		SevereAbnormalScoreThreshold:  90,
+		GeneralAbnormalScoreThreshold: 80,
+	})
+	if invalid.SevereAbnormalScoreThreshold != 60 || invalid.GeneralAbnormalScoreThreshold != 80 {
+		t.Fatalf("expected invalid thresholds to fall back to defaults, got %+v", invalid)
 	}
 }
 

@@ -20,7 +20,7 @@ test('overview system names do not render an aggregate status lamp', () => {
   )
   const nameCellSource = sliceBetween(
     '<div className="sho-name-cell">',
-    '<HealthRing score={system.score} />',
+    '<HealthRing score={system.score} scoreThresholds={scoreThresholds} />',
   )
 
   assert.ok(overviewRowsSource.includes('<strong>{system.name}</strong>'))

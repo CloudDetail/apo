@@ -19,7 +19,6 @@ import {
 import ReactECharts from 'echarts-for-react'
 import {
   ArrowLeft,
-  Check,
   CircleAlert,
   HelpCircle,
   Search,
@@ -40,13 +39,11 @@ import {
   buildMetricTrendOption,
   buildOverviewSummaryCards,
   buildStatusDistribution,
-  DEFAULT_ABNORMAL_SCORE_THRESHOLD,
-  HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD,
-  HEALTH_SCORE_CRITICAL_THRESHOLD,
-  healthScoreLegendItems,
+  DEFAULT_HEALTH_SCORE_THRESHOLDS,
+  healthScoreStatus,
   metricSourceTitleFor,
   metricVisualFor,
-  normalizeAbnormalScoreThreshold,
+  normalizeHealthScoreThresholds,
   safePercent,
 } from './metricVisuals.mjs'
 import { buildPendingIssueQueueRows } from './pendingIssueQueue.mjs'
@@ -82,8 +79,8 @@ const metricLabels = [
 
 const statusMeta = {
   green: { label: '正常', color: '#12b76a' },
-  yellow: { label: '关注', color: '#f79009' },
-  red: { label: '异常', color: '#f04438' },
+  yellow: { label: '一般异常', color: '#f79009' },
+  red: { label: '严重异常', color: '#f04438' },
   gray: { label: '无数据', color: '#98a2b3' },
 }
 
@@ -106,10 +103,16 @@ const positiveNumber = (value) => {
   return Number.isFinite(number) && number > 0 ? number : 0
 }
 
-const ringColor = (score) => {
-  if (score < HEALTH_SCORE_CRITICAL_THRESHOLD) return '#f04438'
-  if (score < HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD) return '#f79009'
-  return '#12b76a'
+const ringColor = (score, scoreThresholds) =>
+  statusMeta[healthScoreStatus(score, scoreThresholds)]?.color || statusMeta.gray.color
+
+const scoreThresholdsEqual = (left, right) => {
+  const normalizedLeft = normalizeHealthScoreThresholds(left)
+  const normalizedRight = normalizeHealthScoreThresholds(right)
+  return (
+    normalizedLeft.severeAbnormalScoreThreshold === normalizedRight.severeAbnormalScoreThreshold &&
+    normalizedLeft.generalAbnormalScoreThreshold === normalizedRight.generalAbnormalScoreThreshold
+  )
 }
 
 const normalizeSystem = (system = {}) => ({
@@ -167,10 +170,10 @@ const normalizeMetrics = (metrics = {}) =>
 const serviceSeverity = (service) =>
   Object.values(service.metrics).reduce((sum, status) => sum + severityValue(status), 0)
 
-const isAbnormal = (system, threshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD) =>
+const isAbnormal = (system, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) =>
   system.status !== 'gray' &&
   system.services?.length > 0 &&
-  system.score < normalizeAbnormalScoreThreshold(threshold)
+  system.score < normalizeHealthScoreThresholds(scoreThresholds).generalAbnormalScoreThreshold
 
 const statusTags = (metrics, status, emptyText) => {
   const tags = metricLabels
@@ -304,12 +307,16 @@ SummaryMetricCard.propTypes = {
   children: PropTypes.node,
 }
 
-const HealthRing = ({ score, size = 'small' }) => (
+const HealthRing = ({
+  score,
+  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
+  size = 'small',
+}) => (
   <span
     className={`sho-health-ring sho-health-ring-${size}`}
     style={{
       '--sho-score': score,
-      '--sho-ring': ringColor(score),
+      '--sho-ring': ringColor(score, scoreThresholds),
     }}
   >
     {score}
@@ -318,34 +325,100 @@ const HealthRing = ({ score, size = 'small' }) => (
 
 HealthRing.propTypes = {
   score: PropTypes.number,
+  scoreThresholds: PropTypes.shape({
+    severeAbnormalScoreThreshold: PropTypes.number,
+    generalAbnormalScoreThreshold: PropTypes.number,
+  }),
   size: PropTypes.oneOf(['mini', 'small']),
 }
 
-const HealthScoreTooltip = () => (
+const ThresholdStatusRing = ({ status }) => (
+  <span
+    className={`sho-threshold-status-ring sho-threshold-status-ring-${status}`}
+    style={{ '--sho-ring': statusMeta[status]?.color || statusMeta.gray.color }}
+    aria-hidden="true"
+  />
+)
+
+ThresholdStatusRing.propTypes = {
+  status: PropTypes.oneOf(['red', 'yellow', 'green']).isRequired,
+}
+
+const HealthScoreCalculationTooltip = () => (
   <div className="sho-health-score-help">
-    <div className="sho-health-score-help-copy">
-      由资源水位、资源波动、错误率、响应延时、错误日志、活跃告警、锁等待综合计算
-    </div>
-    <div className="sho-health-score-help-list">
-      {healthScoreLegendItems.map((item) => (
-        <div className="sho-health-score-help-item" key={item.status}>
-          <span
-            className={`sho-health-score-help-ring sho-health-score-help-ring-${item.status}`}
-            style={{ '--sho-ring': statusMeta[item.status]?.color || statusMeta.gray.color }}
-            aria-hidden="true"
-          />
-          <span className="sho-health-score-help-range">{item.range}</span>
-          <span
-            className={`sho-legend-item sho-health-score-help-tag sho-health-score-help-tag-${item.status}`}
-          >
-            <span className={`sho-lamp sho-lamp-${item.status}`} />
-            <b>{item.label}</b>
-          </span>
-        </div>
-      ))}
-    </div>
+    由资源水位、资源波动、错误率、响应延时、错误日志、活跃告警、锁等待综合计算
   </div>
 )
+
+const healthScoreRangesFor = (scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const thresholds = normalizeHealthScoreThresholds(scoreThresholds)
+  return [
+    {
+      status: 'red',
+      range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
+      label: '严重异常',
+    },
+    {
+      status: 'yellow',
+      range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
+      label: '一般异常',
+    },
+    {
+      status: 'green',
+      range: `${thresholds.generalAbnormalScoreThreshold}-100分`,
+      label: '正常',
+    },
+  ]
+}
+
+const HealthScoreRangeTooltip = ({ scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS }) => (
+  <div className="sho-health-score-range-help">
+    {healthScoreRangesFor(scoreThresholds).map((item) => (
+      <div className="sho-health-score-range-row" key={item.status}>
+        <ThresholdStatusRing status={item.status} />
+        <span className="sho-health-score-range-text">{item.range}</span>
+        <span className="sho-health-score-range-label">{item.label}</span>
+      </div>
+    ))}
+  </div>
+)
+
+HealthScoreRangeTooltip.propTypes = {
+  scoreThresholds: PropTypes.shape({
+    severeAbnormalScoreThreshold: PropTypes.number,
+    generalAbnormalScoreThreshold: PropTypes.number,
+  }),
+}
+
+const HealthScoreRangeHelpIcon = ({ scoreThresholds }) => (
+  <Tooltip
+    title={<HealthScoreRangeTooltip scoreThresholds={scoreThresholds} />}
+    overlayClassName="sho-health-score-range-popover"
+  >
+    <HelpCircle size={15} className="sho-help-icon" />
+  </Tooltip>
+)
+
+HealthScoreRangeHelpIcon.propTypes = {
+  scoreThresholds: PropTypes.shape({
+    severeAbnormalScoreThreshold: PropTypes.number,
+    generalAbnormalScoreThreshold: PropTypes.number,
+  }),
+}
+
+const HealthScoreColumnTitle = ({ scoreThresholds }) => (
+  <span className="sho-health-score-title">
+    <span>健康度</span>
+    <HealthScoreRangeHelpIcon scoreThresholds={scoreThresholds} />
+  </span>
+)
+
+HealthScoreColumnTitle.propTypes = {
+  scoreThresholds: PropTypes.shape({
+    severeAbnormalScoreThreshold: PropTypes.number,
+    generalAbnormalScoreThreshold: PropTypes.number,
+  }),
+}
 
 const SystemMetricTrendChart = ({ chart }) => {
   const option = useMemo(
@@ -603,11 +676,11 @@ export default function SystemHealthOverviewPage() {
   const overviewRequestTimerRef = useRef(null)
   const [systems, setSystems] = useState([])
   const [summary, setSummary] = useState({})
-  const [abnormalScoreThreshold, setAbnormalScoreThreshold] = useState(
-    DEFAULT_ABNORMAL_SCORE_THRESHOLD,
-  )
-  const [thresholdDraft, setThresholdDraft] = useState(DEFAULT_ABNORMAL_SCORE_THRESHOLD)
+  const [scoreThresholds, setScoreThresholds] = useState(DEFAULT_HEALTH_SCORE_THRESHOLDS)
+  const [thresholdDraft, setThresholdDraft] = useState(DEFAULT_HEALTH_SCORE_THRESHOLDS)
   const [thresholdSaving, setThresholdSaving] = useState(false)
+  const [thresholdSettingsOpen, setThresholdSettingsOpen] = useState(false)
+  const [abnormalSystemsHelpOpen, setAbnormalSystemsHelpOpen] = useState(false)
   const [pendingIssuePage, setPendingIssuePage] = useState(DEFAULT_PENDING_ISSUE_PAGE)
   const [pendingIssuePageSize, setPendingIssuePageSize] = useState(DEFAULT_PENDING_ISSUE_PAGE_SIZE)
   const [issueAnalyses, setIssueAnalyses] = useState({})
@@ -667,10 +740,10 @@ export default function SystemHealthOverviewPage() {
       })
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
       const nextSystems = Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : []
-      const nextThreshold = normalizeAbnormalScoreThreshold(resp?.config?.abnormalScoreThreshold)
+      const nextThresholds = normalizeHealthScoreThresholds(resp?.config)
       setSystems(nextSystems)
-      setAbnormalScoreThreshold(nextThreshold)
-      setThresholdDraft(nextThreshold)
+      setScoreThresholds(nextThresholds)
+      setThresholdDraft(nextThresholds)
       setSummary(resp?.summary || {})
     } catch (error) {
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
@@ -746,14 +819,14 @@ export default function SystemHealthOverviewPage() {
   const overviewSystems = useMemo(
     () =>
       systems
-        .filter((system) => !onlyAbnormal || isAbnormal(system, abnormalScoreThreshold))
+        .filter((system) => !onlyAbnormal || isAbnormal(system, scoreThresholds))
         .filter(
           (system) =>
             !systemKeyword.trim() ||
             system.name.toLowerCase().includes(systemKeyword.trim().toLowerCase()),
         )
         .sort((left, right) => left.score - right.score),
-    [systems, onlyAbnormal, systemKeyword, abnormalScoreThreshold],
+    [systems, onlyAbnormal, systemKeyword, scoreThresholds],
   )
   const allPendingIssues = useMemo(
     () => buildPendingIssuesFromSystems(systems).map(normalizePendingIssue),
@@ -811,71 +884,153 @@ export default function SystemHealthOverviewPage() {
   }
 
   const handleThresholdSettingsOpenChange = (open) => {
+    setThresholdSettingsOpen(open)
     if (!open) {
-      setThresholdDraft(abnormalScoreThreshold)
+      setThresholdDraft(scoreThresholds)
     }
   }
 
+  const openThresholdSettingsFromHelp = (event) => {
+    event?.preventDefault()
+    event?.stopPropagation()
+    setAbnormalSystemsHelpOpen(false)
+    setThresholdSettingsOpen(true)
+  }
+
   const saveAbnormalScoreThreshold = async () => {
-    const nextThreshold = normalizeAbnormalScoreThreshold(thresholdDraft)
-    setThresholdDraft(nextThreshold)
-    if (nextThreshold === abnormalScoreThreshold) return
+    const severeThreshold = Number(thresholdDraft.severeAbnormalScoreThreshold)
+    const generalThreshold = Number(thresholdDraft.generalAbnormalScoreThreshold)
+    if (
+      !Number.isFinite(severeThreshold) ||
+      !Number.isFinite(generalThreshold) ||
+      severeThreshold < 1 ||
+      severeThreshold > 99 ||
+      generalThreshold < 2 ||
+      generalThreshold > 100
+    ) {
+      message.error('请输入 1-100 内的健康度分值')
+      return
+    }
+    if (severeThreshold >= generalThreshold) {
+      message.error('严重异常分值必须低于一般异常分值')
+      return
+    }
+    const nextThresholds = normalizeHealthScoreThresholds({
+      severeAbnormalScoreThreshold: severeThreshold,
+      generalAbnormalScoreThreshold: generalThreshold,
+    })
+    setThresholdDraft(nextThresholds)
+    if (scoreThresholdsEqual(nextThresholds, scoreThresholds)) return
 
     setThresholdSaving(true)
     try {
       const resp = await setSystemHealthConfigApi({
-        abnormalScoreThreshold: nextThreshold,
+        abnormalScoreThreshold: nextThresholds.generalAbnormalScoreThreshold,
+        severeAbnormalScoreThreshold: nextThresholds.severeAbnormalScoreThreshold,
+        generalAbnormalScoreThreshold: nextThresholds.generalAbnormalScoreThreshold,
       })
-      const savedThreshold = normalizeAbnormalScoreThreshold(
-        resp?.abnormalScoreThreshold ?? nextThreshold,
-      )
-      setAbnormalScoreThreshold(savedThreshold)
-      setThresholdDraft(savedThreshold)
-      message.success('异常阈值已更新')
+      const savedThresholds = normalizeHealthScoreThresholds(resp)
+      setScoreThresholds(savedThresholds)
+      setThresholdDraft(savedThresholds)
+      message.success('异常判定已更新')
       await loadOverview()
     } catch (error) {
-      message.error(error?.message || '异常阈值保存失败')
-      setThresholdDraft(abnormalScoreThreshold)
+      message.error(error?.message || '异常判定保存失败')
+      setThresholdDraft(scoreThresholds)
     } finally {
       setThresholdSaving(false)
     }
   }
 
   const renderThresholdSettings = () => {
-    const hasThresholdChange =
-      normalizeAbnormalScoreThreshold(thresholdDraft) !== abnormalScoreThreshold
+    const normalizedDraft = normalizeHealthScoreThresholds(thresholdDraft)
+    const hasThresholdChange = !scoreThresholdsEqual(normalizedDraft, scoreThresholds)
+    const severeThreshold = normalizedDraft.severeAbnormalScoreThreshold
+    const generalThreshold = normalizedDraft.generalAbnormalScoreThreshold
+    const severeRange = `0-${severeThreshold - 1}分`
+    const generalRange = `${severeThreshold}-${generalThreshold - 1}分`
+    const healthyRange = `${generalThreshold}-100分`
 
     return (
       <div className="sho-threshold-popover">
-        <div className="sho-threshold-popover-title">异常判定</div>
-        <Space className="sho-threshold-editor" size={6}>
-          <span>当系统健康度低于</span>
-          <InputNumber
-            aria-label="异常健康度阈值"
-            max={100}
-            min={1}
-            precision={0}
-            size="small"
-            value={thresholdDraft}
-            onChange={(value) => setThresholdDraft(value)}
-            onPressEnter={saveAbnormalScoreThreshold}
-          />
-          <span>分时，判定为异常。</span>
-          <Tooltip title={hasThresholdChange ? '保存阈值' : '阈值未变化'}>
+        <div className="sho-threshold-popover-title">健康度分值异常判定</div>
+        <div className="sho-threshold-editor">
+          <div className="sho-threshold-inputs">
+            <label className="sho-threshold-input-row">
+              <span>健康度低于</span>
+              <InputNumber
+                aria-label="严重异常健康度阈值"
+                max={99}
+                min={1}
+                precision={0}
+                size="small"
+                value={thresholdDraft.severeAbnormalScoreThreshold}
+                onChange={(value) =>
+                  setThresholdDraft((current) => ({
+                    ...current,
+                    severeAbnormalScoreThreshold: value,
+                  }))
+                }
+                onPressEnter={saveAbnormalScoreThreshold}
+              />
+              <span>分，严重异常</span>
+            </label>
+            <label className="sho-threshold-input-row">
+              <span>健康度低于</span>
+              <InputNumber
+                aria-label="一般异常健康度阈值"
+                max={100}
+                min={2}
+                precision={0}
+                size="small"
+                value={thresholdDraft.generalAbnormalScoreThreshold}
+                onChange={(value) =>
+                  setThresholdDraft((current) => ({
+                    ...current,
+                    generalAbnormalScoreThreshold: value,
+                  }))
+                }
+                onPressEnter={saveAbnormalScoreThreshold}
+              />
+              <span>分，一般异常</span>
+            </label>
+          </div>
+          <div className="sho-threshold-abnormal-note">
+            系统健康度低于 {generalThreshold} 分，计为异常系统
+          </div>
+          <div className="sho-threshold-legend" aria-label="健康度分值说明">
+            <div className="sho-threshold-legend-row">
+              <ThresholdStatusRing status="red" />
+              <span className="sho-threshold-legend-range">{severeRange}</span>
+              <span className="sho-threshold-legend-label">严重异常</span>
+            </div>
+            <div className="sho-threshold-legend-row">
+              <ThresholdStatusRing status="yellow" />
+              <span className="sho-threshold-legend-range">{generalRange}</span>
+              <span className="sho-threshold-legend-label">一般异常（亚健康）</span>
+            </div>
+            <div className="sho-threshold-legend-row">
+              <ThresholdStatusRing status="green" />
+              <span className="sho-threshold-legend-range">{healthyRange}</span>
+              <span className="sho-threshold-legend-label">健康</span>
+            </div>
+          </div>
+          <div className="sho-threshold-actions">
             <span className="sho-threshold-save-wrap">
               <Button
                 aria-label="保存异常阈值"
                 className="sho-threshold-save"
                 disabled={!hasThresholdChange}
-                icon={<Check size={14} />}
                 loading={thresholdSaving}
                 size="small"
                 type="primary"
                 onClick={saveAbnormalScoreThreshold}
-              />
+              >
+                确定
+              </Button>
             </span>
-          </Tooltip>
-        </Space>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1145,14 +1300,46 @@ export default function SystemHealthOverviewPage() {
       summary,
     })
     const overviewState = renderOverviewState()
-    const statusDistribution = buildStatusDistribution(systems)
-    const summaryCards = buildOverviewSummaryCards(summary, systems, abnormalScoreThreshold)
+    const statusDistribution = buildStatusDistribution(systems, scoreThresholds)
+    const summaryCards = buildOverviewSummaryCards(summary, systems, scoreThresholds)
+    const abnormalSystemThreshold =
+      normalizeHealthScoreThresholds(scoreThresholds).generalAbnormalScoreThreshold
+    const abnormalSystemsHelp = (
+      <div className="sho-abnormal-system-help">
+        <div>当前健康度低于 {abnormalSystemThreshold} 分则为异常系统。</div>
+        <Button
+          className="sho-abnormal-system-help-link"
+          size="small"
+          type="link"
+          onClick={openThresholdSettingsFromHelp}
+        >
+          前往设置
+        </Button>
+      </div>
+    )
 
     return (
       <>
         <div className="sho-toolbar">
           <div>
             <div className="sho-title">健康度概览</div>
+          </div>
+          <div className="sho-toolbar-actions">
+            <Popover
+              content={renderThresholdSettings()}
+              onOpenChange={handleThresholdSettingsOpenChange}
+              open={thresholdSettingsOpen}
+              placement="bottomRight"
+              trigger="click"
+            >
+              <Button
+                aria-label="健康度分值异常判定设置"
+                className="sho-threshold-toolbar-trigger"
+                icon={<Settings size={15} />}
+              >
+                健康度分值异常判定
+              </Button>
+            </Popover>
           </div>
         </div>
 
@@ -1168,15 +1355,17 @@ export default function SystemHealthOverviewPage() {
                   icon={
                     card.key === 'abnormalSystems' ? (
                       <Popover
-                        content={renderThresholdSettings()}
-                        onOpenChange={handleThresholdSettingsOpenChange}
-                        placement="bottomLeft"
-                        trigger="click"
+                        content={abnormalSystemsHelp}
+                        onOpenChange={setAbnormalSystemsHelpOpen}
+                        open={abnormalSystemsHelpOpen}
+                        overlayClassName="sho-abnormal-system-help-popover"
+                        placement="top"
+                        trigger="hover"
                       >
                         <Button
-                          aria-label="异常判定设置"
-                          className="sho-threshold-trigger"
-                          icon={<Settings size={15} />}
+                          aria-label="异常系统说明"
+                          className="sho-summary-question-trigger"
+                          icon={<HelpCircle size={15} />}
                           size="small"
                           type="text"
                         />
@@ -1214,7 +1403,7 @@ export default function SystemHealthOverviewPage() {
                 <div className="sho-panel-title">
                   系统健康度
                   <Tooltip
-                    title={<HealthScoreTooltip />}
+                    title={<HealthScoreCalculationTooltip />}
                     overlayClassName="sho-health-score-popover"
                   >
                     <HelpCircle size={15} className="sho-help-icon" />
@@ -1246,7 +1435,9 @@ export default function SystemHealthOverviewPage() {
                   <thead>
                     <tr>
                       <th>系统</th>
-                      <th>健康度</th>
+                      <th>
+                        <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
+                      </th>
                       {metricLabels.map(([, label]) => (
                         <th key={label}>{label}</th>
                       ))}
@@ -1261,7 +1452,7 @@ export default function SystemHealthOverviewPage() {
                           </div>
                         </td>
                         <td>
-                          <HealthRing score={system.score} />
+                          <HealthRing score={system.score} scoreThresholds={scoreThresholds} />
                         </td>
                         {metricLabels.map(([key]) => (
                           <td key={key}>
@@ -1313,9 +1504,14 @@ export default function SystemHealthOverviewPage() {
               <>
                 <span className="sho-detail-compact-divider" aria-hidden="true" />
                 <div className="sho-detail-compact-score">
-                  <HealthRing score={selectedSystem.score} size="mini" />
+                  <HealthRing
+                    score={selectedSystem.score}
+                    scoreThresholds={scoreThresholds}
+                    size="mini"
+                  />
                   <div className="sho-detail-compact-score-label">
                     <span>健康度</span>
+                    <HealthScoreRangeHelpIcon scoreThresholds={scoreThresholds} />
                   </div>
                 </div>
                 <span className="sho-detail-compact-divider" aria-hidden="true" />
@@ -1392,8 +1588,8 @@ export default function SystemHealthOverviewPage() {
                     style={{ width: 116 }}
                     options={[
                       { value: 'all', label: '全部服务' },
-                      { value: 'red', label: '只看异常' },
-                      { value: 'yellow', label: '只看关注' },
+                      { value: 'red', label: '只看严重异常' },
+                      { value: 'yellow', label: '只看一般异常' },
                       { value: 'green', label: '只看正常' },
                     ]}
                   />
@@ -1403,7 +1599,9 @@ export default function SystemHealthOverviewPage() {
                 <thead>
                   <tr>
                     <th>服务</th>
-                    <th>健康度</th>
+                    <th>
+                      <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
+                    </th>
                     {metricLabels.map(([, label]) => (
                       <th key={label}>{label}</th>
                     ))}
@@ -1421,7 +1619,7 @@ export default function SystemHealthOverviewPage() {
                         </div>
                       </td>
                       <td>
-                        <HealthRing score={service.score} />
+                        <HealthRing score={service.score} scoreThresholds={scoreThresholds} />
                       </td>
                       {metricLabels.map(([key]) => (
                         <td key={key}>

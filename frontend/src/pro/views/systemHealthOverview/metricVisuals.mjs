@@ -15,26 +15,95 @@ const STATUS_TONES = {
 export const HEALTH_SCORE_CRITICAL_THRESHOLD = 60
 export const HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD = 80
 export const DEFAULT_ABNORMAL_SCORE_THRESHOLD = 80
-export const normalizeAbnormalScoreThreshold = (value) => {
+export const DEFAULT_HEALTH_SCORE_THRESHOLDS = {
+  severeAbnormalScoreThreshold: HEALTH_SCORE_CRITICAL_THRESHOLD,
+  generalAbnormalScoreThreshold: HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD,
+}
+
+const normalizeScoreThreshold = (value, fallback) => {
   const number = Number(value)
-  if (!Number.isFinite(number)) return DEFAULT_ABNORMAL_SCORE_THRESHOLD
+  if (!Number.isFinite(number)) return fallback
   const threshold = Math.trunc(number)
-  if (threshold < 1 || threshold > 100) return DEFAULT_ABNORMAL_SCORE_THRESHOLD
   return threshold
 }
-export const abnormalSystemsHelpText = (threshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD) =>
-  `当前阈值：低于 ${normalizeAbnormalScoreThreshold(threshold)} 分计入异常系统。`
 
-export const healthScoreLegendItems = [
-  { status: 'green', range: `${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD}-100分`, label: '正常' },
-  {
-    status: 'yellow',
-    range: `${HEALTH_SCORE_CRITICAL_THRESHOLD}-${HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD - 1}分`,
-    label: '关注',
-  },
-  { status: 'red', range: `0-${HEALTH_SCORE_CRITICAL_THRESHOLD - 1}分`, label: '异常' },
-  { status: 'gray', range: '无可评分数据', label: '无数据' },
-]
+export const normalizeHealthScoreThresholds = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const source = config && typeof config === 'object' ? config : {}
+  const hasSevere = source.severeAbnormalScoreThreshold !== undefined
+  const hasGeneral =
+    source.generalAbnormalScoreThreshold !== undefined ||
+    source.abnormalScoreThreshold !== undefined ||
+    typeof config === 'number'
+  const generalSource =
+    typeof config === 'number'
+      ? config
+      : source.generalAbnormalScoreThreshold ?? source.abnormalScoreThreshold
+  const severeSource = source.severeAbnormalScoreThreshold
+  const generalThreshold = normalizeScoreThreshold(
+    generalSource,
+    DEFAULT_HEALTH_SCORE_THRESHOLDS.generalAbnormalScoreThreshold,
+  )
+  let severeThreshold = normalizeScoreThreshold(
+    severeSource,
+    DEFAULT_HEALTH_SCORE_THRESHOLDS.severeAbnormalScoreThreshold,
+  )
+
+  if (
+    generalThreshold < 1 ||
+    generalThreshold > 100 ||
+    severeThreshold < 1 ||
+    severeThreshold >= 100
+  ) {
+    return { ...DEFAULT_HEALTH_SCORE_THRESHOLDS }
+  }
+  if (severeThreshold >= generalThreshold) {
+    if (hasSevere && hasGeneral) {
+      return { ...DEFAULT_HEALTH_SCORE_THRESHOLDS }
+    }
+    severeThreshold = Math.max(1, generalThreshold - 1)
+  }
+  return {
+    severeAbnormalScoreThreshold: severeThreshold,
+    generalAbnormalScoreThreshold: generalThreshold,
+  }
+}
+
+export const normalizeAbnormalScoreThreshold = (value) =>
+  normalizeHealthScoreThresholds(value).generalAbnormalScoreThreshold
+
+export const abnormalSystemsHelpText = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const thresholds = normalizeHealthScoreThresholds(config)
+  return `低于 ${thresholds.generalAbnormalScoreThreshold} 分计入异常系统；低于 ${thresholds.severeAbnormalScoreThreshold} 分计入严重异常。`
+}
+
+export const healthScoreStatus = (score, config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const number = Number(score)
+  if (!Number.isFinite(number)) return 'gray'
+  const thresholds = normalizeHealthScoreThresholds(config)
+  if (number < thresholds.severeAbnormalScoreThreshold) return 'red'
+  if (number < thresholds.generalAbnormalScoreThreshold) return 'yellow'
+  return 'green'
+}
+
+export const healthScoreLegendItemsFor = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const thresholds = normalizeHealthScoreThresholds(config)
+  return [
+    { status: 'green', range: `${thresholds.generalAbnormalScoreThreshold}-100分`, label: '正常' },
+    {
+      status: 'yellow',
+      range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
+      label: '一般异常',
+    },
+    {
+      status: 'red',
+      range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
+      label: '严重异常',
+    },
+    { status: 'gray', range: '无可评分数据', label: '无数据' },
+  ]
+}
+
+export const healthScoreLegendItems = healthScoreLegendItemsFor(DEFAULT_HEALTH_SCORE_THRESHOLDS)
 
 const VALID_STATUSES = new Set(['red', 'yellow', 'green', 'gray'])
 const TREND_COLOR_ROLES = {
@@ -211,8 +280,6 @@ export const statusRatio = (status) => STATUS_RATIOS[normalizeStatus(status)] ||
 
 const statusTone = (status) => STATUS_TONES[normalizeStatus(status)] || 'muted'
 
-const hasStatus = (metrics, status) => Object.values(metrics || {}).includes(status)
-
 const summaryNumber = (value) => {
   const number = Number(value)
   return Number.isFinite(number) ? number : 0
@@ -221,7 +288,7 @@ const summaryNumber = (value) => {
 export const buildOverviewSummaryCards = (
   summary = {},
   systems = [],
-  abnormalScoreThreshold = DEFAULT_ABNORMAL_SCORE_THRESHOLD,
+  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
 ) => {
   const totalSystems = summaryNumber(summary.totalSystems) || systems.length
   const abnormalSystems = summaryNumber(summary.abnormalSystems)
@@ -238,7 +305,7 @@ export const buildOverviewSummaryCards = (
     {
       key: 'abnormalSystems',
       label: '异常系统',
-      help: abnormalSystemsHelpText(abnormalScoreThreshold),
+      help: abnormalSystemsHelpText(scoreThresholds),
       value: `${abnormalSystems} / ${totalSystems}`,
       numerator: abnormalSystems,
       denominator: totalSystems,
@@ -263,23 +330,17 @@ export const buildOverviewSummaryCards = (
   ]
 }
 
-const effectiveSystemStatus = (system = {}) => {
+const effectiveSystemStatus = (system = {}, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
   if (!Array.isArray(system.services) || system.services.length === 0 || system.status === 'gray') {
     return 'gray'
   }
-  if (Number(system.score) < HEALTH_SCORE_CRITICAL_THRESHOLD || hasStatus(system.metrics, 'red')) {
-    return 'red'
-  }
-  if (
-    Number(system.score) < HEALTH_SCORE_ABNORMAL_SYSTEM_THRESHOLD ||
-    hasStatus(system.metrics, 'yellow')
-  ) {
-    return 'yellow'
-  }
-  return 'green'
+  return healthScoreStatus(system.score, scoreThresholds)
 }
 
-export const buildStatusDistribution = (systems = []) => {
+export const buildStatusDistribution = (
+  systems = [],
+  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
+) => {
   const distribution = {
     total: systems.length,
     red: 0,
@@ -288,7 +349,7 @@ export const buildStatusDistribution = (systems = []) => {
     gray: 0,
   }
   systems.forEach((system) => {
-    distribution[effectiveSystemStatus(system)] += 1
+    distribution[effectiveSystemStatus(system, scoreThresholds)] += 1
   })
   return distribution
 }

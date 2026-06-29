@@ -165,15 +165,16 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 		zap.Int("systems", len(systems)),
 	)...)
 
-	configResp, err := h.systemHealthConfig(ctx)
+	scoreThresholds, err := h.systemHealthConfig(ctx)
 	if err != nil {
 		systemHealthWarn("system-health overview config failed, using default threshold", systemHealthStageFields(ctx, buildStartedAt, "04_config",
 			zap.Error(err),
 		)...)
 	}
-	abnormalThreshold := normalizeSystemHealthAbnormalScoreThreshold(configResp.AbnormalScoreThreshold)
+	scoreThresholds = normalizeSystemHealthScoreThresholds(scoreThresholds)
+	applySystemHealthScoreThresholds(systems, scoreThresholds)
 
-	summary := buildSystemHealthOverviewSummary(systems, abnormalThreshold)
+	summary := buildSystemHealthOverviewSummary(systems, scoreThresholds)
 	if !req.SkipNewAbnormalMetrics {
 		newAbnormalMetrics, err := h.calculateNewAbnormalMetrics(ctx, endTime, groups)
 		if err != nil {
@@ -189,7 +190,7 @@ func (h *handler) buildOverview(ctx core.Context, req *request.GetSystemHealthOv
 		Summary:       summary,
 		Systems:       systems,
 		PendingIssues: buildSystemHealthPendingIssues(systems, 20),
-		Config:        response.SystemHealthConfigResp{AbnormalScoreThreshold: abnormalThreshold},
+		Config:        scoreThresholds,
 		Window:        window,
 		GeneratedAt:   time.Now().Format(time.RFC3339),
 		Source:        systemHealthSourceDataGroup,
@@ -492,6 +493,11 @@ func (h *handler) buildSystemDetail(ctx core.Context, req *request.GetSystemHeal
 	if err == nil {
 		applySystemHealthExtraMetrics(&system, extraMetrics)
 	}
+	scoreThresholds, err := h.systemHealthConfig(ctx)
+	if err != nil {
+		systemHealthWarnCtx(ctx, "system-health detail config failed, using default threshold", zap.Error(err))
+	}
+	applySystemHealthScoreThreshold(&system, normalizeSystemHealthScoreThresholds(scoreThresholds))
 
 	return response.SystemHealthSystemDetailResp{
 		System:      system,
@@ -660,8 +666,8 @@ func systemHealthTrendStep(startTime time.Time, endTime time.Time) time.Duration
 	return step
 }
 
-func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, abnormalThreshold int, previousSystems ...[]response.SystemHealthSystem) response.SystemHealthOverviewSummary {
-	abnormalThreshold = normalizeSystemHealthAbnormalScoreThreshold(abnormalThreshold)
+func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, scoreThresholds response.SystemHealthConfigResp, previousSystems ...[]response.SystemHealthSystem) response.SystemHealthOverviewSummary {
+	scoreThresholds = normalizeSystemHealthScoreThresholds(scoreThresholds)
 	summary := response.SystemHealthOverviewSummary{TotalSystems: len(systems)}
 	for _, system := range systems {
 		summary.Services += len(system.Services)
@@ -669,15 +675,15 @@ func buildSystemHealthOverviewSummary(systems []response.SystemHealthSystem, abn
 			summary.NoDataSystems++
 		}
 		if len(system.Services) > 0 {
-			if system.Score < 60 {
+			if system.Score < scoreThresholds.SevereAbnormalScoreThreshold {
 				summary.LowScoreSystems++
 			}
-			if system.Score < abnormalThreshold {
+			if system.Score < scoreThresholds.GeneralAbnormalScoreThreshold {
 				summary.AbnormalSystems++
 			}
 		}
 		for _, service := range system.Services {
-			if service.Score < abnormalThreshold {
+			if service.Score < scoreThresholds.GeneralAbnormalScoreThreshold {
 				summary.AbnormalServices++
 			}
 		}
@@ -808,14 +814,39 @@ func normalizeHealthScore(score int) int {
 	return score
 }
 
-func scoreHealthStatus(score int) string {
-	if score < 60 {
+func scoreHealthStatus(score int, configs ...response.SystemHealthConfigResp) string {
+	scoreThresholds := defaultSystemHealthScoreThresholds()
+	if len(configs) > 0 {
+		scoreThresholds = normalizeSystemHealthScoreThresholds(configs[0])
+	}
+	if score < scoreThresholds.SevereAbnormalScoreThreshold {
 		return healthStatusRed
 	}
-	if score < 80 {
+	if score < scoreThresholds.GeneralAbnormalScoreThreshold {
 		return healthStatusYellow
 	}
 	return healthStatusGreen
+}
+
+func applySystemHealthScoreThresholds(systems []response.SystemHealthSystem, config response.SystemHealthConfigResp) {
+	for i := range systems {
+		applySystemHealthScoreThreshold(&systems[i], config)
+	}
+}
+
+func applySystemHealthScoreThreshold(system *response.SystemHealthSystem, config response.SystemHealthConfigResp) {
+	if system == nil {
+		return
+	}
+	if len(system.Services) == 0 {
+		system.Status = healthStatusGray
+		return
+	}
+	config = normalizeSystemHealthScoreThresholds(config)
+	system.Status = scoreHealthStatus(system.Score, config)
+	for i := range system.Services {
+		system.Services[i].Status = scoreHealthStatus(system.Services[i].Score, config)
+	}
 }
 
 func rygScoreHealthStatus(score int) string {

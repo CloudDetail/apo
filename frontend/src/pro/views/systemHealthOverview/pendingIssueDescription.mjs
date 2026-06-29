@@ -1,7 +1,7 @@
 const STATUS_DESCRIPTIONS = {
-  red: '已处于异常状态',
-  yellow: '已进入关注状态',
-  green: '处于稳定状态',
+  red: '已处于严重异常状态',
+  yellow: '已进入一般异常状态',
+  green: '处于正常状态',
   gray: '当前缺少可用数据',
 }
 

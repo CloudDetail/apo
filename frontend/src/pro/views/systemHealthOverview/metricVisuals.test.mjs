@@ -4,8 +4,11 @@ import assert from 'node:assert/strict'
 import {
   buildStatusDistribution,
   healthScoreLegendItems,
+  healthScoreLegendItemsFor,
+  healthScoreStatus,
   metricSourceTitleFor,
   metricVisualFor,
+  normalizeHealthScoreThresholds,
   safePercent,
   statusRatio,
 } from './metricVisuals.mjs'
@@ -26,48 +29,104 @@ test('statusRatio maps health statuses to comparable risk fill', () => {
   assert.equal(statusRatio('unknown'), 0)
 })
 
-test('buildStatusDistribution derives system severity from score, data, and metric status', () => {
-  const distribution = buildStatusDistribution([
+test('buildStatusDistribution derives system severity from configured score thresholds', () => {
+  const distribution = buildStatusDistribution(
+    [
+      {
+        score: 95,
+        status: 'green',
+        services: [{}],
+        metrics: { latency: 'green' },
+      },
+      {
+        score: 88,
+        status: 'green',
+        services: [{}],
+        metrics: { errorRate: 'red' },
+      },
+      {
+        score: 74,
+        status: 'yellow',
+        services: [{}],
+        metrics: { latency: 'green' },
+      },
+      {
+        score: 0,
+        status: 'gray',
+        services: [],
+        metrics: {},
+      },
+    ],
     {
-      score: 95,
-      status: 'green',
-      services: [{}],
-      metrics: { latency: 'green' },
+      severeAbnormalScoreThreshold: 60,
+      generalAbnormalScoreThreshold: 80,
     },
-    {
-      score: 88,
-      status: 'green',
-      services: [{}],
-      metrics: { errorRate: 'red' },
-    },
-    {
-      score: 74,
-      status: 'yellow',
-      services: [{}],
-      metrics: { latency: 'green' },
-    },
-    {
-      score: 0,
-      status: 'gray',
-      services: [],
-      metrics: {},
-    },
-  ])
+  )
 
   assert.deepEqual(distribution, {
     total: 4,
-    red: 1,
+    red: 0,
     yellow: 1,
-    green: 1,
+    green: 2,
     gray: 1,
   })
 })
 
-test('healthScoreLegendItems documents actual score ranges without sample scores', () => {
+test('healthScoreStatus uses configured below-score thresholds', () => {
+  const thresholds = {
+    severeAbnormalScoreThreshold: 45,
+    generalAbnormalScoreThreshold: 82,
+  }
+
+  assert.equal(healthScoreStatus(44, thresholds), 'red')
+  assert.equal(healthScoreStatus(45, thresholds), 'yellow')
+  assert.equal(healthScoreStatus(81, thresholds), 'yellow')
+  assert.equal(healthScoreStatus(82, thresholds), 'green')
+})
+
+test('normalizeHealthScoreThresholds rejects impossible ranges', () => {
+  assert.deepEqual(
+    normalizeHealthScoreThresholds({
+      severeAbnormalScoreThreshold: 45,
+      generalAbnormalScoreThreshold: 82,
+    }),
+    {
+      severeAbnormalScoreThreshold: 45,
+      generalAbnormalScoreThreshold: 82,
+    },
+  )
+  assert.deepEqual(
+    normalizeHealthScoreThresholds({
+      severeAbnormalScoreThreshold: 90,
+      generalAbnormalScoreThreshold: 80,
+    }),
+    {
+      severeAbnormalScoreThreshold: 60,
+      generalAbnormalScoreThreshold: 80,
+    },
+  )
+})
+
+test('healthScoreLegendItemsFor documents configured score ranges without sample scores', () => {
+  assert.deepEqual(
+    healthScoreLegendItemsFor({
+      severeAbnormalScoreThreshold: 45,
+      generalAbnormalScoreThreshold: 82,
+    }),
+    [
+      { status: 'green', range: '82-100分', label: '正常' },
+      { status: 'yellow', range: '45-81分', label: '一般异常' },
+      { status: 'red', range: '0-44分', label: '严重异常' },
+      { status: 'gray', range: '无可评分数据', label: '无数据' },
+    ],
+  )
+})
+
+test('healthScoreLegendItems documents default score ranges without sample scores', () => {
   assert.deepEqual(healthScoreLegendItems, [
     { status: 'green', range: '80-100分', label: '正常' },
-    { status: 'yellow', range: '60-79分', label: '关注' },
-    { status: 'red', range: '0-59分', label: '异常' },
+    { status: 'yellow', range: '60-79分', label: '一般异常' },
+    { status: 'red', range: '0-59分', label: '严重异常' },
     { status: 'gray', range: '无可评分数据', label: '无数据' },
   ])
 })
@@ -137,10 +196,28 @@ test('buildOverviewSummaryCards presents abnormal systems as text without a ring
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
 
   assert.equal(abnormalSystemsCard.visual, 'ratio')
-  assert.equal(abnormalSystemsCard.help, '健康度低于 80 分，或存在关注/异常指标时计入异常系统。')
+  assert.equal(abnormalSystemsCard.help, '低于 80 分计入异常系统；低于 60 分计入严重异常。')
   assert.equal(abnormalSystemsCard.value, '3 / 4')
   assert.equal(abnormalSystemsCard.percent, undefined)
   assert.equal(abnormalSystemsCard.highlightNumerator, true)
+})
+
+test('buildOverviewSummaryCards describes configured abnormal score thresholds', () => {
+  const cards = metricVisuals.buildOverviewSummaryCards(
+    {
+      totalSystems: 4,
+      abnormalSystems: 3,
+    },
+    [],
+    {
+      severeAbnormalScoreThreshold: 45,
+      generalAbnormalScoreThreshold: 82,
+    },
+  )
+
+  const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
+
+  assert.equal(abnormalSystemsCard.help, '低于 82 分计入异常系统；低于 45 分计入严重异常。')
 })
 
 test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () => {

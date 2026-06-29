@@ -4,6 +4,7 @@
 package systemhealth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
@@ -31,7 +32,11 @@ func (h *handler) UpdateConfig() core.HandlerFunc {
 			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
 			return
 		}
-		cfg, err := h.dbRepo.UpdateSystemHealthConfig(c, req.AbnormalScoreThreshold)
+		if req.SevereAbnormalScoreThreshold >= req.GeneralAbnormalScoreThreshold {
+			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, fmt.Errorf("severeAbnormalScoreThreshold must be lower than generalAbnormalScoreThreshold"))
+			return
+		}
+		cfg, err := h.dbRepo.UpdateSystemHealthConfig(c, req.SevereAbnormalScoreThreshold, req.GeneralAbnormalScoreThreshold)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, code.GetDataGroupError, err)
 			return
@@ -43,21 +48,47 @@ func (h *handler) UpdateConfig() core.HandlerFunc {
 func (h *handler) systemHealthConfig(ctx core.Context) (response.SystemHealthConfigResp, error) {
 	cfg, err := h.dbRepo.GetOrCreateSystemHealthConfig(ctx)
 	if err != nil {
-		return response.SystemHealthConfigResp{
-			AbnormalScoreThreshold: database.DefaultSystemHealthAbnormalScoreThreshold,
-		}, err
+		return defaultSystemHealthScoreThresholds(), err
 	}
 	return systemHealthConfigResponse(cfg), nil
 }
 
 func systemHealthConfigResponse(cfg database.SystemHealthConfig) response.SystemHealthConfigResp {
-	threshold := normalizeSystemHealthAbnormalScoreThreshold(cfg.AbnormalScoreThreshold)
-	return response.SystemHealthConfigResp{AbnormalScoreThreshold: threshold}
+	return normalizeSystemHealthScoreThresholds(response.SystemHealthConfigResp{
+		AbnormalScoreThreshold:        cfg.AbnormalScoreThreshold,
+		SevereAbnormalScoreThreshold:  cfg.SevereAbnormalScoreThreshold,
+		GeneralAbnormalScoreThreshold: cfg.GeneralAbnormalScoreThreshold,
+	})
 }
 
-func normalizeSystemHealthAbnormalScoreThreshold(threshold int) int {
-	if threshold < 1 || threshold > 100 {
-		return database.DefaultSystemHealthAbnormalScoreThreshold
+func defaultSystemHealthScoreThresholds() response.SystemHealthConfigResp {
+	return response.SystemHealthConfigResp{
+		AbnormalScoreThreshold:        database.DefaultSystemHealthGeneralAbnormalScoreThreshold,
+		SevereAbnormalScoreThreshold:  database.DefaultSystemHealthSevereAbnormalScoreThreshold,
+		GeneralAbnormalScoreThreshold: database.DefaultSystemHealthGeneralAbnormalScoreThreshold,
 	}
-	return threshold
+}
+
+func normalizeSystemHealthScoreThresholds(config response.SystemHealthConfigResp) response.SystemHealthConfigResp {
+	generalThreshold := config.GeneralAbnormalScoreThreshold
+	if generalThreshold < 1 || generalThreshold > 100 {
+		generalThreshold = config.AbnormalScoreThreshold
+	}
+	if generalThreshold < 1 || generalThreshold > 100 {
+		generalThreshold = database.DefaultSystemHealthGeneralAbnormalScoreThreshold
+	}
+
+	severeThreshold := config.SevereAbnormalScoreThreshold
+	if severeThreshold < 1 || severeThreshold >= generalThreshold {
+		severeThreshold = database.DefaultSystemHealthSevereAbnormalScoreThreshold
+	}
+	if severeThreshold < 1 || severeThreshold >= generalThreshold {
+		return defaultSystemHealthScoreThresholds()
+	}
+
+	return response.SystemHealthConfigResp{
+		AbnormalScoreThreshold:        generalThreshold,
+		SevereAbnormalScoreThreshold:  severeThreshold,
+		GeneralAbnormalScoreThreshold: generalThreshold,
+	}
 }
