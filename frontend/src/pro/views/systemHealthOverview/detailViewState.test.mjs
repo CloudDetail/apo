@@ -246,6 +246,23 @@ test('service health filter uses the overview-style abnormal attention switch', 
   assert.equal(servicePanelSource.includes('serviceFilter'), false)
 })
 
+test('system and service health tables sort lower health scores first', () => {
+  const overviewStart = viewSource.indexOf('const overviewSystems = useMemo(')
+  const serviceStart = viewSource.indexOf('const filteredServices = useMemo(')
+  const openDetailStart = viewSource.indexOf('const openDetail = (system) => {')
+
+  assert.notEqual(overviewStart, -1, 'overview systems memo should exist')
+  assert.notEqual(serviceStart, -1, 'filtered services memo should exist')
+  assert.notEqual(openDetailStart, -1, 'open detail handler should exist')
+
+  const overviewSource = viewSource.slice(overviewStart, serviceStart)
+  const serviceSource = viewSource.slice(serviceStart, openDetailStart)
+
+  assert.ok(overviewSource.includes('.sort((left, right) => left.score - right.score)'))
+  assert.ok(serviceSource.includes('.sort((left, right) => left.score - right.score)'))
+  assert.equal(serviceSource.includes('serviceSeverity'), false)
+})
+
 test('service abnormal attention filter follows health score thresholds', async () => {
   const { serviceMatchesAbnormalAttentionFilter } = await import('./detailViewState.mjs')
   assert.equal(typeof serviceMatchesAbnormalAttentionFilter, 'function')

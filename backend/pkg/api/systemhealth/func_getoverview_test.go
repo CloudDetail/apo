@@ -48,6 +48,17 @@ func TestFirstLevelSystemGroupsOnlyUsesRootChildren(t *testing.T) {
 	}
 }
 
+func serviceByName(t *testing.T, services []response.SystemHealthService, name string) response.SystemHealthService {
+	t.Helper()
+	for _, service := range services {
+		if service.Name == name {
+			return service
+		}
+	}
+	t.Fatalf("expected service %q in %+v", name, services)
+	return response.SystemHealthService{}
+}
+
 func TestBuildSystemHealthSystemAggregatesServiceStatus(t *testing.T) {
 	group := datagroup.DataGroup{GroupID: 101, GroupName: "订单系统"}
 	services := []*response.ServiceRYGResult{
@@ -112,6 +123,41 @@ func TestBuildSystemHealthSystemAggregatesServiceStatus(t *testing.T) {
 	}
 	if system.Services[0].Metrics["latency"] != "red" {
 		t.Fatalf("expected service latency red, got %+v", system.Services[0].Metrics)
+	}
+}
+
+func TestBuildSystemHealthSystemSortsServicesByLowScoreFirst(t *testing.T) {
+	group := datagroup.DataGroup{GroupID: 101, GroupName: "订单系统"}
+	services := []*response.ServiceRYGResult{
+		{
+			ServiceName: "healthy-api",
+			RYGResult: response.RYGResult{
+				PercentScore: 95,
+			},
+		},
+		{
+			ServiceName: "critical-api",
+			RYGResult: response.RYGResult{
+				PercentScore: 35,
+			},
+		},
+		{
+			ServiceName: "warning-api",
+			RYGResult: response.RYGResult{
+				PercentScore: 70,
+			},
+		},
+	}
+
+	system := buildSystemHealthSystem(group, services)
+
+	if len(system.Services) != 3 {
+		t.Fatalf("expected three services, got %d", len(system.Services))
+	}
+	got := []string{system.Services[0].Name, system.Services[1].Name, system.Services[2].Name}
+	want := []string{"critical-api", "warning-api", "healthy-api"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected services sorted by low health score first, got %+v", got)
 	}
 }
 
@@ -607,6 +653,45 @@ func TestApplySystemHealthExtraMetricsAggregatesResourceShiftAndLockCost(t *test
 	}
 }
 
+func TestApplySystemHealthExtraMetricsSortsServicesByLowScoreFirst(t *testing.T) {
+	healthyMetrics := defaultSystemMetricStatus()
+	for _, key := range systemHealthMetricKeys {
+		healthyMetrics[key] = healthStatusGreen
+	}
+	system := response.SystemHealthSystem{
+		Metrics:       defaultSystemMetricStatus(),
+		MetricDetails: defaultSystemMetricDetails(),
+		Services: []response.SystemHealthService{
+			{
+				Name:          "healthy-api",
+				Metrics:       healthyMetrics,
+				MetricDetails: defaultSystemMetricDetails(),
+			},
+			{
+				Name:          "critical-api",
+				Metrics:       defaultSystemMetricStatus(),
+				MetricDetails: defaultSystemMetricDetails(),
+			},
+		},
+	}
+	extra := systemHealthExtraMetricResults{
+		ResourceShift: []prometheus.MetricResult{
+			{
+				Metric: prometheus.Labels{SvcName: "critical-api"},
+				Values: []prometheus.Points{{Value: 1.75}},
+			},
+		},
+	}
+
+	applySystemHealthExtraMetrics(&system, extra)
+
+	got := []string{system.Services[0].Name, system.Services[1].Name}
+	want := []string{"critical-api", "healthy-api"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected services sorted by low recalculated health score first, got %+v", got)
+	}
+}
+
 func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) {
 	system := response.SystemHealthSystem{
 		Metrics:       defaultSystemMetricStatus(),
@@ -641,18 +726,20 @@ func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) 
 
 	applySystemHealthExtraMetrics(&system, extra)
 
-	apiResource := system.Services[0].MetricDetails[healthMetricResource]
-	if system.Services[0].Metrics[healthMetricResource] != healthStatusYellow || apiResource.Value != "72.00%" || apiResource.Source != "host/vm-a" {
-		t.Fatalf("expected order-api host CPU waterline yellow, metrics=%+v detail=%+v", system.Services[0].Metrics, apiResource)
+	orderAPI := serviceByName(t, system.Services, "order-api")
+	apiResource := orderAPI.MetricDetails[healthMetricResource]
+	if orderAPI.Metrics[healthMetricResource] != healthStatusYellow || apiResource.Value != "72.00%" || apiResource.Source != "host/vm-a" {
+		t.Fatalf("expected order-api host CPU waterline yellow, metrics=%+v detail=%+v", orderAPI.Metrics, apiResource)
 	}
-	apiShift := system.Services[0].MetricDetails[healthMetricResourceShift]
-	if system.Services[0].Metrics[healthMetricResourceShift] != healthStatusYellow || apiShift.Value != "35.00%" || apiShift.Source != "host/vm-a" {
-		t.Fatalf("expected order-api host resource shift yellow, metrics=%+v detail=%+v", system.Services[0].Metrics, apiShift)
+	apiShift := orderAPI.MetricDetails[healthMetricResourceShift]
+	if orderAPI.Metrics[healthMetricResourceShift] != healthStatusYellow || apiShift.Value != "35.00%" || apiShift.Source != "host/vm-a" {
+		t.Fatalf("expected order-api host resource shift yellow, metrics=%+v detail=%+v", orderAPI.Metrics, apiShift)
 	}
 
-	workerResource := system.Services[1].MetricDetails[healthMetricResource]
-	if system.Services[1].Metrics[healthMetricResource] != healthStatusRed || workerResource.Value != "93.00%" || workerResource.Source != "host/vm-b" {
-		t.Fatalf("expected order-worker host memory waterline red, metrics=%+v detail=%+v", system.Services[1].Metrics, workerResource)
+	orderWorker := serviceByName(t, system.Services, "order-worker")
+	workerResource := orderWorker.MetricDetails[healthMetricResource]
+	if orderWorker.Metrics[healthMetricResource] != healthStatusRed || workerResource.Value != "93.00%" || workerResource.Source != "host/vm-b" {
+		t.Fatalf("expected order-worker host memory waterline red, metrics=%+v detail=%+v", orderWorker.Metrics, workerResource)
 	}
 
 	systemResource := system.MetricDetails[healthMetricResource]
@@ -974,8 +1061,9 @@ func TestApplySystemHealthExtraMetricsRecalculatesServicesWithoutExtraSamples(t 
 
 	applySystemHealthExtraMetrics(&system, extra)
 
-	if system.Services[0].Score != 100 {
-		t.Fatalf("expected service without extra samples to be rescored from existing metrics, got %d", system.Services[0].Score)
+	orderAPI := serviceByName(t, system.Services, "order-api")
+	if orderAPI.Score != 100 {
+		t.Fatalf("expected service without extra samples to be rescored from existing metrics, got %d", orderAPI.Score)
 	}
 }
 

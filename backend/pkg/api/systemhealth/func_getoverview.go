@@ -594,6 +594,7 @@ func buildSystemHealthSystem(group datagroup.DataGroup, services []*response.Ser
 			system.MetricDetails[key] = systemMetricDetail(system.Services, key, status)
 		}
 	}
+	sortSystemHealthServicesByScore(system.Services)
 
 	return system
 }
@@ -623,6 +624,12 @@ func buildSystemHealthService(service *response.ServiceRYGResult) response.Syste
 	}
 
 	return result
+}
+
+func sortSystemHealthServicesByScore(services []response.SystemHealthService) {
+	sort.SliceStable(services, func(i, j int) bool {
+		return services[i].Score < services[j].Score
+	})
 }
 
 func defaultSystemMetricStatus() map[string]string {
@@ -1630,6 +1637,7 @@ func applySystemHealthExtraMetrics(system *response.SystemHealthSystem, extra sy
 
 	recalculateSystemHealthSystem(system)
 	applySystemHealthSystemMetricDetails(system, extra)
+	sortSystemHealthServicesByScore(system.Services)
 }
 
 func applySystemHealthResourceWaterline(service *response.SystemHealthService, detail response.SystemHealthMetricDetail) {

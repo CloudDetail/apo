@@ -112,8 +112,6 @@ const metricTrendColors = {
   resourceShift: '#ff8a45',
 }
 
-const severityValue = (status) => ({ red: 4, yellow: 3, gray: 2, green: 1 })[status] || 0
-
 const safeText = (value) => (value === undefined || value === null ? '' : `${value}`.trim())
 
 const positiveNumber = (value) => {
@@ -184,9 +182,6 @@ const normalizeMetrics = (metrics = {}) =>
     result[key] = metrics[key] || 'gray'
     return result
   }, {})
-
-const serviceSeverity = (service) =>
-  Object.values(service.metrics).reduce((sum, status) => sum + severityValue(status), 0)
 
 const isAbnormal = (system, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) =>
   system.status !== 'gray' &&
@@ -870,7 +865,7 @@ export default function SystemHealthOverviewPage() {
       .filter((service) =>
         serviceMatchesAbnormalAttentionFilter(service, onlyAbnormalServices, scoreThresholds),
       )
-      .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
+      .sort((left, right) => left.score - right.score)
   }, [selectedSystem, serviceKeyword, onlyAbnormalServices, scoreThresholds])
 
   const openDetail = (system) => {
