@@ -114,9 +114,9 @@ test('healthScoreLegendItemsFor documents configured score ranges without sample
       generalAbnormalScoreThreshold: 82,
     }),
     [
-      { status: 'green', range: '82-100分', label: '正常' },
-      { status: 'yellow', range: '45-81分', label: '一般异常（关注系统）' },
-      { status: 'red', range: '0-44分', label: '严重异常（异常系统）' },
+      { status: 'green', range: '82-100分', label: '健康' },
+      { status: 'yellow', range: '45-81分', label: '关注（关注系统）' },
+      { status: 'red', range: '0-44分', label: '异常（异常系统）' },
       { status: 'gray', range: '无可评分数据', label: '无数据' },
     ],
   )
@@ -124,9 +124,9 @@ test('healthScoreLegendItemsFor documents configured score ranges without sample
 
 test('healthScoreLegendItems documents default score ranges without sample scores', () => {
   assert.deepEqual(healthScoreLegendItems, [
-    { status: 'green', range: '80-100分', label: '正常' },
-    { status: 'yellow', range: '60-79分', label: '一般异常（关注系统）' },
-    { status: 'red', range: '0-59分', label: '严重异常（异常系统）' },
+    { status: 'green', range: '80-100分', label: '健康' },
+    { status: 'yellow', range: '60-79分', label: '关注（关注系统）' },
+    { status: 'red', range: '0-59分', label: '异常（异常系统）' },
     { status: 'gray', range: '无可评分数据', label: '无数据' },
   ])
 })
@@ -181,15 +181,17 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
         metrics: {},
       },
     ],
+    undefined,
+    { pendingIssueTotal: 5 },
   )
 
   assert.deepEqual(
     cards.map((card) => card.label),
-    ['异常系统', '关注系统', '严重异常指标'],
+    ['异常系统', '关注系统', '待处理问题'],
   )
   assert.deepEqual(
     cards.map((card) => card.value),
-    ['1 / 12', '1 / 12', 7],
+    ['1 / 12', '1 / 12', 5],
   )
   assert.deepEqual(
     cards.map((card) => card.highlightNumerator),
@@ -255,7 +257,7 @@ test('buildOverviewSummaryCards describes configured abnormal score thresholds',
   assert.equal(attentionSystemsCard.value, '0 / 4')
 })
 
-test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () => {
+test('buildOverviewSummaryCards keeps zero system ratios colored by severity', () => {
   const cards = metricVisuals.buildOverviewSummaryCards(
     {
       totalSystems: 4,
@@ -271,22 +273,32 @@ test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () =>
   )
 
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
+  const attentionSystemsCard = cards.find((card) => card.key === 'attentionSystems')
 
   assert.equal(abnormalSystemsCard.value, '0 / 4')
-  assert.equal(abnormalSystemsCard.highlightNumerator, false)
+  assert.equal(attentionSystemsCard.value, '0 / 4')
+  assert.equal(abnormalSystemsCard.highlightNumerator, true)
+  assert.equal(attentionSystemsCard.highlightNumerator, true)
 })
 
-test('buildOverviewSummaryCards presents severe metric counts as big numbers', () => {
-  const cards = metricVisuals.buildOverviewSummaryCards({
-    totalSystems: 4,
-    abnormalMetrics: 12,
-    severeMetrics: 3,
-  })
+test('buildOverviewSummaryCards presents pending issue counts as big numbers', () => {
+  const cards = metricVisuals.buildOverviewSummaryCards(
+    {
+      totalSystems: 4,
+      abnormalMetrics: 12,
+      severeMetrics: 3,
+    },
+    [],
+    undefined,
+    { pendingIssueTotal: 6 },
+  )
 
-  const severeMetricsCard = cards.find((card) => card.key === 'severeMetrics')
+  const pendingIssuesCard = cards.find((card) => card.key === 'pendingIssues')
 
-  assert.equal(severeMetricsCard.visual, 'number')
-  assert.equal(severeMetricsCard.percent, undefined)
+  assert.equal(pendingIssuesCard.label, '待处理问题')
+  assert.equal(pendingIssuesCard.value, 6)
+  assert.equal(pendingIssuesCard.visual, 'number')
+  assert.equal(pendingIssuesCard.percent, undefined)
 })
 
 test('metricVisualFor turns resource metrics into waterline visuals', () => {

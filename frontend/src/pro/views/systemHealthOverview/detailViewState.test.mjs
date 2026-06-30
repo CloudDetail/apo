@@ -71,12 +71,14 @@ test('detail request key stays empty without a selected system', () => {
   )
 })
 
-test('detail header ratio counts services below the healthy score threshold as abnormal', () => {
+test('detail header ratio counts red and yellow health score services separately', () => {
   assert.deepEqual(
     buildAbnormalServiceRatio(
       [
-        { score: 79, status: 'green', metrics: { latency: 'green' } },
-        { score: 80, status: 'red', metrics: { latency: 'red' } },
+        { score: 59, status: 'green', metrics: { latency: 'green' } },
+        { score: 60, status: 'red', metrics: { latency: 'red' } },
+        { score: 79, status: 'red', metrics: { latency: 'red' } },
+        { score: 80, status: 'yellow', metrics: { latency: 'yellow' } },
         { score: 95, status: 'yellow', metrics: { latency: 'yellow' } },
         { score: 90, status: 'green', metrics: { latency: 'red' } },
       ],
@@ -85,15 +87,15 @@ test('detail header ratio counts services below the healthy score threshold as a
         generalAbnormalScoreThreshold: 80,
       },
     ),
-    { abnormal: 1, total: 4 },
+    { abnormal: 1, attention: 2, total: 6 },
   )
 })
 
 test('detail header ratio handles missing services', () => {
-  assert.deepEqual(buildAbnormalServiceRatio(null), { abnormal: 0, total: 0 })
+  assert.deepEqual(buildAbnormalServiceRatio(null), { abnormal: 0, attention: 0, total: 0 })
 })
 
-test('detail header ratio follows custom healthy score threshold', () => {
+test('detail header ratio follows custom red health score threshold', () => {
   assert.deepEqual(
     buildAbnormalServiceRatio(
       [
@@ -101,11 +103,11 @@ test('detail header ratio follows custom healthy score threshold', () => {
         { score: 85, status: 'green', metrics: { latency: 'green' } },
       ],
       {
-        severeAbnormalScoreThreshold: 60,
-        generalAbnormalScoreThreshold: 85,
+        severeAbnormalScoreThreshold: 85,
+        generalAbnormalScoreThreshold: 90,
       },
     ),
-    { abnormal: 1, total: 2 },
+    { abnormal: 1, attention: 1, total: 2 },
   )
 })
 
@@ -140,18 +142,40 @@ test('detail header uses a compact single-row health monitor layout', () => {
   assert.ok(headerSource.includes('size="mini"'))
   assert.ok(headerSource.includes('<div className="sho-detail-compact-score-label">'))
   assert.ok(headerSource.includes('<div className="sho-detail-compact-service-count">'))
-  assert.ok(headerSource.includes('异常服务数'))
+  assert.ok(
+    headerSource.indexOf('<span>异常服务</span>') < headerSource.indexOf('<span>关注服务</span>'),
+  )
+  assert.ok(headerSource.includes('<TriangleAlert size={18} />'))
+  assert.ok(headerSource.includes('<span>异常服务</span>'))
+  assert.ok(
+    headerSource.includes(
+      'aria-label={`异常服务 ${abnormalServiceRatio.abnormal} / ${abnormalServiceRatio.total}`}',
+    ),
+  )
+  assert.ok(headerSource.includes('<CircleAlert size={18} />'))
+  assert.ok(headerSource.includes('<span>关注服务</span>'))
+  assert.ok(
+    headerSource.includes(
+      'aria-label={`关注服务 ${abnormalServiceRatio.attention} / ${abnormalServiceRatio.total}`}',
+    ),
+  )
+  assert.equal(headerSource.includes('<span>异常服</span>'), false)
+  assert.equal(headerSource.includes('异常服务数'), false)
   assert.ok(
     viewSource.includes('buildAbnormalServiceRatio(selectedSystem?.services, scoreThresholds)'),
   )
   assert.ok(headerSource.includes('abnormalServiceRatio.abnormal'))
+  assert.ok(headerSource.includes('abnormalServiceRatio.attention'))
   assert.ok(headerSource.includes('abnormalServiceRatio.total'))
   assert.ok(headerSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
   assert.ok(headerSource.includes('sho-summary-value-highlight-critical'))
+  assert.ok(headerSource.includes('sho-summary-value-highlight-warning'))
+  assert.equal(headerSource.includes('abnormalServiceRatio.abnormal > 0'), false)
+  assert.equal(headerSource.includes('abnormalServiceRatio.attention > 0'), false)
   assert.ok(headerSource.includes('<div className="sho-detail-compact-exception-label">'))
   assert.ok(headerSource.includes('<Activity size={18} />'))
-  assert.equal(headerSource.includes('<TriangleAlert size={18} />'), false)
-  assert.ok(headerSource.includes('严重异常指标'))
+  assert.ok(headerSource.includes('<span>异常指标</span>'))
+  assert.equal(headerSource.includes('严重异常指标'), false)
   assert.equal(headerSource.includes('主要异常'), false)
   assert.equal(headerSource.includes('SYSTEM'), false)
   assert.equal(headerSource.includes('SCORE'), false)
@@ -194,6 +218,47 @@ test('health page uses active alert wording and health metric section title', ()
   assert.ok(viewSource.includes("['badRequests', '活跃告警']"))
   assert.ok(viewSource.includes('<div className="sho-panel-title">健康指标</div>'))
   assert.ok(viewSource.includes('<div className="sho-panel-title">服务健康度</div>'))
+})
+
+test('service health filter uses the overview-style abnormal attention switch', () => {
+  const servicePanelStart = viewSource.indexOf('<div className="sho-panel-title">服务健康度</div>')
+  const serviceTableStart = viewSource.indexOf('<HealthTable className="sho-service-table">')
+  assert.notEqual(servicePanelStart, -1, 'service health panel should exist')
+  assert.notEqual(serviceTableStart, -1, 'service health table should exist')
+
+  const servicePanelSource = viewSource.slice(servicePanelStart, serviceTableStart)
+  const oldFilterPrefix = '只看'
+  assert.ok(viewSource.includes('<span className="sho-muted">异常和关注系统</span>'))
+  assert.equal(viewSource.includes(`${oldFilterPrefix}异常和关注系统`), false)
+  assert.ok(servicePanelSource.includes('<span className="sho-muted">异常和关注服务</span>'))
+  assert.equal(servicePanelSource.includes(`${oldFilterPrefix}异常和关注服务`), false)
+  assert.ok(servicePanelSource.includes('checked={onlyAbnormalServices}'))
+  assert.ok(servicePanelSource.includes('onChange={setOnlyAbnormalServices}'))
+  assert.ok(
+    viewSource.includes('const [onlyAbnormalServices, setOnlyAbnormalServices] = useState(true)'),
+  )
+  assert.ok(viewSource.includes('setOnlyAbnormalServices(true)'))
+  assert.ok(
+    servicePanelSource.indexOf('<span className="sho-muted">异常和关注服务</span>') <
+      servicePanelSource.indexOf('<Input'),
+  )
+  assert.equal(servicePanelSource.includes('<Select'), false)
+  assert.equal(servicePanelSource.includes('serviceFilter'), false)
+})
+
+test('service abnormal attention filter follows health score thresholds', async () => {
+  const { serviceMatchesAbnormalAttentionFilter } = await import('./detailViewState.mjs')
+  assert.equal(typeof serviceMatchesAbnormalAttentionFilter, 'function')
+
+  const scoreThresholds = {
+    severeAbnormalScoreThreshold: 60,
+    generalAbnormalScoreThreshold: 80,
+  }
+
+  assert.equal(serviceMatchesAbnormalAttentionFilter({ score: 59 }, true, scoreThresholds), true)
+  assert.equal(serviceMatchesAbnormalAttentionFilter({ score: 79 }, true, scoreThresholds), true)
+  assert.equal(serviceMatchesAbnormalAttentionFilter({ score: 80 }, true, scoreThresholds), false)
+  assert.equal(serviceMatchesAbnormalAttentionFilter({ score: 95 }, false, scoreThresholds), true)
 })
 
 test('metric cards do not render gray helper descriptions under values', () => {

@@ -124,7 +124,7 @@ test('summary titles use direct icons while settings live in toolbar', () => {
   assert.ok(viewSource.includes('const summaryCardIcons = {'))
   assert.match(viewSource, /abnormalSystems: \(/)
   assert.match(viewSource, /attentionSystems: \(/)
-  assert.match(viewSource, /severeMetrics: \(/)
+  assert.match(viewSource, /pendingIssues: \(/)
   assert.ok(viewSource.includes('className="sho-toolbar-actions"'))
   assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
   assert.ok(viewSource.includes('content={renderThresholdSettings()}'))
@@ -157,8 +157,11 @@ test('threshold popover separates input rows from status legend rows', () => {
 
   assert.ok(viewSource.includes('className="sho-threshold-inputs"'))
   assert.ok(viewSource.includes('className="sho-threshold-abnormal-note"'))
+  assert.ok(viewSource.includes('健康异常判定'))
+  assert.equal(viewSource.includes('健康度分值异常判定'), false)
   assert.ok(viewSource.includes('aria-label="关注系统健康度阈值"'))
-  assert.ok(viewSource.includes('分，一般异常'))
+  assert.ok(viewSource.includes('<span>分，关注</span>'))
+  assert.equal(viewSource.includes('分，一般异常'), false)
   assert.equal(viewSource.includes('分，关注系统'), false)
   assert.ok(viewSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
   assert.ok(
@@ -170,8 +173,10 @@ test('threshold popover separates input rows from status legend rows', () => {
   assert.ok(viewSource.includes('<ThresholdStatusRing status="green" />'))
   assert.ok(viewSource.includes('severeRange'))
   assert.equal(viewSource.includes('亚健康'), false)
-  assert.ok(viewSource.includes('严重异常（异常系统）'))
-  assert.ok(viewSource.includes('一般异常（关注系统）'))
+  assert.ok(viewSource.includes('>异常</span>'))
+  assert.ok(viewSource.includes('>关注</span>'))
+  assert.equal(viewSource.includes('严重异常（异常系统）'), false)
+  assert.equal(viewSource.includes('一般异常（关注系统）'), false)
   assert.ok(viewSource.includes('健康'))
   assert.equal(viewSource.includes('icon={<Check'), false)
   assert.ok(popoverDeclarations.includes('width: 360px'))
@@ -202,11 +207,11 @@ test('compact detail header keeps a single-row fixed monitor shape', () => {
   const declarations = declarationsFor('.sho-detail-compact-header')
   const allHeaderDeclarations = declarationBlocksFor('.sho-detail-compact-header').flat()
 
-  assert.ok(declarations.includes('min-height: 56px'))
+  assert.ok(declarations.includes('min-height: 88px'))
   assert.ok(declarations.includes('display: flex'))
   assert.ok(declarations.includes('align-items: center'))
   assert.ok(declarations.includes('justify-content: center'))
-  assert.ok(declarations.includes('margin-bottom: 10px'))
+  assert.ok(declarations.includes('margin-bottom: 12px'))
   assert.equal(
     allHeaderDeclarations.some((declaration) => declaration.startsWith('padding')),
     false,
@@ -221,16 +226,23 @@ test('compact detail monitor aligns groups without changing theme colors', () =>
   const declarations = declarationsFor('.sho-detail-compact-inner')
 
   assert.ok(declarations.includes('width: 100%'))
-  assert.ok(declarations.includes('min-height: 56px'))
+  assert.ok(declarations.includes('min-height: 88px'))
   assert.ok(declarations.includes('display: flex'))
   assert.ok(declarations.includes('align-items: center'))
   assert.ok(declarations.includes('justify-content: flex-start'))
+  assert.ok(declarations.includes('gap: 28px'))
   assert.ok(declarations.includes('background: var(--ant-color-bg-container)'))
   assert.ok(declarations.includes('border: 1px solid var(--ant-color-border-secondary)'))
   assert.equal(
     declarations.some((declaration) => declaration.startsWith('max-width')),
     false,
   )
+})
+
+test('detail page keeps equal spacing between stacked cards', () => {
+  const declarations = declarationsFor('.system-health-overview-page-detail .sho-panel')
+
+  assert.ok(declarations.includes('margin-bottom: 12px'))
 })
 
 test('compact detail score label style does not override the health ring score', () => {
@@ -246,6 +258,7 @@ test('compact detail score label style does not override the health ring score',
 
 test('compact detail service count drops card chrome and reuses summary ratio value styling', () => {
   const countDeclarations = declarationsFor('.sho-detail-compact-service-count')
+  const labelDeclarations = declarationsFor('.sho-detail-compact-service-label')
   const detailValueDeclarations = declarationsFor('.sho-detail-compact-service-value')
   const valueDeclarations = declarationsFor('.sho-summary-value')
 
@@ -259,24 +272,36 @@ test('compact detail service count drops card chrome and reuses summary ratio va
   )
   assert.ok(valueDeclarations.includes('font-size: 34px'))
   assert.ok(valueDeclarations.includes('font-variant-numeric: tabular-nums'))
+  assert.ok(labelDeclarations.includes('font-size: 16px'))
+  assert.ok(labelDeclarations.includes('line-height: 22px'))
   assert.ok(detailValueDeclarations.includes('font-size: 24px'))
   assert.ok(detailValueDeclarations.includes('line-height: 28px'))
   assert.ok(detailValueDeclarations.includes('font-weight: 700'))
   assert.ok(viewSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
 })
 
-test('compact detail title and exception label are enlarged without changing controls', () => {
+test('compact detail text uses 16px without changing controls', () => {
   const titleDeclarations = declarationsFor('.sho-detail-compact-title strong')
   const exceptionDeclarations = declarationBlocksFor('.sho-detail-compact-exception-label').flat()
   const backDeclarations = declarationsFor('.sho-detail-compact-back.ant-btn')
+  const loadingDeclarations = declarationsFor('.sho-detail-loading-status')
   const tagDeclarations = declarationsFor('.sho-detail-compact-tags .ant-tag')
 
-  assert.ok(titleDeclarations.includes('font-size: 18px'))
-  assert.ok(titleDeclarations.includes('line-height: 26px'))
+  assert.ok(titleDeclarations.includes('font-size: 16px'))
+  assert.ok(titleDeclarations.includes('line-height: 22px'))
   assert.ok(exceptionDeclarations.includes('font-size: 16px'))
   assert.ok(exceptionDeclarations.includes('line-height: 22px'))
   assert.ok(exceptionDeclarations.includes('font-weight: 700'))
-  assert.ok(backDeclarations.includes('font-size: 12px'))
+  assert.ok(backDeclarations.includes('font-size: 16px'))
+  assert.ok(loadingDeclarations.includes('font-size: 16px'))
+  assert.equal(
+    tagDeclarations.some((declaration) => declaration.startsWith('font-size')),
+    false,
+  )
+  assert.equal(
+    tagDeclarations.some((declaration) => declaration.startsWith('line-height')),
+    false,
+  )
   assert.ok(tagDeclarations.includes('max-width: 118px'))
 })
 
@@ -350,11 +375,14 @@ test('system metric visuals align value and chart areas', () => {
 test('resource waterline metric centers value and waterline horizontally', () => {
   const declarations = declarationsFor('.sho-metric-visual-waterline')
   const valueDeclarations = declarationsFor('.sho-metric-visual-waterline .sho-metric-value-block')
+  const waterlineDeclarations = declarationsFor('.sho-waterline')
 
-  assert.ok(declarations.includes('grid-template-columns: minmax(0, 1fr) 38px'))
+  assert.ok(declarations.includes('grid-template-columns: minmax(0, 1fr) 55px'))
   assert.ok(declarations.includes('grid-template-rows: 118px'))
   assert.ok(declarations.includes('align-items: center'))
   assert.ok(valueDeclarations.includes('align-self: center'))
+  assert.ok(waterlineDeclarations.includes('width: 55px'))
+  assert.ok(waterlineDeclarations.includes('height: 99px'))
 })
 
 test('plain number metric values are centered in the visual area', () => {

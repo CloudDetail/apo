@@ -93,16 +93,16 @@ export const healthScoreStatus = (score, config = DEFAULT_HEALTH_SCORE_THRESHOLD
 export const healthScoreLegendItemsFor = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
   const thresholds = normalizeHealthScoreThresholds(config)
   return [
-    { status: 'green', range: `${thresholds.generalAbnormalScoreThreshold}-100分`, label: '正常' },
+    { status: 'green', range: `${thresholds.generalAbnormalScoreThreshold}-100分`, label: '健康' },
     {
       status: 'yellow',
       range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
-      label: '一般异常（关注系统）',
+      label: '关注（关注系统）',
     },
     {
       status: 'red',
       range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
-      label: '严重异常（异常系统）',
+      label: '异常（异常系统）',
     },
     { status: 'gray', range: '无可评分数据', label: '无数据' },
   ]
@@ -316,6 +316,7 @@ export const buildOverviewSummaryCards = (
   summary = {},
   systems = [],
   scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
+  options = {},
 ) => {
   const totalSystems = summaryNumber(summary.totalSystems) || systems.length
   const thresholds = normalizeHealthScoreThresholds(scoreThresholds)
@@ -333,7 +334,7 @@ export const buildOverviewSummaryCards = (
             0,
           ),
       )
-  const severeMetrics = summaryNumber(summary.severeMetrics)
+  const pendingIssueTotal = summaryNumber(options.pendingIssueTotal ?? summary.pendingIssues)
 
   return [
     {
@@ -343,7 +344,7 @@ export const buildOverviewSummaryCards = (
       value: `${severeSystems} / ${totalSystems}`,
       numerator: severeSystems,
       denominator: totalSystems,
-      highlightNumerator: severeSystems > 0,
+      highlightNumerator: true,
       tone: 'critical',
       visual: 'ratio',
     },
@@ -354,14 +355,14 @@ export const buildOverviewSummaryCards = (
       value: `${attentionSystems} / ${totalSystems}`,
       numerator: attentionSystems,
       denominator: totalSystems,
-      highlightNumerator: attentionSystems > 0,
+      highlightNumerator: true,
       tone: 'warning',
       visual: 'ratio',
     },
     {
-      key: 'severeMetrics',
-      label: '严重异常指标',
-      value: severeMetrics,
+      key: 'pendingIssues',
+      label: '待处理问题',
+      value: pendingIssueTotal,
       tone: 'critical',
       visual: 'number',
     },

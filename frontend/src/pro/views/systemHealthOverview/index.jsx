@@ -8,7 +8,6 @@ import {
   message,
   Pagination,
   Popover,
-  Select,
   Space,
   Spin,
   Statistic,
@@ -22,6 +21,7 @@ import {
   ArrowLeft,
   CircleAlert,
   HelpCircle,
+  ListTodo,
   Search,
   Settings,
   Sparkles,
@@ -58,6 +58,7 @@ import {
 import {
   buildAbnormalServiceRatio,
   buildDetailRequestKey,
+  serviceMatchesAbnormalAttentionFilter,
   shouldRenderDetailBody,
 } from './detailViewState.mjs'
 import {
@@ -83,9 +84,9 @@ const metricLabels = [
 ]
 
 const statusMeta = {
-  green: { label: '正常', color: '#12b76a' },
-  yellow: { label: '一般异常', color: '#f79009' },
-  red: { label: '严重异常', color: '#f04438' },
+  green: { label: '健康', color: '#12b76a' },
+  yellow: { label: '关注', color: '#f79009' },
+  red: { label: '异常', color: '#f04438' },
   gray: { label: '无数据', color: '#98a2b3' },
 }
 
@@ -99,8 +100,8 @@ const summaryCardIcons = {
   attentionSystems: (
     <CircleAlert className="sho-summary-title-icon sho-summary-title-icon-warning" size={17} />
   ),
-  severeMetrics: (
-    <Activity className="sho-summary-title-icon sho-summary-title-icon-critical" size={17} />
+  pendingIssues: (
+    <ListTodo className="sho-summary-title-icon sho-summary-title-icon-critical" size={17} />
   ),
 }
 
@@ -375,17 +376,17 @@ const healthScoreRangesFor = (scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS)
     {
       status: 'red',
       range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
-      label: '严重异常',
+      label: '异常',
     },
     {
       status: 'yellow',
       range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
-      label: '一般异常',
+      label: '关注',
     },
     {
       status: 'green',
       range: `${thresholds.generalAbnormalScoreThreshold}-100分`,
-      label: '正常',
+      label: '健康',
     },
   ]
 }
@@ -585,14 +586,6 @@ DetailLoadingStatus.propTypes = {
   className: PropTypes.string,
 }
 
-const serviceMatchesFilter = (service, filter) => {
-  const values = Object.values(service.metrics)
-  if (filter === 'red') return values.includes('red')
-  if (filter === 'yellow') return !values.includes('red') && values.includes('yellow')
-  if (filter === 'green') return values.every((value) => value === 'green')
-  return true
-}
-
 const OverviewInitialLoading = () => (
   <div className="sho-overview-loading" role="status" aria-live="polite">
     <div className="sho-loading-summary" aria-hidden="true">
@@ -713,7 +706,7 @@ export default function SystemHealthOverviewPage() {
   const [onlyAbnormal, setOnlyAbnormal] = useState(true)
   const [systemKeyword, setSystemKeyword] = useState('')
   const [serviceKeyword, setServiceKeyword] = useState('')
-  const [serviceFilter, setServiceFilter] = useState('all')
+  const [onlyAbnormalServices, setOnlyAbnormalServices] = useState(true)
 
   const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
   if (initialTimeRangeSignatureRef.current === null) {
@@ -874,15 +867,17 @@ export default function SystemHealthOverviewPage() {
         (service) =>
           !keyword || `${service.name} ${service.desc || ''}`.toLowerCase().includes(keyword),
       )
-      .filter((service) => serviceMatchesFilter(service, serviceFilter))
+      .filter((service) =>
+        serviceMatchesAbnormalAttentionFilter(service, onlyAbnormalServices, scoreThresholds),
+      )
       .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
-  }, [selectedSystem, serviceKeyword, serviceFilter])
+  }, [selectedSystem, serviceKeyword, onlyAbnormalServices, scoreThresholds])
 
   const openDetail = (system) => {
     setSelectedSystemId(String(system.groupId))
     setSelectedSystem(system)
     setServiceKeyword('')
-    setServiceFilter('all')
+    setOnlyAbnormalServices(true)
     setDetailError('')
     setDetailRefreshToken((current) => current + 1)
   }
@@ -927,7 +922,7 @@ export default function SystemHealthOverviewPage() {
       return
     }
     if (severeThreshold >= generalThreshold) {
-      message.error('严重异常分值必须低于关注系统阈值')
+      message.error('异常分值必须低于关注系统阈值')
       return
     }
     const nextThresholds = normalizeHealthScoreThresholds({
@@ -968,13 +963,13 @@ export default function SystemHealthOverviewPage() {
 
     return (
       <div className="sho-threshold-popover">
-        <div className="sho-threshold-popover-title">健康度分值异常判定</div>
+        <div className="sho-threshold-popover-title">健康异常判定</div>
         <div className="sho-threshold-editor">
           <div className="sho-threshold-inputs">
             <label className="sho-threshold-input-row">
               <span>健康度低于</span>
               <InputNumber
-                aria-label="严重异常健康度阈值"
+                aria-label="异常健康度阈值"
                 max={99}
                 min={1}
                 precision={0}
@@ -988,7 +983,7 @@ export default function SystemHealthOverviewPage() {
                 }
                 onPressEnter={saveAbnormalScoreThreshold}
               />
-              <span>分，严重异常</span>
+              <span>分，异常</span>
             </label>
             <label className="sho-threshold-input-row">
               <span>健康度低于</span>
@@ -1007,7 +1002,7 @@ export default function SystemHealthOverviewPage() {
                 }
                 onPressEnter={saveAbnormalScoreThreshold}
               />
-              <span>分，一般异常</span>
+              <span>分，关注</span>
             </label>
           </div>
           <div className="sho-threshold-abnormal-note">
@@ -1020,12 +1015,12 @@ export default function SystemHealthOverviewPage() {
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="red" />
               <span className="sho-threshold-legend-range">{severeRange}</span>
-              <span className="sho-threshold-legend-label">严重异常（异常系统）</span>
+              <span className="sho-threshold-legend-label">异常</span>
             </div>
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="yellow" />
               <span className="sho-threshold-legend-range">{generalRange}</span>
-              <span className="sho-threshold-legend-label">一般异常（关注系统）</span>
+              <span className="sho-threshold-legend-label">关注</span>
             </div>
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="green" />
@@ -1319,7 +1314,9 @@ export default function SystemHealthOverviewPage() {
     })
     const overviewState = renderOverviewState()
     const statusDistribution = buildStatusDistribution(systems, scoreThresholds)
-    const summaryCards = buildOverviewSummaryCards(summary, systems, scoreThresholds)
+    const summaryCards = buildOverviewSummaryCards(summary, systems, scoreThresholds, {
+      pendingIssueTotal,
+    })
 
     return (
       <>
@@ -1336,11 +1333,11 @@ export default function SystemHealthOverviewPage() {
               trigger="click"
             >
               <Button
-                aria-label="健康度分值异常判定设置"
+                aria-label="健康异常判定设置"
                 className="sho-threshold-toolbar-trigger"
                 icon={<Settings size={15} />}
               >
-                健康度分值异常判定
+                健康异常判定
               </Button>
             </Popover>
           </div>
@@ -1385,7 +1382,7 @@ export default function SystemHealthOverviewPage() {
                 </div>
                 <Space wrap size={8}>
                   <Space size={6}>
-                    <span className="sho-muted">只看异常系统</span>
+                    <span className="sho-muted">异常和关注系统</span>
                     <Switch
                       checked={onlyAbnormal}
                       checkedChildren="开"
@@ -1490,22 +1487,32 @@ export default function SystemHealthOverviewPage() {
                 </div>
                 <span className="sho-detail-compact-divider" aria-hidden="true" />
                 <div className="sho-detail-compact-service-count">
-                  <div className="sho-detail-compact-service-label">
-                    <CircleAlert size={18} />
-                    <span>异常服务数</span>
+                  <div className="sho-detail-compact-service-label sho-detail-compact-service-label-critical">
+                    <TriangleAlert size={18} />
+                    <span>异常服务</span>
                   </div>
                   <div
                     className="sho-detail-compact-service-value sho-summary-value"
-                    aria-label={`异常服务数 ${abnormalServiceRatio.abnormal} / ${abnormalServiceRatio.total}`}
+                    aria-label={`异常服务 ${abnormalServiceRatio.abnormal} / ${abnormalServiceRatio.total}`}
                   >
-                    <span
-                      className={
-                        abnormalServiceRatio.abnormal > 0
-                          ? 'sho-summary-value-highlight-critical'
-                          : undefined
-                      }
-                    >
+                    <span className="sho-summary-value-highlight-critical">
                       {abnormalServiceRatio.abnormal}
+                    </span>
+                    <span>/ {abnormalServiceRatio.total}</span>
+                  </div>
+                </div>
+                <span className="sho-detail-compact-divider" aria-hidden="true" />
+                <div className="sho-detail-compact-service-count">
+                  <div className="sho-detail-compact-service-label sho-detail-compact-service-label-warning">
+                    <CircleAlert size={18} />
+                    <span>关注服务</span>
+                  </div>
+                  <div
+                    className="sho-detail-compact-service-value sho-summary-value"
+                    aria-label={`关注服务 ${abnormalServiceRatio.attention} / ${abnormalServiceRatio.total}`}
+                  >
+                    <span className="sho-summary-value-highlight-warning">
+                      {abnormalServiceRatio.attention}
                     </span>
                     <span>/ {abnormalServiceRatio.total}</span>
                   </div>
@@ -1514,7 +1521,7 @@ export default function SystemHealthOverviewPage() {
                 <div className="sho-detail-compact-exceptions">
                   <div className="sho-detail-compact-exception-label">
                     <Activity size={18} />
-                    <span>严重异常指标</span>
+                    <span>异常指标</span>
                   </div>
                   <div className="sho-tags sho-detail-compact-tags">
                     {statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}
@@ -1570,6 +1577,15 @@ export default function SystemHealthOverviewPage() {
               <div className="sho-panel-head">
                 <div className="sho-panel-title">服务健康度</div>
                 <Space wrap size={8}>
+                  <Space size={6}>
+                    <span className="sho-muted">异常和关注服务</span>
+                    <Switch
+                      checked={onlyAbnormalServices}
+                      checkedChildren="开"
+                      unCheckedChildren="关"
+                      onChange={setOnlyAbnormalServices}
+                    />
+                  </Space>
                   <Input
                     allowClear
                     className="sho-search"
@@ -1577,17 +1593,6 @@ export default function SystemHealthOverviewPage() {
                     prefix={<Search size={14} />}
                     value={serviceKeyword}
                     onChange={(event) => setServiceKeyword(event.target.value)}
-                  />
-                  <Select
-                    value={serviceFilter}
-                    onChange={setServiceFilter}
-                    style={{ width: 116 }}
-                    options={[
-                      { value: 'all', label: '全部服务' },
-                      { value: 'red', label: '只看严重异常' },
-                      { value: 'yellow', label: '只看一般异常' },
-                      { value: 'green', label: '只看正常' },
-                    ]}
                   />
                 </Space>
               </div>

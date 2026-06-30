@@ -363,21 +363,21 @@
 }
 
 .sho-detail-compact-header {
-  min-height: 56px;
+  min-height: 88px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .sho-detail-compact-inner {
   width: 100%;
-  min-height: 56px;
+  min-height: 88px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 18px;
-  padding: 8px 14px;
+  gap: 28px;
+  padding: 12px 14px;
   overflow: hidden;
   border: 1px solid var(--ant-color-border-secondary);
   border-radius: 6px;
@@ -405,7 +405,7 @@
   padding: 0 9px;
   border-radius: 999px;
   color: var(--ant-color-text-secondary);
-  font-size: 12px;
+  font-size: 16px;
 }
 
 .sho-detail-compact-title {
@@ -417,9 +417,9 @@
 .sho-detail-compact-title strong {
   overflow: hidden;
   color: var(--ant-color-text);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 26px;
+  line-height: 22px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -444,9 +444,9 @@
 .sho-detail-compact-service-label {
   gap: 6px;
   color: var(--ant-color-text);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 20px;
+  line-height: 22px;
   white-space: nowrap;
 }
 
@@ -454,6 +454,14 @@
   width: 18px;
   height: 18px;
   color: var(--ant-color-error);
+}
+
+.sho-detail-compact-service-label-critical svg {
+  color: #f04438;
+}
+
+.sho-detail-compact-service-label-warning svg {
+  color: #f79009;
 }
 
 .sho-detail-compact-service-value {
@@ -472,9 +480,9 @@
   align-items: center;
   gap: 8px;
   color: var(--ant-color-text-secondary);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 22px;
 }
 
 .sho-detail-loading-pulse {
@@ -604,6 +612,10 @@
   min-width: 0;
   overflow: hidden;
   margin-bottom: 10px;
+}
+
+.system-health-overview-page-detail .sho-panel {
+  margin-bottom: 12px;
 }
 
 .sho-panel-head {
@@ -1111,7 +1123,7 @@
 }
 
 .sho-metric-visual-waterline {
-  grid-template-columns: minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(0, 1fr) 55px;
   grid-template-rows: 118px;
   align-items: center;
 }
@@ -1161,8 +1173,8 @@
   grid-row: 1;
   justify-self: end;
   align-self: center;
-  width: 38px;
-  height: 74px;
+  width: 55px;
+  height: 99px;
   overflow: hidden;
   border: 1px solid var(--ant-color-border-secondary);
   border-radius: 8px;
