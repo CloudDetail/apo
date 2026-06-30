@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { URL } from 'node:url'
 
-import { buildDetailRequestKey, shouldRenderDetailBody } from './detailViewState.mjs'
+import {
+  buildAbnormalServiceRatio,
+  buildDetailRequestKey,
+  shouldRenderDetailBody,
+} from './detailViewState.mjs'
 
 const viewSource = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
 
@@ -67,6 +71,44 @@ test('detail request key stays empty without a selected system', () => {
   )
 })
 
+test('detail header ratio counts services below the healthy score threshold as abnormal', () => {
+  assert.deepEqual(
+    buildAbnormalServiceRatio(
+      [
+        { score: 79, status: 'green', metrics: { latency: 'green' } },
+        { score: 80, status: 'red', metrics: { latency: 'red' } },
+        { score: 95, status: 'yellow', metrics: { latency: 'yellow' } },
+        { score: 90, status: 'green', metrics: { latency: 'red' } },
+      ],
+      {
+        severeAbnormalScoreThreshold: 60,
+        generalAbnormalScoreThreshold: 80,
+      },
+    ),
+    { abnormal: 1, total: 4 },
+  )
+})
+
+test('detail header ratio handles missing services', () => {
+  assert.deepEqual(buildAbnormalServiceRatio(null), { abnormal: 0, total: 0 })
+})
+
+test('detail header ratio follows custom healthy score threshold', () => {
+  assert.deepEqual(
+    buildAbnormalServiceRatio(
+      [
+        { score: 84, status: 'green', metrics: { latency: 'green' } },
+        { score: 85, status: 'green', metrics: { latency: 'green' } },
+      ],
+      {
+        severeAbnormalScoreThreshold: 60,
+        generalAbnormalScoreThreshold: 85,
+      },
+    ),
+    { abnormal: 1, total: 2 },
+  )
+})
+
 test('detail header omits removed guidance and summary cards', () => {
   assert.equal(viewSource.includes('按服务查看健康状态，优先处理红灯和持续黄灯指标。'), false)
   assert.equal(viewSource.includes('关注指标'), false)
@@ -97,7 +139,20 @@ test('detail header uses a compact single-row health monitor layout', () => {
   assert.ok(headerSource.includes('scoreThresholds={scoreThresholds}'))
   assert.ok(headerSource.includes('size="mini"'))
   assert.ok(headerSource.includes('<div className="sho-detail-compact-score-label">'))
+  assert.ok(headerSource.includes('<div className="sho-detail-compact-service-count">'))
+  assert.ok(headerSource.includes('异常服务数'))
+  assert.ok(
+    viewSource.includes('buildAbnormalServiceRatio(selectedSystem?.services, scoreThresholds)'),
+  )
+  assert.ok(headerSource.includes('abnormalServiceRatio.abnormal'))
+  assert.ok(headerSource.includes('abnormalServiceRatio.total'))
+  assert.ok(headerSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
+  assert.ok(headerSource.includes('sho-summary-value-highlight-critical'))
   assert.ok(headerSource.includes('<div className="sho-detail-compact-exception-label">'))
+  assert.ok(headerSource.includes('<Activity size={18} />'))
+  assert.equal(headerSource.includes('<TriangleAlert size={18} />'), false)
+  assert.ok(headerSource.includes('严重异常指标'))
+  assert.equal(headerSource.includes('主要异常'), false)
   assert.equal(headerSource.includes('SYSTEM'), false)
   assert.equal(headerSource.includes('SCORE'), false)
   assert.equal(headerSource.includes('sho-detail-compact-update'), false)

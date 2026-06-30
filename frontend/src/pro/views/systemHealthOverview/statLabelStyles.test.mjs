@@ -6,6 +6,14 @@ import { URL } from 'node:url'
 const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
 const viewSource = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
 
+const sourceBetween = (start, end) => {
+  const startIndex = viewSource.indexOf(start)
+  assert.notEqual(startIndex, -1, `${start} should exist`)
+  const endIndex = viewSource.indexOf(end, startIndex)
+  assert.notEqual(endIndex, -1, `${end} should exist after ${start}`)
+  return viewSource.slice(startIndex, endIndex)
+}
+
 const declarationsFor = (selector) => {
   const match = css.match(
     new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]+)\\}`),
@@ -76,14 +84,18 @@ test('summary cards no longer render captions or ring visuals', () => {
   assert.equal(css.includes('.sho-summary-card small'), false)
 })
 
-test('summary ratio value uses neutral text with optional red numerator', () => {
+test('summary ratio value uses neutral text with severity numerator highlights', () => {
   const valueDeclarations = declarationsFor('.sho-summary-value')
-  const numeratorDeclarations = declarationsFor('.sho-summary-value-critical')
+  const highlightDeclarations = declarationsFor('.sho-summary-value-highlight')
+  const criticalDeclarations = declarationsFor('.sho-summary-value-highlight-critical')
+  const warningDeclarations = declarationsFor('.sho-summary-value-highlight-warning')
 
   assert.ok(valueDeclarations.includes('color: var(--ant-color-text)'))
   assert.ok(valueDeclarations.includes('font-size: 34px'))
   assert.ok(valueDeclarations.includes('font-variant-numeric: tabular-nums'))
-  assert.ok(numeratorDeclarations.includes('color: #f04438'))
+  assert.ok(highlightDeclarations.includes('font-weight: inherit'))
+  assert.ok(criticalDeclarations.includes('color: #f04438'))
+  assert.ok(warningDeclarations.includes('color: #f79009'))
 })
 
 test('summary ratio value is not truncated by the generic card value cap', () => {
@@ -100,26 +112,37 @@ test('summary metric cards render their large values through Statistic', () => {
   assert.equal(viewSource.includes('<strong>{renderedValue}</strong>'), false)
 })
 
-test('abnormal system summary title uses a question tooltip while settings live in toolbar', () => {
-  assert.equal(viewSource.includes('help={card.help}'), false)
-  assert.match(viewSource, /help=\{card\.key === 'abnormalSystems' \? null : card\.help\}/)
+test('summary titles use direct icons while settings live in toolbar', () => {
+  const summaryMetricCardSource = sourceBetween(
+    'const SummaryMetricCard = ({',
+    'SummaryMetricCard.propTypes',
+  )
+
+  assert.ok(viewSource.includes('help={card.help}'))
+  assert.match(summaryMetricCardSource, /<Tooltip title=\{help\}>/)
+  assert.doesNotMatch(summaryMetricCardSource, /HelpCircle/)
+  assert.ok(viewSource.includes('const summaryCardIcons = {'))
+  assert.match(viewSource, /abnormalSystems: \(/)
+  assert.match(viewSource, /attentionSystems: \(/)
+  assert.match(viewSource, /severeMetrics: \(/)
   assert.ok(viewSource.includes('className="sho-toolbar-actions"'))
   assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
   assert.ok(viewSource.includes('content={renderThresholdSettings()}'))
-  assert.ok(viewSource.includes('className="sho-summary-question-trigger"'))
-  assert.ok(viewSource.includes('当前健康度低于'))
+  assert.equal(viewSource.includes('className="sho-summary-question-trigger"'), false)
+  assert.ok(viewSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
+  assert.ok(
+    viewSource.includes('系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统'),
+  )
 })
 
-test('abnormal system help can open threshold settings from its link', () => {
+test('threshold settings can still be opened from the toolbar', () => {
   assert.ok(
     viewSource.includes(
       'const [thresholdSettingsOpen, setThresholdSettingsOpen] = useState(false)',
     ),
   )
   assert.ok(viewSource.includes('open={thresholdSettingsOpen}'))
-  assert.ok(viewSource.includes('className="sho-abnormal-system-help-link"'))
-  assert.ok(viewSource.includes('前往设置'))
-  assert.ok(viewSource.includes('setThresholdSettingsOpen(true)'))
+  assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
 })
 
 test('threshold popover separates input rows from status legend rows', () => {
@@ -131,17 +154,24 @@ test('threshold popover separates input rows from status legend rows', () => {
   const actionDeclarations = declarationsFor('.sho-threshold-actions')
   const saveDeclarations = declarationsFor('.sho-threshold-save')
   const toolbarTriggerDeclarations = declarationsFor('.sho-threshold-toolbar-trigger')
-  const summaryQuestionDeclarations = declarationsFor('.sho-summary-question-trigger')
 
   assert.ok(viewSource.includes('className="sho-threshold-inputs"'))
   assert.ok(viewSource.includes('className="sho-threshold-abnormal-note"'))
-  assert.ok(viewSource.includes('系统健康度低于 {generalThreshold} 分，计为异常系统'))
+  assert.ok(viewSource.includes('aria-label="关注系统健康度阈值"'))
+  assert.ok(viewSource.includes('分，一般异常'))
+  assert.equal(viewSource.includes('分，关注系统'), false)
+  assert.ok(viewSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
+  assert.ok(
+    viewSource.includes('系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统'),
+  )
   assert.ok(viewSource.includes('className="sho-threshold-legend"'))
   assert.ok(viewSource.includes('<ThresholdStatusRing status="red" />'))
   assert.ok(viewSource.includes('<ThresholdStatusRing status="yellow" />'))
   assert.ok(viewSource.includes('<ThresholdStatusRing status="green" />'))
   assert.ok(viewSource.includes('severeRange'))
-  assert.ok(viewSource.includes('一般异常（亚健康）'))
+  assert.equal(viewSource.includes('亚健康'), false)
+  assert.ok(viewSource.includes('严重异常（异常系统）'))
+  assert.ok(viewSource.includes('一般异常（关注系统）'))
   assert.ok(viewSource.includes('健康'))
   assert.equal(viewSource.includes('icon={<Check'), false)
   assert.ok(popoverDeclarations.includes('width: 360px'))
@@ -153,7 +183,6 @@ test('threshold popover separates input rows from status legend rows', () => {
   assert.ok(actionDeclarations.includes('justify-content: flex-end'))
   assert.ok(saveDeclarations.includes('min-width: 64px'))
   assert.ok(toolbarTriggerDeclarations.includes('height: 30px'))
-  assert.ok(summaryQuestionDeclarations.includes('width: 24px'))
 })
 
 test('summary Statistic value uses compact tabular digits beside the centered title', () => {
@@ -213,6 +242,27 @@ test('compact detail score label style does not override the health ring score',
   assert.ok(labelDeclarations.includes('line-height: 22px'))
   assert.ok(labelDeclarations.includes('font-weight: 700'))
   assert.equal(css.includes('.sho-detail-compact-score span {'), false)
+})
+
+test('compact detail service count drops card chrome and reuses summary ratio value styling', () => {
+  const countDeclarations = declarationsFor('.sho-detail-compact-service-count')
+  const detailValueDeclarations = declarationsFor('.sho-detail-compact-service-value')
+  const valueDeclarations = declarationsFor('.sho-summary-value')
+
+  assert.equal(
+    countDeclarations.some((declaration) => declaration.startsWith('border')),
+    false,
+  )
+  assert.equal(
+    countDeclarations.some((declaration) => declaration.startsWith('background')),
+    false,
+  )
+  assert.ok(valueDeclarations.includes('font-size: 34px'))
+  assert.ok(valueDeclarations.includes('font-variant-numeric: tabular-nums'))
+  assert.ok(detailValueDeclarations.includes('font-size: 24px'))
+  assert.ok(detailValueDeclarations.includes('line-height: 28px'))
+  assert.ok(detailValueDeclarations.includes('font-weight: 700'))
+  assert.ok(viewSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
 })
 
 test('compact detail title and exception label are enlarged without changing controls', () => {

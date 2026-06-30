@@ -47,7 +47,7 @@ test('health score tooltip keeps only calculation copy without score ranges', ()
 
 test('health score range tooltip documents configured score bands with ring samples', () => {
   const rangeTooltipSource = between(
-    'const HealthScoreRangeTooltip = (',
+    'const healthScoreRangesFor = (',
     'HealthScoreRangeTooltip.propTypes',
   )
   const overviewTableSource = between('<th>系统</th>', '{metricLabels.map(([, label]) => (')
@@ -57,6 +57,10 @@ test('health score range tooltip documents configured score bands with ring samp
   )
 
   assert.match(rangeTooltipSource, /healthScoreRangesFor\(scoreThresholds\)\.map/)
+  assert.match(rangeTooltipSource, /label: '一般异常'/)
+  assert.match(rangeTooltipSource, /label: '严重异常'/)
+  assert.doesNotMatch(rangeTooltipSource, /（关注系统）/)
+  assert.doesNotMatch(rangeTooltipSource, /（异常系统）/)
   assert.match(rangeTooltipSource, /<ThresholdStatusRing status=\{item\.status\} \/>/)
   assert.match(rangeTooltipSource, /sho-health-score-range-text/)
   assert.match(rangeTooltipSource, /sho-health-score-range-label/)
@@ -64,13 +68,15 @@ test('health score range tooltip documents configured score bands with ring samp
   assert.match(serviceTableSource, /HealthScoreColumnTitle scoreThresholds=\{scoreThresholds\}/)
 })
 
-test('summary anomaly cards add severity icons to severe and general anomaly titles', () => {
+test('summary anomaly cards add icons to all summary titles', () => {
   const summarySource = between('{summaryCards.map((card) => (', '</SummaryMetricCard>')
 
-  assert.match(summarySource, /card\.key === 'severeMetrics'/)
-  assert.match(summarySource, /<TriangleAlert/)
-  assert.match(summarySource, /sho-summary-title-icon-critical/)
-  assert.match(summarySource, /card\.key === 'generalMetrics'/)
-  assert.match(summarySource, /<CircleAlert/)
-  assert.match(summarySource, /sho-summary-title-icon-warning/)
+  assert.match(summarySource, /summaryCardIcons\[card\.key\]/)
+  assert.match(source, /abnormalSystems: \(/)
+  assert.match(source, /attentionSystems: \(/)
+  assert.match(source, /severeMetrics: \(/)
+  assert.match(source, /<TriangleAlert/)
+  assert.match(source, /sho-summary-title-icon-critical/)
+  assert.match(source, /<CircleAlert/)
+  assert.match(source, /sho-summary-title-icon-warning/)
 })

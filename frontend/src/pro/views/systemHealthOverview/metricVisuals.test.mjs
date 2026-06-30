@@ -115,8 +115,8 @@ test('healthScoreLegendItemsFor documents configured score ranges without sample
     }),
     [
       { status: 'green', range: '82-100分', label: '正常' },
-      { status: 'yellow', range: '45-81分', label: '一般异常' },
-      { status: 'red', range: '0-44分', label: '严重异常' },
+      { status: 'yellow', range: '45-81分', label: '一般异常（关注系统）' },
+      { status: 'red', range: '0-44分', label: '严重异常（异常系统）' },
       { status: 'gray', range: '无可评分数据', label: '无数据' },
     ],
   )
@@ -125,8 +125,8 @@ test('healthScoreLegendItemsFor documents configured score ranges without sample
 test('healthScoreLegendItems documents default score ranges without sample scores', () => {
   assert.deepEqual(healthScoreLegendItems, [
     { status: 'green', range: '80-100分', label: '正常' },
-    { status: 'yellow', range: '60-79分', label: '一般异常' },
-    { status: 'red', range: '0-59分', label: '严重异常' },
+    { status: 'yellow', range: '60-79分', label: '一般异常（关注系统）' },
+    { status: 'red', range: '0-59分', label: '严重异常（异常系统）' },
     { status: 'gray', range: '无可评分数据', label: '无数据' },
   ])
 })
@@ -137,14 +137,17 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
   const cards = metricVisuals.buildOverviewSummaryCards(
     {
       totalSystems: 12,
-      abnormalSystems: 4,
-      lowScoreSystems: 2,
+      abnormalSystems: 9,
+      lowScoreSystems: 8,
       abnormalMetrics: 31,
       severeMetrics: 7,
     },
     [
       {
         name: '订单系统',
+        score: 42,
+        status: 'red',
+        services: [{}],
         metrics: {
           errorRate: 'red',
           latency: 'yellow',
@@ -153,6 +156,9 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
       },
       {
         name: '支付系统',
+        score: 68,
+        status: 'yellow',
+        services: [{}],
         metrics: {
           latency: 'red',
           errorLog: 'yellow',
@@ -160,25 +166,34 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
       },
       {
         name: '会员系统',
+        score: 84,
+        status: 'green',
+        services: [{}],
         metrics: {
           errorRate: 'yellow',
         },
       },
-    ],
-    [
-      ['errorRate', '错误率'],
-      ['latency', '响应延时'],
-      ['errorLog', '错误日志'],
+      {
+        name: '无数据系统',
+        score: 0,
+        status: 'gray',
+        services: [],
+        metrics: {},
+      },
     ],
   )
 
   assert.deepEqual(
     cards.map((card) => card.label),
-    ['异常系统', '严重异常', '一般异常'],
+    ['异常系统', '关注系统', '严重异常指标'],
   )
   assert.deepEqual(
     cards.map((card) => card.value),
-    ['4 / 12', 7, 24],
+    ['1 / 12', '1 / 12', 7],
+  )
+  assert.deepEqual(
+    cards.map((card) => card.highlightNumerator),
+    [true, true, undefined],
   )
   assert.deepEqual(
     cards.map((card) => card.caption),
@@ -187,17 +202,28 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
 })
 
 test('buildOverviewSummaryCards presents abnormal systems as text without a ring', () => {
-  const cards = metricVisuals.buildOverviewSummaryCards({
-    totalSystems: 4,
-    abnormalSystems: 3,
-    lowScoreSystems: 1,
-  })
+  const cards = metricVisuals.buildOverviewSummaryCards(
+    {
+      totalSystems: 4,
+      abnormalSystems: 3,
+      lowScoreSystems: 1,
+    },
+    [
+      {
+        score: 58,
+        status: 'red',
+        services: [{}],
+      },
+    ],
+  )
 
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
+  const attentionSystemsCard = cards.find((card) => card.key === 'attentionSystems')
 
   assert.equal(abnormalSystemsCard.visual, 'ratio')
-  assert.equal(abnormalSystemsCard.help, '低于 80 分计入异常系统；低于 60 分计入严重异常。')
-  assert.equal(abnormalSystemsCard.value, '3 / 4')
+  assert.equal(abnormalSystemsCard.help, '系统健康度低于 60 分，计为异常系统。')
+  assert.equal(attentionSystemsCard.help, '系统健康度 60-79 分之间，计为关注系统。')
+  assert.equal(abnormalSystemsCard.value, '1 / 4')
   assert.equal(abnormalSystemsCard.percent, undefined)
   assert.equal(abnormalSystemsCard.highlightNumerator, true)
 })
@@ -208,7 +234,13 @@ test('buildOverviewSummaryCards describes configured abnormal score thresholds',
       totalSystems: 4,
       abnormalSystems: 3,
     },
-    [],
+    [
+      {
+        score: 44,
+        status: 'red',
+        services: [{}],
+      },
+    ],
     {
       severeAbnormalScoreThreshold: 45,
       generalAbnormalScoreThreshold: 82,
@@ -216,15 +248,27 @@ test('buildOverviewSummaryCards describes configured abnormal score thresholds',
   )
 
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
+  const attentionSystemsCard = cards.find((card) => card.key === 'attentionSystems')
 
-  assert.equal(abnormalSystemsCard.help, '低于 82 分计入异常系统；低于 45 分计入严重异常。')
+  assert.equal(abnormalSystemsCard.help, '系统健康度低于 45 分，计为异常系统。')
+  assert.equal(attentionSystemsCard.help, '系统健康度 45-81 分之间，计为关注系统。')
+  assert.equal(attentionSystemsCard.value, '0 / 4')
 })
 
 test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () => {
-  const cards = metricVisuals.buildOverviewSummaryCards({
-    totalSystems: 4,
-    abnormalSystems: 0,
-  })
+  const cards = metricVisuals.buildOverviewSummaryCards(
+    {
+      totalSystems: 4,
+      abnormalSystems: 0,
+    },
+    [
+      {
+        score: 88,
+        status: 'green',
+        services: [{}],
+      },
+    ],
+  )
 
   const abnormalSystemsCard = cards.find((card) => card.key === 'abnormalSystems')
 
@@ -232,25 +276,15 @@ test('buildOverviewSummaryCards keeps zero abnormal system ratio neutral', () =>
   assert.equal(abnormalSystemsCard.highlightNumerator, false)
 })
 
-test('buildOverviewSummaryCards presents absolute anomaly counts as big numbers', () => {
-  const cards = metricVisuals.buildOverviewSummaryCards(
-    {
-      totalSystems: 4,
-      abnormalMetrics: 12,
-      severeMetrics: 3,
-    },
-    [],
-    [
-      ['errorRate', '错误率'],
-      ['latency', '响应延时'],
-    ],
-  )
+test('buildOverviewSummaryCards presents severe metric counts as big numbers', () => {
+  const cards = metricVisuals.buildOverviewSummaryCards({
+    totalSystems: 4,
+    abnormalMetrics: 12,
+    severeMetrics: 3,
+  })
 
-  const abnormalMetricsCard = cards.find((card) => card.key === 'generalMetrics')
   const severeMetricsCard = cards.find((card) => card.key === 'severeMetrics')
 
-  assert.equal(abnormalMetricsCard.visual, 'number')
-  assert.equal(abnormalMetricsCard.percent, undefined)
   assert.equal(severeMetricsCard.visual, 'number')
   assert.equal(severeMetricsCard.percent, undefined)
 })

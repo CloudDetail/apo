@@ -18,6 +18,7 @@ import {
 } from 'antd'
 import ReactECharts from 'echarts-for-react'
 import {
+  Activity,
   ArrowLeft,
   CircleAlert,
   HelpCircle,
@@ -54,7 +55,11 @@ import {
   DEFAULT_PENDING_ISSUE_PAGE_SIZE,
   paginatePendingIssues,
 } from './pendingIssuePagination.mjs'
-import { buildDetailRequestKey, shouldRenderDetailBody } from './detailViewState.mjs'
+import {
+  buildAbnormalServiceRatio,
+  buildDetailRequestKey,
+  shouldRenderDetailBody,
+} from './detailViewState.mjs'
 import {
   buildOverviewRequestDecision,
   isLatestOverviewRequest,
@@ -86,6 +91,18 @@ const statusMeta = {
 
 const statusOrder = ['red', 'yellow', 'green', 'gray']
 const OVERVIEW_REQUEST_DEBOUNCE_MS = 150
+
+const summaryCardIcons = {
+  abnormalSystems: (
+    <TriangleAlert className="sho-summary-title-icon sho-summary-title-icon-critical" size={17} />
+  ),
+  attentionSystems: (
+    <CircleAlert className="sho-summary-title-icon sho-summary-title-icon-warning" size={17} />
+  ),
+  severeMetrics: (
+    <Activity className="sho-summary-title-icon sho-summary-title-icon-critical" size={17} />
+  ),
+}
 
 const metricTrendColors = {
   latency: MetricsLineChartColor.latency,
@@ -256,31 +273,33 @@ const SummaryMetricCard = ({
   children,
 }) => {
   const shouldShowMeter = visual === 'meter' && !children
+  const numeratorClassName = highlightNumerator
+    ? `sho-summary-value-highlight sho-summary-value-highlight-${tone}`
+    : undefined
   const renderedValue =
     visual === 'ratio' ? (
       <span className="sho-summary-value" aria-label={`${label} ${value}`}>
-        <span className={highlightNumerator ? 'sho-summary-value-critical' : undefined}>
-          {numerator}
-        </span>
+        <span className={numeratorClassName}>{numerator}</span>
         <span> / {denominator}</span>
       </span>
     ) : (
       value
     )
   const statisticFormatter = visual === 'ratio' ? () => renderedValue : undefined
+  const titleContent = (
+    <span
+      className={help ? 'sho-summary-title-trigger' : undefined}
+      tabIndex={help ? 0 : undefined}
+    >
+      {icon}
+      <span>{label}</span>
+    </span>
+  )
 
   return (
     <div className={`sho-summary-card sho-summary-card-${tone} sho-summary-card-${visual}`}>
       <div className="sho-summary-card-head">
-        <span>
-          {icon}
-          <span>{label}</span>
-          {help ? (
-            <Tooltip title={help}>
-              <HelpCircle size={15} className="sho-help-icon sho-summary-help" />
-            </Tooltip>
-          ) : null}
-        </span>
+        {help ? <Tooltip title={help}>{titleContent}</Tooltip> : titleContent}
         <Statistic className="sho-summary-statistic" formatter={statisticFormatter} value={value} />
       </div>
       {children}
@@ -680,7 +699,6 @@ export default function SystemHealthOverviewPage() {
   const [thresholdDraft, setThresholdDraft] = useState(DEFAULT_HEALTH_SCORE_THRESHOLDS)
   const [thresholdSaving, setThresholdSaving] = useState(false)
   const [thresholdSettingsOpen, setThresholdSettingsOpen] = useState(false)
-  const [abnormalSystemsHelpOpen, setAbnormalSystemsHelpOpen] = useState(false)
   const [pendingIssuePage, setPendingIssuePage] = useState(DEFAULT_PENDING_ISSUE_PAGE)
   const [pendingIssuePageSize, setPendingIssuePageSize] = useState(DEFAULT_PENDING_ISSUE_PAGE_SIZE)
   const [issueAnalyses, setIssueAnalyses] = useState({})
@@ -843,6 +861,10 @@ export default function SystemHealthOverviewPage() {
     () => new Set(pendingIssueRows.map((issue) => issue.serviceName)).size,
     [pendingIssueRows],
   )
+  const abnormalServiceRatio = useMemo(
+    () => buildAbnormalServiceRatio(selectedSystem?.services, scoreThresholds),
+    [selectedSystem, scoreThresholds],
+  )
 
   const filteredServices = useMemo(() => {
     if (!selectedSystem) return []
@@ -890,13 +912,6 @@ export default function SystemHealthOverviewPage() {
     }
   }
 
-  const openThresholdSettingsFromHelp = (event) => {
-    event?.preventDefault()
-    event?.stopPropagation()
-    setAbnormalSystemsHelpOpen(false)
-    setThresholdSettingsOpen(true)
-  }
-
   const saveAbnormalScoreThreshold = async () => {
     const severeThreshold = Number(thresholdDraft.severeAbnormalScoreThreshold)
     const generalThreshold = Number(thresholdDraft.generalAbnormalScoreThreshold)
@@ -912,7 +927,7 @@ export default function SystemHealthOverviewPage() {
       return
     }
     if (severeThreshold >= generalThreshold) {
-      message.error('严重异常分值必须低于一般异常分值')
+      message.error('严重异常分值必须低于关注系统阈值')
       return
     }
     const nextThresholds = normalizeHealthScoreThresholds({
@@ -978,7 +993,7 @@ export default function SystemHealthOverviewPage() {
             <label className="sho-threshold-input-row">
               <span>健康度低于</span>
               <InputNumber
-                aria-label="一般异常健康度阈值"
+                aria-label="关注系统健康度阈值"
                 max={100}
                 min={2}
                 precision={0}
@@ -996,18 +1011,21 @@ export default function SystemHealthOverviewPage() {
             </label>
           </div>
           <div className="sho-threshold-abnormal-note">
-            系统健康度低于 {generalThreshold} 分，计为异常系统
+            <div>系统健康度低于 {severeThreshold} 分，计为异常系统</div>
+            <div>
+              系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统
+            </div>
           </div>
           <div className="sho-threshold-legend" aria-label="健康度分值说明">
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="red" />
               <span className="sho-threshold-legend-range">{severeRange}</span>
-              <span className="sho-threshold-legend-label">严重异常</span>
+              <span className="sho-threshold-legend-label">严重异常（异常系统）</span>
             </div>
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="yellow" />
               <span className="sho-threshold-legend-range">{generalRange}</span>
-              <span className="sho-threshold-legend-label">一般异常（亚健康）</span>
+              <span className="sho-threshold-legend-label">一般异常（关注系统）</span>
             </div>
             <div className="sho-threshold-legend-row">
               <ThresholdStatusRing status="green" />
@@ -1302,21 +1320,6 @@ export default function SystemHealthOverviewPage() {
     const overviewState = renderOverviewState()
     const statusDistribution = buildStatusDistribution(systems, scoreThresholds)
     const summaryCards = buildOverviewSummaryCards(summary, systems, scoreThresholds)
-    const abnormalSystemThreshold =
-      normalizeHealthScoreThresholds(scoreThresholds).generalAbnormalScoreThreshold
-    const abnormalSystemsHelp = (
-      <div className="sho-abnormal-system-help">
-        <div>当前健康度低于 {abnormalSystemThreshold} 分则为异常系统。</div>
-        <Button
-          className="sho-abnormal-system-help-link"
-          size="small"
-          type="link"
-          onClick={openThresholdSettingsFromHelp}
-        >
-          前往设置
-        </Button>
-      </div>
-    )
 
     return (
       <>
@@ -1352,39 +1355,10 @@ export default function SystemHealthOverviewPage() {
                 <SummaryMetricCard
                   denominator={card.denominator}
                   highlightNumerator={card.highlightNumerator}
-                  icon={
-                    card.key === 'abnormalSystems' ? (
-                      <Popover
-                        content={abnormalSystemsHelp}
-                        onOpenChange={setAbnormalSystemsHelpOpen}
-                        open={abnormalSystemsHelpOpen}
-                        overlayClassName="sho-abnormal-system-help-popover"
-                        placement="top"
-                        trigger="hover"
-                      >
-                        <Button
-                          aria-label="异常系统说明"
-                          className="sho-summary-question-trigger"
-                          icon={<HelpCircle size={15} />}
-                          size="small"
-                          type="text"
-                        />
-                      </Popover>
-                    ) : card.key === 'severeMetrics' ? (
-                      <TriangleAlert
-                        className="sho-summary-title-icon sho-summary-title-icon-critical"
-                        size={17}
-                      />
-                    ) : card.key === 'generalMetrics' ? (
-                      <CircleAlert
-                        className="sho-summary-title-icon sho-summary-title-icon-warning"
-                        size={17}
-                      />
-                    ) : null
-                  }
+                  icon={summaryCardIcons[card.key] || null}
                   key={card.key}
                   label={card.label}
-                  help={card.key === 'abnormalSystems' ? null : card.help}
+                  help={card.help}
                   numerator={card.numerator}
                   percent={card.percent}
                   tone={card.tone}
@@ -1515,10 +1489,32 @@ export default function SystemHealthOverviewPage() {
                   </div>
                 </div>
                 <span className="sho-detail-compact-divider" aria-hidden="true" />
+                <div className="sho-detail-compact-service-count">
+                  <div className="sho-detail-compact-service-label">
+                    <CircleAlert size={18} />
+                    <span>异常服务数</span>
+                  </div>
+                  <div
+                    className="sho-detail-compact-service-value sho-summary-value"
+                    aria-label={`异常服务数 ${abnormalServiceRatio.abnormal} / ${abnormalServiceRatio.total}`}
+                  >
+                    <span
+                      className={
+                        abnormalServiceRatio.abnormal > 0
+                          ? 'sho-summary-value-highlight-critical'
+                          : undefined
+                      }
+                    >
+                      {abnormalServiceRatio.abnormal}
+                    </span>
+                    <span>/ {abnormalServiceRatio.total}</span>
+                  </div>
+                </div>
+                <span className="sho-detail-compact-divider" aria-hidden="true" />
                 <div className="sho-detail-compact-exceptions">
                   <div className="sho-detail-compact-exception-label">
-                    <TriangleAlert size={18} />
-                    <span>主要异常</span>
+                    <Activity size={18} />
+                    <span>严重异常指标</span>
                   </div>
                   <div className="sho-tags sho-detail-compact-tags">
                     {statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}

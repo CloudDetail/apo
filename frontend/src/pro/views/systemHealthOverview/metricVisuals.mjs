@@ -73,7 +73,12 @@ export const normalizeAbnormalScoreThreshold = (value) =>
 
 export const abnormalSystemsHelpText = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
   const thresholds = normalizeHealthScoreThresholds(config)
-  return `低于 ${thresholds.generalAbnormalScoreThreshold} 分计入异常系统；低于 ${thresholds.severeAbnormalScoreThreshold} 分计入严重异常。`
+  return `系统健康度低于 ${thresholds.severeAbnormalScoreThreshold} 分，计为异常系统。`
+}
+
+export const attentionSystemsHelpText = (config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  const thresholds = normalizeHealthScoreThresholds(config)
+  return `系统健康度 ${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1} 分之间，计为关注系统。`
 }
 
 export const healthScoreStatus = (score, config = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
@@ -92,12 +97,12 @@ export const healthScoreLegendItemsFor = (config = DEFAULT_HEALTH_SCORE_THRESHOL
     {
       status: 'yellow',
       range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
-      label: '一般异常',
+      label: '一般异常（关注系统）',
     },
     {
       status: 'red',
       range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
-      label: '严重异常',
+      label: '严重异常（异常系统）',
     },
     { status: 'gray', range: '无可评分数据', label: '无数据' },
   ]
@@ -285,56 +290,82 @@ const summaryNumber = (value) => {
   return Number.isFinite(number) ? number : 0
 }
 
+const effectiveSystemStatus = (system = {}, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
+  if (!Array.isArray(system.services) || system.services.length === 0 || system.status === 'gray') {
+    return 'gray'
+  }
+  return healthScoreStatus(system.score, scoreThresholds)
+}
+
+const countSystemsByScoreStatus = (
+  systems = [],
+  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
+) => {
+  const counts = { red: 0, yellow: 0, green: 0, gray: 0 }
+  if (!Array.isArray(systems)) return counts
+
+  systems.forEach((system) => {
+    const status = effectiveSystemStatus(system, scoreThresholds)
+    counts[status] += 1
+  })
+
+  return counts
+}
+
 export const buildOverviewSummaryCards = (
   summary = {},
   systems = [],
   scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
 ) => {
   const totalSystems = summaryNumber(summary.totalSystems) || systems.length
-  const abnormalSystems = summaryNumber(summary.abnormalSystems)
-  const abnormalMetrics = summaryNumber(summary.abnormalMetrics)
+  const thresholds = normalizeHealthScoreThresholds(scoreThresholds)
+  const scoreStatusCounts = countSystemsByScoreStatus(systems, thresholds)
+  const hasSystems = Array.isArray(systems) && systems.length > 0
+  const severeSystems = hasSystems ? scoreStatusCounts.red : summaryNumber(summary.lowScoreSystems)
+  const attentionSystems = hasSystems
+    ? scoreStatusCounts.yellow
+    : summaryNumber(
+        summary.attentionSystems ??
+          summary.warningSystems ??
+          summary.yellowSystems ??
+          Math.max(
+            summaryNumber(summary.abnormalSystems) - summaryNumber(summary.lowScoreSystems),
+            0,
+          ),
+      )
   const severeMetrics = summaryNumber(summary.severeMetrics)
-  const generalMetrics = summaryNumber(
-    summary.generalMetrics ??
-      summary.warningMetrics ??
-      summary.yellowMetrics ??
-      Math.max(abnormalMetrics - severeMetrics, 0),
-  )
 
   return [
     {
       key: 'abnormalSystems',
       label: '异常系统',
-      help: abnormalSystemsHelpText(scoreThresholds),
-      value: `${abnormalSystems} / ${totalSystems}`,
-      numerator: abnormalSystems,
+      help: abnormalSystemsHelpText(thresholds),
+      value: `${severeSystems} / ${totalSystems}`,
+      numerator: severeSystems,
       denominator: totalSystems,
-      highlightNumerator: abnormalSystems > 0,
+      highlightNumerator: severeSystems > 0,
       tone: 'critical',
       visual: 'ratio',
     },
     {
+      key: 'attentionSystems',
+      label: '关注系统',
+      help: attentionSystemsHelpText(thresholds),
+      value: `${attentionSystems} / ${totalSystems}`,
+      numerator: attentionSystems,
+      denominator: totalSystems,
+      highlightNumerator: attentionSystems > 0,
+      tone: 'warning',
+      visual: 'ratio',
+    },
+    {
       key: 'severeMetrics',
-      label: '严重异常',
+      label: '严重异常指标',
       value: severeMetrics,
       tone: 'critical',
       visual: 'number',
     },
-    {
-      key: 'generalMetrics',
-      label: '一般异常',
-      value: generalMetrics,
-      tone: 'warning',
-      visual: 'number',
-    },
   ]
-}
-
-const effectiveSystemStatus = (system = {}, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
-  if (!Array.isArray(system.services) || system.services.length === 0 || system.status === 'gray') {
-    return 'gray'
-  }
-  return healthScoreStatus(system.score, scoreThresholds)
 }
 
 export const buildStatusDistribution = (
