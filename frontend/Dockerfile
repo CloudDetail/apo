@@ -4,14 +4,21 @@ WORKDIR /app/
 
 COPY package.json yarn.lock ./
 
-RUN yarn config set registry https://registry.npmmirror.com
+# 1. 配置 Yarn 国内源和超时时间
+RUN yarn config set registry https://registry.npmmirror.com \
+    && yarn config set network-timeout 600000
 
-# 替换 Alpine apk 源为阿里云镜像，再安装 git
+# 2. 替换 Alpine apk 源为阿里云镜像，并安装 git
 RUN sed -i 's|https://dl-cdn.alpinelinux.org/alpine|https://mirrors.aliyun.com/alpine|g' /etc/apk/repositories \
     && apk add --no-cache ca-certificates git \
     && update-ca-certificates
 
-RUN yarn install
+# 3. 替换 yarn.lock 里可能残留的国外 registry
+RUN sed -i 's|https://registry.yarnpkg.com|https://registry.npmmirror.com|g' yarn.lock \
+    && sed -i 's|https://registry.npmjs.org|https://registry.npmmirror.com|g' yarn.lock
+
+# 4. 安装依赖
+RUN yarn install --frozen-lockfile --network-timeout 600000
 
 COPY . .
 
@@ -19,7 +26,6 @@ ARG VITE_PUBLIC_POSTHOG_HOST
 ARG VITE_PUBLIC_POSTHOG_KEY
 ARG VITE_SHOW_MYSQL_HEALTH
 
-# 合并 NODE_OPTIONS，避免前面的 --openssl-legacy-provider 被覆盖
 ENV NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=6144"
 
 RUN yarn build
