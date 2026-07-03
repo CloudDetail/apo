@@ -6,7 +6,8 @@ COPY package.json yarn.lock ./
 
 # 1. 配置 Yarn 国内源和超时时间
 RUN yarn config set registry https://registry.npmmirror.com \
-    && yarn config set network-timeout 600000
+    && yarn config set network-timeout 600000 \
+    && yarn config set network-concurrency 1
 
 # 2. 替换 Alpine apk 源为阿里云镜像，并安装 git
 RUN sed -i 's|https://dl-cdn.alpinelinux.org/alpine|https://mirrors.aliyun.com/alpine|g' /etc/apk/repositories \
@@ -18,7 +19,8 @@ RUN sed -i 's|https://registry.yarnpkg.com|https://registry.npmmirror.com|g' yar
     && sed -i 's|https://registry.npmjs.org|https://registry.npmmirror.com|g' yarn.lock
 
 # 4. 安装依赖
-RUN yarn install --frozen-lockfile --network-timeout 600000
+RUN yarn install --frozen-lockfile --network-timeout 600000 --network-concurrency 1 \
+    || yarn install --frozen-lockfile --network-timeout 600000 --network-concurrency 1 --prefer-offline
 
 COPY . .
 
