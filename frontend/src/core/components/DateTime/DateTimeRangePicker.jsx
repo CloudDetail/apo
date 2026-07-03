@@ -51,6 +51,8 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
   const [oldTimeParam, setOldTimeParam] = useState(null)
 
   const dispatch = useDispatch()
+  const getQuickRangeLabel = (key) =>
+    t(`dateTimeRangePicker.quickRanges.${key}`, { defaultValue: timeRangeMap[key]?.name })
 
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
@@ -357,7 +359,7 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
                 className="bg-transparent"
               >
                 {Object.keys(timeRangeMap).map((key) => (
-                  <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
+                  <Menu.Item key={key}>{getQuickRangeLabel(key)}</Menu.Item>
                 ))}
               </Menu>
             </div>
@@ -368,7 +370,7 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
           <CIcon icon={cilClock} className="mr-2" />
           <span className={size === 'small' ? 'text-xs' : 'text-sm'}>
             {storeTimeRange?.rangeTypeKey
-              ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
+              ? getQuickRangeLabel(storeTimeRange.rangeTypeKey)
               : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
                 ' to ' +
                 convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}

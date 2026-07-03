@@ -148,6 +148,14 @@ func PQLAvgErrorRateWithPQLFilter(rng string, gran string, filter PQLFilter, off
 	return divWithDef(errorCount, requestCount, requestCount, "0")
 }
 
+func PQLRequestCountWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
+	return sumBy(gran, increase(rangeVec(SPAN_TRACE_COUNT, filter, rng, offset)))
+}
+
+func PQLErrorCountWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
+	return sumBy(gran, increase(rangeVec(SPAN_TRACE_COUNT, Clone(filter).Equal("is_error", "true"), rng, offset)))
+}
+
 // Average error rate of PQLAvgSQLErrorRateWithFilters query SQL requests
 func PQLAvgSQLErrorRateWithPQLFilter(rng string, gran string, filter PQLFilter, offset string) string {
 	filterWithError := Clone(filter).Equal("is_error", "true")

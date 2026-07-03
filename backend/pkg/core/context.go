@@ -187,6 +187,9 @@ func (c *context) Header() http.Header {
 }
 
 func (c *context) GetMethodPath() (method string, path string) {
+	if c == nil || c.ctx == nil || c.ctx.Request == nil {
+		return "", ""
+	}
 	m := c.ctx.Request.Method
 	path = c.ctx.FullPath()
 	return m, path

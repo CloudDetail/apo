@@ -13,6 +13,44 @@ type SystemHealthOverviewResp struct {
 	Source        string                      `json:"source"`
 }
 
+type SystemHealthOverviewSummaryResp struct {
+	Summary     SystemHealthOverviewSummary `json:"summary"`
+	Config      SystemHealthConfigResp      `json:"config"`
+	Window      string                      `json:"window"`
+	GeneratedAt string                      `json:"generatedAt"`
+	Source      string                      `json:"source"`
+}
+
+type SystemHealthSystemsResp struct {
+	Systems     []SystemHealthSystem `json:"systems"`
+	Total       int                  `json:"total"`
+	Page        int                  `json:"page"`
+	PageSize    int                  `json:"pageSize"`
+	Window      string               `json:"window"`
+	GeneratedAt string               `json:"generatedAt"`
+	Source      string               `json:"source"`
+}
+
+type SystemHealthServicesResp struct {
+	Services    []SystemHealthService `json:"services"`
+	Total       int                   `json:"total"`
+	Page        int                   `json:"page"`
+	PageSize    int                   `json:"pageSize"`
+	Window      string                `json:"window"`
+	GeneratedAt string                `json:"generatedAt"`
+	Source      string                `json:"source"`
+}
+
+type SystemHealthPendingIssuesResp struct {
+	Issues      []SystemHealthPendingIssue `json:"issues"`
+	Total       int                        `json:"total"`
+	Page        int                        `json:"page"`
+	PageSize    int                        `json:"pageSize"`
+	Window      string                     `json:"window"`
+	GeneratedAt string                     `json:"generatedAt"`
+	Source      string                     `json:"source"`
+}
+
 type SystemHealthConfigResp struct {
 	AbnormalScoreThreshold        int `json:"abnormalScoreThreshold"`
 	SevereAbnormalScoreThreshold  int `json:"severeAbnormalScoreThreshold"`
@@ -26,11 +64,88 @@ type SystemHealthNewAbnormalMetricsResp struct {
 	Source             string `json:"source"`
 }
 
+type SystemHealthTrendResp struct {
+	Range       string                     `json:"range"`
+	Granularity string                     `json:"granularity"`
+	Judgement   string                     `json:"judgement"`
+	Thresholds  SystemHealthTrendThreshold `json:"thresholds"`
+	Points      []SystemHealthTrendPoint   `json:"points"`
+	GeneratedAt string                     `json:"generatedAt"`
+	Source      string                     `json:"source"`
+}
+
+type SystemHealthSystemsTrendResp struct {
+	Range       string                         `json:"range"`
+	Granularity string                         `json:"granularity"`
+	Judgement   string                         `json:"judgement"`
+	Groups      []SystemHealthSystemTrendGroup `json:"groups"`
+	GeneratedAt string                         `json:"generatedAt"`
+	Source      string                         `json:"source"`
+}
+
+type SystemHealthSystemTrendGroup struct {
+	GroupID int64                    `json:"groupId"`
+	Points  []SystemHealthTrendPoint `json:"points"`
+}
+
+type SystemHealthTrendThreshold struct {
+	Severe  int `json:"severe"`
+	General int `json:"general"`
+}
+
+type SystemHealthTrendPoint struct {
+	Timestamp            int64                      `json:"timestamp"`
+	MissingSnapshot      bool                       `json:"missingSnapshot,omitempty"`
+	AbnormalSystems      SystemHealthTrendCountStat `json:"abnormalSystems"`
+	AttentionSystems     SystemHealthTrendCountStat `json:"attentionSystems"`
+	AbnormalSystemRatio  SystemHealthTrendRatioStat `json:"abnormalSystemRatio"`
+	AttentionSystemRatio SystemHealthTrendRatioStat `json:"attentionSystemRatio"`
+	SystemHealthScore    SystemHealthTrendScoreStat `json:"systemHealthScore"`
+	AbnormalServices     SystemHealthTrendCountStat `json:"abnormalServices"`
+	AttentionServices    SystemHealthTrendCountStat `json:"attentionServices"`
+	HealthyServices      SystemHealthTrendCountStat `json:"healthyServices"`
+	NoDataServices       SystemHealthTrendCountStat `json:"noDataServices"`
+}
+
+type SystemHealthTrendCountStat struct {
+	Avg         float64 `json:"avg"`
+	Peak        int     `json:"peak"`
+	Min         float64 `json:"min"`
+	Last        float64 `json:"last"`
+	ActiveRatio float64 `json:"activeRatio"`
+	SampleCount int     `json:"sampleCount"`
+}
+
+type SystemHealthTrendRatioStat struct {
+	Avg         float64 `json:"avg"`
+	Peak        float64 `json:"peak"`
+	Min         float64 `json:"min"`
+	Last        float64 `json:"last"`
+	ActiveRatio float64 `json:"activeRatio"`
+	SampleCount int     `json:"sampleCount"`
+}
+
+type SystemHealthTrendScoreStat struct {
+	Avg                 float64 `json:"avg"`
+	Min                 float64 `json:"min"`
+	Max                 float64 `json:"max"`
+	Last                float64 `json:"last"`
+	BelowThresholdRatio float64 `json:"belowThresholdRatio"`
+	SampleCount         int     `json:"sampleCount"`
+}
+
 type SystemHealthSystemDetailResp struct {
 	System      SystemHealthSystem `json:"system"`
 	Window      string             `json:"window"`
 	GeneratedAt string             `json:"generatedAt"`
 	Source      string             `json:"source"`
+}
+
+type SystemHealthSystemDetailHeaderResp struct {
+	System      SystemHealthSystemHeader `json:"system"`
+	Window      string                   `json:"window"`
+	GeneratedAt string                   `json:"generatedAt"`
+	Source      string                   `json:"source"`
 }
 
 type SystemHealthOverviewSummary struct {
@@ -46,15 +161,32 @@ type SystemHealthOverviewSummary struct {
 }
 
 type SystemHealthSystem struct {
-	ID            int64                               `json:"id"`
-	GroupID       int64                               `json:"groupId"`
-	Name          string                              `json:"name"`
-	Score         int                                 `json:"score"`
-	Status        string                              `json:"status"`
-	Metrics       map[string]string                   `json:"metrics"`
-	MetricDetails map[string]SystemHealthMetricDetail `json:"metricDetails"`
-	Services      []SystemHealthService               `json:"services"`
-	Source        string                              `json:"source"`
+	ID                    int64                               `json:"id"`
+	GroupID               int64                               `json:"groupId"`
+	Name                  string                              `json:"name"`
+	Score                 int                                 `json:"score"`
+	Status                string                              `json:"status"`
+	Metrics               map[string]string                   `json:"metrics"`
+	MetricDetails         map[string]SystemHealthMetricDetail `json:"metricDetails"`
+	Services              []SystemHealthService               `json:"services"`
+	ServiceTotal          int                                 `json:"serviceTotal"`
+	AbnormalServiceCount  int                                 `json:"abnormalServiceCount"`
+	AttentionServiceCount int                                 `json:"attentionServiceCount"`
+	Source                string                              `json:"source"`
+}
+
+type SystemHealthSystemHeader struct {
+	ID                    int64                               `json:"id"`
+	GroupID               int64                               `json:"groupId"`
+	Name                  string                              `json:"name"`
+	Score                 int                                 `json:"score"`
+	Status                string                              `json:"status"`
+	Metrics               map[string]string                   `json:"metrics"`
+	MetricDetails         map[string]SystemHealthMetricDetail `json:"metricDetails"`
+	ServiceTotal          int                                 `json:"serviceTotal"`
+	AbnormalServiceCount  int                                 `json:"abnormalServiceCount"`
+	AttentionServiceCount int                                 `json:"attentionServiceCount"`
+	Source                string                              `json:"source"`
 }
 
 type SystemHealthService struct {
@@ -67,13 +199,16 @@ type SystemHealthService struct {
 }
 
 type SystemHealthMetricDetail struct {
-	Status     string                        `json:"status"`
-	Value      string                        `json:"value"`
-	Note       string                        `json:"note"`
-	Unit       string                        `json:"unit,omitempty"`
-	Source     string                        `json:"source,omitempty"`
-	Series     []SystemHealthMetricPoint     `json:"series,omitempty"`
-	Thresholds []SystemHealthMetricThreshold `json:"thresholds,omitempty"`
+	Status      string                        `json:"status"`
+	Value       string                        `json:"value"`
+	Note        string                        `json:"note"`
+	Unit        string                        `json:"unit,omitempty"`
+	Source      string                        `json:"source,omitempty"`
+	Series      []SystemHealthMetricPoint     `json:"series,omitempty"`
+	SeriesUnit  string                        `json:"seriesUnit,omitempty"`
+	SeriesLabel string                        `json:"seriesLabel,omitempty"`
+	Thresholds  []SystemHealthMetricThreshold `json:"thresholds,omitempty"`
+	Badges      []SystemHealthMetricBadge     `json:"badges,omitempty"`
 }
 
 type SystemHealthMetricPoint struct {
@@ -85,6 +220,12 @@ type SystemHealthMetricThreshold struct {
 	Label  string  `json:"label"`
 	Value  float64 `json:"value"`
 	Status string  `json:"status"`
+}
+
+type SystemHealthMetricBadge struct {
+	Label  string `json:"label"`
+	Value  string `json:"value"`
+	Status string `json:"status,omitempty"`
 }
 
 type SystemHealthPendingIssue struct {

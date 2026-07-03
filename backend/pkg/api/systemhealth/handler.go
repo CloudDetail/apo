@@ -4,17 +4,25 @@
 package systemhealth
 
 import (
+	"context"
+
 	"github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/repository/clickhouse"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database"
 	"github.com/CloudDetail/apo/backend/pkg/repository/dify"
 	"github.com/CloudDetail/apo/backend/pkg/repository/kubernetes"
 	"github.com/CloudDetail/apo/backend/pkg/repository/prometheus"
+	"go.uber.org/zap"
 )
 
 type Handler interface {
 	GetOverview() core.HandlerFunc
+	GetSystems() core.HandlerFunc
+	GetSystemServices() core.HandlerFunc
+	GetPendingIssues() core.HandlerFunc
 	GetNewAbnormalMetrics() core.HandlerFunc
+	GetTrend() core.HandlerFunc
+	GetSystemsTrend() core.HandlerFunc
 	GetConfig() core.HandlerFunc
 	UpdateConfig() core.HandlerFunc
 	GetSystemDetail() core.HandlerFunc
@@ -22,6 +30,7 @@ type Handler interface {
 	GetReport() core.HandlerFunc
 	ListReportRecords() core.HandlerFunc
 	GetReportRecord() core.HandlerFunc
+	StartSnapshotScheduler(ctx context.Context, logger *zap.Logger)
 }
 
 type handler struct {
@@ -31,6 +40,7 @@ type handler struct {
 	k8sRepo                   kubernetes.Repo
 	promRepo                  prometheus.Repo
 	reportCache               *systemHealthReportCache
+	currentHealthCache        *systemHealthCurrentCache
 	pendingIssueAnalysisCache *systemHealthPendingIssueAnalysisCache
 	alertManagerURL           string
 	vmAlertURL                string
@@ -44,6 +54,7 @@ func New(chRepo clickhouse.Repo, dbRepo database.Repo, difyRepo dify.DifyRepo, k
 		k8sRepo:                   k8sRepo,
 		promRepo:                  promRepo,
 		reportCache:               newSystemHealthReportCache(),
+		currentHealthCache:        newSystemHealthCurrentCache(systemHealthCurrentCacheTTL, maxSystemHealthCurrentCacheEntries),
 		pendingIssueAnalysisCache: newSystemHealthPendingIssueAnalysisCache(0, 512),
 		alertManagerURL:           alertManagerURL,
 		vmAlertURL:                vmAlertURL,

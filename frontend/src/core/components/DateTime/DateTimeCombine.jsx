@@ -22,6 +22,8 @@ function ShareLink() {
   const [shareType, setShareType] = useState(t('dataTimeCombine.absoluteTimeText'))
   const { rangeTypeKey, startTime, endTime } = useSelector((state) => state.timeRange)
   const [copyUrl, setCopyUrl] = useState(window.location.href)
+  const getQuickRangeLabel = (key) =>
+    t(`dateTimeRangePicker.quickRanges.${key}`, { defaultValue: timeRangeMap[key]?.name })
 
   useEffect(() => {
     // 在翻译加载完成后设置shareType
@@ -70,7 +72,7 @@ function ShareLink() {
                 {convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')}
               </>
             ) : (
-              timeRangeMap[rangeTypeKey]?.name
+              getQuickRangeLabel(rangeTypeKey)
             )}
           </div>
           <Input value={copyUrl} addonAfter={<CopyButton value={copyUrl} />} />
@@ -86,7 +88,7 @@ export default function DateTimeCombine() {
   const { rangeTypeKey } = useSelector((state) => state.timeRange)
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2">
       {rangeTypeKey && <TimeSinceRefresh />}
       <DateTimeRangePicker />
       {rangeTypeKey && <RefreshDateTime />}

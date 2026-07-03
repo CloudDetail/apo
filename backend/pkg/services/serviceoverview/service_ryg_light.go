@@ -49,6 +49,14 @@ func (s *service) GetServicesRYGLightStatus(ctx core.Context, req *request.GetRy
 		servicesMap.MergeMetricResults(prom.AVG, prom.LATENCY, avgLatency)
 	}
 
+	avgErrorRate, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
+		prom.PQLAvgErrorRateWithPQLFilter,
+		req.StartTime, req.EndTime,
+		prom.SVCGranularity, pqlFilter)
+	if err == nil {
+		servicesMap.MergeMetricResults(prom.AVG, prom.ERROR_RATE, avgErrorRate)
+	}
+
 	avgLatencyDoD, err := s.promRepo.QueryMetricsWithPQLFilter(ctx,
 		prom.DayOnDayTemplate(prom.PQLAvgLatencyWithPQLFilter),
 		req.StartTime, req.EndTime,

@@ -15,12 +15,61 @@ type GetSystemHealthOverviewRequest struct {
 	StartTime              int64  `form:"startTime"`
 	EndTime                int64  `form:"endTime"`
 	SkipNewAbnormalMetrics bool   `form:"skipNewAbnormalMetrics"`
+	SummaryOnly            bool   `form:"summaryOnly"`
+}
+
+type ListSystemHealthSystemsRequest struct {
+	RelativeTime string `form:"relativeTime"`
+	StartTime    int64  `form:"startTime"`
+	EndTime      int64  `form:"endTime"`
+	Page         int    `form:"page"`
+	PageSize     int    `form:"pageSize"`
+	Keyword      string `form:"keyword"`
+	Status       string `form:"status"`
+	Sort         string `form:"sort"`
+}
+
+type ListSystemHealthSystemServicesRequest struct {
+	GroupID int64 `uri:"groupId" binding:"required"`
+
+	RelativeTime string `form:"relativeTime"`
+	StartTime    int64  `form:"startTime"`
+	EndTime      int64  `form:"endTime"`
+	Page         int    `form:"page"`
+	PageSize     int    `form:"pageSize"`
+	Keyword      string `form:"keyword"`
+	Status       string `form:"status"`
+	Sort         string `form:"sort"`
+}
+
+type ListSystemHealthPendingIssuesRequest struct {
+	RelativeTime string `form:"relativeTime"`
+	StartTime    int64  `form:"startTime"`
+	EndTime      int64  `form:"endTime"`
+	Page         int    `form:"page"`
+	PageSize     int    `form:"pageSize"`
+	Keyword      string `form:"keyword"`
+	Status       string `form:"status"`
+	GroupID      int64  `form:"groupId"`
 }
 
 type GetSystemHealthNewAbnormalMetricsRequest struct {
 	RelativeTime string `form:"relativeTime"`
 	StartTime    int64  `form:"startTime"`
 	EndTime      int64  `form:"endTime"`
+}
+
+type GetSystemHealthTrendRequest struct {
+	Range     string `form:"range"`
+	GroupID   int64  `form:"groupId"`
+	Judgement string `form:"judgement"`
+	View      string `form:"view"`
+}
+
+type GetSystemHealthSystemsTrendRequest struct {
+	Range     string  `json:"range"`
+	Judgement string  `json:"judgement"`
+	GroupIDs  []int64 `json:"groupIds"`
 }
 
 type UpdateSystemHealthConfigRequest struct {
@@ -32,9 +81,10 @@ type UpdateSystemHealthConfigRequest struct {
 type GetSystemHealthSystemDetailRequest struct {
 	GroupID int64 `uri:"groupId" binding:"required"`
 
-	RelativeTime string `form:"relativeTime"`
-	StartTime    int64  `form:"startTime"`
-	EndTime      int64  `form:"endTime"`
+	RelativeTime    string `form:"relativeTime"`
+	StartTime       int64  `form:"startTime"`
+	EndTime         int64  `form:"endTime"`
+	IncludeServices *bool  `form:"includeServices"`
 }
 
 type AnalyzeSystemHealthPendingIssueRequest struct {

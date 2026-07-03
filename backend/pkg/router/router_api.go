@@ -4,6 +4,8 @@
 package router
 
 import (
+	"context"
+
 	appconfig "github.com/CloudDetail/apo/backend/config"
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
@@ -79,14 +81,20 @@ func setApiRouter(r *resource) {
 	{
 		systemHealthHandler := systemhealth.New(r.ch, r.pkg_db, r.dify, r.k8sApi, r.prom, appconfig.Get().AlertManager.Address, appconfig.Get().VMAlert.Address)
 		systemHealthApi.GET("/overview", systemHealthHandler.GetOverview())
+		systemHealthApi.GET("/systems", systemHealthHandler.GetSystems())
 		systemHealthApi.GET("/new-abnormal-metrics", systemHealthHandler.GetNewAbnormalMetrics())
+		systemHealthApi.GET("/trend", systemHealthHandler.GetTrend())
+		systemHealthApi.POST("/trend/systems", systemHealthHandler.GetSystemsTrend())
 		systemHealthApi.GET("/config", systemHealthHandler.GetConfig())
 		systemHealthApi.POST("/config", systemHealthHandler.UpdateConfig())
+		systemHealthApi.GET("/pending-issues", systemHealthHandler.GetPendingIssues())
+		systemHealthApi.GET("/overview/:groupId/services", systemHealthHandler.GetSystemServices())
 		systemHealthApi.GET("/overview/:groupId", systemHealthHandler.GetSystemDetail())
 		systemHealthApi.POST("/pending-issues/analyze", systemHealthHandler.AnalyzePendingIssue())
 		systemHealthApi.GET("/report", systemHealthHandler.GetReport())
 		systemHealthApi.GET("/report/records", systemHealthHandler.ListReportRecords())
 		systemHealthApi.GET("/report/records/:recordId", systemHealthHandler.GetReportRecord())
+		systemHealthHandler.StartSnapshotScheduler(context.Background(), r.logger)
 	}
 
 	logApi := r.mux.Group("/api/log").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())

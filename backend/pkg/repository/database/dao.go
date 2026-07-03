@@ -38,6 +38,11 @@ type Repo interface {
 	DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error
 	GetOrCreateSystemHealthConfig(ctx core.Context) (SystemHealthConfig, error)
 	UpdateSystemHealthConfig(ctx core.Context, severeAbnormalScoreThreshold int, generalAbnormalScoreThreshold int) (SystemHealthConfig, error)
+	SaveSystemHealthSnapshots(ctx core.Context, systems []SystemHealthSystemSnapshot, services []SystemHealthServiceSnapshot) error
+	LatestSystemHealthSnapshotBucketStart(ctx core.Context) (time.Time, bool, error)
+	TryClaimSystemHealthSnapshotBucket(ctx core.Context, bucketStart time.Time, ttl time.Duration) (bool, error)
+	ListSystemHealthSystemSnapshots(ctx core.Context, groupIDs []int64, startTime time.Time, endTime time.Time) ([]SystemHealthSystemSnapshot, error)
+	ListSystemHealthServiceSnapshots(ctx core.Context, groupIDs []int64, startTime time.Time, endTime time.Time) ([]SystemHealthServiceSnapshot, error)
 	OperateLogTableInfo(ctx core.Context, model *LogTableInfo, op Operator) error
 	GetAllLogTable(ctx core.Context) ([]LogTableInfo, error)
 	UpdateLogParseRule(ctx core.Context, model *LogTableInfo) error
@@ -361,6 +366,9 @@ func migrateTable(db *gorm.DB) error {
 		&Router{},
 		&Threshold{},
 		&SystemHealthConfig{},
+		&SystemHealthSystemSnapshot{},
+		&SystemHealthServiceSnapshot{},
+		&SystemHealthSnapshotLock{},
 		&profile.User{},
 		&API{},
 		&AuthDataGroup{},
