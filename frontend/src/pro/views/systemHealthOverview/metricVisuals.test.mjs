@@ -321,6 +321,24 @@ test('metricVisualFor turns resource metrics into waterline visuals', () => {
   )
 })
 
+test('metricVisualFor labels aggregate resource values as the judging waterline', () => {
+  const visual = metricVisualFor('resource', {
+    status: 'red',
+    value: '100.00%',
+    note: '系统资源水位聚合',
+    badges: [
+      { label: '平均水位', value: '36.12%', status: 'green' },
+      { label: '高水位实例', value: '1/14', status: 'red' },
+      { label: 'P95水位', value: '100.00%', status: 'red' },
+    ],
+  })
+
+  assert.equal(visual.helper, '判定水位')
+  assert.equal(visual.note, '系统判定水位过高')
+  assert.equal(visual.value, '100.00%')
+  assert.equal(visual.percent, 100)
+})
+
 test('metricVisualFor keeps resource notes readable and does not expose source paths in the footnote', () => {
   const visual = metricVisualFor('resource', {
     status: 'red',
@@ -368,16 +386,16 @@ test('metricSourceTitleFor explains title tooltip values in readable language', 
     metricSourceTitleFor('resource', {
       source: 'dev/train-ticket/ts-train-service-787984cc59-8gbnh',
     }),
-    '当前窗口内 CPU 或内存压力最高的 Pod 水位。最高水位 Pod：ts-train-service-787984cc59-8gbnh',
+    '数据组内服务关联 Pod 或 Host 去重后的整体资源水位。最高水位 Pod：ts-train-service-787984cc59-8gbnh',
   )
-  assert.equal(metricSourceTitleFor('errorRate'), '当前窗口内失败请求占全部请求的比例。')
-  assert.equal(metricSourceTitleFor('latency'), '当前窗口内所有请求的平均响应时间。')
+  assert.equal(metricSourceTitleFor('errorRate'), '数据组内总失败请求数占总请求数的比例。')
+  assert.equal(metricSourceTitleFor('latency'), '数据组整体请求延时，当前使用请求数加权平均值。')
   assert.equal(
     metricSourceTitleFor('errorLog'),
-    '当前窗口内 error、critical 和 exception 日志总数。',
+    '数据组内可见服务 error、critical 和 exception 日志总数。',
   )
-  assert.equal(metricSourceTitleFor('badRequests'), '当前仍在触发中的告警数量。')
-  assert.equal(metricSourceTitleFor('lockCost'), '当前窗口内每个请求平均分摊到的锁等待耗时。')
+  assert.equal(metricSourceTitleFor('badRequests'), '数据组内当前 firing 告警按级别汇总后的数量。')
+  assert.equal(metricSourceTitleFor('lockCost'), '数据组内 futex 锁等待总耗时按总请求数均摊后的耗时。')
 })
 
 test('metricVisualFor scales resource shift against the abnormal threshold', () => {
@@ -442,11 +460,20 @@ test('metricVisualFor renders active alerts as a plain big number with count uni
     status: 'yellow',
     value: '3',
     note: '当前活跃告警数',
+    badges: [
+      { label: '红色告警', value: '0', status: 'green' },
+      { label: '黄色告警', value: '3', status: 'yellow' },
+    ],
   })
 
   assert.equal(visual.kind, 'number')
   assert.equal(visual.value, '3 个')
   assert.equal(visual.helper, '活跃告警')
+  assert.deepEqual(visual.badges, [
+    { label: '红色告警', value: '0', status: 'green' },
+    { label: '黄色告警', value: '3', status: 'yellow' },
+  ])
+  assert.equal('distribution' in visual, false)
   assert.equal('marker' in visual, false)
   assert.equal('percent' in visual, false)
 })
@@ -465,12 +492,25 @@ test('metricVisualFor renders lock cost as a plain big number without a meter', 
   assert.equal('percent' in visual, false)
 })
 
+test('metricVisualFor compacts large lock cost values for metric tiles', () => {
+  const visual = metricVisualFor('lockCost', {
+    status: 'red',
+    value: '12660.00 ms/请求',
+    note: '由 futex 锁等待耗时按请求数均摊计算',
+  })
+
+  assert.equal(visual.kind, 'number')
+  assert.equal(visual.value, '12660 ms/请求')
+})
+
 test('metricVisualFor exposes trend metadata for system aggregate line metrics', () => {
   const visual = metricVisualFor('errorRate', {
     status: 'yellow',
     value: '3.40%',
     note: '系统请求错误率',
     unit: '%',
+    seriesUnit: '%',
+    seriesLabel: '最高服务错误率',
     series: [
       { timestamp: 101, value: 1.2 },
       { timestamp: 102, value: 3.4 },
@@ -480,6 +520,7 @@ test('metricVisualFor exposes trend metadata for system aggregate line metrics',
   assert.equal(visual.kind, 'gauge')
   assert.equal(visual.chart.colorRole, 'errorRate')
   assert.equal(visual.chart.unit, '%')
+  assert.equal(visual.chart.label, '最高服务错误率')
   assert.deepEqual(visual.chart.series, [
     { timestamp: 101, value: 1.2 },
     { timestamp: 102, value: 3.4 },
@@ -503,35 +544,74 @@ test('metricVisualFor keeps resource waterline as a current snapshot even if ser
   assert.equal(visual.source, 'dev/prod/order-b')
 })
 
-test('buildMetricTrendOption omits baseline mark lines for resource shift', () => {
+test('buildMetricTrendOption omits baseline mark lines for noisy metric trends', () => {
   assert.equal(typeof metricVisuals.buildMetricTrendOption, 'function')
 
-  const option = metricVisuals.buildMetricTrendOption(
-    {
-      key: 'resourceShift',
-      unit: '%',
-      colorRole: 'resourceShift',
-      series: [
-        { timestamp: 101, value: 35 },
-        { timestamp: 102, value: 75 },
-      ],
-      thresholds: [
-        { label: '关注线', value: 30, status: 'yellow' },
-        { label: '异常线', value: 60, status: 'red' },
-      ],
-    },
-    {
-      color: '#ff8a45',
-      warningColor: '#f79009',
-      criticalColor: '#f04438',
-      textColor: '#475467',
-      gridColor: '#eaecf0',
-    },
-  )
+  ;[
+    ['resourceShift', '%', 'resourceShift'],
+    ['errorRate', '%', 'errorRate'],
+    ['latency', 'ms', 'latency'],
+  ].forEach(([key, unit, colorRole]) => {
+    const option = metricVisuals.buildMetricTrendOption(
+      {
+        key,
+        unit,
+        colorRole,
+        series: [
+          { timestamp: 101, value: 35 },
+          { timestamp: 102, value: 75 },
+        ],
+        thresholds: [
+          { label: '关注线', value: 30, status: 'yellow' },
+          { label: '异常线', value: 60, status: 'red' },
+        ],
+      },
+      {
+        color: '#ff8a45',
+        warningColor: '#f79009',
+        criticalColor: '#f04438',
+        textColor: '#475467',
+        gridColor: '#eaecf0',
+      },
+    )
 
-  assert.deepEqual(option.series[0].data, [35, 75])
-  assert.equal(option.series[0].markLine, undefined)
-  assert.equal(option.xAxis.axisLabel.show, false)
-  assert.equal(option.yAxis.axisLabel.show, false)
-  assert.equal(option.yAxis.splitLine.show, false)
+    assert.deepEqual(option.series[0].data, [35, 75])
+    assert.equal(option.series[0].markLine, undefined)
+    assert.equal(option.xAxis.axisLabel.show, false)
+    assert.equal(option.yAxis.axisLabel.show, false)
+    assert.equal(option.yAxis.splitLine.show, false)
+  })
+})
+
+test('buildMetricTrendOption keeps empty trend buckets as gaps', () => {
+  const option = metricVisuals.buildMetricTrendOption({
+    key: 'latency',
+    unit: 'ms',
+    colorRole: 'latency',
+    series: [
+      { timestamp: 101, value: 20 },
+      { timestamp: 102, value: null },
+      { timestamp: 103, value: 35 },
+    ],
+  })
+
+  assert.deepEqual(option.series[0].data, [20, null, 35])
+  assert.equal(option.series[0].connectNulls, false)
+  assert.equal(option.graphic, undefined)
+})
+
+test('buildMetricTrendOption shows an in-chart empty state when all buckets lack data', () => {
+  const option = metricVisuals.buildMetricTrendOption({
+    key: 'latency',
+    unit: 'ms',
+    colorRole: 'latency',
+    series: [
+      { timestamp: 101, value: null },
+      { timestamp: 102, value: undefined },
+    ],
+  })
+
+  assert.deepEqual(option.series[0].data, [null, null])
+  assert.equal(option.series[0].connectNulls, false)
+  assert.equal(option.graphic.style.text, '无数据')
 })

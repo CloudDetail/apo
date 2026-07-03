@@ -5,7 +5,10 @@ import { URL } from 'node:url'
 
 import { buildPendingIssuesFromSystems, paginatePendingIssues } from './pendingIssuePagination.mjs'
 
-const viewSource = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
+const sourceFor = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
+
+const viewSource = sourceFor('./index.jsx')
+const pendingIssueQueueSource = sourceFor('./components/PendingIssueQueue.jsx')
 
 test('buildPendingIssuesFromSystems derives sorted issues from overview systems', () => {
   const issues = buildPendingIssuesFromSystems([
@@ -84,21 +87,61 @@ test('paginatePendingIssues slices local issues without request params', () => {
 })
 
 test('system health page renders pending issue pagination controls', () => {
-  assert.ok(viewSource.includes('Pagination'), 'page should import and render AntD Pagination')
   assert.ok(
-    viewSource.includes('pendingIssuePageData.total'),
-    'page should track pending issue total from local pagination',
+    pendingIssueQueueSource.includes('Pagination'),
+    'pending issue queue should render AntD Pagination',
+  )
+  assert.ok(
+    viewSource.includes('pendingIssueTotal'),
+    'page should track pending issue total from the server response',
   )
   assert.ok(
     viewSource.includes('setPendingIssuePage'),
     'page should update pending issue page when pagination changes',
   )
   assert.ok(
-    viewSource.includes('skipNewAbnormalMetrics: true'),
-    'overview loading should skip expensive new abnormal metric calculation',
+    viewSource.includes('getSystemHealthPendingIssuesApi'),
+    'page should use the server-side pending issue endpoint',
   )
   assert.ok(
-    !viewSource.includes('getSystemHealthOverviewApi(overviewQueryParams)'),
-    'pending issue pagination must not re-fetch the full overview',
+    viewSource.includes('pendingIssueLoading'),
+    'pending issue pagination should have independent loading state',
+  )
+  assert.equal(
+    viewSource.includes('buildPendingIssuesFromSystems(systems)'),
+    false,
+    'pending issue pagination must not derive issues from loaded overview system rows',
+  )
+  assert.equal(
+    viewSource.includes('paginatePendingIssues(allPendingIssues'),
+    false,
+    'pending issue pagination must not slice local overview-derived issues',
+  )
+})
+
+test('pending issue table uses AI assistant column without a separate status column', () => {
+  const tableStart = pendingIssueQueueSource.indexOf('<table className="sho-pending-table">')
+  assert.notEqual(tableStart, -1, 'pending issue table should exist')
+
+  const tableEnd = pendingIssueQueueSource.indexOf('</table>', tableStart)
+  assert.notEqual(tableEnd, -1, 'pending issue table should close')
+
+  const tableSource = pendingIssueQueueSource.slice(tableStart, tableEnd)
+
+  assert.ok(tableSource.includes('<th>AI助手</th>'), 'action column title should be AI助手')
+  assert.equal(tableSource.includes('<th>状态</th>'), false, 'status header should be removed')
+  assert.equal(
+    tableSource.includes('sho-pending-col-status'),
+    false,
+    'status colgroup entry should be removed',
+  )
+  assert.equal(
+    tableSource.includes('statusLabel'),
+    false,
+    'status label rendering should be removed from pending issue rows',
+  )
+  assert.ok(
+    tableSource.includes('<td colSpan={5}>{analysisNode}</td>'),
+    'analysis row should span the remaining five columns',
   )
 })

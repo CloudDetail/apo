@@ -123,14 +123,17 @@ const TREND_UNITS = {
   latency: 'ms',
   errorLog: 'count',
 }
+const TREND_MARK_LINE_DISABLED_KEYS = new Set(['resourceShift', 'errorRate', 'latency'])
+const AGGREGATE_RESOURCE_WATERLINE_NOTE = '系统资源水位聚合'
+const AGGREGATE_RESOURCE_WATERLINE_BADGE_LABELS = new Set(['平均水位', 'P95水位'])
 const METRIC_SOURCE_TITLES = {
-  resource: '当前窗口内 CPU 或内存压力最高的 Pod 水位。',
-  resourceShift: '当前窗口的 CPU 或内存用量，相比 24 小时前同一时间段的最大变化。',
-  errorRate: '当前窗口内失败请求占全部请求的比例。',
-  latency: '当前窗口内所有请求的平均响应时间。',
-  errorLog: '当前窗口内 error、critical 和 exception 日志总数。',
-  badRequests: '当前仍在触发中的告警数量。',
-  lockCost: '当前窗口内每个请求平均分摊到的锁等待耗时。',
+  resource: '数据组内服务关联 Pod 或 Host 去重后的整体资源水位。',
+  resourceShift: '数据组整体资源消耗相对 24 小时前同窗口的变化。',
+  errorRate: '数据组内总失败请求数占总请求数的比例。',
+  latency: '数据组整体请求延时，当前使用请求数加权平均值。',
+  errorLog: '数据组内可见服务 error、critical 和 exception 日志总数。',
+  badRequests: '数据组内当前 firing 告警按级别汇总后的数量。',
+  lockCost: '数据组内 futex 锁等待总耗时按总请求数均摊后的耗时。',
 }
 
 const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value))
@@ -167,6 +170,13 @@ const resourceTypeFromNote = (note) => {
 }
 
 const compactResourceNote = (note, status, value) => {
+  const text = safeText(note)
+  if (text.includes(AGGREGATE_RESOURCE_WATERLINE_NOTE)) {
+    if (status === 'gray') return '暂无资源水位数据'
+    if (percentFromValue(value) === null) return text || '暂无资源水位数据'
+    if (status === 'green') return '系统判定水位正常'
+    return '系统判定水位过高'
+  }
   const resourceType = resourceTypeFromNote(note)
   const resourceLabel = resourceType === 'CPU' ? ' CPU ' : resourceType
   if (status === 'gray') return '暂无资源水位数据'
@@ -185,6 +195,16 @@ const metricDisplayValue = (value) => {
   return !text || text === '--' ? '暂无数据' : text
 }
 
+const compactLargeMillisecondsPerRequestValue = (value) => {
+  const text = metricDisplayValue(value)
+  const match = text.match(/^([+-]?\d+(?:\.\d+)?)\s+(ms\/请求)$/)
+  if (!match) return text
+
+  const number = Number(match[1])
+  if (!Number.isFinite(number) || Math.abs(number) < 1000) return text
+  return `${Math.round(number)} ${match[2]}`
+}
+
 const countDisplayValue = (value) => {
   const text = metricDisplayValue(value)
   return text === '暂无数据' || /\D/.test(text) ? text : `${text} 个`
@@ -195,14 +215,19 @@ const logCountDisplayValue = (value) => {
   return text === '暂无数据' || /\D/.test(text) ? text : `${text} 条`
 }
 
+const trendPointValue = (point) => {
+  if (point?.missingSnapshot || point?.value === undefined || point?.value === null) return null
+  const value = Number(point.value)
+  return Number.isFinite(value) ? value : null
+}
+
 const normalizeSeries = (series) => {
   if (!Array.isArray(series)) return []
   return series
     .map((point) => {
       const timestamp = Number(point?.timestamp)
-      const value = Number(point?.value)
-      if (!Number.isFinite(timestamp) || !Number.isFinite(value)) return null
-      return { timestamp, value }
+      if (!Number.isFinite(timestamp)) return null
+      return { timestamp, value: trendPointValue(point) }
     })
     .filter(Boolean)
     .sort((left, right) => left.timestamp - right.timestamp)
@@ -223,6 +248,24 @@ const normalizeThresholds = (thresholds) => {
     .filter(Boolean)
 }
 
+const normalizeBadges = (badges) =>
+  (Array.isArray(badges) ? badges : [])
+    .map((badge) => {
+      const label = safeText(badge?.label)
+      const value = safeText(badge?.value)
+      if (!label || !value) return null
+      return {
+        label,
+        value,
+        status: normalizeStatus(badge?.status),
+      }
+    })
+    .filter(Boolean)
+
+const isAggregateResourceWaterline = (detail = {}, badges = []) =>
+  safeText(detail.note).includes(AGGREGATE_RESOURCE_WATERLINE_NOTE) ||
+  badges.some((badge) => AGGREGATE_RESOURCE_WATERLINE_BADGE_LABELS.has(badge.label))
+
 const metricChartFor = (key, detail = {}) => {
   const colorRole = TREND_COLOR_ROLES[key]
   const series = normalizeSeries(detail.series)
@@ -230,7 +273,8 @@ const metricChartFor = (key, detail = {}) => {
   return {
     key,
     colorRole,
-    unit: safeText(detail.unit) || TREND_UNITS[key] || '',
+    unit: safeText(detail.seriesUnit) || safeText(detail.unit) || TREND_UNITS[key] || '',
+    label: safeText(detail.seriesLabel),
     series,
     thresholds: normalizeThresholds(detail.thresholds),
   }
@@ -265,6 +309,22 @@ const thresholdColor = (status, colors = {}) => {
   if (status === 'yellow') return colors.warningColor || '#f79009'
   return colors.gridColor || '#98a2b3'
 }
+
+const seriesHasTrendData = (series) =>
+  (Array.isArray(series) ? series : []).some((point) => Number.isFinite(point?.value))
+
+const noDataTrendGraphic = () => ({
+  type: 'text',
+  left: 'center',
+  top: 'middle',
+  silent: true,
+  style: {
+    text: '无数据',
+    fill: '#98a2b3',
+    fontSize: 12,
+    fontWeight: 600,
+  },
+})
 
 export const metricSourceTitleFor = (key, detail = {}) => {
   const title = METRIC_SOURCE_TITLES[key] || '数据来源：系统健康指标'
@@ -397,6 +457,10 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
   }
   const source = safeText(detail.source)
   const chart = metricChartFor(key, detail)
+  const badges = normalizeBadges(detail.badges)
+  if (badges.length) {
+    base.badges = badges
+  }
   if (source) {
     base.source = source
   }
@@ -405,12 +469,13 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
     if (Array.isArray(detail.series) && detail.series.length) {
       base.chart = null
     }
+    const isAggregate = isAggregateResourceWaterline(detail, badges)
     const currentPercent = percentFromValue(base.value)
     return {
       kind: 'waterline',
       ...base,
       percent: currentPercent ?? 0,
-      helper: '当前水位',
+      helper: isAggregate ? '判定水位' : '当前水位',
       showThresholdMarker: status !== 'green' && status !== 'gray',
     }
   }
@@ -460,6 +525,7 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
     return {
       kind: 'number',
       ...base,
+      value: compactLargeMillisecondsPerRequestValue(detail.value),
       helper: '锁等待均摊',
     }
   }
@@ -483,7 +549,7 @@ export const buildMetricTrendOption = (chart = {}, colors = {}) => {
     data: series.map((point) => point.value),
     smooth: true,
     showSymbol: false,
-    connectNulls: true,
+    connectNulls: false,
     lineStyle: {
       width: 2,
       color: lineColor,
@@ -497,7 +563,7 @@ export const buildMetricTrendOption = (chart = {}, colors = {}) => {
     },
   }
 
-  if (chart.key !== 'resourceShift' && thresholds.length) {
+  if (!TREND_MARK_LINE_DISABLED_KEYS.has(chart.key) && thresholds.length) {
     optionSeries.markLine = {
       symbol: 'none',
       silent: true,
@@ -564,5 +630,6 @@ export const buildMetricTrendOption = (chart = {}, colors = {}) => {
       },
     },
     series: [optionSeries],
+    ...(seriesHasTrendData(series) ? {} : { graphic: noDataTrendGraphic() }),
   }
 }

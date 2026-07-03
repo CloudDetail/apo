@@ -161,6 +161,24 @@ func TestBuildSystemHealthSystemSortsServicesByLowScoreFirst(t *testing.T) {
 	}
 }
 
+func TestSortSystemHealthServicesByScoreHandlesZeroAndStableTies(t *testing.T) {
+	services := []response.SystemHealthService{
+		{Name: "healthy-api", Score: 100},
+		{Name: "warning-a", Score: 66},
+		{Name: "no-data", Score: 0},
+		{Name: "warning-b", Score: 66},
+		{Name: "critical", Score: 30},
+	}
+
+	sortSystemHealthServicesByScore(services)
+
+	got := []string{services[0].Name, services[1].Name, services[2].Name, services[3].Name, services[4].Name}
+	want := []string{"no-data", "critical", "warning-a", "warning-b", "healthy-api"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected zero, critical, stable equal scores, then healthy services, got %+v", got)
+	}
+}
+
 func TestBuildSystemHealthSystemReturnsGrayMetricsWithoutServices(t *testing.T) {
 	system := buildSystemHealthSystem(datagroup.DataGroup{GroupID: 101, GroupName: "空系统"}, nil)
 

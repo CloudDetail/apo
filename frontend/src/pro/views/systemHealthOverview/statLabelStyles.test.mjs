@@ -3,15 +3,21 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { URL } from 'node:url'
 
-const css = readFileSync(new URL('./index.css', import.meta.url), 'utf8')
-const viewSource = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
+const sourceFor = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 
-const sourceBetween = (start, end) => {
-  const startIndex = viewSource.indexOf(start)
+const css = sourceFor('./index.css')
+const viewSource = sourceFor('./index.jsx')
+const thresholdSettingsSource = sourceFor('./components/ThresholdSettingsContent.jsx')
+const detailHeaderSource = sourceFor('./components/DetailHeader.jsx')
+const overviewSummarySource = sourceFor('./components/OverviewSummary.jsx')
+const trendCommonSource = sourceFor('./components/TrendCommon.jsx')
+
+const sourceBetween = (start, end, targetSource = viewSource) => {
+  const startIndex = targetSource.indexOf(start)
   assert.notEqual(startIndex, -1, `${start} should exist`)
-  const endIndex = viewSource.indexOf(end, startIndex)
+  const endIndex = targetSource.indexOf(end, startIndex)
   assert.notEqual(endIndex, -1, `${end} should exist after ${start}`)
-  return viewSource.slice(startIndex, endIndex)
+  return targetSource.slice(startIndex, endIndex)
 }
 
 const declarationsFor = (selector) => {
@@ -68,6 +74,15 @@ test('summary card title is enlarged after removing descriptions', () => {
   assert.ok(declarations.includes('font-weight: 700'))
 })
 
+test('summary cards with trend bodies vertically center title and value row', () => {
+  const declarations = declarationsFor('.sho-summary-card-with-body')
+
+  assert.ok(declarations.includes('grid-template-columns: minmax(0, 1fr) auto'))
+  assert.ok(declarations.includes('align-content: start'))
+  assert.ok(declarations.includes('align-items: center'))
+  assert.ok(declarations.includes('justify-content: stretch'))
+})
+
 test('summary card title icons use severity colors without shrinking', () => {
   const iconDeclarations = declarationsFor('.sho-summary-title-icon')
   const criticalDeclarations = declarationsFor('.sho-summary-title-icon-critical')
@@ -107,18 +122,19 @@ test('summary ratio value is not truncated by the generic card value cap', () =>
 })
 
 test('summary metric cards render their large values through Statistic', () => {
-  assert.ok(viewSource.includes('Statistic'))
-  assert.ok(viewSource.includes('<Statistic'))
-  assert.equal(viewSource.includes('<strong>{renderedValue}</strong>'), false)
+  assert.ok(overviewSummarySource.includes('Statistic'))
+  assert.ok(overviewSummarySource.includes('<Statistic'))
+  assert.equal(overviewSummarySource.includes('<strong>{renderedValue}</strong>'), false)
 })
 
 test('summary titles use direct icons while settings live in toolbar', () => {
   const summaryMetricCardSource = sourceBetween(
     'const SummaryMetricCard = ({',
     'SummaryMetricCard.propTypes',
+    overviewSummarySource,
   )
 
-  assert.ok(viewSource.includes('help={card.help}'))
+  assert.ok(overviewSummarySource.includes('help={card.help}'))
   assert.match(summaryMetricCardSource, /<Tooltip title=\{help\}>/)
   assert.doesNotMatch(summaryMetricCardSource, /HelpCircle/)
   assert.ok(viewSource.includes('const summaryCardIcons = {'))
@@ -127,11 +143,13 @@ test('summary titles use direct icons while settings live in toolbar', () => {
   assert.match(viewSource, /pendingIssues: \(/)
   assert.ok(viewSource.includes('className="sho-toolbar-actions"'))
   assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
-  assert.ok(viewSource.includes('content={renderThresholdSettings()}'))
+  assert.ok(viewSource.includes('<ThresholdSettingsContent'))
   assert.equal(viewSource.includes('className="sho-summary-question-trigger"'), false)
-  assert.ok(viewSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
+  assert.ok(thresholdSettingsSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
   assert.ok(
-    viewSource.includes('系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统'),
+    thresholdSettingsSource.includes(
+      '系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统',
+    ),
   )
 })
 
@@ -145,6 +163,154 @@ test('threshold settings can still be opened from the toolbar', () => {
   assert.ok(viewSource.includes('className="sho-threshold-toolbar-trigger"'))
 })
 
+test('threshold toolbar trigger vertically centers icon and label', () => {
+  const triggerDeclarations = declarationsFor('.sho-threshold-toolbar-trigger.ant-btn')
+  const iconDeclarations = declarationsFor('.sho-threshold-toolbar-trigger .ant-btn-icon')
+  const iconSvgDeclarations = declarationsFor('.sho-threshold-toolbar-trigger .ant-btn-icon svg')
+
+  assert.ok(triggerDeclarations.includes('display: inline-flex'))
+  assert.ok(triggerDeclarations.includes('align-items: center'))
+  assert.ok(triggerDeclarations.includes('justify-content: center'))
+  assert.ok(triggerDeclarations.includes('line-height: 1'))
+  assert.ok(iconDeclarations.includes('display: inline-flex'))
+  assert.ok(iconDeclarations.includes('align-items: center'))
+  assert.ok(iconDeclarations.includes('line-height: 0'))
+  assert.ok(iconSvgDeclarations.includes('display: block'))
+})
+
+test('trend range selector lives in toolbar before threshold settings', () => {
+  const toolbarActionsSource = sourceBetween(
+    '<div className="sho-toolbar-actions">',
+    '<Button\n                aria-label="健康异常判定设置"',
+  )
+
+  assert.ok(toolbarActionsSource.includes('趋势图历史范围'))
+  assert.ok(toolbarActionsSource.includes('className="sho-trend-range-select"'))
+  assert.ok(toolbarActionsSource.includes('value={trendRange}'))
+  assert.ok(toolbarActionsSource.includes('onChange={handleTrendRangeChange}'))
+  assert.ok(viewSource.includes("judgement: 'snapshot'"))
+  assert.equal(viewSource.includes("judgement: 'current'"), false)
+  assert.equal(viewSource.includes('判定口径：'), false)
+  assert.equal(viewSource.includes('className="sho-history-range"'), false)
+})
+
+test('summary anomaly cards embed their trend charts instead of using a standalone history panel', () => {
+  const summarySource = sourceBetween(
+    '<div className="sho-summary">',
+    'OverviewSummary.propTypes',
+    overviewSummarySource,
+  )
+
+  assert.ok(summarySource.includes('summaryTrendGroupByKey[card.key]'))
+  assert.ok(summarySource.includes('<SummaryTrendGroup'))
+  assert.equal(summarySource.includes('renderHistoryTrends()'), false)
+  assert.equal(viewSource.includes('const renderHistoryTrends = () => {'), false)
+  assert.ok(overviewSummarySource.includes('className="sho-summary-trends"'))
+  assert.ok(overviewSummarySource.includes('className="sho-summary-trend-item"'))
+  assert.equal(viewSource.includes('className="sho-history-panel"'), false)
+  assert.equal(css.includes('.sho-history-panel'), false)
+})
+
+test('trend loading failures render as retryable state blocks instead of plain red text', () => {
+  const failureStateSource = sourceBetween(
+    'export const TrendFailureState = ({',
+    'TrendFailureState.propTypes',
+    trendCommonSource,
+  )
+
+  assert.ok(failureStateSource.includes('CircleAlert'))
+  assert.ok(failureStateSource.includes('className="sho-trend-failure-title"'))
+  assert.ok(failureStateSource.includes('className="sho-trend-failure-description"'))
+  assert.ok(failureStateSource.includes('onClick={onRetry}'))
+  assert.ok(viewSource.includes('onTrendRetry={handleOverviewTrendRetry}'))
+  assert.ok(overviewSummarySource.includes('description="无法读取历史快照"'))
+  assert.equal(
+    viewSource.includes(
+      '<div className="sho-summary-trend-state sho-summary-trend-error">趋势加载失败</div>',
+    ),
+    false,
+  )
+  assert.equal(
+    viewSource.includes(
+      '<div className="sho-detail-trend-state sho-detail-trend-error">趋势加载失败</div>',
+    ),
+    false,
+  )
+})
+
+test('trend failure visual treatment uses a compact full-border surface', () => {
+  const shellDeclarations = declarationsFor('.sho-trend-failure')
+  const innerDeclarations = declarationsFor('.sho-trend-failure-inner')
+  const iconDeclarations = declarationsFor('.sho-trend-failure-icon')
+
+  assert.ok(shellDeclarations.includes('display: flex'))
+  assert.ok(shellDeclarations.includes('align-items: center'))
+  assert.ok(shellDeclarations.includes('justify-content: center'))
+  assert.ok(innerDeclarations.includes('border: 1px solid var(--ant-color-error-border)'))
+  assert.equal(innerDeclarations.some((declaration) => declaration.startsWith('border-left:')), false)
+  assert.ok(iconDeclarations.includes('color: var(--ant-color-error)'))
+  assert.ok(iconDeclarations.includes('background: var(--ant-color-error-bg)'))
+})
+
+test('detail row cards suppress stray bottom borders', () => {
+  const headerDeclarations = declarationsFor('.sho-detail-compact-inner')
+  const trendPanelDeclarations = declarationBlocksFor('.sho-detail-trend-panel').flat()
+
+  assert.ok(headerDeclarations.includes('border-bottom: 0'))
+  assert.ok(trendPanelDeclarations.includes('border-bottom: 0'))
+})
+
+test('summary trend charts combine count and ratio without header values or grid lines', () => {
+  const trendGroupSource = sourceBetween(
+    'const SummaryTrendGroup = ({',
+    'SummaryTrendGroup.propTypes',
+    overviewSummarySource,
+  )
+  const trendOptionSource = sourceBetween(
+    'const buildSummaryTrendOption = (rows, group, granularity) => {',
+    'const SummaryTrendGroup =',
+    overviewSummarySource,
+  )
+
+  assert.equal(viewSource.includes('const SummaryTrendItem = ({'), false)
+  assert.equal(trendGroupSource.includes('group.metrics.map((metric) => ('), false)
+  assert.ok(trendGroupSource.includes('buildSummaryCombinedTrendRows(points, group.metrics)'))
+  assert.ok(trendGroupSource.includes('buildSummaryTrendOption(rows, group, granularity)'))
+  assert.ok(trendGroupSource.includes('${trendRangeLabel}趋势图'))
+  assert.equal(trendGroupSource.includes('${group.label}${trendRangeLabel}趋势图'), false)
+  assert.ok(viewSource.includes('trendRangeLabel={systemTrendRangeLabel}'))
+  assert.equal(css.includes('.sho-summary-trend-head b'), false)
+  assert.ok(trendOptionSource.includes('axisLine: { show: false }'))
+  assert.ok(trendOptionSource.includes('splitLine: { show: false }'))
+  assert.ok(trendOptionSource.includes('data: trendAxisLabels(rows, granularity)'))
+  assert.ok(trendOptionSource.includes('minInterval: 1'))
+  assert.ok(trendOptionSource.includes('yAxisIndex: isTrendPercentMetric(metric) ? 1 : 0'))
+  assert.ok(trendOptionSource.includes('showSymbol: false'))
+  assert.equal(trendOptionSource.includes('showSymbol: rows.length'), false)
+  assert.ok(trendOptionSource.includes('formatSummaryTrendTooltipMetricLabel(metric)'))
+  assert.ok(trendOptionSource.includes('${formatSummaryTrendTooltipMetricLabel(metric)}：${formatTrendNumber(value, metric)}'))
+  assert.equal(trendOptionSource.includes('current：'), false)
+  assert.equal(trendOptionSource.includes('平均值'), false)
+  assert.equal(trendOptionSource.includes('期末值'), false)
+  assert.equal(trendOptionSource.includes('期末占比'), false)
+  assert.equal(trendOptionSource.includes('持续占比'), false)
+})
+
+test('summary trend tooltip distinguishes missing snapshot buckets', () => {
+  const trendOptionSource = sourceBetween(
+    'const buildSummaryTrendOption = (rows, group, granularity) => {',
+    'const SummaryTrendGroup =',
+    overviewSummarySource,
+  )
+
+  assert.ok(trendOptionSource.includes('无数据'))
+  assert.ok(trendOptionSource.includes('row.missingSnapshot'))
+  assert.ok(trendOptionSource.includes('summaryTrendDataPointValue(row, metric.key)'))
+  assert.ok(
+    trendOptionSource.includes('graphic: summaryRowsHaveTrendData(rows, metrics) ? undefined : noDataTrendGraphic()'),
+  )
+})
+
 test('threshold popover separates input rows from status legend rows', () => {
   const popoverDeclarations = declarationsFor('.sho-threshold-popover')
   const inputDeclarations = declarationsFor('.sho-threshold-input-row')
@@ -155,30 +321,32 @@ test('threshold popover separates input rows from status legend rows', () => {
   const saveDeclarations = declarationsFor('.sho-threshold-save')
   const toolbarTriggerDeclarations = declarationsFor('.sho-threshold-toolbar-trigger')
 
-  assert.ok(viewSource.includes('className="sho-threshold-inputs"'))
-  assert.ok(viewSource.includes('className="sho-threshold-abnormal-note"'))
-  assert.ok(viewSource.includes('健康异常判定'))
-  assert.equal(viewSource.includes('健康度分值异常判定'), false)
-  assert.ok(viewSource.includes('aria-label="关注系统健康度阈值"'))
-  assert.ok(viewSource.includes('<span>分，关注</span>'))
-  assert.equal(viewSource.includes('分，一般异常'), false)
-  assert.equal(viewSource.includes('分，关注系统'), false)
-  assert.ok(viewSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
+  assert.ok(thresholdSettingsSource.includes('className="sho-threshold-inputs"'))
+  assert.ok(thresholdSettingsSource.includes('className="sho-threshold-abnormal-note"'))
+  assert.ok(thresholdSettingsSource.includes('健康异常判定'))
+  assert.equal(thresholdSettingsSource.includes('健康度分值异常判定'), false)
+  assert.ok(thresholdSettingsSource.includes('aria-label="关注系统健康度阈值"'))
+  assert.ok(thresholdSettingsSource.includes('<span>分，关注</span>'))
+  assert.equal(thresholdSettingsSource.includes('分，一般异常'), false)
+  assert.equal(thresholdSettingsSource.includes('分，关注系统'), false)
+  assert.ok(thresholdSettingsSource.includes('系统健康度低于 {severeThreshold} 分，计为异常系统'))
   assert.ok(
-    viewSource.includes('系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统'),
+    thresholdSettingsSource.includes(
+      '系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统',
+    ),
   )
-  assert.ok(viewSource.includes('className="sho-threshold-legend"'))
-  assert.ok(viewSource.includes('<ThresholdStatusRing status="red" />'))
-  assert.ok(viewSource.includes('<ThresholdStatusRing status="yellow" />'))
-  assert.ok(viewSource.includes('<ThresholdStatusRing status="green" />'))
-  assert.ok(viewSource.includes('severeRange'))
-  assert.equal(viewSource.includes('亚健康'), false)
-  assert.ok(viewSource.includes('>异常</span>'))
-  assert.ok(viewSource.includes('>关注</span>'))
-  assert.equal(viewSource.includes('严重异常（异常系统）'), false)
-  assert.equal(viewSource.includes('一般异常（关注系统）'), false)
-  assert.ok(viewSource.includes('健康'))
-  assert.equal(viewSource.includes('icon={<Check'), false)
+  assert.ok(thresholdSettingsSource.includes('className="sho-threshold-legend"'))
+  assert.ok(thresholdSettingsSource.includes('<ThresholdStatusRing status="red" />'))
+  assert.ok(thresholdSettingsSource.includes('<ThresholdStatusRing status="yellow" />'))
+  assert.ok(thresholdSettingsSource.includes('<ThresholdStatusRing status="green" />'))
+  assert.ok(thresholdSettingsSource.includes('severeRange'))
+  assert.equal(thresholdSettingsSource.includes('亚健康'), false)
+  assert.ok(thresholdSettingsSource.includes('>异常</span>'))
+  assert.ok(thresholdSettingsSource.includes('>关注</span>'))
+  assert.equal(thresholdSettingsSource.includes('严重异常（异常系统）'), false)
+  assert.equal(thresholdSettingsSource.includes('一般异常（关注系统）'), false)
+  assert.ok(thresholdSettingsSource.includes('健康'))
+  assert.equal(thresholdSettingsSource.includes('icon={<Check'), false)
   assert.ok(popoverDeclarations.includes('width: 360px'))
   assert.ok(inputDeclarations.includes('grid-template-columns: auto 72px 1fr'))
   assert.ok(noteDeclarations.includes('background: var(--ant-color-fill-quaternary)'))
@@ -277,7 +445,7 @@ test('compact detail service count drops card chrome and reuses summary ratio va
   assert.ok(detailValueDeclarations.includes('font-size: 24px'))
   assert.ok(detailValueDeclarations.includes('line-height: 28px'))
   assert.ok(detailValueDeclarations.includes('font-weight: 700'))
-  assert.ok(viewSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
+  assert.ok(detailHeaderSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
 })
 
 test('compact detail text uses 16px without changing controls', () => {
@@ -317,6 +485,16 @@ test('mini health ring fits the compact monitor header', () => {
   assert.ok(declarations.includes('height: 52px'))
   assert.ok(declarations.includes('font-size: 16px'))
   assert.ok(declarations.includes('font-variant-numeric: tabular-nums'))
+})
+
+test('no-data health ring text is smaller and not bold', () => {
+  const declarations = declarationsFor('.sho-health-ring-no-data')
+  const miniDeclarations = declarationsFor('.sho-health-ring-mini.sho-health-ring-no-data')
+
+  assert.ok(declarations.includes('font-size: 10px'))
+  assert.ok(declarations.includes('font-weight: 400'))
+  assert.ok(miniDeclarations.includes('font-size: 11px'))
+  assert.ok(miniDeclarations.includes('font-weight: 400'))
 })
 
 test('compact detail exception icon uses error red', () => {

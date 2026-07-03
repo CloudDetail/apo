@@ -3,7 +3,22 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { URL } from 'node:url'
 
-const source = readFileSync(new URL('./index.jsx', import.meta.url), 'utf8')
+const sourceFor = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
+
+const source = sourceFor('./index.jsx')
+const healthStatusSource = sourceFor('./components/HealthStatus.jsx')
+const overviewSystemTableSource = sourceFor('./components/OverviewSystemTable.jsx')
+const serviceHealthTableSource = sourceFor('./components/ServiceHealthTable.jsx')
+const overviewSummarySource = sourceFor('./components/OverviewSummary.jsx')
+const healthScoreHelpSource = sourceFor('./components/HealthScoreHelp.jsx')
+
+const betweenIn = (targetSource, start, end) => {
+  const scopedStartIndex = targetSource.indexOf(start)
+  assert.notEqual(scopedStartIndex, -1, `${start} should exist`)
+  const scopedEndIndex = targetSource.indexOf(end, scopedStartIndex)
+  assert.notEqual(scopedEndIndex, -1, `${end} should exist after ${start}`)
+  return targetSource.slice(scopedStartIndex, scopedEndIndex)
+}
 
 const between = (start, end) => {
   const startIndex = source.indexOf(start)
@@ -14,8 +29,8 @@ const between = (start, end) => {
 }
 
 test('health score legend keeps only primary status labels', () => {
-  const statusMetaSource = between('const statusMeta = {', 'const statusOrder')
-  const legendSource = between('const Legend = () => (', '</div>\n)')
+  const statusMetaSource = betweenIn(healthStatusSource, 'export const statusMeta = {', 'export const statusOrder')
+  const legendSource = betweenIn(healthStatusSource, 'export const Legend = () => (', '</div>\n)')
 
   assert.match(statusMetaSource, /label: '健康'/)
   assert.match(statusMetaSource, /label: '关注'/)
@@ -27,11 +42,16 @@ test('health score legend keeps only primary status labels', () => {
 })
 
 test('health score tooltip keeps only calculation copy without score ranges', () => {
-  const tooltipSource = between(
-    'const HealthScoreCalculationTooltip = () => (',
-    'const SystemMetricTrendChart',
+  const tooltipSource = betweenIn(
+    healthScoreHelpSource,
+    'export const HealthScoreCalculationTooltip = () => (',
+    'const healthScoreRangesFor = (',
   )
-  const systemHealthSource = between('<div className="sho-panel-title">', '<Space wrap size={8}>')
+  const systemHealthSource = betweenIn(
+    overviewSystemTableSource,
+    '<div className="sho-panel-title">',
+    '<Space wrap size={8}>',
+  )
 
   assert.match(
     tooltipSource,
@@ -46,12 +66,18 @@ test('health score tooltip keeps only calculation copy without score ranges', ()
 })
 
 test('health score range tooltip documents configured score bands with ring samples', () => {
-  const rangeTooltipSource = between(
+  const rangeTooltipSource = betweenIn(
+    healthScoreHelpSource,
     'const healthScoreRangesFor = (',
     'HealthScoreRangeTooltip.propTypes',
   )
-  const overviewTableSource = between('<th>系统</th>', '{metricLabels.map(([, label]) => (')
-  const serviceTableSource = between(
+  const overviewTableSource = betweenIn(
+    overviewSystemTableSource,
+    '<th>系统</th>',
+    '{metricLabels.map(([, label]) => (',
+  )
+  const serviceTableSource = betweenIn(
+    serviceHealthTableSource,
     '<HealthTable className="sho-service-table">',
     '</HealthTable>',
   )
@@ -69,7 +95,7 @@ test('health score range tooltip documents configured score bands with ring samp
 })
 
 test('summary anomaly cards add icons to all summary titles', () => {
-  const summarySource = between('{summaryCards.map((card) => (', '</SummaryMetricCard>')
+  const summarySource = betweenIn(overviewSummarySource, '{summaryCards.map((card) => {', '</SummaryMetricCard>')
 
   assert.match(summarySource, /summaryCardIcons\[card\.key\]/)
   assert.match(source, /abnormalSystems: \(/)

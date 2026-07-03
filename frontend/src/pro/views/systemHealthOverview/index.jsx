@@ -1,69 +1,57 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import PropTypes from 'prop-types'
 import {
   Alert,
   Button,
-  Input,
-  InputNumber,
   message,
-  Pagination,
   Popover,
-  Space,
+  Select,
   Spin,
-  Statistic,
-  Switch,
   Tag,
-  Tooltip,
 } from 'antd'
-import ReactECharts from 'echarts-for-react'
 import {
-  Activity,
-  ArrowLeft,
   CircleAlert,
-  HelpCircle,
   ListTodo,
-  Search,
   Settings,
-  Sparkles,
   TriangleAlert,
 } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
-import { MetricsLineChartColor } from 'src/constants'
+import { useDebounce } from 'react-use'
 import {
   analyzeSystemHealthPendingIssueApi,
   getSystemHealthOverviewApi,
+  getSystemHealthPendingIssuesApi,
+  getSystemHealthServicesApi,
   getSystemHealthSystemDetailApi,
+  getSystemHealthSystemsApi,
+  getSystemHealthSystemsTrendApi,
+  getSystemHealthTrendApi,
   setSystemHealthConfigApi,
 } from 'src/pro/api/serviceHealthy'
 import {
-  buildMetricTrendOption,
   buildOverviewSummaryCards,
   buildStatusDistribution,
   DEFAULT_HEALTH_SCORE_THRESHOLDS,
-  healthScoreStatus,
-  metricSourceTitleFor,
-  metricVisualFor,
   normalizeHealthScoreThresholds,
-  safePercent,
 } from './metricVisuals.mjs'
 import { buildPendingIssueQueueRows } from './pendingIssueQueue.mjs'
-import { describePendingIssue } from './pendingIssueDescription.mjs'
 import {
-  buildPendingIssuesFromSystems,
   DEFAULT_PENDING_ISSUE_PAGE,
   DEFAULT_PENDING_ISSUE_PAGE_SIZE,
-  paginatePendingIssues,
 } from './pendingIssuePagination.mjs'
 import {
   buildAbnormalServiceRatio,
-  buildDetailRequestKey,
-  serviceMatchesAbnormalAttentionFilter,
+  buildDetailHeaderRequestKey,
+  DEFAULT_HEALTH_FILTER_VALUE,
+  DEFAULT_HEALTH_FILTER_VALUES,
+  shouldSyncDetailHeaderFromRows,
   shouldRenderDetailBody,
 } from './detailViewState.mjs'
 import {
   buildOverviewRequestDecision,
   isLatestOverviewRequest,
+  overviewServiceEmptyMessage,
+  overviewSystemEmptyMessage,
   shouldRenderInitialOverviewLoading,
 } from './overviewViewState.mjs'
 import {
@@ -71,6 +59,34 @@ import {
   buildOverviewRequestParams,
   makeTimeRangeSignature,
 } from './timeParams.mjs'
+import {
+  buildDetailTrendRows,
+  buildTrendChartRows,
+  readStoredTrendRange,
+  trendMetricGroups,
+  trendRangeOptions,
+  writeStoredTrendRange,
+} from './trendViewState.mjs'
+import { DetailLoadingPanel } from './components/DetailLoading.jsx'
+import DetailHeader from './components/DetailHeader.jsx'
+import DetailTrendSection from './components/DetailTrendSection.jsx'
+import {
+  Legend,
+  statusMeta,
+} from './components/HealthStatus.jsx'
+import {
+  HealthScoreCalculationTooltip,
+  HealthScoreColumnTitle,
+  HealthScoreRangeHelpIcon,
+} from './components/HealthScoreHelp.jsx'
+import MetricVisualTile from './components/MetricVisualTile.jsx'
+import OverviewInitialLoading from './components/OverviewInitialLoading.jsx'
+import OverviewSummary from './components/OverviewSummary.jsx'
+import OverviewSystemTable from './components/OverviewSystemTable.jsx'
+import PendingIssueQueue from './components/PendingIssueQueue.jsx'
+import ServiceHealthTable from './components/ServiceHealthTable.jsx'
+import ThresholdSettingsContent from './components/ThresholdSettingsContent.jsx'
+import { getTrendRangeTitleLabel } from './components/TrendCommon.jsx'
 import './index.css'
 
 const metricLabels = [
@@ -83,15 +99,27 @@ const metricLabels = [
   ['lockCost', '锁等待'],
 ]
 
-const statusMeta = {
-  green: { label: '健康', color: '#12b76a' },
-  yellow: { label: '关注', color: '#f79009' },
-  red: { label: '异常', color: '#f04438' },
-  gray: { label: '无数据', color: '#98a2b3' },
-}
-
-const statusOrder = ['red', 'yellow', 'green', 'gray']
 const OVERVIEW_REQUEST_DEBOUNCE_MS = 150
+const SYSTEM_SEARCH_DEBOUNCE_MS = 300
+const SERVICE_SEARCH_DEBOUNCE_MS = 300
+const DEFAULT_SYSTEM_PAGE = 1
+const DEFAULT_SYSTEM_PAGE_SIZE = 50
+const DEFAULT_SERVICE_PAGE = 1
+const DEFAULT_SERVICE_PAGE_SIZE = 50
+const systemHealthFilterOptions = [
+  { label: '异常系统', value: DEFAULT_HEALTH_FILTER_VALUES.abnormal },
+  { label: '关注系统', value: DEFAULT_HEALTH_FILTER_VALUES.attention },
+  { label: '健康系统', value: DEFAULT_HEALTH_FILTER_VALUES.healthy },
+  { label: '无数据系统', value: DEFAULT_HEALTH_FILTER_VALUES.noData },
+  { label: '全部', value: DEFAULT_HEALTH_FILTER_VALUES.all },
+]
+const serviceHealthFilterOptions = [
+  { label: '异常服务', value: DEFAULT_HEALTH_FILTER_VALUES.abnormal },
+  { label: '关注服务', value: DEFAULT_HEALTH_FILTER_VALUES.attention },
+  { label: '健康服务', value: DEFAULT_HEALTH_FILTER_VALUES.healthy },
+  { label: '无数据服务', value: DEFAULT_HEALTH_FILTER_VALUES.noData },
+  { label: '全部', value: DEFAULT_HEALTH_FILTER_VALUES.all },
+]
 
 const summaryCardIcons = {
   abnormalSystems: (
@@ -105,22 +133,15 @@ const summaryCardIcons = {
   ),
 }
 
-const metricTrendColors = {
-  latency: MetricsLineChartColor.latency,
-  errorRate: MetricsLineChartColor.errorRate,
-  logs: MetricsLineChartColor.logs,
-  resourceShift: '#ff8a45',
-}
-
-const safeText = (value) => (value === undefined || value === null ? '' : `${value}`.trim())
+const summaryTrendGroupByKey = trendMetricGroups.reduce((result, group) => {
+  result[group.key] = group
+  return result
+}, {})
 
 const positiveNumber = (value) => {
   const number = Number(value)
   return Number.isFinite(number) && number > 0 ? number : 0
 }
-
-const ringColor = (score, scoreThresholds) =>
-  statusMeta[healthScoreStatus(score, scoreThresholds)]?.color || statusMeta.gray.color
 
 const scoreThresholdsEqual = (left, right) => {
   const normalizedLeft = normalizeHealthScoreThresholds(left)
@@ -140,6 +161,17 @@ const normalizeSystem = (system = {}) => ({
   metrics: normalizeMetrics(system.metrics),
   metricDetails: system.metricDetails || {},
   services: Array.isArray(system.services) ? system.services.map(normalizeService) : [],
+  serviceTotal: Number.isFinite(Number(system.serviceTotal))
+    ? Number(system.serviceTotal)
+    : Array.isArray(system.services)
+      ? system.services.length
+      : 0,
+  abnormalServiceCount: Number.isFinite(Number(system.abnormalServiceCount))
+    ? Number(system.abnormalServiceCount)
+    : 0,
+  attentionServiceCount: Number.isFinite(Number(system.attentionServiceCount))
+    ? Number(system.attentionServiceCount)
+    : 0,
   source: system.source || 'data_group',
 })
 
@@ -155,18 +187,19 @@ const normalizePendingIssue = (issue = {}) => ({
   note: issue.note || '暂无指标说明',
 })
 
-const buildPendingIssueAnalysisKey = (issue = {}, params = {}) =>
-  JSON.stringify([
-    issue.groupId || '',
-    issue.serviceName || '',
-    issue.metricKey || '',
-    issue.status || '',
-    issue.value || '',
-    issue.note || '',
-    params.relativeTime || '',
-    params.startTime || '',
-    params.endTime || '',
-  ])
+const buildSystemServiceRiskCounts = (
+  system,
+  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
+) => {
+  if (!system) return { abnormal: 0, attention: 0, total: 0 }
+  const total = positiveNumber(system.serviceTotal)
+  const abnormal = positiveNumber(system.abnormalServiceCount)
+  const attention = positiveNumber(system.attentionServiceCount)
+  if (total || abnormal || attention) {
+    return { abnormal, attention, total }
+  }
+  return buildAbnormalServiceRatio(system.services, scoreThresholds)
+}
 
 const normalizeService = (service = {}) => ({
   name: service.name || '未命名服务',
@@ -182,11 +215,6 @@ const normalizeMetrics = (metrics = {}) =>
     result[key] = metrics[key] || 'gray'
     return result
   }, {})
-
-const isAbnormal = (system, scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) =>
-  system.status !== 'gray' &&
-  system.services?.length > 0 &&
-  system.score < normalizeHealthScoreThresholds(scoreThresholds).generalAbnormalScoreThreshold
 
 const statusTags = (metrics, status, emptyText) => {
   const tags = metricLabels
@@ -212,467 +240,6 @@ const metricDetail = (target, key) => {
   }
 }
 
-const Lamp = ({ status }) => (
-  <Tooltip title={statusMeta[status]?.label || '无数据'}>
-    <span className={`sho-lamp sho-lamp-${status || 'gray'}`} />
-  </Tooltip>
-)
-
-Lamp.propTypes = {
-  status: PropTypes.string,
-}
-
-const StatusDistributionBar = ({ distribution }) => {
-  const total = positiveNumber(distribution.total)
-
-  return (
-    <div className="sho-status-distribution" aria-label="系统状态分布">
-      {statusOrder.map((status) => {
-        const count = positiveNumber(distribution[status])
-        if (!count) return null
-        const meta = statusMeta[status]
-        return (
-          <Tooltip title={`${meta.label}：${count} 个系统`} key={status}>
-            <span
-              className={`sho-status-distribution-segment sho-status-distribution-${status}`}
-              style={{ flexGrow: count, '--sho-segment-percent': `${safePercent(count, total)}%` }}
-            />
-          </Tooltip>
-        )
-      })}
-      {!total && <span className="sho-status-distribution-empty" />}
-    </div>
-  )
-}
-
-StatusDistributionBar.propTypes = {
-  distribution: PropTypes.shape({
-    total: PropTypes.number,
-    red: PropTypes.number,
-    yellow: PropTypes.number,
-    green: PropTypes.number,
-    gray: PropTypes.number,
-  }).isRequired,
-}
-
-const SummaryMetricCard = ({
-  label,
-  help,
-  value,
-  icon,
-  numerator,
-  denominator,
-  highlightNumerator = false,
-  percent,
-  tone = 'neutral',
-  visual = 'meter',
-  children,
-}) => {
-  const shouldShowMeter = visual === 'meter' && !children
-  const numeratorClassName = highlightNumerator
-    ? `sho-summary-value-highlight sho-summary-value-highlight-${tone}`
-    : undefined
-  const renderedValue =
-    visual === 'ratio' ? (
-      <span className="sho-summary-value" aria-label={`${label} ${value}`}>
-        <span className={numeratorClassName}>{numerator}</span>
-        <span> / {denominator}</span>
-      </span>
-    ) : (
-      value
-    )
-  const statisticFormatter = visual === 'ratio' ? () => renderedValue : undefined
-  const titleContent = (
-    <span
-      className={help ? 'sho-summary-title-trigger' : undefined}
-      tabIndex={help ? 0 : undefined}
-    >
-      {icon}
-      <span>{label}</span>
-    </span>
-  )
-
-  return (
-    <div className={`sho-summary-card sho-summary-card-${tone} sho-summary-card-${visual}`}>
-      <div className="sho-summary-card-head">
-        {help ? <Tooltip title={help}>{titleContent}</Tooltip> : titleContent}
-        <Statistic className="sho-summary-statistic" formatter={statisticFormatter} value={value} />
-      </div>
-      {children}
-      {shouldShowMeter ? (
-        <div className="sho-summary-meter" aria-hidden="true">
-          <span style={{ '--sho-fill': `${percent}%` }} />
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-SummaryMetricCard.propTypes = {
-  label: PropTypes.string.isRequired,
-  help: PropTypes.node,
-  value: PropTypes.node.isRequired,
-  icon: PropTypes.node,
-  numerator: PropTypes.number,
-  denominator: PropTypes.number,
-  highlightNumerator: PropTypes.bool,
-  percent: PropTypes.number,
-  tone: PropTypes.oneOf(['critical', 'warning', 'stable', 'neutral']),
-  visual: PropTypes.oneOf(['meter', 'number', 'ratio']),
-  children: PropTypes.node,
-}
-
-const HealthRing = ({
-  score,
-  scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS,
-  size = 'small',
-}) => (
-  <span
-    className={`sho-health-ring sho-health-ring-${size}`}
-    style={{
-      '--sho-score': score,
-      '--sho-ring': ringColor(score, scoreThresholds),
-    }}
-  >
-    {score}
-  </span>
-)
-
-HealthRing.propTypes = {
-  score: PropTypes.number,
-  scoreThresholds: PropTypes.shape({
-    severeAbnormalScoreThreshold: PropTypes.number,
-    generalAbnormalScoreThreshold: PropTypes.number,
-  }),
-  size: PropTypes.oneOf(['mini', 'small']),
-}
-
-const ThresholdStatusRing = ({ status }) => (
-  <span
-    className={`sho-threshold-status-ring sho-threshold-status-ring-${status}`}
-    style={{ '--sho-ring': statusMeta[status]?.color || statusMeta.gray.color }}
-    aria-hidden="true"
-  />
-)
-
-ThresholdStatusRing.propTypes = {
-  status: PropTypes.oneOf(['red', 'yellow', 'green']).isRequired,
-}
-
-const HealthScoreCalculationTooltip = () => (
-  <div className="sho-health-score-help">
-    由资源水位、资源波动、错误率、响应延时、错误日志、活跃告警、锁等待综合计算
-  </div>
-)
-
-const healthScoreRangesFor = (scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS) => {
-  const thresholds = normalizeHealthScoreThresholds(scoreThresholds)
-  return [
-    {
-      status: 'red',
-      range: `0-${thresholds.severeAbnormalScoreThreshold - 1}分`,
-      label: '异常',
-    },
-    {
-      status: 'yellow',
-      range: `${thresholds.severeAbnormalScoreThreshold}-${thresholds.generalAbnormalScoreThreshold - 1}分`,
-      label: '关注',
-    },
-    {
-      status: 'green',
-      range: `${thresholds.generalAbnormalScoreThreshold}-100分`,
-      label: '健康',
-    },
-  ]
-}
-
-const HealthScoreRangeTooltip = ({ scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS }) => (
-  <div className="sho-health-score-range-help">
-    {healthScoreRangesFor(scoreThresholds).map((item) => (
-      <div className="sho-health-score-range-row" key={item.status}>
-        <ThresholdStatusRing status={item.status} />
-        <span className="sho-health-score-range-text">{item.range}</span>
-        <span className="sho-health-score-range-label">{item.label}</span>
-      </div>
-    ))}
-  </div>
-)
-
-HealthScoreRangeTooltip.propTypes = {
-  scoreThresholds: PropTypes.shape({
-    severeAbnormalScoreThreshold: PropTypes.number,
-    generalAbnormalScoreThreshold: PropTypes.number,
-  }),
-}
-
-const HealthScoreRangeHelpIcon = ({ scoreThresholds }) => (
-  <Tooltip
-    title={<HealthScoreRangeTooltip scoreThresholds={scoreThresholds} />}
-    overlayClassName="sho-health-score-range-popover"
-  >
-    <HelpCircle size={15} className="sho-help-icon" />
-  </Tooltip>
-)
-
-HealthScoreRangeHelpIcon.propTypes = {
-  scoreThresholds: PropTypes.shape({
-    severeAbnormalScoreThreshold: PropTypes.number,
-    generalAbnormalScoreThreshold: PropTypes.number,
-  }),
-}
-
-const HealthScoreColumnTitle = ({ scoreThresholds }) => (
-  <span className="sho-health-score-title">
-    <span>健康度</span>
-    <HealthScoreRangeHelpIcon scoreThresholds={scoreThresholds} />
-  </span>
-)
-
-HealthScoreColumnTitle.propTypes = {
-  scoreThresholds: PropTypes.shape({
-    severeAbnormalScoreThreshold: PropTypes.number,
-    generalAbnormalScoreThreshold: PropTypes.number,
-  }),
-}
-
-const SystemMetricTrendChart = ({ chart }) => {
-  const option = useMemo(
-    () =>
-      buildMetricTrendOption(chart, {
-        color: metricTrendColors[chart.colorRole] || '#4992ff',
-        warningColor: statusMeta.yellow.color,
-        criticalColor: statusMeta.red.color,
-        textColor: '#667085',
-        gridColor: 'rgba(102, 112, 133, 0.16)',
-      }),
-    [chart],
-  )
-
-  return (
-    <div className="sho-metric-trend" aria-label={`${chart.key}趋势图`}>
-      <ReactECharts notMerge option={option} style={{ width: '100%', height: 72 }} />
-    </div>
-  )
-}
-
-SystemMetricTrendChart.propTypes = {
-  chart: PropTypes.shape({
-    key: PropTypes.string.isRequired,
-    colorRole: PropTypes.string.isRequired,
-    unit: PropTypes.string,
-    series: PropTypes.arrayOf(
-      PropTypes.shape({
-        timestamp: PropTypes.number.isRequired,
-        value: PropTypes.number.isRequired,
-      }),
-    ).isRequired,
-    thresholds: PropTypes.arrayOf(
-      PropTypes.shape({
-        label: PropTypes.string,
-        value: PropTypes.number,
-        status: PropTypes.string,
-      }),
-    ),
-  }).isRequired,
-}
-
-const splitMetricDisplayValue = (value) => {
-  const text = safeText(value) || '--'
-  const spacedUnit = text.match(/^([+-]?\d+(?:\.\d+)?)(?:\s+)(.+)$/)
-  if (spacedUnit) {
-    return { main: spacedUnit[1], unit: spacedUnit[2] }
-  }
-
-  const attachedUnit = text.match(/^([+-]?\d+(?:\.\d+)?)([a-zA-Z][\w/%]*)$/)
-  if (attachedUnit) {
-    return { main: attachedUnit[1], unit: attachedUnit[2] }
-  }
-
-  return { main: text, unit: '' }
-}
-
-const MetricValue = ({ value }) => {
-  const displayValue = splitMetricDisplayValue(value)
-  const isEmptyValue = displayValue.main === '暂无数据' && !displayValue.unit
-
-  return (
-    <b className={isEmptyValue ? 'sho-metric-value-empty' : undefined}>
-      <span className="sho-metric-value-main">{displayValue.main}</span>
-      {displayValue.unit ? (
-        <span className="sho-metric-value-unit">{displayValue.unit}</span>
-      ) : null}
-    </b>
-  )
-}
-
-MetricValue.propTypes = {
-  value: PropTypes.node.isRequired,
-}
-
-const MetricVisualTile = ({ metricKey, label, detail, status }) => {
-  const visual = metricVisualFor(metricKey, detail, status)
-  const sourceTitle = metricSourceTitleFor(metricKey, detail)
-  const isEmptyValue = visual.value === '暂无数据'
-
-  return (
-    <div className={`sho-metric-tile sho-metric-tile-${visual.tone}`}>
-      <div className="sho-metric-tile-head">
-        <Tooltip title={sourceTitle}>
-          <strong>{label}</strong>
-        </Tooltip>
-        <Lamp status={visual.status} />
-      </div>
-      <div
-        className={`sho-metric-visual sho-metric-visual-${visual.kind}${
-          isEmptyValue ? ' sho-metric-visual-empty' : ''
-        }`}
-      >
-        <div className="sho-metric-value-block">
-          <MetricValue value={visual.value} />
-        </div>
-        {isEmptyValue ? null : visual.chart ? (
-          <SystemMetricTrendChart chart={visual.chart} />
-        ) : visual.kind === 'number' ? null : visual.kind === 'waterline' ? (
-          <div className="sho-waterline" aria-label={`${label}${visual.helper}${visual.percent}%`}>
-            {visual.showThresholdMarker ? <span className="sho-waterline-marker" /> : null}
-            <span className="sho-waterline-fill" style={{ '--sho-fill': `${visual.percent}%` }} />
-          </div>
-        ) : (
-          <div className="sho-risk-meter" aria-label={`${label}${visual.helper}${visual.percent}%`}>
-            <span style={{ '--sho-fill': `${visual.percent}%` }} />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-MetricVisualTile.propTypes = {
-  metricKey: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  detail: PropTypes.shape({
-    status: PropTypes.string,
-    value: PropTypes.string,
-    note: PropTypes.string,
-    unit: PropTypes.string,
-    source: PropTypes.string,
-    series: PropTypes.array,
-    thresholds: PropTypes.array,
-  }).isRequired,
-  status: PropTypes.string,
-}
-
-const DetailLoadingStatus = ({ className = '' }) => (
-  <div
-    className={['sho-detail-loading-status', className].filter(Boolean).join(' ')}
-    role="status"
-    aria-live="polite"
-  >
-    <span className="sho-detail-loading-pulse" aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </span>
-    <span>正在加载系统详情</span>
-  </div>
-)
-
-DetailLoadingStatus.propTypes = {
-  className: PropTypes.string,
-}
-
-const OverviewInitialLoading = () => (
-  <div className="sho-overview-loading" role="status" aria-live="polite">
-    <div className="sho-loading-summary" aria-hidden="true">
-      {[0, 1, 2].map((item) => (
-        <div className="sho-loading-card" key={item}>
-          <span className="sho-loading-line sho-loading-line-title" />
-          <span className="sho-loading-line sho-loading-line-value" />
-        </div>
-      ))}
-    </div>
-
-    <section className="sho-panel sho-overview-loading-panel">
-      <div className="sho-panel-head">
-        <div className="sho-panel-title">系统健康度</div>
-        <span className="sho-muted">正在同步指标状态</span>
-      </div>
-      <div className="sho-overview-loading-body">
-        <Spin />
-        <div>
-          <strong>正在加载健康度</strong>
-          <span>获取系统、指标和待处理问题，完成后展示当前状态。</span>
-        </div>
-      </div>
-      <div className="sho-loading-table" aria-hidden="true">
-        {[0, 1, 2, 3].map((row) => (
-          <div className="sho-loading-table-row" key={row}>
-            <span className="sho-loading-table-cell sho-loading-table-cell-system" />
-            <span className="sho-loading-table-cell sho-loading-table-cell-score" />
-            {metricLabels.map(([key]) => (
-              <span className="sho-loading-table-cell sho-loading-table-cell-metric" key={key} />
-            ))}
-          </div>
-        ))}
-      </div>
-    </section>
-
-    <section className="sho-panel sho-overview-loading-pending">
-      <div className="sho-panel-head">
-        <div className="sho-panel-title">待处理问题</div>
-        <span className="sho-muted">等待风险排序</span>
-      </div>
-      <div className="sho-loading-pending-table" aria-hidden="true">
-        {[0, 1, 2].map((row) => (
-          <div className="sho-loading-pending-row" key={row}>
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-        ))}
-      </div>
-    </section>
-  </div>
-)
-
-const DetailLoadingPanel = () => (
-  <section className="sho-panel sho-detail-loading">
-    <div className="sho-panel-head">
-      <div className="sho-panel-title">健康指标</div>
-      <DetailLoadingStatus className="sho-detail-loading-status-muted" />
-    </div>
-    <div className="sho-detail-loading-body" aria-hidden="true">
-      <div className="sho-detail-loading-metrics">
-        {metricLabels.map(([key]) => (
-          <div className="sho-detail-loading-metric" key={key}>
-            <div className="sho-detail-loading-metric-head">
-              <span className="sho-loading-line sho-detail-loading-title-line" />
-              <span className="sho-detail-loading-dot" />
-            </div>
-            <span className="sho-loading-line sho-detail-loading-value-line" />
-            <span className="sho-loading-line sho-detail-loading-meter-line" />
-          </div>
-        ))}
-      </div>
-      <div className="sho-detail-loading-table">
-        {[0, 1, 2, 3].map((row) => (
-          <div className="sho-detail-loading-row" key={row}>
-            <span className="sho-loading-line" />
-            <span className="sho-loading-line" />
-            <span className="sho-loading-line" />
-            <span className="sho-loading-line" />
-            <span className="sho-loading-line" />
-            <span className="sho-loading-line" />
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-)
-
 export default function SystemHealthOverviewPage() {
   const location = useLocation()
   const timeRange = useSelector((state) => state.timeRange)
@@ -682,26 +249,58 @@ export default function SystemHealthOverviewPage() {
   const lastOverviewRequestKeyRef = useRef('')
   const overviewRequestTimerRef = useRef(null)
   const [systems, setSystems] = useState([])
+  const [systemRowsRequestKey, setSystemRowsRequestKey] = useState('')
+  const [systemPage, setSystemPage] = useState(DEFAULT_SYSTEM_PAGE)
+  const [systemPageSize, setSystemPageSize] = useState(DEFAULT_SYSTEM_PAGE_SIZE)
+  const [systemPageTotal, setSystemPageTotal] = useState(0)
+  const [systemRowsLoading, setSystemRowsLoading] = useState(false)
+  const [systemRowsError, setSystemRowsError] = useState('')
+  const [systemRowsRefreshToken, setSystemRowsRefreshToken] = useState(0)
   const [summary, setSummary] = useState({})
   const [scoreThresholds, setScoreThresholds] = useState(DEFAULT_HEALTH_SCORE_THRESHOLDS)
   const [thresholdDraft, setThresholdDraft] = useState(DEFAULT_HEALTH_SCORE_THRESHOLDS)
   const [thresholdSaving, setThresholdSaving] = useState(false)
   const [thresholdSettingsOpen, setThresholdSettingsOpen] = useState(false)
+  const [pendingIssueItems, setPendingIssueItems] = useState([])
   const [pendingIssuePage, setPendingIssuePage] = useState(DEFAULT_PENDING_ISSUE_PAGE)
   const [pendingIssuePageSize, setPendingIssuePageSize] = useState(DEFAULT_PENDING_ISSUE_PAGE_SIZE)
+  const [pendingIssueTotal, setPendingIssueTotal] = useState(0)
+  const [pendingIssueLoading, setPendingIssueLoading] = useState(false)
+  const [pendingIssueError, setPendingIssueError] = useState('')
   const [issueAnalyses, setIssueAnalyses] = useState({})
   const [expandedIssueAnalyses, setExpandedIssueAnalyses] = useState({})
   const [overviewLoading, setOverviewLoading] = useState(false)
   const [overviewError, setOverviewError] = useState('')
+  const [trendRange, setTrendRange] = useState(() => readStoredTrendRange())
+  const [trendData, setTrendData] = useState(null)
+  const [trendLoading, setTrendLoading] = useState(false)
+  const [trendError, setTrendError] = useState('')
+  const [overviewTrendRefreshToken, setOverviewTrendRefreshToken] = useState(0)
+  const [detailTrendRefreshToken, setDetailTrendRefreshToken] = useState(0)
+  const [systemTrendRows, setSystemTrendRows] = useState({})
+  const [systemTrendGranularity, setSystemTrendGranularity] = useState('')
+  const [systemTrendLoading, setSystemTrendLoading] = useState(false)
+  const [systemTrendError, setSystemTrendError] = useState('')
+  const [detailTrendRows, setDetailTrendRows] = useState([])
+  const [detailTrendGranularity, setDetailTrendGranularity] = useState('')
+  const [detailTrendLoading, setDetailTrendLoading] = useState(false)
+  const [detailTrendError, setDetailTrendError] = useState('')
   const [selectedSystemId, setSelectedSystemId] = useState('')
   const [selectedSystem, setSelectedSystem] = useState(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detailError, setDetailError] = useState('')
-  const [detailRefreshToken, setDetailRefreshToken] = useState(0)
-  const [onlyAbnormal, setOnlyAbnormal] = useState(true)
+  const [detailHeaderLoading, setDetailHeaderLoading] = useState(false)
+  const [serviceRows, setServiceRows] = useState([])
+  const [servicePage, setServicePage] = useState(DEFAULT_SERVICE_PAGE)
+  const [servicePageSize, setServicePageSize] = useState(DEFAULT_SERVICE_PAGE_SIZE)
+  const [servicePageTotal, setServicePageTotal] = useState(0)
+  const [serviceRowsLoading, setServiceRowsLoading] = useState(false)
+  const [serviceRowsError, setServiceRowsError] = useState('')
+  const [systemHealthFilter, setSystemHealthFilter] = useState(DEFAULT_HEALTH_FILTER_VALUE)
   const [systemKeyword, setSystemKeyword] = useState('')
+  const [debouncedSystemKeyword, setDebouncedSystemKeyword] = useState('')
   const [serviceKeyword, setServiceKeyword] = useState('')
-  const [onlyAbnormalServices, setOnlyAbnormalServices] = useState(true)
+  const [debouncedServiceKeyword, setDebouncedServiceKeyword] = useState('')
+  const [serviceHealthFilter, setServiceHealthFilter] = useState(DEFAULT_HEALTH_FILTER_VALUE)
+  const lastDetailHeaderRequestKeyRef = useRef('')
 
   const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
   if (initialTimeRangeSignatureRef.current === null) {
@@ -728,9 +327,21 @@ export default function SystemHealthOverviewPage() {
     ],
   )
   const overviewRequestKey = useMemo(() => buildOverviewRequestKey(queryParams), [queryParams])
-  const detailRequestKey = useMemo(
-    () => buildDetailRequestKey(selectedSystemId, queryParams),
-    [selectedSystemId, queryParams],
+
+  useDebounce(
+    () => {
+      setDebouncedSystemKeyword(systemKeyword.trim())
+    },
+    SYSTEM_SEARCH_DEBOUNCE_MS,
+    [systemKeyword],
+  )
+
+  useDebounce(
+    () => {
+      setDebouncedServiceKeyword(serviceKeyword.trim())
+    },
+    SERVICE_SEARCH_DEBOUNCE_MS,
+    [serviceKeyword],
   )
 
   const loadOverview = useCallback(async () => {
@@ -743,18 +354,16 @@ export default function SystemHealthOverviewPage() {
       const resp = await getSystemHealthOverviewApi({
         ...queryParams,
         skipNewAbnormalMetrics: true,
+        summaryOnly: true,
       })
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
-      const nextSystems = Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : []
       const nextThresholds = normalizeHealthScoreThresholds(resp?.config)
-      setSystems(nextSystems)
       setScoreThresholds(nextThresholds)
       setThresholdDraft(nextThresholds)
       setSummary(resp?.summary || {})
     } catch (error) {
       if (!isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) return
       setOverviewError(error?.message || '健康度加载失败')
-      setSystems([])
       setSummary({})
     } finally {
       if (isLatestOverviewRequest(requestId, overviewRequestSeqRef.current)) {
@@ -790,97 +399,438 @@ export default function SystemHealthOverviewPage() {
   }, [loadOverview, overviewLoading, overviewRequestKey])
 
   useEffect(() => {
-    setPendingIssuePage(DEFAULT_PENDING_ISSUE_PAGE)
-  }, [queryParams])
+    setSystemPage(DEFAULT_SYSTEM_PAGE)
+  }, [queryParams, systemHealthFilter, debouncedSystemKeyword])
 
   useEffect(() => {
-    if (!detailRequestKey || !selectedSystemId) return undefined
+    if (!queryParams) return undefined
 
     let cancelled = false
-    const loadDetail = async () => {
-      setDetailLoading(true)
-      setDetailError('')
+    const requestKey = overviewRequestKey
+    const loadSystemRows = async () => {
+      setSystemRowsLoading(true)
+      setSystemRowsError('')
       try {
-        const resp = await getSystemHealthSystemDetailApi(selectedSystemId, queryParams)
-        if (!cancelled) {
-          setSelectedSystem(normalizeSystem(resp?.system))
-        }
+        const resp = await getSystemHealthSystemsApi({
+          ...queryParams,
+          page: systemPage,
+          pageSize: systemPageSize,
+          keyword: debouncedSystemKeyword,
+          status: systemHealthFilter || DEFAULT_HEALTH_FILTER_VALUES.all,
+          sort: 'score_asc',
+        })
+        if (cancelled) return
+        setSystems(Array.isArray(resp?.systems) ? resp.systems.map(normalizeSystem) : [])
+        setSystemRowsRequestKey(requestKey)
+        setSystemPageTotal(positiveNumber(resp?.total))
       } catch (error) {
         if (!cancelled) {
-          setDetailError(error?.message || '系统详情加载失败')
+          setSystemRowsError(error?.message || '系统列表加载失败')
+          setSystems([])
+          setSystemRowsRequestKey(requestKey)
+          setSystemPageTotal(0)
         }
       } finally {
         if (!cancelled) {
-          setDetailLoading(false)
+          setSystemRowsLoading(false)
         }
       }
     }
 
-    loadDetail()
+    loadSystemRows()
     return () => {
       cancelled = true
     }
-  }, [detailRequestKey, detailRefreshToken, queryParams, selectedSystemId])
+  }, [
+    queryParams,
+    systemHealthFilter,
+    debouncedSystemKeyword,
+    overviewRequestKey,
+    systemPage,
+    systemPageSize,
+    systemRowsRefreshToken,
+  ])
+
+  useEffect(() => {
+    if (selectedSystemId) {
+      setTrendLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const loadTrend = async () => {
+      setTrendLoading(true)
+      setTrendError('')
+      try {
+        const resp = await getSystemHealthTrendApi({
+          range: trendRange,
+          judgement: 'snapshot',
+          view: 'summary',
+        })
+        if (!cancelled) {
+          setTrendData(resp || null)
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setTrendError(error?.message || '历史趋势加载失败')
+          setTrendData(null)
+        }
+      } finally {
+        if (!cancelled) {
+          setTrendLoading(false)
+        }
+      }
+    }
+
+    loadTrend()
+    return () => {
+      cancelled = true
+    }
+  }, [trendRange, overviewTrendRefreshToken, selectedSystemId])
+
+  useEffect(() => {
+    setPendingIssuePage(DEFAULT_PENDING_ISSUE_PAGE)
+  }, [queryParams])
+
+  useEffect(() => {
+    if (!queryParams) return undefined
+
+    let cancelled = false
+    const loadPendingIssues = async () => {
+      setPendingIssueLoading(true)
+      setPendingIssueError('')
+      try {
+        const resp = await getSystemHealthPendingIssuesApi({
+          ...queryParams,
+          page: pendingIssuePage,
+          pageSize: pendingIssuePageSize,
+          status: 'all',
+        })
+        if (cancelled) return
+        setPendingIssueItems(Array.isArray(resp?.issues) ? resp.issues.map(normalizePendingIssue) : [])
+        setPendingIssueTotal(positiveNumber(resp?.total))
+      } catch (error) {
+        if (!cancelled) {
+          setPendingIssueError(error?.message || '待处理问题加载失败')
+          setPendingIssueItems([])
+          setPendingIssueTotal(0)
+        }
+      } finally {
+        if (!cancelled) {
+          setPendingIssueLoading(false)
+        }
+      }
+    }
+
+    loadPendingIssues()
+    return () => {
+      cancelled = true
+    }
+  }, [pendingIssuePage, pendingIssuePageSize, queryParams])
+
+  useEffect(() => {
+    setServicePage(DEFAULT_SERVICE_PAGE)
+  }, [queryParams, selectedSystemId, serviceHealthFilter, debouncedServiceKeyword])
+
+  useEffect(() => {
+    if (!selectedSystemId || !queryParams) {
+      setServiceRows([])
+      setServicePageTotal(0)
+      setServiceRowsError('')
+      setServiceRowsLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const loadServiceRows = async () => {
+      setServiceRowsLoading(true)
+      setServiceRowsError('')
+      try {
+        const resp = await getSystemHealthServicesApi(selectedSystemId, {
+          ...queryParams,
+          page: servicePage,
+          pageSize: servicePageSize,
+          keyword: debouncedServiceKeyword,
+          status: serviceHealthFilter || DEFAULT_HEALTH_FILTER_VALUES.all,
+          sort: 'score_asc',
+        })
+        if (cancelled) return
+        setServiceRows(Array.isArray(resp?.services) ? resp.services.map(normalizeService) : [])
+        setServicePageTotal(positiveNumber(resp?.total))
+      } catch (error) {
+        if (!cancelled) {
+          setServiceRowsError(error?.message || '服务列表加载失败')
+          setServiceRows([])
+          setServicePageTotal(0)
+        }
+      } finally {
+        if (!cancelled) {
+          setServiceRowsLoading(false)
+        }
+      }
+    }
+
+    loadServiceRows()
+    return () => {
+      cancelled = true
+    }
+  }, [
+    queryParams,
+    selectedSystemId,
+    serviceHealthFilter,
+    debouncedServiceKeyword,
+    servicePage,
+    servicePageSize,
+  ])
 
   const overviewSystems = useMemo(
-    () =>
-      systems
-        .filter((system) => !onlyAbnormal || isAbnormal(system, scoreThresholds))
-        .filter(
-          (system) =>
-            !systemKeyword.trim() ||
-            system.name.toLowerCase().includes(systemKeyword.trim().toLowerCase()),
-        )
-        .sort((left, right) => left.score - right.score),
-    [systems, onlyAbnormal, systemKeyword, scoreThresholds],
-  )
-  const allPendingIssues = useMemo(
-    () => buildPendingIssuesFromSystems(systems).map(normalizePendingIssue),
+    () => systems,
     [systems],
   )
+  const selectedSystemFromRows = useMemo(
+    () =>
+      selectedSystemId
+        ? systems.find((system) => String(system.groupId) === selectedSystemId) || null
+        : null,
+    [selectedSystemId, systems],
+  )
+  const overviewSystemTrendGroupIds = useMemo(
+    () =>
+      overviewSystems
+        .map((system) => system.groupId)
+        .filter((groupId) => groupId !== undefined && groupId !== null && `${groupId}` !== '')
+        .map((groupId) => Number(groupId))
+        .filter(Number.isFinite),
+    [overviewSystems],
+  )
+  const overviewSystemTrendGroupKey = useMemo(
+    () => overviewSystemTrendGroupIds.join(','),
+    [overviewSystemTrendGroupIds],
+  )
+  const systemTrendRangeLabel = getTrendRangeTitleLabel(trendRange)
   const pendingIssuePageData = useMemo(
-    () => paginatePendingIssues(allPendingIssues, pendingIssuePage, pendingIssuePageSize),
-    [allPendingIssues, pendingIssuePage, pendingIssuePageSize],
+    () => ({
+      issues: pendingIssueItems,
+      total: pendingIssueTotal,
+      page: pendingIssuePage,
+      pageSize: pendingIssuePageSize,
+    }),
+    [pendingIssueItems, pendingIssuePage, pendingIssuePageSize, pendingIssueTotal],
   )
   const pendingIssues = pendingIssuePageData.issues
-  const pendingIssueTotal = pendingIssuePageData.total
   const pendingIssueRows = useMemo(() => buildPendingIssueQueueRows(pendingIssues), [pendingIssues])
+
+  useEffect(() => {
+    if (
+      !shouldSyncDetailHeaderFromRows(
+        selectedSystemFromRows,
+        systemRowsRequestKey,
+        overviewRequestKey,
+      )
+    ) {
+      return
+    }
+    setSelectedSystem(selectedSystemFromRows)
+    lastDetailHeaderRequestKeyRef.current = buildDetailHeaderRequestKey(
+      selectedSystemId,
+      queryParams,
+    )
+  }, [
+    overviewRequestKey,
+    queryParams,
+    selectedSystemFromRows,
+    selectedSystemId,
+    systemRowsRequestKey,
+  ])
+
+  useEffect(() => {
+    if (!selectedSystemId || !queryParams) {
+      setDetailHeaderLoading(false)
+      return undefined
+    }
+
+    const detailHeaderRequestKey = buildDetailHeaderRequestKey(selectedSystemId, queryParams)
+    if (!detailHeaderRequestKey || lastDetailHeaderRequestKeyRef.current === detailHeaderRequestKey) {
+      setDetailHeaderLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const loadDetailHeader = async () => {
+      setDetailHeaderLoading(true)
+      try {
+        const resp = await getSystemHealthSystemDetailApi(selectedSystemId, {
+          ...queryParams,
+          includeServices: false,
+        })
+        if (cancelled || !resp?.system) return
+        setSelectedSystem({ ...normalizeSystem(resp.system), services: [] })
+        lastDetailHeaderRequestKeyRef.current = detailHeaderRequestKey
+      } catch {
+        if (!cancelled) {
+          lastDetailHeaderRequestKeyRef.current = ''
+        }
+      } finally {
+        if (!cancelled) {
+          setDetailHeaderLoading(false)
+        }
+      }
+    }
+
+    loadDetailHeader()
+    return () => {
+      cancelled = true
+    }
+  }, [queryParams, selectedSystemId])
+
+  useEffect(() => {
+    if (selectedSystemId || !overviewSystemTrendGroupIds.length) {
+      setSystemTrendRows({})
+      setSystemTrendGranularity('')
+      setSystemTrendError('')
+      setSystemTrendLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const loadSystemTrendRows = async () => {
+      setSystemTrendLoading(true)
+      setSystemTrendError('')
+      try {
+        const resp = await getSystemHealthSystemsTrendApi({
+          range: trendRange,
+          judgement: 'snapshot',
+          groupIds: overviewSystemTrendGroupIds,
+        })
+        if (cancelled) return
+
+        const nextRows = {}
+        const nextGranularity = resp?.granularity || ''
+        const groups = Array.isArray(resp?.groups) ? resp.groups : []
+        groups.forEach((group) => {
+          nextRows[String(group.groupId)] = buildTrendChartRows(group.points, 'systemHealthScore')
+        })
+        setSystemTrendRows(nextRows)
+        setSystemTrendGranularity(nextGranularity)
+      } catch (error) {
+        if (!cancelled) {
+          setSystemTrendError(error?.message || '健康度历史趋势加载失败')
+          setSystemTrendRows({})
+          setSystemTrendGranularity('')
+        }
+      } finally {
+        if (!cancelled) {
+          setSystemTrendLoading(false)
+        }
+      }
+    }
+
+    loadSystemTrendRows()
+    return () => {
+      cancelled = true
+    }
+  }, [
+    overviewSystemTrendGroupIds,
+    overviewSystemTrendGroupKey,
+    trendRange,
+    overviewTrendRefreshToken,
+    selectedSystemId,
+  ])
+
+  useEffect(() => {
+    if (!selectedSystemId) {
+      setDetailTrendRows([])
+      setDetailTrendGranularity('')
+      setDetailTrendError('')
+      setDetailTrendLoading(false)
+      return undefined
+    }
+
+    let cancelled = false
+    const loadDetailTrendRows = async () => {
+      setDetailTrendLoading(true)
+      setDetailTrendError('')
+      try {
+        const resp = await getSystemHealthTrendApi({
+          range: trendRange,
+          groupId: selectedSystemId,
+          judgement: 'snapshot',
+          view: 'detail',
+        })
+        if (!cancelled) {
+          setDetailTrendRows(buildDetailTrendRows(resp?.points, resp?.granularity || ''))
+          setDetailTrendGranularity(resp?.granularity || '')
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setDetailTrendError(error?.message || '详情趋势加载失败')
+          setDetailTrendRows([])
+          setDetailTrendGranularity('')
+        }
+      } finally {
+        if (!cancelled) {
+          setDetailTrendLoading(false)
+        }
+      }
+    }
+
+    loadDetailTrendRows()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedSystemId, trendRange, detailTrendRefreshToken])
+
   const pendingServiceCount = useMemo(
     () => new Set(pendingIssueRows.map((issue) => issue.serviceName)).size,
     [pendingIssueRows],
   )
   const abnormalServiceRatio = useMemo(
-    () => buildAbnormalServiceRatio(selectedSystem?.services, scoreThresholds),
+    () => buildSystemServiceRiskCounts(selectedSystem, scoreThresholds),
     [selectedSystem, scoreThresholds],
   )
 
-  const filteredServices = useMemo(() => {
-    if (!selectedSystem) return []
-    const keyword = serviceKeyword.trim().toLowerCase()
-    return [...selectedSystem.services]
-      .filter(
-        (service) =>
-          !keyword || `${service.name} ${service.desc || ''}`.toLowerCase().includes(keyword),
-      )
-      .filter((service) =>
-        serviceMatchesAbnormalAttentionFilter(service, onlyAbnormalServices, scoreThresholds),
-      )
-      .sort((left, right) => left.score - right.score)
-  }, [selectedSystem, serviceKeyword, onlyAbnormalServices, scoreThresholds])
+  const filteredServices = serviceRows
+  const serviceEmptyMessage = overviewServiceEmptyMessage({
+    services: filteredServices,
+    servicePageTotal,
+    serviceHealthFilter,
+    serviceKeyword,
+    debouncedServiceKeyword,
+    allFilterValue: DEFAULT_HEALTH_FILTER_VALUES.all,
+  })
+
+  const handleTrendRangeChange = useCallback((nextRange) => {
+    setTrendRange(writeStoredTrendRange(nextRange))
+  }, [])
+
+  const handleOverviewTrendRetry = () => {
+    setOverviewTrendRefreshToken((current) => current + 1)
+  }
+
+  const handleDetailTrendRetry = () => {
+    setDetailTrendRefreshToken((current) => current + 1)
+  }
 
   const openDetail = (system) => {
-    setSelectedSystemId(String(system.groupId))
+    const systemId = String(system.groupId)
+    lastDetailHeaderRequestKeyRef.current = buildDetailHeaderRequestKey(systemId, queryParams)
+    setSelectedSystemId(systemId)
     setSelectedSystem(system)
     setServiceKeyword('')
-    setOnlyAbnormalServices(true)
-    setDetailError('')
-    setDetailRefreshToken((current) => current + 1)
+    setServiceHealthFilter(DEFAULT_HEALTH_FILTER_VALUE)
+    setServicePage(DEFAULT_SERVICE_PAGE)
+    setServiceRows([])
+    setServicePageTotal(0)
+    setServiceRowsError('')
   }
 
   const closeDetail = () => {
+    lastDetailHeaderRequestKeyRef.current = ''
     setSelectedSystemId('')
     setSelectedSystem(null)
-    setDetailError('')
+    setServiceRows([])
+    setServicePageTotal(0)
+    setServiceRowsError('')
   }
 
   const toggleIssueAnalysis = (analysisKey) => {
@@ -893,6 +843,16 @@ export default function SystemHealthOverviewPage() {
   const handlePendingIssuePageChange = (page, pageSize) => {
     setPendingIssuePage(page)
     setPendingIssuePageSize(pageSize)
+  }
+
+  const handleSystemPageChange = (page, pageSize) => {
+    setSystemPage(page)
+    setSystemPageSize(pageSize)
+  }
+
+  const handleServicePageChange = (page, pageSize) => {
+    setServicePage(page)
+    setServicePageSize(pageSize)
   }
 
   const handleThresholdSettingsOpenChange = (open) => {
@@ -939,108 +899,14 @@ export default function SystemHealthOverviewPage() {
       setThresholdDraft(savedThresholds)
       message.success('异常判定已更新')
       await loadOverview()
+      setSystemRowsRefreshToken((current) => current + 1)
+      setOverviewTrendRefreshToken((current) => current + 1)
     } catch (error) {
       message.error(error?.message || '异常判定保存失败')
       setThresholdDraft(scoreThresholds)
     } finally {
       setThresholdSaving(false)
     }
-  }
-
-  const renderThresholdSettings = () => {
-    const normalizedDraft = normalizeHealthScoreThresholds(thresholdDraft)
-    const hasThresholdChange = !scoreThresholdsEqual(normalizedDraft, scoreThresholds)
-    const severeThreshold = normalizedDraft.severeAbnormalScoreThreshold
-    const generalThreshold = normalizedDraft.generalAbnormalScoreThreshold
-    const severeRange = `0-${severeThreshold - 1}分`
-    const generalRange = `${severeThreshold}-${generalThreshold - 1}分`
-    const healthyRange = `${generalThreshold}-100分`
-
-    return (
-      <div className="sho-threshold-popover">
-        <div className="sho-threshold-popover-title">健康异常判定</div>
-        <div className="sho-threshold-editor">
-          <div className="sho-threshold-inputs">
-            <label className="sho-threshold-input-row">
-              <span>健康度低于</span>
-              <InputNumber
-                aria-label="异常健康度阈值"
-                max={99}
-                min={1}
-                precision={0}
-                size="small"
-                value={thresholdDraft.severeAbnormalScoreThreshold}
-                onChange={(value) =>
-                  setThresholdDraft((current) => ({
-                    ...current,
-                    severeAbnormalScoreThreshold: value,
-                  }))
-                }
-                onPressEnter={saveAbnormalScoreThreshold}
-              />
-              <span>分，异常</span>
-            </label>
-            <label className="sho-threshold-input-row">
-              <span>健康度低于</span>
-              <InputNumber
-                aria-label="关注系统健康度阈值"
-                max={100}
-                min={2}
-                precision={0}
-                size="small"
-                value={thresholdDraft.generalAbnormalScoreThreshold}
-                onChange={(value) =>
-                  setThresholdDraft((current) => ({
-                    ...current,
-                    generalAbnormalScoreThreshold: value,
-                  }))
-                }
-                onPressEnter={saveAbnormalScoreThreshold}
-              />
-              <span>分，关注</span>
-            </label>
-          </div>
-          <div className="sho-threshold-abnormal-note">
-            <div>系统健康度低于 {severeThreshold} 分，计为异常系统</div>
-            <div>
-              系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统
-            </div>
-          </div>
-          <div className="sho-threshold-legend" aria-label="健康度分值说明">
-            <div className="sho-threshold-legend-row">
-              <ThresholdStatusRing status="red" />
-              <span className="sho-threshold-legend-range">{severeRange}</span>
-              <span className="sho-threshold-legend-label">异常</span>
-            </div>
-            <div className="sho-threshold-legend-row">
-              <ThresholdStatusRing status="yellow" />
-              <span className="sho-threshold-legend-range">{generalRange}</span>
-              <span className="sho-threshold-legend-label">关注</span>
-            </div>
-            <div className="sho-threshold-legend-row">
-              <ThresholdStatusRing status="green" />
-              <span className="sho-threshold-legend-range">{healthyRange}</span>
-              <span className="sho-threshold-legend-label">健康</span>
-            </div>
-          </div>
-          <div className="sho-threshold-actions">
-            <span className="sho-threshold-save-wrap">
-              <Button
-                aria-label="保存异常阈值"
-                className="sho-threshold-save"
-                disabled={!hasThresholdChange}
-                loading={thresholdSaving}
-                size="small"
-                type="primary"
-                onClick={saveAbnormalScoreThreshold}
-              >
-                确定
-              </Button>
-            </span>
-          </div>
-        </div>
-      </div>
-    )
   }
 
   const analyzeIssue = async (issue, analysisKey) => {
@@ -1086,7 +952,7 @@ export default function SystemHealthOverviewPage() {
   }
 
   const renderOverviewState = () => {
-    if (!queryParams || overviewLoading) {
+    if (!queryParams || overviewLoading || systemRowsLoading) {
       return (
         <div className="sho-state-panel">
           <Spin />
@@ -1094,224 +960,58 @@ export default function SystemHealthOverviewPage() {
         </div>
       )
     }
-    if (overviewError) {
+    const currentError = overviewError || systemRowsError
+    if (currentError) {
       return (
         <Alert
           action={
-            <Button size="small" onClick={loadOverview}>
+            <Button
+              size="small"
+              onClick={() => {
+                loadOverview()
+                setSystemRowsRefreshToken((current) => current + 1)
+              }}
+            >
               重试
             </Button>
           }
           message="健康度加载失败"
-          description={overviewError}
+          description={currentError}
           type="error"
           showIcon
         />
       )
     }
-    if (!systems.length) {
-      return <div className="sho-empty-block">暂无健康度数据</div>
-    }
-    if (!overviewSystems.length) {
-      return <div className="sho-empty-block">没有匹配的系统</div>
+    const emptyMessage = overviewSystemEmptyMessage({
+      systems,
+      systemPageTotal,
+      systemHealthFilter,
+      systemKeyword,
+      debouncedSystemKeyword,
+      allFilterValue: DEFAULT_HEALTH_FILTER_VALUES.all,
+    })
+    if (emptyMessage) {
+      return <div className="sho-empty-block">{emptyMessage}</div>
     }
     return null
   }
 
-  const renderPendingIssueAnalysis = (analysisState, isExpanded) => {
-    if (!analysisState?.data && !analysisState?.error) return null
-    if (analysisState.error) {
-      return (
-        <div className="sho-pending-analysis sho-pending-analysis-error">{analysisState.error}</div>
-      )
-    }
-
-    const data = analysisState.data || {}
-    if (data.aiStatus !== 'succeeded') {
-      return (
-        <div className="sho-pending-analysis sho-pending-analysis-error">
-          {data.error || 'AI 分析暂不可用'}
-        </div>
-      )
-    }
-    if (!isExpanded) return null
-
-    return (
-      <div className="sho-pending-analysis">
-        {data.analysis && (
-          <div className="sho-pending-analysis-block">
-            <strong>分析</strong>
-            <span>{data.analysis}</span>
-          </div>
-        )}
-        {data.impact && (
-          <div className="sho-pending-analysis-block">
-            <strong>影响</strong>
-            <span>{data.impact}</span>
-          </div>
-        )}
-        {Array.isArray(data.actionPlan) && data.actionPlan.length > 0 && (
-          <div className="sho-pending-steps">
-            {data.actionPlan.map((step, index) => (
-              <div className="sho-pending-step" key={`${step.phase}-${index}`}>
-                <b>{index + 1}</b>
-                <div>
-                  <strong>{step.phase}</strong>
-                  {step.target && <small>{step.target}</small>}
-                  <span>{step.action}</span>
-                  {step.validation && <em>验证：{step.validation}</em>}
-                  {step.risk && <em>风险：{step.risk}</em>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {data.dataBoundary && <small className="sho-pending-boundary">{data.dataBoundary}</small>}
-      </div>
-    )
-  }
-
-  const renderPendingIssues = () => (
-    <section className="sho-panel sho-pending-panel">
-      <div className="sho-panel-head">
-        <div className="sho-panel-title">
-          待处理问题
-          <Tooltip title="当前用户有权访问的所有系统中，按风险排序的红灯和黄灯服务指标">
-            <HelpCircle size={15} className="sho-help-icon" />
-          </Tooltip>
-        </div>
-        <span className="sho-muted">
-          {pendingServiceCount} 个服务 / 本页 {pendingIssueRows.length} 类问题 / 共{' '}
-          {pendingIssueTotal} 条
-        </span>
-      </div>
-      {pendingIssueRows.length ? (
-        <div className="sho-pending-table-wrap">
-          <table className="sho-pending-table">
-            <colgroup>
-              <col className="sho-pending-col-service" />
-              <col className="sho-pending-col-issue" />
-              <col className="sho-pending-col-status" />
-              <col className="sho-pending-col-system" />
-              <col className="sho-pending-col-value" />
-              <col className="sho-pending-col-action" />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>服务</th>
-                <th>问题</th>
-                <th>状态</th>
-                <th>系统</th>
-                <th>当前值</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pendingIssueRows.map((issue) => {
-                const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
-                const analysisState = issueAnalyses[analysisKey] || {}
-                const hasSucceededAnalysis = analysisState.data?.aiStatus === 'succeeded'
-                const isAnalysisExpanded =
-                  hasSucceededAnalysis && expandedIssueAnalyses[analysisKey] !== false
-                const analysisNode = renderPendingIssueAnalysis(analysisState, isAnalysisExpanded)
-                const statusLabel = statusMeta[issue.status]?.label || '未知'
-
-                return (
-                  <React.Fragment key={issue.queueId}>
-                    <tr className="sho-pending-row">
-                      <td className="sho-pending-service-cell">
-                        <div className="sho-pending-service-inline">
-                          <span className="sho-pending-service-name" title={issue.serviceName}>
-                            {issue.serviceName}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="sho-pending-issue-cell">
-                        <div className="sho-pending-issue-content">
-                          <div className="sho-pending-issue-title">
-                            <Lamp status={issue.status} />
-                            <strong>{issue.metricLabel}</strong>
-                          </div>
-                          <small title={issue.note}>{describePendingIssue(issue)}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <Tag className={`sho-tag sho-tag-${issue.status}`}>{statusLabel}</Tag>
-                      </td>
-                      <td>
-                        <span className="sho-pending-system" title={issue.systemName}>
-                          {issue.systemName}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="sho-pending-value">{issue.value}</span>
-                      </td>
-                      <td className="sho-pending-action-cell">
-                        <Button
-                          icon={<Sparkles size={13} />}
-                          loading={analysisState.loading}
-                          size="small"
-                          type={hasSucceededAnalysis && isAnalysisExpanded ? 'primary' : 'default'}
-                          onClick={() => {
-                            if (hasSucceededAnalysis) {
-                              toggleIssueAnalysis(analysisKey)
-                              return
-                            }
-                            analyzeIssue(issue, analysisKey)
-                          }}
-                        >
-                          {hasSucceededAnalysis
-                            ? isAnalysisExpanded
-                              ? '收起分析'
-                              : '展开分析'
-                            : 'AI 分析'}
-                        </Button>
-                      </td>
-                    </tr>
-                    {analysisNode && (
-                      <tr className="sho-pending-analysis-row">
-                        <td colSpan={6}>{analysisNode}</td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="sho-empty-block">暂无需要优先处理的系统问题</div>
-      )}
-      {pendingIssueTotal > pendingIssuePageSize && (
-        <div className="sho-pending-pagination">
-          <Pagination
-            current={pendingIssuePage}
-            pageSize={pendingIssuePageSize}
-            pageSizeOptions={['10', '20', '50', '100']}
-            showSizeChanger
-            showTotal={(total) => `共 ${total} 条`}
-            size="small"
-            total={pendingIssueTotal}
-            onChange={handlePendingIssuePageChange}
-          />
-        </div>
-      )}
-    </section>
-  )
-
   const renderOverview = () => {
-    const effectiveOverviewLoading = !queryParams || overviewLoading
     const initialOverviewLoading = shouldRenderInitialOverviewLoading({
-      overviewLoading: effectiveOverviewLoading,
+      overviewLoading: !queryParams || overviewLoading,
       systems,
       pendingIssues,
       summary,
     })
     const overviewState = renderOverviewState()
-    const statusDistribution = buildStatusDistribution(systems, scoreThresholds)
-    const summaryCards = buildOverviewSummaryCards(summary, systems, scoreThresholds, {
+    const statusDistribution = buildStatusDistribution([], scoreThresholds)
+    const summaryCards = buildOverviewSummaryCards(summary, [], scoreThresholds, {
       pendingIssueTotal,
     })
+    const trendPoints = Array.isArray(trendData?.points) ? trendData.points : []
+    const trendGranularity = trendData?.granularity || ''
+    const normalizedThresholdDraft = normalizeHealthScoreThresholds(thresholdDraft)
+    const hasThresholdChange = !scoreThresholdsEqual(normalizedThresholdDraft, scoreThresholds)
 
     return (
       <>
@@ -1320,8 +1020,30 @@ export default function SystemHealthOverviewPage() {
             <div className="sho-title">健康度概览</div>
           </div>
           <div className="sho-toolbar-actions">
+            <div className="sho-trend-range-control">
+              <span className="sho-trend-range-label">趋势图历史范围</span>
+              <Select
+                className="sho-trend-range-select"
+                options={trendRangeOptions.map((option) => ({
+                  label: option.label,
+                  value: option.key,
+                }))}
+                size="small"
+                value={trendRange}
+                onChange={handleTrendRangeChange}
+              />
+            </div>
             <Popover
-              content={renderThresholdSettings()}
+              content={
+                <ThresholdSettingsContent
+                  hasThresholdChange={hasThresholdChange}
+                  normalizedDraft={normalizedThresholdDraft}
+                  thresholdDraft={thresholdDraft}
+                  thresholdSaving={thresholdSaving}
+                  onDraftChange={setThresholdDraft}
+                  onSave={saveAbnormalScoreThreshold}
+                />
+              }
               onOpenChange={handleThresholdSettingsOpenChange}
               open={thresholdSettingsOpen}
               placement="bottomRight"
@@ -1339,99 +1061,60 @@ export default function SystemHealthOverviewPage() {
         </div>
 
         {initialOverviewLoading ? (
-          <OverviewInitialLoading />
+          <OverviewInitialLoading metricLabels={metricLabels} />
         ) : (
           <>
-            <div className="sho-summary">
-              {summaryCards.map((card) => (
-                <SummaryMetricCard
-                  denominator={card.denominator}
-                  highlightNumerator={card.highlightNumerator}
-                  icon={summaryCardIcons[card.key] || null}
-                  key={card.key}
-                  label={card.label}
-                  help={card.help}
-                  numerator={card.numerator}
-                  percent={card.percent}
-                  tone={card.tone}
-                  value={card.value}
-                  visual={card.visual}
-                >
-                  {card.distribution ? (
-                    <StatusDistributionBar distribution={statusDistribution} />
-                  ) : null}
-                </SummaryMetricCard>
-              ))}
-            </div>
+            <OverviewSummary
+              statusDistribution={statusDistribution}
+              summaryCardIcons={summaryCardIcons}
+              summaryCards={summaryCards}
+              summaryTrendGroupByKey={summaryTrendGroupByKey}
+              trendError={trendError}
+              trendGranularity={trendGranularity}
+              trendLoading={trendLoading}
+              trendPoints={trendPoints}
+              trendRangeLabel={systemTrendRangeLabel}
+              onTrendRetry={handleOverviewTrendRetry}
+            />
 
-            <section className="sho-panel">
-              <div className="sho-panel-head">
-                <div className="sho-panel-title">
-                  系统健康度
-                  <Tooltip
-                    title={<HealthScoreCalculationTooltip />}
-                    overlayClassName="sho-health-score-popover"
-                  >
-                    <HelpCircle size={15} className="sho-help-icon" />
-                  </Tooltip>
-                </div>
-                <Space wrap size={8}>
-                  <Space size={6}>
-                    <span className="sho-muted">异常和关注系统</span>
-                    <Switch
-                      checked={onlyAbnormal}
-                      checkedChildren="开"
-                      unCheckedChildren="关"
-                      onChange={setOnlyAbnormal}
-                    />
-                  </Space>
-                  <Input
-                    allowClear
-                    className="sho-search"
-                    placeholder="搜索系统"
-                    prefix={<Search size={14} />}
-                    value={systemKeyword}
-                    onChange={(event) => setSystemKeyword(event.target.value)}
-                  />
-                  <Legend />
-                </Space>
-              </div>
-              {overviewState || (
-                <HealthTable>
-                  <thead>
-                    <tr>
-                      <th>系统</th>
-                      <th>
-                        <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
-                      </th>
-                      {metricLabels.map(([, label]) => (
-                        <th key={label}>{label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {overviewSystems.map((system) => (
-                      <tr key={system.groupId} onClick={() => openDetail(system)}>
-                        <td>
-                          <div className="sho-name-cell">
-                            <strong>{system.name}</strong>
-                          </div>
-                        </td>
-                        <td>
-                          <HealthRing score={system.score} scoreThresholds={scoreThresholds} />
-                        </td>
-                        {metricLabels.map(([key]) => (
-                          <td key={key}>
-                            <Lamp status={system.metrics[key]} />
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </HealthTable>
-              )}
-            </section>
-            {renderPendingIssues()}
+            <OverviewSystemTable
+              HealthScoreCalculationTooltip={HealthScoreCalculationTooltip}
+              HealthScoreColumnTitle={HealthScoreColumnTitle}
+              metricLabels={metricLabels}
+              onOpenDetail={openDetail}
+              onPageChange={handleSystemPageChange}
+              onSystemHealthFilterChange={setSystemHealthFilter}
+              onSystemKeywordChange={setSystemKeyword}
+              overviewState={overviewState}
+              overviewSystems={overviewSystems}
+              scoreThresholds={scoreThresholds}
+              systemHealthFilter={systemHealthFilter}
+              systemHealthFilterOptions={systemHealthFilterOptions}
+              systemKeyword={systemKeyword}
+              systemPage={systemPage}
+              systemPageSize={systemPageSize}
+              systemPageTotal={systemPageTotal}
+              systemTrendError={systemTrendError}
+              systemTrendGranularity={systemTrendGranularity}
+              systemTrendLoading={systemTrendLoading}
+              systemTrendRangeLabel={systemTrendRangeLabel}
+              systemTrendRows={systemTrendRows}
+            />
+            <PendingIssueQueue
+              expandedIssueAnalyses={expandedIssueAnalyses}
+              issueAnalyses={issueAnalyses}
+              pendingIssueError={pendingIssueError}
+              pendingIssueLoading={pendingIssueLoading}
+              pendingIssuePage={pendingIssuePage}
+              pendingIssuePageSize={pendingIssuePageSize}
+              pendingIssueRows={pendingIssueRows}
+              pendingIssueTotal={pendingIssueTotal}
+              pendingServiceCount={pendingServiceCount}
+              queryParams={queryParams}
+              onAnalyzeIssue={analyzeIssue}
+              onPageChange={handlePendingIssuePageChange}
+              onToggleIssueAnalysis={toggleIssueAnalysis}
+            />
           </>
         )}
       </>
@@ -1441,111 +1124,33 @@ export default function SystemHealthOverviewPage() {
   const renderDetail = () => {
     if (!selectedSystem) return null
 
-    const shouldShowDetailBody = shouldRenderDetailBody({ selectedSystem, detailLoading })
+    const shouldShowDetailBody = shouldRenderDetailBody({ selectedSystem, detailHeaderLoading })
 
     return (
       <>
-        <div className="sho-detail-compact-header">
-          <div className="sho-detail-compact-inner">
-            <div className="sho-detail-compact-system">
-              <Button
-                className="sho-detail-compact-back"
-                icon={<ArrowLeft size={12} />}
-                size="small"
-                type="text"
-                onClick={closeDetail}
-              >
-                返回
-              </Button>
-              <div className="sho-detail-compact-title">
-                <strong>{selectedSystem.name}</strong>
-              </div>
-            </div>
-            {detailLoading ? (
-              <>
-                <span className="sho-detail-compact-divider" aria-hidden="true" />
-                <DetailLoadingStatus className="sho-detail-compact-loading" />
-              </>
-            ) : (
-              <>
-                <span className="sho-detail-compact-divider" aria-hidden="true" />
-                <div className="sho-detail-compact-score">
-                  <HealthRing
-                    score={selectedSystem.score}
-                    scoreThresholds={scoreThresholds}
-                    size="mini"
-                  />
-                  <div className="sho-detail-compact-score-label">
-                    <span>健康度</span>
-                    <HealthScoreRangeHelpIcon scoreThresholds={scoreThresholds} />
-                  </div>
-                </div>
-                <span className="sho-detail-compact-divider" aria-hidden="true" />
-                <div className="sho-detail-compact-service-count">
-                  <div className="sho-detail-compact-service-label sho-detail-compact-service-label-critical">
-                    <TriangleAlert size={18} />
-                    <span>异常服务</span>
-                  </div>
-                  <div
-                    className="sho-detail-compact-service-value sho-summary-value"
-                    aria-label={`异常服务 ${abnormalServiceRatio.abnormal} / ${abnormalServiceRatio.total}`}
-                  >
-                    <span className="sho-summary-value-highlight-critical">
-                      {abnormalServiceRatio.abnormal}
-                    </span>
-                    <span>/ {abnormalServiceRatio.total}</span>
-                  </div>
-                </div>
-                <span className="sho-detail-compact-divider" aria-hidden="true" />
-                <div className="sho-detail-compact-service-count">
-                  <div className="sho-detail-compact-service-label sho-detail-compact-service-label-warning">
-                    <CircleAlert size={18} />
-                    <span>关注服务</span>
-                  </div>
-                  <div
-                    className="sho-detail-compact-service-value sho-summary-value"
-                    aria-label={`关注服务 ${abnormalServiceRatio.attention} / ${abnormalServiceRatio.total}`}
-                  >
-                    <span className="sho-summary-value-highlight-warning">
-                      {abnormalServiceRatio.attention}
-                    </span>
-                    <span>/ {abnormalServiceRatio.total}</span>
-                  </div>
-                </div>
-                <span className="sho-detail-compact-divider" aria-hidden="true" />
-                <div className="sho-detail-compact-exceptions">
-                  <div className="sho-detail-compact-exception-label">
-                    <Activity size={18} />
-                    <span>异常指标</span>
-                  </div>
-                  <div className="sho-tags sho-detail-compact-tags">
-                    {statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+        <DetailHeader
+          HealthScoreRangeHelpIcon={HealthScoreRangeHelpIcon}
+          abnormalServiceRatio={abnormalServiceRatio}
+          detailHeaderLoading={detailHeaderLoading}
+          onCloseDetail={closeDetail}
+          redMetricTags={statusTags(selectedSystem.metrics, 'red', '暂无红灯指标')}
+          scoreThresholds={scoreThresholds}
+          selectedSystem={selectedSystem}
+        />
 
-        {detailError && (
-          <Alert
-            className="sho-detail-alert"
-            action={
-              <Button size="small" onClick={() => setDetailRefreshToken((current) => current + 1)}>
-                重试
-              </Button>
-            }
-            message="系统详情加载失败"
-            description={detailError}
-            type="error"
-            showIcon
-          />
-        )}
-
-        {detailLoading && <DetailLoadingPanel />}
-
-        {shouldShowDetailBody && (
+        {detailHeaderLoading ? <DetailLoadingPanel /> : shouldShowDetailBody && (
           <>
+            <DetailTrendSection
+              detailTrendError={detailTrendError}
+              detailTrendGranularity={detailTrendGranularity}
+              detailTrendLoading={detailTrendLoading}
+              detailTrendRows={detailTrendRows}
+              scoreThresholds={scoreThresholds}
+              trendRange={trendRange}
+              onRangeChange={handleTrendRangeChange}
+              onRetry={handleDetailTrendRetry}
+            />
+
             <section className="sho-panel sho-system-metrics-panel">
               <div className="sho-panel-head">
                 <div className="sho-panel-title">健康指标</div>
@@ -1568,72 +1173,24 @@ export default function SystemHealthOverviewPage() {
               </div>
             </section>
 
-            <section className="sho-panel">
-              <div className="sho-panel-head">
-                <div className="sho-panel-title">服务健康度</div>
-                <Space wrap size={8}>
-                  <Space size={6}>
-                    <span className="sho-muted">异常和关注服务</span>
-                    <Switch
-                      checked={onlyAbnormalServices}
-                      checkedChildren="开"
-                      unCheckedChildren="关"
-                      onChange={setOnlyAbnormalServices}
-                    />
-                  </Space>
-                  <Input
-                    allowClear
-                    className="sho-search"
-                    placeholder="搜索服务"
-                    prefix={<Search size={14} />}
-                    value={serviceKeyword}
-                    onChange={(event) => setServiceKeyword(event.target.value)}
-                  />
-                </Space>
-              </div>
-              <HealthTable className="sho-service-table">
-                <thead>
-                  <tr>
-                    <th>服务</th>
-                    <th>
-                      <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
-                    </th>
-                    {metricLabels.map(([, label]) => (
-                      <th key={label}>{label}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredServices.map((service) => (
-                    <tr key={service.name}>
-                      <td>
-                        <div className="sho-service-name">
-                          <Tooltip title={service.name}>
-                            <strong>{service.name}</strong>
-                          </Tooltip>
-                          {service.desc ? <span>{service.desc}</span> : null}
-                        </div>
-                      </td>
-                      <td>
-                        <HealthRing score={service.score} scoreThresholds={scoreThresholds} />
-                      </td>
-                      {metricLabels.map(([key]) => (
-                        <td key={key}>
-                          <Lamp status={service.metrics[key]} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                  {!filteredServices.length && (
-                    <tr>
-                      <td className="sho-empty-cell" colSpan={9}>
-                        没有匹配的服务
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </HealthTable>
-            </section>
+            <ServiceHealthTable
+              HealthScoreColumnTitle={HealthScoreColumnTitle}
+              filteredServices={filteredServices}
+              metricLabels={metricLabels}
+              onPageChange={handleServicePageChange}
+              onServiceHealthFilterChange={setServiceHealthFilter}
+              onServiceKeywordChange={setServiceKeyword}
+              scoreThresholds={scoreThresholds}
+              serviceEmptyMessage={serviceEmptyMessage}
+              serviceHealthFilter={serviceHealthFilter}
+              serviceHealthFilterOptions={serviceHealthFilterOptions}
+              serviceKeyword={serviceKeyword}
+              servicePage={servicePage}
+              servicePageSize={servicePageSize}
+              servicePageTotal={servicePageTotal}
+              serviceRowsError={serviceRowsError}
+              serviceRowsLoading={serviceRowsLoading}
+            />
           </>
         )}
       </>
@@ -1648,25 +1205,3 @@ export default function SystemHealthOverviewPage() {
     </div>
   )
 }
-
-const HealthTable = ({ children, className = '' }) => (
-  <div className={`sho-table-wrap ${className}`}>
-    <table>{children}</table>
-  </div>
-)
-
-HealthTable.propTypes = {
-  children: PropTypes.node,
-  className: PropTypes.string,
-}
-
-const Legend = () => (
-  <div className="sho-legend">
-    {Object.entries(statusMeta).map(([key, meta]) => (
-      <span className="sho-legend-item" key={key}>
-        <Lamp status={key} />
-        <b>{meta.label}</b>
-      </span>
-    ))}
-  </div>
-)
