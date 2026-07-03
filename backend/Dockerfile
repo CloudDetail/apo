@@ -5,7 +5,7 @@ WORKDIR /build
 ARG PMODULE_HOST=''
 ARG ACCESS=''
 
-ENV GOPROXY https://goproxy.cn
+ENV GOPROXY=https://goproxy.cn|https://mirrors.aliyun.com/goproxy/|direct
 ENV GOPRIVATE $PMODULE_HOST
 ENV GONOPROXY $PMODULE_HOST
 ENV GOINSECURE $PMODULE_HOST
