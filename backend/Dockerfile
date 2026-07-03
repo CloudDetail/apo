@@ -5,7 +5,7 @@ WORKDIR /build
 ARG PMODULE_HOST=''
 ARG ACCESS=''
 
-ENV GOPROXY=https://goproxy.cn|https://mirrors.aliyun.com/goproxy/|direct
+ENV GOPROXY=https://proxy.golang.org|https://mirrors.aliyun.com/goproxy/|https://goproxy.cn|direct
 ENV GOPRIVATE $PMODULE_HOST
 ENV GONOPROXY $PMODULE_HOST
 ENV GOINSECURE $PMODULE_HOST
@@ -14,7 +14,7 @@ RUN if [ "$ACCESS" != "" ]; then git config --global url."http://$ACCESS@$PMODUL
 
 
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
+RUN --mount=type=cache,target=/go/pkg/mod go mod download && go mod verify
 
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/go-build go build -v -o apo-backend
