@@ -15,7 +15,7 @@ RUN if [ "$ACCESS" != "" ]; then git config --global url."http://$ACCESS@$PMODUL
 
 
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
+RUN for i in 1 2 3 4 5; do go clean -modcache; if timeout 180 go mod download && go mod verify; then exit 0; fi; sleep 10; done; exit 1
 
 COPY . .
 RUN go build -v -o apo-backend
