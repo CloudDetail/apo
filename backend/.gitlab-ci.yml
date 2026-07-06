@@ -24,7 +24,21 @@ build:
       TAG_NAME=$TAG
     fi
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - mkdir -p /home/gitlab-runner/.cache/apo-go-mod /home/gitlab-runner/.cache/apo-go-build
+  - |
+    docker run --rm \
+      -v "$CI_PROJECT_DIR/$DIR_NAME:/build" \
+      -v /home/gitlab-runner/.cache/apo-go-mod:/go/pkg/mod \
+      -v /home/gitlab-runner/.cache/apo-go-build:/root/.cache/go-build \
+      -w /build \
+      -e GOTOOLCHAIN=local \
+      -e GOPROXY="https://goproxy.cn|https://mirrors.cloud.tencent.com/go|https://mirrors.aliyun.com/goproxy" \
+      -e GOSUMDB=off \
+      -e GOPRIVATE=192.168.1.22 \
+      -e GONOPROXY=192.168.1.22 \
+      -e GOINSECURE=192.168.1.22 \
+      golang:1.23.8-bookworm sh -c 'git config --global url."http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22" && go build -v -o apo-backend'
+  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
   - docker rmi $HARBOR_IMAGE_REPO:$TAG_NAME
@@ -41,7 +55,21 @@ manual_build:
   - DATE=$(date +"%Y%m%d%H%M%S%Z")
   - TAG_NAME="$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA-$DATE"
   - echo "TAG_NAME=$TAG_NAME" > build.env
-  - docker build --build-arg PMODULE_HOST=192.168.1.22 --build-arg ACCESS="gitlab-ci-token:$CI_JOB_TOKEN" -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
+  - mkdir -p /home/gitlab-runner/.cache/apo-go-mod /home/gitlab-runner/.cache/apo-go-build
+  - |
+    docker run --rm \
+      -v "$CI_PROJECT_DIR/$DIR_NAME:/build" \
+      -v /home/gitlab-runner/.cache/apo-go-mod:/go/pkg/mod \
+      -v /home/gitlab-runner/.cache/apo-go-build:/root/.cache/go-build \
+      -w /build \
+      -e GOTOOLCHAIN=local \
+      -e GOPROXY="https://goproxy.cn|https://mirrors.cloud.tencent.com/go|https://mirrors.aliyun.com/goproxy" \
+      -e GOSUMDB=off \
+      -e GOPRIVATE=192.168.1.22 \
+      -e GONOPROXY=192.168.1.22 \
+      -e GOINSECURE=192.168.1.22 \
+      golang:1.23.8-bookworm sh -c 'git config --global url."http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22" && go build -v -o apo-backend'
+  - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
   - docker push $HARBOR_IMAGE_REPO:$TAG_NAME
   - docker rmi $HARBOR_IMAGE_REPO:$TAG_NAME
