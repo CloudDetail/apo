@@ -5,9 +5,10 @@ WORKDIR /build
 ARG PMODULE_HOST=''
 ARG ACCESS=''
 
-ENV GOPROXY=https://mirrors.cloud.tencent.com/go|https://goproxy.cn|direct
+ENV GOPROXY=https://goproxy.cn|https://mirrors.cloud.tencent.com/go|https://mirrors.aliyun.com/goproxy,direct
 ENV GOSUMDB=off
 ENV GOPRIVATE $PMODULE_HOST
+ENV GODEBUG=http2client=0
 ENV GONOPROXY $PMODULE_HOST
 ENV GOINSECURE $PMODULE_HOST
 
@@ -15,10 +16,17 @@ RUN if [ "$ACCESS" != "" ]; then git config --global url."http://$ACCESS@$PMODUL
 
 
 COPY go.mod go.sum ./
-RUN for i in 1 2 3 4 5; do go clean -modcache; if timeout 180 go mod download && go mod verify; then exit 0; fi; sleep 10; done; exit 1
+RUN --mount=type=cache,id=apo-backend-go-mod,target=/go/pkg/mod,sharing=locked \
+    for i in 1 2 3; do \
+        if timeout 600 go mod download && go mod verify; then exit 0; fi; \
+        echo "go module download failed, retrying ($i/3)"; \
+        sleep 15; \
+    done; \
+    exit 1
 
 COPY . .
-RUN go build -v -o apo-backend
+RUN --mount=type=cache,id=apo-backend-go-build,target=/root/.cache/go-build,sharing=locked \
+    go build -v -o apo-backend
 
 FROM debian:bookworm-slim AS runner
 WORKDIR /app
