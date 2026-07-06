@@ -1,4 +1,4 @@
-FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/node:22.19.0-alpine3.21 AS build
+FROM 192.168.1.22:81/kindling/node:22.19.0-bookworm AS build
 
 WORKDIR /app/
 
@@ -9,9 +9,8 @@ RUN yarn config set registry https://registry.npmmirror.com \
     && yarn config set network-timeout 600000 \
     && yarn config set network-concurrency 1
 
-# 2. 替换 Alpine apk 源为阿里云镜像，并安装 git
-RUN sed -i 's|https://dl-cdn.alpinelinux.org/alpine|https://mirrors.aliyun.com/alpine|g' /etc/apk/repositories \
-    && apk add --no-cache ca-certificates git \
+# 2. 验证构建时需要的证书和 git，避免每次构建访问外部 apt 源
+RUN git --version \
     && update-ca-certificates
 
 # 3. 替换 yarn.lock 里可能残留的国外 registry
@@ -32,7 +31,7 @@ ENV NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=6144"
 
 RUN yarn build
 
-FROM registry.cn-hangzhou.aliyuncs.com/kindlingx/nginx:alpine
+FROM 192.168.1.22:81/kindling/nginx:stable-alpine3.20
 
 COPY --from=build /app/build /usr/share/nginx/html
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf

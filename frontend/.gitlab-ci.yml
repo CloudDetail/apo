@@ -14,6 +14,8 @@ variables:
 build:
   # This job runs in the build stage, which runs first.
   stage: build
+  tags:
+  - general
   rules:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
   - if: '$CI_COMMIT_BRANCH == "feat/agent-menus"'
@@ -41,6 +43,8 @@ build:
 
 manual_build:
   stage: build
+  tags:
+  - general
   rules:
   - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "enterprise" && $CI_COMMIT_BRANCH != "feat/agent-menus"'
     when: manual
