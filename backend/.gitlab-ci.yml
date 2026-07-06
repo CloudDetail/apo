@@ -13,6 +13,8 @@ variables:
 build:
   # This job runs in the build stage, which runs first.
   stage: build
+  tags:
+  - general
   rules:
   - if: '$CI_COMMIT_BRANCH == "enterprise"'
   script:
@@ -37,6 +39,7 @@ build:
       -e GOPRIVATE=192.168.1.22 \
       -e GONOPROXY=192.168.1.22 \
       -e GOINSECURE=192.168.1.22 \
+      -e CI_JOB_TOKEN \
       golang:1.23.8-bookworm sh -c 'git config --global url."http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22" && go build -v -o apo-backend'
   - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
@@ -48,6 +51,8 @@ build:
 
 manual_build:
   stage: build
+  tags:
+  - general
   rules:
   - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "enterprise"'
     when: manual
@@ -68,6 +73,7 @@ manual_build:
       -e GOPRIVATE=192.168.1.22 \
       -e GONOPROXY=192.168.1.22 \
       -e GOINSECURE=192.168.1.22 \
+      -e CI_JOB_TOKEN \
       golang:1.23.8-bookworm sh -c 'git config --global url."http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.1.22".insteadOf "http://192.168.1.22" && go build -v -o apo-backend'
   - docker build -t $HARBOR_IMAGE_REPO:$TAG_NAME ./$DIR_NAME
   - echo $HARBOR_REGISTRY_PASSWORD | docker login -u $HARBOR_REGISTRY_USER --password-stdin 192.168.1.22:81
