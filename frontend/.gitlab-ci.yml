@@ -35,7 +35,7 @@ build:
   - mkdir -p "$FRONTEND_YARN_CACHE_DIR" "$FRONTEND_NODE_MODULES_DIR"
   - |
     docker run --rm \
-      -e NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=6144" \
+      -e NODE_OPTIONS="--dns-result-order=ipv4first --openssl-legacy-provider --max-old-space-size=6144" \
       -e VITE_PUBLIC_POSTHOG_HOST="$VITE_PUBLIC_POSTHOG_HOST" \
       -e VITE_PUBLIC_POSTHOG_KEY="$VITE_PUBLIC_POSTHOG_KEY" \
       -e VITE_SHOW_MYSQL_HEALTH="$VITE_SHOW_MYSQL_HEALTH" \
@@ -83,7 +83,7 @@ manual_build:
   - mkdir -p "$FRONTEND_YARN_CACHE_DIR" "$FRONTEND_NODE_MODULES_DIR"
   - |
     docker run --rm \
-      -e NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=6144" \
+      -e NODE_OPTIONS="--dns-result-order=ipv4first --openssl-legacy-provider --max-old-space-size=6144" \
       -e VITE_PUBLIC_POSTHOG_HOST="$VITE_PUBLIC_POSTHOG_HOST" \
       -e VITE_PUBLIC_POSTHOG_KEY="$VITE_PUBLIC_POSTHOG_KEY" \
       -e VITE_SHOW_MYSQL_HEALTH="$VITE_SHOW_MYSQL_HEALTH" \
