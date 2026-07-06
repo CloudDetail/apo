@@ -5,7 +5,7 @@ WORKDIR /build
 ARG PMODULE_HOST=''
 ARG ACCESS=''
 
-ENV GOPROXY=https://goproxy.cn,direct
+ENV GOPROXY=https://mirrors.cloud.tencent.com/go|https://goproxy.cn|direct
 ENV GOSUMDB=off
 ENV GOPRIVATE $PMODULE_HOST
 ENV GONOPROXY $PMODULE_HOST
