@@ -625,6 +625,8 @@ test('metric decision tooltip keeps health explanation compact', () => {
   assert.ok(metricVisualTileSource.includes('metricTooltipConclusion'))
   assert.ok(metricVisualTileSource.includes('splitMetricTooltipBadges'))
   assert.ok(metricVisualTileSource.includes('sho-metric-decision-list'))
+  assert.ok(metricVisualTileSource.includes("return '水位变化'"))
+  assert.ok(metricVisualTileSource.includes("const evidenceLimit = metricKey === 'resourceShift' ? 3 : 2"))
   assert.equal(metricVisualTileSource.includes('metricTooltipReason'), false)
   assert.equal(metricVisualTileSource.includes('sho-metric-decision-section'), false)
   assert.equal(metricVisualTileSource.includes('整体情况'), false)

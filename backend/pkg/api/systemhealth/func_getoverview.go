@@ -2393,13 +2393,13 @@ func (h *handler) querySystemHealthExtraMetrics(ctx core.Context, startTime time
 	if errorRateTrend, err := h.promRepo.QueryRangeMetricsWithPQLFilter(ctx, prometheus.PQLAvgErrorRateWithPQLFilter, startTime.UnixMicro(), endTime.UnixMicro(), trendStepMicroS, prometheus.Granularity(""), groupFilter); err == nil {
 		result.SystemErrorRateTrend = errorRateTrend
 	}
-	if errorLog, err := h.promRepo.QueryMetricsWithPQLFilter(ctx, prometheus.PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter, startTime.UnixMicro(), endTime.UnixMicro(), prometheus.SVCGranularity, groupFilter); err == nil {
+	if errorLog, err := h.promRepo.QueryMetricsWithPQLFilter(ctx, prometheus.PQLAvgLogErrorCountCombineServiceInfoWithPQLFilter, startTime.UnixMicro(), endTime.UnixMicro(), prometheus.SVCGranularity, groupFilter); err == nil {
 		result.ErrorLog = errorLog
 	}
-	if errorLogTrend, err := h.promRepo.QueryRangeMetricsWithPQLFilter(ctx, prometheus.PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter, startTime.UnixMicro(), endTime.UnixMicro(), trendStepMicroS, prometheus.SVCGranularity, groupFilter); err == nil {
+	if errorLogTrend, err := h.promRepo.QueryRangeMetricsWithPQLFilter(ctx, prometheus.PQLAvgLogErrorCountCombineServiceInfoWithPQLFilter, startTime.UnixMicro(), endTime.UnixMicro(), trendStepMicroS, prometheus.SVCGranularity, groupFilter); err == nil {
 		result.SystemErrorLogTrend = errorLogTrend
 	}
-	if errorLogDoD, err := h.promRepo.QueryMetricsWithPQLFilter(ctx, prometheus.DayOnDayTemplate(prometheus.PQLAvgLogErrorCountCombineEndpointsInfoWithPQLFilter), startTime.UnixMicro(), endTime.UnixMicro(), prometheus.Granularity(""), groupFilter); err == nil {
+	if errorLogDoD, err := h.promRepo.QueryMetricsWithPQLFilter(ctx, prometheus.DayOnDayTemplate(prometheus.PQLAvgLogErrorCountCombineServiceInfoWithPQLFilter), startTime.UnixMicro(), endTime.UnixMicro(), prometheus.Granularity(""), groupFilter); err == nil {
 		result.SystemErrorLogDoD = errorLogDoD
 	}
 	if badRequests, err := h.querySystemHealthBadRequestsByService(ctx, startTime, endTime, groupFilter, services); err == nil {
@@ -2547,11 +2547,9 @@ func buildSystemHealthResourceShiftPQL(filter prometheus.PQLFilter, window strin
 		window,
 	)
 	return fmt.Sprintf(
-		`max by (svc_name) (((%s) >= 1) or (1 / (%s)) or ((%s) >= 1) or (1 / (%s)))`,
-		cpuRatio,
-		cpuRatio,
-		memoryRatio,
-		memoryRatio,
+		`max by (svc_name) (label_replace((%s), "resource_type", "cpu", "svc_name", "(.*)") or label_replace((%s), "resource_type", "memory", "svc_name", "(.*)"))`,
+		systemHealthUpwardResourceRatioPQL(cpuRatio),
+		systemHealthUpwardResourceRatioPQL(memoryRatio),
 	)
 }
 
@@ -2579,7 +2577,7 @@ func buildSystemHealthSystemMemoryResourceShiftPQL(filter prometheus.PQLFilter, 
 
 func systemHealthSystemResourceShiftPQL(aggTemplate string, metric string, resourceFilter prometheus.PQLFilter, spanFilter prometheus.PQLFilter, window string) string {
 	ratio := systemHealthSystemResourceRatioPQL(aggTemplate, metric, resourceFilter, spanFilter, window)
-	return fmt.Sprintf(`((%s) >= 1) or (1 / (%s))`, ratio, ratio)
+	return systemHealthUpwardResourceRatioPQL(ratio)
 }
 
 func buildSystemHealthVMHostCPUWaterlinePQL(nodes []string, window string, offset string) string {
@@ -2615,12 +2613,14 @@ func buildSystemHealthVMHostResourceShiftPQL(nodes []string, window string) stri
 		buildSystemHealthVMHostMemoryWaterlinePQL(nodes, window, "offset 24h"),
 	)
 	return fmt.Sprintf(
-		`max by (node_name) (((%s) >= 1) or (1 / (%s)) or ((%s) >= 1) or (1 / (%s)))`,
-		cpuRatio,
-		cpuRatio,
-		memoryRatio,
-		memoryRatio,
+		`max by (node_name) (label_replace((%s), "resource_type", "cpu", "node_name", "(.*)") or label_replace((%s), "resource_type", "memory", "node_name", "(.*)"))`,
+		systemHealthUpwardResourceRatioPQL(cpuRatio),
+		systemHealthUpwardResourceRatioPQL(memoryRatio),
 	)
+}
+
+func systemHealthUpwardResourceRatioPQL(ratio string) string {
+	return fmt.Sprintf(`((%s) >= 1) or ((%s) * 0 + 1)`, ratio, ratio)
 }
 
 func systemHealthVMHostNodeFilter(nodes []string) prometheus.PQLFilter {
@@ -3512,10 +3512,13 @@ func systemHealthMaxResourceShiftSeries(results []prometheus.MetricResult) []res
 	seen := make(map[int64]bool)
 	for _, result := range results {
 		for _, point := range result.Values {
-			if !isValidSystemHealthMetricValue(point.Value) || point.Value < 1 {
+			if !isValidSystemHealthMetricValue(point.Value) {
 				continue
 			}
-			value := ratioToShiftPercent(point.Value)
+			value := 0.0
+			if point.Value >= 1 {
+				value = ratioToShiftPercent(point.Value)
+			}
 			if !seen[point.TimeStamp] || value > valuesByTimestamp[point.TimeStamp] {
 				valuesByTimestamp[point.TimeStamp] = value
 				seen[point.TimeStamp] = true
@@ -4124,9 +4127,9 @@ func systemHealthVMHostResourceShiftDetails(scope systemHealthVMHostResourceScop
 	candidates := systemHealthVMHostResourceShiftCandidates(results)
 	details := make(map[string]response.SystemHealthMetricDetail, len(scope.NodesByService))
 	for serviceName := range scope.NodesByService {
-		detail, ok := systemHealthVMHostDetailForServiceNodes(scope.sortedServiceNodes(serviceName), candidates, 30, 60)
+		detail, ok := systemHealthVMHostResourceShiftDetailForServiceNodes(scope.sortedServiceNodes(serviceName), candidates, waterlineDetails[serviceName])
 		if ok {
-			details[serviceName] = capSystemHealthResourceShiftByWaterline(detail, waterlineDetails[serviceName])
+			details[serviceName] = detail
 		}
 	}
 	return details
@@ -4143,20 +4146,45 @@ func systemHealthVMHostResourceShiftCandidates(results []prometheus.MetricResult
 			continue
 		}
 		value := result.Values[0].Value
-		if math.IsNaN(value) || value < 1 {
+		if !isValidSystemHealthMetricValue(value) {
 			continue
 		}
-		shiftPercent := ratioToShiftPercent(value)
 		current, ok := candidates[nodeName]
-		if !ok || shiftPercent > current.value {
+		if !ok || value > current.value {
 			candidates[nodeName] = systemHealthVMHostResourceCandidate{
-				value:  shiftPercent,
+				value:  value,
 				note:   "Host CPU/memory resource shift against 24h baseline",
 				source: systemHealthVMHostResourceSource(nodeName),
 			}
 		}
 	}
 	return candidates
+}
+
+func systemHealthVMHostResourceShiftDetailForServiceNodes(nodes []string, candidates map[string]systemHealthVMHostResourceCandidate, waterline response.SystemHealthMetricDetail) (response.SystemHealthMetricDetail, bool) {
+	var selected *systemHealthVMHostResourceCandidate
+	for _, nodeName := range nodes {
+		candidate, ok := candidates[nodeName]
+		if !ok {
+			continue
+		}
+		if selected == nil || candidate.value > selected.value {
+			selected = &candidate
+		}
+	}
+	if selected == nil {
+		return response.SystemHealthMetricDetail{}, false
+	}
+
+	shiftPercent := systemHealthResourceShiftDisplayPercent(selected.value, waterline)
+	detail := response.SystemHealthMetricDetail{
+		Status: systemHealthResourceShiftStatusForRatio(selected.value, shiftPercent, waterline),
+		Value:  systemHealthResourceShiftDisplayValue(shiftPercent, waterline),
+		Unit:   systemHealthResourceShiftUnit(waterline),
+		Source: selected.source,
+		Note:   selected.note,
+	}
+	return addSystemHealthResourceShiftBadges(detail, selected.value, waterline), true
 }
 
 func systemHealthVMHostDetailForServiceNodes(nodes []string, candidates map[string]systemHealthVMHostResourceCandidate, yellowThreshold float64, redThreshold float64) (response.SystemHealthMetricDetail, bool) {
@@ -4207,40 +4235,38 @@ func systemHealthResourceShiftDetails(results []prometheus.MetricResult, waterli
 			continue
 		}
 		value := result.Values[0].Value
-		if math.IsNaN(value) || value < 1 {
+		if !isValidSystemHealthMetricValue(value) {
 			continue
 		}
-		shiftPercent := (value - 1) * 100
-		status := healthStatusGreen
-		if math.IsInf(value, 0) || shiftPercent >= 60 {
-			status = healthStatusRed
-		} else if shiftPercent >= 30 {
-			status = healthStatusYellow
-		}
+		waterline := waterlineDetails[result.Metric.SvcName]
+		shiftPercent := systemHealthResourceShiftDisplayPercent(value, waterline)
 		detail := response.SystemHealthMetricDetail{
-			Status: status,
-			Value:  formatPercentValue(shiftPercent),
-			Note:   "CPU/内存资源相对 24h 前基线波动",
+			Status: systemHealthResourceShiftStatusForRatio(value, shiftPercent, waterline),
+			Value:  systemHealthResourceShiftDisplayValue(shiftPercent, waterline),
+			Unit:   systemHealthResourceShiftUnit(waterline),
+			Note:   systemHealthResourceShiftNote("CPU/内存资源水位较 24h 前变化", "CPU/内存资源相对 24h 前基线波动", waterline),
 		}
-		details[result.Metric.SvcName] = capSystemHealthResourceShiftByWaterline(detail, waterlineDetails[result.Metric.SvcName])
+		details[result.Metric.SvcName] = addSystemHealthResourceShiftBadges(detail, value, waterlineDetails[result.Metric.SvcName])
 	}
 	return details
 }
 
 func systemHealthSystemResourceShiftDetail(results []prometheus.MetricResult, waterline response.SystemHealthMetricDetail) (response.SystemHealthMetricDetail, bool) {
 	selected := 0.0
+	selectedRatio := 0.0
 	found := false
 	for _, result := range results {
 		if len(result.Values) == 0 {
 			continue
 		}
 		value := result.Values[0].Value
-		if !isValidSystemHealthMetricValue(value) || value < 1 {
+		if !isValidSystemHealthMetricValue(value) {
 			continue
 		}
-		shiftPercent := ratioToShiftPercent(value)
+		shiftPercent := systemHealthResourceShiftDisplayPercent(value, waterline)
 		if !found || shiftPercent > selected {
 			selected = shiftPercent
+			selectedRatio = value
 			found = true
 		}
 	}
@@ -4248,22 +4274,78 @@ func systemHealthSystemResourceShiftDetail(results []prometheus.MetricResult, wa
 		return response.SystemHealthMetricDetail{}, false
 	}
 
-	status := healthStatusGreen
-	if math.IsInf(selected, 0) || selected >= 60 {
-		status = healthStatusRed
-	} else if selected >= 30 {
-		status = healthStatusYellow
-	}
 	detail := response.SystemHealthMetricDetail{
-		Status: status,
-		Value:  formatPercentValue(selected),
-		Unit:   "%",
-		Note:   "系统资源消耗相对 24h 前基线波动",
+		Status: systemHealthResourceShiftStatusForRatio(selectedRatio, selected, waterline),
+		Value:  systemHealthResourceShiftDisplayValue(selected, waterline),
+		Unit:   systemHealthResourceShiftUnit(waterline),
+		Note:   systemHealthResourceShiftNote("系统资源水位较 24h 前变化", "系统资源消耗相对 24h 前基线波动", waterline),
 	}
-	return capSystemHealthResourceShiftByWaterline(detail, waterline), true
+	return addSystemHealthResourceShiftBadges(detail, selectedRatio, waterline), true
 }
 
-func capSystemHealthResourceShiftByWaterline(detail response.SystemHealthMetricDetail, waterline response.SystemHealthMetricDetail) response.SystemHealthMetricDetail {
+func systemHealthResourceShiftNote(withWaterline string, fallback string, waterline response.SystemHealthMetricDetail) string {
+	if _, ok := parseSystemMetricDetailRank(waterline.Value); ok {
+		return withWaterline
+	}
+	return fallback
+}
+
+func systemHealthResourceShiftDisplayPercent(ratio float64, waterline response.SystemHealthMetricDetail) float64 {
+	if math.IsNaN(ratio) || ratio < 1 {
+		return 0
+	}
+	waterlinePercent, ok := parseSystemMetricDetailRank(waterline.Value)
+	if !ok {
+		return ratioToShiftPercent(ratio)
+	}
+	if math.IsInf(ratio, 0) {
+		return clampSystemHealthPercent(waterlinePercent)
+	}
+	if ratio <= 0 {
+		return 0
+	}
+	baselineWaterline := waterlinePercent / ratio
+	return clampSystemHealthPercent(waterlinePercent - baselineWaterline)
+}
+
+func systemHealthResourceShiftDisplayValue(shiftPercent float64, waterline response.SystemHealthMetricDetail) string {
+	if _, ok := parseSystemMetricDetailRank(waterline.Value); !ok {
+		return formatPercentValue(shiftPercent)
+	}
+	return formatChangePercentValue(shiftPercent)
+}
+
+func systemHealthResourceShiftUnit(waterline response.SystemHealthMetricDetail) string {
+	return "%"
+}
+
+func systemHealthResourceShiftStatusForRatio(ratio float64, shiftPercent float64, waterline response.SystemHealthMetricDetail) string {
+	status := systemHealthResourceShiftStatus(shiftPercent)
+	waterlinePercent, ok := parseSystemMetricDetailRank(waterline.Value)
+	if !ok {
+		return systemHealthResourceShiftStatus(ratioToShiftPercent(math.Max(ratio, 1)))
+	}
+	rawStatus := systemHealthResourceShiftStatus(ratioToShiftPercent(math.Max(ratio, 1)))
+	if status == healthStatusGreen && ratio > 1 && (waterline.Status == healthStatusYellow || waterline.Status == healthStatusRed) {
+		return healthStatusYellow
+	}
+	if status == healthStatusGreen && rawStatus != healthStatusGreen && waterlinePercent < systemHealthResourceShiftRedMinLevel {
+		return healthStatusYellow
+	}
+	return status
+}
+
+func systemHealthResourceShiftStatus(shiftPercent float64) string {
+	if math.IsInf(shiftPercent, 0) || shiftPercent >= 60 {
+		return healthStatusRed
+	}
+	if shiftPercent >= 30 {
+		return healthStatusYellow
+	}
+	return healthStatusGreen
+}
+
+func addSystemHealthResourceShiftBadges(detail response.SystemHealthMetricDetail, ratio float64, waterline response.SystemHealthMetricDetail) response.SystemHealthMetricDetail {
 	waterlinePercent, ok := parseSystemMetricDetailRank(waterline.Value)
 	if !ok {
 		return detail
@@ -4272,6 +4354,18 @@ func capSystemHealthResourceShiftByWaterline(detail response.SystemHealthMetricD
 		Label:  "当前水位",
 		Value:  formatWaterlinePercentValue(waterlinePercent),
 		Status: waterline.Status,
+	})
+	if ratio > 0 && !math.IsInf(ratio, 0) && !math.IsNaN(ratio) {
+		detail.Badges = append(detail.Badges, response.SystemHealthMetricBadge{
+			Label:  "24h前水位",
+			Value:  formatWaterlinePercentValue(waterlinePercent / ratio),
+			Status: healthStatusGray,
+		})
+	}
+	detail.Badges = append(detail.Badges, response.SystemHealthMetricBadge{
+		Label:  "相对增长",
+		Value:  formatPercentValue(ratioToShiftPercent(math.Max(ratio, 1))),
+		Status: systemHealthResourceShiftStatus(ratioToShiftPercent(math.Max(ratio, 1))),
 	})
 	if detail.Status == healthStatusRed && waterlinePercent < systemHealthResourceShiftRedMinLevel {
 		detail.Status = healthStatusYellow
@@ -4419,6 +4513,16 @@ func scoreFromMetricStatusesWithData(metrics map[string]string) (int, bool) {
 func formatPercentValue(value float64) string {
 	if math.IsInf(value, 0) {
 		return "Inf%"
+	}
+	return fmt.Sprintf("%.2f%%", value)
+}
+
+func formatChangePercentValue(value float64) string {
+	if math.IsInf(value, 0) {
+		return "Inf%"
+	}
+	if math.Abs(value) < 0.005 {
+		return "0.00%"
 	}
 	return fmt.Sprintf("%.2f%%", value)
 }

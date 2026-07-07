@@ -1803,7 +1803,7 @@ func TestApplySystemHealthExtraMetricsMergesVMHostResourceDetails(t *testing.T) 
 		t.Fatalf("expected order-api host CPU waterline yellow, metrics=%+v detail=%+v", orderAPI.Metrics, apiResource)
 	}
 	apiShift := orderAPI.MetricDetails[healthMetricResourceShift]
-	if orderAPI.Metrics[healthMetricResourceShift] != healthStatusYellow || apiShift.Value != "35.00%" || apiShift.Source != "host/vm-a" {
+	if orderAPI.Metrics[healthMetricResourceShift] != healthStatusYellow || apiShift.Value != "18.67%" || apiShift.Source != "host/vm-a" {
 		t.Fatalf("expected order-api host resource shift yellow, metrics=%+v detail=%+v", orderAPI.Metrics, apiShift)
 	}
 
@@ -2414,6 +2414,41 @@ func TestSystemHealthVMHostResourceShiftDetailsMapHostsToServices(t *testing.T) 
 	}
 }
 
+func TestSystemHealthSystemResourceShiftUsesWaterlineChangePercent(t *testing.T) {
+	detail, ok := systemHealthSystemResourceShiftDetail([]prometheus.MetricResult{
+		{Values: []prometheus.Points{{Value: 9}}},
+	}, response.SystemHealthMetricDetail{
+		Status: healthStatusYellow,
+		Value:  "60.00%",
+	})
+
+	if !ok {
+		t.Fatal("expected resource shift detail")
+	}
+	if detail.Value != "53.33%" || detail.Unit != "%" || detail.Status != healthStatusYellow {
+		t.Fatalf("expected resource shift to display waterline change percent instead of raw 800%% ratio, got %+v", detail)
+	}
+	if !systemHealthMetricBadgesContain(detail.Badges, "24h前水位", "6.67%") || !systemHealthMetricBadgesContain(detail.Badges, "相对增长", "800.00%") {
+		t.Fatalf("expected resource shift detail to expose baseline waterline and relative growth, got %+v", detail.Badges)
+	}
+}
+
+func TestSystemHealthSystemResourceShiftRoundsTinyWaterlineIncreaseToNeutralZero(t *testing.T) {
+	detail, ok := systemHealthSystemResourceShiftDetail([]prometheus.MetricResult{
+		{Values: []prometheus.Points{{Value: 1.00001}}},
+	}, response.SystemHealthMetricDetail{
+		Status: healthStatusGreen,
+		Value:  "50.00%",
+	})
+
+	if !ok {
+		t.Fatal("expected resource shift detail")
+	}
+	if detail.Value != "0.00%" || detail.Unit != "%" || detail.Status != healthStatusGreen {
+		t.Fatalf("expected tiny rounded waterline shift to display neutral zero percent, got %+v", detail)
+	}
+}
+
 func TestBuildSystemHealthVMHostResourcePQLUsesNodeExporterInstanceName(t *testing.T) {
 	nodes := []string{"vm-a", "vm-b"}
 
@@ -2448,13 +2483,16 @@ func TestBuildSystemHealthVMHostResourcePQLUsesNodeExporterInstanceName(t *testi
 	for _, part := range []string{
 		`offset 24h`,
 		`max by (node_name)`,
-		`1 / (`,
+		`* 0 + 1`,
 		`node_cpu_seconds_total{instance_name=~"vm-a|vm-b",mode!~"idle|iowait|steal"}[15m]`,
 		`node_memory_MemAvailable_bytes{instance_name=~"vm-a|vm-b"}[15m]`,
 	} {
 		if !strings.Contains(shiftQuery, part) {
 			t.Fatalf("expected VM host shift query to contain %q, got %s", part, shiftQuery)
 		}
+	}
+	if strings.Contains(shiftQuery, `1 / (`) {
+		t.Fatalf("expected VM host shift query not to invert resource decreases, got %s", shiftQuery)
 	}
 }
 

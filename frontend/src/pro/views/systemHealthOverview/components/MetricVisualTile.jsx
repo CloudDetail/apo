@@ -159,7 +159,7 @@ const metricPrimaryValueLabel = (metricKey, visual = {}) => {
     case 'resource':
       return safeText(visual.helper) || '当前水位'
     case 'resourceShift':
-      return '整体波动'
+      return '水位变化'
     case 'errorRate':
       return '错误率'
     case 'latency':
@@ -211,9 +211,9 @@ const metricTooltipConclusion = (metricKey, status, badges = []) => {
       if (status === 'yellow') return '整体资源水位偏高，需要关注。'
       return '整体资源水位正常。'
     case 'resourceShift':
-      if (status === 'red') return '资源消耗比昨天同时间明显增加。'
-      if (status === 'yellow') return '资源消耗较昨天同时间上涨，需要关注。'
-      return '资源消耗相对昨天同时间稳定。'
+      if (status === 'red') return '资源水位较昨天同时间明显变化。'
+      if (status === 'yellow') return '资源水位较昨天同时间上涨，需要关注。'
+      return '资源水位相对昨天同时间稳定。'
     case 'errorRate':
       if (status === 'red') return '整体请求失败率过高。'
       if (status === 'yellow') return '当前窗口出现请求失败，需要关注。'
@@ -247,13 +247,14 @@ const MetricDecisionTooltip = ({ metricKey, label, visual }) => {
   const badges = Array.isArray(visual.badges) ? visual.badges : []
   const { overallBadges, locatorBadges } = splitMetricTooltipBadges(badges)
   const conclusion = metricTooltipConclusion(metricKey, visual.status, badges)
+  const evidenceLimit = metricKey === 'resourceShift' ? 3 : 2
   const overallRows = [
     {
       label: metricPrimaryValueLabel(metricKey, visual),
       value: visual.value,
       status: visual.status,
     },
-    ...overallBadges.slice(0, 2).map((badge) => ({
+    ...overallBadges.slice(0, evidenceLimit).map((badge) => ({
       label: metricEvidenceLabel(badge.label),
       value: badge.value,
       status: badge.status,

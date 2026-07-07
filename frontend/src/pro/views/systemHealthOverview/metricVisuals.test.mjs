@@ -402,17 +402,17 @@ test('metricVisualFor scales resource shift against the abnormal threshold', () 
   assert.deepEqual(
     metricVisualFor('resourceShift', {
       status: 'yellow',
-      value: '45%',
-      note: 'CPU/内存资源相对 24h 前基线波动',
+      value: '45.00%',
+      note: 'CPU/内存资源水位较 24h 前变化',
     }),
     {
       kind: 'deviation',
       status: 'yellow',
       tone: 'warning',
-      value: '45%',
-      note: 'CPU/内存资源相对 24h 前基线波动',
+      value: '45.00%',
+      note: 'CPU/内存资源水位较 24h 前变化',
       percent: 75,
-      helper: '相对 24h 基线',
+      helper: '较 24h 前',
     },
   )
 })

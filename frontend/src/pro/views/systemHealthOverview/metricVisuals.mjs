@@ -128,7 +128,7 @@ const AGGREGATE_RESOURCE_WATERLINE_NOTE = '系统资源水位聚合'
 const AGGREGATE_RESOURCE_WATERLINE_BADGE_LABELS = new Set(['平均水位', 'P95水位'])
 const METRIC_SOURCE_TITLES = {
   resource: '数据组内服务关联 Pod 或 Host 去重后的整体资源水位。',
-  resourceShift: '数据组整体资源消耗相对 24 小时前同窗口的变化。',
+  resourceShift: '数据组整体资源水位较 24 小时前同窗口的变化幅度。',
   errorRate: '数据组内总失败请求数占总请求数的比例。',
   latency: '数据组整体请求延时，当前使用请求数加权平均值。',
   errorLog: '数据组内可见服务 error、critical 和 exception 日志总数。',
@@ -487,7 +487,7 @@ export const metricVisualFor = (key, detail = {}, fallbackStatus = 'gray') => {
       ...base,
       ...(chart ? { chart } : {}),
       percent: shiftPercent === null ? statusRatio(status) : safePercent(shiftPercent, 60),
-      helper: '相对 24h 基线',
+      helper: '较 24h 前',
     }
   }
 
