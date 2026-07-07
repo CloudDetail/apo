@@ -43,7 +43,6 @@ export default function OverviewSystemTable({
         </div>
         <Space wrap size={8}>
           <Select
-            allowClear
             className="sho-health-filter"
             options={systemHealthFilterOptions}
             placeholder="筛选系统"

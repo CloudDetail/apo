@@ -27,6 +27,16 @@ const detailTrendSectionSource = sourceFor('./components/DetailTrendSection.jsx'
 const metricVisualTileSource = sourceFor('./components/MetricVisualTile.jsx')
 const trendCommonSource = sourceFor('./components/TrendCommon.jsx')
 
+const selectBlockWithPlaceholder = (source, placeholder) => {
+  const placeholderIndex = source.indexOf(`placeholder="${placeholder}"`)
+  assert.notEqual(placeholderIndex, -1, `${placeholder} select should exist`)
+  const selectStart = source.lastIndexOf('<Select', placeholderIndex)
+  const selectEnd = source.indexOf('/>', placeholderIndex)
+  assert.notEqual(selectStart, -1, `${placeholder} select should start`)
+  assert.notEqual(selectEnd, -1, `${placeholder} select should close`)
+  return source.slice(selectStart, selectEnd)
+}
+
 test('detail body stays hidden while detail header refreshes', () => {
   assert.equal(
     shouldRenderDetailBody({
@@ -270,7 +280,7 @@ test('detail body loading state uses a structured skeleton panel', () => {
   assert.ok(detailLoadingSource.includes('export const DetailLoadingPanel = () => ('))
   assert.ok(detailLoadingSource.includes('className="sho-panel sho-detail-loading"'))
   assert.ok(detailLoadingSource.includes('className="sho-detail-loading-metrics"'))
-  assert.ok(viewSource.includes('detailHeaderLoading ? <DetailLoadingPanel />'))
+  assert.match(viewSource, /detailHeaderLoading\s*\?\s*(?:\(\s*)?<DetailLoadingPanel\s*\/>/)
   assert.ok(detailLoadingSource.includes('正在加载系统详情'))
 })
 
@@ -442,6 +452,16 @@ test('system and service health filters use compact single-select options', () =
   assert.ok(viewSource.includes('setServiceHealthFilter(DEFAULT_HEALTH_FILTER_VALUE)'))
   assert.ok(servicePanelSource.includes('<Select'))
   assert.equal(servicePanelSource.includes('serviceFilter'), false)
+  assert.equal(
+    selectBlockWithPlaceholder(overviewSystemTableSource, '筛选系统').includes('allowClear'),
+    false,
+    'system health filter should not be clearable',
+  )
+  assert.equal(
+    selectBlockWithPlaceholder(serviceHealthTableSource, '筛选服务').includes('allowClear'),
+    false,
+    'service health filter should not be clearable',
+  )
   assert.ok(systemOptionsSource.indexOf("label: '异常系统'") < systemOptionsSource.indexOf("label: '关注系统'"))
   assert.ok(systemOptionsSource.indexOf("label: '关注系统'") < systemOptionsSource.indexOf("label: '健康系统'"))
   assert.ok(systemOptionsSource.indexOf("label: '健康系统'") < systemOptionsSource.indexOf("label: '无数据系统'"))

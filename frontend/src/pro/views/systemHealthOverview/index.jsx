@@ -504,7 +504,7 @@ export default function SystemHealthOverviewPage() {
           ...queryParams,
           page: pendingIssuePage,
           pageSize: pendingIssuePageSize,
-          status: 'all',
+          status: 'abnormal',
         })
         if (cancelled) return
         setPendingIssueItems(Array.isArray(resp?.issues) ? resp.issues.map(normalizePendingIssue) : [])

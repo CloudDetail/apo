@@ -119,6 +119,26 @@ test('system health page renders pending issue pagination controls', () => {
   )
 })
 
+test('system health pending issues request only asks for abnormal issues', () => {
+  const requestStart = viewSource.indexOf('getSystemHealthPendingIssuesApi({')
+  assert.notEqual(requestStart, -1, 'pending issue API request should exist')
+
+  const requestEnd = viewSource.indexOf('})', requestStart)
+  assert.notEqual(requestEnd, -1, 'pending issue API request should close')
+
+  const requestSource = viewSource.slice(requestStart, requestEnd)
+
+  assert.ok(
+    requestSource.includes("status: 'abnormal'"),
+    'pending issue count and table should request only abnormal issues',
+  )
+  assert.equal(
+    requestSource.includes("status: 'all'"),
+    false,
+    'pending issue request must not include general or attention issues',
+  )
+})
+
 test('pending issue table uses AI assistant column without a separate status column', () => {
   const tableStart = pendingIssueQueueSource.indexOf('<table className="sho-pending-table">')
   assert.notEqual(tableStart, -1, 'pending issue table should exist')

@@ -29,7 +29,6 @@ export default function ServiceHealthTable({
         <div className="sho-panel-title">服务健康度</div>
         <Space wrap size={8}>
           <Select
-            allowClear
             className="sho-health-filter"
             options={serviceHealthFilterOptions}
             placeholder="筛选服务"
