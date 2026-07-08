@@ -511,7 +511,7 @@ export default function SystemHealthOverviewPage() {
         setPendingIssueTotal(positiveNumber(resp?.total))
       } catch (error) {
         if (!cancelled) {
-          setPendingIssueError(error?.message || '待处理问题加载失败')
+          setPendingIssueError(error?.message || '待处理事项加载失败')
           setPendingIssueItems([])
           setPendingIssueTotal(0)
         }
@@ -944,7 +944,7 @@ export default function SystemHealthOverviewPage() {
         ...current,
         [analysisKey]: {
           ...(current[analysisKey] || {}),
-          error: error?.message || 'AI 分析失败',
+          error: error?.message || '智能分析失败',
           loading: false,
         },
       }))

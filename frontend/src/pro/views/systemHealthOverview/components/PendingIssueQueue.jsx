@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Alert, Button, Pagination, Spin, Tooltip } from 'antd'
-import { HelpCircle, Sparkles } from 'lucide-react'
+import { BrainCircuit, HelpCircle } from 'lucide-react'
 
 import { describePendingIssue } from '../pendingIssueDescription.mjs'
 import { buildPendingIssueAnalysisKey } from '../pendingIssueAnalysis.mjs'
@@ -19,7 +19,7 @@ const PendingIssueAnalysis = ({ analysisState, isExpanded }) => {
   if (data.aiStatus !== 'succeeded') {
     return (
       <div className="sho-pending-analysis sho-pending-analysis-error">
-        {data.error || 'AI 分析暂不可用'}
+        {data.error || '智能分析暂不可用'}
       </div>
     )
   }
@@ -94,23 +94,23 @@ export default function PendingIssueQueue({
     <section className="sho-panel sho-pending-panel">
       <div className="sho-panel-head">
         <div className="sho-panel-title">
-          待处理问题
+          待处理事项
           <Tooltip title="当前用户有权访问的所有系统中，按风险排序的红灯和黄灯服务指标">
             <HelpCircle size={15} className="sho-help-icon" />
           </Tooltip>
         </div>
         <span className="sho-muted">
-          {pendingServiceCount} 个服务 / 本页 {pendingIssueRows.length} 类问题 / 共{' '}
+          {pendingServiceCount} 个服务 / 本页 {pendingIssueRows.length} 类异常 / 共{' '}
           {pendingIssueTotal} 条
         </span>
       </div>
       {pendingIssueLoading ? (
         <div className="sho-state-panel">
           <Spin size="small" />
-          <span>正在加载待处理问题</span>
+          <span>正在加载待处理事项</span>
         </div>
       ) : pendingIssueError ? (
-        <Alert message="待处理问题加载失败" description={pendingIssueError} type="error" showIcon />
+        <Alert message="待处理事项加载失败" description={pendingIssueError} type="error" showIcon />
       ) : pendingIssueRows.length ? (
         <div className="sho-pending-table-wrap">
           <table className="sho-pending-table">
@@ -124,7 +124,7 @@ export default function PendingIssueQueue({
             <thead>
               <tr>
                 <th>服务</th>
-                <th>问题</th>
+                <th>异常</th>
                 <th>系统</th>
                 <th>当前态</th>
                 <th>操作助手</th>
@@ -173,7 +173,7 @@ export default function PendingIssueQueue({
                       </td>
                       <td className="sho-pending-action-cell">
                         <Button
-                          icon={<Sparkles size={13} />}
+                          icon={<BrainCircuit size={13} />}
                           loading={analysisState.loading}
                           size="small"
                           type={hasSucceededAnalysis && isAnalysisExpanded ? 'primary' : 'default'}
@@ -189,7 +189,7 @@ export default function PendingIssueQueue({
                             ? isAnalysisExpanded
                               ? '收起分析'
                               : '展开分析'
-                            : 'AI 分析'}
+                            : '智能分析'}
                         </Button>
                       </td>
                     </tr>

@@ -421,7 +421,7 @@ export const buildOverviewSummaryCards = (
     },
     {
       key: 'pendingIssues',
-      label: '待处理问题',
+      label: '待处理事项',
       value: pendingIssueTotal,
       tone: 'critical',
       visual: 'number',

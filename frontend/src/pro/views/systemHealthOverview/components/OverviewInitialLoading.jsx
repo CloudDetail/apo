@@ -23,7 +23,7 @@ export default function OverviewInitialLoading({ metricLabels }) {
           <Spin />
           <div>
             <strong>正在加载健康度</strong>
-            <span>获取系统、指标和待处理问题，完成后展示当前状态。</span>
+            <span>获取系统、指标和待处理事项，完成后展示当前状态。</span>
           </div>
         </div>
         <div className="sho-loading-table" aria-hidden="true">
@@ -42,7 +42,7 @@ export default function OverviewInitialLoading({ metricLabels }) {
 
       <section className="sho-panel sho-overview-loading-pending">
         <div className="sho-panel-head">
-          <div className="sho-panel-title">待处理问题</div>
+          <div className="sho-panel-title">待处理事项</div>
           <span className="sho-muted">等待风险排序</span>
         </div>
         <div className="sho-loading-pending-table" aria-hidden="true">

@@ -187,7 +187,7 @@ test('buildOverviewSummaryCards presents compact anomaly cards in priority order
 
   assert.deepEqual(
     cards.map((card) => card.label),
-    ['异常系统', '关注系统', '待处理问题'],
+    ['异常系统', '关注系统', '待处理事项'],
   )
   assert.deepEqual(
     cards.map((card) => card.value),
@@ -295,7 +295,7 @@ test('buildOverviewSummaryCards presents pending issue counts as big numbers', (
 
   const pendingIssuesCard = cards.find((card) => card.key === 'pendingIssues')
 
-  assert.equal(pendingIssuesCard.label, '待处理问题')
+  assert.equal(pendingIssuesCard.label, '待处理事项')
   assert.equal(pendingIssuesCard.value, 6)
   assert.equal(pendingIssuesCard.visual, 'number')
   assert.equal(pendingIssuesCard.percent, undefined)

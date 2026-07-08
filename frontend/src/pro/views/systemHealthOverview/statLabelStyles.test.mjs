@@ -11,6 +11,8 @@ const thresholdSettingsSource = sourceFor('./components/ThresholdSettingsContent
 const detailHeaderSource = sourceFor('./components/DetailHeader.jsx')
 const overviewSummarySource = sourceFor('./components/OverviewSummary.jsx')
 const trendCommonSource = sourceFor('./components/TrendCommon.jsx')
+const pendingIssueQueueSource = sourceFor('./components/PendingIssueQueue.jsx')
+const overviewInitialLoadingSource = sourceFor('./components/OverviewInitialLoading.jsx')
 
 const sourceBetween = (start, end, targetSource = viewSource) => {
   const startIndex = targetSource.indexOf(start)
@@ -151,6 +153,24 @@ test('summary titles use direct icons while settings live in toolbar', () => {
       '系统健康度 {severeThreshold}-{generalThreshold - 1} 分之间，计为关注系统',
     ),
   )
+})
+
+test('pending issue section uses item and anomaly wording with an AI brain icon', () => {
+  assert.ok(
+    pendingIssueQueueSource.includes("import { BrainCircuit, HelpCircle } from 'lucide-react'"),
+  )
+  assert.equal(pendingIssueQueueSource.includes('Sparkles'), false)
+  assert.ok(pendingIssueQueueSource.includes('待处理事项'))
+  assert.equal(pendingIssueQueueSource.includes('待处理问题'), false)
+  assert.ok(pendingIssueQueueSource.includes('类异常'))
+  assert.ok(pendingIssueQueueSource.includes('<th>异常</th>'))
+  assert.ok(pendingIssueQueueSource.includes('icon={<BrainCircuit size={13} />}'))
+  assert.ok(pendingIssueQueueSource.includes(": '智能分析'"))
+  assert.equal(pendingIssueQueueSource.includes(": 'AI 分析'"), false)
+  assert.ok(viewSource.includes("setPendingIssueError(error?.message || '待处理事项加载失败')"))
+  assert.ok(viewSource.includes("error: error?.message || '智能分析失败'"))
+  assert.ok(overviewInitialLoadingSource.includes('待处理事项'))
+  assert.equal(overviewInitialLoadingSource.includes('待处理问题'), false)
 })
 
 test('threshold settings can still be opened from the toolbar', () => {
