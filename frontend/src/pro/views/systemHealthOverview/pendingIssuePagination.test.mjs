@@ -148,7 +148,7 @@ test('pending issue table uses AI assistant column without a separate status col
 
   const tableSource = pendingIssueQueueSource.slice(tableStart, tableEnd)
 
-  assert.ok(tableSource.includes('<th>AI助手</th>'), 'action column title should be AI助手')
+  assert.ok(tableSource.includes('<th>操作助手</th>'), 'action column title should be 操作助手')
   assert.equal(tableSource.includes('<th>状态</th>'), false, 'status header should be removed')
   assert.equal(
     tableSource.includes('sho-pending-col-status'),

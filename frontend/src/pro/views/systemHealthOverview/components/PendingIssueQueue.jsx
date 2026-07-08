@@ -127,7 +127,7 @@ export default function PendingIssueQueue({
                 <th>问题</th>
                 <th>系统</th>
                 <th>当前态</th>
-                <th>AI助手</th>
+                <th>操作助手</th>
               </tr>
             </thead>
             <tbody>
