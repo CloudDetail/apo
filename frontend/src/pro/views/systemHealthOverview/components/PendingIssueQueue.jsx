@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Alert, Button, Pagination, Spin, Tooltip } from 'antd'
-import { BrainCircuit, HelpCircle } from 'lucide-react'
+import atomicIcon from 'src/pro/assets/atomic.png'
+import { HelpCircle } from 'lucide-react'
 
 import { describePendingIssue } from '../pendingIssueDescription.mjs'
 import { buildPendingIssueAnalysisKey } from '../pendingIssueAnalysis.mjs'
@@ -19,7 +20,7 @@ const PendingIssueAnalysis = ({ analysisState, isExpanded }) => {
   if (data.aiStatus !== 'succeeded') {
     return (
       <div className="sho-pending-analysis sho-pending-analysis-error">
-        {data.error || '智能分析暂不可用'}
+        {data.error || '异常分析暂不可用'}
       </div>
     )
   }
@@ -137,12 +138,10 @@ export default function PendingIssueQueue({
                 const hasSucceededAnalysis = analysisState.data?.aiStatus === 'succeeded'
                 const isAnalysisExpanded =
                   hasSucceededAnalysis && expandedIssueAnalyses[analysisKey] !== false
-                const analysisNode = (
-                  <PendingIssueAnalysis
-                    analysisState={analysisState}
-                    isExpanded={isAnalysisExpanded}
-                  />
-                )
+                const shouldShowAnalysisRow =
+                  Boolean(analysisState.error) ||
+                  Boolean(analysisState.data && analysisState.data.aiStatus !== 'succeeded') ||
+                  isAnalysisExpanded
 
                 return (
                   <React.Fragment key={issue.queueId}>
@@ -173,7 +172,14 @@ export default function PendingIssueQueue({
                       </td>
                       <td className="sho-pending-action-cell">
                         <Button
-                          icon={<BrainCircuit size={13} />}
+                          icon={
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className="sho-pending-analysis-button-icon"
+                              src={atomicIcon}
+                            />
+                          }
                           loading={analysisState.loading}
                           size="small"
                           type={hasSucceededAnalysis && isAnalysisExpanded ? 'primary' : 'default'}
@@ -189,13 +195,18 @@ export default function PendingIssueQueue({
                             ? isAnalysisExpanded
                               ? '收起分析'
                               : '展开分析'
-                            : '智能分析'}
+                            : '异常分析'}
                         </Button>
                       </td>
                     </tr>
-                    {analysisNode && (
+                    {shouldShowAnalysisRow && (
                       <tr className="sho-pending-analysis-row">
-                        <td colSpan={5}>{analysisNode}</td>
+                        <td colSpan={5}>
+                          <PendingIssueAnalysis
+                            analysisState={analysisState}
+                            isExpanded={isAnalysisExpanded}
+                          />
+                        </td>
                       </tr>
                     )}
                   </React.Fragment>

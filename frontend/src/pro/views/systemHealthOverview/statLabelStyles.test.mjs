@@ -155,22 +155,41 @@ test('summary titles use direct icons while settings live in toolbar', () => {
   )
 })
 
-test('pending issue section uses item and anomaly wording with an AI brain icon', () => {
-  assert.ok(
-    pendingIssueQueueSource.includes("import { BrainCircuit, HelpCircle } from 'lucide-react'"),
-  )
+test('pending issue section uses item and anomaly wording with the atomic analysis icon', () => {
+  assert.ok(pendingIssueQueueSource.includes("import atomicIcon from 'src/pro/assets/atomic.png'"))
+  assert.ok(pendingIssueQueueSource.includes("import { HelpCircle } from 'lucide-react'"))
+  assert.equal(pendingIssueQueueSource.includes('Atom'), false)
+  assert.equal(pendingIssueQueueSource.includes('search.png'), false)
+  assert.equal(pendingIssueQueueSource.includes('searchIcon'), false)
+  assert.equal(pendingIssueQueueSource.includes('BrainCircuit'), false)
+  assert.equal(pendingIssueQueueSource.includes('analysis.png'), false)
   assert.equal(pendingIssueQueueSource.includes('Sparkles'), false)
   assert.ok(pendingIssueQueueSource.includes('待处理事项'))
   assert.equal(pendingIssueQueueSource.includes('待处理问题'), false)
   assert.ok(pendingIssueQueueSource.includes('类异常'))
   assert.ok(pendingIssueQueueSource.includes('<th>异常</th>'))
-  assert.ok(pendingIssueQueueSource.includes('icon={<BrainCircuit size={13} />}'))
-  assert.ok(pendingIssueQueueSource.includes(": '智能分析'"))
-  assert.equal(pendingIssueQueueSource.includes(": 'AI 分析'"), false)
+  assert.ok(pendingIssueQueueSource.includes('className="sho-pending-analysis-button-icon"'))
+  assert.ok(pendingIssueQueueSource.includes('src={atomicIcon}'))
+  assert.ok(pendingIssueQueueSource.includes(": '异常分析'"))
+  assert.equal(pendingIssueQueueSource.includes('智能分析'), false)
+  assert.equal(pendingIssueQueueSource.includes('AI 分析'), false)
   assert.ok(viewSource.includes("setPendingIssueError(error?.message || '待处理事项加载失败')"))
-  assert.ok(viewSource.includes("error: error?.message || '智能分析失败'"))
+  assert.ok(viewSource.includes("error: error?.message || '异常分析失败'"))
+  assert.equal(viewSource.includes('智能分析失败'), false)
   assert.ok(overviewInitialLoadingSource.includes('待处理事项'))
   assert.equal(overviewInitialLoadingSource.includes('待处理问题'), false)
+})
+
+test('pending issue analysis row only renders when there is visible analysis content', () => {
+  assert.ok(pendingIssueQueueSource.includes('const shouldShowAnalysisRow ='))
+  assert.ok(pendingIssueQueueSource.includes('Boolean(analysisState.error)'))
+  assert.ok(
+    pendingIssueQueueSource.includes(
+      "Boolean(analysisState.data && analysisState.data.aiStatus !== 'succeeded')",
+    ),
+  )
+  assert.ok(pendingIssueQueueSource.includes('{shouldShowAnalysisRow && ('))
+  assert.equal(pendingIssueQueueSource.includes('{analysisNode && ('), false)
 })
 
 test('threshold settings can still be opened from the toolbar', () => {

@@ -944,7 +944,7 @@ export default function SystemHealthOverviewPage() {
         ...current,
         [analysisKey]: {
           ...(current[analysisKey] || {}),
-          error: error?.message || '智能分析失败',
+          error: error?.message || '异常分析失败',
           loading: false,
         },
       }))

@@ -1933,6 +1933,13 @@
   white-space: nowrap;
 }
 
+.sho-pending-analysis-button-icon {
+  display: block;
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}
+
 .sho-system-pagination,
 .sho-service-pagination,
 .sho-pending-pagination {
