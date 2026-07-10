@@ -51,6 +51,13 @@ test('buildPendingIssueQueueRows aggregates pending issues by service and metric
   assert.equal(rows[1].note, 'P99 延时异常')
   assert.equal(rows[1].systemName, '支付系统、订单系统')
   assert.equal(rows[1].groupId, 1002)
+  assert.deepEqual(
+    rows[1].systems.map((system) => [system.groupId, system.name]),
+    [
+      [1002, '支付系统'],
+      [1001, '订单系统'],
+    ],
+  )
 })
 
 test('buildPendingIssueQueueRows labels replica-only resource issues as availability', () => {

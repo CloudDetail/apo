@@ -4,11 +4,14 @@ import { readFileSync } from 'node:fs'
 import { URL } from 'node:url'
 
 import {
+  buildServiceHealthAssistantIssues,
   buildAbnormalServiceRatio,
   buildDetailHeaderRequestKey,
   compareHealthScoreAscending,
   DEFAULT_HEALTH_FILTER_VALUE,
   DEFAULT_HEALTH_FILTER_VALUES,
+  serviceAiAssistantActionFor,
+  serviceAiAssistantActionLabel,
   shouldSyncDetailHeaderFromRows,
   targetMatchesHealthFilter,
   shouldRenderDetailBody,
@@ -23,6 +26,7 @@ const pendingIssueQueueSource = sourceFor('./components/PendingIssueQueue.jsx')
 const overviewSystemTableSource = sourceFor('./components/OverviewSystemTable.jsx')
 const detailHeaderSource = sourceFor('./components/DetailHeader.jsx')
 const serviceHealthTableSource = sourceFor('./components/ServiceHealthTable.jsx')
+const serviceHealthAssistantModalSource = sourceFor('./components/ServiceHealthAssistantModal.jsx')
 const detailTrendSectionSource = sourceFor('./components/DetailTrendSection.jsx')
 const metricVisualTileSource = sourceFor('./components/MetricVisualTile.jsx')
 const trendCommonSource = sourceFor('./components/TrendCommon.jsx')
@@ -99,8 +103,12 @@ test('detail header only syncs from system rows loaded for the current time wind
 
 test('detail view skips the header request on row click and refreshes it on time changes', () => {
   assert.ok(viewSource.includes('const lastDetailHeaderRequestKeyRef = useRef'))
-  assert.ok(viewSource.includes('const [detailHeaderLoading, setDetailHeaderLoading] = useState(false)'))
-  assert.ok(viewSource.includes('lastDetailHeaderRequestKeyRef.current = buildDetailHeaderRequestKey'))
+  assert.ok(
+    viewSource.includes('const [detailHeaderLoading, setDetailHeaderLoading] = useState(false)'),
+  )
+  assert.ok(
+    viewSource.includes('lastDetailHeaderRequestKeyRef.current = buildDetailHeaderRequestKey'),
+  )
   assert.ok(viewSource.includes('lastDetailHeaderRequestKeyRef.current === detailHeaderRequestKey'))
   assert.ok(viewSource.includes('setDetailHeaderLoading(true)'))
   assert.ok(viewSource.includes('setDetailHeaderLoading(false)'))
@@ -298,7 +306,9 @@ test('detail page renders separate score and service distribution trend charts b
   assert.ok(metricsStart < servicePanelStart, 'metric panel should render before service table')
   assert.ok(viewSource.includes("buildDetailTrendRows(resp?.points, resp?.granularity || '')"))
   assert.ok(viewSource.includes('groupId: selectedSystemId'))
-  assert.ok(detailTrendSectionSource.includes('<section className="sho-panel sho-detail-trend-panel">'))
+  assert.ok(
+    detailTrendSectionSource.includes('<section className="sho-panel sho-detail-trend-panel">'),
+  )
   assert.ok(detailTrendSectionSource.includes('<DetailHealthScoreTrendChart'))
   assert.ok(detailTrendSectionSource.includes('<DetailServiceStatusTrendChart'))
   assert.equal(viewSource.includes('<DetailTrendChart'), false)
@@ -313,7 +323,11 @@ test('detail page renders separate score and service distribution trend charts b
   assert.ok(serviceTrendLegendSource.includes("label: '健康'"))
   assert.ok(serviceTrendLegendSource.includes("label: '无数据'"))
   assert.equal(serviceTrendLegendSource.includes('服务平均占比'), false)
-  assert.ok(detailTrendSectionSource.includes('const total = formatServiceTrendCount(detailServiceTrendTotalCount(row))'))
+  assert.ok(
+    detailTrendSectionSource.includes(
+      'const total = formatServiceTrendCount(detailServiceTrendTotalCount(row))',
+    ),
+  )
   assert.ok(detailTrendSectionSource.includes('总服务数量：${total} 个'))
   assert.ok(trendCommonSource.includes("abnormal: '#E24B4A'"))
   assert.ok(trendCommonSource.includes("attention: '#EF9F27'"))
@@ -346,7 +360,11 @@ test('detail service status trend tooltip renders colored status dots', () => {
   assert.ok(formatterSource.includes("row.serviceDistributionMode === 'average'"))
   assert.ok(formatterSource.includes('统计口径：时段平均占比'))
   assert.ok(formatterSource.includes('${item.label}：${ratio}</span>'))
-  assert.ok(formatterSource.includes('const count = formatServiceTrendCount(row.serviceCounts?.[item.key])'))
+  assert.ok(
+    formatterSource.includes(
+      'const count = formatServiceTrendCount(row.serviceCounts?.[item.key])',
+    ),
+  )
   assert.ok(formatterSource.includes('${item.label}：${count} 个（${ratio}）'))
   assert.ok(formatterSource.includes('sho-detail-service-tooltip-dot'))
   assert.ok(formatterSource.includes('background:${item.color}'))
@@ -377,15 +395,21 @@ test('detail health score trend keeps missing buckets as gaps', () => {
   assert.ok(optionSource.includes("data: rows.map((row) => trendDataPointValue(row, 'score'))"))
   assert.ok(optionSource.includes('connectNulls: false'))
   assert.ok(
-    optionSource.includes("graphic: rowsHaveTrendData(rows, 'score') ? undefined : noDataTrendGraphic()"),
+    optionSource.includes(
+      "graphic: rowsHaveTrendData(rows, 'score') ? undefined : noDataTrendGraphic()",
+    ),
   )
 })
 
 test('detail health score trend chart renders score judgement baselines', () => {
   const optionStart = detailTrendSectionSource.indexOf('const buildDetailHealthScoreTrendOption =')
-  const serviceOptionStart = detailTrendSectionSource.indexOf('const buildDetailServiceStatusTrendOption =')
+  const serviceOptionStart = detailTrendSectionSource.indexOf(
+    'const buildDetailServiceStatusTrendOption =',
+  )
   const chartStart = detailTrendSectionSource.indexOf('const DetailHealthScoreTrendChart =')
-  const serviceChartStart = detailTrendSectionSource.indexOf('const DetailServiceStatusTrendChart =')
+  const serviceChartStart = detailTrendSectionSource.indexOf(
+    'const DetailServiceStatusTrendChart =',
+  )
 
   assert.notEqual(optionStart, -1, 'detail health score trend option should exist')
   assert.notEqual(serviceOptionStart, -1, 'service status trend option should exist')
@@ -401,7 +425,9 @@ test('detail health score trend chart renders score judgement baselines', () => 
   assert.ok(optionSource.includes("kind: 'baseline'"))
   assert.ok(optionSource.includes('item.value'))
   assert.ok(chartSource.includes('scoreThresholds = DEFAULT_HEALTH_SCORE_THRESHOLDS'))
-  assert.ok(chartSource.includes('buildDetailHealthScoreTrendOption(rows, granularity, scoreThresholds)'))
+  assert.ok(
+    chartSource.includes('buildDetailHealthScoreTrendOption(rows, granularity, scoreThresholds)'),
+  )
   assert.equal(chartSource.includes('<DetailTrendLegend'), false)
   assert.equal(detailTrendSectionSource.includes('const detailHealthScoreTrendLegend ='), false)
   assert.ok(viewSource.includes('scoreThresholds={scoreThresholds}'))
@@ -416,6 +442,147 @@ test('health page uses active alert wording and health metric section title', ()
   assert.equal(pendingIssueQueueSource.includes('<th>当前值</th>'), false)
 })
 
+test('service health table exposes AI assistant actions by health status', () => {
+  assert.equal(serviceAiAssistantActionLabel('red'), '异常分析')
+  assert.equal(serviceAiAssistantActionLabel('yellow'), '关注调优')
+  assert.equal(serviceAiAssistantActionLabel('green'), '持续保持')
+  assert.equal(serviceAiAssistantActionLabel('gray'), '无数据')
+  assert.deepEqual(
+    serviceAiAssistantActionFor({
+      status: 'yellow',
+      metrics: { resource: 'green', latency: 'red' },
+    }),
+    { label: '异常分析', actionable: true, status: 'red' },
+  )
+  assert.deepEqual(
+    serviceAiAssistantActionFor({
+      status: 'green',
+      metrics: { resource: 'green', latency: 'yellow' },
+    }),
+    { label: '关注调优', actionable: true, status: 'yellow' },
+  )
+  assert.deepEqual(
+    serviceAiAssistantActionFor({
+      status: 'green',
+      metrics: { resource: 'green', latency: 'green' },
+    }),
+    { label: '持续保持', actionable: false, status: 'green' },
+  )
+  assert.deepEqual(
+    serviceAiAssistantActionFor({
+      status: 'green',
+      metrics: { resource: 'green', latency: 'gray' },
+    }),
+    { label: '持续保持', actionable: false, status: 'green' },
+  )
+  assert.deepEqual(
+    serviceAiAssistantActionFor({
+      status: 'gray',
+      metrics: { resource: 'gray', latency: 'gray' },
+    }),
+    { label: '无数据', actionable: false, status: 'gray' },
+  )
+
+  assert.ok(serviceHealthTableSource.includes('<th>AI助手</th>'))
+  assert.ok(serviceHealthTableSource.includes('serviceAiAssistantActionFor(service)'))
+  assert.ok(serviceHealthTableSource.includes('onOpenServiceAssistant(service)'))
+  assert.ok(viewSource.includes('<ServiceHealthAssistantModal'))
+  assert.ok(viewSource.includes('onOpenServiceAssistant={openServiceAssistant}'))
+  assert.ok(viewSource.includes('if (!serviceAiAssistantActionFor(service).actionable) return'))
+})
+
+test('service assistant builds red and yellow metric analysis issues only', () => {
+  const issues = buildServiceHealthAssistantIssues(
+    {
+      name: 'order-api',
+      score: 71,
+      status: 'yellow',
+      metrics: {
+        resource: 'green',
+        errorRate: 'red',
+        latency: 'yellow',
+        errorLog: 'gray',
+      },
+      metricDetails: {
+        errorRate: { value: '5.7%', note: '错误率高于阈值' },
+        latency: { value: '850ms', note: 'P99 延时升高' },
+      },
+    },
+    {
+      groupId: 1001,
+      name: '订单系统',
+      score: 62,
+    },
+    [
+      ['resource', '资源水位'],
+      ['errorRate', '错误率'],
+      ['latency', '响应延时'],
+      ['errorLog', '错误日志'],
+    ],
+  )
+
+  assert.deepEqual(
+    issues.map((issue) => [issue.metricKey, issue.metricLabel, issue.status, issue.value]),
+    [
+      ['errorRate', '错误率', 'red', '5.7%'],
+      ['latency', '响应延时', 'yellow', '850ms'],
+    ],
+  )
+  assert.equal(issues[0].groupId, 1001)
+  assert.equal(issues[0].systemName, '订单系统')
+  assert.equal(issues[0].serviceName, 'order-api')
+  assert.equal(issues[0].serviceScore, 71)
+  assert.equal(issues[0].systemScore, 62)
+})
+
+test('service assistant modal shows health lamps before AI analysis and always uses metric tabs', () => {
+  assert.ok(serviceHealthAssistantModalSource.includes('HealthRing'))
+  assert.ok(serviceHealthAssistantModalSource.includes('metricLabels.map(([key, label]) => ('))
+  assert.ok(serviceHealthAssistantModalSource.includes('<Lamp status={service?.metrics?.[key] ||'))
+  assert.ok(serviceHealthAssistantModalSource.includes('PendingIssueAnalysis'))
+  assert.ok(serviceHealthAssistantModalSource.includes('issues.length ? ('))
+  assert.ok(serviceHealthAssistantModalSource.includes('<Tabs'))
+  assert.equal(serviceHealthAssistantModalSource.includes('issues.length > 1 ? ('), false)
+  assert.equal(
+    serviceHealthAssistantModalSource.includes('renderServiceAssistantAnalysis(issues[0])'),
+    false,
+  )
+  assert.ok(serviceHealthAssistantModalSource.includes('analysisTitle="事件"'))
+  assert.ok(serviceHealthAssistantModalSource.includes('role="status"'))
+  assert.ok(serviceHealthAssistantModalSource.includes('className="sho-service-ai-loading-header"'))
+  assert.ok(
+    serviceHealthAssistantModalSource.includes('className="sho-service-ai-loading-preview"'),
+  )
+  assert.equal(serviceHealthAssistantModalSource.includes('<Spin size="small" />'), false)
+})
+
+test('service assistant modal title follows the service health status instead of active metric status', () => {
+  assert.ok(
+    serviceHealthAssistantModalSource.includes(
+      "import { serviceAiAssistantActionFor } from '../detailViewState.mjs'",
+    ),
+  )
+  assert.ok(serviceHealthAssistantModalSource.includes('serviceAssistantTitle(service)'))
+  assert.ok(
+    serviceHealthAssistantModalSource.includes('serviceAiAssistantActionFor(service).label'),
+  )
+  assert.equal(
+    serviceHealthAssistantModalSource.includes(
+      'serviceAiAssistantActionLabel(activeIssue?.status || service?.status)',
+    ),
+    false,
+  )
+  assert.equal(serviceAiAssistantActionLabel('red'), '异常分析')
+  assert.equal(serviceAiAssistantActionLabel('yellow'), '关注调优')
+  assert.equal(serviceAiAssistantActionLabel('green'), '持续保持')
+  assert.ok(
+    serviceHealthAssistantModalSource.includes('serviceAiAssistantActionFor(service).label'),
+  )
+  assert.equal(serviceHealthAssistantModalSource.includes("yellow: '调优分析'"), false)
+  assert.equal(serviceHealthAssistantModalSource.includes('AI助手'), false)
+  assert.ok(serviceHealthAssistantModalSource.includes('width={1040}'))
+})
+
 test('system and service health filters use compact single-select options', () => {
   const systemOptionsStart = viewSource.indexOf('const systemHealthFilterOptions = [')
   const serviceOptionsStart = viewSource.indexOf('const serviceHealthFilterOptions = [')
@@ -426,11 +593,17 @@ test('system and service health filters use compact single-select options', () =
 
   const servicePanelSource = serviceHealthTableSource
   const systemOptionsSource = viewSource.slice(systemOptionsStart, serviceOptionsStart)
-  const serviceOptionsSource = viewSource.slice(serviceOptionsStart, viewSource.indexOf('const summaryCardIcons'))
+  const serviceOptionsSource = viewSource.slice(
+    serviceOptionsStart,
+    viewSource.indexOf('const summaryCardIcons'),
+  )
   const oldFilterPrefix = '只看'
   assert.equal(viewSource.includes('<span className="sho-muted">异常和关注系统</span>'), false)
   assert.equal(viewSource.includes(`${oldFilterPrefix}异常和关注系统`), false)
-  assert.equal(servicePanelSource.includes('<span className="sho-muted">异常和关注服务</span>'), false)
+  assert.equal(
+    servicePanelSource.includes('<span className="sho-muted">异常和关注服务</span>'),
+    false,
+  )
   assert.equal(servicePanelSource.includes(`${oldFilterPrefix}异常和关注服务`), false)
   assert.ok(
     viewSource.includes(
@@ -462,14 +635,38 @@ test('system and service health filters use compact single-select options', () =
     false,
     'service health filter should not be clearable',
   )
-  assert.ok(systemOptionsSource.indexOf("label: '异常系统'") < systemOptionsSource.indexOf("label: '关注系统'"))
-  assert.ok(systemOptionsSource.indexOf("label: '关注系统'") < systemOptionsSource.indexOf("label: '健康系统'"))
-  assert.ok(systemOptionsSource.indexOf("label: '健康系统'") < systemOptionsSource.indexOf("label: '无数据系统'"))
-  assert.ok(systemOptionsSource.indexOf("label: '无数据系统'") < systemOptionsSource.indexOf("label: '全部'"))
-  assert.ok(serviceOptionsSource.indexOf("label: '异常服务'") < serviceOptionsSource.indexOf("label: '关注服务'"))
-  assert.ok(serviceOptionsSource.indexOf("label: '关注服务'") < serviceOptionsSource.indexOf("label: '健康服务'"))
-  assert.ok(serviceOptionsSource.indexOf("label: '健康服务'") < serviceOptionsSource.indexOf("label: '无数据服务'"))
-  assert.ok(serviceOptionsSource.indexOf("label: '无数据服务'") < serviceOptionsSource.indexOf("label: '全部'"))
+  assert.ok(
+    systemOptionsSource.indexOf("label: '异常系统'") <
+      systemOptionsSource.indexOf("label: '关注系统'"),
+  )
+  assert.ok(
+    systemOptionsSource.indexOf("label: '关注系统'") <
+      systemOptionsSource.indexOf("label: '健康系统'"),
+  )
+  assert.ok(
+    systemOptionsSource.indexOf("label: '健康系统'") <
+      systemOptionsSource.indexOf("label: '无数据系统'"),
+  )
+  assert.ok(
+    systemOptionsSource.indexOf("label: '无数据系统'") <
+      systemOptionsSource.indexOf("label: '全部'"),
+  )
+  assert.ok(
+    serviceOptionsSource.indexOf("label: '异常服务'") <
+      serviceOptionsSource.indexOf("label: '关注服务'"),
+  )
+  assert.ok(
+    serviceOptionsSource.indexOf("label: '关注服务'") <
+      serviceOptionsSource.indexOf("label: '健康服务'"),
+  )
+  assert.ok(
+    serviceOptionsSource.indexOf("label: '健康服务'") <
+      serviceOptionsSource.indexOf("label: '无数据服务'"),
+  )
+  assert.ok(
+    serviceOptionsSource.indexOf("label: '无数据服务'") <
+      serviceOptionsSource.indexOf("label: '全部'"),
+  )
   assert.equal(DEFAULT_HEALTH_FILTER_VALUE, DEFAULT_HEALTH_FILTER_VALUES.abnormal)
 })
 
@@ -502,7 +699,7 @@ test('health score sorting keeps computed zero first and no-data rows last', () 
 test('system and service health tables sort lower health scores first', () => {
   const overviewStart = viewSource.indexOf('const overviewSystems = useMemo(')
   const serviceStart = viewSource.indexOf('const filteredServices = serviceRows')
-  const openDetailStart = viewSource.indexOf('const openDetail = (system) => {')
+  const openDetailStart = viewSource.indexOf('const openDetail = (system')
 
   assert.notEqual(overviewStart, -1, 'overview systems memo should exist')
   assert.notEqual(serviceStart, -1, 'filtered services state should exist')
@@ -571,27 +768,15 @@ test('health single-select filter distinguishes abnormal and attention rows', ()
     true,
   )
   assert.equal(
-    targetMatchesHealthFilter(
-      { score: 95 },
-      DEFAULT_HEALTH_FILTER_VALUES.healthy,
-      scoreThresholds,
-    ),
+    targetMatchesHealthFilter({ score: 95 }, DEFAULT_HEALTH_FILTER_VALUES.healthy, scoreThresholds),
     true,
   )
   assert.equal(
-    targetMatchesHealthFilter(
-      { score: 59 },
-      DEFAULT_HEALTH_FILTER_VALUES.healthy,
-      scoreThresholds,
-    ),
+    targetMatchesHealthFilter({ score: 59 }, DEFAULT_HEALTH_FILTER_VALUES.healthy, scoreThresholds),
     false,
   )
   assert.equal(
-    targetMatchesHealthFilter(
-      { score: 95 },
-      DEFAULT_HEALTH_FILTER_VALUES.all,
-      scoreThresholds,
-    ),
+    targetMatchesHealthFilter({ score: 95 }, DEFAULT_HEALTH_FILTER_VALUES.all, scoreThresholds),
     true,
   )
   assert.equal(
@@ -626,7 +811,9 @@ test('health score rings receive status for no-data display', () => {
   assert.ok(detailHeaderSource.includes('status={selectedSystem.status}'))
   assert.ok(serviceHealthTableSource.includes('status={service.status}'))
   assert.ok(healthStatusSource.includes("const hasHealthData = status !== 'gray'"))
-  assert.ok(healthStatusSource.includes("const displayScore = hasHealthData ? safeScore : '无数据'"))
+  assert.ok(
+    healthStatusSource.includes("const displayScore = hasHealthData ? safeScore : '无数据'"),
+  )
   assert.ok(healthStatusSource.includes('{displayScore}'))
 })
 
@@ -646,7 +833,9 @@ test('metric decision tooltip keeps health explanation compact', () => {
   assert.ok(metricVisualTileSource.includes('splitMetricTooltipBadges'))
   assert.ok(metricVisualTileSource.includes('sho-metric-decision-list'))
   assert.ok(metricVisualTileSource.includes("return '水位变化'"))
-  assert.ok(metricVisualTileSource.includes("const evidenceLimit = metricKey === 'resourceShift' ? 3 : 2"))
+  assert.ok(
+    metricVisualTileSource.includes("const evidenceLimit = metricKey === 'resourceShift' ? 3 : 2"),
+  )
   assert.equal(metricVisualTileSource.includes('metricTooltipReason'), false)
   assert.equal(metricVisualTileSource.includes('sho-metric-decision-section'), false)
   assert.equal(metricVisualTileSource.includes('整体情况'), false)

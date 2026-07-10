@@ -12,6 +12,8 @@ const detailHeaderSource = sourceFor('./components/DetailHeader.jsx')
 const overviewSummarySource = sourceFor('./components/OverviewSummary.jsx')
 const trendCommonSource = sourceFor('./components/TrendCommon.jsx')
 const pendingIssueQueueSource = sourceFor('./components/PendingIssueQueue.jsx')
+const serviceHealthTableSource = sourceFor('./components/ServiceHealthTable.jsx')
+const serviceHealthAssistantModalSource = sourceFor('./components/ServiceHealthAssistantModal.jsx')
 const overviewInitialLoadingSource = sourceFor('./components/OverviewInitialLoading.jsx')
 
 const sourceBetween = (start, end, targetSource = viewSource) => {
@@ -168,7 +170,13 @@ test('pending issue section uses item and anomaly wording with the atomic analys
   assert.equal(pendingIssueQueueSource.includes('待处理问题'), false)
   assert.ok(pendingIssueQueueSource.includes('类异常'))
   assert.ok(pendingIssueQueueSource.includes('<th>异常</th>'))
-  assert.ok(pendingIssueQueueSource.includes('className="sho-pending-analysis-button-icon"'))
+  assert.ok(pendingIssueQueueSource.includes('<th>AI助手</th>'))
+  assert.equal(pendingIssueQueueSource.includes('<th>操作助手</th>'), false)
+  assert.ok(
+    pendingIssueQueueSource.includes(
+      'className="sho-ai-assistant-button-icon sho-pending-analysis-button-icon"',
+    ),
+  )
   assert.ok(pendingIssueQueueSource.includes('src={atomicIcon}'))
   assert.ok(pendingIssueQueueSource.includes(": '异常分析'"))
   assert.equal(pendingIssueQueueSource.includes('智能分析'), false)
@@ -190,6 +198,193 @@ test('pending issue analysis row only renders when there is visible analysis con
   )
   assert.ok(pendingIssueQueueSource.includes('{shouldShowAnalysisRow && ('))
   assert.equal(pendingIssueQueueSource.includes('{analysisNode && ('), false)
+})
+
+test('pending issue expanded analysis uses event wording and labels numbered repairs', () => {
+  const analysisBlock = sourceBetween(
+    '{data.analysis && (',
+    '{data.impact && (',
+    pendingIssueQueueSource,
+  )
+  const actionPlanBlock = sourceBetween(
+    '{Array.isArray(data.actionPlan) && data.actionPlan.length > 0 && (',
+    '{data.dataBoundary &&',
+    pendingIssueQueueSource,
+  )
+
+  assert.ok(pendingIssueQueueSource.includes('const pendingIssueMetricEventTitle ='))
+  assert.ok(pendingIssueQueueSource.includes("red: '异常'"))
+  assert.ok(pendingIssueQueueSource.includes("yellow: '关注'"))
+  assert.ok(pendingIssueQueueSource.includes('const pendingIssueActionTitle ='))
+  assert.ok(
+    pendingIssueQueueSource.includes(
+      'const eventTitle = analysisTitle || pendingIssueMetricEventTitle(data.issue)',
+    ),
+  )
+  assert.ok(analysisBlock.includes('<strong>{eventTitle}</strong>'))
+  assert.ok(serviceHealthAssistantModalSource.includes('analysisTitle="事件"'))
+  assert.equal(analysisBlock.includes('<strong>分析</strong>'), false)
+  assert.ok(actionPlanBlock.includes('<strong>{pendingIssueActionTitle(data.issue)}</strong>'))
+  assert.ok(pendingIssueQueueSource.includes("yellow: '关注调优'"))
+  assert.ok(pendingIssueQueueSource.includes("red: '异常修复'"))
+  assert.ok(actionPlanBlock.includes('<b>{index + 1}</b>'))
+})
+
+test('service assistant modal keeps indicators on one row and scrolls inside the modal', () => {
+  const wrapDeclarations = declarationsFor('.sho-service-ai-modal-wrap')
+  const modalDeclarations = declarationsFor('.sho-service-ai-modal')
+  const contentDeclarations = declarationsFor('.sho-service-ai-modal .ant-modal-content')
+  const bodyDeclarations = declarationsFor('.sho-service-ai-modal .ant-modal-body')
+  const lampsDeclarations = declarationsFor('.sho-service-ai-lamps')
+  const loadingDeclarations = declarationsFor('.sho-service-ai-loading')
+  const loadingPreviewDeclarations = declarationsFor('.sho-service-ai-loading-preview')
+  const loadingPreviewBarDeclarations = declarationsFor('.sho-service-ai-loading-preview span')
+
+  assert.ok(serviceHealthAssistantModalSource.includes('wrapClassName="sho-service-ai-modal-wrap"'))
+  assert.ok(wrapDeclarations.includes('overflow: hidden'))
+  assert.ok(modalDeclarations.includes('top: 24px'))
+  assert.ok(modalDeclarations.includes('padding-bottom: 0'))
+  assert.ok(modalDeclarations.includes('max-width: calc(100vw - 48px)'))
+  assert.ok(contentDeclarations.includes('max-height: calc(100dvh - 48px)'))
+  assert.ok(contentDeclarations.includes('overflow: hidden'))
+  assert.ok(contentDeclarations.includes('display: flex'))
+  assert.ok(contentDeclarations.includes('flex-direction: column'))
+  assert.ok(bodyDeclarations.includes('flex: 1 1 auto'))
+  assert.ok(bodyDeclarations.includes('min-height: 0'))
+  assert.ok(bodyDeclarations.includes('overflow-y: auto'))
+  assert.ok(bodyDeclarations.includes('overscroll-behavior: contain'))
+  assert.equal(bodyDeclarations.includes('max-height: calc(100vh - 170px)'), false)
+  assert.ok(lampsDeclarations.includes('grid-template-columns: repeat(7, minmax(88px, 1fr))'))
+  assert.ok(lampsDeclarations.includes('overflow-x: auto'))
+  assert.ok(loadingDeclarations.includes('width: 100%'))
+  assert.ok(loadingDeclarations.includes('display: grid'))
+  assert.ok(loadingDeclarations.includes('align-content: start'))
+  assert.ok(loadingDeclarations.includes('box-sizing: border-box'))
+  assert.equal(loadingDeclarations.includes('display: inline-flex'), false)
+  assert.ok(loadingPreviewDeclarations.includes('display: grid'))
+  assert.ok(loadingPreviewDeclarations.includes('gap: 10px'))
+  assert.ok(loadingPreviewBarDeclarations.includes('background-size: 220% 100%'))
+  assert.ok(css.includes('@keyframes sho-service-ai-loading-shimmer'))
+})
+
+test('pending issue primary analysis button turns the image icon white', () => {
+  const declarations = declarationsFor('.ant-btn-primary .sho-ai-assistant-button-icon')
+
+  assert.ok(declarations.includes('filter: brightness(0) invert(1)'))
+})
+
+test('dark mode assistant button icon follows the light foreground', () => {
+  const declarations = declarationsFor(
+    "[data-coreui-theme='dark'] .system-health-overview-page .sho-ai-assistant-button-icon",
+  )
+
+  assert.ok(declarations.includes('filter: grayscale(1) brightness(0) invert(1)'))
+})
+
+test('pending issue system detail button is compact text with hover underline', () => {
+  const declarations = declarationsFor('.sho-pending-system')
+  const hoverDeclarations = declarationsFor('.sho-pending-system:hover')
+  const focusDeclarations = declarationsFor('.sho-pending-system:focus-visible')
+
+  assert.ok(pendingIssueQueueSource.includes('className="sho-pending-system"'))
+  assert.ok(declarations.includes('display: inline-block'))
+  assert.ok(declarations.includes('max-width: 100%'))
+  assert.ok(declarations.includes('padding: 0'))
+  assert.ok(declarations.includes('border: 0'))
+  assert.ok(declarations.includes('background: transparent'))
+  assert.ok(declarations.includes('cursor: pointer'))
+  assert.ok(declarations.includes('font-family: inherit'))
+  assert.ok(declarations.includes('text-align: left'))
+  assert.ok(declarations.includes('overflow: hidden'))
+  assert.ok(declarations.includes('text-overflow: ellipsis'))
+  assert.ok(declarations.includes('white-space: nowrap'))
+  assert.ok(hoverDeclarations.includes('text-decoration: underline'))
+  assert.ok(hoverDeclarations.includes('text-underline-offset: 3px'))
+  assert.ok(hoverDeclarations.includes('color: var(--ant-color-primary)'))
+  assert.ok(focusDeclarations.includes('outline: 2px solid var(--ant-color-primary)'))
+})
+
+test('service assistant table button keeps a visible compact icon before the label', () => {
+  const serviceButtonBlock = sourceBetween('<Button', '</Button>', serviceHealthTableSource)
+  const tableDeclarations = declarationsFor('.sho-service-table table')
+  const actionColumnDeclarations = declarationsFor(
+    '.sho-service-table th:last-child,\n.sho-service-table td:last-child',
+  )
+  const buttonDeclarations = declarationsFor('.sho-service-ai-button.ant-btn-sm')
+  const iconDeclarations = declarationsFor('.sho-ai-assistant-button-icon')
+  const contentDeclarations = declarationsFor(
+    '.sho-service-ai-button .sho-ai-assistant-button-content',
+  )
+  const scopedIconDeclarations = declarationsFor(
+    '.sho-service-ai-button .sho-ai-assistant-button-icon',
+  )
+  const iconIndex = serviceButtonBlock.indexOf('className="sho-ai-assistant-button-icon"')
+  const labelIndex = serviceButtonBlock.indexOf('assistantAction.label')
+
+  assert.ok(pendingIssueQueueSource.includes("import atomicIcon from 'src/pro/assets/atomic.png'"))
+  assert.ok(serviceHealthTableSource.includes("import atomicIcon from 'src/pro/assets/atomic.png'"))
+  assert.ok(serviceHealthTableSource.includes("import { Search } from 'lucide-react'"))
+  assert.equal(
+    serviceHealthTableSource.includes("import { Search, Smile } from 'lucide-react'"),
+    false,
+  )
+  assert.equal(
+    serviceHealthTableSource.includes('const ServiceSmileIcon = ({ className }) => ('),
+    false,
+  )
+  assert.equal(serviceHealthTableSource.includes('viewBox="0 0 368 368"'), false)
+  assert.ok(
+    pendingIssueQueueSource.includes(
+      'className="sho-ai-assistant-button-icon sho-pending-analysis-button-icon"',
+    ),
+  )
+  assert.ok(tableDeclarations.includes('min-width: 1096px'))
+  assert.ok(actionColumnDeclarations.includes('width: 112px'))
+  assert.ok(actionColumnDeclarations.includes('white-space: nowrap'))
+  assert.ok(
+    serviceHealthTableSource.includes(
+      'const assistantAction = serviceAiAssistantActionFor(service)',
+    ),
+  )
+  assert.ok(serviceHealthTableSource.includes('assistantAction.actionable ? ('))
+  assert.ok(serviceButtonBlock.includes('className="sho-service-ai-button"'))
+  assert.ok(serviceButtonBlock.includes('type="default"'))
+  assert.equal(serviceButtonBlock.includes('disabled={'), false)
+  assert.equal(
+    serviceButtonBlock.includes("service.status === 'red' ? 'primary' : 'default'"),
+    false,
+  )
+  assert.ok(serviceButtonBlock.includes('<span className="sho-ai-assistant-button-content">'))
+  assert.ok(serviceHealthTableSource.includes('className="sho-ai-assistant-button-icon"'))
+  assert.equal(serviceButtonBlock.includes('icon={'), false)
+  assert.ok(
+    iconIndex >= 0 && iconIndex < labelIndex,
+    'service button icon should render before text',
+  )
+  assert.ok(serviceHealthTableSource.includes('src={atomicIcon}'))
+  assert.ok(buttonDeclarations.includes('height: 24px'))
+  assert.ok(buttonDeclarations.includes('padding: 0 7px'))
+  assert.ok(buttonDeclarations.includes('font-size: 12px'))
+  assert.ok(iconDeclarations.includes('width: 13px'))
+  assert.ok(iconDeclarations.includes('height: 13px'))
+  assert.ok(iconDeclarations.includes('filter: grayscale(1) brightness(0)'))
+  assert.ok(iconDeclarations.includes('object-fit: contain'))
+  assert.ok(contentDeclarations.includes('display: inline-flex'))
+  assert.ok(contentDeclarations.includes('align-items: center'))
+  assert.ok(contentDeclarations.includes('gap: 6px'))
+  assert.ok(contentDeclarations.includes('font-size: 12px'))
+  assert.ok(contentDeclarations.includes('line-height: 20px'))
+  assert.ok(contentDeclarations.includes('white-space: nowrap'))
+  assert.ok(scopedIconDeclarations.includes('flex: 0 0 auto'))
+  assert.equal(serviceHealthTableSource.includes("assistantAction.status === 'green' ? ("), false)
+  assert.equal(serviceHealthTableSource.includes('<ServiceSmileIcon'), false)
+  assert.equal(serviceHealthTableSource.includes('className="sho-service-ai-smile-icon"'), false)
+  assert.equal(serviceHealthTableSource.includes('<Smile'), false)
+  assert.equal(serviceHealthTableSource.includes('className="sho-service-ai-text"'), false)
+  assert.ok(serviceButtonBlock.includes('<span>{assistantAction.label}</span>'))
+  assert.ok(serviceHealthTableSource.includes('assistantAction.actionable ? ('))
+  assert.ok(serviceHealthTableSource.includes(': null'))
+  assert.equal(serviceHealthTableSource.includes('😊'), false)
 })
 
 test('threshold settings can still be opened from the toolbar', () => {
@@ -286,7 +481,10 @@ test('trend failure visual treatment uses a compact full-border surface', () => 
   assert.ok(shellDeclarations.includes('align-items: center'))
   assert.ok(shellDeclarations.includes('justify-content: center'))
   assert.ok(innerDeclarations.includes('border: 1px solid var(--ant-color-error-border)'))
-  assert.equal(innerDeclarations.some((declaration) => declaration.startsWith('border-left:')), false)
+  assert.equal(
+    innerDeclarations.some((declaration) => declaration.startsWith('border-left:')),
+    false,
+  )
   assert.ok(iconDeclarations.includes('color: var(--ant-color-error)'))
   assert.ok(iconDeclarations.includes('background: var(--ant-color-error-bg)'))
 })
@@ -327,7 +525,11 @@ test('summary trend charts combine count and ratio without header values or grid
   assert.ok(trendOptionSource.includes('showSymbol: false'))
   assert.equal(trendOptionSource.includes('showSymbol: rows.length'), false)
   assert.ok(trendOptionSource.includes('formatSummaryTrendTooltipMetricLabel(metric)'))
-  assert.ok(trendOptionSource.includes('${formatSummaryTrendTooltipMetricLabel(metric)}：${formatTrendNumber(value, metric)}'))
+  assert.ok(
+    trendOptionSource.includes(
+      '${formatSummaryTrendTooltipMetricLabel(metric)}：${formatTrendNumber(value, metric)}',
+    ),
+  )
   assert.equal(trendOptionSource.includes('current：'), false)
   assert.equal(trendOptionSource.includes('平均值'), false)
   assert.equal(trendOptionSource.includes('期末值'), false)
@@ -346,7 +548,9 @@ test('summary trend tooltip distinguishes missing snapshot buckets', () => {
   assert.ok(trendOptionSource.includes('row.missingSnapshot'))
   assert.ok(trendOptionSource.includes('summaryTrendDataPointValue(row, metric.key)'))
   assert.ok(
-    trendOptionSource.includes('graphic: summaryRowsHaveTrendData(rows, metrics) ? undefined : noDataTrendGraphic()'),
+    trendOptionSource.includes(
+      'graphic: summaryRowsHaveTrendData(rows, metrics) ? undefined : noDataTrendGraphic()',
+    ),
   )
 })
 
@@ -484,7 +688,9 @@ test('compact detail service count drops card chrome and reuses summary ratio va
   assert.ok(detailValueDeclarations.includes('font-size: 24px'))
   assert.ok(detailValueDeclarations.includes('line-height: 28px'))
   assert.ok(detailValueDeclarations.includes('font-weight: 700'))
-  assert.ok(detailHeaderSource.includes('className="sho-detail-compact-service-value sho-summary-value"'))
+  assert.ok(
+    detailHeaderSource.includes('className="sho-detail-compact-service-value sho-summary-value"'),
+  )
 })
 
 test('compact detail text uses 16px without changing controls', () => {

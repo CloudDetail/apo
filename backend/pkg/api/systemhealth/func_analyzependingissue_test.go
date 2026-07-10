@@ -32,7 +32,8 @@ func TestCallSystemHealthPendingIssueAIUsesMetricContext(t *testing.T) {
 			"impact":"请求失败会直接影响订单系统核心链路。",
 			"actionPlan":[
 				{"phase":"定位失败","target":"order-api","action":"按接口和状态码聚合最近窗口失败请求，确认错误是否集中在单一接口。","validation":"确认错误率回落且失败请求不再集中增长。","risk":"若只看平均值可能遗漏局部接口失败。"},
-				{"phase":"验证恢复","target":"订单系统","action":"处理后回看错误率和活跃告警指标，确认系统健康分同步恢复。","validation":"观察连续两个窗口错误率保持稳定。","risk":"短时恢复后仍可能再次波动。"}
+				{"phase":"排查","target":"订单系统","action":"对比错误率、日志和 Trace，确认失败是否集中在同一接口或实例。","validation":"确认主要异常来源。","risk":"范围过大会拖慢处置。"},
+				{"phase":"处置","target":"订单系统","action":"处理确认的失败原因后回看错误率和活跃告警指标。","validation":"连续两个窗口保持稳定。","risk":"短时恢复后仍可能再次波动。"}
 			],
 			"validation":"确认错误率和活跃告警指标回到稳定区间。",
 			"risk":"当前分析只基于系统健康指标，未包含日志和 Trace 下钻证据。",
@@ -75,13 +76,21 @@ func TestCallSystemHealthPendingIssueAIUsesMetricContext(t *testing.T) {
 	if !strings.Contains(gotRequest.Instructions, "不逐一分析多个系统差异") {
 		t.Fatalf("expected instructions to avoid per-system analysis, got %q", gotRequest.Instructions)
 	}
+	if !strings.Contains(gotRequest.Instructions, "analysis 字段用于生成“事件”段落") ||
+		strings.Contains(gotRequest.Instructions, "analysis 说明该指标为什么需要处理") {
+		t.Fatalf("expected analysis field to be described as event copy, got %q", gotRequest.Instructions)
+	}
+	if !strings.Contains(gotRequest.Instructions, "actionPlan 必须且只能生成 3 个步骤") ||
+		!strings.Contains(gotRequest.Instructions, "phase 固定依次为“定位”“排查”“处置”") {
+		t.Fatalf("expected fixed three-step action plan instructions, got %q", gotRequest.Instructions)
+	}
 	if !strings.Contains(gotRequest.Input, "订单系统") || !strings.Contains(gotRequest.Input, "5.70%") {
 		t.Fatalf("expected metric context in AI input, got %s", gotRequest.Input)
 	}
 	if aiResp.WorkflowRunID != "resp-pending-1" {
 		t.Fatalf("expected workflow id from response id, got %q", aiResp.WorkflowRunID)
 	}
-	if aiResp.Analysis == "" || len(aiResp.ActionPlan) != 2 || aiResp.DataBoundary == "" {
+	if aiResp.Analysis == "" || len(aiResp.ActionPlan) != 3 || aiResp.DataBoundary == "" {
 		t.Fatalf("expected structured pending issue AI output, got %+v", aiResp)
 	}
 }
@@ -121,7 +130,8 @@ func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageCont
 			"impact":"Users may see failed order requests until the error rate returns to baseline.",
 			"actionPlan":[
 				{"phase":"Locate","target":"order-api","action":"Group recent failed requests by endpoint and status code to find the concentrated failure path.","validation":"The failing endpoint and status code group is identified.","risk":"Broad aggregation can hide a narrow endpoint spike."},
-				{"phase":"Verify","target":"order-api","action":"After mitigation, compare the error-rate metric with the previous analysis window.","validation":"Error rate stays below the alert threshold for two windows.","risk":"Short recovery windows can miss recurring failures."}
+				{"phase":"排查","target":"order-api","action":"Compare error metrics, logs, and traces to narrow the affected endpoint or instance.","validation":"The main abnormal source is identified.","risk":"Broad scope can slow mitigation."},
+				{"phase":"处置","target":"order-api","action":"Mitigate the confirmed failure path and recheck the error-rate metric.","validation":"The metric stays stable for two windows.","risk":"Short recovery windows can miss recurrence."}
 			],
 			"validation":"Confirm the metric is below threshold for consecutive windows.",
 			"risk":"Ignoring the issue can prolong user-visible request failures.",
@@ -165,7 +175,7 @@ func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageCont
 	if aiResp.WorkflowRunID != "chatcmpl-pending-1" {
 		t.Fatalf("expected workflow id from chat completion id, got %q", aiResp.WorkflowRunID)
 	}
-	if aiResp.Analysis == "" || len(aiResp.ActionPlan) != 2 || aiResp.DataBoundary == "" {
+	if aiResp.Analysis == "" || len(aiResp.ActionPlan) != 3 || aiResp.DataBoundary == "" {
 		t.Fatalf("expected structured pending issue AI output, got %+v", aiResp)
 	}
 }
@@ -179,7 +189,8 @@ func TestSystemHealthPendingIssueAIWireAPIsShareBusinessInstructions(t *testing.
 			"impact":"Users may see failed order requests until the issue recovers.",
 			"actionPlan":[
 				{"phase":"Locate","target":"order-api","action":"Group recent failures by endpoint and status code to identify the affected path.","validation":"The affected endpoint and status code are identified.","risk":"Wide grouping can hide a narrow failure spike."},
-				{"phase":"Verify","target":"order-api","action":"Compare the metric after mitigation with the previous analysis window.","validation":"The metric stays below threshold for two windows.","risk":"Short recovery windows may miss recurring failures."}
+				{"phase":"排查","target":"order-api","action":"Compare error metrics, logs, and traces to narrow the affected endpoint or instance.","validation":"The main abnormal source is identified.","risk":"Broad scope can slow mitigation."},
+				{"phase":"处置","target":"order-api","action":"Mitigate the confirmed failure path and recheck the error-rate metric.","validation":"The metric stays stable for two windows.","risk":"Short recovery windows may miss recurrence."}
 			],
 			"validation":"Confirm the metric returns below threshold for consecutive windows.",
 			"risk":"Ignoring the issue can prolong user-visible request failures.",
@@ -255,6 +266,83 @@ func TestSystemHealthPendingIssueAIWireAPIsShareBusinessInstructions(t *testing.
 
 func TestSystemHealthPendingIssueAIResponseSchemaRequiresAllObjectProperties(t *testing.T) {
 	assertStrictObjectSchema(t, systemHealthPendingIssueAIResponseSchema(), "root")
+}
+
+func TestSystemHealthPendingIssueAIResponseSchemaRequiresThreeShortActionSteps(t *testing.T) {
+	schema := systemHealthPendingIssueAIResponseSchema()
+	properties, _ := schema["properties"].(map[string]any)
+	actionPlan, _ := properties["actionPlan"].(map[string]any)
+	itemSchema, _ := actionPlan["items"].(map[string]any)
+	itemProperties, _ := itemSchema["properties"].(map[string]any)
+	phase, _ := itemProperties["phase"].(map[string]any)
+	action, _ := itemProperties["action"].(map[string]any)
+	validation, _ := itemProperties["validation"].(map[string]any)
+	risk, _ := itemProperties["risk"].(map[string]any)
+
+	if actionPlan["minItems"] != 3 || actionPlan["maxItems"] != 3 {
+		t.Fatalf("expected exactly three action steps, got min=%v max=%v", actionPlan["minItems"], actionPlan["maxItems"])
+	}
+	if got, _ := phase["enum"].([]string); strings.Join(got, ",") != "定位,排查,处置" {
+		t.Fatalf("expected fixed phase enum, got %#v", phase["enum"])
+	}
+	if action["maxLength"] != 60 || validation["maxLength"] != 40 || risk["maxLength"] != 40 {
+		t.Fatalf("expected short action text limits, got action=%v validation=%v risk=%v", action["maxLength"], validation["maxLength"], risk["maxLength"])
+	}
+}
+
+func TestSanitizePendingIssueActionPlanUsesFixedShortThreeStepFlow(t *testing.T) {
+	issue := response.SystemHealthPendingIssue{
+		ServiceName: "order-api",
+		MetricLabel: "错误率",
+		Value:       "5.70%",
+	}
+	steps := []response.SystemHealthActionPlanStep{
+		{Phase: "先看看", Target: "", Action: strings.Repeat("定位失败请求集中接口", 8), Validation: strings.Repeat("确认错误率回落", 6), Risk: strings.Repeat("可能遗漏局部失败", 6)},
+		{Phase: "查原因", Target: "order-api", Action: "查看最近窗口的错误率、日志和 Trace，确认是否集中在单一接口或实例。", Validation: "确认异常来源被缩小到明确对象。", Risk: "范围过大时会拖慢处置。"},
+		{Phase: "恢复", Target: "order-api", Action: "按确认原因处理后复查错误率，必要时回滚最近变更。", Validation: "连续两个窗口恢复稳定。", Risk: "未验证恢复可能再次触发。"},
+		{Phase: "复盘", Target: "order-api", Action: "额外步骤不应展示。", Validation: "不应出现。", Risk: "不应出现。"},
+	}
+
+	got := sanitizePendingIssueActionPlan(steps, issue)
+
+	if len(got) != 3 {
+		t.Fatalf("expected exactly three sanitized steps, got %+v", got)
+	}
+	for i, phase := range []string{"定位", "排查", "处置"} {
+		if got[i].Phase != phase {
+			t.Fatalf("expected phase %d to be %q, got %+v", i, phase, got)
+		}
+		if len([]rune(got[i].Action)) > 63 || len([]rune(got[i].Validation)) > 43 || len([]rune(got[i].Risk)) > 43 {
+			t.Fatalf("expected short texts, got %+v", got[i])
+		}
+		if got[i].Source != "ai" {
+			t.Fatalf("expected ai source, got %+v", got[i])
+		}
+	}
+	if got[0].Target != issue.ServiceName {
+		t.Fatalf("expected empty target to fall back to service name, got %+v", got[0])
+	}
+}
+
+func TestSanitizePendingIssueActionPlanCompletesMissingFixedSteps(t *testing.T) {
+	issue := response.SystemHealthPendingIssue{
+		ServiceName: "checkout",
+		MetricLabel: "响应延时",
+		Value:       "2646ms",
+	}
+
+	got := sanitizePendingIssueActionPlan([]response.SystemHealthActionPlanStep{
+		{Phase: "Locate", Target: "checkout", Action: "确认响应延时是否仍高于阈值。", Validation: "确认当前值。", Risk: "可能误判。"},
+	}, issue)
+
+	if len(got) != 3 {
+		t.Fatalf("expected fallback to complete three steps, got %+v", got)
+	}
+	for i, phase := range []string{"定位", "排查", "处置"} {
+		if got[i].Phase != phase || got[i].Action == "" || got[i].Validation == "" || got[i].Risk == "" {
+			t.Fatalf("expected complete fixed step %d %q, got %+v", i, phase, got)
+		}
+	}
 }
 
 func TestSystemHealthPendingIssueAnalysisCacheReturnsCachedSuccessfulResult(t *testing.T) {

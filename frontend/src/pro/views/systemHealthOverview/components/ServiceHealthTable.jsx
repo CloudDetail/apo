@@ -1,14 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Input, Pagination, Select, Space, Tooltip } from 'antd'
+import { Button, Input, Pagination, Select, Space, Tooltip } from 'antd'
 import { Search } from 'lucide-react'
+import atomicIcon from 'src/pro/assets/atomic.png'
 
+import { serviceAiAssistantActionFor } from '../detailViewState.mjs'
 import { HealthRing, HealthTable, Lamp } from './HealthStatus.jsx'
 
 export default function ServiceHealthTable({
   HealthScoreColumnTitle,
   filteredServices,
   metricLabels,
+  onOpenServiceAssistant,
   onPageChange,
   onServiceHealthFilterChange,
   onServiceKeywordChange,
@@ -23,6 +26,8 @@ export default function ServiceHealthTable({
   serviceRowsError,
   serviceRowsLoading,
 }) {
+  const tableColumnCount = metricLabels.length + 3
+
   return (
     <section className="sho-panel">
       <div className="sho-panel-head">
@@ -55,52 +60,76 @@ export default function ServiceHealthTable({
             {metricLabels.map(([, label]) => (
               <th key={label}>{label}</th>
             ))}
+            <th>AI助手</th>
           </tr>
         </thead>
         <tbody>
           {serviceRowsLoading && (
             <tr>
-              <td className="sho-empty-cell" colSpan={9}>
+              <td className="sho-empty-cell" colSpan={tableColumnCount}>
                 正在加载服务
               </td>
             </tr>
           )}
           {!serviceRowsLoading && serviceRowsError && (
             <tr>
-              <td className="sho-empty-cell" colSpan={9}>
+              <td className="sho-empty-cell" colSpan={tableColumnCount}>
                 {serviceRowsError}
               </td>
             </tr>
           )}
           {!serviceRowsLoading &&
             !serviceRowsError &&
-            filteredServices.map((service) => (
-              <tr key={service.name}>
-                <td>
-                  <div className="sho-service-name">
-                    <Tooltip title={service.name}>
-                      <strong>{service.name}</strong>
-                    </Tooltip>
-                    {service.desc ? <span>{service.desc}</span> : null}
-                  </div>
-                </td>
-                <td>
-                  <HealthRing
-                    score={service.score}
-                    scoreThresholds={scoreThresholds}
-                    status={service.status}
-                  />
-                </td>
-                {metricLabels.map(([key]) => (
-                  <td key={key}>
-                    <Lamp status={service.metrics[key]} />
+            filteredServices.map((service) => {
+              const assistantAction = serviceAiAssistantActionFor(service)
+              return (
+                <tr key={service.name}>
+                  <td>
+                    <div className="sho-service-name">
+                      <Tooltip title={service.name}>
+                        <strong>{service.name}</strong>
+                      </Tooltip>
+                      {service.desc ? <span>{service.desc}</span> : null}
+                    </div>
                   </td>
-                ))}
-              </tr>
-            ))}
+                  <td>
+                    <HealthRing
+                      score={service.score}
+                      scoreThresholds={scoreThresholds}
+                      status={service.status}
+                    />
+                  </td>
+                  {metricLabels.map(([key]) => (
+                    <td key={key}>
+                      <Lamp status={service.metrics[key]} />
+                    </td>
+                  ))}
+                  <td>
+                    {assistantAction.actionable ? (
+                      <Button
+                        className="sho-service-ai-button"
+                        size="small"
+                        type="default"
+                        onClick={() => onOpenServiceAssistant(service)}
+                      >
+                        <span className="sho-ai-assistant-button-content">
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className="sho-ai-assistant-button-icon"
+                            src={atomicIcon}
+                          />
+                          <span>{assistantAction.label}</span>
+                        </span>
+                      </Button>
+                    ) : null}
+                  </td>
+                </tr>
+              )
+            })}
           {!serviceRowsLoading && !serviceRowsError && !filteredServices.length && (
             <tr>
-              <td className="sho-empty-cell" colSpan={9}>
+              <td className="sho-empty-cell" colSpan={tableColumnCount}>
                 {serviceEmptyMessage}
               </td>
             </tr>
@@ -129,6 +158,7 @@ ServiceHealthTable.propTypes = {
   HealthScoreColumnTitle: PropTypes.elementType.isRequired,
   filteredServices: PropTypes.arrayOf(PropTypes.object).isRequired,
   metricLabels: PropTypes.arrayOf(PropTypes.array).isRequired,
+  onOpenServiceAssistant: PropTypes.func.isRequired,
   onPageChange: PropTypes.func.isRequired,
   onServiceHealthFilterChange: PropTypes.func.isRequired,
   onServiceKeywordChange: PropTypes.func.isRequired,

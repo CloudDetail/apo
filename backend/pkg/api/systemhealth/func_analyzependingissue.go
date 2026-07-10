@@ -40,6 +40,11 @@ type systemHealthPendingIssueAIResponse struct {
 }
 
 const defaultSystemHealthPendingIssueAIChatMaxTokens = 1024
+const pendingIssueActionTextLimit = 60
+const pendingIssueActionCheckTextLimit = 40
+const pendingIssueActionTargetTextLimit = 60
+
+var pendingIssueFixedActionPhases = []string{"定位", "排查", "处置"}
 
 type openAIChatCompletionsResponse struct {
 	ID      string                        `json:"id"`
@@ -262,27 +267,82 @@ func (h *handler) resolvePendingIssue(ctx core.Context, req *request.AnalyzeSyst
 }
 
 func sanitizePendingIssueActionPlan(steps []response.SystemHealthActionPlanStep, issue response.SystemHealthPendingIssue) []response.SystemHealthActionPlanStep {
-	result := make([]response.SystemHealthActionPlanStep, 0, len(steps))
+	cleaned := make([]response.SystemHealthActionPlanStep, 0, len(pendingIssueFixedActionPhases))
 	for _, step := range steps {
 		action := cleanUserFacingReportText(step.Action)
 		validation := cleanUserFacingReportText(step.Validation)
 		risk := cleanUserFacingReportText(step.Risk)
-		if action == "" || validation == "" || risk == "" {
+		if action == "" && validation == "" && risk == "" {
 			continue
 		}
-		result = append(result, response.SystemHealthActionPlanStep{
-			Phase:      firstNonEmpty(cleanUserFacingReportText(step.Phase), "处理"),
-			Target:     firstNonEmpty(cleanUserFacingReportText(step.Target), issue.ServiceName),
+		cleaned = append(cleaned, response.SystemHealthActionPlanStep{
+			Target:     cleanUserFacingReportText(step.Target),
 			Action:     action,
 			Validation: validation,
 			Risk:       risk,
-			Source:     "ai",
 		})
-		if len(result) >= 4 {
+		if len(cleaned) >= len(pendingIssueFixedActionPhases) {
 			break
 		}
 	}
+
+	result := make([]response.SystemHealthActionPlanStep, 0, len(pendingIssueFixedActionPhases))
+	for index, phase := range pendingIssueFixedActionPhases {
+		step := response.SystemHealthActionPlanStep{}
+		if index < len(cleaned) {
+			step = cleaned[index]
+		}
+		result = append(result, response.SystemHealthActionPlanStep{
+			Phase:      phase,
+			Target:     truncateText(firstNonEmpty(step.Target, issue.ServiceName, issue.SystemName, "当前服务"), pendingIssueActionTargetTextLimit),
+			Action:     truncateText(firstNonEmpty(step.Action, defaultPendingIssueActionStepText(phase, issue)), pendingIssueActionTextLimit),
+			Validation: truncateText(firstNonEmpty(step.Validation, defaultPendingIssueActionValidationText(phase, issue)), pendingIssueActionCheckTextLimit),
+			Risk:       truncateText(firstNonEmpty(step.Risk, defaultPendingIssueActionRiskText(phase)), pendingIssueActionCheckTextLimit),
+			Source:     "ai",
+		})
+	}
 	return result
+}
+
+func defaultPendingIssueActionStepText(phase string, issue response.SystemHealthPendingIssue) string {
+	metricLabel := firstNonEmpty(issue.MetricLabel, "异常指标")
+	switch phase {
+	case "定位":
+		return fmt.Sprintf("确认 %s 当前值 %s 和异常窗口。", metricLabel, firstNonEmpty(issue.Value, "是否仍异常"))
+	case "排查":
+		return "对比关联指标、日志或 Trace，缩小到服务、接口或实例。"
+	case "处置":
+		return fmt.Sprintf("按确认原因处理后复查 %s，必要时回滚最近变更。", metricLabel)
+	default:
+		return "按当前异常上下文继续确认和处理。"
+	}
+}
+
+func defaultPendingIssueActionValidationText(phase string, issue response.SystemHealthPendingIssue) string {
+	metricLabel := firstNonEmpty(issue.MetricLabel, "指标")
+	switch phase {
+	case "定位":
+		return "确认异常对象和时间窗口。"
+	case "排查":
+		return "确认主要异常来源。"
+	case "处置":
+		return fmt.Sprintf("%s 回到稳定区间。", metricLabel)
+	default:
+		return "确认问题状态清晰。"
+	}
+}
+
+func defaultPendingIssueActionRiskText(phase string) string {
+	switch phase {
+	case "定位":
+		return "对象不清会扩大排查范围。"
+	case "排查":
+		return "证据不足可能误判原因。"
+	case "处置":
+		return "未验证恢复可能复发。"
+	default:
+		return "处理不完整会延长影响。"
+	}
 }
 
 func callSystemHealthPendingIssueAIWithWireAPI(ctx core.Context, baseURL string, apiKey string, model string, timeoutSecond int, maxTokens int, wireAPI string, payload systemHealthPendingIssueAIRequest) (systemHealthPendingIssueAIResponse, error) {
@@ -299,16 +359,17 @@ func callSystemHealthPendingIssueAIWithWireAPI(ctx core.Context, baseURL string,
 func systemHealthPendingIssueAIInstructions() string {
 	return strings.Join([]string{
 		"你是系统健康中心的服务指标异常分析助手。",
-		"任务：根据输入中的服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的分析和处理建议。",
+		"任务：根据输入中的服务、指标状态、当前值和指标说明，给出普通 SRE 用户可执行的事件说明和处理建议。",
 		"如果输入包含多个系统名，只把它们当作该服务异常出现的范围提示，不逐一分析多个系统差异。",
 		"只能基于输入中的真实字段生成内容；不得编造日志、Trace、告警事件、变更记录、根因或未提供的上下文。",
-		"如果输入证据不足以判断根因，应在 dataBoundary 中说明数据边界，并把 actionPlan 写成验证和定位步骤。",
+		"如果输入证据不足以判断根因，应在 dataBoundary 中说明数据边界，并仍按固定三步输出偏验证和定位的 actionPlan。",
 		"输出必须严格符合请求中的 json_schema。",
-		"analysis 说明该指标为什么需要处理，控制在 40-140 个中文字符。",
+		"analysis 字段用于生成“事件”段落，说明该指标当前发生了什么以及为什么需要处理，控制在 40-140 个中文字符；正文不要输出“分析：”“事件：”等段落标题。",
 		"impact 说明可能影响，控制在 20-100 个中文字符。",
-		"actionPlan 生成 2-4 个步骤，每一步必须可执行，不能写泛泛的“查看监控”。",
-		"validation 必须说明如何确认恢复。",
-		"risk 必须说明忽略或误判该问题的风险。",
+		"actionPlan 必须且只能生成 3 个步骤，phase 固定依次为“定位”“排查”“处置”，不要使用其他步骤名。",
+		"每个 action 必须可执行，控制在 60 个中文字符内；定位确认对象和异常窗口，排查缩小指标/日志/Trace/资源证据，处置说明处理和复查。",
+		"validation 必须说明如何确认恢复，控制在 40 个中文字符内。",
+		"risk 必须说明忽略或误判该问题的风险，控制在 40 个中文字符内。",
 		"dataBoundary 必须说明本次分析只使用了哪些输入，缺少哪些下钻证据。",
 	}, "\n")
 }
@@ -549,11 +610,11 @@ func systemHealthPendingIssueAIResponseSchema() map[string]any {
 		"additionalProperties": false,
 		"required":             []string{"phase", "target", "action", "validation", "risk"},
 		"properties": map[string]any{
-			"phase":      map[string]any{"type": "string", "minLength": 2, "maxLength": 16},
-			"target":     map[string]any{"type": "string", "minLength": 2, "maxLength": 60},
-			"action":     map[string]any{"type": "string", "minLength": 10, "maxLength": 120},
-			"validation": map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
-			"risk":       map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
+			"phase":      map[string]any{"type": "string", "enum": pendingIssueFixedActionPhases},
+			"target":     map[string]any{"type": "string", "minLength": 2, "maxLength": pendingIssueActionTargetTextLimit},
+			"action":     map[string]any{"type": "string", "minLength": 8, "maxLength": pendingIssueActionTextLimit},
+			"validation": map[string]any{"type": "string", "minLength": 6, "maxLength": pendingIssueActionCheckTextLimit},
+			"risk":       map[string]any{"type": "string", "minLength": 6, "maxLength": pendingIssueActionCheckTextLimit},
 		},
 	}
 	return map[string]any{
@@ -563,7 +624,7 @@ func systemHealthPendingIssueAIResponseSchema() map[string]any {
 		"properties": map[string]any{
 			"analysis":     map[string]any{"type": "string", "minLength": 20, "maxLength": 180},
 			"impact":       map[string]any{"type": "string", "minLength": 10, "maxLength": 120},
-			"actionPlan":   map[string]any{"type": "array", "minItems": 2, "maxItems": 4, "items": actionPlanItemSchema},
+			"actionPlan":   map[string]any{"type": "array", "minItems": 3, "maxItems": 3, "items": actionPlanItemSchema},
 			"validation":   map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
 			"risk":         map[string]any{"type": "string", "minLength": 8, "maxLength": 100},
 			"dataBoundary": map[string]any{"type": "string", "minLength": 8, "maxLength": 140},

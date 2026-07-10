@@ -148,7 +148,7 @@ test('pending issue table uses AI assistant column without a separate status col
 
   const tableSource = pendingIssueQueueSource.slice(tableStart, tableEnd)
 
-  assert.ok(tableSource.includes('<th>操作助手</th>'), 'action column title should be 操作助手')
+  assert.ok(tableSource.includes('<th>AI助手</th>'), 'action column title should be AI助手')
   assert.equal(tableSource.includes('<th>状态</th>'), false, 'status header should be removed')
   assert.equal(
     tableSource.includes('sho-pending-col-status'),
@@ -161,7 +161,57 @@ test('pending issue table uses AI assistant column without a separate status col
     'status label rendering should be removed from pending issue rows',
   )
   assert.ok(
-    tableSource.includes('<td colSpan={5}>{analysisNode}</td>'),
+    tableSource.includes('<td colSpan={5}>') && tableSource.includes('<PendingIssueAnalysis'),
     'analysis row should span the remaining five columns',
+  )
+})
+
+test('pending issue system column opens the corresponding system detail', () => {
+  const systemCellStart = pendingIssueQueueSource.indexOf(
+    '<td className="sho-pending-system-cell">',
+  )
+  assert.notEqual(systemCellStart, -1, 'pending issue system cell should exist')
+
+  const systemCellEnd = pendingIssueQueueSource.indexOf('</td>', systemCellStart)
+  assert.notEqual(systemCellEnd, -1, 'pending issue system cell should close')
+
+  const systemCellSource = pendingIssueQueueSource.slice(systemCellStart, systemCellEnd)
+
+  assert.ok(
+    pendingIssueQueueSource.includes('onOpenSystemDetail,'),
+    'pending issue queue should accept a system detail callback',
+  )
+  assert.ok(systemCellSource.includes('<button'), 'system name should be a button')
+  assert.ok(
+    pendingIssueQueueSource.includes('const pendingIssueSystemTargets = (issue = {}) =>'),
+    'pending issue queue should derive one clickable target per system',
+  )
+  assert.ok(
+    systemCellSource.includes('pendingIssueSystemTargets(issue).map((system, index) => ('),
+    'pending issue system cell should render each system target separately',
+  )
+  assert.ok(systemCellSource.includes('{index > 0 && ('), 'multiple systems should be separated')
+  assert.ok(systemCellSource.includes('className="sho-pending-system-separator"'))
+  assert.ok(systemCellSource.includes('、'))
+  assert.ok(systemCellSource.includes('type="button"'))
+  assert.ok(systemCellSource.includes('className="sho-pending-system"'))
+  assert.ok(systemCellSource.includes('title={system.name}'))
+  assert.ok(systemCellSource.includes('aria-label={`查看${system.name}健康度详情`}'))
+  assert.ok(systemCellSource.includes('onOpenSystemDetail(pendingIssueSystemDetailTarget(system))'))
+  assert.ok(
+    pendingIssueQueueSource.includes('onOpenSystemDetail: PropTypes.func.isRequired'),
+    'system detail callback should be required',
+  )
+  assert.ok(
+    viewSource.includes('const openPendingIssueSystemDetail = (system) => {'),
+    'overview page should define a pending issue detail opener',
+  )
+  assert.ok(
+    viewSource.includes('openDetail(system, { refreshHeader: true })'),
+    'pending issue detail opener should refresh the detail header',
+  )
+  assert.ok(
+    viewSource.includes('onOpenSystemDetail={openPendingIssueSystemDetail}'),
+    'pending issue queue should receive the detail opener',
   )
 })

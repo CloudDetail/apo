@@ -62,6 +62,32 @@ const uniqueTexts = (issues = [], key) => {
   return values.join('、')
 }
 
+const pendingIssueSystemKey = (issue = {}) => {
+  const groupId = textValue(issue.groupId).trim()
+  if (groupId) return `group:${groupId}`
+  const systemName = textValue(issue.systemName).trim()
+  return systemName ? `name:${systemName}` : ''
+}
+
+const pendingIssueSystems = (issues = []) => {
+  const seen = new Set()
+  const systems = []
+
+  issues.forEach((issue) => {
+    const key = pendingIssueSystemKey(issue)
+    if (!key || seen.has(key)) return
+    seen.add(key)
+    systems.push({
+      groupId: issue.groupId,
+      name: textValue(issue.systemName).trim() || '未命名系统',
+      score: Number.isFinite(Number(issue.systemScore)) ? Number(issue.systemScore) : 0,
+      status: issue.systemStatus || 'gray',
+    })
+  })
+
+  return systems
+}
+
 const hasPercentValue = (value) => textValue(value).includes('%')
 
 const isResourceAvailabilityIssue = (issue = {}) => {
@@ -100,6 +126,7 @@ export const buildPendingIssueQueueRows = (issues = []) => {
         issueCount: group.issues.length,
         metricLabel: pendingIssueMetricLabel(leadIssue),
         systemName: uniqueTexts(sortedIssues, 'systemName') || leadIssue.systemName,
+        systems: pendingIssueSystems(sortedIssues),
         value: uniqueValues(sortedIssues),
       }
     })

@@ -1,19 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Alert,
-  Button,
-  message,
-  Popover,
-  Select,
-  Spin,
-  Tag,
-} from 'antd'
-import {
-  CircleAlert,
-  ListTodo,
-  Settings,
-  TriangleAlert,
-} from 'lucide-react'
+import { Alert, Button, message, Popover, Select, Spin, Tag } from 'antd'
+import { CircleAlert, ListTodo, Settings, TriangleAlert } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { useDebounce } from 'react-use'
@@ -42,11 +29,14 @@ import {
 import {
   buildAbnormalServiceRatio,
   buildDetailHeaderRequestKey,
+  buildServiceHealthAssistantIssues,
   DEFAULT_HEALTH_FILTER_VALUE,
   DEFAULT_HEALTH_FILTER_VALUES,
+  serviceAiAssistantActionFor,
   shouldSyncDetailHeaderFromRows,
   shouldRenderDetailBody,
 } from './detailViewState.mjs'
+import { buildPendingIssueAnalysisKey } from './pendingIssueAnalysis.mjs'
 import {
   buildOverviewRequestDecision,
   isLatestOverviewRequest,
@@ -70,10 +60,7 @@ import {
 import { DetailLoadingPanel } from './components/DetailLoading.jsx'
 import DetailHeader from './components/DetailHeader.jsx'
 import DetailTrendSection from './components/DetailTrendSection.jsx'
-import {
-  Legend,
-  statusMeta,
-} from './components/HealthStatus.jsx'
+import { Legend, statusMeta } from './components/HealthStatus.jsx'
 import {
   HealthScoreCalculationTooltip,
   HealthScoreColumnTitle,
@@ -85,6 +72,7 @@ import OverviewSummary from './components/OverviewSummary.jsx'
 import OverviewSystemTable from './components/OverviewSystemTable.jsx'
 import PendingIssueQueue from './components/PendingIssueQueue.jsx'
 import ServiceHealthTable from './components/ServiceHealthTable.jsx'
+import ServiceHealthAssistantModal from './components/ServiceHealthAssistantModal.jsx'
 import ThresholdSettingsContent from './components/ThresholdSettingsContent.jsx'
 import { getTrendRangeTitleLabel } from './components/TrendCommon.jsx'
 import './index.css'
@@ -300,6 +288,8 @@ export default function SystemHealthOverviewPage() {
   const [serviceKeyword, setServiceKeyword] = useState('')
   const [debouncedServiceKeyword, setDebouncedServiceKeyword] = useState('')
   const [serviceHealthFilter, setServiceHealthFilter] = useState(DEFAULT_HEALTH_FILTER_VALUE)
+  const [serviceAssistantTarget, setServiceAssistantTarget] = useState(null)
+  const [serviceAssistantActiveMetricKey, setServiceAssistantActiveMetricKey] = useState('')
   const lastDetailHeaderRequestKeyRef = useRef('')
 
   const currentTimeRangeSignature = makeTimeRangeSignature(timeRange)
@@ -507,7 +497,9 @@ export default function SystemHealthOverviewPage() {
           status: 'abnormal',
         })
         if (cancelled) return
-        setPendingIssueItems(Array.isArray(resp?.issues) ? resp.issues.map(normalizePendingIssue) : [])
+        setPendingIssueItems(
+          Array.isArray(resp?.issues) ? resp.issues.map(normalizePendingIssue) : [],
+        )
         setPendingIssueTotal(positiveNumber(resp?.total))
       } catch (error) {
         if (!cancelled) {
@@ -583,10 +575,7 @@ export default function SystemHealthOverviewPage() {
     servicePageSize,
   ])
 
-  const overviewSystems = useMemo(
-    () => systems,
-    [systems],
-  )
+  const overviewSystems = useMemo(() => systems, [systems])
   const selectedSystemFromRows = useMemo(
     () =>
       selectedSystemId
@@ -650,7 +639,10 @@ export default function SystemHealthOverviewPage() {
     }
 
     const detailHeaderRequestKey = buildDetailHeaderRequestKey(selectedSystemId, queryParams)
-    if (!detailHeaderRequestKey || lastDetailHeaderRequestKeyRef.current === detailHeaderRequestKey) {
+    if (
+      !detailHeaderRequestKey ||
+      lastDetailHeaderRequestKeyRef.current === detailHeaderRequestKey
+    ) {
       setDetailHeaderLoading(false)
       return undefined
     }
@@ -811,11 +803,14 @@ export default function SystemHealthOverviewPage() {
     setDetailTrendRefreshToken((current) => current + 1)
   }
 
-  const openDetail = (system) => {
+  const openDetail = (system, { refreshHeader = false } = {}) => {
     const systemId = String(system.groupId)
-    lastDetailHeaderRequestKeyRef.current = buildDetailHeaderRequestKey(systemId, queryParams)
+    lastDetailHeaderRequestKeyRef.current = refreshHeader
+      ? ''
+      : buildDetailHeaderRequestKey(systemId, queryParams)
+    setDetailHeaderLoading(refreshHeader)
     setSelectedSystemId(systemId)
-    setSelectedSystem(system)
+    setSelectedSystem(normalizeSystem(system))
     setServiceKeyword('')
     setServiceHealthFilter(DEFAULT_HEALTH_FILTER_VALUE)
     setServicePage(DEFAULT_SERVICE_PAGE)
@@ -824,10 +819,16 @@ export default function SystemHealthOverviewPage() {
     setServiceRowsError('')
   }
 
+  const openPendingIssueSystemDetail = (system) => {
+    openDetail(system, { refreshHeader: true })
+  }
+
   const closeDetail = () => {
     lastDetailHeaderRequestKeyRef.current = ''
     setSelectedSystemId('')
     setSelectedSystem(null)
+    setServiceAssistantTarget(null)
+    setServiceAssistantActiveMetricKey('')
     setServiceRows([])
     setServicePageTotal(0)
     setServiceRowsError('')
@@ -949,6 +950,34 @@ export default function SystemHealthOverviewPage() {
         },
       }))
     }
+  }
+
+  const ensureServiceAssistantAnalysis = (issue) => {
+    if (!issue) return
+    const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
+    const analysisState = issueAnalyses[analysisKey]
+    if (analysisState?.loading || analysisState?.data) return
+    analyzeIssue(issue, analysisKey)
+  }
+
+  const openServiceAssistant = (service) => {
+    if (!serviceAiAssistantActionFor(service).actionable) return
+    const issues = buildServiceHealthAssistantIssues(service, selectedSystem, metricLabels)
+    const firstIssue = issues[0] || null
+    setServiceAssistantTarget({ service, issues })
+    setServiceAssistantActiveMetricKey(firstIssue?.metricKey || '')
+    ensureServiceAssistantAnalysis(firstIssue)
+  }
+
+  const closeServiceAssistant = () => {
+    setServiceAssistantTarget(null)
+    setServiceAssistantActiveMetricKey('')
+  }
+
+  const handleServiceAssistantMetricChange = (metricKey) => {
+    setServiceAssistantActiveMetricKey(metricKey)
+    const issue = serviceAssistantTarget?.issues?.find((item) => item.metricKey === metricKey)
+    ensureServiceAssistantAnalysis(issue)
   }
 
   const renderOverviewState = () => {
@@ -1112,6 +1141,7 @@ export default function SystemHealthOverviewPage() {
               pendingServiceCount={pendingServiceCount}
               queryParams={queryParams}
               onAnalyzeIssue={analyzeIssue}
+              onOpenSystemDetail={openPendingIssueSystemDetail}
               onPageChange={handlePendingIssuePageChange}
               onToggleIssueAnalysis={toggleIssueAnalysis}
             />
@@ -1138,60 +1168,77 @@ export default function SystemHealthOverviewPage() {
           selectedSystem={selectedSystem}
         />
 
-        {detailHeaderLoading ? <DetailLoadingPanel /> : shouldShowDetailBody && (
-          <>
-            <DetailTrendSection
-              detailTrendError={detailTrendError}
-              detailTrendGranularity={detailTrendGranularity}
-              detailTrendLoading={detailTrendLoading}
-              detailTrendRows={detailTrendRows}
-              scoreThresholds={scoreThresholds}
-              trendRange={trendRange}
-              onRangeChange={handleTrendRangeChange}
-              onRetry={handleDetailTrendRetry}
-            />
+        {detailHeaderLoading ? (
+          <DetailLoadingPanel />
+        ) : (
+          shouldShowDetailBody && (
+            <>
+              <DetailTrendSection
+                detailTrendError={detailTrendError}
+                detailTrendGranularity={detailTrendGranularity}
+                detailTrendLoading={detailTrendLoading}
+                detailTrendRows={detailTrendRows}
+                scoreThresholds={scoreThresholds}
+                trendRange={trendRange}
+                onRangeChange={handleTrendRangeChange}
+                onRetry={handleDetailTrendRetry}
+              />
 
-            <section className="sho-panel sho-system-metrics-panel">
-              <div className="sho-panel-head">
-                <div className="sho-panel-title">健康指标</div>
-                <Legend />
-              </div>
-              <div className="sho-metric-grid">
-                {metricLabels.map(([key, label]) => {
-                  const status = selectedSystem.metrics[key] || 'gray'
-                  const detail = metricDetail(selectedSystem, key)
-                  return (
-                    <MetricVisualTile
-                      detail={detail}
-                      key={key}
-                      label={label}
-                      metricKey={key}
-                      status={status}
-                    />
-                  )
-                })}
-              </div>
-            </section>
+              <section className="sho-panel sho-system-metrics-panel">
+                <div className="sho-panel-head">
+                  <div className="sho-panel-title">健康指标</div>
+                  <Legend />
+                </div>
+                <div className="sho-metric-grid">
+                  {metricLabels.map(([key, label]) => {
+                    const status = selectedSystem.metrics[key] || 'gray'
+                    const detail = metricDetail(selectedSystem, key)
+                    return (
+                      <MetricVisualTile
+                        detail={detail}
+                        key={key}
+                        label={label}
+                        metricKey={key}
+                        status={status}
+                      />
+                    )
+                  })}
+                </div>
+              </section>
 
-            <ServiceHealthTable
-              HealthScoreColumnTitle={HealthScoreColumnTitle}
-              filteredServices={filteredServices}
-              metricLabels={metricLabels}
-              onPageChange={handleServicePageChange}
-              onServiceHealthFilterChange={setServiceHealthFilter}
-              onServiceKeywordChange={setServiceKeyword}
-              scoreThresholds={scoreThresholds}
-              serviceEmptyMessage={serviceEmptyMessage}
-              serviceHealthFilter={serviceHealthFilter}
-              serviceHealthFilterOptions={serviceHealthFilterOptions}
-              serviceKeyword={serviceKeyword}
-              servicePage={servicePage}
-              servicePageSize={servicePageSize}
-              servicePageTotal={servicePageTotal}
-              serviceRowsError={serviceRowsError}
-              serviceRowsLoading={serviceRowsLoading}
-            />
-          </>
+              <ServiceHealthTable
+                HealthScoreColumnTitle={HealthScoreColumnTitle}
+                filteredServices={filteredServices}
+                metricLabels={metricLabels}
+                onOpenServiceAssistant={openServiceAssistant}
+                onPageChange={handleServicePageChange}
+                onServiceHealthFilterChange={setServiceHealthFilter}
+                onServiceKeywordChange={setServiceKeyword}
+                scoreThresholds={scoreThresholds}
+                serviceEmptyMessage={serviceEmptyMessage}
+                serviceHealthFilter={serviceHealthFilter}
+                serviceHealthFilterOptions={serviceHealthFilterOptions}
+                serviceKeyword={serviceKeyword}
+                servicePage={servicePage}
+                servicePageSize={servicePageSize}
+                servicePageTotal={servicePageTotal}
+                serviceRowsError={serviceRowsError}
+                serviceRowsLoading={serviceRowsLoading}
+              />
+              <ServiceHealthAssistantModal
+                activeMetricKey={serviceAssistantActiveMetricKey}
+                issueAnalyses={issueAnalyses}
+                issues={serviceAssistantTarget?.issues || []}
+                metricLabels={metricLabels}
+                open={Boolean(serviceAssistantTarget)}
+                queryParams={queryParams}
+                scoreThresholds={scoreThresholds}
+                service={serviceAssistantTarget?.service || null}
+                onClose={closeServiceAssistant}
+                onMetricChange={handleServiceAssistantMetricChange}
+              />
+            </>
+          )
         )}
       </>
     )
