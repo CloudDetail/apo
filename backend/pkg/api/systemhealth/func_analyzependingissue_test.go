@@ -180,6 +180,112 @@ func TestCallSystemHealthPendingIssueAIWithChatCompletionsWireAPIUsesMessageCont
 	}
 }
 
+func TestCallSystemHealthPendingIssueAIWithChatCompletionsRetriesTruncatedJSON(t *testing.T) {
+	attempts := 0
+	maxTokensByAttempt := make([]int, 0, 2)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		var requestBody map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		maxTokens, _ := requestBody["max_tokens"].(float64)
+		maxTokensByAttempt = append(maxTokensByAttempt, int(maxTokens))
+
+		content := `{"analysis":"响应延时持续偏高"`
+		finishReason := "length"
+		if attempts == 2 {
+			content = `{
+				"analysis":"ts-gateway-service 当前平均响应延时持续偏高，需要确认异常窗口和受影响接口。",
+				"impact":"请求处理时间可能变长，影响依赖该网关的业务访问体验。",
+				"actionPlan":[
+					{"phase":"定位","target":"ts-gateway-service","action":"确认当前延时值、异常开始时间和受影响接口。","validation":"确认异常对象和时间窗口。","risk":"对象不清会扩大排查范围。"},
+					{"phase":"排查","target":"ts-gateway-service","action":"对比接口延时、实例资源、日志和 Trace。","validation":"确认主要异常来源。","risk":"证据不足可能误判原因。"},
+					{"phase":"处置","target":"ts-gateway-service","action":"按确认原因处理后复查响应延时。","validation":"响应延时回到稳定区间。","risk":"未验证恢复可能复发。"}
+				],
+				"validation":"连续两个窗口确认响应延时保持稳定。",
+				"risk":"忽略该问题可能导致请求积压和用户体验下降。",
+				"dataBoundary":"仅使用当前服务健康指标，缺少日志、Trace 和变更记录。"
+			}`
+			finishReason = "stop"
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "chatcmpl-retry",
+			"choices": []map[string]any{
+				{
+					"finish_reason": finishReason,
+					"message": map[string]any{
+						"role":    "assistant",
+						"content": content,
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	payload := systemHealthPendingIssueAIRequest{
+		Window: "15m",
+		Issue: response.SystemHealthPendingIssue{
+			GroupID:     101,
+			ServiceName: "ts-gateway-service",
+			MetricKey:   healthMetricLatency,
+			MetricLabel: "响应延时",
+			Status:      healthStatusYellow,
+			Value:       "762ms",
+		},
+	}
+
+	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "gpt-test", 3, 1024, "chat_completions", payload)
+	if err != nil {
+		t.Fatalf("expected truncated chat response to be retried: %v", err)
+	}
+	if attempts != 2 {
+		t.Fatalf("expected two attempts, got %d", attempts)
+	}
+	if len(maxTokensByAttempt) != 2 || maxTokensByAttempt[0] != 1024 || maxTokensByAttempt[1] <= maxTokensByAttempt[0] {
+		t.Fatalf("expected retry with a larger token budget, got %v", maxTokensByAttempt)
+	}
+	if aiResp.WorkflowRunID != "chatcmpl-retry" || len(aiResp.ActionPlan) != 3 {
+		t.Fatalf("expected structured response from retry, got %+v", aiResp)
+	}
+}
+
+func TestCallSystemHealthPendingIssueAIWithChatCompletionsRetriesUnexpectedEndWithoutLengthFinishReason(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		attempts++
+		content := `{"analysis":"响应延时持续偏高"`
+		if attempts == 2 {
+			content = `{"analysis":"响应延时分析完成"}`
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"id": "chatcmpl-unexpected-end-retry",
+			"choices": []map[string]any{
+				{
+					"finish_reason": "stop",
+					"message": map[string]any{
+						"role":    "assistant",
+						"content": content,
+					},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	aiResp, err := callSystemHealthPendingIssueAIWithWireAPI(nil, server.URL, "test-key", "gpt-test", 3, 1024, "chat_completions", systemHealthPendingIssueAIRequest{})
+	if err != nil {
+		t.Fatalf("expected unexpected-end JSON to be retried without length finish reason: %v", err)
+	}
+	if attempts != 2 {
+		t.Fatalf("expected two attempts, got %d", attempts)
+	}
+	if aiResp.WorkflowRunID != "chatcmpl-unexpected-end-retry" || aiResp.Analysis != "响应延时分析完成" {
+		t.Fatalf("expected response from retry, got %+v", aiResp)
+	}
+}
+
 func TestSystemHealthPendingIssueAIWireAPIsShareBusinessInstructions(t *testing.T) {
 	var responsesInstructions string
 	var chatSystemPrompt string

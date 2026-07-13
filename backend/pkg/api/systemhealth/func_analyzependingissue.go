@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,6 +41,7 @@ type systemHealthPendingIssueAIResponse struct {
 }
 
 const defaultSystemHealthPendingIssueAIChatMaxTokens = 1024
+const minSystemHealthPendingIssueAIChatRetryMaxTokens = 4096
 const pendingIssueActionTextLimit = 60
 const pendingIssueActionCheckTextLimit = 40
 const pendingIssueActionTargetTextLimit = 60
@@ -53,7 +55,8 @@ type openAIChatCompletionsResponse struct {
 }
 
 type openAIChatCompletionsChoice struct {
-	Message openAIChatCompletionsMessage `json:"message"`
+	Message      openAIChatCompletionsMessage `json:"message"`
+	FinishReason string                       `json:"finish_reason"`
 }
 
 type openAIChatCompletionsMessage struct {
@@ -473,7 +476,7 @@ func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL str
 	if err != nil {
 		return systemHealthPendingIssueAIResponse{}, err
 	}
-	requestBody, err := json.Marshal(map[string]any{
+	requestPayload := map[string]any{
 		"model": strings.TrimSpace(model),
 		"messages": []map[string]string{
 			{
@@ -492,11 +495,7 @@ func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL str
 		"response_format": map[string]string{
 			"type": "json_object",
 		},
-		"stream":     false,
-		"max_tokens": effectiveSystemHealthPendingIssueAIChatMaxTokens(maxTokens),
-	})
-	if err != nil {
-		return systemHealthPendingIssueAIResponse{}, err
+		"stream": false,
 	}
 
 	requestContext := context.Background()
@@ -507,47 +506,82 @@ func callSystemHealthPendingIssueAIChatCompletions(ctx core.Context, baseURL str
 	defer cancel()
 
 	endpoint := openAIChatCompletionsEndpoint(baseURL)
-	req, err := http.NewRequestWithContext(requestContext, http.MethodPost, endpoint, bytes.NewReader(requestBody))
-	if err != nil {
-		return systemHealthPendingIssueAIResponse{}, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(apiKey))
+	client := &http.Client{Timeout: time.Duration(timeoutSecond) * time.Second}
+	requestMaxTokens := effectiveSystemHealthPendingIssueAIChatMaxTokens(maxTokens)
+	for attempt := 0; ; attempt++ {
+		requestPayload["max_tokens"] = requestMaxTokens
+		requestBody, err := json.Marshal(requestPayload)
+		if err != nil {
+			return systemHealthPendingIssueAIResponse{}, err
+		}
+		req, err := http.NewRequestWithContext(requestContext, http.MethodPost, endpoint, bytes.NewReader(requestBody))
+		if err != nil {
+			return systemHealthPendingIssueAIResponse{}, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(apiKey))
 
-	startedAt := time.Now()
-	resp, err := (&http.Client{Timeout: time.Duration(timeoutSecond) * time.Second}).Do(req)
-	if err != nil {
-		systemHealthWarnCtx(ctx, "system-health pending issue AI chat completions HTTP request failed",
-			zap.String("endpoint", endpoint),
-			zap.Bool("timeout", isTimeoutError(err)),
-			zap.Duration("elapsed", time.Since(startedAt)),
-			zap.Error(err),
-		)
-		return systemHealthPendingIssueAIResponse{}, err
-	}
-	defer resp.Body.Close()
-	rawBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return systemHealthPendingIssueAIResponse{}, err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI pending issue chat completions API returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(rawBody)))
-	}
+		startedAt := time.Now()
+		resp, err := client.Do(req)
+		if err != nil {
+			systemHealthWarnCtx(ctx, "system-health pending issue AI chat completions HTTP request failed",
+				zap.String("endpoint", endpoint),
+				zap.Bool("timeout", isTimeoutError(err)),
+				zap.Duration("elapsed", time.Since(startedAt)),
+				zap.Error(err),
+			)
+			return systemHealthPendingIssueAIResponse{}, err
+		}
+		rawBody, readErr := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if readErr != nil {
+			return systemHealthPendingIssueAIResponse{}, readErr
+		}
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI pending issue chat completions API returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(rawBody)))
+		}
 
-	var chatResp openAIChatCompletionsResponse
-	if err := json.Unmarshal(rawBody, &chatResp); err != nil {
-		return systemHealthPendingIssueAIResponse{}, err
+		var chatResp openAIChatCompletionsResponse
+		if err := json.Unmarshal(rawBody, &chatResp); err != nil {
+			return systemHealthPendingIssueAIResponse{}, err
+		}
+		if chatResp.Error != nil {
+			return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI response error: %s", chatResp.Error.Message)
+		}
+		outputText := extractOpenAIChatCompletionsText(chatResp)
+		aiResp, err := parseSystemHealthPendingIssueAIResponseText(outputText)
+		if err == nil {
+			aiResp.WorkflowRunID = firstNonEmpty(aiResp.WorkflowRunID, chatResp.ID)
+			return aiResp, nil
+		}
+		if !shouldRetryOpenAIChatCompletionsResponse(chatResp, err) {
+			return systemHealthPendingIssueAIResponse{}, err
+		}
+		if attempt == 1 {
+			return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI pending issue chat response truncated after reaching max_tokens=%d: %w", requestMaxTokens, err)
+		}
+		requestMaxTokens *= 2
+		if requestMaxTokens < minSystemHealthPendingIssueAIChatRetryMaxTokens {
+			requestMaxTokens = minSystemHealthPendingIssueAIChatRetryMaxTokens
+		}
 	}
-	if chatResp.Error != nil {
-		return systemHealthPendingIssueAIResponse{}, fmt.Errorf("AI response error: %s", chatResp.Error.Message)
+}
+
+func shouldRetryOpenAIChatCompletionsResponse(resp openAIChatCompletionsResponse, parseErr error) bool {
+	if openAIChatCompletionsResponseWasTruncated(resp) {
+		return true
 	}
-	outputText := extractOpenAIChatCompletionsText(chatResp)
-	aiResp, err := parseSystemHealthPendingIssueAIResponseText(outputText)
-	if err != nil {
-		return systemHealthPendingIssueAIResponse{}, err
+	var syntaxErr *json.SyntaxError
+	return errors.As(parseErr, &syntaxErr) && strings.Contains(strings.ToLower(syntaxErr.Error()), "unexpected end")
+}
+
+func openAIChatCompletionsResponseWasTruncated(resp openAIChatCompletionsResponse) bool {
+	for _, choice := range resp.Choices {
+		if strings.EqualFold(strings.TrimSpace(choice.FinishReason), "length") {
+			return true
+		}
 	}
-	aiResp.WorkflowRunID = firstNonEmpty(aiResp.WorkflowRunID, chatResp.ID)
-	return aiResp, nil
+	return false
 }
 
 func openAIChatCompletionsEndpoint(baseURL string) string {
