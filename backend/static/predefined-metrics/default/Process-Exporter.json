@@ -2,13 +2,14 @@
   "queries": [
     {
       "title": "进程 CPU 使用速率",
-      "describe": "按节点和 PID 查询进程 CPU 使用速率",
+      "describe": "按 Job、节点和 PID 查询进程 CPU 使用速率",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_cpu_seconds_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_cpu_seconds_total{job_name=~\"$job\",instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
           "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
             "__rate_interval",
+            "job",
             "node",
             "pid"
           ]
@@ -16,18 +17,20 @@
       ],
       "unit": "cpu",
       "params": [
+        "job",
         "node",
         "pid"
       ]
     },
     {
       "title": "进程内存使用",
-      "describe": "按节点和 PID 查询进程常驻内存使用",
+      "describe": "按 Job、节点和 PID 查询进程常驻内存使用",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_memory_bytes{instance_name=~\"$node\",pid=~\"$pid\",memtype=\"resident\"})",
+          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_memory_bytes{job_name=~\"$job\",instance_name=~\"$node\",pid=~\"$pid\",memtype=\"resident\"})",
           "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
+            "job",
             "node",
             "pid"
           ]
@@ -35,19 +38,21 @@
       ],
       "unit": "bytes",
       "params": [
+        "job",
         "node",
         "pid"
       ]
     },
     {
       "title": "进程读取字节速率",
-      "describe": "按节点和 PID 查询进程读取字节速率",
+      "describe": "按 Job、节点和 PID 查询进程读取字节速率",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_read_bytes_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_read_bytes_total{job_name=~\"$job\",instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
           "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
             "__rate_interval",
+            "job",
             "node",
             "pid"
           ]
@@ -55,19 +60,21 @@
       ],
       "unit": "bytesps",
       "params": [
+        "job",
         "node",
         "pid"
       ]
     },
     {
       "title": "进程写入字节速率",
-      "describe": "按节点和 PID 查询进程写入字节速率",
+      "describe": "按 Job、节点和 PID 查询进程写入字节速率",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_write_bytes_total{instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
+          "expr": "sum by (instance_name,pid) (rate(namedprocess_namegroup_write_bytes_total{job_name=~\"$job\",instance_name=~\"$node\",pid=~\"$pid\"}[$__rate_interval]))",
           "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
             "__rate_interval",
+            "job",
             "node",
             "pid"
           ]
@@ -75,18 +82,20 @@
       ],
       "unit": "bytesps",
       "params": [
+        "job",
         "node",
         "pid"
       ]
     },
     {
       "title": "进程打开文件描述符数",
-      "describe": "按节点和 PID 查询进程打开的文件描述符数量",
+      "describe": "按 Job、节点和 PID 查询进程打开的文件描述符数量",
       "targets": [
         {
-          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_open_filedesc{instance_name=~\"$node\",pid=~\"$pid\"})",
+          "expr": "sum by (instance_name,pid) (namedprocess_namegroup_open_filedesc{job_name=~\"$job\",instance_name=~\"$node\",pid=~\"$pid\"})",
           "legendFormat": "{{instance_name}}/{{pid}}",
           "variables": [
+            "job",
             "node",
             "pid"
           ]
@@ -94,6 +103,7 @@
       ],
       "unit": "count",
       "params": [
+        "job",
         "node",
         "pid"
       ]
@@ -117,6 +127,24 @@
       }
     },
     {
+      "name": "job",
+      "type": "custom",
+      "label": "Job",
+      "options": [
+        {
+          "selected": true,
+          "text": "integrations/process",
+          "value": "integrations/process"
+        }
+      ],
+      "current": {
+        "selected": true,
+        "text": "integrations/process",
+        "value": "integrations/process"
+      },
+      "regex": ""
+    },
+    {
       "name": "node",
       "type": "query",
       "label": "Host",
@@ -138,7 +166,7 @@
       "regex": "",
       "query": {
         "qryType": 1,
-        "query": "label_values(namedprocess_namegroup_cpu_seconds_total{instance_name=~\"$node\"},pid)",
+        "query": "label_values(namedprocess_namegroup_cpu_seconds_total{job_name=~\"$job\",instance_name=~\"$node\"},pid)",
         "refId": "PrometheusVariableQueryEditor-VariableQuery"
       }
     }

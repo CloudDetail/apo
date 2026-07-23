@@ -102,7 +102,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"epoll\"})[$__interval])",
+                    "expr": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", type=\"epoll_net\"})[$__interval])",
                     "legendFormat": "Epoll",
                     "refId": "epoll",
                     "variables": [
@@ -298,7 +298,7 @@
             "describe": "",
             "targets": [
                 {
-                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"epoll\"}[$__interval])",
+                    "expr": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"$container_id\", node_name=~\"$node_name\", pid=~\"$pid\", type=\"epoll_net\"}[$__interval])",
                     "legendFormat": "Epoll",
                     "refId": "epoll",
                     "variables": [
