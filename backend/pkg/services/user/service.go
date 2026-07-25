@@ -25,6 +25,7 @@ type Service interface {
 	UpdateUserEmail(ctx core.Context, req *request.UpdateUserEmailRequest) error
 	UpdateUserPassword(ctx core.Context, req *request.UpdateUserPasswordRequest) error
 	GetUserInfo(ctx core.Context, userID int64) (response.GetUserInfoResponse, error)
+	LoginDify(ctx core.Context, userID int64) (*dify.DifyLoginResponse, error)
 	GetUserList(ctx core.Context, req *request.GetUserListRequest) (response.GetUserListResponse, error)
 	RemoveUser(ctx core.Context, userID int64) error
 	RestPassword(ctx core.Context, req *request.ResetPasswordRequest) error

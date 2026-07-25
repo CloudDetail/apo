@@ -17,6 +17,29 @@ const RETRY_DELAY_BASE = 300 // 300ms
 let isTokenRefreshing = false
 let pendingRequests = []
 let lastTokenRefreshTime = 0
+let difyTokenRefreshPromise = null
+let difyReloginPromise = null
+
+class DifyAuthenticationError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'DifyAuthenticationError'
+  }
+}
+
+export const clearDifySession = () => {
+  localStorage.removeItem('difyToken')
+  localStorage.removeItem('difyRefreshToken')
+}
+
+export const clearAuthSession = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+  // Remove the legacy key as well so upgrades cannot retain stale sessions.
+  localStorage.removeItem('refresh_token')
+  clearDifySession()
+  delete instance.defaults.headers.common.Authorization
+}
 
 const isRequestCanceled = (error = {}) => (
   axios.isCancel?.(error) ||
@@ -113,10 +136,7 @@ instance.interceptors.response.use(
             pendingRequests.forEach(callback => callback(newToken))
             return instance(originalRequest)
           } catch (refreshError) {
-            localStorage.removeItem('token')
-            localStorage.removeItem('refresh_token')
-            delete instance.defaults.headers.common.Authorization
-
+            clearAuthSession()
             redirectToLogin(true)
             return Promise.reject(refreshError)
           } finally {
@@ -177,7 +197,7 @@ instance.interceptors.response.use(
 )
 
 // 刷新 accessToken
-export const refreshAccessToken = async () => {
+export const refreshAccessToken = async ({ refreshDify = true } = {}) => {
   const refreshToken = localStorage.getItem('refreshToken')
   if (!refreshToken) return null
 
@@ -190,39 +210,109 @@ export const refreshAccessToken = async () => {
     })
     const { accessToken } = response
     localStorage.setItem('token', accessToken)
-    refreshDifyAccessToken().catch((error) => {
-      console.error(' Dify Token Error:', error)
-    })
+
+    // Keep the Dify iframe session synchronized with the still-valid APO user.
+    const hasDifySession = localStorage.getItem('difyToken') || localStorage.getItem('difyRefreshToken')
+    if (refreshDify && hasDifySession) {
+      try {
+        await refreshDifyAccessToken()
+      } catch (error) {
+        if (error instanceof DifyAuthenticationError) {
+          try {
+            await reloginDifyWithApoToken()
+          } catch (reloginError) {
+            console.error('Dify iframe session recovery failed:', reloginError)
+          }
+        } else {
+          // A transient Dify outage must not invalidate an otherwise valid APO
+          // session. The next APO refresh can retry the Dify refresh.
+          console.error('Dify token refresh temporarily unavailable:', error)
+        }
+      }
+    }
     return accessToken
-  } catch (error) {
+  } catch {
     return null
   }
 }
-export const refreshDifyAccessToken = async () => {
-  try {
-    const refresh_token = globalThis.localStorage.getItem('difyRefreshToken')
 
-    const res = await fetch(`/dify/console/api/refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;utf-8',
-      },
-      body: JSON.stringify({ refresh_token }),
-    })
-    if (!res.ok) {
-      if (res.status === 401) {
-        return Promise.reject('Unauthorized: Dify refresh token invalid')
+const wait = (delay) => new Promise(resolve => setTimeout(resolve, delay))
+
+export const reloginDifyWithApoToken = async () => {
+  if (!difyReloginPromise) {
+    difyReloginPromise = (async () => {
+      clearDifySession()
+      let lastError
+
+      for (let attempt = 0; attempt < MAX_RETRY_ATTEMPTS; attempt += 1) {
+        if (!localStorage.getItem('token')) {
+          throw new DifyAuthenticationError('APO access token missing')
+        }
+
+        try {
+          const { data } = await instance.post('/api/user/dify/login')
+          if (!data?.access_token || !data?.refresh_token) {
+            throw new DifyAuthenticationError('Dify re-login returned incomplete credentials')
+          }
+          localStorage.setItem('difyToken', data.access_token)
+          localStorage.setItem('difyRefreshToken', data.refresh_token)
+          return data
+        } catch (error) {
+          lastError = error
+          if (error instanceof DifyAuthenticationError || error.response?.status === 400) {
+            throw error
+          }
+          if (attempt < MAX_RETRY_ATTEMPTS - 1) {
+            await wait(RETRY_DELAY_BASE * Math.pow(2, attempt))
+          }
+        }
       }
-      return Promise.reject(`Request failed with status: ${res.status}`)
-    }
+      throw lastError || new Error('Dify re-login failed')
+    })()
+  }
 
-    const { data } = await res.json()
-    localStorage.setItem('difyToken', data.access_token)
-    localStorage.setItem('difyRefreshToken', data.refresh_token)
-  } catch (error) {
-    console.error(error)
-    return Promise.reject(error)
+  try {
+    return await difyReloginPromise
   } finally {
+    difyReloginPromise = null
+  }
+}
+export const refreshDifyAccessToken = async () => {
+  if (!difyTokenRefreshPromise) {
+    difyTokenRefreshPromise = (async () => {
+      const refresh_token = globalThis.localStorage.getItem('difyRefreshToken')
+      if (!refresh_token) {
+        throw new DifyAuthenticationError('Dify refresh token missing')
+      }
+
+      const res = await fetch(`/dify/console/api/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;utf-8',
+        },
+        body: JSON.stringify({ refresh_token }),
+      })
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw new DifyAuthenticationError('Dify refresh token invalid')
+        }
+        throw new Error(`Dify token refresh failed with status ${res.status}`)
+      }
+
+      const { data } = await res.json()
+      if (!data?.access_token || !data?.refresh_token) {
+        throw new DifyAuthenticationError('Dify token refresh returned incomplete credentials')
+      }
+      localStorage.setItem('difyToken', data.access_token)
+      localStorage.setItem('difyRefreshToken', data.refresh_token)
+      return data.access_token
+    })()
+  }
+
+  try {
+    return await difyTokenRefreshPromise
+  } finally {
+    difyTokenRefreshPromise = null
   }
 }
 // 封装GET请求

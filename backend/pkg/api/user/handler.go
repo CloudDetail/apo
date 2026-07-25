@@ -55,6 +55,10 @@ type Handler interface {
 	// @Tags API.user
 	// @Router /api/user/info [get]
 	GetUserInfo() core.HandlerFunc
+	// LoginDify re-establishes Dify credentials from the authenticated APO user.
+	// @Tags API.user
+	// @Router /api/user/dify/login [post]
+	LoginDify() core.HandlerFunc
 
 	// GetUserList Get user list.
 	// @Tags API.user

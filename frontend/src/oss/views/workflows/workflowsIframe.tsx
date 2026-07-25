@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { workflowAnonymousLoginApi } from 'src/core/api/workflows'
 import LoadingSpinner from 'src/core/components/Spinner'
 import { useUserContext } from 'src/core/contexts/UserContext'
+import { refreshDifyAccessToken, reloginDifyWithApoToken } from 'src/core/utils/request'
 
 const WorkflowsIframe = ({ src }) => {
   const workflowRef = useRef(null)
@@ -17,36 +18,120 @@ const WorkflowsIframe = ({ src }) => {
   const difyToken = useRef(localStorage.getItem('difyToken'))
   const refreshToken = useRef(localStorage.getItem('difyRefreshToken'))
 
-  const [loading, setLoading] = useState(!difyToken.current || !refreshToken.current)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [iframeReloadKey, setIframeReloadKey] = useState(0)
+  const retryCount = useRef(0)
+  const initialized = useRef(false)
+  const iframeRecoveryInProgress = useRef(false)
+
+  const syncIframeTokens = useCallback((accessToken, difyRefreshToken) => {
+    if (!accessToken || !difyRefreshToken)
+      throw new Error('Dify token synchronization received incomplete credentials')
+    localStorage.setItem('difyToken', accessToken)
+    localStorage.setItem('difyRefreshToken', difyRefreshToken)
+    difyToken.current = accessToken
+    refreshToken.current = difyRefreshToken
+    try {
+      const iframeStorage = workflowRef.current?.contentWindow?.localStorage
+      iframeStorage?.setItem('console_token', accessToken)
+      iframeStorage?.setItem('refresh_token', difyRefreshToken)
+    } catch (err) {
+      console.warn('Unable to synchronize Dify iframe tokens:', err)
+    }
+  }, [])
 
   const loginDify = useCallback(async () => {
     setLoading(true)
     setError(false)
 
     try {
-      const res = await workflowAnonymousLoginApi({
-        email: `${user.username}@apo.com`,
-        language,
-        remember_me: true,
-      })
-
-      if (res.result === 'success') {
+      if (user.username === 'anonymous') {
+        const res = await workflowAnonymousLoginApi({
+          email: `${user.username}@apo.com`,
+          language,
+          remember_me: true,
+        })
+        if (res.result !== 'success')
+          throw new Error(res.message || 'Dify anonymous login failed')
         const { access_token, refresh_token } = res.data
-        localStorage.setItem('difyToken', access_token)
-        localStorage.setItem('difyRefreshToken', refresh_token)
-        difyToken.current = access_token
-        refreshToken.current = refresh_token
-      } else {
-        setError(true)
+        syncIframeTokens(access_token, refresh_token)
       }
+      else {
+        const { access_token, refresh_token } = await reloginDifyWithApoToken()
+        syncIframeTokens(access_token, refresh_token)
+      }
+      retryCount.current = 0
+      return true
     } catch (err) {
       console.error('Login error:', err)
+      retryCount.current += 1
       setError(true)
+      return false
     } finally {
       setLoading(false)
     }
-  }, [user.username, language])
+  }, [user.username, language, syncIframeTokens])
+
+  const refreshDifySession = useCallback(async (forceBlock = false, reloadIframe = false) => {
+    const shouldBlock = forceBlock || !initialized.current
+    let relogged = false
+    if (shouldBlock)
+      setLoading(true)
+    setError(false)
+    try {
+      if (!difyToken.current || !refreshToken.current) {
+        return await loginDify()
+      }
+      try {
+        await refreshDifyAccessToken()
+        syncIframeTokens(
+          localStorage.getItem('difyToken'),
+          localStorage.getItem('difyRefreshToken'),
+        )
+      } catch {
+        const { access_token, refresh_token } = await reloginDifyWithApoToken()
+        syncIframeTokens(access_token, refresh_token)
+        relogged = true
+      }
+      retryCount.current = 0
+      if ((relogged || reloadIframe) && initialized.current)
+        setIframeReloadKey(key => key + 1)
+      return true
+    } catch (err) {
+      console.error('Dify session recovery error:', err)
+      retryCount.current += 1
+      setError(true)
+      return false
+    } finally {
+      initialized.current = true
+      if (shouldBlock)
+        setLoading(false)
+    }
+  }, [loginDify, syncIframeTokens])
+
+  const recoverIframeLogin = useCallback(async () => {
+    if (iframeRecoveryInProgress.current)
+      return
+    iframeRecoveryInProgress.current = true
+    try {
+      await refreshDifySession(true, true)
+    } finally {
+      iframeRecoveryInProgress.current = false
+    }
+  }, [refreshDifySession])
+
+  const detectIframeLogin = useCallback(() => {
+    try {
+      if (workflowRef.current?.contentWindow?.location.pathname !== '/dify/signin')
+        return
+    } catch {
+      return
+    }
+    // Dify may redirect only the iframe after its own refresh token expires.
+    // Recover through APO and remount the original business page.
+    recoverIframeLogin()
+  }, [recoverIframeLogin])
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -57,10 +142,7 @@ const WorkflowsIframe = ({ src }) => {
 
       if (event.data?.type === 'refresh_token') {
         const { access_token, refresh_token } = event.data.data
-        localStorage.setItem('difyToken', access_token)
-        localStorage.setItem('difyRefreshToken', refresh_token)
-        // setDifyToken(access_token)
-        // setRefreshToken(refresh_token)
+        syncIframeTokens(access_token, refresh_token)
       }
     }
 
@@ -68,13 +150,37 @@ const WorkflowsIframe = ({ src }) => {
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [])
+  }, [syncIframeTokens])
 
   useEffect(() => {
-    if ((!difyToken.current || !refreshToken.current) && user.username === 'anonymous') {
-      loginDify()
+    refreshDifySession()
+  }, [refreshDifySession])
+
+  useEffect(() => {
+    const timer = window.setInterval(refreshDifySession, 10 * 60 * 1000)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible')
+        refreshDifySession(true)
     }
-  }, [difyToken.current, refreshToken.current, user.username, loginDify])
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshDifySession])
+
+  useEffect(() => {
+    const timer = window.setInterval(detectIframeLogin, 1000)
+    return () => window.clearInterval(timer)
+  }, [detectIframeLogin])
+
+  useEffect(() => {
+    if (!error)
+      return
+    const delay = Math.min(30000, 1000 * Math.pow(2, Math.min(retryCount.current, 5)))
+    const timer = window.setTimeout(refreshDifySession, delay)
+    return () => window.clearTimeout(timer)
+  }, [error, refreshDifySession])
 
   if (loading) {
     return <LoadingSpinner loading={loading} />
@@ -86,7 +192,9 @@ const WorkflowsIframe = ({ src }) => {
 
   return (
     <iframe
+      key={iframeReloadKey}
       ref={workflowRef}
+      onLoad={detectIframeLogin}
       src={`${src}${src.includes('?') ? '&' : '?'}access_token=${difyToken.current}&refresh_token=${refreshToken.current}`}
       width="100%"
       height="100%"

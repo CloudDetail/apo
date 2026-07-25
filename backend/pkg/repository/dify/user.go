@@ -148,3 +148,42 @@ func (d *difyRepo) ResetPassword(username string, newPassword string) (*DifyResp
 	}
 	return &res, nil
 }
+
+func (d *difyRepo) LoginByAPOSession(username string) (*DifyLoginResponse, error) {
+	reqBody := struct {
+		Email      string `json:"email"`
+		Language   string `json:"language"`
+		RememberMe bool   `json:"remember_me"`
+	}{
+		Email:      username + "@apo.com",
+		Language:   "zh-Hans",
+		RememberMe: true,
+	}
+
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := d.cli.Post(d.url+DIFY_APO_LOGIN, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("dify login failed with status %d", resp.StatusCode)
+	}
+
+	var result DifyLoginResponse
+	if err = json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+	if result.Result != "success" || result.Data.AccessToken == "" || result.Data.RefreshToken == "" {
+		return nil, fmt.Errorf("dify login returned incomplete credentials: %s", result.Message)
+	}
+	return &result, nil
+}

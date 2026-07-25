@@ -186,6 +186,7 @@ func setApiRouter(r *resource) {
 		userApi.GET("/refresh", userHandler.RefreshToken())
 		userApi.Use(middlewares.AuthMiddleware())
 		userApi.GET("/info", userHandler.GetUserInfo())
+		userApi.POST("/dify/login", userHandler.LoginDify())
 		userApi.GET("/list", userHandler.GetUserList())
 		userApi.GET("/team", userHandler.GetUserTeam())
 		userApi.Use(middlewares.LicMiddleware())

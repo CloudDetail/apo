@@ -18,6 +18,7 @@ import i18next from 'i18next'
 import { notify } from 'src/core/utils/notify'
 import { useSelector } from 'react-redux'
 import { useDeployMode } from 'src/core/contexts/DeployModeContext'
+import { clearAuthSession, clearDifySession, reloginDifyWithApoToken } from 'src/core/utils/request'
 
 export default function Login() {
   const { getLogo, getTitle, deployMode } = useDeployMode()
@@ -39,23 +40,38 @@ export default function Login() {
           setLoading(true)
           const { accessToken, refreshToken } = await loginApi(values)
           if (accessToken && refreshToken) {
+            // Store the new APO credentials before calling Dify so the request
+            // interceptor cannot reuse a token from an earlier session.
+            clearAuthSession()
             window.localStorage.setItem('token', accessToken)
             window.localStorage.setItem('refreshToken', refreshToken)
-            localStorage.removeItem('difyToken')
-            localStorage.removeItem('difyRefreshToken')
-            navigate('/')
-            notify({ message: t('index.loginSuccess'), type: 'success' })
+
+            // Establish the separate Dify iframe session after APO login.
+            if (deployMode !== 'syncause') {
+              try {
+                await loginDify(values)
+              } catch (error) {
+                clearDifySession()
+                console.error('Dify password login failed; retrying with the APO session:', error)
+                try {
+                  await reloginDifyWithApoToken()
+                } catch (reloginError) {
+                  // APO remains usable. Dify-backed views will retry the same
+                  // token exchange when the user opens them.
+                  console.error('Dify automatic re-login temporarily unavailable:', reloginError)
+                }
+              }
+            }
+
             remeberMe
               ? localStorage.setItem('username', values.username)
               : localStorage.removeItem('username')
             localStorage.setItem('remeberMe', String(remeberMe))
-
-            // 只有在非 syncause 模式下才调用 loginDify
-            if (deployMode !== 'syncause') {
-              await loginDify(values)
-            }
+            navigate('/')
+            notify({ message: t('index.loginSuccess'), type: 'success' })
           }
         } catch (error) {
+          clearAuthSession()
           console.error(error)
         } finally {
           setLoading(false)
@@ -74,9 +90,15 @@ export default function Login() {
       remember_me: true,
     })
     if (res.result === 'success') {
-      window.localStorage.setItem('difyToken', res.data.access_token)
-      window.localStorage.setItem('difyRefreshToken', res.data.refresh_token)
+      const { access_token, refresh_token } = res.data || {}
+      if (!access_token || !refresh_token) {
+        throw new Error('Dify login returned incomplete credentials')
+      }
+      window.localStorage.setItem('difyToken', access_token)
+      window.localStorage.setItem('difyRefreshToken', refresh_token)
+      return
     }
+    throw new Error(res.message || 'Dify login failed')
   }
   useEffect(() => {
     form.setFieldValue('username', localStorage.getItem('username'))

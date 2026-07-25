@@ -21,6 +21,7 @@ const (
 	DIFY_REMOVE_USER   = "/console/api/workspaces/apo/members/"
 	DIFY_PASSWD_UPDATE = "/console/api/apo/account/password"
 	DIFY_RESET_PASSWD  = "/console/api/apo/account/reset-password"
+	DIFY_APO_LOGIN     = "/console/api/login/apo/anonymous"
 )
 
 type DifyUser struct {
@@ -35,11 +36,23 @@ type DifyResponse struct {
 	Message string `json:"message"`
 }
 
+type DifyTokenPair struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+type DifyLoginResponse struct {
+	Result  string        `json:"result"`
+	Data    DifyTokenPair `json:"data"`
+	Message string        `json:"message"`
+}
+
 type DifyRepo interface {
 	AddUser(username string, password string, role string) (*DifyResponse, error)
 	UpdatePassword(username string, oldPassword string, newPassword string) (*DifyResponse, error)
 	RemoveUser(username string) (*DifyResponse, error)
 	ResetPassword(username string, newPassword string) (*DifyResponse, error)
+	LoginByAPOSession(username string) (*DifyLoginResponse, error)
 
 	// ########################## Async AlertCheck Workflow #########################
 
