@@ -7,12 +7,13 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/core"
 )
 
-// ListMetrics
-// @Summary
-// @Description
+// ListMetrics lists the predefined metrics available for query.
+// @Summary List predefined metrics
+// @Description Returns the predefined metric catalog, including metric IDs, names, descriptions, required parameters, and units.
 // @Tags API.metric
 // @Accept application/x-www-form-urlencoded
 // @Produce json
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []QueryInfo
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/list [get]

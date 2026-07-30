@@ -513,6 +513,8 @@ definitions:
     properties:
       alarmCount:
         type: integer
+      alertId:
+        type: string
       alertKey:
         type: string
       createTime:
@@ -805,6 +807,22 @@ definitions:
       parentGroupId:
         type: integer
       source:
+        type: string
+    type: object
+  dify.DifyLoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dify.DifyTokenPair'
+      message:
+        type: string
+      result:
+        type: string
+    type: object
+  dify.DifyTokenPair:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
         type: string
     type: object
   httpconfig.Authorization:
@@ -1460,6 +1478,29 @@ definitions:
         type: string
       unit:
         type: string
+    type: object
+  metric.QueryMetricsRequest:
+    properties:
+      endTime:
+        type: integer
+      metricIDs:
+        items:
+          type: integer
+        type: array
+      metricName:
+        type: string
+      metricNames:
+        items:
+          type: string
+        type: array
+      params:
+        additionalProperties:
+          type: string
+        type: object
+      startTime:
+        type: integer
+      step:
+        type: integer
     type: object
   metric.QueryMetricsResult:
     properties:
@@ -3520,6 +3561,13 @@ definitions:
       reportType:
         type: string
     type: object
+  response.GetAlertEventReportViewResponse:
+    properties:
+      snapshot:
+        $ref: '#/definitions/response.GetAlertEventReportResponse'
+      view:
+        $ref: '#/definitions/response.ReportView'
+    type: object
   response.GetAlertEventsResponse:
     properties:
       events:
@@ -4824,6 +4872,119 @@ definitions:
     properties:
       accessToken:
         description: accessToken is used to call the interface get resources
+        type: string
+    type: object
+  response.ReportAnalysisWindow:
+    properties:
+      endTime:
+        type: integer
+      startTime:
+        type: integer
+    type: object
+  response.ReportBusinessImpact:
+    properties:
+      affectedServices:
+        items:
+          type: string
+        type: array
+      endpoints:
+        items:
+          type: string
+        type: array
+      entryServices:
+        items:
+          type: string
+        type: array
+      summary:
+        type: string
+    type: object
+  response.ReportFaultLocation:
+    properties:
+      basis:
+        type: string
+      description:
+        type: string
+      label:
+        type: string
+      path:
+        items:
+          type: string
+        type: array
+      service:
+        type: string
+    type: object
+  response.ReportMetricDelta:
+    properties:
+      before: {}
+      current: {}
+      description:
+        type: string
+      name:
+        type: string
+      unit:
+        type: string
+    type: object
+  response.ReportRuntimeStatus:
+    properties:
+      label:
+        type: string
+      state:
+        type: string
+      summary:
+        type: string
+      updatedAt:
+        type: integer
+    type: object
+  response.ReportTimelineItem:
+    properties:
+      detail:
+        type: string
+      time:
+        type: string
+      title:
+        type: string
+    type: object
+  response.ReportView:
+    properties:
+      analysisWindow:
+        $ref: '#/definitions/response.ReportAnalysisWindow'
+      businessImpact:
+        $ref: '#/definitions/response.ReportBusinessImpact'
+      dataSources:
+        $ref: '#/definitions/response.ReportViewDataSources'
+      faultLocation:
+        $ref: '#/definitions/response.ReportFaultLocation'
+      headline:
+        type: string
+      metricDeltas:
+        items:
+          $ref: '#/definitions/response.ReportMetricDelta'
+        type: array
+      reportId:
+        type: string
+      runtimeStatus:
+        $ref: '#/definitions/response.ReportRuntimeStatus'
+      timeline:
+        items:
+          $ref: '#/definitions/response.ReportTimelineItem'
+        type: array
+      topology:
+        additionalProperties: {}
+        type: object
+    type: object
+  response.ReportViewDataSources:
+    properties:
+      businessImpact:
+        type: string
+      metricDeltas:
+        type: string
+      runtimeStatus:
+        type: string
+      snapshot:
+        type: string
+      timeline:
+        type: string
+      topology:
         type: string
     type: object
   response.SQLOperationDetail:
@@ -6378,6 +6539,30 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.GetAlertEventReportResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      tags:
+      - API.alerts
+  /api/alerts/events/report/view:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetAlertEventReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetAlertEventReportViewResponse'
         "400":
           description: Bad Request
           schema:
@@ -8163,6 +8348,11 @@ paths:
         in: query
         name: cluster
         type: string
+      - description: data group id
+        format: int64
+        in: query
+        name: groupId
+        type: integer
       produces:
       - application/json
       responses:
@@ -9233,6 +9423,13 @@ paths:
     get:
       consumes:
       - application/x-www-form-urlencoded
+      description: Returns the predefined metric catalog, including metric IDs, names,
+        descriptions, required parameters, and units.
+      parameters:
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -9246,12 +9443,26 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: List predefined metrics
       tags:
       - API.metric
   /api/metric/query:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
+      description: Queries predefined metrics by metric name or metric ID within the
+        specified time range and returns the resulting time series.
+      parameters:
+      - description: Metric query request
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/metric.QueryMetricsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -9263,12 +9474,15 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Query predefined metrics
       tags:
       - API.metric
   /api/metric/queryPods:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
+      description: Queries pods observed in the specified time range and optionally
+        filters them by node name, namespace, or pod name.
       parameters:
       - description: Request information
         in: body
@@ -9276,8 +9490,11 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.QueryPodsRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
       produces:
-      - application/json
       - application/json
       responses:
         "200":
@@ -9288,6 +9505,7 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
+      summary: Query pods from metrics
       tags:
       - API.metric
   /api/network/podmap:
@@ -12022,6 +12240,22 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Create a user.
+      tags:
+      - API.user
+  /api/user/dify/login:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dify.DifyLoginResponse'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Login to Dify with the current APO session
       tags:
       - API.user
   /api/user/info:

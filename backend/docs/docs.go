@@ -2020,6 +2020,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/events/report/view": {
+            "post": {
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertEventReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GetAlertEventReportViewResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/filter/keys": {
             "get": {
                 "consumes": [
@@ -4733,6 +4771,13 @@ const docTemplate = `{
                         "description": "Query cluster name",
                         "name": "cluster",
                         "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "data group id",
+                        "name": "groupId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -6365,6 +6410,7 @@ const docTemplate = `{
         },
         "/api/metric/list": {
             "get": {
+                "description": "Returns the predefined metric catalog, including metric IDs, names, descriptions, required parameters, and units.",
                 "consumes": [
                     "application/x-www-form-urlencoded"
                 ],
@@ -6373,6 +6419,15 @@ const docTemplate = `{
                 ],
                 "tags": [
                     "API.metric"
+                ],
+                "summary": "List predefined metrics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -6395,14 +6450,33 @@ const docTemplate = `{
         },
         "/api/metric/query": {
             "post": {
+                "description": "Queries predefined metrics by metric name or metric ID within the specified time range and returns the resulting time series.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "API.metric"
+                ],
+                "summary": "Query predefined metrics",
+                "parameters": [
+                    {
+                        "description": "Metric query request",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/metric.QueryMetricsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
                 ],
                 "responses": {
                     "200": {
@@ -6422,16 +6496,17 @@ const docTemplate = `{
         },
         "/api/metric/queryPods": {
             "post": {
+                "description": "Queries pods observed in the specified time range and optionally filters them by node name, namespace, or pod name.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
-                    "application/json",
                     "application/json"
                 ],
                 "tags": [
                     "API.metric"
                 ],
+                "summary": "Query pods from metrics",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -6441,6 +6516,12 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/request.QueryPodsRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -10478,6 +10559,31 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user/dify/login": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.user"
+                ],
+                "summary": "Login to Dify with the current APO session",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dify.DifyLoginResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Bad Gateway",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/user/info": {
             "get": {
                 "description": "Get user's info.",
@@ -12016,6 +12122,9 @@ const docTemplate = `{
                 "alarmCount": {
                     "type": "integer"
                 },
+                "alertId": {
+                    "type": "string"
+                },
                 "alertKey": {
                     "type": "string"
                 },
@@ -12454,6 +12563,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "source": {
+                    "type": "string"
+                }
+            }
+        },
+        "dify.DifyLoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dify.DifyTokenPair"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "result": {
+                    "type": "string"
+                }
+            }
+        },
+        "dify.DifyTokenPair": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
                     "type": "string"
                 }
             }
@@ -13409,6 +13543,41 @@ const docTemplate = `{
                 },
                 "unit": {
                     "type": "string"
+                }
+            }
+        },
+        "metric.QueryMetricsRequest": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "metricIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "metricName": {
+                    "type": "string"
+                },
+                "metricNames": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "params": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "type": "integer"
+                },
+                "step": {
+                    "type": "integer"
                 }
             }
         },
@@ -16441,6 +16610,17 @@ const docTemplate = `{
                 }
             }
         },
+        "response.GetAlertEventReportViewResponse": {
+            "type": "object",
+            "properties": {
+                "snapshot": {
+                    "$ref": "#/definitions/response.GetAlertEventReportResponse"
+                },
+                "view": {
+                    "$ref": "#/definitions/response.ReportView"
+                }
+            }
+        },
         "response.GetAlertEventsResponse": {
             "type": "object",
             "properties": {
@@ -18402,6 +18582,178 @@ const docTemplate = `{
             "properties": {
                 "accessToken": {
                     "description": "accessToken is used to call the interface get resources",
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReportAnalysisWindow": {
+            "type": "object",
+            "properties": {
+                "endTime": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ReportBusinessImpact": {
+            "type": "object",
+            "properties": {
+                "affectedServices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "entryServices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReportFaultLocation": {
+            "type": "object",
+            "properties": {
+                "basis": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "service": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReportMetricDelta": {
+            "type": "object",
+            "properties": {
+                "before": {},
+                "current": {},
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReportRuntimeStatus": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "integer"
+                }
+            }
+        },
+        "response.ReportTimelineItem": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ReportView": {
+            "type": "object",
+            "properties": {
+                "analysisWindow": {
+                    "$ref": "#/definitions/response.ReportAnalysisWindow"
+                },
+                "businessImpact": {
+                    "$ref": "#/definitions/response.ReportBusinessImpact"
+                },
+                "dataSources": {
+                    "$ref": "#/definitions/response.ReportViewDataSources"
+                },
+                "faultLocation": {
+                    "$ref": "#/definitions/response.ReportFaultLocation"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "metricDeltas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ReportMetricDelta"
+                    }
+                },
+                "reportId": {
+                    "type": "string"
+                },
+                "runtimeStatus": {
+                    "$ref": "#/definitions/response.ReportRuntimeStatus"
+                },
+                "timeline": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ReportTimelineItem"
+                    }
+                },
+                "topology": {
+                    "type": "object",
+                    "additionalProperties": {}
+                }
+            }
+        },
+        "response.ReportViewDataSources": {
+            "type": "object",
+            "properties": {
+                "businessImpact": {
+                    "type": "string"
+                },
+                "metricDeltas": {
+                    "type": "string"
+                },
+                "runtimeStatus": {
+                    "type": "string"
+                },
+                "snapshot": {
+                    "type": "string"
+                },
+                "timeline": {
+                    "type": "string"
+                },
+                "topology": {
                     "type": "string"
                 }
             }

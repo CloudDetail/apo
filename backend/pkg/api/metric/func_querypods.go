@@ -11,14 +11,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// QueryPods
-// @Summary
-// @Description
+// QueryPods queries pods observed in metrics.
+// @Summary Query pods from metrics
+// @Description Queries pods observed in the specified time range and optionally filters them by node name, namespace, or pod name.
 // @Tags API.metric
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.QueryPodsRequest true "Request information"
-// @Produce json
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.QueryPodsResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/queryPods [post]

@@ -11,12 +11,14 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/services/metric"
 )
 
-// QueryMetrics
-// @Summary
-// @Description
+// QueryMetrics queries one or more predefined metrics.
+// @Summary Query predefined metrics
+// @Description Queries predefined metrics by metric name or metric ID within the specified time range and returns the resulting time series.
 // @Tags API.metric
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
+// @Param Request body metric.QueryMetricsRequest true "Metric query request"
+// @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} metric.QueryMetricsResult
 // @Failure 400 {object} code.Failure
 // @Router /api/metric/query [post]
