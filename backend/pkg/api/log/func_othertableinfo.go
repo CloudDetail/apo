@@ -17,7 +17,7 @@ import (
 // @Tags API.log
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.OtherTableInfoRequest true "Request information"
+// @Param Request query request.OtherTableInfoRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.OtherTableInfoResponse
 // @Failure 400 {object} code.Failure

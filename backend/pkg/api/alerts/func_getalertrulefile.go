@@ -22,7 +22,7 @@ import (
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertRuleFileResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/rules [get]
+// @Router /api/alerts/rules/file [get]
 func (h *handler) GetAlertRuleFile() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.GetAlertRuleConfigRequest)

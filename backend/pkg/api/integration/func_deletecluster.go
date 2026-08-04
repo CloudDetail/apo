@@ -15,9 +15,9 @@ import (
 // @Summary DeleteCluster
 // @Description DeleteCluster
 // @Tags API.alertinput
-// @Accept application/json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body integration.Cluster true "Cluster Info"
+// @Param Request query integration.Cluster true "Cluster Info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/delete [get]

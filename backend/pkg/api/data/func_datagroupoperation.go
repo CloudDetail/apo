@@ -16,7 +16,7 @@ import (
 // @Summary Assign data groups to users or teams, or remove them from data groups.
 // @Description Assign data groups to users or teams, or remove them from data groups.
 // @Tags API.data
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.DataGroupOperationRequest true "Request"
 // @Param Authorization header string false "Bearer accessToken"

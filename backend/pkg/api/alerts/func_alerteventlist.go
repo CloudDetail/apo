@@ -15,12 +15,12 @@ import (
 // @Summary
 // @Description
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.AlertEventSearchRequest true "请求信息"
 // @Success 200 {object} response.AlertEventSearchResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/events/list [post]
+// @Router /api/alerts/event/list [post]
 func (h *handler) AlertEventList() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AlertEventSearchRequest)

@@ -16,7 +16,7 @@ import (
 // @Summary get log related metrics
 // @Description get log related metrics
 // @Tags API.service
-// @Accept application/json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param startTime query uint64 true "query start time"
 // @Param endTime query uint64 true "query end time"

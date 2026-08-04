@@ -14,7 +14,7 @@ import (
 // @Tags API.custom
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.GetCustomRequest true "请求信息"
+// @Param Request query request.GetCustomRequest true "请求信息"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetCustomResponse
 // @Failure 400 {object} code.Failure

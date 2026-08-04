@@ -15,12 +15,7 @@ import (
 // @Tags API.alerts
 // @Accept json
 // @Produce json
-// @Param startTime query int64 true "查询开始时间"
-// @Param endTime query int64 true "查询结束时间"
-// @Param step query int64 true "查询步长(us)"
-// @Param service query string true "查询服务名"
-// @Param endpoint query string true "查询Endpoint"
-// @Param anormalTypes query string true "异常事件类型过滤"
+// @Param Request body request.GetDescendantAnormalDeltaEventRequest true "请求信息"
 // @Success 200 {object} response.GetDescendantAnormalEventResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/descendant/anormal/delta [post]

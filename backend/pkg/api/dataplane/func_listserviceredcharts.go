@@ -16,11 +16,11 @@ import (
 // @Tags API.dataplane
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.ListServiceRedChartsRequest true "Request information"
+// @Param Request query request.ListServiceRedChartsRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ListServiceRedChartsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/dataplane/recharts/list [get]
+// @Router /api/dataplane/redcharts/list [get]
 func (h *handler) ListServiceRedCharts() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.ListServiceRedChartsRequest)

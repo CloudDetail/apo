@@ -20,7 +20,7 @@ import (
 // @Param Request body alert.SourceFrom true "Source Info"
 // @Success 200 {object} alert.GetAlertEnrichRuleResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alertinput/source/enrich/get [get]
+// @Router /api/alertinput/source/enrich/get [post]
 func (h *handler) GetAlertSourceEnrichRule() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.SourceFrom)

@@ -17,7 +17,7 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.AlertEventClassifyRequest true "请求信息"
+// @Param Request query request.AlertEventClassifyRequest true "请求信息"
 // @Success 200 {object} response.AlertEventClassifyResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/events/classify [get]

@@ -14,7 +14,7 @@ import (
 // @Summary Updates a dataplane.
 // @Description Updates a dataplane.
 // @Tags API.dataplane
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.UpdateDataPlaneRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

@@ -19,7 +19,7 @@ import (
 // @Produce json
 // @Success 200 {object} alert.GetTargetTagsResponse
 // @Failure 400 {object} code.Failure
-// @Router /api/alertsinput/enrich/tags/list [get]
+// @Router /api/alertinput/enrich/tags/list [get]
 func (h *handler) ListTargetTags() core.HandlerFunc {
 	return func(c core.Context) {
 		targetTags, err := h.inputService.GetAlertEnrichRuleTags(c)

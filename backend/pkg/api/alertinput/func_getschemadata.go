@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.AlertSchemaRequest true "Schema Info"
+// @Param Request query alert.AlertSchemaRequest true "Schema Info"
 // @Success 200 {object} alert.GetSchemaDataReponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/schema/data/get [get]

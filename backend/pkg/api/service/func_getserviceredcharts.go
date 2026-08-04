@@ -15,7 +15,7 @@ import (
 // @Summary Get services' red charts.
 // @Description Get services' red charts.
 // @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param request body request.GetServiceREDChartsRequest true "request"
 // @Param Authorization header string false "Bearer accessToken"

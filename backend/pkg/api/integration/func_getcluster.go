@@ -17,7 +17,7 @@ import (
 // @Tags API.integration
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body integration.Cluster true "请求信息"
+// @Param Request query integration.Cluster true "请求信息"
 // @Success 200 {object} integration.ClusterIntegration
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/get [get]

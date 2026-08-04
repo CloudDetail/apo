@@ -17,7 +17,7 @@ import (
 // @Summary query the available values of the specified filter
 // @Description query the available values of the specified filter
 // @Tags API.trace
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.GetTraceFilterValueRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

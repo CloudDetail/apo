@@ -80,13 +80,13 @@ type Handler interface {
 
 	// GetServiceInstance get the list of service instances
 	// @Tags API.service
-	// @Router /api/service/instance [post]
+	// @Router /api/service/instances [post]
 	GetServiceInstance() core.HandlerFunc
 
 	// GetServiceInstanceList get more url list of services
 	// @Tags API.service
 	// @DEPRECATED
-	// @Router /api/service/instances/list [post]
+	// @Router /api/service/instance/list [post]
 	GetServiceInstanceList() core.HandlerFunc
 
 	// GetServiceInstanceList get the details of the service instance.

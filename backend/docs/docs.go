@@ -168,6 +168,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alertinput/enrich/tags/list": {
+            "get": {
+                "description": "GetTargetTags",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "GetTargetTags",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.GetTargetTagsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alertinput/event/json": {
             "post": {
                 "description": "Receive data from a specific data source based on a JSON structure",
@@ -181,6 +210,32 @@ const docTemplate = `{
                     "API.alertinput"
                 ],
                 "summary": "Receive data from a specific data source based on a JSON structure",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "sourceId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sourceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sourceType",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Alert event payload",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -210,6 +265,32 @@ const docTemplate = `{
                     "API.alertinput"
                 ],
                 "summary": "Receive data based on alarm source configuration",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "sourceId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sourceName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sourceType",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Alert event payload",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "ok",
@@ -241,13 +322,9 @@ const docTemplate = `{
                 "summary": "GetSchemaColumns",
                 "parameters": [
                     {
-                        "description": "Schema Info",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.AlertSchemaRequest"
-                        }
+                        "type": "string",
+                        "name": "schema",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -321,13 +398,9 @@ const docTemplate = `{
                 "summary": "core.HandlerFunc",
                 "parameters": [
                     {
-                        "description": "Schema Info",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.AlertSchemaRequest"
-                        }
+                        "type": "string",
+                        "name": "schema",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -387,7 +460,7 @@ const docTemplate = `{
             }
         },
         "/api/alertinput/schema/delete": {
-            "post": {
+            "get": {
                 "description": "DeleteSchema",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -401,13 +474,9 @@ const docTemplate = `{
                 "summary": "DeleteSchema",
                 "parameters": [
                     {
-                        "description": "SchemaInfo",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.AlertSchemaRequest"
-                        }
+                        "type": "string",
+                        "name": "schema",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -499,13 +568,9 @@ const docTemplate = `{
                 "summary": "Check whether the mapping structure is used",
                 "parameters": [
                     {
-                        "description": "Schema Info",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.AlertSchemaRequest"
-                        }
+                        "type": "string",
+                        "name": "schema",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -568,7 +633,7 @@ const docTemplate = `{
             "post": {
                 "description": "DeleteAlertSource",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -604,46 +669,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/source/enrich/default": {
-            "get": {
-                "description": "GetDefaultAlertEnrichRule",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alertinput"
-                ],
-                "summary": "GetDefaultAlertEnrichRule",
-                "parameters": [
-                    {
-                        "description": "Source Type",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/alertinput/source/enrich/default/clear": {
             "get": {
                 "description": "Clear default alarm rich rules",
@@ -659,13 +684,9 @@ const docTemplate = `{
                 "summary": "Clear default alarm rich rules",
                 "parameters": [
                     {
-                        "description": "Request info",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleRequest"
-                        }
+                        "type": "string",
+                        "name": "sourceType",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -673,6 +694,42 @@ const docTemplate = `{
                         "description": "ok",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/enrich/default/get": {
+            "get": {
+                "description": "GetDefaultAlertEnrichRule",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "GetDefaultAlertEnrichRule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "sourceType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/alert.DefaultAlertEnrichRuleResponse"
                         }
                     },
                     "400": {
@@ -725,7 +782,7 @@ const docTemplate = `{
             }
         },
         "/api/alertinput/source/enrich/get": {
-            "get": {
+            "post": {
                 "description": "GetAlertSourceEnrichRule",
                 "consumes": [
                     "application/json"
@@ -888,13 +945,9 @@ const docTemplate = `{
                 "summary": "Obtain alarm source parameter configuration",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetAlertProviderParamsSpecRequest"
-                        }
+                        "type": "string",
+                        "name": "sourceType",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -908,6 +961,52 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.GetAlertProviderParamsSpecResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/alertinput/source/setup/webhook": {
+            "post": {
+                "description": "Install or update webhook",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alertinput"
+                ],
+                "summary": "Install or update webhook",
+                "parameters": [
+                    {
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SetupAlertProviderWebhookRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -959,19 +1058,19 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alertinput/source/webhook": {
+        "/api/alerts/alert/events": {
             "post": {
-                "description": "Install or update webhook",
+                "description": "get alarm events",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "API.alertinput"
+                    "API.alerts"
                 ],
-                "summary": "Install or update webhook",
+                "summary": "get alarm events",
                 "parameters": [
                     {
                         "description": "Request information",
@@ -979,119 +1078,8 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.SetupAlertProviderWebhookRequest"
+                            "$ref": "#/definitions/request.GetAlertEventsSvcReq"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alerts/alert/events": {
-            "post": {
-                "description": "get alarm events",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.service"
-                ],
-                "summary": "get alarm events",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "query service list",
-                        "name": "services",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query the alarm source",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm type",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm status",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Paging parameter, current number of pages",
-                        "name": "currentPage",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Pagination parameter, quantity per page",
-                        "name": "pageSize",
-                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -1104,7 +1092,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.GetAlertEventsResponse"
+                            "$ref": "#/definitions/response.GetAlertEventsSvcResp"
                         }
                     },
                     "400": {
@@ -1302,7 +1290,7 @@ const docTemplate = `{
             "post": {
                 "description": "获取服务和根因类型的故障报告",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1440,49 +1428,13 @@ const docTemplate = `{
                 "summary": "获取下游告警事件",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询开始时间",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询结束时间",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询步长(us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "查询服务名",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "查询Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "异常事件类型过滤",
-                        "name": "anormalTypes",
-                        "in": "query",
-                        "required": true
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDescendantAnormalDeltaEventRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -1578,7 +1530,7 @@ const docTemplate = `{
             "post": {
                 "description": "获取下游异常变化趋势",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1769,7 +1721,7 @@ const docTemplate = `{
         "/api/alerts/event/detail": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1808,7 +1760,7 @@ const docTemplate = `{
             "post": {
                 "description": "获取告警数据的影响面",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1819,74 +1771,12 @@ const docTemplate = `{
                 "summary": "获取告警数据的影响面",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "查询告警事件ID",
-                        "name": "eventId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询开始时间",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询结束时间",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "查询步长(us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/response.GetServiceEntryEndpointsResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alerts/events/classify": {
-            "get": {
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alerts"
-                ],
-                "parameters": [
-                    {
                         "description": "请求信息",
                         "name": "Request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
+                            "$ref": "#/definitions/request.AlertImpactRequest"
                         }
                     }
                 ],
@@ -1894,7 +1784,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.AlertEventClassifyResponse"
+                            "$ref": "#/definitions/response.GetAlertImpactResponse"
                         }
                     },
                     "400": {
@@ -1906,10 +1796,10 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/events/list": {
+        "/api/alerts/event/list": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -1944,7 +1834,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/events/report/add": {
+        "/api/alerts/events/classify": {
             "get": {
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1957,13 +1847,14 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.AlertEventClassifyRequest"
-                        }
+                        "type": "string",
+                        "name": "alertGroup",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "alertName",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1982,10 +1873,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/alerts/events/report/add": {
+            "post": {
+                "description": "Add an alert event report",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.alerts"
+                ],
+                "summary": "Add an alert event report",
+                "parameters": [
+                    {
+                        "description": "请求信息",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.AddAlertEventReportRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
         "/api/alerts/events/report/get": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2023,7 +1954,7 @@ const docTemplate = `{
         "/api/alerts/events/report/view": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2088,7 +2019,7 @@ const docTemplate = `{
         "/api/alerts/filter/labelkeys": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2205,7 +2136,7 @@ const docTemplate = `{
             "post": {
                 "description": "the received alarm is forwarded to the DingTalk",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2248,7 +2179,7 @@ const docTemplate = `{
         "/api/alerts/resolve": {
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2331,7 +2262,7 @@ const docTemplate = `{
             "delete": {
                 "description": "delete alarm rules",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2377,7 +2308,7 @@ const docTemplate = `{
             "post": {
                 "description": "new alarm rules",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2593,7 +2524,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/alerts/rules": {
+        "/api/alerts/rules/file": {
             "get": {
                 "description": "get basic alarm rules",
                 "consumes": [
@@ -2634,9 +2565,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/alerts/rules/file": {
+            },
             "post": {
                 "description": "update basic alarm rules",
                 "consumes": [
@@ -2656,7 +2585,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdateAlertRuleRequest"
+                            "$ref": "#/definitions/request.UpdateAlertRuleConfigRequest"
                         }
                     },
                     {
@@ -2695,13 +2624,9 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetAlertSlienceConfigRequest"
-                        }
+                        "type": "string",
+                        "name": "alertId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2721,7 +2646,7 @@ const docTemplate = `{
             },
             "post": {
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -2767,13 +2692,9 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.RemoveAlertSlienceConfigRequest"
-                        }
+                        "type": "string",
+                        "name": "alertId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -2808,35 +2729,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.ListAlertSlienceConfigResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/alertsinput/enrich/tags/list": {
-            "get": {
-                "description": "GetTargetTags",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.alertinput"
-                ],
-                "summary": "GetTargetTags",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/alert.GetTargetTagsResponse"
                         }
                     },
                     "400": {
@@ -3151,13 +3043,10 @@ const docTemplate = `{
                 "summary": "删除用户自定义查询数据类型",
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.DeleteCustomRequest"
-                        }
+                        "type": "string",
+                        "description": "UserName   string ` + "`" + `form:\"userName\"` + "`" + `\nGroupName  string ` + "`" + `form:\"groupName\"` + "`" + `",
+                        "name": "customName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -3196,15 +3085,6 @@ const docTemplate = `{
                 ],
                 "summary": "获取用户自定义查询数据类型",
                 "parameters": [
-                    {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetCustomRequest"
-                        }
-                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -3315,7 +3195,7 @@ const docTemplate = `{
             "post": {
                 "description": "Get data group.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -3410,7 +3290,7 @@ const docTemplate = `{
             "post": {
                 "description": "Assign data groups to users or teams, or remove them from data groups.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -3571,7 +3451,7 @@ const docTemplate = `{
             "post": {
                 "description": "Manage group's assigned subject.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -3682,13 +3562,14 @@ const docTemplate = `{
                 "summary": "Get app info tags.",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.QueryAPPInfoTagsRequest"
-                        }
+                        "type": "integer",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "startTime",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -3728,13 +3609,19 @@ const docTemplate = `{
                 "summary": "Get app info tag values.",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.QueryAPPInfoTagValuesRequest"
-                        }
+                        "type": "integer",
+                        "name": "endTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "key",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "startTime",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -3840,7 +3727,7 @@ const docTemplate = `{
             "post": {
                 "description": "Creates a new dataplane.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -4125,7 +4012,7 @@ const docTemplate = `{
             "post": {
                 "description": "Deletes a dataplane.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -4324,52 +4211,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/dataplane/recharts/list": {
-            "get": {
-                "description": "list services' redcharts",
-                "consumes": [
-                    "application/x-www-form-urlencoded"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "API.dataplane"
-                ],
-                "summary": "list services' redcharts",
-                "parameters": [
-                    {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.ListServiceRedChartsRequest"
-                        }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Bearer accessToken",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.ListServiceRedChartsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/code.Failure"
-                        }
-                    }
-                }
-            }
-        },
         "/api/dataplane/redcharts": {
             "get": {
                 "description": "Get service's redcharts.",
@@ -4425,6 +4266,63 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.QueryServiceRedChartsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/code.Failure"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/dataplane/redcharts/list": {
+            "get": {
+                "description": "list services' redcharts",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "API.dataplane"
+                ],
+                "summary": "list services' redcharts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query Cluster",
+                        "name": "cluster",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "query end time",
+                        "name": "endTime",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "description": "query start time",
+                        "name": "startTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer accessToken",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.ListServiceRedChartsResponse"
                         }
                     },
                     "400": {
@@ -4976,7 +4874,7 @@ const docTemplate = `{
             "post": {
                 "description": "Updates a dataplane.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -5091,7 +4989,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
+                            "$ref": "#/definitions/integration.ClusterIntegration"
                         }
                     }
                 ],
@@ -5115,7 +5013,7 @@ const docTemplate = `{
             "get": {
                 "description": "DeleteCluster",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -5126,13 +5024,24 @@ const docTemplate = `{
                 "summary": "DeleteCluster",
                 "parameters": [
                     {
-                        "description": "Cluster Info",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
-                        }
+                        "type": "string",
+                        "name": "clusterType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isMinimal",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5164,13 +5073,24 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
-                        }
+                        "type": "string",
+                        "name": "clusterType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "name": "isMinimal",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5202,20 +5122,16 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.GetCInstallRequest"
-                        }
+                        "type": "string",
+                        "name": "clusterId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/integration.GetCInstallRequest"
+                            "$ref": "#/definitions/integration.GetCInstallDocResponse"
                         }
                     },
                     "400": {
@@ -5240,13 +5156,9 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "请求信息",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.GetCInstallRequest"
-                        }
+                        "type": "string",
+                        "name": "clusterId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -5314,7 +5226,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/integration.Cluster"
+                            "$ref": "#/definitions/integration.ClusterIntegration"
                         }
                     }
                 ],
@@ -5355,7 +5267,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/integration/vars/:variable": {
+        "/api/integration/vars/{variable}": {
             "get": {
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -5368,13 +5280,11 @@ const docTemplate = `{
                 ],
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/integration.GetIntegrationVarRequest"
-                        }
+                        "type": "string",
+                        "description": "Integration variable name",
+                        "name": "variable",
+                        "in": "path",
+                        "required": true
                     },
                     {
                         "type": "string",
@@ -5765,6 +5675,9 @@ const docTemplate = `{
         "/api/log/fault/content": {
             "post": {
                 "description": "get the contents of the fault site log",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -5912,15 +5825,6 @@ const docTemplate = `{
                 "summary": "get external log table",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.OtherTableRequest"
-                        }
-                    },
-                    {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
@@ -6050,13 +5954,14 @@ const docTemplate = `{
                 "summary": "get external log table information",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.OtherTableInfoRequest"
-                        }
+                        "type": "string",
+                        "name": "dataBase",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "tableName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6285,13 +6190,13 @@ const docTemplate = `{
                 "summary": "get the application log corresponding to the service",
                 "parameters": [
                     {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.GetServiceRouteRequest"
-                        }
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "name": "serviceName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -6376,15 +6281,6 @@ const docTemplate = `{
                 ],
                 "summary": "get log table information",
                 "parameters": [
-                    {
-                        "description": "Request information",
-                        "name": "Request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/request.LogTableInfoRequest"
-                        }
-                    },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
@@ -7279,78 +7175,13 @@ const docTemplate = `{
                 "summary": "get alarm events",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "query service list",
-                        "name": "services",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query the alarm source",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm type",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm status",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Paging parameter, current number of pages",
-                        "name": "currentPage",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Pagination parameter, quantity per page",
-                        "name": "pageSize",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertEventsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7390,63 +7221,13 @@ const docTemplate = `{
                 "summary": "get sampling alarm events",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query the alarm source",
-                        "name": "source",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm type",
-                        "name": "group",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm name",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm ID",
-                        "name": "id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query alarm status",
-                        "name": "status",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of sample alarms",
-                        "name": "sampleCount",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetAlertEventsSampleRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7486,54 +7267,13 @@ const docTemplate = `{
                 "summary": "get the delay curve data of all downstream services",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ingress service name",
-                        "name": "entryService",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "entry Endpoint",
-                        "name": "entryEndpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDescendantMetricsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7576,66 +7316,19 @@ const docTemplate = `{
                 "summary": "get the dependent node delay correlation degree",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ingress service name",
-                        "name": "entryService",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "entry Endpoint",
-                        "name": "entryEndpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetDescendantRelevanceRequest"
+                        }
                     },
                     {
                         "type": "string",
                         "description": "Bearer accessToken",
                         "name": "Authorization",
                         "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "排序字段,支持latency和errorRate",
-                        "name": "sortBy",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -7672,26 +7365,13 @@ const docTemplate = `{
                 "summary": "get the list of service EndPoint",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceEndPointListRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7734,72 +7414,13 @@ const docTemplate = `{
                 "summary": "get the list of endpoints services",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "data group id",
-                        "name": "groupId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "step",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "service name",
-                        "name": "serviceName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "namespace",
-                        "name": "namespace",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "multi",
-                        "description": "endpoint",
-                        "name": "endpointName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "sort rule",
-                        "name": "sortRule",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetEndPointsDataRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7839,48 +7460,13 @@ const docTemplate = `{
                 "summary": "get the service entry Endpoint list",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Show missing entry",
-                        "name": "showMissTop",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceEntryEndpointsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -7923,54 +7509,13 @@ const docTemplate = `{
                 "summary": "get the error instance",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ingress service name",
-                        "name": "entryService",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "entry Endpoint",
-                        "name": "entryEndpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetErrorInstanceRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8010,59 +7555,13 @@ const docTemplate = `{
                 "summary": "get the error instance failure site log",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "instance name",
-                        "name": "instance",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "nodeName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "container name",
-                        "name": "containerId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "process number",
-                        "name": "pid",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetErrorInstanceLogsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8147,7 +7646,7 @@ const docTemplate = `{
             "post": {
                 "description": "get the list of service instances",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -8222,27 +7721,13 @@ const docTemplate = `{
                 "summary": "get the drop-down list of service instances",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceInstanceOptionsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8286,27 +7771,13 @@ const docTemplate = `{
                 "deprecated": true,
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceInstanceListRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8349,41 +7820,13 @@ const docTemplate = `{
                 "summary": "get the URL instance corresponding to the service",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "step",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "app name",
-                        "name": "serviceName",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "endpoint",
-                        "name": "endpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceInstanceRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8423,27 +7866,13 @@ const docTemplate = `{
                 "summary": "get K8s events",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetK8sEventsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8472,7 +7901,7 @@ const docTemplate = `{
             "post": {
                 "description": "get the list of services",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -8549,59 +7978,13 @@ const docTemplate = `{
                 "summary": "get Log fault site log",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "instance name",
-                        "name": "instance",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "nodeName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "container name",
-                        "name": "containerId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "process number",
-                        "name": "pid",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetLogLogsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8633,7 +8016,7 @@ const docTemplate = `{
             "post": {
                 "description": "get log related metrics",
                 "consumes": [
-                    "application/json"
+                    "application/x-www-form-urlencoded"
                 ],
                 "produces": [
                     "application/json"
@@ -8865,20 +8248,13 @@ const docTemplate = `{
                 "summary": "Get monitored namespaces.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceNamespaceListRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -8912,42 +8288,13 @@ const docTemplate = `{
                 "summary": "Get Polaris metric Analysis",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetPolarisInferRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -8976,7 +8323,7 @@ const docTemplate = `{
             "post": {
                 "description": "Get services' red charts.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -9033,46 +8380,13 @@ const docTemplate = `{
                 "summary": "get the call relationship between the upstream and downstream services",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ingress service name",
-                        "name": "entryService",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "entry Endpoint",
-                        "name": "entryEndpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceEndpointRelationRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -9350,54 +8664,13 @@ const docTemplate = `{
                 "summary": "get SQL metrics",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query step (us)",
-                        "name": "step",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort method (latency/errorRate/tps)",
-                        "name": "sortBy",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Paging parameter, current number of pages",
-                        "name": "currentPage",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Pagination parameter, quantity per page",
-                        "name": "pageSize",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetSQLMetricsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -9437,46 +8710,13 @@ const docTemplate = `{
                 "summary": "get the upstream and downstream topology of the service",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Ingress service name",
-                        "name": "entryService",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "entry Endpoint",
-                        "name": "entryEndpoint",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetServiceEndpointTopologyRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -9516,59 +8756,13 @@ const docTemplate = `{
                 "summary": "get trace fault site log",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query start time",
-                        "name": "startTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "query end time",
-                        "name": "endTime",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query service name",
-                        "name": "service",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Query Endpoint",
-                        "name": "endpoint",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "instance name",
-                        "name": "instance",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "hostname",
-                        "name": "nodeName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "container name",
-                        "name": "containerId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "format": "int32",
-                        "description": "process number",
-                        "name": "pid",
-                        "in": "query"
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetTraceLogsRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -9765,7 +8959,7 @@ const docTemplate = `{
             "post": {
                 "description": "Creates a team.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -9911,7 +9105,7 @@ const docTemplate = `{
             "post": {
                 "description": "Update team's information.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -10372,7 +9566,7 @@ const docTemplate = `{
             "post": {
                 "description": "query the available values of the specified filter",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -11301,10 +10495,10 @@ const docTemplate = `{
             }
         },
         "/api/v2/data/group/delete": {
-            "post": {
+            "delete": {
                 "description": "Delete the data group.",
                 "consumes": [
-                    "application/x-www-form-urlencoded"
+                    "application/json"
                 ],
                 "produces": [
                     "application/json"
@@ -11315,12 +10509,13 @@ const docTemplate = `{
                 "summary": "Delete the data group.",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Data group's id",
-                        "name": "groupId",
-                        "in": "formData",
-                        "required": true
+                        "description": "Request information",
+                        "name": "Request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDataGroupRequest"
+                        }
                     },
                     {
                         "type": "string",
@@ -11621,14 +10816,6 @@ const docTemplate = `{
                 }
             }
         },
-        "alert.AlertSchemaRequest": {
-            "type": "object",
-            "properties": {
-                "schema": {
-                    "type": "string"
-                }
-            }
-        },
         "alert.AlertSource": {
             "type": "object",
             "properties": {
@@ -11695,14 +10882,6 @@ const docTemplate = `{
                     }
                 },
                 "schema": {
-                    "type": "string"
-                }
-            }
-        },
-        "alert.DefaultAlertEnrichRuleRequest": {
-            "type": "object",
-            "properties": {
-                "sourceType": {
                     "type": "string"
                 }
             }
@@ -12176,6 +11355,26 @@ const docTemplate = `{
                 },
                 "updateTime": {
                     "description": "Last time the fault occurred",
+                    "type": "string"
+                }
+            }
+        },
+        "clickhouse.AlertService": {
+            "type": "object",
+            "properties": {
+                "dbIP": {
+                    "type": "string"
+                },
+                "dbPort": {
+                    "type": "string"
+                },
+                "dbURL": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "serviceName": {
                     "type": "string"
                 }
             }
@@ -13125,23 +12324,11 @@ const docTemplate = `{
                 }
             }
         },
-        "integration.GetCInstallRequest": {
+        "integration.GetCInstallDocResponse": {
             "type": "object",
             "properties": {
-                "clusterId": {
+                "installMd": {
                     "type": "string"
-                }
-            }
-        },
-        "integration.GetIntegrationVarRequest": {
-            "type": "object",
-            "required": [
-                "variable"
-            ],
-            "properties": {
-                "variable": {
-                    "type": "string",
-                    "maxLength": 64
                 }
             }
         },
@@ -13968,6 +13155,44 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ReportOverView": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "headline": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ReportRootCause": {
+            "type": "object",
+            "properties": {
+                "cause": {
+                    "type": "string"
+                },
+                "other": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                }
+            }
+        },
         "model.Service": {
             "type": "object",
             "properties": {
@@ -14298,6 +13523,48 @@ const docTemplate = `{
                 }
             }
         },
+        "request.AddAlertEventReportRequest": {
+            "type": "object",
+            "properties": {
+                "evidence": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                },
+                "overview": {
+                    "$ref": "#/definitions/model.ReportOverView"
+                },
+                "reportType": {
+                    "type": "string"
+                },
+                "reportView": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "rootCauseAnalysis": {
+                    "$ref": "#/definitions/model.ReportRootCause"
+                },
+                "suggest": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {}
+                    }
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "topology": {
+                    "type": "object",
+                    "additionalProperties": {}
+                }
+            }
+        },
         "request.AddAlertManagerConfigReceiver": {
             "type": "object",
             "properties": {
@@ -14418,17 +13685,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.AlertEventClassifyRequest": {
-            "type": "object",
-            "properties": {
-                "alertGroup": {
-                    "type": "string"
-                },
-                "alertName": {
-                    "type": "string"
-                }
-            }
-        },
         "request.AlertEventFilter": {
             "type": "object",
             "properties": {
@@ -14530,6 +13786,48 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.AlertImpactRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "analyzeSize": {
+                    "description": "最大分析数量",
+                    "type": "integer"
+                },
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "startTime": {
+                    "description": "告警事件编号",
                     "type": "integer"
                 }
             }
@@ -14852,15 +14150,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.DeleteCustomRequest": {
-            "type": "object",
-            "properties": {
-                "customName": {
-                    "description": "UserName   string ` + "`" + `form:\"userName\"` + "`" + `\nGroupName  string ` + "`" + `form:\"groupName\"` + "`" + `",
-                    "type": "string"
-                }
-            }
-        },
         "request.DeleteCustomTopologyRequest": {
             "type": "object",
             "required": [
@@ -14868,6 +14157,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.DeleteDataGroupRequest": {
+            "type": "object",
+            "required": [
+                "groupId"
+            ],
+            "properties": {
+                "groupId": {
                     "type": "integer"
                 }
             }
@@ -15062,6 +14362,190 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetAlertEventsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "clusterID": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "currentPage": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "Deprecated: use Endpoints instead",
+                    "type": "string"
+                },
+                "endpointKeys": {
+                    "description": "-\u003e serviceInstances: query instance by Services\n-\u003e dbInstances: query instance by Services",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EndpointKey"
+                    }
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "Deprecated: use Services instead",
+                    "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "sortBy": {
+                    "description": "排序参数",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "basic filter",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "withMutation": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.GetAlertEventsSampleRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "startTime"
+            ],
+            "properties": {
+                "clusterID": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "Deprecated: use Endpoints instead",
+                    "type": "string"
+                },
+                "endpointKeys": {
+                    "description": "-\u003e serviceInstances: query instance by Services\n-\u003e dbInstances: query instance by Services",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EndpointKey"
+                    }
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sampleCount": {
+                    "description": "number of samples",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "Deprecated: use Services instead",
+                    "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "description": "basic filter",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "withMutation": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.GetAlertEventsSvcReq": {
+            "type": "object",
+            "properties": {
+                "currentPage": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer"
+                }
+            }
+        },
         "request.GetAlertManagerConfigReceverRequest": {
             "type": "object",
             "properties": {
@@ -15082,14 +14566,6 @@ const docTemplate = `{
                 },
                 "refreshCache": {
                     "type": "boolean"
-                }
-            }
-        },
-        "request.GetAlertProviderParamsSpecRequest": {
-            "type": "object",
-            "properties": {
-                "sourceType": {
-                    "type": "string"
                 }
             }
         },
@@ -15135,14 +14611,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GetAlertSlienceConfigRequest": {
-            "type": "object",
-            "properties": {
-                "alertId": {
-                    "type": "string"
-                }
-            }
-        },
         "request.GetAnomalySpanRequest": {
             "type": "object",
             "required": [
@@ -15183,9 +14651,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GetCustomRequest": {
-            "type": "object"
-        },
         "request.GetDataGroupRequest": {
             "type": "object",
             "properties": {
@@ -15203,6 +14668,55 @@ const docTemplate = `{
                 },
                 "pageSize": {
                     "type": "integer"
+                }
+            }
+        },
+        "request.GetDescendantAnormalDeltaEventRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "anormalTypes": {
+                    "description": "要查询的异常类型",
+                    "type": "string"
+                },
+                "deltaEndTime": {
+                    "description": "播放结束时间",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "deltaStartTime": {
+                    "description": "播放开始时间",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "endTime": {
+                    "description": "查询结束时间",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "查询Endpoint",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "查询服务名",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "查询开始时间",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "查询步长(us)",
+                    "type": "integer",
+                    "minimum": 1000000
                 }
             }
         },
@@ -15240,6 +14754,272 @@ const docTemplate = `{
                 },
                 "step": {
                     "description": "查询步长(us)",
+                    "type": "integer",
+                    "minimum": 1000000
+                }
+            }
+        },
+        "request.GetDescendantMetricsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "entryEndpoint": {
+                    "description": "entry Endpoint",
+                    "type": "string"
+                },
+                "entryService": {
+                    "description": "Ingress service name",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step size (us)",
+                    "type": "integer",
+                    "minimum": 1000000
+                }
+            }
+        },
+        "request.GetDescendantRelevanceRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "entryEndpoint": {
+                    "description": "entry Endpoint",
+                    "type": "string"
+                },
+                "entryService": {
+                    "description": "Ingress service name",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "sortBy": {
+                    "description": "latency, errorRate",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step size (us)",
+                    "type": "integer",
+                    "minimum": 1000000
+                },
+                "withAlert": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.GetEndPointsDataRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "sortRule",
+                "startTime",
+                "step"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "description": "Cluster id",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpointName": {
+                    "description": "endpoint name, exact match",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "groupId": {
+                    "description": "Data group id",
+                    "type": "integer"
+                },
+                "namespace": {
+                    "description": "specify namespace, exact match",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "serviceName": {
+                    "description": "Filter Criteria",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sortRule": {
+                    "description": "sort logic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.SortType"
+                        }
+                    ]
+                },
+                "startTime": {
+                    "description": "Query condition",
+                    "type": "integer"
+                },
+                "step": {
+                    "description": "step size",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetErrorInstanceLogsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "containerId": {
+                    "description": "container name",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "instance": {
+                    "description": "instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetErrorInstanceRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "entryEndpoint": {
+                    "description": "entry Endpoint",
+                    "type": "string"
+                },
+                "entryService": {
+                    "description": "Ingress service name",
+                    "type": "string"
+                },
+                "ignoreEmptyPropationsInstance": {
+                    "type": "boolean"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step size (us)",
                     "type": "integer",
                     "minimum": 1000000
                 }
@@ -15356,6 +15136,468 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetK8sEventsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "service",
+                "startTime"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetLogLogsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "containerId": {
+                    "description": "container name",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "instance": {
+                    "description": "instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetPolarisInferRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service",
+                "step"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "language": {
+                    "description": "language of result",
+                    "type": "string"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step (us)",
+                    "type": "integer"
+                },
+                "timezone": {
+                    "description": "timezone of result",
+                    "type": "string"
+                }
+            }
+        },
+        "request.GetSQLMetricsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "currentPage": {
+                    "type": "integer"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "sortBy": {
+                    "description": "sorting method,(latency,errorRate,tps) is sorted by latency by default",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step size (us)",
+                    "type": "integer",
+                    "minimum": 1000000
+                }
+            }
+        },
+        "request.GetServiceEndPointListRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetServiceEndpointRelationRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "entryEndpoint": {
+                    "description": "entry Endpoint",
+                    "type": "string"
+                },
+                "entryService": {
+                    "description": "Ingress service name",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "removeClientCall": {
+                    "description": "是否移除对外调用关系",
+                    "type": "boolean"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "withTopologyLevel": {
+                    "description": "是否携带拓扑层级",
+                    "type": "boolean"
+                }
+            }
+        },
+        "request.GetServiceEndpointTopologyRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "entryEndpoint": {
+                    "description": "entry Endpoint",
+                    "type": "string"
+                },
+                "entryService": {
+                    "description": "Ingress service name",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetServiceEntryEndpointsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service",
+                "step"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "showMissTop": {
+                    "description": "whether to display the lost non-portal service",
+                    "type": "boolean"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "step": {
+                    "description": "query step (us)",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetServiceInstanceListRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetServiceInstanceOptionsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetServiceInstanceRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "serviceName",
+                "startTime",
+                "step"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "groupId": {
+                    "type": "integer"
+                },
+                "serviceName": {
+                    "description": "application name",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer"
+                },
+                "step": {
+                    "description": "step size",
+                    "type": "integer"
+                }
+            }
+        },
+        "request.GetServiceNamespaceListRequest": {
+            "type": "object",
+            "required": [
+                "endTime"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "endTime": {
+                    "type": "integer"
+                },
+                "startTime": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
         "request.GetServiceREDChartsRequest": {
             "type": "object",
             "properties": {
@@ -15391,17 +15633,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.GetServiceRouteRequest": {
-            "type": "object",
-            "properties": {
-                "serviceName": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "request.GetTraceFilterValueRequest": {
             "type": "object",
             "required": [
@@ -15417,6 +15648,55 @@ const docTemplate = `{
                 },
                 "searchText": {
                     "description": "query keyword",
+                    "type": "string"
+                },
+                "startTime": {
+                    "description": "query start time",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "request.GetTraceLogsRequest": {
+            "type": "object",
+            "required": [
+                "endTime",
+                "endpoint",
+                "service"
+            ],
+            "properties": {
+                "clusterIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "containerId": {
+                    "description": "container name",
+                    "type": "string"
+                },
+                "endTime": {
+                    "description": "query end time",
+                    "type": "integer"
+                },
+                "endpoint": {
+                    "description": "query Endpoint",
+                    "type": "string"
+                },
+                "instance": {
+                    "description": "instance name",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "pid": {
+                    "description": "process number",
+                    "type": "integer"
+                },
+                "service": {
+                    "description": "query service name",
                     "type": "string"
                 },
                 "startTime": {
@@ -15565,27 +15845,6 @@ const docTemplate = `{
                 "type": "string"
             }
         },
-        "request.ListServiceRedChartsRequest": {
-            "type": "object",
-            "required": [
-                "endTime"
-            ],
-            "properties": {
-                "cluster": {
-                    "description": "query Cluster",
-                    "type": "string"
-                },
-                "endTime": {
-                    "description": "query end time",
-                    "type": "integer"
-                },
-                "startTime": {
-                    "description": "query start time",
-                    "type": "integer",
-                    "minimum": 0
-                }
-            }
-        },
         "request.LogIndexRequest": {
             "type": "object",
             "required": [
@@ -15695,9 +15954,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.LogTableInfoRequest": {
-            "type": "object"
-        },
         "request.MarkAlertResolvedManuallyRequest": {
             "type": "object",
             "properties": {
@@ -15737,20 +15993,6 @@ const docTemplate = `{
                 "OpLessThan"
             ]
         },
-        "request.OtherTableInfoRequest": {
-            "type": "object",
-            "properties": {
-                "dataBase": {
-                    "type": "string"
-                },
-                "tableName": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.OtherTableRequest": {
-            "type": "object"
-        },
         "request.ParentField": {
             "type": "string",
             "enum": [
@@ -15761,31 +16003,6 @@ const docTemplate = `{
                 "PF_Labels",
                 "PF_Flags"
             ]
-        },
-        "request.QueryAPPInfoTagValuesRequest": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
-                "key": {
-                    "type": "string"
-                },
-                "startTime": {
-                    "type": "integer"
-                }
-            }
-        },
-        "request.QueryAPPInfoTagsRequest": {
-            "type": "object",
-            "properties": {
-                "endTime": {
-                    "type": "integer"
-                },
-                "startTime": {
-                    "type": "integer"
-                }
-            }
         },
         "request.QueryPodsRequest": {
             "type": "object",
@@ -15853,14 +16070,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "pod": {
-                    "type": "string"
-                }
-            }
-        },
-        "request.RemoveAlertSlienceConfigRequest": {
-            "type": "object",
-            "properties": {
-                "alertId": {
                     "type": "string"
                 }
             }
@@ -15985,6 +16194,25 @@ const docTemplate = `{
                 }
             }
         },
+        "request.SortType": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+            ],
+            "x-enum-varnames": [
+                "DODThreshold",
+                "MUTATIONSORT",
+                "SortByLatency",
+                "SortByErrorRate",
+                "SortByThroughput",
+                "SortByLogErrorCount"
+            ]
+        },
         "request.SpanTraceFilter": {
             "type": "object",
             "properties": {
@@ -16022,6 +16250,17 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "receiver type",
+                    "type": "string"
+                }
+            }
+        },
+        "request.UpdateAlertRuleConfigRequest": {
+            "type": "object",
+            "properties": {
+                "alertRuleFile": {
+                    "type": "string"
+                },
+                "content": {
                     "type": "string"
                 }
             }
@@ -16236,6 +16475,43 @@ const docTemplate = `{
                 },
                 "pagination": {
                     "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.AlertRelatedEntry": {
+            "type": "object",
+            "properties": {
+                "delaySource": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "type": "string"
+                },
+                "errorRate": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "latency": {
+                    "$ref": "#/definitions/response.TempChartObject"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "relatedAlertRate": {
+                    "type": "number"
+                },
+                "serviceName": {
+                    "type": "string"
+                },
+                "tps": {
+                    "description": "FIXME name is tps, actual requests per minute",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.TempChartObject"
+                        }
+                    ]
                 }
             }
         },
@@ -16655,6 +16931,31 @@ const docTemplate = `{
                 },
                 "status": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GetAlertEventsSvcResp": {
+            "type": "object",
+            "properties": {
+                "alertEvents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ImpactAlertEvent"
+                    }
+                },
+                "pagination": {
+                    "$ref": "#/definitions/model.Pagination"
+                }
+            }
+        },
+        "response.GetAlertImpactResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.AlertRelatedEntry"
+                    }
                 }
             }
         },
@@ -17690,6 +17991,85 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/profile.User"
                     }
+                }
+            }
+        },
+        "response.ImpactAlertEvent": {
+            "type": "object",
+            "properties": {
+                "alertId": {
+                    "type": "string"
+                },
+                "createTime": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "endTime": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "impactEndpoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/clickhouse.AlertService"
+                    }
+                },
+                "impactEntrys": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EndpointKey"
+                    }
+                },
+                "isAnalyzed": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rawTags": {
+                    "description": "HACK the existing clickhouse query uses ` + "`" + `tags` + "`" + ` as the filter field\nso enrichTags in ch is named as 'tags' to filter new alertInput",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/alert.RawTags"
+                        }
+                    ]
+                },
+                "receivedTime": {
+                    "type": "string"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "sourceId": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "tagsDisplay": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/alert.TagDisplay"
+                    }
+                },
+                "updateTime": {
+                    "type": "string"
                 }
             }
         },

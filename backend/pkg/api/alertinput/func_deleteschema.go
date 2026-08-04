@@ -17,10 +17,10 @@ import (
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.AlertSchemaRequest true "SchemaInfo"
+// @Param Request query alert.AlertSchemaRequest true "SchemaInfo"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/alertinput/schema/delete [post]
+// @Router /api/alertinput/schema/delete [get]
 func (h *handler) DeleteSchema() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(alert.AlertSchemaRequest)

@@ -11,16 +11,16 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/model/request"
 )
 
-// AlertEventList
-// @Summary
-// @Description
+// AddAlertEventReport add an alert event report
+// @Summary Add an alert event report
+// @Description Add an alert event report
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param Request body request.AlertEventClassifyRequest true "请求信息"
-// @Success 200 {object} response.AlertEventClassifyResponse
+// @Param Request body request.AddAlertEventReportRequest true "请求信息"
+// @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/alerts/events/report/add [get]
+// @Router /api/alerts/events/report/add [post]
 func (h *handler) AddAlertEventReport() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.AddAlertEventReportRequest)

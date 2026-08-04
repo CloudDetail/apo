@@ -184,11 +184,6 @@ definitions:
       updateTime:
         type: string
     type: object
-  alert.AlertSchemaRequest:
-    properties:
-      schema:
-        type: string
-    type: object
   alert.AlertSource:
     properties:
       clusters:
@@ -233,11 +228,6 @@ definitions:
           type: array
         type: array
       schema:
-        type: string
-    type: object
-  alert.DefaultAlertEnrichRuleRequest:
-    properties:
-      sourceType:
         type: string
     type: object
   alert.DefaultAlertEnrichRuleResponse:
@@ -552,6 +542,19 @@ definitions:
         type: object
       updateTime:
         description: Last time the fault occurred
+        type: string
+    type: object
+  clickhouse.AlertService:
+    properties:
+      dbIP:
+        type: string
+      dbPort:
+        type: string
+      dbURL:
+        type: string
+      endpoint:
+        type: string
+      serviceName:
         type: string
     type: object
   clickhouse.FaultLogResult:
@@ -1200,18 +1203,10 @@ definitions:
       fileName:
         type: string
     type: object
-  integration.GetCInstallRequest:
+  integration.GetCInstallDocResponse:
     properties:
-      clusterId:
+      installMd:
         type: string
-    type: object
-  integration.GetIntegrationVarRequest:
-    properties:
-      variable:
-        maxLength: 64
-        type: string
-    required:
-    - variable
     type: object
   integration.HuaweiConfig:
     properties:
@@ -1775,6 +1770,31 @@ definitions:
       name:
         type: string
     type: object
+  model.ReportOverView:
+    properties:
+      detail:
+        type: string
+      headline:
+        type: string
+      reason:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      timestamp:
+        type: integer
+    type: object
+  model.ReportRootCause:
+    properties:
+      cause:
+        type: string
+      other:
+        items:
+          additionalProperties: {}
+          type: object
+        type: array
+    type: object
   model.Service:
     properties:
       clusterId:
@@ -2001,6 +2021,35 @@ definitions:
       supportWebhookInstall:
         type: boolean
     type: object
+  request.AddAlertEventReportRequest:
+    properties:
+      evidence:
+        items:
+          additionalProperties: {}
+          type: object
+        type: array
+      overview:
+        $ref: '#/definitions/model.ReportOverView'
+      reportType:
+        type: string
+      reportView:
+        additionalProperties: {}
+        type: object
+      rootCauseAnalysis:
+        $ref: '#/definitions/model.ReportRootCause'
+      suggest:
+        items:
+          additionalProperties: {}
+          type: object
+        type: array
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      topology:
+        additionalProperties: {}
+        type: object
+    type: object
   request.AddAlertManagerConfigReceiver:
     properties:
       amConfigFile:
@@ -2080,13 +2129,6 @@ definitions:
       status:
         type: string
     type: object
-  request.AlertEventClassifyRequest:
-    properties:
-      alertGroup:
-        type: string
-      alertName:
-        type: string
-    type: object
   request.AlertEventFilter:
     properties:
       key:
@@ -2154,6 +2196,35 @@ definitions:
         type: string
       startTime:
         type: integer
+    type: object
+  request.AlertImpactRequest:
+    properties:
+      analyzeSize:
+        description: 最大分析数量
+        type: integer
+      endTime:
+        description: 查询结束时间
+        type: integer
+      endpoints:
+        items:
+          type: string
+        type: array
+      groupId:
+        type: integer
+      namespaces:
+        items:
+          type: string
+        type: array
+      services:
+        items:
+          type: string
+        type: array
+      startTime:
+        description: 告警事件编号
+        type: integer
+    required:
+    - endTime
+    - startTime
     type: object
   request.AlertRule:
     properties:
@@ -2371,20 +2442,19 @@ definitions:
     - alert
     - group
     type: object
-  request.DeleteCustomRequest:
-    properties:
-      customName:
-        description: |-
-          UserName   string `form:"userName"`
-          GroupName  string `form:"groupName"`
-        type: string
-    type: object
   request.DeleteCustomTopologyRequest:
     properties:
       id:
         type: integer
     required:
     - id
+    type: object
+  request.DeleteDataGroupRequest:
+    properties:
+      groupId:
+        type: integer
+    required:
+    - groupId
     type: object
   request.DeleteDataPlaneRequest:
     properties:
@@ -2508,6 +2578,137 @@ definitions:
           type: string
         type: object
     type: object
+  request.GetAlertEventsRequest:
+    properties:
+      clusterID:
+        items:
+          type: string
+        type: array
+      currentPage:
+        type: integer
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: 'Deprecated: use Endpoints instead'
+        type: string
+      endpointKeys:
+        description: |-
+          -> serviceInstances: query instance by Services
+          -> dbInstances: query instance by Services
+        items:
+          $ref: '#/definitions/model.EndpointKey'
+        type: array
+      endpoints:
+        items:
+          type: string
+        type: array
+      group:
+        type: string
+      groupId:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      pageSize:
+        type: integer
+      service:
+        description: 'Deprecated: use Services instead'
+        type: string
+      services:
+        items:
+          type: string
+        type: array
+      severity:
+        type: string
+      sortBy:
+        description: 排序参数
+        type: string
+      source:
+        description: basic filter
+        type: string
+      startTime:
+        description: query start time
+        type: integer
+      status:
+        type: string
+      withMutation:
+        type: boolean
+    required:
+    - endTime
+    - startTime
+    type: object
+  request.GetAlertEventsSampleRequest:
+    properties:
+      clusterID:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: 'Deprecated: use Endpoints instead'
+        type: string
+      endpointKeys:
+        description: |-
+          -> serviceInstances: query instance by Services
+          -> dbInstances: query instance by Services
+        items:
+          $ref: '#/definitions/model.EndpointKey'
+        type: array
+      endpoints:
+        items:
+          type: string
+        type: array
+      group:
+        type: string
+      groupId:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      sampleCount:
+        description: number of samples
+        type: integer
+      service:
+        description: 'Deprecated: use Services instead'
+        type: string
+      services:
+        items:
+          type: string
+        type: array
+      severity:
+        type: string
+      source:
+        description: basic filter
+        type: string
+      startTime:
+        description: query start time
+        type: integer
+      status:
+        type: string
+      withMutation:
+        type: boolean
+    required:
+    - endTime
+    - startTime
+    type: object
+  request.GetAlertEventsSvcReq:
+    properties:
+      currentPage:
+        type: integer
+      endTime:
+        type: integer
+      groupId:
+        type: integer
+      pageSize:
+        type: integer
+      startTime:
+        type: integer
+    type: object
   request.GetAlertManagerConfigReceverRequest:
     properties:
       amConfigFile:
@@ -2522,11 +2723,6 @@ definitions:
         type: string
       refreshCache:
         type: boolean
-    type: object
-  request.GetAlertProviderParamsSpecRequest:
-    properties:
-      sourceType:
-        type: string
     type: object
   request.GetAlertRuleRequest:
     properties:
@@ -2556,11 +2752,6 @@ definitions:
           type: string
         type: array
     type: object
-  request.GetAlertSlienceConfigRequest:
-    properties:
-      alertId:
-        type: string
-    type: object
   request.GetAnomalySpanRequest:
     properties:
       contentKey:
@@ -2588,8 +2779,6 @@ definitions:
     - service
     - startTime
     type: object
-  request.GetCustomRequest:
-    type: object
   request.GetDataGroupRequest:
     properties:
       currentPage:
@@ -2602,6 +2791,43 @@ definitions:
         type: string
       pageSize:
         type: integer
+    type: object
+  request.GetDescendantAnormalDeltaEventRequest:
+    properties:
+      anormalTypes:
+        description: 要查询的异常类型
+        type: string
+      deltaEndTime:
+        description: 播放结束时间
+        minimum: 0
+        type: integer
+      deltaStartTime:
+        description: 播放开始时间
+        minimum: 0
+        type: integer
+      endTime:
+        description: 查询结束时间
+        type: integer
+      endpoint:
+        description: 查询Endpoint
+        type: string
+      groupId:
+        type: integer
+      service:
+        description: 查询服务名
+        type: string
+      startTime:
+        description: 查询开始时间
+        minimum: 0
+        type: integer
+      step:
+        description: 查询步长(us)
+        minimum: 1000000
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
     type: object
   request.GetDescendantAnormalTrendRequest:
     properties:
@@ -2625,6 +2851,199 @@ definitions:
         type: integer
       step:
         description: 查询步长(us)
+        minimum: 1000000
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetDescendantMetricsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      entryEndpoint:
+        description: entry Endpoint
+        type: string
+      entryService:
+        description: Ingress service name
+        type: string
+      groupId:
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step size (us)
+        minimum: 1000000
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetDescendantRelevanceRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      entryEndpoint:
+        description: entry Endpoint
+        type: string
+      entryService:
+        description: Ingress service name
+        type: string
+      groupId:
+        type: integer
+      service:
+        description: query service name
+        type: string
+      sortBy:
+        description: latency, errorRate
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step size (us)
+        minimum: 1000000
+        type: integer
+      withAlert:
+        type: string
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetEndPointsDataRequest:
+    properties:
+      clusterIds:
+        description: Cluster id
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpointName:
+        description: endpoint name, exact match
+        items:
+          type: string
+        type: array
+      groupId:
+        description: Data group id
+        type: integer
+      namespace:
+        description: specify namespace, exact match
+        items:
+          type: string
+        type: array
+      serviceName:
+        description: Filter Criteria
+        items:
+          type: string
+        type: array
+      sortRule:
+        allOf:
+        - $ref: '#/definitions/request.SortType'
+        description: sort logic
+      startTime:
+        description: Query condition
+        type: integer
+      step:
+        description: step size
+        type: integer
+    required:
+    - endTime
+    - sortRule
+    - startTime
+    - step
+    type: object
+  request.GetErrorInstanceLogsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      containerId:
+        description: container name
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      instance:
+        description: instance name
+        type: string
+      nodeName:
+        description: hostname
+        type: string
+      pid:
+        description: process number
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetErrorInstanceRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      entryEndpoint:
+        description: entry Endpoint
+        type: string
+      entryService:
+        description: Ingress service name
+        type: string
+      ignoreEmptyPropationsInstance:
+        type: boolean
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step size (us)
         minimum: 1000000
         type: integer
     required:
@@ -2710,6 +3129,340 @@ definitions:
     required:
     - endTime
     type: object
+  request.GetK8sEventsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      groupId:
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        type: integer
+    required:
+    - endTime
+    - service
+    - startTime
+    type: object
+  request.GetLogLogsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      containerId:
+        description: container name
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      instance:
+        description: instance name
+        type: string
+      nodeName:
+        description: hostname
+        type: string
+      pid:
+        description: process number
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetPolarisInferRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      language:
+        description: language of result
+        type: string
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step (us)
+        type: integer
+      timezone:
+        description: timezone of result
+        type: string
+    required:
+    - endTime
+    - endpoint
+    - service
+    - step
+    type: object
+  request.GetSQLMetricsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      currentPage:
+        type: integer
+      endTime:
+        description: query end time
+        type: integer
+      groupId:
+        type: integer
+      pageSize:
+        type: integer
+      service:
+        description: query service name
+        type: string
+      sortBy:
+        description: sorting method,(latency,errorRate,tps) is sorted by latency by
+          default
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step size (us)
+        minimum: 1000000
+        type: integer
+    required:
+    - endTime
+    - service
+    type: object
+  request.GetServiceEndPointListRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    type: object
+  request.GetServiceEndpointRelationRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      entryEndpoint:
+        description: entry Endpoint
+        type: string
+      entryService:
+        description: Ingress service name
+        type: string
+      groupId:
+        type: integer
+      removeClientCall:
+        description: 是否移除对外调用关系
+        type: boolean
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      withTopologyLevel:
+        description: 是否携带拓扑层级
+        type: boolean
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetServiceEndpointTopologyRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      entryEndpoint:
+        description: entry Endpoint
+        type: string
+      entryService:
+        description: Ingress service name
+        type: string
+      groupId:
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    type: object
+  request.GetServiceEntryEndpointsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      groupId:
+        type: integer
+      namespaces:
+        items:
+          type: string
+        type: array
+      service:
+        description: query service name
+        type: string
+      showMissTop:
+        description: whether to display the lost non-portal service
+        type: boolean
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+      step:
+        description: query step (us)
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
+    - step
+    type: object
+  request.GetServiceInstanceListRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - service
+    type: object
+  request.GetServiceInstanceOptionsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - service
+    type: object
+  request.GetServiceInstanceRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        type: string
+      groupId:
+        type: integer
+      serviceName:
+        description: application name
+        type: string
+      startTime:
+        description: query start time
+        type: integer
+      step:
+        description: step size
+        type: integer
+    required:
+    - endTime
+    - serviceName
+    - startTime
+    - step
+    type: object
+  request.GetServiceNamespaceListRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      endTime:
+        type: integer
+      startTime:
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    type: object
   request.GetServiceREDChartsRequest:
     properties:
       clusterIds:
@@ -2733,13 +3486,6 @@ definitions:
       step:
         type: integer
     type: object
-  request.GetServiceRouteRequest:
-    properties:
-      serviceName:
-        items:
-          type: string
-        type: array
-    type: object
   request.GetTraceFilterValueRequest:
     properties:
       endTime:
@@ -2756,6 +3502,42 @@ definitions:
         type: integer
     required:
     - endTime
+    type: object
+  request.GetTraceLogsRequest:
+    properties:
+      clusterIds:
+        items:
+          type: string
+        type: array
+      containerId:
+        description: container name
+        type: string
+      endTime:
+        description: query end time
+        type: integer
+      endpoint:
+        description: query Endpoint
+        type: string
+      instance:
+        description: instance name
+        type: string
+      nodeName:
+        description: hostname
+        type: string
+      pid:
+        description: process number
+        type: integer
+      service:
+        description: query service name
+        type: string
+      startTime:
+        description: query start time
+        minimum: 0
+        type: integer
+    required:
+    - endTime
+    - endpoint
+    - service
     type: object
   request.GetTracePageListRequest:
     properties:
@@ -2853,21 +3635,6 @@ definitions:
     additionalProperties:
       type: string
     type: object
-  request.ListServiceRedChartsRequest:
-    properties:
-      cluster:
-        description: query Cluster
-        type: string
-      endTime:
-        description: query end time
-        type: integer
-      startTime:
-        description: query start time
-        minimum: 0
-        type: integer
-    required:
-    - endTime
-    type: object
   request.LogIndexRequest:
     properties:
       column:
@@ -2940,8 +3707,6 @@ definitions:
       ttl:
         type: integer
     type: object
-  request.LogTableInfoRequest:
-    type: object
   request.MarkAlertResolvedManuallyRequest:
     properties:
       alertId:
@@ -2975,15 +3740,6 @@ definitions:
     - OpNotContains
     - OpGreaterThan
     - OpLessThan
-  request.OtherTableInfoRequest:
-    properties:
-      dataBase:
-        type: string
-      tableName:
-        type: string
-    type: object
-  request.OtherTableRequest:
-    type: object
   request.ParentField:
     enum:
     - labels
@@ -2992,22 +3748,6 @@ definitions:
     x-enum-varnames:
     - PF_Labels
     - PF_Flags
-  request.QueryAPPInfoTagValuesRequest:
-    properties:
-      endTime:
-        type: integer
-      key:
-        type: string
-      startTime:
-        type: integer
-    type: object
-  request.QueryAPPInfoTagsRequest:
-    properties:
-      endTime:
-        type: integer
-      startTime:
-        type: integer
-    type: object
   request.QueryPodsRequest:
     properties:
       endTime:
@@ -3055,11 +3795,6 @@ definitions:
       pid:
         type: string
       pod:
-        type: string
-    type: object
-  request.RemoveAlertSlienceConfigRequest:
-    properties:
-      alertId:
         type: string
     type: object
   request.SearchAlertEventFilterValuesRequest:
@@ -3143,6 +3878,22 @@ definitions:
       url:
         type: string
     type: object
+  request.SortType:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    type: integer
+    x-enum-varnames:
+    - DODThreshold
+    - MUTATIONSORT
+    - SortByLatency
+    - SortByErrorRate
+    - SortByThroughput
+    - SortByLogErrorCount
   request.SpanTraceFilter:
     properties:
       dataType:
@@ -3168,6 +3919,13 @@ definitions:
         type: string
       type:
         description: receiver type
+        type: string
+    type: object
+  request.UpdateAlertRuleConfigRequest:
+    properties:
+      alertRuleFile:
+        type: string
+      content:
         type: string
     type: object
   request.UpdateAlertRuleRequest:
@@ -3310,6 +4068,29 @@ definitions:
         type: array
       pagination:
         $ref: '#/definitions/model.Pagination'
+    type: object
+  response.AlertRelatedEntry:
+    properties:
+      delaySource:
+        type: string
+      endpoint:
+        type: string
+      errorRate:
+        $ref: '#/definitions/response.TempChartObject'
+      latency:
+        $ref: '#/definitions/response.TempChartObject'
+      namespaces:
+        items:
+          type: string
+        type: array
+      relatedAlertRate:
+        type: number
+      serviceName:
+        type: string
+      tps:
+        allOf:
+        - $ref: '#/definitions/response.TempChartObject'
+        description: FIXME name is tps, actual requests per minute
     type: object
   response.CheckAlertRuleResponse:
     properties:
@@ -3591,6 +4372,22 @@ definitions:
         type: object
       status:
         type: string
+    type: object
+  response.GetAlertEventsSvcResp:
+    properties:
+      alertEvents:
+        items:
+          $ref: '#/definitions/response.ImpactAlertEvent'
+        type: array
+      pagination:
+        $ref: '#/definitions/model.Pagination'
+    type: object
+  response.GetAlertImpactResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/response.AlertRelatedEntry'
+        type: array
     type: object
   response.GetAlertManagerConfigReceiverResponse:
     properties:
@@ -4283,6 +5080,59 @@ definitions:
         items:
           $ref: '#/definitions/profile.User'
         type: array
+    type: object
+  response.ImpactAlertEvent:
+    properties:
+      alertId:
+        type: string
+      createTime:
+        type: string
+      detail:
+        type: string
+      endTime:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      impactEndpoints:
+        items:
+          $ref: '#/definitions/clickhouse.AlertService'
+        type: array
+      impactEntrys:
+        items:
+          $ref: '#/definitions/model.EndpointKey'
+        type: array
+      isAnalyzed:
+        type: boolean
+      name:
+        type: string
+      rawTags:
+        allOf:
+        - $ref: '#/definitions/alert.RawTags'
+        description: |-
+          HACK the existing clickhouse query uses `tags` as the filter field
+          so enrichTags in ch is named as 'tags' to filter new alertInput
+      receivedTime:
+        type: string
+      severity:
+        type: string
+      source:
+        type: string
+      sourceId:
+        type: string
+      status:
+        type: string
+      tags:
+        additionalProperties:
+          type: string
+        type: object
+      tagsDisplay:
+        items:
+          $ref: '#/definitions/alert.TagDisplay'
+        type: array
+      updateTime:
+        type: string
     type: object
   response.IndexItem:
     properties:
@@ -5328,11 +6178,46 @@ paths:
       summary: UpdateCluster
       tags:
       - API.alertinput
+  /api/alertinput/enrich/tags/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: GetTargetTags
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.GetTargetTagsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetTargetTags
+      tags:
+      - API.alertinput
   /api/alertinput/event/json:
     post:
       consumes:
       - application/json
       description: Receive data from a specific data source based on a JSON structure
+      parameters:
+      - in: query
+        name: sourceId
+        type: string
+      - in: query
+        name: sourceName
+        type: string
+      - in: query
+        name: sourceType
+        type: string
+      - description: Alert event payload
+        in: body
+        name: Request
+        required: true
+        schema:
+          type: object
       produces:
       - application/json
       responses:
@@ -5352,6 +6237,22 @@ paths:
       consumes:
       - application/json
       description: Receive data based on alarm source configuration
+      parameters:
+      - in: query
+        name: sourceId
+        type: string
+      - in: query
+        name: sourceName
+        type: string
+      - in: query
+        name: sourceType
+        type: string
+      - description: Alert event payload
+        in: body
+        name: Request
+        required: true
+        schema:
+          type: object
       produces:
       - application/json
       responses:
@@ -5372,12 +6273,9 @@ paths:
       - application/x-www-form-urlencoded
       description: GetSchemaColumns
       parameters:
-      - description: Schema Info
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.AlertSchemaRequest'
+      - in: query
+        name: schema
+        type: string
       produces:
       - application/json
       responses:
@@ -5424,12 +6322,9 @@ paths:
       - application/x-www-form-urlencoded
       description: core.HandlerFunc
       parameters:
-      - description: Schema Info
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.AlertSchemaRequest'
+      - in: query
+        name: schema
+        type: string
       produces:
       - application/json
       responses:
@@ -5471,17 +6366,14 @@ paths:
       tags:
       - API.alertinput
   /api/alertinput/schema/delete:
-    post:
+    get:
       consumes:
       - application/x-www-form-urlencoded
       description: DeleteSchema
       parameters:
-      - description: SchemaInfo
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.AlertSchemaRequest'
+      - in: query
+        name: schema
+        type: string
       produces:
       - application/json
       responses:
@@ -5540,12 +6432,9 @@ paths:
       - application/x-www-form-urlencoded
       description: Check whether the mapping structure is used
       parameters:
-      - description: Schema Info
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.AlertSchemaRequest'
+      - in: query
+        name: schema
+        type: string
       produces:
       - application/json
       responses:
@@ -5589,7 +6478,7 @@ paths:
   /api/alertinput/source/delete:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: DeleteAlertSource
       parameters:
       - description: alertSource
@@ -5612,44 +6501,15 @@ paths:
       summary: DeleteAlertSource
       tags:
       - API.alertinput
-  /api/alertinput/source/enrich/default:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: GetDefaultAlertEnrichRule
-      parameters:
-      - description: Source Type
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/alert.DefaultAlertEnrichRuleResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: GetDefaultAlertEnrichRule
-      tags:
-      - API.alertinput
   /api/alertinput/source/enrich/default/clear:
     get:
       consumes:
       - application/x-www-form-urlencoded
       description: Clear default alarm rich rules
       parameters:
-      - description: Request info
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/alert.DefaultAlertEnrichRuleRequest'
+      - in: query
+        name: sourceType
+        type: string
       produces:
       - application/json
       responses:
@@ -5662,6 +6522,29 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Clear default alarm rich rules
+      tags:
+      - API.alertinput
+  /api/alertinput/source/enrich/default/get:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: GetDefaultAlertEnrichRule
+      parameters:
+      - in: query
+        name: sourceType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/alert.DefaultAlertEnrichRuleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: GetDefaultAlertEnrichRule
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/default/set:
@@ -5691,7 +6574,7 @@ paths:
       tags:
       - API.alertinput
   /api/alertinput/source/enrich/get:
-    get:
+    post:
       consumes:
       - application/json
       description: GetAlertSourceEnrichRule
@@ -5793,12 +6676,9 @@ paths:
       - application/x-www-form-urlencoded
       description: Obtain alarm source parameter configuration
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetAlertProviderParamsSpecRequest'
+      - in: query
+        name: sourceType
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -5815,6 +6695,36 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Obtain alarm source parameter configuration
+      tags:
+      - API.alertinput
+  /api/alertinput/source/setup/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Install or update webhook
+      parameters:
+      - description: Request information
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.SetupAlertProviderWebhookRequest'
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Install or update webhook
       tags:
       - API.alertinput
   /api/alertinput/source/update:
@@ -5843,93 +6753,18 @@ paths:
       summary: UpdateAlertSource
       tags:
       - API.alertinput
-  /api/alertinput/source/webhook:
+  /api/alerts/alert/events:
     post:
       consumes:
-      - application/x-www-form-urlencoded
-      description: Install or update webhook
+      - application/json
+      description: get alarm events
       parameters:
       - description: Request information
         in: body
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/request.SetupAlertProviderWebhookRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: Install or update webhook
-      tags:
-      - API.alertinput
-  /api/alerts/alert/events:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: get alarm events
-      parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
-        required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        type: string
-      - collectionFormat: multi
-        description: query service list
-        in: query
-        items:
-          type: string
-        name: services
-        type: array
-      - description: Query the alarm source
-        in: query
-        name: source
-        type: string
-      - description: Query alarm type
-        in: query
-        name: group
-        type: string
-      - description: Query alarm name
-        in: query
-        name: name
-        type: string
-      - description: Query alarm ID
-        in: query
-        name: id
-        type: string
-      - description: Query alarm status
-        in: query
-        name: status
-        type: string
-      - description: Paging parameter, current number of pages
-        in: query
-        name: currentPage
-        type: integer
-      - description: Pagination parameter, quantity per page
-        in: query
-        name: pageSize
-        type: integer
+          $ref: '#/definitions/request.GetAlertEventsSvcReq'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -5940,14 +6775,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.GetAlertEventsResponse'
+            $ref: '#/definitions/response.GetAlertEventsSvcResp'
         "400":
           description: Bad Request
           schema:
             $ref: '#/definitions/code.Failure'
       summary: get alarm events
       tags:
-      - API.service
+      - API.alerts
   /api/alerts/alertmanager/receiver:
     delete:
       consumes:
@@ -6070,7 +6905,7 @@ paths:
   /api/alerts/anomaly-span/list:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: 获取服务和根因类型的故障报告
       parameters:
       - description: 请求信息
@@ -6159,39 +6994,12 @@ paths:
       - application/json
       description: 获取下游告警事件
       parameters:
-      - description: 查询开始时间
-        format: int64
-        in: query
-        name: startTime
+      - description: 请求信息
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: 查询结束时间
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询步长(us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: 查询服务名
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: 查询Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: 异常事件类型过滤
-        in: query
-        name: anormalTypes
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetDescendantAnormalDeltaEventRequest'
       produces:
       - application/json
       responses:
@@ -6259,7 +7067,7 @@ paths:
   /api/alerts/descendant/anormal/trend:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: 获取下游异常变化趋势
       parameters:
       - description: 请求信息
@@ -6384,7 +7192,7 @@ paths:
   /api/alerts/event/detail:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6408,40 +7216,22 @@ paths:
   /api/alerts/event/impact:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: 获取告警数据的影响面
       parameters:
-      - description: 查询告警事件ID
-        in: query
-        name: eventId
-        type: string
-      - description: 查询开始时间
-        format: int64
-        in: query
-        name: startTime
+      - description: 请求信息
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: 查询结束时间
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: 查询步长(us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/request.AlertImpactRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/response.GetServiceEntryEndpointsResponse'
-            type: array
+            $ref: '#/definitions/response.GetAlertImpactResponse'
         "400":
           description: Bad Request
           schema:
@@ -6449,34 +7239,10 @@ paths:
       summary: 获取告警数据的影响面
       tags:
       - API.alerts
-  /api/alerts/events/classify:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.AlertEventClassifyRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.AlertEventClassifyResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      tags:
-      - API.alerts
-  /api/alerts/events/list:
+  /api/alerts/event/list:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6497,17 +7263,17 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
-  /api/alerts/events/report/add:
+  /api/alerts/events/classify:
     get:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.AlertEventClassifyRequest'
+      - in: query
+        name: alertGroup
+        type: string
+      - in: query
+        name: alertName
+        type: string
       produces:
       - application/json
       responses:
@@ -6521,10 +7287,36 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
+  /api/alerts/events/report/add:
+    post:
+      consumes:
+      - application/json
+      description: Add an alert event report
+      parameters:
+      - description: 请求信息
+        in: body
+        name: Request
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddAlertEventReportRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: Add an alert event report
+      tags:
+      - API.alerts
   /api/alerts/events/report/get:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6548,7 +7340,7 @@ paths:
   /api/alerts/events/report/view:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6589,7 +7381,7 @@ paths:
   /api/alerts/filter/labelkeys:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6663,7 +7455,7 @@ paths:
   /api/alerts/outputs/dingtalk/{uuid}:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: the received alarm is forwarded to the DingTalk
       parameters:
       - description: Request information
@@ -6692,7 +7484,7 @@ paths:
   /api/alerts/resolve:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -6716,7 +7508,7 @@ paths:
   /api/alerts/rule:
     delete:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: delete alarm rules
       parameters:
       - description: Delete object
@@ -6775,7 +7567,7 @@ paths:
   /api/alerts/rule/add:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: new alarm rules
       parameters:
       - description: Request information
@@ -6916,7 +7708,7 @@ paths:
       summary: get metrics and PQL in alarm rules
       tags:
       - API.alerts
-  /api/alerts/rules:
+  /api/alerts/rules/file:
     get:
       consumes:
       - application/x-www-form-urlencoded
@@ -6944,7 +7736,6 @@ paths:
       summary: get basic alarm rules
       tags:
       - API.alerts
-  /api/alerts/rules/file:
     post:
       consumes:
       - application/json
@@ -6955,7 +7746,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/request.UpdateAlertRuleRequest'
+          $ref: '#/definitions/request.UpdateAlertRuleConfigRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -6979,12 +7770,9 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.RemoveAlertSlienceConfigRequest'
+      - in: query
+        name: alertId
+        type: string
       produces:
       - application/json
       responses:
@@ -7002,12 +7790,9 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetAlertSlienceConfigRequest'
+      - in: query
+        name: alertId
+        type: string
       produces:
       - application/json
       responses:
@@ -7023,7 +7808,7 @@ paths:
       - API.alerts
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       parameters:
       - description: 请求信息
         in: body
@@ -7061,25 +7846,6 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.alerts
-  /api/alertsinput/enrich/tags/list:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: GetTargetTags
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/alert.GetTargetTagsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: GetTargetTags
-      tags:
-      - API.alertinput
   /api/app/deployMode:
     get:
       consumes:
@@ -7274,12 +8040,12 @@ paths:
       - application/x-www-form-urlencoded
       description: 删除用户自定义查询数据类型
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.DeleteCustomRequest'
+      - description: |-
+          UserName   string `form:"userName"`
+          GroupName  string `form:"groupName"`
+        in: query
+        name: customName
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7304,12 +8070,6 @@ paths:
       - application/x-www-form-urlencoded
       description: 获取用户自定义查询数据类型
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetCustomRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7385,7 +8145,7 @@ paths:
   /api/data/group:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Get data group.
       parameters:
       - description: Request
@@ -7447,7 +8207,7 @@ paths:
   /api/data/group/operation:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Assign data groups to users or teams, or remove them from data
         groups.
       parameters:
@@ -7555,7 +8315,7 @@ paths:
   /api/data/subs/operation:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Manage group's assigned subject.
       parameters:
       - description: 请求信息
@@ -7624,12 +8384,12 @@ paths:
       - application/x-www-form-urlencoded
       description: Get app info tags.
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.QueryAPPInfoTagsRequest'
+      - in: query
+        name: endTime
+        type: integer
+      - in: query
+        name: startTime
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7654,12 +8414,15 @@ paths:
       - application/x-www-form-urlencoded
       description: Get app info tag values.
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.QueryAPPInfoTagValuesRequest'
+      - in: query
+        name: endTime
+        type: integer
+      - in: query
+        name: key
+        type: string
+      - in: query
+        name: startTime
+        type: integer
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -7731,7 +8494,7 @@ paths:
   /api/dataplane/create:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Creates a new dataplane.
       parameters:
       - description: Request information
@@ -7921,7 +8684,7 @@ paths:
   /api/dataplane/delete:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Deletes a dataplane.
       parameters:
       - description: Request information
@@ -8054,36 +8817,6 @@ paths:
       summary: Gets all dataplane.
       tags:
       - API.dataplane
-  /api/dataplane/recharts/list:
-    get:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: list services' redcharts
-      parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.ListServiceRedChartsRequest'
-      - description: Bearer accessToken
-        in: header
-        name: Authorization
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.ListServiceRedChartsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/code.Failure'
-      summary: list services' redcharts
-      tags:
-      - API.dataplane
   /api/dataplane/redcharts:
     get:
       consumes:
@@ -8127,6 +8860,44 @@ paths:
           schema:
             $ref: '#/definitions/code.Failure'
       summary: Get service's redcharts.
+      tags:
+      - API.dataplane
+  /api/dataplane/redcharts/list:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: list services' redcharts
+      parameters:
+      - description: query Cluster
+        in: query
+        name: cluster
+        type: string
+      - description: query end time
+        in: query
+        name: endTime
+        required: true
+        type: integer
+      - description: query start time
+        in: query
+        minimum: 0
+        name: startTime
+        type: integer
+      - description: Bearer accessToken
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.ListServiceRedChartsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/code.Failure'
+      summary: list services' redcharts
       tags:
       - API.dataplane
   /api/dataplane/servicename:
@@ -8488,7 +9259,7 @@ paths:
   /api/dataplane/update:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Updates a dataplane.
       parameters:
       - description: Request information
@@ -8560,7 +9331,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/integration.Cluster'
+          $ref: '#/definitions/integration.ClusterIntegration'
       produces:
       - application/json
       responses:
@@ -8578,15 +9349,21 @@ paths:
   /api/integration/cluster/delete:
     get:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: DeleteCluster
       parameters:
-      - description: Cluster Info
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/integration.Cluster'
+      - in: query
+        name: clusterType
+        type: string
+      - in: query
+        name: id
+        type: string
+      - in: query
+        name: isMinimal
+        type: boolean
+      - in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
@@ -8606,12 +9383,18 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/integration.Cluster'
+      - in: query
+        name: clusterType
+        type: string
+      - in: query
+        name: id
+        type: string
+      - in: query
+        name: isMinimal
+        type: boolean
+      - in: query
+        name: name
+        type: string
       produces:
       - application/json
       responses:
@@ -8630,19 +9413,16 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/integration.GetCInstallRequest'
+      - in: query
+        name: clusterId
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/integration.GetCInstallRequest'
+            $ref: '#/definitions/integration.GetCInstallDocResponse'
         "400":
           description: Bad Request
           schema:
@@ -8654,12 +9434,9 @@ paths:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: 请求信息
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/integration.GetCInstallRequest'
+      - in: query
+        name: clusterId
+        type: string
       produces:
       - text/plain
       responses:
@@ -8703,7 +9480,7 @@ paths:
         name: Request
         required: true
         schema:
-          $ref: '#/definitions/integration.Cluster'
+          $ref: '#/definitions/integration.ClusterIntegration'
       produces:
       - application/json
       responses:
@@ -8731,17 +9508,16 @@ paths:
             $ref: '#/definitions/code.Failure'
       tags:
       - API.integration
-  /api/integration/vars/:variable:
+  /api/integration/vars/{variable}:
     get:
       consumes:
       - application/x-www-form-urlencoded
       parameters:
-      - description: Request information
-        in: body
-        name: Request
+      - description: Integration variable name
+        in: path
+        name: variable
         required: true
-        schema:
-          $ref: '#/definitions/integration.GetIntegrationVarRequest'
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -8999,6 +9775,8 @@ paths:
       - API.log
   /api/log/fault/content:
     post:
+      consumes:
+      - application/json
       description: get the contents of the fault site log
       parameters:
       - description: Request information
@@ -9091,12 +9869,6 @@ paths:
       - application/x-www-form-urlencoded
       description: get external log table
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.OtherTableRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -9181,12 +9953,12 @@ paths:
       - application/x-www-form-urlencoded
       description: get external log table information
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.OtherTableInfoRequest'
+      - in: query
+        name: dataBase
+        type: string
+      - in: query
+        name: tableName
+        type: string
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -9335,12 +10107,12 @@ paths:
       - application/x-www-form-urlencoded
       description: get the application log corresponding to the service
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.GetServiceRouteRequest'
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: serviceName
+        type: array
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -9395,12 +10167,6 @@ paths:
       - application/x-www-form-urlencoded
       description: get log table information
       parameters:
-      - description: Request information
-        in: body
-        name: Request
-        required: true
-        schema:
-          $ref: '#/definitions/request.LogTableInfoRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -9998,57 +10764,12 @@ paths:
       - application/json
       description: get alarm events
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        type: string
-      - collectionFormat: multi
-        description: query service list
-        in: query
-        items:
-          type: string
-        name: services
-        type: array
-      - description: Query the alarm source
-        in: query
-        name: source
-        type: string
-      - description: Query alarm type
-        in: query
-        name: group
-        type: string
-      - description: Query alarm name
-        in: query
-        name: name
-        type: string
-      - description: Query alarm ID
-        in: query
-        name: id
-        type: string
-      - description: Query alarm status
-        in: query
-        name: status
-        type: string
-      - description: Paging parameter, current number of pages
-        in: query
-        name: currentPage
-        type: integer
-      - description: Pagination parameter, quantity per page
-        in: query
-        name: pageSize
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetAlertEventsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10073,47 +10794,12 @@ paths:
       - application/json
       description: get sampling alarm events
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query the alarm source
-        in: query
-        name: source
-        type: string
-      - description: Query alarm type
-        in: query
-        name: group
-        type: string
-      - description: Query alarm name
-        in: query
-        name: name
-        type: string
-      - description: Query alarm ID
-        in: query
-        name: id
-        type: string
-      - description: Query alarm status
-        in: query
-        name: status
-        type: string
-      - description: Number of sample alarms
-        in: query
-        name: sampleCount
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetAlertEventsSampleRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10138,42 +10824,12 @@ paths:
       - application/json
       description: get the delay curve data of all downstream services
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Ingress service name
-        in: query
-        name: entryService
-        type: string
-      - description: entry Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetDescendantMetricsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10200,49 +10856,15 @@ paths:
       - application/json
       description: get the dependent node delay correlation degree
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Ingress service name
-        in: query
-        name: entryService
-        type: string
-      - description: entry Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetDescendantRelevanceRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
-        type: string
-      - description: 排序字段,支持latency和errorRate
-        in: query
-        name: sortBy
         type: string
       produces:
       - application/json
@@ -10266,22 +10888,12 @@ paths:
       - application/json
       description: get the list of service EndPoint
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceEndPointListRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10308,55 +10920,12 @@ paths:
       - application/json
       description: get the list of endpoints services
       parameters:
-      - description: data group id
-        format: int64
-        in: query
-        name: groupId
-        type: integer
-      - description: start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: step
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - collectionFormat: multi
-        description: service name
-        in: query
-        items:
-          type: string
-        name: serviceName
-        type: array
-      - collectionFormat: multi
-        description: namespace
-        in: query
-        items:
-          type: string
-        name: namespace
-        type: array
-      - collectionFormat: multi
-        description: endpoint
-        in: query
-        items:
-          type: string
-        name: endpointName
-        type: array
-      - description: sort rule
-        in: query
-        name: sortRule
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetEndPointsDataRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10381,38 +10950,12 @@ paths:
       - application/json
       description: get the service entry Endpoint list
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Show missing entry
-        in: query
-        name: showMissTop
-        type: boolean
+        schema:
+          $ref: '#/definitions/request.GetServiceEntryEndpointsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10439,42 +10982,12 @@ paths:
       - application/json
       description: get the error instance
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Ingress service name
-        in: query
-        name: entryService
-        type: string
-      - description: entry Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetErrorInstanceRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10499,45 +11012,12 @@ paths:
       - application/json
       description: get the error instance failure site log
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: instance name
-        in: query
-        name: instance
-        type: string
-      - description: hostname
-        in: query
-        name: nodeName
-        type: string
-      - description: container name
-        in: query
-        name: containerId
-        type: string
-      - description: process number
-        format: int32
-        in: query
-        name: pid
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetErrorInstanceLogsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10596,7 +11076,7 @@ paths:
   /api/service/instance/list:
     post:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       deprecated: true
       description: get the list of service instances
       parameters:
@@ -10643,23 +11123,12 @@ paths:
       - application/json
       description: get the drop-down list of service instances
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceInstanceOptionsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10687,23 +11156,12 @@ paths:
       deprecated: true
       description: get the list of service instances
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceInstanceListRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10730,33 +11188,12 @@ paths:
       - application/json
       description: get the URL instance corresponding to the service
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: step
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: app name
-        in: query
-        name: serviceName
-        required: true
-        type: string
-      - description: endpoint
-        in: query
-        name: endpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceInstanceRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10781,23 +11218,12 @@ paths:
       - application/json
       description: get K8s events
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetK8sEventsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10819,7 +11245,7 @@ paths:
   /api/service/list:
     post:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: get the list of services
       parameters:
       - description: query start time
@@ -10867,45 +11293,12 @@ paths:
       - application/json
       description: get Log fault site log
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: instance name
-        in: query
-        name: instance
-        type: string
-      - description: hostname
-        in: query
-        name: nodeName
-        type: string
-      - description: container name
-        in: query
-        name: containerId
-        type: string
-      - description: process number
-        format: int32
-        in: query
-        name: pid
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetLogLogsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -10929,7 +11322,7 @@ paths:
   /api/service/log/metrics:
     post:
       consumes:
-      - application/json
+      - application/x-www-form-urlencoded
       description: get log related metrics
       parameters:
       - description: query start time
@@ -11084,18 +11477,12 @@ paths:
       - application/json
       description: Get monitored namespaces.
       parameters:
-      - description: start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetServiceNamespaceListRequest'
       produces:
       - application/json
       responses:
@@ -11116,34 +11503,12 @@ paths:
       - application/json
       description: Get Polaris metric Analysis
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetPolarisInferRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -11165,7 +11530,7 @@ paths:
   /api/service/redcharts:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Get services' red charts.
       parameters:
       - description: request
@@ -11198,36 +11563,12 @@ paths:
       - application/json
       description: the call relationship between the upstream and downstream service
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: Ingress service name
-        in: query
-        name: entryService
-        type: string
-      - description: entry Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceEndpointRelationRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -11416,42 +11757,12 @@ paths:
       - application/json
       description: get SQL metrics
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: query step (us)
-        format: int64
-        in: query
-        name: step
-        required: true
-        type: integer
-      - description: Sort method (latency/errorRate/tps)
-        in: query
-        name: sortBy
-        required: true
-        type: string
-      - description: Paging parameter, current number of pages
-        in: query
-        name: currentPage
-        type: integer
-      - description: Pagination parameter, quantity per page
-        in: query
-        name: pageSize
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetSQLMetricsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -11476,36 +11787,12 @@ paths:
       - application/json
       description: get the upstream and downstream topology of the service
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: Ingress service name
-        in: query
-        name: entryService
-        type: string
-      - description: entry Endpoint
-        in: query
-        name: entryEndpoint
-        type: string
+        schema:
+          $ref: '#/definitions/request.GetServiceEndpointTopologyRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -11530,45 +11817,12 @@ paths:
       - application/json
       description: get trace fault site log
       parameters:
-      - description: query start time
-        format: int64
-        in: query
-        name: startTime
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
-      - description: query end time
-        format: int64
-        in: query
-        name: endTime
-        required: true
-        type: integer
-      - description: Query service name
-        in: query
-        name: service
-        required: true
-        type: string
-      - description: Query Endpoint
-        in: query
-        name: endpoint
-        required: true
-        type: string
-      - description: instance name
-        in: query
-        name: instance
-        type: string
-      - description: hostname
-        in: query
-        name: nodeName
-        type: string
-      - description: container name
-        in: query
-        name: containerId
-        type: string
-      - description: process number
-        format: int32
-        in: query
-        name: pid
-        type: integer
+        schema:
+          $ref: '#/definitions/request.GetTraceLogsRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization
@@ -11704,7 +11958,7 @@ paths:
   /api/team/create:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Creates a team.
       parameters:
       - description: Request
@@ -11801,7 +12055,7 @@ paths:
   /api/team/update:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Update team's information.
       parameters:
       - description: Request
@@ -12116,7 +12370,7 @@ paths:
   /api/trace/pagelist/filter/value:
     post:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: query the available values of the specified filter
       parameters:
       - description: Request information
@@ -12740,17 +12994,17 @@ paths:
       tags:
       - API.user
   /api/v2/data/group/delete:
-    post:
+    delete:
       consumes:
-      - application/x-www-form-urlencoded
+      - application/json
       description: Delete the data group.
       parameters:
-      - description: Data group's id
-        format: int64
-        in: formData
-        name: groupId
+      - description: Request information
+        in: body
+        name: Request
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/request.DeleteDataGroupRequest'
       - description: Bearer accessToken
         in: header
         name: Authorization

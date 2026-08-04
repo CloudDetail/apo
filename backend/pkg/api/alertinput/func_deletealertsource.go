@@ -15,7 +15,7 @@ import (
 // @Summary DeleteAlertSource
 // @Description DeleteAlertSource
 // @Tags API.alertinput
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body alert.SourceFrom true "alertSource"
 // @Success 200 {object} alert.SourceFrom

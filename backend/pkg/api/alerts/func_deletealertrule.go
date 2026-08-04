@@ -15,7 +15,7 @@ import (
 // @Summary delete alarm rules
 // @Description delete alarm rules
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.DeleteAlertRuleRequest true "Delete object"
 // @Param Authorization header string false "Bearer accessToken"

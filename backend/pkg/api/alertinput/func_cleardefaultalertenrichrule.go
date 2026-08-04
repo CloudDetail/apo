@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body alert.DefaultAlertEnrichRuleRequest true "Request info"
+// @Param Request query alert.DefaultAlertEnrichRuleRequest true "Request info"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/source/enrich/default/clear [get]

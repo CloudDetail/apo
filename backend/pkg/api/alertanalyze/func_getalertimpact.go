@@ -14,13 +14,10 @@ import (
 // @Summary 获取告警数据的影响面
 // @Description 获取告警数据的影响面
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param eventId query string false "查询告警事件ID"
-// @Param startTime query uint64 true "查询开始时间"
-// @Param endTime query uint64 true "查询结束时间"
-// @Param step query int64 true "查询步长(us)"
-// @Success 200 {object} []response.GetServiceEntryEndpointsResponse
+// @Param Request body request.AlertImpactRequest true "请求信息"
+// @Success 200 {object} response.GetAlertImpactResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/event/impact [post]
 func (h *handler) GetAlertImpact() core.HandlerFunc {

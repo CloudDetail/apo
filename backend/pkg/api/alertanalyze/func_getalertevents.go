@@ -18,22 +18,12 @@ import (
 // GetAlertEvents get alarm events
 // @Summary get alarm events
 // @Description get alarm events
-// @Tags API.service
-// @Accept application/x-www-form-urlencoded
+// @Tags API.alerts
+// @Accept json
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
-// @Param service query string false "Query service name"
-// @Param services query []string false "query service list" collectionFormat(multi)
-// @Param source query string false "Query the alarm source"
-// @Param group query string false "Query alarm type"
-// @Param name query string false "Query alarm name"
-// @Param id query string false "Query alarm ID"
-// @Param status query string false "Query alarm status"
-// @Param currentPage query int false "Paging parameter, current number of pages"
-// @Param pageSize query int false "Pagination parameter, quantity per page"
+// @Param Request body request.GetAlertEventsSvcReq true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
-// @Success 200 {object} response.GetAlertEventsResponse
+// @Success 200 {object} response.GetAlertEventsSvcResp
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/alert/events [post]
 func (h *handler) GetAlertEvents() core.HandlerFunc {

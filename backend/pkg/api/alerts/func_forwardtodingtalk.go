@@ -16,7 +16,7 @@ import (
 // @Summary the received alarm is forwarded to the DingTalk
 // @Description the received alarm is forwarded to the DingTalk
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.ForwardToDingTalkRequest true "Request information"
 // @Param uuid path string true "DingTalk the uuid corresponding to the webhook"

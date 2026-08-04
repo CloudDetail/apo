@@ -16,7 +16,7 @@ import (
 // @Summary Get data group.
 // @Description Get data group.
 // @Tags API.data
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.GetDataGroupRequest false "Request"
 // @Param Authorization header string false "Bearer accessToken"

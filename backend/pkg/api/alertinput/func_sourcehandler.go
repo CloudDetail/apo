@@ -18,6 +18,8 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
+// @Param Source query alert.SourceFrom true "Alert source information"
+// @Param Request body object true "Alert event payload"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
 // @Router /api/alertinput/event/source [post]

@@ -38,7 +38,7 @@ type Handler interface {
 
 	// GetAlertEventReport
 	// @Tags API.alerts
-	// @Router /api/alerts/events/report/get [get]
+	// @Router /api/alerts/events/report/get [post]
 	GetAlertEventReport() core.HandlerFunc
 
 	// GetAlertEventReportView
@@ -124,7 +124,7 @@ type Handler interface {
 
 	// CheckAlertRule check whether the alarm rule name is available
 	// @Tags API.alerts
-	// @Router /api/alerts/rule/available/file/group/alert [get]
+	// @Router /api/alerts/rule/available [get]
 	CheckAlertRule() core.HandlerFunc
 
 	// GetAlertSlienceConfig

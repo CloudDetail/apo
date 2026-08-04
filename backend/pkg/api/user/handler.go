@@ -77,7 +77,7 @@ type Handler interface {
 
 	// GetUserTeam Get user's team.
 	// @Tags API.user
-	// @Router /api/user/team [post]
+	// @Router /api/user/team [get]
 	GetUserTeam() core.HandlerFunc
 }
 

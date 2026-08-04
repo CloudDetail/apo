@@ -15,7 +15,7 @@ import (
 // @Summary get the list of services
 // @Description get the list of services
 // @Tags API.service
-// @Accept application/json
+// @Accept application/x-www-form-urlencoded
 // @Produce json
 // @Param startTime query int64 true "query start time"
 // @Param endTime query int64 true "query end time"

@@ -17,7 +17,7 @@ import (
 // @Tags API.alerts
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.RemoveAlertSlienceConfigRequest true "请求信息"
+// @Param Request query request.RemoveAlertSlienceConfigRequest true "请求信息"
 // @Success 200 {object} string
 // @Failure 400 {object} code.Failure
 // @Router /api/alerts/slient [delete]

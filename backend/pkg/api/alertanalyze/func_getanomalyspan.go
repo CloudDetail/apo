@@ -13,7 +13,7 @@ import (
 // @Summary 获取服务和根因类型的故障报告
 // @Description 获取服务和根因类型的故障报告
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.GetAnomalySpanRequest true "请求信息"
 // @Success 200 {object} response.GetAnomalySpanResponse

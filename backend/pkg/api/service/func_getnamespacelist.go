@@ -18,8 +18,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query int64 true "start time"
-// @Param endTime query int64 true "end time"
+// @Param Request body request.GetServiceNamespaceListRequest true "Request information"
 // @Success 200 {object} response.GetServiceNamespaceListResponse
 // @Failure 400 {object} code.Failure
 // @Router /api/service/namespace/list [post]

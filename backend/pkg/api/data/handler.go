@@ -21,7 +21,7 @@ type Handler interface {
 
 	// DeleteDataGroupV2 Delete the data group.
 	// @Tags API.data
-	// @Router /api/data/group/delete [post]
+	// @Router /api/v2/data/group/delete [delete]
 	DeleteDataGroupV2() core.HandlerFunc
 
 	// GetDataGroup Get data group.

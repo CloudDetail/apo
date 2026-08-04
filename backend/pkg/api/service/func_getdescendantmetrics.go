@@ -17,13 +17,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
-// @Param service query string true "Query service name"
-// @Param endpoint query string true "Query Endpoint"
-// @Param step query int64 true "query step (us)"
-// @Param entryService query string false "Ingress service name"
-// @Param entryEndpoint query string false "entry Endpoint"
+// @Param Request body request.GetDescendantMetricsRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetDescendantMetricsResponse
 // @Failure 400 {object} code.Failure

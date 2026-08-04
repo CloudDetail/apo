@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/json
 // @Produce json
-// @Param Request body integration.Cluster true "Cluster Info"
+// @Param Request body integration.ClusterIntegration true "Cluster Info"
 // @Success 200 {object} integration.Cluster "created cluster info"
 // @Failure 400 {object} code.Failure
 // @Router /api/integration/cluster/create [post]

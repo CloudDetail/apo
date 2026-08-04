@@ -18,11 +18,11 @@ import (
 // @Tags API.integration
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body integration.GetIntegrationVarRequest true "Request information"
+// @Param variable path string true "Integration variable name"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string
 // @Failure 400 {object} code.Failure
-// @Router /api/integration/vars/:variable [get]
+// @Router /api/integration/vars/{variable} [get]
 func (h *handler) GetIntegrationVar() core.HandlerFunc {
 	return func(c core.Context) {
 		var req = new(integration.GetIntegrationVarRequest)

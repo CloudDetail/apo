@@ -17,7 +17,7 @@ import (
 // @Tags API.alertinput
 // @Accept application/x-www-form-urlencoded
 // @Produce json
-// @Param Request body request.GetAlertProviderParamsSpecRequest true "Request information"
+// @Param Request query request.GetAlertProviderParamsSpecRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertProviderParamsSpecResponse
 // @Failure 400 {object} code.Failure

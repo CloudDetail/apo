@@ -20,13 +20,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
-// @Param service query string true "Query service name"
-// @Param step query int64 true "query step (us)"
-// @Param sortBy query string true "Sort method (latency/errorRate/tps)"
-// @Param currentPage query int false "Paging parameter, current number of pages"
-// @Param pageSize query int false "Pagination parameter, quantity per page"
+// @Param Request body request.GetSQLMetricsRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetSQLMetricsResponse
 // @Failure 400 {object} code.Failure

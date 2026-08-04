@@ -16,13 +16,13 @@ import (
 // @Summary Delete the data group.
 // @Description Delete the data group.
 // @Tags API.data
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
-// @Param groupId formData int64 true "Data group's id"
+// @Param Request body request.DeleteDataGroupRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/v2/data/group/delete [post]
+// @Router /api/v2/data/group/delete [delete]
 func (h *handler) DeleteDataGroupV2() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.DeleteDataGroupRequest)

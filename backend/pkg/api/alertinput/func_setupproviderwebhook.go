@@ -14,13 +14,13 @@ import (
 // @Summary Install or update webhook
 // @Description Install or update webhook
 // @Tags API.alertinput
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.SetupAlertProviderWebhookRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} string "ok"
 // @Failure 400 {object} code.Failure
-// @Router /api/alertinput/source/webhook [post]
+// @Router /api/alertinput/source/setup/webhook [post]
 func (h *handler) SetupAlertProviderWebhook() core.HandlerFunc {
 	return func(c core.Context) {
 		req := new(request.SetupAlertProviderWebhookRequest)

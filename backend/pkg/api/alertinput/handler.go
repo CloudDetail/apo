@@ -31,7 +31,7 @@ type Handler interface {
 
 	// SetupAlertProviderWebhook Install or update webhook
 	// @Tags API.alertinput
-	// @Router /api/alertinput/source/webhook [post]
+	// @Router /api/alertinput/source/setup/webhook [post]
 	SetupAlertProviderWebhook() core.HandlerFunc
 
 	// CreateAlertSource Create Alarm Source
@@ -66,7 +66,7 @@ type Handler interface {
 
 	// GetAlertSourceEnrichRule Obtain alarm source enhancement configuration
 	// @Tags API.alertinput
-	// @Router /api/alertinput/source/enrich/get [get]
+	// @Router /api/alertinput/source/enrich/get [post]
 	GetAlertSourceEnrichRule() core.HandlerFunc
 
 	// ListTargetTags Obtain predefined labels for association
@@ -131,7 +131,7 @@ type Handler interface {
 
 	// GetDefaultAlertEnrichRule GetDefaultAlertEnrichRule
 	// @Tags API.alertinput
-	// @Router /api/alertinput/source/enrich/default [get]
+	// @Router /api/alertinput/source/enrich/default/get [get]
 	GetDefaultAlertEnrichRule() core.HandlerFunc
 
 	// ClearDefaultAlertEnrichRule ClearDefaultAlertEnrichRule

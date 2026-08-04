@@ -16,7 +16,7 @@ import (
 // @Summary Creates a team.
 // @Description Creates a team.
 // @Tags API.team
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.CreateTeamRequest true "Request"
 // @Param Authorization header string false "Bearer accessToken"

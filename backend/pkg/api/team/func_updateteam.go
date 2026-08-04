@@ -16,7 +16,7 @@ import (
 // @Summary Update team's information.
 // @Description Update team's information.
 // @Tags API.team
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.UpdateTeamRequest true "Request"
 // @Param Authorization header string false "Bearer accessToken"

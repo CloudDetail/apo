@@ -13,7 +13,7 @@ import (
 // @Summary 获取下游异常变化趋势
 // @Description 获取下游异常变化趋势
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.GetDescendantAnormalTrendRequest true "请求信息"
 // @Success 200 {object} response.GetDescendantDeltaAnormalEventResponse

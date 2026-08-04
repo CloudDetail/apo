@@ -14,7 +14,7 @@ import (
 // @Summary Creates a new dataplane.
 // @Description Creates a new dataplane.
 // @Tags API.dataplane
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.CreateDataPlaneRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

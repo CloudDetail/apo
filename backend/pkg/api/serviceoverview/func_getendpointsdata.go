@@ -19,14 +19,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param groupId query int64 false "data group id"
-// @Param startTime query int64 true "start time"
-// @Param endTime query int64 true "end time"
-// @Param step query int64 true "step"
-// @Param serviceName query []string false "service name" collectionFormat(multi)
-// @Param namespace query []string false "namespace" collectionFormat(multi)
-// @Param endpointName query []string false "endpoint" collectionFormat(multi)
-// @Param sortRule query int true "sort rule"
+// @Param Request body request.GetEndPointsDataRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.ServiceEndPointsRes
 // @Failure 400 {object} code.Failure

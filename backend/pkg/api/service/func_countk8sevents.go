@@ -19,9 +19,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
-// @Param service query string true "Query service name"
+// @Param Request body request.GetK8sEventsRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetK8sEventsResponse
 // @Failure 400 {object} code.Failure

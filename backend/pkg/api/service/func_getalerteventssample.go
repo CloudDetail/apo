@@ -20,15 +20,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query int64 true "query start time"
-// @Param endTime query int64 true "query end time"
-// @Param service query string true "Query service name"
-// @Param source query string false "Query the alarm source"
-// @Param group query string false "Query alarm type"
-// @Param name query string false "Query alarm name"
-// @Param id query string false "Query alarm ID"
-// @Param status query string false "Query alarm status"
-// @Param sampleCount query int false "Number of sample alarms"
+// @Param Request body request.GetAlertEventsSampleRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} response.GetAlertEventsSampleResponse
 // @Failure 400 {object} code.Failure

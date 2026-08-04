@@ -23,12 +23,7 @@ import (
 // @Tags API.service
 // @Accept application/json
 // @Produce json
-// @Param startTime query uint64 true "query start time"
-// @Param endTime query uint64 true "query end time"
-// @Param service query string true "Query service name"
-// @Param endpoint query string true "Query Endpoint"
-// @Param step query int64 true "query step (us)"
-// @Param showMissTop query bool false "Show missing entry"
+// @Param Request body request.GetServiceEntryEndpointsRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"
 // @Success 200 {object} []response.GetServiceEntryEndpointsResponse
 // @Failure 400 {object} code.Failure

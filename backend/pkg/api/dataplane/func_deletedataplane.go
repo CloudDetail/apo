@@ -14,7 +14,7 @@ import (
 // @Summary Deletes a dataplane.
 // @Description Deletes a dataplane.
 // @Tags API.dataplane
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.DeleteDataPlaneRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

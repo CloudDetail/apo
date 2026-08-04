@@ -15,6 +15,7 @@ import (
 // @Summary get the contents of the fault site log
 // @Description get the contents of the fault site log
 // @Tags API.log
+// @Accept json
 // @Produce json
 // @Param Request body request.GetFaultLogContentRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

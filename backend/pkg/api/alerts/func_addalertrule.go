@@ -16,7 +16,7 @@ import (
 // @Summary new alarm rules
 // @Description new alarm rules
 // @Tags API.alerts
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.AddAlertRuleRequest true "Request information"
 // @Param Authorization header string false "Bearer accessToken"

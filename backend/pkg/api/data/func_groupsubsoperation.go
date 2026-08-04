@@ -16,7 +16,7 @@ import (
 // @Summary Manage group's assigned subject.
 // @Description Manage group's assigned subject.
 // @Tags API.data
-// @Accept application/x-www-form-urlencoded
+// @Accept json
 // @Produce json
 // @Param Request body request.GroupSubsOperationRequest true "请求信息"
 // @Param Authorization header string false "Bearer accessToken"
