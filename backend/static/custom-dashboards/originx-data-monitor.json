@@ -1,0 +1,407 @@
+{
+  "id": "",
+  "name": "Originx 数据自监控",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：originx-data-monitor。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "node_name",
+      "label": "节点",
+      "type": "instance",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(originx_agent_ready{cluster_id=~\"$cluster_id\"},node_name)",
+      "labels": [
+        "instance",
+        "instance_name",
+        "node_name",
+        "nodeName",
+        "host_name",
+        "hostName"
+      ]
+    },
+    {
+      "name": "pod",
+      "label": "Pod 实例",
+      "type": "pod",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kindling_span_trace_duration_nanoseconds_count{node_name=~\"$node_name\", cluster_id=~\"$cluster_id\"},pod)",
+      "labels": [
+        "pod",
+        "pod_name",
+        "src_pod",
+        "dst_pod"
+      ]
+    },
+    {
+      "name": "interval",
+      "label": "采样间隔",
+      "type": "custom",
+      "value": "30s",
+      "multi": false,
+      "required": false,
+      "defaultValue": "30s",
+      "options": [
+        {
+          "label": "自动",
+          "value": "$__auto_interval_interval"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        },
+        {
+          "label": "10m",
+          "value": "10m"
+        },
+        {
+          "label": "30m",
+          "value": "30m"
+        },
+        {
+          "label": "1h",
+          "value": "1h"
+        },
+        {
+          "label": "6h",
+          "value": "6h"
+        },
+        {
+          "label": "12h",
+          "value": "12h"
+        },
+        {
+          "label": "1d",
+          "value": "1d"
+        },
+        {
+          "label": "7d",
+          "value": "7d"
+        },
+        {
+          "label": "14d",
+          "value": "14d"
+        },
+        {
+          "label": "30d",
+          "value": "30d"
+        }
+      ],
+      "query": "30s,1m,5m,10m,30m,1h,6h,12h,1d,7d,14d,30d"
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-1",
+      "title": "TxIn和TxOut事件数 - Ebpf Agent",
+      "description": "TxIn和TxOut事件数 - Ebpf Agent。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod) (increase(originx_sr_tx_event_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", event_name=~\"txin\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "{{pod}}_txin",
+        "queries": [
+          {
+            "id": "TxIn事件",
+            "expression": "sum by (pod) (increase(originx_sr_tx_event_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", event_name=~\"txin\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "{{pod}}_txin"
+          },
+          {
+            "id": "TxOut事件",
+            "expression": "sum by (pod) (increase(originx_sr_tx_event_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", event_name=~\"txout\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "{{pod}}_txout"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-2",
+      "title": "Java Lock事件数 - Ebpf Agent",
+      "description": "Java Lock事件数 - Ebpf Agent。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod) (increase(originx_sr_tx_event_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", event_name=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])>0)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (pod) (increase(originx_sr_tx_event_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", event_name=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])>0)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-3",
+      "title": "关联北极星Profile - Ebpf Agent",
+      "description": "关联北极星Profile - Ebpf Agent。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod) (increase(originx_sr_signal_profile_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", is_hit=\"true\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "{{pod}}_匹配",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (pod) (increase(originx_sr_signal_profile_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", is_hit=\"true\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "{{pod}}_匹配"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (pod) (increase(originx_sr_signal_profile_count{node_name=~\"${node_name:regex}\", pod=~\"${pod:regex}\", is_hit=\"false\", cluster_id=~\"${cluster_id:regex}\"}[$interval])>0)",
+            "legend": "{{pod}}_未匹配"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-4",
+      "title": "对接ApmTrace - Apo Receiver",
+      "description": "对接ApmTrace - Apo Receiver。",
+      "type": "barGauge",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(originx_sr_adapter_apmtrace_count{is_hit=\"true\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "匹配",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(increase(originx_sr_adapter_apmtrace_count{is_hit=\"true\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "匹配"
+          },
+          {
+            "id": "B",
+            "expression": "sum(increase(originx_sr_adapter_apmtrace_count{is_hit=\"false\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "未匹配"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "采样Span数",
+      "description": "采样Span数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (sample) (increase(otelcol_processor_back_sampling_span_count{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (sample) (increase(otelcol_processor_back_sampling_span_count{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "动态采样率",
+      "description": "动态采样率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "1/2^otelcol_processor_back_sampling_sample_value{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{node_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "1/2^otelcol_processor_back_sampling_sample_value{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "转发成功和失败Span数",
+      "description": "转发成功和失败Span数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (node_name) (increase(otelcol_exporter_sent_spans{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "{{node_name}}-success",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (node_name) (increase(otelcol_exporter_sent_spans{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "{{node_name}}-success"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (node_name) (increase(otelcol_exporter_send_failed_spans{node_name=~\"${node_name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "{{node_name}}-failed"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

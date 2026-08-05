@@ -1,0 +1,2126 @@
+{
+  "id": "",
+  "name": "Elasticsearch 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：elasticsearch。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "job",
+      "label": "采集任务",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(elasticsearch_cluster_health_status, job)",
+      "labels": [
+        "job"
+      ]
+    },
+    {
+      "name": "cluster",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(elasticsearch_indices_docs{job=\"$job\",cluster_id=~\"$cluster_id\"},cluster)",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "name",
+      "label": "名称",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(elasticsearch_indices_docs{job=\"$job\", cluster=\"$cluster\", name!=\"\"},name)",
+      "labels": [
+        "name"
+      ]
+    },
+    {
+      "name": "instance",
+      "label": "实例",
+      "type": "instance",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(elasticsearch_indices_docs{job=\"$job\", cluster=\"$cluster\", name!=\"\"},instance)",
+      "labels": [
+        "instance",
+        "instance_name",
+        "node_name",
+        "nodeName",
+        "host_name",
+        "hostName"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-53",
+      "title": "集群健康",
+      "description": "集群健康。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"red\"}==1 or (elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"green\"}==1)+4 or (elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"yellow\"}==1)+22",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"red\"}==1 or (elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"green\"}==1)+4 or (elasticsearch_cluster_health_status{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",color=\"yellow\"}==1)+22",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 4.0
+      }
+    },
+    {
+      "id": "grafana-81",
+      "title": "断路器次数",
+      "description": "断路器次数。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(elasticsearch_breakers_tripped{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}>0)",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(elasticsearch_breakers_tripped{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}>0)",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1.0,
+        "criticalThreshold": 2.0
+      }
+    },
+    {
+      "id": "grafana-51",
+      "title": "CPU 平均使用率",
+      "description": "CPU 平均使用率。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"} ) / count (elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"} )",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"} ) / count (elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"} )",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 70.0,
+        "criticalThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-50",
+      "title": "JVM 内存平均使用率",
+      "description": "JVM 内存平均使用率。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (elasticsearch_jvm_memory_used_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}) / sum (elasticsearch_jvm_memory_max_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}) * 100",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (elasticsearch_jvm_memory_used_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}) / sum (elasticsearch_jvm_memory_max_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"}) * 100",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 70.0,
+        "criticalThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "集群节点数",
+      "description": "集群节点数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_number_of_nodes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_number_of_nodes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "集群数据节点数",
+      "description": "集群数据节点数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_number_of_data_nodes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_number_of_data_nodes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "集群等待任务数",
+      "description": "集群等待任务数。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_number_of_pending_tasks{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_number_of_pending_tasks{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1.0,
+        "criticalThreshold": 5.0
+      }
+    },
+    {
+      "id": "grafana-89",
+      "title": "文件数",
+      "description": "文件数。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (elasticsearch_process_open_files_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (elasticsearch_process_open_files_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "主分片数",
+      "description": "主分片数。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_active_primary_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_active_primary_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-39",
+      "title": "索引总和",
+      "description": "索引总和。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_active_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_active_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "新创建的分片数",
+      "description": "新创建的分片数。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_initializing_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_initializing_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-41",
+      "title": "移动分片数",
+      "description": "移动分片数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_relocating_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_relocating_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-42",
+      "title": "延迟分片数",
+      "description": "延迟分片数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_delayed_unassigned_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_delayed_unassigned_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-82",
+      "title": "未分配分片数",
+      "description": "未分配分片数。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_cluster_health_unassigned_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_cluster_health_unassigned_shards{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "垃圾回收次数",
+      "description": "垃圾回收次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_jvm_gc_collection_seconds_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}} - {{gc}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_jvm_gc_collection_seconds_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}} - {{gc}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-27",
+      "title": "垃圾回收时间",
+      "description": "垃圾回收时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_jvm_gc_collection_seconds_sum{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}} - {{gc}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_jvm_gc_collection_seconds_sum{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}} - {{gc}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-77",
+      "title": "事务日志数",
+      "description": "事务日志数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_translog_operations{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_translog_operations{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-78",
+      "title": "事务日志大小（bytes）",
+      "description": "事务日志大小（bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_translog_size_in_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_translog_size_in_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-79",
+      "title": "断路器次数",
+      "description": "断路器次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_breakers_tripped{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}: {{breaker}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_breakers_tripped{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}: {{breaker}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-80",
+      "title": "断路器估计大小（bytes）",
+      "description": "断路器估计大小（bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_breakers_estimated_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}: {{breaker}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_breakers_estimated_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}: {{breaker}}"
+          },
+          {
+            "id": "B",
+            "expression": "elasticsearch_breakers_limit_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}: 上限 for {{breaker}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-30",
+      "title": "平均负载",
+      "description": "平均负载。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_os_load1{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "load1: {{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_os_load1{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "load1: {{name}}"
+          },
+          {
+            "id": "B",
+            "expression": "elasticsearch_os_load5{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "load5: {{name}}"
+          },
+          {
+            "id": "C",
+            "expression": "elasticsearch_os_load15{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "load15: {{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-88",
+      "title": "CPU 使用率",
+      "description": "CPU 使用率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_process_cpu_percent{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-31",
+      "title": "JVM 内存占用",
+      "description": "JVM 内存占用。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_jvm_memory_used_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}} 已使用: {{area}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_jvm_memory_used_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}} 已使用: {{area}}"
+          },
+          {
+            "id": "C",
+            "expression": "elasticsearch_jvm_memory_max_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}} max: {{area}}"
+          },
+          {
+            "id": "D",
+            "expression": "elasticsearch_jvm_memory_pool_peak_used_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}} peak 已使用 pool: {{pool}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-54",
+      "title": "JVM 已提交内存",
+      "description": "JVM 已提交内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_jvm_memory_committed_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}} committed: {{area}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "elasticsearch_jvm_memory_committed_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}} committed: {{area}}"
+          },
+          {
+            "id": "C",
+            "expression": "elasticsearch_jvm_memory_max_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}} max: {{area}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-32",
+      "title": "磁盘使用",
+      "description": "磁盘使用。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "1-(elasticsearch_filesystem_data_available_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}/elasticsearch_filesystem_data_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{name}}: {{path}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "1-(elasticsearch_filesystem_data_available_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}/elasticsearch_filesystem_data_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{name}}: {{path}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-47",
+      "title": "网络使用",
+      "description": "网络使用。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_transport_tx_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}: sent ",
+        "queries": [
+          {
+            "id": "D",
+            "expression": "irate(elasticsearch_transport_tx_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: sent "
+          },
+          {
+            "id": "C",
+            "expression": "-irate(elasticsearch_transport_rx_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: 接收"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-1",
+      "title": "节点文档数",
+      "description": "节点文档数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_docs{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_docs{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "文档索引率",
+      "description": "文档索引率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_indexing_index_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_indexing_index_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-25",
+      "title": "文档删除率",
+      "description": "文档删除率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_docs_deleted{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_docs_deleted{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-26",
+      "title": "文档合并率",
+      "description": "文档合并率。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(elasticsearch_indices_merges_docs_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(elasticsearch_indices_merges_docs_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-52",
+      "title": "文档合并大小（bytes）",
+      "description": "文档合并大小（bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_merges_total_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_merges_total_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-33",
+      "title": "请求时间",
+      "description": "请求时间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_search_query_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_search_query_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-5",
+      "title": "索引时间",
+      "description": "索引时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-3",
+      "title": "合并时间",
+      "description": "合并时间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_merges_total_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_merges_total_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-87",
+      "title": "索引存储限流时间",
+      "description": "索引存储限流时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_store_throttle_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_store_throttle_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-48",
+      "title": "操作率",
+      "description": "操作率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(elasticsearch_indices_indexing_index_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}: indexing",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(elasticsearch_indices_indexing_index_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: indexing"
+          },
+          {
+            "id": "B",
+            "expression": "rate(elasticsearch_indices_search_query_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: query"
+          },
+          {
+            "id": "C",
+            "expression": "rate(elasticsearch_indices_search_fetch_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: fetch"
+          },
+          {
+            "id": "D",
+            "expression": "rate(elasticsearch_indices_merges_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: merges"
+          },
+          {
+            "id": "E",
+            "expression": "rate(elasticsearch_indices_refresh_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: refresh"
+          },
+          {
+            "id": "F",
+            "expression": "rate(elasticsearch_indices_flush_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: flush"
+          },
+          {
+            "id": "G",
+            "expression": "rate(elasticsearch_indices_get_exists_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get_exists"
+          },
+          {
+            "id": "H",
+            "expression": "rate(elasticsearch_indices_get_missing_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get_missing"
+          },
+          {
+            "id": "I",
+            "expression": "rate(elasticsearch_indices_get_tota{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get"
+          },
+          {
+            "id": "J",
+            "expression": "rate(elasticsearch_indices_indexing_delete_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: indexing_delete"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-49",
+      "title": "操作时间",
+      "description": "操作时间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}: indexing",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_indices_indexing_index_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: indexing"
+          },
+          {
+            "id": "B",
+            "expression": "irate(elasticsearch_indices_search_query_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: query"
+          },
+          {
+            "id": "C",
+            "expression": "irate(elasticsearch_indices_search_fetch_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: fetch"
+          },
+          {
+            "id": "D",
+            "expression": "irate(elasticsearch_indices_merges_total_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: merges"
+          },
+          {
+            "id": "E",
+            "expression": "irate(elasticsearch_indices_refresh_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: refresh"
+          },
+          {
+            "id": "F",
+            "expression": "irate(elasticsearch_indices_flush_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: flush"
+          },
+          {
+            "id": "G",
+            "expression": "irate(elasticsearch_indices_get_exists_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get_exists"
+          },
+          {
+            "id": "H",
+            "expression": "irate(elasticsearch_indices_get_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get_time"
+          },
+          {
+            "id": "I",
+            "expression": "irate(elasticsearch_indices_get_missing_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get_missing"
+          },
+          {
+            "id": "J",
+            "expression": "irate(elasticsearch_indices_indexing_delete_time_seconds_total{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: indexing_delete"
+          },
+          {
+            "id": "K",
+            "expression": "irate(elasticsearch_indices_get_time_seconds{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: get"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-45",
+      "title": "线程池拒绝数",
+      "description": "线程池拒绝数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_thread_pool_rejected_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}: {{ type }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_thread_pool_rejected_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: {{ type }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-46",
+      "title": "线程池等待任务数",
+      "description": "线程池等待任务数。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_thread_pool_active_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}: {{ type }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_thread_pool_active_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}: {{ type }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-43",
+      "title": "线程池活跃线程数",
+      "description": "线程池活跃线程数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_thread_pool_active_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}: {{ type }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_thread_pool_active_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}: {{ type }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-44",
+      "title": "线程池完成任务数",
+      "description": "线程池完成任务数。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(elasticsearch_thread_pool_completed_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}: {{ type }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(elasticsearch_thread_pool_completed_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}: {{ type }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-4",
+      "title": "字段数据内存大小",
+      "description": "字段数据内存大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_fielddata_memory_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_fielddata_memory_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-34",
+      "title": "字段数据驱逐数",
+      "description": "字段数据驱逐数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(elasticsearch_indices_fielddata_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(elasticsearch_indices_fielddata_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-35",
+      "title": "请求缓存大小",
+      "description": "请求缓存大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_query_cache_memory_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_query_cache_memory_size_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-36",
+      "title": "请求缓存驱逐",
+      "description": "请求缓存驱逐。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(elasticsearch_indices_query_cache_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(elasticsearch_indices_query_cache_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-84",
+      "title": "过滤器缓存驱逐",
+      "description": "过滤器缓存驱逐。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(elasticsearch_indices_filter_cache_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(elasticsearch_indices_filter_cache_evictions{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-85",
+      "title": "索引分段数",
+      "description": "索引分段数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segments_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segments_count{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-86",
+      "title": "分段内存大小 （bytes）",
+      "description": "分段内存大小 （bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segments_memory_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segments_memory_bytes{job=\"$job\",instance=~\"${instance:regex}\",cluster=\"$cluster\",name=~\"${name:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-75",
+      "title": "主分片文档数",
+      "description": "主分片文档数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_docs_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_docs_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-83",
+      "title": "所有节点上仅包含主分片的索引数据总大小",
+      "description": "所有节点上仅包含主分片的索引数据总大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_store_size_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_store_size_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-76",
+      "title": "所有节点上所有分片的索引数据总大小",
+      "description": "所有节点上所有分片的索引数据总大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_store_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_store_size_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-57",
+      "title": "所有节点主分片文档值大小 （bytes）",
+      "description": "所有节点主分片文档值大小 （bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segment_doc_values_memory_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segment_doc_values_memory_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-58",
+      "title": "所有节点所有分片文档值大小 （bytes）",
+      "description": "所有节点所有分片文档值大小 （bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segment_doc_values_memory_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segment_doc_values_memory_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-59",
+      "title": "所有节点主分片字段大小 （bytes）",
+      "description": "所有节点主分片字段大小 （bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segment_fields_memory_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segment_fields_memory_bytes_primary{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-60",
+      "title": "所有节点所有分片字段大小 （bytes）",
+      "description": "所有节点所有分片字段大小 （bytes）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "elasticsearch_indices_segment_fields_memory_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{index}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "elasticsearch_indices_segment_fields_memory_bytes_total{job=\"$job\",instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{index}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

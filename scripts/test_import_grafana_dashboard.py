@@ -435,6 +435,76 @@ class ImportGrafanaDashboardTest(unittest.TestCase):
         self.assertIn('device=~"[a-z]+|nvme[0-9]+n[0-9]+"', expression)
         self.assertNotIn("diskdevices", expression)
 
+    def test_grafana_visual_types_and_thresholds_map_to_native_widgets(self):
+        panels = [
+            {
+                "id": 1,
+                "title": "Gauge",
+                "type": "gauge",
+                "fieldConfig": {
+                    "defaults": {
+                        "thresholds": {
+                            "steps": [
+                                {"color": "green", "value": None},
+                                {"color": "yellow", "value": 70},
+                                {"color": "red", "value": 90},
+                            ]
+                        }
+                    }
+                },
+                "targets": [{"refId": "A", "expr": "up"}],
+            },
+            {
+                "id": 2,
+                "title": "Pie",
+                "type": "piechart",
+                "targets": [{"refId": "A", "expr": "sum by (status) (up)"}],
+            },
+            {
+                "id": 3,
+                "title": "Legacy Graph",
+                "type": "graph",
+                "targets": [{"refId": "A", "expr": "rate(requests_total[5m])"}],
+            },
+        ]
+
+        widgets = import_grafana_dashboard.convert_panels(panels)
+
+        self.assertEqual(["barGauge", "bar", "line"], [widget["type"] for widget in widgets])
+        self.assertEqual(70.0, widgets[0]["display"]["warningThreshold"])
+        self.assertEqual(90.0, widgets[0]["display"]["criticalThreshold"])
+
+    def test_interval_and_grafana_value_variables_use_native_custom_options(self):
+        variables = import_grafana_dashboard.convert_variables([
+            {
+                "name": "interval",
+                "label": "Interval",
+                "type": "interval",
+                "query": "15s,1m,5m",
+                "current": {"text": "1m", "value": "1m"},
+            },
+            {
+                "name": "grouping",
+                "label": "Grouping",
+                "type": "custom",
+                "options": [
+                    {"text": "None", "value": ""},
+                    {"text": "By transport", "value": ",transport"},
+                ],
+                "current": {"text": "None", "value": ""},
+            },
+            {"name": "adhoc", "type": "adhoc"},
+        ])
+
+        self.assertEqual(["interval", "grouping"], [variable["name"] for variable in variables])
+        self.assertEqual("custom", variables[0]["type"])
+        self.assertEqual(["15s", "1m", "5m"], [option["value"] for option in variables[0]["options"]])
+        self.assertEqual("", variables[1]["options"][0]["value"])
+        self.assertEqual(
+            'rate(metric_total[${interval:raw}])',
+            import_grafana_dashboard.normalize_query('rate(metric_total[${interval:value}])', ["interval"]),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

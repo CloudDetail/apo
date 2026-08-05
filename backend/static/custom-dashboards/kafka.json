@@ -1,0 +1,866 @@
+{
+  "id": "",
+  "name": "Kafka 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：kafka。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "job",
+      "label": "采集任务",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(kafka_brokers,job)",
+      "labels": [
+        "job"
+      ]
+    },
+    {
+      "name": "name",
+      "label": "名称",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(kafka_brokers{job=~\"$job\", cluster_id=~\"$cluster_id\"},name)",
+      "labels": [
+        "name"
+      ]
+    },
+    {
+      "name": "consumer_group",
+      "label": "消费组",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(count by (consumergroup)(kafka_consumergroup_members{job=\"$job\",name=~\"$name\",consumergroup!~\"__.*\", cluster_id=~\"$cluster_id\"}))",
+      "labels": [
+        "consumergroup"
+      ]
+    },
+    {
+      "name": "topic",
+      "label": "主题",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"$name\",topic !~\"__.*\",consumergroup=~\"$consumer_group\", cluster_id=~\"$cluster_id\"},topic)",
+      "labels": [
+        "topic"
+      ]
+    },
+    {
+      "name": "consumergroup_hide",
+      "label": "消费组过滤",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kafka_consumergroup_lag_sum{job=\"$job\", name=~\"$name\", topic!~\"__.*\", topic=~\"$topic\", consumergroup!~\"__.*\", cluster_id=~\"$cluster_id\"},consumergroup)",
+      "labels": [
+        "consumergroup"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-35",
+      "title": "Broker 数量",
+      "description": "Broker 数量。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "kafka_brokers{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "kafka_brokers{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "Topic 数量",
+      "description": "Topic 数量。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 100.0,
+        "criticalThreshold": 200.0
+      }
+    },
+    {
+      "id": "grafana-33",
+      "title": "分区数",
+      "description": "分区数。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 500.0,
+        "criticalThreshold": 1000.0
+      }
+    },
+    {
+      "id": "grafana-23",
+      "title": "消费组",
+      "description": "消费组。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 100.0,
+        "criticalThreshold": 200.0
+      }
+    },
+    {
+      "id": "grafana-34",
+      "title": "消费者",
+      "description": "消费者。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1000.0,
+        "criticalThreshold": 2000.0
+      }
+    },
+    {
+      "id": "grafana-25",
+      "title": "副本数量",
+      "description": "副本数量。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_topic_partition_replicas{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_topic_partition_replicas{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-27",
+      "title": "同步副本数量",
+      "description": "同步副本数量。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_topic_partition_in_sync_replica{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_topic_partition_in_sync_replica{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-29",
+      "title": "不在首选节点上的分区",
+      "description": "不在首选节点上的分区。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(kafka_topic_partition_leader_is_preferred{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"}<1)",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(kafka_topic_partition_leader_is_preferred{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"}<1)",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1.0,
+        "criticalThreshold": 2.0
+      }
+    },
+    {
+      "id": "grafana-30",
+      "title": "每秒总生产",
+      "description": "每秒总生产。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic !~ \"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m]))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic !~ \"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m]))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-31",
+      "title": "每秒总消费",
+      "description": "每秒总消费。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name', cluster_id=~\"${cluster_id:regex}\"}[3m]))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name', cluster_id=~\"${cluster_id:regex}\"}[3m]))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-32",
+      "title": "当前总积压",
+      "description": "当前总积压。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 10000.0
+      }
+    },
+    {
+      "id": "grafana-19",
+      "title": "消费组(关联右侧Topic表格)",
+      "description": "消费组(关联右侧Topic表格)。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup=~\"${consumergroup_hide:regex}\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{topic}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup=~\"${consumergroup_hide:regex}\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{topic}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "tableColumns": [
+          {
+            "name": "consumergroup",
+            "label": "消费组"
+          }
+        ]
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "Topic(关联左侧消费组表格)",
+      "description": "Topic(关联左侧消费组表格)。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by(topic) (kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{topic}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by(topic) (kafka_topic_partitions{job=\"$job\",name=\"$name\",topic !~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{topic}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "tableColumns": [
+          {
+            "name": "topic",
+            "label": "Topic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "消费组积压>100（关联消费组，Topic）",
+      "description": "消费组积压>100（关联消费组，Topic）。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 1,
+        "w": 3,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\",consumergroup=~\"${consumer_group:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) by (consumergroup, topic)>100",
+        "params": {},
+        "legend": "{{consumergroup}} (topic: {{topic}})",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\",consumergroup=~\"${consumer_group:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) by (consumergroup, topic)>100",
+            "legend": "{{consumergroup}} (topic: {{topic}})"
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "Topic每秒生产（关联Topic）",
+      "description": "Topic每秒生产（关联Topic）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic !~ \"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic)>0",
+        "params": {},
+        "legend": "{{topic}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic !~ \"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic)>0",
+            "legend": "{{topic}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "消费组每秒消费（关联消费组，Topic）",
+      "description": "消费组每秒消费（关联消费组，Topic）。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',consumergroup=~\"${consumer_group:regex}\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (consumergroup, topic)",
+        "params": {},
+        "legend": "{{consumergroup}} (topic: {{topic}})",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',consumergroup=~\"${consumer_group:regex}\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (consumergroup, topic)",
+            "legend": "{{consumergroup}} (topic: {{topic}})"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-36",
+      "title": "Topic维度：每秒被消费总数 - 每秒生产*消费组数(负值为该秒消费不足)",
+      "description": "Topic维度：每秒被消费总数 - 每秒生产*消费组数(负值为该秒消费不足)。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic) - sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic!~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic) * count(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by(topic) != 0",
+        "params": {},
+        "legend": "{{topic}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic) - sum(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic!~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}[3m])) by (topic) * count(kafka_consumergroup_lag_sum{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\",topic!~\"__.*\",topic=~\"${topic:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by(topic) != 0",
+            "legend": "{{topic}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-44",
+      "title": "无关联Topic的消费组列表（持续出现的消费者最需要关注）",
+      "description": "无关联Topic的消费组列表（持续出现的消费者最需要关注）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (consumergroup,job,name) (kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) unless sum by (consumergroup,job,name)(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"${name:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{consumergroup}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (consumergroup,job,name) (kafka_consumergroup_members{job=\"$job\",name=\"$name\",consumergroup!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) unless sum by (consumergroup,job,name)(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"${name:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{consumergroup}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-43",
+      "title": "无消费组消费的Topic（持续出现的Topic需要关注）",
+      "description": "无消费组消费的Topic（持续出现的Topic需要关注）。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 5,
+        "w": 3,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (topic,job,name)(kafka_topic_partition_current_offset{job=\"$job\",name=~\"${name:regex}\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"} - kafka_topic_partition_oldest_offset{job=\"$job\",name=~\"${name:regex}\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) unless count by (topic,job,name)(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"${name:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{topic}} 总消息数",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (topic,job,name)(kafka_topic_partition_current_offset{job=\"$job\",name=~\"${name:regex}\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"} - kafka_topic_partition_oldest_offset{job=\"$job\",name=~\"${name:regex}\",topic !~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) unless count by (topic,job,name)(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"${name:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{topic}} 总消息数"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (topic,job,name)(irate(kafka_topic_partition_current_offset{job=\"$job\",name=\"$name\",topic !~ \"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])) unless count by (topic,job,name)(kafka_consumergroup_lag_sum{job=\"$job\",name=~\"${name:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{topic}} 每秒生产"
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "消费组【$consumer_group】各分区【当前积压】",
+      "description": "消费组【$consumer_group】各分区【当前积压】。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(kafka_consumergroup_lag{job=\"$job\",name=\"$name\",consumergroup=\"$consumer_group\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) by (consumergroup, topic,partition)",
+        "params": {},
+        "legend": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(kafka_consumergroup_lag{job=\"$job\",name=\"$name\",consumergroup=\"$consumer_group\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}) by (consumergroup, topic,partition)",
+            "legend": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-37",
+      "title": "消费组【$consumer_group】各分区【每秒消费】",
+      "description": "消费组【$consumer_group】各分区【每秒消费】。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',consumergroup=\"$consumer_group\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])",
+        "params": {},
+        "legend": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(kafka_consumergroup_current_offset{job=\"$job\",name=~'$name',consumergroup=\"$consumer_group\",topic=~\"${topic:regex}\",consumergroup!~\"__.*\",topic!~\"__.*\", cluster_id=~\"${cluster_id:regex}\"}[3m])",
+            "legend": "{{consumergroup}} (topic: {{topic}}) 分区:{{partition}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

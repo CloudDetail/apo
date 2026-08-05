@@ -1,0 +1,1823 @@
+{
+  "id": "",
+  "name": "宿主机监控指标 - 概览、CPU 与内存",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：node-exporter-overview。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "job",
+      "label": "采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(node_uname_info,job_name)",
+      "labels": [
+        "job_name"
+      ]
+    },
+    {
+      "name": "node",
+      "label": "主机",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(node_uname_info{job_name=\"$job\", cluster_id=~\"$cluster_id\"},instance_name)",
+      "labels": [
+        "instance_name"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-323",
+      "title": "资源压力",
+      "description": "资源压力。",
+      "type": "barGauge",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_pressure_cpu_waiting_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "CPU 指标",
+        "queries": [
+          {
+            "id": "CPU some",
+            "expression": "irate(node_pressure_cpu_waiting_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "CPU 指标"
+          },
+          {
+            "id": "Memory some",
+            "expression": "irate(node_pressure_memory_waiting_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Mem"
+          },
+          {
+            "id": "I/O some",
+            "expression": "irate(node_pressure_io_waiting_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "I/O"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 70.0,
+        "criticalThreshold": 90.0
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "CPU 繁忙率",
+      "description": "CPU 繁忙率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\", instance_name=\"$node\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "100 * (1 - avg(rate(node_cpu_seconds_total{mode=\"idle\", instance_name=\"$node\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 85.0,
+        "criticalThreshold": 95.0
+      }
+    },
+    {
+      "id": "grafana-155",
+      "title": "系统负载",
+      "description": "系统负载。",
+      "type": "barGauge",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "scalar(node_load1{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) * 100 / count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "scalar(node_load1{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) * 100 / count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 85.0,
+        "criticalThreshold": 95.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "内存使用率",
+      "description": "内存使用率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "(1 - (node_memory_MemAvailable_bytes{instance_name=\"$node\", job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} / node_memory_MemTotal_bytes{instance_name=\"$node\", job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})) * 100",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "(1 - (node_memory_MemAvailable_bytes{instance_name=\"$node\", job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} / node_memory_MemTotal_bytes{instance_name=\"$node\", job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})) * 100",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "criticalThreshold": 90.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "交换空间使用率",
+      "description": "交换空间使用率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "((node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) / (node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})) * 100",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "((node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) / (node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})) * 100",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 10.0,
+        "criticalThreshold": 25.0
+      }
+    },
+    {
+      "id": "grafana-154",
+      "title": "根文件系统使用率",
+      "description": "根文件系统使用率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "100 - ((node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"} * 100) / node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "100 - ((node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"} * 100) / node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "criticalThreshold": 90.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "CPU 核心数",
+      "description": "CPU 核心数。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-15",
+      "title": "运行时间",
+      "description": "运行时间。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_time_seconds{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_boot_time_seconds{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_time_seconds{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_boot_time_seconds{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-23",
+      "title": "根文件系统总容量",
+      "description": "根文件系统总容量。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",mountpoint=\"/\",fstype!=\"rootfs\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 70.0,
+        "criticalThreshold": 90.0
+      }
+    },
+    {
+      "id": "grafana-75",
+      "title": "内存总容量",
+      "description": "内存总容量。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "交换空间总容量",
+      "description": "交换空间总容量。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-77",
+      "title": "CPU 基础指标",
+      "description": "CPU 基础指标。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"system\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+        "params": {},
+        "legend": "繁忙 System",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"system\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "繁忙 System"
+          },
+          {
+            "id": "B",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"user\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "繁忙 User"
+          },
+          {
+            "id": "C",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"iowait\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "繁忙 Iowait"
+          },
+          {
+            "id": "D",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=~\".*irq\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "繁忙 IRQs"
+          },
+          {
+            "id": "E",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\",  mode!='idle',mode!='user',mode!='system',mode!='iowait',mode!='irq',mode!='softirq', cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "繁忙 Other"
+          },
+          {
+            "id": "F",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "空闲"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-78",
+      "title": "内存基础指标",
+      "description": "内存基础指标。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "内存总容量",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "内存总容量"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - (node_memory_Cached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} + node_memory_Buffers_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} + node_memory_SReclaimable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "内存使用率"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_Cached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} + node_memory_Buffers_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} + node_memory_SReclaimable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "RAM Cache + Buffer"
+          },
+          {
+            "id": "D",
+            "expression": "node_memory_MemFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "RAM 可用"
+          },
+          {
+            "id": "E",
+            "expression": "(node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "交换空间使用率"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-74",
+      "title": "网络流量基础指标",
+      "description": "网络流量基础指标。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_network_receive_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+        "params": {},
+        "legend": "recv {{device}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_network_receive_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+            "legend": "recv {{device}}"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_network_transmit_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+            "legend": "trans {{device}} "
+          }
+        ]
+      },
+      "display": {
+        "unit": "bps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-152",
+      "title": "磁盘空间基础指标",
+      "description": "磁盘空间基础指标。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "100 - ((node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"} * 100) / node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{mountpoint}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "100 - ((node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"} * 100) / node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{mountpoint}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-3",
+      "title": "CPU 指标",
+      "description": "宿主机系统进程CPU使用率；宿主机用户进程CPU使用率；宿主机Niced进程CPU使用率",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"system\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+        "params": {},
+        "legend": "System - Processes executing in kernel mode",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"system\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "System - Processes executing in kernel mode"
+          },
+          {
+            "id": "B",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"user\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "User - Normal processes executing in user mode"
+          },
+          {
+            "id": "C",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"nice\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "Nice - Niced processes executing in user mode"
+          },
+          {
+            "id": "E",
+            "expression": "sum by(instance) (irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"iowait\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "Iowait - Waiting for I/O to complete"
+          },
+          {
+            "id": "F",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"irq\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "Irq - Servicing interrupts"
+          },
+          {
+            "id": "G",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"softirq\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "Softirq - Servicing softirqs"
+          },
+          {
+            "id": "H",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"steal\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "Steal - Time spent in other operating systems when running in a virtualized environment"
+          },
+          {
+            "id": "J",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (cpu)))",
+            "legend": "空闲 - Waiting for something to happen"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "内存构成",
+      "description": "宿主机用户空间应用内存使用字节数；宿主机页面表内存使用字节数；宿主机交换缓存内存使用字节数",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Buffers_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Cached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Slab_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_PageTables_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapCached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Apps - Memory 已使用 by user-space applications",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_MemTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Buffers_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Cached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_Slab_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_PageTables_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapCached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Apps - Memory 已使用 by user-space applications"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_PageTables_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "PageTables - Memory 已使用 to map between virtual and physical memory addresses"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_SwapCached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "SwapCache - Memory that keeps track of pages that have been fetched from swap but not yet been modified"
+          },
+          {
+            "id": "D",
+            "expression": "node_memory_Slab_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Slab - Memory 已使用 by the kernel to cache data structures for its own use (caches like inode, dentry, etc)"
+          },
+          {
+            "id": "E",
+            "expression": "node_memory_Cached_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Cache - Parked file data (file content) cache"
+          },
+          {
+            "id": "F",
+            "expression": "node_memory_Buffers_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Buffers - Block device (e.g. harddisk) cache"
+          },
+          {
+            "id": "G",
+            "expression": "node_memory_MemFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Unused - 可用 memory unassigned"
+          },
+          {
+            "id": "H",
+            "expression": "(node_memory_SwapTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_SwapFree_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "Swap - Swap space 已使用"
+          },
+          {
+            "id": "I",
+            "expression": "node_memory_HardwareCorrupted_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Hardware Corrupted - Amount of RAM that the kernel identified as corrupted / not working"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-84",
+      "title": "网络流量",
+      "description": "网络流量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_network_receive_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+        "params": {},
+        "legend": "{{device}} - 接收",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_network_receive_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+            "legend": "{{device}} - 接收"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_network_transmit_bytes_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])*8",
+            "legend": "{{device}} - 发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "bps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-156",
+      "title": "磁盘空间使用率",
+      "description": "磁盘空间使用率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"} - node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{mountpoint}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_filesystem_size_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"} - node_filesystem_avail_bytes{instance_name=\"$node\",job_name=\"$job\",device!~'rootfs', cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{mountpoint}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-229",
+      "title": "磁盘 IOPS",
+      "description": "磁盘 IOPS。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_reads_completed_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{device}} - Reads completed",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_reads_completed_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{device}} - Reads completed"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_disk_writes_completed_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{device}} - Writes completed"
+          }
+        ]
+      },
+      "display": {
+        "unit": "iops",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-42",
+      "title": "磁盘读写吞吐",
+      "description": "磁盘读写吞吐。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_read_bytes_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{device}} - Successfully 读取 bytes",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_read_bytes_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{device}} - Successfully 读取 bytes"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_disk_written_bytes_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{device}} - Successfully written bytes"
+          }
+        ]
+      },
+      "display": {
+        "unit": "Bps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-127",
+      "title": "磁盘 I/O 利用率",
+      "description": "磁盘 I/O 利用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_io_time_seconds_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"} [$__rate_interval])",
+        "params": {},
+        "legend": "{{device}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_io_time_seconds_total{instance_name=\"$node\",job_name=\"$job\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\", cluster_id=~\"${cluster_id:regex}\"} [$__rate_interval])",
+            "legend": "{{device}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-319",
+      "title": "虚拟机占用 CPU 时间",
+      "description": "虚拟机占用 CPU 时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"user\", cluster_id=~\"${cluster_id:regex}\"}[1m])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[1m])))",
+        "params": {},
+        "legend": "Guest - Time spent running a virtual CPU for a guest operating system",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"user\", cluster_id=~\"${cluster_id:regex}\"}[1m])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[1m])))",
+            "legend": "Guest - Time spent running a virtual CPU for a guest operating system"
+          },
+          {
+            "id": "B",
+            "expression": "sum by(instance) (irate(node_cpu_guest_seconds_total{instance_name=\"$node\",job_name=\"$job\", mode=\"nice\", cluster_id=~\"${cluster_id:regex}\"}[1m])) / on(instance) group_left sum by (instance)((irate(node_cpu_seconds_total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[1m])))",
+            "legend": "GuestNice - Time spent running a niced guest  (virtual CPU for guest operating system)"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-136",
+      "title": "活跃与非活跃内存",
+      "description": "活跃与非活跃内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Inactive_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Inactive - Memory which has been less recently 已使用.  It is more eligible to be reclaimed for other purposes",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Inactive_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Inactive - Memory which has been less recently 已使用.  It is more eligible to be reclaimed for other purposes"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Active_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Active - Memory that has been 已使用 more recently and usually not reclaimed unless absolutely necessary"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-135",
+      "title": "已提交内存",
+      "description": "已提交内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Committed_AS_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Committed_AS - Amount of memory presently allocated on the system",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Committed_AS_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Committed_AS - Amount of memory presently allocated on the system"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_CommitLimit_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "CommitLimit - Amount of  memory currently 可用 to be allocated on the system"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-191",
+      "title": "活跃与非活跃内存明细",
+      "description": "活跃与非活跃内存明细。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Inactive_file_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Inactive_file - File-backed memory on inactive LRU list",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Inactive_file_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Inactive_file - File-backed memory on inactive LRU list"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Inactive_anon_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Inactive_anon - Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_Active_file_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Active_file - File-backed memory on active LRU list"
+          },
+          {
+            "id": "D",
+            "expression": "node_memory_Active_anon_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Active_anon - Anonymous and swap cache on active least-recently-已使用 (LRU) list, including tmpfs"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-130",
+      "title": "回写与脏页内存",
+      "description": "回写与脏页内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Writeback_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Writeback - Memory which is actively being written back to disk",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Writeback_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Writeback - Memory which is actively being written back to disk"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_WritebackTmp_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "WritebackTmp - Memory 已使用 by FUSE for temporary writeback buffers"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_Dirty_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Dirty - Memory which is waiting to get written back to the disk"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-138",
+      "title": "共享与映射内存",
+      "description": "共享与映射内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Mapped_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Mapped - 已使用 memory in mapped pages files which have been mapped, such as libraries",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Mapped_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Mapped - 已使用 memory in mapped pages files which have been mapped, such as libraries"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Shmem_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Shmem - 已使用 shared memory (shared between several processes, thus including RAM disks)"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_ShmemHugePages_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "ShmemHugePages - Memory 已使用 by shared memory (shmem) and tmpfs allocated  with huge pages"
+          },
+          {
+            "id": "D",
+            "expression": "node_memory_ShmemPmdMapped_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "ShmemPmdMapped - Amount of shared (shmem/tmpfs) memory backed by huge pages"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-131",
+      "title": "Slab 内存",
+      "description": "Slab 内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_SUnreclaim_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "SUnreclaim - Part of Slab, that cannot be reclaimed on memory pressure",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_SUnreclaim_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "SUnreclaim - Part of Slab, that cannot be reclaimed on memory pressure"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_SReclaimable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "SReclaimable - Part of Slab, that might be reclaimed, such as caches"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-70",
+      "title": "虚拟内存分配",
+      "description": "虚拟内存分配。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_VmallocChunk_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "VmallocChunk - Largest contiguous block of vmalloc area which is 可用",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_VmallocChunk_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "VmallocChunk - Largest contiguous block of vmalloc area which is 可用"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_VmallocTotal_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "VmallocTotal - 总量 size of vmalloc memory area"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_VmallocUsed_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "VmallocUsed - Amount of vmalloc area which is 已使用"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-159",
+      "title": "Bounce 内存",
+      "description": "Bounce 内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Bounce_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Bounce - Memory 已使用 for block device bounce buffers",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Bounce_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Bounce - Memory 已使用 for block device bounce buffers"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-129",
+      "title": "匿名内存",
+      "description": "匿名内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_AnonHugePages_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "AnonHugePages - Memory in anonymous huge pages",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_AnonHugePages_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "AnonHugePages - Memory in anonymous huge pages"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_AnonPages_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "AnonPages - Memory in user pages not backed by files"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-160",
+      "title": "内核与 CPU 内存",
+      "description": "内核与 CPU 内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 15,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_KernelStack_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "KernelStack - Kernel memory stack. This is not reclaimable",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_KernelStack_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "KernelStack - Kernel memory stack. This is not reclaimable"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Percpu_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "PerCPU - Per CPU memory allocated dynamically by loadable modules"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-140",
+      "title": "大页数量",
+      "description": "大页数量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_HugePages_Free{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "HugePages_Free - Huge pages in the pool that are not yet allocated",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_HugePages_Free{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "HugePages_Free - Huge pages in the pool that are not yet allocated"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_HugePages_Rsvd{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "HugePages_Rsvd - Huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_HugePages_Surp{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "HugePages_Surp - Huge pages in the pool above the value in /proc/sys/vm/nr_hugepages"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-71",
+      "title": "大页容量",
+      "description": "大页容量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 18,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_HugePages_Total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "HugePages - 总量 size of the pool of huge pages",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_HugePages_Total{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "HugePages - 总量 size of the pool of huge pages"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Hugepagesize_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Hugepagesize - Huge Page size"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-128",
+      "title": "直接映射内存",
+      "description": "直接映射内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_DirectMap1G_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "DirectMap1G - Amount of pages mapped as this size",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_DirectMap1G_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "DirectMap1G - Amount of pages mapped as this size"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_DirectMap2M_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "DirectMap2M - Amount of pages mapped as this size"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_DirectMap4k_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "DirectMap4K - Amount of pages mapped as this size"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-137",
+      "title": "不可回收与锁定内存",
+      "description": "不可回收与锁定内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 20,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_Unevictable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Unevictable - Amount of unevictable memory that can't be swapped out for a variety of reasons",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_Unevictable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Unevictable - Amount of unevictable memory that can't be swapped out for a variety of reasons"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_Mlocked_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "MLocked - Size of pages locked to memory using the mlock() system call"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-132",
+      "title": "NFS 内存",
+      "description": "NFS 内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 23,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_NFS_Unstable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "NFS Unstable - Memory in NFS pages sent to the server, but not yet committed to the storage",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_NFS_Unstable_bytes{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "NFS Unstable - Memory in NFS pages sent to the server, but not yet committed to the storage"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-176",
+      "title": "内存页面换入换出",
+      "description": "内存页面换入换出。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_vmstat_pgpgin{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "Pagesin - Page in operations",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_vmstat_pgpgin{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pagesin - Page in operations"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_vmstat_pgpgout{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pagesout - Page out operations"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "交换页面换入换出",
+      "description": "交换页面换入换出。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_vmstat_pswpin{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "Pswpin - Pages swapped in",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_vmstat_pswpin{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pswpin - Pages swapped in"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_vmstat_pswpout{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pswpout - Pages swapped out"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-175",
+      "title": "内存缺页",
+      "description": "内存缺页。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_vmstat_pgfault{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "Pgfault - Page major and minor fault operations",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_vmstat_pgfault{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pgfault - Page major and minor fault operations"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_vmstat_pgmajfault{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pgmajfault - Major page fault operations"
+          },
+          {
+            "id": "C",
+            "expression": "irate(node_vmstat_pgfault{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])  - irate(node_vmstat_pgmajfault{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "Pgminfault - Minor page fault operations"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-307",
+      "title": "OOM 终止进程",
+      "description": "OOM 终止进程。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_vmstat_oom_kill{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "oom killer invocations ",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_vmstat_oom_kill{instance_name=\"$node\",job_name=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "oom killer invocations "
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

@@ -313,6 +313,9 @@ func New(zapLogger *zap.Logger) (repo Repo, err error) {
 	if err = daoRepo.createAnonymousUser(nil); err != nil {
 		return nil, err
 	}
+	if err = daoRepo.initDefaultCustomDashboards(nil); err != nil {
+		return nil, err
+	}
 	if err = daoRepo.syncCustomDashboardMenus(nil); err != nil {
 		return nil, err
 	}

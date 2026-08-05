@@ -1,0 +1,509 @@
+{
+  "id": "",
+  "name": "RabbitMQ Exporter 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：rabbitmq-exporter。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "instance",
+      "label": "实例",
+      "type": "instance",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(rabbitmq_up{cluster_id=~\"$cluster_id\"}, instance)",
+      "labels": [
+        "instance",
+        "instance_name",
+        "node_name",
+        "nodeName",
+        "host_name",
+        "hostName"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-13",
+      "title": "RabbitMQ 服务",
+      "description": "RabbitMQ 服务。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_up{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_up{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "节点存活状态",
+      "description": "节点存活状态。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 3,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_running{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_running{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1.0
+      }
+    },
+    {
+      "id": "grafana-6",
+      "title": "交换机",
+      "description": "交换机。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_exchangesTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}:exchanges",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_exchangesTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{instance}}:exchanges"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-4",
+      "title": "通道",
+      "description": "通道。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_channelsTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}:channels",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_channelsTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{instance}}:channels"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-3",
+      "title": "消费者",
+      "description": "消费者。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_consumersTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}:consumers",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_consumersTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{instance}}:consumers"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-5",
+      "title": "连接",
+      "description": "连接。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_connectionsTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}:连接",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_connectionsTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{instance}}:连接"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "队列",
+      "description": "队列。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_queuesTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}:queues",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_queuesTotal{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{instance}}:queues"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "每主机消息数",
+      "description": "每主机消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (vhost)(rabbitmq_queue_messages_ready{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{vhost}}:ready",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (vhost)(rabbitmq_queue_messages_ready{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{vhost}}:ready"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (vhost)(rabbitmq_queue_messages_published_total{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{vhost}}:published"
+          },
+          {
+            "id": "C",
+            "expression": "sum by (vhost)(rabbitmq_queue_messages_delivered_total{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{vhost}}:delivered"
+          },
+          {
+            "id": "D",
+            "expression": "sum by (vhost)(rabbitmq_queue_messages_unacknowledged{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{vhost}}:unack"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-2",
+      "title": "每队列消息数",
+      "description": "每队列消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_queue_messages{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{queue}}:{{durable}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_queue_messages{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{queue}}:{{durable}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "内存",
+      "description": "内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_node_mem_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{node}}:已使用",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_node_mem_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:已使用"
+          },
+          {
+            "id": "B",
+            "expression": "rabbitmq_node_mem_limit{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:上限"
+          }
+        ]
+      },
+      "display": {
+        "unit": "decbytes",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "文件描述符",
+      "description": "文件描述符。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_fd_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{node}}:已使用",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_fd_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:已使用"
+          },
+          {
+            "id": "B",
+            "expression": "rabbitmq_fd_total{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:总量"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "套接字",
+      "description": "套接字。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_sockets_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{node}}:已使用",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_sockets_used{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:已使用"
+          },
+          {
+            "id": "B",
+            "expression": "rabbitmq_sockets_total{instance=~\"$instance.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{node}}:总量"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

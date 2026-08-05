@@ -1,0 +1,1194 @@
+{
+  "id": "",
+  "name": "MySQL 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：mysql。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "job",
+      "label": "采集任务",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(mysql_up, job)",
+      "labels": [
+        "job"
+      ]
+    },
+    {
+      "name": "instance",
+      "label": "实例",
+      "type": "instance",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(mysql_up{cluster_id=~\"$cluster_id\"}, instance)",
+      "labels": [
+        "instance",
+        "instance_name",
+        "node_name",
+        "nodeName",
+        "host_name",
+        "hostName"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-12",
+      "title": "运行时间",
+      "description": "运行时间。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_status_uptime{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "mysql_global_status_uptime{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "{{instance}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 300.0,
+        "criticalThreshold": 3600.0
+      }
+    },
+    {
+      "id": "grafana-13",
+      "title": "每秒查询数",
+      "description": "每秒查询数。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_queries{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])",
+        "params": {},
+        "legend": "{{instance}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_queries{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])",
+            "legend": "{{instance}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 35.0,
+        "criticalThreshold": 75.0
+      }
+    },
+    {
+      "id": "grafana-51",
+      "title": "InnoDB 缓冲池",
+      "description": "InnoDB 缓冲池。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_variables_innodb_buffer_pool_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "{{instance}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "mysql_global_variables_innodb_buffer_pool_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "{{instance}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 90.0,
+        "criticalThreshold": 95.0
+      }
+    },
+    {
+      "id": "grafana-92",
+      "title": "MySQL 连接数",
+      "description": "MySQL 连接数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "连接",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "连接"
+          },
+          {
+            "id": "C",
+            "expression": "sum(mysql_global_status_max_used_connections{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Max 已使用 连接"
+          },
+          {
+            "id": "B",
+            "expression": "sum(mysql_global_variables_max_connections{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Max 连接"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "MySQL 客户端线程活跃数",
+      "description": "MySQL 客户端线程活跃数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Peak Threads Connected",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(max_over_time(mysql_global_status_threads_connected{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Peak Threads Connected"
+          },
+          {
+            "id": "B",
+            "expression": "sum(max_over_time(mysql_global_status_threads_running{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Peak Threads Running"
+          },
+          {
+            "id": "C",
+            "expression": "sum(avg_over_time(mysql_global_status_threads_running{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Avg Threads Running"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-53",
+      "title": "MySQL 请求数",
+      "description": "MySQL 请求数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_questions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])",
+        "params": {},
+        "legend": "{{instance}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_questions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])",
+            "legend": "{{instance}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "MySQL 线程缓存",
+      "description": "MySQL 线程缓存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(mysql_global_variables_thread_cache_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+        "params": {},
+        "legend": "Thread Cache Size",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(mysql_global_variables_thread_cache_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Thread Cache Size"
+          },
+          {
+            "id": "C",
+            "expression": "sum(mysql_global_status_threads_cached{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Threads Cached"
+          },
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_threads_created{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Threads Created"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "MySQL 临时对象数",
+      "description": "MySQL 临时对象数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_created_tmp_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Created Tmp Tables",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_created_tmp_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Created Tmp Tables"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_created_tmp_disk_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Created Tmp Disk Tables"
+          },
+          {
+            "id": "C",
+            "expression": "sum(rate(mysql_global_status_created_tmp_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Created Tmp Files"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-311",
+      "title": "MySQL 查询类型",
+      "description": "MySQL 查询类型。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_select_full_join{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Select Full Join",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_select_full_join{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Select Full Join"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_select_full_range_join{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Select Full Range Join"
+          },
+          {
+            "id": "C",
+            "expression": "sum(rate(mysql_global_status_select_range{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Select Range"
+          },
+          {
+            "id": "D",
+            "expression": "sum(rate(mysql_global_status_select_range_check{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Select Range Check"
+          },
+          {
+            "id": "E",
+            "expression": "sum(rate(mysql_global_status_select_scan{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Select Scan"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-30",
+      "title": "MySQL 排序数",
+      "description": "MySQL 排序数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_sort_rows{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Sort Rows",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_sort_rows{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Sort Rows"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_sort_range{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Sort Range"
+          },
+          {
+            "id": "C",
+            "expression": "sum(rate(mysql_global_status_sort_merge_passes{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Sort Merge Passes"
+          },
+          {
+            "id": "D",
+            "expression": "sum(rate(mysql_global_status_sort_scan{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Sort Scan"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-48",
+      "title": "MySQL 慢查询",
+      "description": "MySQL 慢查询。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_slow_queries{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Slow Queries",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_slow_queries{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Slow Queries"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-47",
+      "title": "MySQL 中断连接数",
+      "description": "MySQL 中断连接数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_aborted_connects{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Aborted Connects (attempts)",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_aborted_connects{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Aborted Connects (attempts)"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_aborted_clients{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Aborted Clients (timeout)"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-32",
+      "title": "MySQL 表锁定",
+      "description": "MySQL 表锁定。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_table_locks_immediate{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "Table Locks Immediate",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_table_locks_immediate{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Table Locks Immediate"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_table_locks_waited{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "Table Locks Waited"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "MySQL 网络流量",
+      "description": "MySQL 网络流量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(mysql_global_status_bytes_received{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+        "params": {},
+        "legend": "入站",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(mysql_global_status_bytes_received{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "入站"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(mysql_global_status_bytes_sent{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]))",
+            "legend": "出站"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-50",
+      "title": "MySQL 内存使用总览",
+      "description": "MySQL 内存使用总览。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(mysql_global_status_innodb_page_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"} * on (instance) mysql_global_status_buffer_pool_pages{job=~\"${job:regex}\", instance=~\"${instance:regex}\", state=\"data\"})",
+        "params": {},
+        "legend": "InnoDB Buffer Pool Data",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(mysql_global_status_innodb_page_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"} * on (instance) mysql_global_status_buffer_pool_pages{job=~\"${job:regex}\", instance=~\"${instance:regex}\", state=\"data\"})",
+            "legend": "InnoDB Buffer Pool Data"
+          },
+          {
+            "id": "D",
+            "expression": "sum(mysql_global_variables_innodb_log_buffer_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "InnoDB Log Buffer Size"
+          },
+          {
+            "id": "H",
+            "expression": "sum(mysql_global_variables_innodb_additional_mem_pool_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "InnoDB Additional Memory Pool Size"
+          },
+          {
+            "id": "F",
+            "expression": "sum(mysql_global_status_innodb_mem_dictionary{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "InnoDB Dictionary Size"
+          },
+          {
+            "id": "B",
+            "expression": "sum(mysql_global_variables_key_buffer_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Key Buffer Size"
+          },
+          {
+            "id": "C",
+            "expression": "sum(mysql_global_variables_query_cache_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Query Cache Size"
+          },
+          {
+            "id": "E",
+            "expression": "sum(mysql_global_status_innodb_mem_adaptive_hash{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "Adaptive Hash Index Size"
+          },
+          {
+            "id": "I",
+            "expression": "sum(mysql_global_variables_tokudb_cache_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"})",
+            "legend": "TokuDB Cache Size"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "命令数统计",
+      "description": "命令数统计。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "topk(5, rate(mysql_global_status_commands_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])>0)",
+        "params": {},
+        "legend": "Com_{{ command }}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "topk(5, rate(mysql_global_status_commands_total{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval])>0)",
+            "legend": "Com_{{ command }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "MySQL 处理统计",
+      "description": "MySQL 处理统计。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler!~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler!~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+        "params": {},
+        "legend": "{{ handler }}",
+        "queries": [
+          {
+            "id": "J",
+            "expression": "rate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler!~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler!~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+            "legend": "{{ handler }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-28",
+      "title": "MySQL 事务处理",
+      "description": "MySQL 事务处理。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler=~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler=~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+        "params": {},
+        "legend": "{{ handler }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler=~\"commit|rollback|savepoint.*|prepare\"}[$__interval]) or irate(mysql_global_status_handlers_total{instance=~\"${instance:regex}\", handler=~\"commit|rollback|savepoint.*|prepare\"}[5m])",
+            "legend": "{{ handler }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "进程状态",
+      "description": "进程状态。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_info_schema_threads{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "{{ state }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "mysql_info_schema_threads{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "{{ state }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-49",
+      "title": "每小时进程状态",
+      "description": "每小时进程状态。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 22,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "topk(5, avg_over_time(mysql_info_schema_threads{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[1h]))",
+        "params": {},
+        "legend": "{{ state }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "topk(5, avg_over_time(mysql_info_schema_threads{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[1h]))",
+            "legend": "{{ state }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-46",
+      "title": "MySQL 查询缓存大小",
+      "description": "MySQL 查询缓存大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 24,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_status_qcache_free_memory{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "可用 Memory",
+        "queries": [
+          {
+            "id": "F",
+            "expression": "mysql_global_status_qcache_free_memory{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "可用 Memory"
+          },
+          {
+            "id": "E",
+            "expression": "mysql_global_variables_query_cache_size{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Query Cache Size"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-45",
+      "title": "MySQL 查询缓存活跃情况",
+      "description": "MySQL 查询缓存活跃情况。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 24,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_qcache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_qcache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+        "params": {},
+        "legend": "Hits",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "rate(mysql_global_status_qcache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_qcache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Hits"
+          },
+          {
+            "id": "C",
+            "expression": "rate(mysql_global_status_qcache_inserts{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_qcache_inserts{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Inserts"
+          },
+          {
+            "id": "D",
+            "expression": "rate(mysql_global_status_qcache_not_cached{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_qcache_not_cached{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Not Cached"
+          },
+          {
+            "id": "F",
+            "expression": "rate(mysql_global_status_qcache_lowmem_prunes{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_qcache_lowmem_prunes{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Prunes"
+          },
+          {
+            "id": "E",
+            "expression": "mysql_global_status_qcache_queries_in_cache{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Queries in Cache"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-43",
+      "title": "MySQL 当前文件打开数",
+      "description": "MySQL 当前文件打开数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 26,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_opened_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_opened_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+        "params": {},
+        "legend": "Openings",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_opened_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_opened_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Openings"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-41",
+      "title": "MySQL 文件打开统计",
+      "description": "MySQL 文件打开统计。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 26,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_status_open_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "Open Files",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "mysql_global_status_open_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Open Files"
+          },
+          {
+            "id": "D",
+            "expression": "mysql_global_variables_open_files_limit{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Open Files 上限"
+          },
+          {
+            "id": "B",
+            "expression": "mysql_global_status_innodb_num_open_files{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "InnoDB Open Files"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-44",
+      "title": "MySQL 表状态",
+      "description": "MySQL 表状态。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 28,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(mysql_global_status_opened_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_opened_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+        "params": {},
+        "legend": "Openings",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_opened_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_opened_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Openings"
+          },
+          {
+            "id": "B",
+            "expression": "rate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Hits"
+          },
+          {
+            "id": "C",
+            "expression": "rate(mysql_global_status_table_open_cache_misses{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_misses{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Misses"
+          },
+          {
+            "id": "D",
+            "expression": "rate(mysql_global_status_table_open_cache_overflows{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_overflows{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Misses due to Overflows"
+          },
+          {
+            "id": "E",
+            "expression": "(rate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m]))/((rate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_hits{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m]))+(rate(mysql_global_status_table_open_cache_misses{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_table_open_cache_misses{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])))",
+            "legend": "Table Open Cache Hit Ratio"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-42",
+      "title": "MySQL 打开的表",
+      "description": "MySQL 打开的表。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 28,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_status_open_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "Open Tables",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "mysql_global_status_open_tables{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Open Tables"
+          },
+          {
+            "id": "C",
+            "expression": "mysql_global_variables_table_open_cache{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Table Open Cache"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-54",
+      "title": "MySQL 表定义缓存",
+      "description": "MySQL 表定义缓存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 30,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "mysql_global_status_open_table_definitions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+        "params": {},
+        "legend": "Open Table Definitions",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "mysql_global_status_open_table_definitions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Open Table Definitions"
+          },
+          {
+            "id": "C",
+            "expression": "mysql_global_variables_table_definition_cache{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}",
+            "legend": "Table Definitions Cache Size"
+          },
+          {
+            "id": "A",
+            "expression": "rate(mysql_global_status_opened_table_definitions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[$__interval]) or irate(mysql_global_status_opened_table_definitions{job=~\"${job:regex}\", instance=~\"${instance:regex}\"}[5m])",
+            "legend": "Opened Table Definitions"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import import_custom_dashboard_json
+import import_custom_dashboard_directory
 
 
 class ImportCustomDashboardJSONTest(unittest.TestCase):
@@ -252,6 +253,28 @@ class ImportCustomDashboardJSONTest(unittest.TestCase):
         finally:
             conn.close()
 
+    def test_imports_dashboard_directory_and_skips_manifest(self):
+        dashboard_dir = self.root / "dashboards"
+        dashboard_dir.mkdir()
+        first = json.loads(self.dashboard_path.read_text(encoding="utf-8"))
+        second = dict(first)
+        second["name"] = "Second Dashboard"
+        (dashboard_dir / "first.json").write_text(json.dumps(first), encoding="utf-8")
+        (dashboard_dir / "second.json").write_text(json.dumps(second), encoding="utf-8")
+        (dashboard_dir / "manifest.json").write_text(json.dumps({"dashboards": 2}), encoding="utf-8")
+
+        results = import_custom_dashboard_directory.import_dashboard_directory(
+            dashboard_dir,
+            db_path=self.db_path,
+            owner="admin",
+        )
+
+        self.assertEqual(["first.json", "second.json"], [result["file"] for result in results])
+        conn = sqlite3.connect(self.db_path)
+        try:
+            self.assertEqual(2, conn.execute("SELECT COUNT(*) FROM custom_dashboard").fetchone()[0])
+        finally:
+            conn.close()
 
 if __name__ == "__main__":
     unittest.main()

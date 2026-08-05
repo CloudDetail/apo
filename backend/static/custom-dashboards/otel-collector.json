@@ -1,0 +1,1490 @@
+{
+  "id": "",
+  "name": "OpenTelemetry Collector 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：otel-collector。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "job",
+      "label": "采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(otelcol_process_memory_rss,job)",
+      "labels": [
+        "job"
+      ]
+    },
+    {
+      "name": "minstep",
+      "label": "最小步长",
+      "type": "custom",
+      "value": "$__auto_interval_minstep",
+      "multi": false,
+      "required": false,
+      "defaultValue": "$__auto_interval_minstep",
+      "options": [
+        {
+          "label": "自动",
+          "value": "$__auto_interval_minstep"
+        },
+        {
+          "label": "10s",
+          "value": "10s"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        }
+      ],
+      "query": "10s,30s,1m,5m"
+    },
+    {
+      "name": "metric",
+      "label": "基础指标",
+      "type": "custom",
+      "value": "rate",
+      "multi": false,
+      "required": false,
+      "defaultValue": "rate",
+      "options": [
+        {
+          "label": "速率",
+          "value": "rate"
+        },
+        {
+          "label": "增量",
+          "value": "increase"
+        }
+      ],
+      "query": "Rate : rate, Count : increase"
+    },
+    {
+      "name": "receiver",
+      "label": "接收器",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(avg by (receiver) ({__name__=~\"otelcol_receiver_.+\",job=\"$job\"}))",
+      "labels": [
+        "receiver"
+      ]
+    },
+    {
+      "name": "processor",
+      "label": "处理器",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(avg by (processor) ({__name__=~\"otelcol_processor_.+\",job=\"$job\"}))",
+      "labels": [
+        "processor"
+      ]
+    },
+    {
+      "name": "exporter",
+      "label": "导出器",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(avg by (exporter) ({__name__=~\"otelcol_exporter_.+\",job=\"$job\"}))",
+      "labels": [
+        "exporter"
+      ]
+    },
+    {
+      "name": "grouping",
+      "label": "附加分组",
+      "type": "custom",
+      "value": "None (basic metrics)",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None (basic metrics)",
+      "options": [
+        {
+          "label": "不分组（基础指标）",
+          "value": ""
+        },
+        {
+          "label": "按传输类型分组（详细指标）",
+          "value": ",transport"
+        },
+        {
+          "label": "按服务实例 ID 分组",
+          "value": ",service_instance_id"
+        }
+      ],
+      "query": "None (basic metrics) :  , By transport (detailed metrics) : \\,transport, By service instance id : \\,service_instance_id"
+    },
+    {
+      "name": "suffix",
+      "label": "后缀",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "query_result({__name__=~\"otelcol_process_uptime.+\",job=\"$job\"})",
+      "labels": [
+        "suffix"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-28",
+      "title": "Span 数量 ${metric:text}",
+      "description": "Span 数量 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_receiver_accepted_spans${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+        "params": {},
+        "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_receiver_accepted_spans${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_receiver_refused_spans${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Refused: {{receiver}} {{transport}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-32",
+      "title": "指标点 ${metric:text}",
+      "description": "指标点 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_receiver_accepted_metric_points${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+        "params": {},
+        "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_receiver_accepted_metric_points${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_receiver_refused_metric_points${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Refused: {{receiver}} {{transport}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-47",
+      "title": "日志记录 ${metric:text}",
+      "description": "日志记录 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_receiver_accepted_log_records${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+        "params": {},
+        "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_receiver_accepted_log_records${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Accepted: {{receiver}} {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_receiver_refused_log_records${suffix}{receiver=~\"${receiver:regex}\",job=\"$job\"}[$__rate_interval])) by (receiver $grouping)",
+            "legend": "Refused: {{receiver}} {{transport}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-35",
+      "title": "Span 数量 ${metric:text}",
+      "description": "Span 数量 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_processor_accepted_spans${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+        "params": {},
+        "legend": "Accepted: {{processor}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_processor_accepted_spans${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Accepted: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_processor_refused_spans${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Refused: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_processor_dropped_spans${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Dropped: {{processor}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-50",
+      "title": "指标点 ${metric:text}",
+      "description": "指标点 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_processor_accepted_metric_points${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+        "params": {},
+        "legend": "Accepted: {{processor}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_processor_accepted_metric_points${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Accepted: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_processor_refused_metric_points${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Refused: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_processor_dropped_metric_points${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor)",
+            "legend": "Dropped: {{processor}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-51",
+      "title": "日志记录 ${metric:text}",
+      "description": "日志记录 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_processor_accepted_log_records${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+        "params": {},
+        "legend": "Accepted: {{processor}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_processor_accepted_log_records${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Accepted: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_processor_refused_log_records${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Refused: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_processor_dropped_log_records${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor)",
+            "legend": "Dropped: {{processor}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-49",
+      "title": "批量发送大小分布",
+      "description": "批量发送大小分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(otelcol_processor_batch_batch_send_size_bucket{processor=~\"${processor:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+        "params": {},
+        "legend": "{{le}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(increase(otelcol_processor_batch_batch_send_size_bucket{processor=~\"${processor:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+            "legend": "{{le}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-36",
+      "title": "批处理指标一",
+      "description": "批处理指标一。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_processor_batch_batch_send_size_count{processor=~\"${processor:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (processor $grouping)",
+        "params": {},
+        "legend": "Batch send size count: {{processor}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_processor_batch_batch_send_size_count{processor=~\"${processor:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Batch send size count: {{processor}} {{service_instance_id}}"
+          },
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_processor_batch_batch_send_size_sum{processor=~\"${processor:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Batch send size sum: {{processor}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-56",
+      "title": "批处理指标二",
+      "description": "批处理指标二。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_processor_batch_batch_size_trigger_send${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+        "params": {},
+        "legend": "Batch sent due to a size trigger: {{processor}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_processor_batch_batch_size_trigger_send${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Batch sent due to a size trigger: {{processor}}"
+          },
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_processor_batch_timeout_trigger_send${suffix}{processor=~\"${processor:regex}\",job=\"$job\"}[$__rate_interval])) by (processor $grouping)",
+            "legend": "Batch sent due to a timeout trigger: {{processor}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-37",
+      "title": "Span 数量 ${metric:text}",
+      "description": "Span 数量 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_exporter_sent_spans${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+        "params": {},
+        "legend": "Sent: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_exporter_sent_spans${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Sent: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_exporter_enqueue_failed_spans${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Enqueue: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_exporter_send_failed_spans${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Failed: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-38",
+      "title": "指标点 ${metric:text}",
+      "description": "指标点 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_exporter_sent_metric_points${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+        "params": {},
+        "legend": "Sent: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_exporter_sent_metric_points${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Sent: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_exporter_enqueue_failed_metric_points${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Enqueue: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_exporter_send_failed_metric_points${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Failed: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-48",
+      "title": "日志记录 ${metric:text}",
+      "description": "日志记录 ${metric:text}。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(${metric:raw}(otelcol_exporter_sent_log_records${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+        "params": {},
+        "legend": "Sent: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(${metric:raw}(otelcol_exporter_sent_log_records${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Sent: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(${metric:raw}(otelcol_exporter_enqueue_failed_log_records${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Enqueue: {{exporter}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(${metric:raw}(otelcol_exporter_send_failed_log_records${suffix}{exporter=~\"${exporter:regex}\",job=\"$job\"}[$__rate_interval])) by (exporter $grouping)",
+            "legend": "Failed: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "导出器队列长度",
+      "description": "导出器队列长度。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_exporter_queue_size{exporter=~\"${exporter:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (exporter $grouping)",
+        "params": {},
+        "legend": "Max queue size: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "max(otelcol_exporter_queue_size{exporter=~\"${exporter:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (exporter $grouping)",
+            "legend": "Max queue size: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-55",
+      "title": "导出器队列容量",
+      "description": "导出器队列容量。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 9,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "min(otelcol_exporter_queue_capacity{exporter=~\"${exporter:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (exporter $grouping)",
+        "params": {},
+        "legend": "Queue capacity: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "min(otelcol_exporter_queue_capacity{exporter=~\"${exporter:regex}\",job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (exporter $grouping)",
+            "legend": "Queue capacity: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-67",
+      "title": "导出器队列使用率",
+      "description": "导出器队列使用率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 9,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(\r\n    otelcol_exporter_queue_size{\r\n        exporter=~\"${exporter:regex}\", job=\"$job\"\r\n    , cluster_id=~\"${cluster_id:regex}\"}\r\n) by (exporter $grouping)\r\n/\r\nmin(\r\n    otelcol_exporter_queue_capacity{\r\n        exporter=~\"${exporter:regex}\", job=\"$job\"\r\n    , cluster_id=~\"${cluster_id:regex}\"}\r\n) by (exporter $grouping)",
+        "params": {},
+        "legend": "Queue capacity usage: {{exporter}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "max(\r\n    otelcol_exporter_queue_size{\r\n        exporter=~\"${exporter:regex}\", job=\"$job\"\r\n    , cluster_id=~\"${cluster_id:regex}\"}\r\n) by (exporter $grouping)\r\n/\r\nmin(\r\n    otelcol_exporter_queue_capacity{\r\n        exporter=~\"${exporter:regex}\", job=\"$job\"\r\n    , cluster_id=~\"${cluster_id:regex}\"}\r\n) by (exporter $grouping)",
+            "legend": "Queue capacity usage: {{exporter}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "RSS 内存总量",
+      "description": "RSS 内存总量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_process_memory_rss{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+        "params": {},
+        "legend": "Max Memory RSS {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "C",
+            "expression": "max(otelcol_process_memory_rss{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Max Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "A",
+            "expression": "avg(otelcol_process_memory_rss{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Avg Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "min(otelcol_process_memory_rss{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Min Memory RSS {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-52",
+      "title": "运行时系统内存总量",
+      "description": "运行时系统内存总量。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 11,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_process_runtime_total_sys_memory_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+        "params": {},
+        "legend": "Max Memory RSS {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "C",
+            "expression": "max(otelcol_process_runtime_total_sys_memory_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Max Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "A",
+            "expression": "avg(otelcol_process_runtime_total_sys_memory_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Avg Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "min(otelcol_process_runtime_total_sys_memory_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Min Memory RSS {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-53",
+      "title": "运行时堆内存总量",
+      "description": "运行时堆内存总量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 11,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_process_runtime_heap_alloc_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+        "params": {},
+        "legend": "Max Memory RSS {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "C",
+            "expression": "max(otelcol_process_runtime_heap_alloc_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Max Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "A",
+            "expression": "avg(otelcol_process_runtime_heap_alloc_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Avg Memory RSS {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "min(otelcol_process_runtime_heap_alloc_bytes{job=\"$job\", cluster_id=~\"${cluster_id:regex}\"}) by (job $grouping)",
+            "legend": "Min Memory RSS {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-39",
+      "title": "CPU 使用率",
+      "description": "CPU 使用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(rate(otelcol_process_cpu_seconds${suffix}{job=\"$job\"}[$__rate_interval])*100) by (job $grouping)",
+        "params": {},
+        "legend": "Max CPU usage {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "max(rate(otelcol_process_cpu_seconds${suffix}{job=\"$job\"}[$__rate_interval])*100) by (job $grouping)",
+            "legend": "Max CPU usage {{service_instance_id}}"
+          },
+          {
+            "id": "A",
+            "expression": "avg(rate(otelcol_process_cpu_seconds${suffix}{job=\"$job\"}[$__rate_interval])*100) by (job $grouping)",
+            "legend": "Avg CPU usage {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "min(rate(otelcol_process_cpu_seconds${suffix}{job=\"$job\"}[$__rate_interval])*100) by (job $grouping)",
+            "legend": "Min CPU usage {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "percent",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-41",
+      "title": "服务实例数量",
+      "description": "服务实例数量。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 13,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(count(otelcol_process_cpu_seconds${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id))",
+        "params": {},
+        "legend": "Service instance count",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "count(count(otelcol_process_cpu_seconds${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id))",
+            "legend": "Service instance count"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-54",
+      "title": "服务实例运行时间",
+      "description": "服务实例运行时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 13,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_process_uptime${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id)",
+        "params": {},
+        "legend": "Service instance uptime: {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "max(otelcol_process_uptime${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id)",
+            "legend": "Service instance uptime: {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-57",
+      "title": "服务实例明细",
+      "description": "服务实例明细。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 16,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "max(otelcol_process_uptime${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id,service_name,service_version)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "max(otelcol_process_uptime${suffix}{service_instance_id=~\".*\",job=\"$job\"}) by (service_instance_id,service_name,service_version)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "showValueColumn": false
+      }
+    },
+    {
+      "id": "grafana-58",
+      "title": "Span 流量",
+      "description": "Span 流量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_receiver_accepted_spans${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver)\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_exporter_sent_spans${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter)\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "nodes",
+            "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_receiver_accepted_spans${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver)\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_exporter_sent_spans${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter)\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+            "legend": "__auto"
+          },
+          {
+            "id": "edges",
+            "expression": "# receivers -> processor\r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_receiver_accepted_spans${suffix}{job=\"$job\"}[$__rate_interval])) by (receiver))\r\n            ,\"source\", \"-rcv-\", \"transport\", \"receiver\"\r\n        )\r\n        ,\"target\", \"processor\", \"\", \"\"\r\n    )\r\n    , \"id\", \"-\", \"source\", \"target\"\r\n)\r\n\r\n# processor -> exporters\r\nor\r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_exporter_sent_spans${suffix}{job=\"$job\"}[$__rate_interval])) by (exporter))\r\n            , \"target\", \"-exp-\", \"transport\", \"exporter\"\r\n        )\r\n        , \"source\", \"processor\", \"\", \"\"\r\n    )\r\n    , \"id\", \"-\", \"source\", \"target\"\r\n)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-60",
+      "title": "指标点流量",
+      "description": "指标点流量。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 17,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      (sum(\n        ${metric:raw}(otelcol_receiver_accepted_metric_points${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver))\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      (sum(\n        ${metric:raw}(otelcol_exporter_sent_metric_points${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter))\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "nodes",
+            "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      (sum(\n        ${metric:raw}(otelcol_receiver_accepted_metric_points${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver))\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      (sum(\n        ${metric:raw}(otelcol_exporter_sent_metric_points${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter))\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+            "legend": "__auto"
+          },
+          {
+            "id": "edges",
+            "expression": "# receivers -> processor\r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_receiver_accepted_metric_points${suffix}{job=\"$job\"}[$__rate_interval])) by (receiver))\r\n            , \"source\", \"-rcv-\", \"transport\", \"receiver\"\r\n        )\r\n        , \"target\", \"processor\", \"\", \"\"\r\n    )\r\n    , \"id\", \"-\", \"source\", \"target\"\r\n)\r\n\r\n# processor -> exporters\r\nor \r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_exporter_sent_metric_points${suffix}{job=\"$job\"}[$__rate_interval])) by (exporter))\r\n            , \"target\", \"-exp-\", \"transport\", \"exporter\"\r\n        )\r\n        , \"source\", \"processor\", \"\", \"\"\r\n    )\r\n    , \"id\", \"-\", \"source\", \"target\"\r\n)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-61",
+      "title": "日志记录流量",
+      "description": "日志记录流量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 17,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_receiver_accepted_log_records${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver)\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_exporter_sent_log_records${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter)\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "nodes",
+            "expression": "# receivers\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_receiver_accepted_log_records${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (receiver)\n      , \"id\", \"-rcv-\", \"transport\", \"receiver\"\n    )\n    , \"title\", \"\", \"transport\", \"receiver\"\n  )\n  , \"icon\", \"arrow-to-right\", \"\", \"\"\n)\n\n# dummy processor\nor\nlabel_replace(\n  label_replace(\n    label_replace(\n      (sum(rate(otelcol_process_uptime${suffix}{job=\"$job\"}[$__rate_interval])))\n      , \"id\", \"processor\", \"\", \"\"\n    )\n    , \"title\", \"Processor(s)\", \"\", \"\"\n  )\n  , \"icon\", \"arrow-random\", \"\", \"\"\n)\n\n# exporters\nor\nlabel_replace(\n  label_join(\n    label_join(\n      sum(${metric:raw}(\n        otelcol_exporter_sent_log_records${suffix}{job=\"$job\"}[$__rate_interval])\n      ) by (exporter)\n      , \"id\", \"-exp-\", \"transport\", \"exporter\"\n    )\n    , \"title\", \"\", \"transport\", \"exporter\"\n  )\n  , \"icon\", \"arrow-from-right\", \"\", \"\"\n)",
+            "legend": "__auto"
+          },
+          {
+            "id": "edges",
+            "expression": "# receivers -> processor\r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_receiver_accepted_log_records${suffix}{job=\"$job\"}[$__rate_interval])) by (receiver))\r\n            , \"source\", \"-rcv-\", \"transport\", \"receiver\"\r\n        )\r\n        , \"target\", \"processor\", \"\", \"\"\r\n    )\r\n    , \"id\", \"-edg-\", \"source\", \"target\"\r\n)\r\n\r\n# processor -> exporters\r\nor \r\nlabel_join(\r\n    label_replace(\r\n        label_join(\r\n            (sum(rate(otelcol_exporter_sent_log_records${suffix}{job=\"$job\"}[$__rate_interval])) by (exporter))\r\n            ,\"target\",\"-exp-\",\"transport\",\"exporter\"\r\n        )\r\n        ,\"source\",\"processor\",\"\",\"\"\r\n    )\r\n    ,\"id\",\"-edg-\",\"source\",\"target\"\r\n)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-69",
+      "title": "接收器 RPC 服务端响应（按 gRPC 状态码）",
+      "description": "接收器 RPC 服务端响应（按 gRPC 状态码）。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by(rpc_grpc_status_code) (${metric:raw}(otelcol_rpc_server_responses_per_rpc_count{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by(rpc_grpc_status_code) (${metric:raw}(otelcol_rpc_server_responses_per_rpc_count{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-70",
+      "title": "导出器 RPC 客户端响应（按 gRPC 状态码）",
+      "description": "导出器 RPC 客户端响应（按 gRPC 状态码）。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 20,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by(rpc_grpc_status_code) (${metric:raw}(otelcol_rpc_client_responses_per_rpc_count{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by(rpc_grpc_status_code) (${metric:raw}(otelcol_rpc_client_responses_per_rpc_count{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-72",
+      "title": "接收器 RPC 服务端耗时",
+      "description": "接收器 RPC 服务端耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 22,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(otelcol_rpc_server_duration_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+        "params": {},
+        "legend": "{{le}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(increase(otelcol_rpc_server_duration_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+            "legend": "{{le}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-74",
+      "title": "导出器 RPC 客户端耗时",
+      "description": "导出器 RPC 客户端耗时。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 22,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(otelcol_rpc_client_duration_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+        "params": {},
+        "legend": "{{le}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(increase(otelcol_rpc_client_duration_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+            "legend": "{{le}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-73",
+      "title": "接收器 RPC 服务端请求大小",
+      "description": "接收器 RPC 服务端请求大小。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 24,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(otelcol_rpc_server_request_size_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+        "params": {},
+        "legend": "{{le}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(increase(otelcol_rpc_server_request_size_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+            "legend": "{{le}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-75",
+      "title": "导出器 RPC 客户端请求大小",
+      "description": "导出器 RPC 客户端请求大小。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 24,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(increase(otelcol_rpc_client_request_size_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+        "params": {},
+        "legend": "{{le}}",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "sum(increase(otelcol_rpc_client_request_size_bucket{cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (le)",
+            "legend": "{{le}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-64",
+      "title": "命名空间数量",
+      "description": "命名空间数量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 22,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "avg(otelcol_otelsvc_k8s_namespace_added${suffix}{job=\"$job\"}) by (job $grouping)",
+        "params": {},
+        "legend": "Added: {{transport}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "avg(otelcol_otelsvc_k8s_namespace_added${suffix}{job=\"$job\"}) by (job $grouping)",
+            "legend": "Added: {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "avg(otelcol_otelsvc_k8s_namespace_updated${suffix}{job=\"$job\"}) by (job $grouping)",
+            "legend": "Updated: {{transport}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-65",
+      "title": "Pod 数量",
+      "description": "Pod 数量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 22,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(otelcol_otelsvc_k8s_pod_added${suffix}{job=\"$job\"}) by (job $grouping)",
+        "params": {},
+        "legend": "Added: {{transport}} {{service_instance_id}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(otelcol_otelsvc_k8s_pod_added${suffix}{job=\"$job\"}) by (job $grouping)",
+            "legend": "Added: {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "B",
+            "expression": "sum(otelcol_otelsvc_k8s_pod_updated${suffix}{job=\"$job\"}) by (job $grouping)",
+            "legend": "Updated: {{transport}} {{service_instance_id}}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(otelcol_otelsvc_k8s_pod_deleted${suffix}{job=\"$job\"}) by (job $grouping)",
+            "legend": "Deleted: {{transport}} {{service_instance_id}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

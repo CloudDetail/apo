@@ -1,0 +1,1614 @@
+{
+  "id": "",
+  "name": "基础设施情况",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：infrastructure。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "service_type",
+      "label": "查询方式",
+      "type": "custom",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "options": [
+        {
+          "label": "按K8s查询",
+          "value": ".*"
+        },
+        {
+          "label": "按虚机查询",
+          "value": ""
+        }
+      ],
+      "query": "按K8s查询 : .*, 按虚机查询 :  ,"
+    },
+    {
+      "name": "namespace",
+      "label": "命名空间",
+      "type": "namespace",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\",namespace=~\"$service_type\", cluster_id=~\"$cluster_id\"}))",
+      "labels": [
+        "namespace",
+        "namespace_name",
+        "namespaceName",
+        "src_namespace",
+        "dst_namespace"
+      ]
+    },
+    {
+      "name": "pod",
+      "label": "Pod 实例",
+      "type": "pod",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(group by (pod) (container_memory_rss{namespace=\"$namespace\",job_name=\"$cadvisor_job_name\", cluster_id=~\"$cluster_id\"}))",
+      "labels": [
+        "pod",
+        "pod_name",
+        "src_pod",
+        "dst_pod"
+      ]
+    },
+    {
+      "name": "service_name",
+      "label": "服务",
+      "type": "service",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(group by (svc_name) (kindling_span_trace_duration_nanoseconds_count{vm=\"$service_type\", cluster_id=~\"$cluster_id\"}) or group by (svc_name) (kindling_span_trace_duration_nanoseconds_count{pod=~\"$pod\",namespace=~\"$namespace\", cluster_id=~\"$cluster_id\"}))",
+      "labels": [
+        "svc",
+        "svc_name",
+        "service",
+        "service_name"
+      ]
+    },
+    {
+      "name": "related_nodes",
+      "label": "相关节点",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result( group by (node_name) (container_memory_rss{job_name=\"integrations/kubernetes/cadvisor\",pod=~\"$pod\",pod!=\"\", cluster_id=~\"$cluster_id\"}) or group by (node_name) ( kindling_span_trace_duration_nanoseconds_count{svc_name=\"$service_name\",svc_name!=\"\", cluster_id=~\"$cluster_id\"}))",
+      "labels": [
+        "node_name"
+      ]
+    },
+    {
+      "name": "resolution",
+      "label": "精度",
+      "type": "custom",
+      "value": "1m",
+      "multi": false,
+      "required": false,
+      "defaultValue": "1m",
+      "options": [
+        {
+          "label": "1s",
+          "value": "1s"
+        },
+        {
+          "label": "15s",
+          "value": "15s"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "3m",
+          "value": "3m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        },
+        {
+          "label": "10m",
+          "value": "10m"
+        },
+        {
+          "label": "30m",
+          "value": "30m"
+        }
+      ],
+      "query": "1s, 15s, 30s, 1m, 3m, 5m , 10m, 30m"
+    },
+    {
+      "name": "related_pid",
+      "label": "关联进程 ID",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\", cluster_id=~\"$cluster_id\"},pid)",
+      "labels": [
+        "pid"
+      ]
+    },
+    {
+      "name": "jvm_instance",
+      "label": "JVM实例",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "query_result(jvm_cpu_count{host_name=~\"$pod\", cluster_id=~\"$cluster_id\"} or jvm_cpu_count{service_name=~\"$service_name\",vm=\"$service_type\", cluster_id=~\"$cluster_id\"})",
+      "labels": [
+        "instance"
+      ]
+    },
+    {
+      "name": "job_name",
+      "label": "采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(node_cpu_seconds_total,job_name)",
+      "labels": [
+        "job_name"
+      ]
+    },
+    {
+      "name": "cadvisor_job_name",
+      "label": "容器采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(container_cpu_usage_seconds_total,job_name)",
+      "labels": [
+        "job_name"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-6",
+      "title": "容器CPU使用率",
+      "description": "容器CPU使用率(使用Containerd容器运行时,按容器和Pod统计)；容器CPU使用率(使用Docker容器运行时,按Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (container,pod) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "{{pod}}: {{ container }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum by (container,pod) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "{{pod}}: {{ container }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", id=~\".*docker.*\" , cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "{{pod}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 4,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "容器CPU节流时间",
+      "description": "容器CPU节流时长(使用Containerd容器运行时,按容器和Pod统计)；容器CPU节流时长(使用Docker容器运行时,按Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (container,pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"${namespace:regex}\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "{{pod}}:{{ container }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum by (container,pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"${namespace:regex}\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "{{pod}}:{{ container }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum by (pod) (rate(container_cpu_cfs_throttled_seconds_total{namespace=~\"${namespace:regex}\", pod=~\"${pod:regex}\",  job_name=\"$cadvisor_job_name\", id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "{{pod}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "容器内存使用率",
+      "description": "容器内存使用字节数(使用Containerd容器运行时,按容器和Pod统计)；容器内存使用字节数(使用Docker容器运行时,按Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (container,pod)",
+        "params": {},
+        "legend": "{{pod}}: {{ container }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (container,pod)",
+            "legend": "{{pod}}: {{ container }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"${pod:regex}\",job_name=\"$cadvisor_job_name\", id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}) by (pod)",
+            "legend": "{{pod}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "读写字节数 /s",
+      "description": "容器磁盘读取字节数每秒(使用Docker,按Pod统计)；容器磁盘写入字节数每秒(使用Docker,按Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod,container)(rate(container_fs_reads_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "读取 {{pod}}:{{container}}",
+        "queries": [
+          {
+            "id": "Containerd Read",
+            "expression": "sum by (pod,container)(rate(container_fs_reads_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "读取 {{pod}}:{{container}}"
+          },
+          {
+            "id": "Containerd Write",
+            "expression": "- sum by (pod,container)(rate(container_fs_writes_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "写入 {{pod}}:{{container}}"
+          },
+          {
+            "id": "Docker Read",
+            "expression": "sum by (pod)(rate(container_fs_reads_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "读取 {{pod}}"
+          },
+          {
+            "id": "Docker Write",
+            "expression": "- sum by (pod)(rate(container_fs_writes_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\",job_name=\"$cadvisor_job_name\", id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "写入 {{pod}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "读写花费时间 /s",
+      "description": "容器磁盘读取耗时每秒(使用Containerd,按Pod和容器统计)；容器磁盘写入耗时每秒(使用Containerd,按Pod和容器统计)",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod,container)(rate(container_fs_read_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "读取 {{pod}}:{{container}}",
+        "queries": [
+          {
+            "id": "Containerd Read",
+            "expression": "sum by (pod,container)(rate(container_fs_read_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "读取 {{pod}}:{{container}}"
+          },
+          {
+            "id": "Containerd Write",
+            "expression": "- sum by (pod,container)(rate(container_fs_write_seconds_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "写入 {{pod}}:{{container}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-23",
+      "title": "读写次数 /s",
+      "description": "容器磁盘读取次数每秒(使用Docker,按Pod统计)；容器磁盘写入次数每秒(使用Docker,按Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (pod,container)(rate(container_fs_reads_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "读取 {{pod}}:{{container}}",
+        "queries": [
+          {
+            "id": "Containerd Read",
+            "expression": "sum by (pod,container)(rate(container_fs_reads_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "读取 {{pod}}:{{container}}"
+          },
+          {
+            "id": "Containerd Write",
+            "expression": "- sum by (pod,container)(rate(container_fs_writes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", image!=\"\", container!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "写入 {{pod}}:{{container}}"
+          },
+          {
+            "id": "Docker Read",
+            "expression": "sum by (pod)(rate(container_fs_reads_total{namespace=\"$namespace\", pod=~\"${pod:regex}\",job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "读取 {{pod}}"
+          },
+          {
+            "id": "Docker Write",
+            "expression": "- sum by (pod)(rate(container_fs_writes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "写入 {{pod}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ops",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-55",
+      "title": "与下游服务RTT",
+      "description": "容器与下游服务的网络往返时间(RTT,按命名空间和Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "kindling_network_rtt{src_namespace=\"$namespace\", src_pod=~\"${pod:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{src_pod}} -> {{dst_pod}} ({{dst_ip}})",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "kindling_network_rtt{src_namespace=\"$namespace\", src_pod=~\"${pod:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{src_pod}} -> {{dst_pod}} ({{dst_ip}})"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "网络带宽使用",
+      "description": "容器网络接收带宽(按命名空间和Pod统计)；容器网络发送带宽(按命名空间和Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_network_receive_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "接收",
+        "queries": [
+          {
+            "id": "Containerd Receive",
+            "expression": "sum(rate(container_network_receive_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "接收"
+          },
+          {
+            "id": "Containerd Send",
+            "expression": "- sum(rate(container_network_transmit_bytes_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "包传输速率",
+      "description": "容器网络接收包速率(按命名空间和Pod统计)；容器网络发送包速率(按命名空间和Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_network_receive_packets_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "接收",
+        "queries": [
+          {
+            "id": "Containerd Receive",
+            "expression": "sum(rate(container_network_receive_packets_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "接收"
+          },
+          {
+            "id": "Containerd Send",
+            "expression": "- sum(rate(container_network_transmit_packets_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "pps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "丢包数",
+      "description": "容器网络接收丢包数(按命名空间和Pod统计)；容器网络发送丢包数(按命名空间和Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_network_receive_packets_dropped_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "接收",
+        "queries": [
+          {
+            "id": "Containerd Receive",
+            "expression": "sum(rate(container_network_receive_packets_dropped_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "接收"
+          },
+          {
+            "id": "Containerd Send",
+            "expression": "- sum(rate(container_network_transmit_packets_dropped_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "pps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "网络错误包数",
+      "description": "容器网络接收错误包数(按命名空间和Pod统计)；容器网络发送错误包数(按命名空间和Pod统计)",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_network_receive_errors_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "接收",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(container_network_receive_errors_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "接收"
+          },
+          {
+            "id": "B",
+            "expression": "- sum(rate(container_network_transmit_errors_total{namespace=\"$namespace\", pod=~\"${pod:regex}\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "pps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-58",
+      "title": "与下游服务RTT",
+      "description": "应用与下游服务的网络往返时间(RTT,按节点和PID统计)",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "kindling_network_rtt{node_name=~\"${related_nodes:regex}\", pid=~\"${related_pid:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{src_pod}} ({{src_ip}}) -> {{dst_pod}} ({{dst_ip}}) ",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "kindling_network_rtt{node_name=~\"${related_nodes:regex}\", pid=~\"${related_pid:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{src_pod}} ({{src_ip}}) -> {{dst_pod}} ({{dst_ip}}) "
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-74",
+      "title": "基础信息",
+      "description": "基础信息。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_cpu_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_cpu_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0,
+        "tableColumns": [
+          {
+            "name": "service_name",
+            "label": "服务名"
+          },
+          {
+            "name": "service_version",
+            "label": "版本"
+          },
+          {
+            "name": "telemetry_sdk_language",
+            "label": "语言"
+          },
+          {
+            "name": "container_id",
+            "label": "Container Id"
+          },
+          {
+            "name": "process_pid",
+            "label": "Pid"
+          },
+          {
+            "name": "host_name",
+            "label": "主机名"
+          },
+          {
+            "name": "host_arch",
+            "label": "架构"
+          },
+          {
+            "name": "os_description",
+            "label": "系统"
+          },
+          {
+            "name": "process_command_args",
+            "label": "启动命令"
+          },
+          {
+            "name": "process_runtime_name",
+            "label": "Runtime"
+          },
+          {
+            "name": "process_runtime_version",
+            "label": "Runtime Version"
+          },
+          {
+            "name": "odigos_device",
+            "label": "odigos_device"
+          }
+        ],
+        "tableHiddenColumns": [
+          "__name__",
+          "instance",
+          "job",
+          "os_type",
+          "process_executable_path",
+          "process_runtime_description",
+          "service_instance_id",
+          "telemetry_distro_name",
+          "telemetry_distro_version",
+          "telemetry_sdk_name",
+          "telemetry_sdk_version"
+        ],
+        "showValueColumn": false
+      }
+    },
+    {
+      "id": "grafana-75",
+      "title": "平均CPU使用率(核数)",
+      "description": "平均CPU使用率(核数)。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(jvm_cpu_time_seconds_total{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{service_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(jvm_cpu_time_seconds_total{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])",
+            "legend": "{{service_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-81",
+      "title": "Class数量",
+      "description": "Class数量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_class_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "Loaded Class",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_class_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Loaded Class"
+          },
+          {
+            "id": "B",
+            "expression": "jvm_class_unloaded_total{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "UnLoaded Class"
+          },
+          {
+            "id": "C",
+            "expression": "jvm_class_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "Class Count"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-70",
+      "title": "堆上内存使用",
+      "description": "堆上内存使用。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_memory_used_bytes{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"heap\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "已使用: {{jvm_memory_pool_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_memory_used_bytes{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "已使用: {{jvm_memory_pool_name}}"
+          },
+          {
+            "id": "B",
+            "expression": "jvm_memory_limit{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "上限: {{jvm_memory_pool_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-71",
+      "title": "非堆内存使用",
+      "description": "非堆内存使用。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_memory_used_bytes{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"non_heap\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "已使用: {{jvm_memory_pool_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_memory_used_bytes{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"non_heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "已使用: {{jvm_memory_pool_name}}"
+          },
+          {
+            "id": "B",
+            "expression": "jvm.memory.limit{instance=~\"${jvm_instance:regex}\",jvm_memory_type=\"non_heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "上限: {{jvm_memory_pool_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-72",
+      "title": "已分配堆上内存",
+      "description": "已分配堆上内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_memory_committed_bytes{instance=\"$jvm_instance\",jvm_memory_type=\"heap\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{jvm_memory_pool_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_memory_committed_bytes{instance=\"$jvm_instance\",jvm_memory_type=\"heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{jvm_memory_pool_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-73",
+      "title": "已分配非堆内存",
+      "description": "已分配非堆内存。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "jvm_memory_committed_bytes{instance=\"$jvm_instance\",jvm_memory_type=\"non_heap\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{jvm_memory_pool_name}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "jvm_memory_committed_bytes{instance=\"$jvm_instance\",jvm_memory_type=\"non_heap\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{jvm_memory_pool_name}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-78",
+      "title": "GC操作次数",
+      "description": "GC操作次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 12,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(jvm_gc_duration_seconds_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__interval])",
+        "params": {},
+        "legend": "{{jvm_gc_name}}:{{jvm_gc_action}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(jvm_gc_duration_seconds_count{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__interval])",
+            "legend": "{{jvm_gc_name}}:{{jvm_gc_action}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-80",
+      "title": "GC总花费时间",
+      "description": "GC总花费时间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 12,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(jvm_gc_duration_seconds_sum{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__interval])",
+        "params": {},
+        "legend": "{{jvm_gc_name}}:{{jvm_gc_action}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(jvm_gc_duration_seconds_sum{instance=\"$jvm_instance\", cluster_id=~\"${cluster_id:regex}\"}[$__interval])",
+            "legend": "{{jvm_gc_name}}:{{jvm_gc_action}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-76",
+      "title": "守护线程各状态线程数统计",
+      "description": "守护线程各状态线程数统计。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"true\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "总量",
+        "queries": [
+          {
+            "id": "total",
+            "expression": "sum(jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"true\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "总量"
+          },
+          {
+            "id": "thread_status",
+            "expression": "jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"true\",jvm_thread_state!=\"\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{jvm_thread_state}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-77",
+      "title": "非守护线程各状态线程数统计",
+      "description": "非守护线程各状态线程数统计。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"false\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "总量",
+        "queries": [
+          {
+            "id": "total",
+            "expression": "sum(jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"false\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "总量"
+          },
+          {
+            "id": "thread_status",
+            "expression": "jvm_thread_count{instance=\"$jvm_instance\",jvm_thread_daemon=\"false\",jvm_thread_state!=\"\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{jvm_thread_state}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-13",
+      "title": "CPU使用率",
+      "description": "CPU使用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"system\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+        "params": {},
+        "legend": "System - 在内核中运行的系统进程",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"system\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "System - 在内核中运行的系统进程"
+          },
+          {
+            "id": "B",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"user\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "User - 在用户空间运行的用户程序"
+          },
+          {
+            "id": "C",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"nice\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "Nice - 在用户空间下执行的Niced进程"
+          },
+          {
+            "id": "E",
+            "expression": "sum by(instance) (irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"iowait\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "Iowait - IO等待时间"
+          },
+          {
+            "id": "F",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"irq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "Irq - Servicing interrupts"
+          },
+          {
+            "id": "G",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"softirq\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "Softirq - 处理软中断"
+          },
+          {
+            "id": "H",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"steal\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "Steal - 在虚拟化环境中运行时，在其他操作系统上花费的时间"
+          },
+          {
+            "id": "J",
+            "expression": "sum(irate(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\", mode=\"idle\"}[$__rate_interval])) / scalar(count(count(node_cpu_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}) by (cpu)))",
+            "legend": "空闲 - 空闲时间"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "内存使用情况",
+      "description": "内存使用情况。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_memory_MemTotal_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_MemFree_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Buffers_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Cached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Slab_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_PageTables_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_SwapCached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+        "params": {},
+        "legend": "App - 用户空间应用使用量",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_memory_MemTotal_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_MemFree_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Buffers_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Cached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_Slab_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_PageTables_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_SwapCached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "App - 用户空间应用使用量"
+          },
+          {
+            "id": "B",
+            "expression": "node_memory_PageTables_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "PageTables - 用于在虚拟和物理内存地址之间映射的内存"
+          },
+          {
+            "id": "C",
+            "expression": "node_memory_SwapCached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "SwapCache - 跟踪已从交换中提取但尚未修改的页面的内存"
+          },
+          {
+            "id": "D",
+            "expression": "node_memory_Slab_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "Slab - 内核用于缓存数据结构以供自己使用的内存 (缓存，如inode，dentry等)"
+          },
+          {
+            "id": "E",
+            "expression": "node_memory_Cached_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "Cache - 打开的文件缓存"
+          },
+          {
+            "id": "F",
+            "expression": "node_memory_Buffers_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "Buffers - 块设备 (如硬盘) 缓存"
+          },
+          {
+            "id": "G",
+            "expression": "node_memory_MemFree_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "Unused - 未分配内存"
+          },
+          {
+            "id": "H",
+            "expression": "(node_memory_SwapTotal_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"} - node_memory_SwapFree_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"})",
+            "legend": "Swap - 已使用的Swap空间"
+          },
+          {
+            "id": "I",
+            "expression": "node_memory_HardwareCorrupted_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "Hardware Corrupted - 内核标识为损坏/不工作的RAM量"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-15",
+      "title": "网络传输速率(无虚拟和回环网卡)",
+      "description": "网络传输速率(无虚拟和回环网卡)。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_network_receive_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}[$__rate_interval])*8",
+        "params": {},
+        "legend": "{{device}} - 接收",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_network_receive_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}[$__rate_interval])*8",
+            "legend": "{{device}} - 接收"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_network_transmit_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}[$__rate_interval])*8",
+            "legend": "{{device}} - 发送"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "文件描述符打开数",
+      "description": "文件描述符打开数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_filefd_maximum{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+        "params": {},
+        "legend": "最大限制",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_filefd_maximum{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "最大限制"
+          },
+          {
+            "id": "B",
+            "expression": "node_filefd_allocated{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\"}",
+            "legend": "当前值"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-17",
+      "title": "磁盘操作数",
+      "description": "磁盘操作数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_reads_completed_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{device}} - 读取",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_reads_completed_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+            "legend": "{{device}} - 读取"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_disk_writes_completed_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+            "legend": "{{device}} - 写入"
+          }
+        ]
+      },
+      "display": {
+        "unit": "iops",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "磁盘读写速率",
+      "description": "磁盘读写速率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_read_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+        "params": {},
+        "legend": "{{device}} - 读取",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_read_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+            "legend": "{{device}} - 读取"
+          },
+          {
+            "id": "B",
+            "expression": "irate(node_disk_written_bytes_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"}[$__rate_interval])",
+            "legend": "{{device}} - 写入"
+          }
+        ]
+      },
+      "display": {
+        "unit": "Bps",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "文件系统空闲空间",
+      "description": "文件系统空闲空间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_filesystem_free_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'}",
+        "params": {},
+        "legend": "{{mountpoint}} - 空闲大小",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "node_filesystem_free_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'}",
+            "legend": "{{mountpoint}} - 空闲大小"
+          },
+          {
+            "id": "C",
+            "expression": "node_filesystem_size_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'}",
+            "legend": "{{mountpoint}} - 总大小"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "磁盘使用量",
+      "description": "磁盘使用量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "node_filesystem_size_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'} - node_filesystem_avail_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'}",
+        "params": {},
+        "legend": "{{mountpoint}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "node_filesystem_size_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'} - node_filesystem_avail_bytes{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device!~'rootfs'}",
+            "legend": "{{mountpoint}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-19",
+      "title": "I/O 利用率",
+      "description": "I/O 利用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(node_disk_io_time_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"} [$__rate_interval])",
+        "params": {},
+        "legend": "{{device}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(node_disk_io_time_seconds_total{instance_name=~\"${related_nodes:regex}\", cluster_id=~\"${cluster_id:regex}\",job_name=\"$job_name\",device=~\"[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+\"} [$__rate_interval])",
+            "legend": "{{device}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

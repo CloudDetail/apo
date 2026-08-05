@@ -1,0 +1,803 @@
+{
+  "id": "",
+  "name": "Redis 指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：redis。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "vendor",
+      "label": "云厂商",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(redis_up{cluster_id=~\"$cluster_id\"}, vendor)",
+      "labels": [
+        "vendor"
+      ]
+    },
+    {
+      "name": "account",
+      "label": "账号",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(redis_up{vendor=~\"$vendor\", cluster_id=~\"$cluster_id\"}, account)",
+      "labels": [
+        "account"
+      ]
+    },
+    {
+      "name": "group",
+      "label": "属组",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\", cluster_id=~\"$cluster_id\"}, group)",
+      "labels": [
+        "group"
+      ]
+    },
+    {
+      "name": "name",
+      "label": "名称",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\", cluster_id=~\"$cluster_id\"}, name)",
+      "labels": [
+        "name"
+      ]
+    },
+    {
+      "name": "instance",
+      "label": "实例",
+      "type": "instance",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\",name=~\"$name\", cluster_id=~\"$cluster_id\"}, instance)",
+      "labels": [
+        "instance",
+        "instance_name",
+        "node_name",
+        "nodeName",
+        "host_name",
+        "hostName"
+      ]
+    },
+    {
+      "name": "iid",
+      "label": "实例 ID",
+      "type": "label",
+      "value": "None",
+      "multi": false,
+      "required": false,
+      "defaultValue": "None",
+      "query": "label_values(redis_up{vendor=~\"$vendor\",account=~\"$account\",group=~\"$group\",name=~\"$name\", cluster_id=~\"$cluster_id\"}, iid)",
+      "labels": [
+        "iid"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-35",
+      "title": "REDIS资源总览表【$vendor：$account：$group】",
+      "description": "REDIS资源总览表【$vendor：$account：$group】。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "redis_up{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "redis_up{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "__auto"
+          },
+          {
+            "id": "D",
+            "expression": "sum(redis_connected_clients{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"})by(instance)",
+            "legend": "__auto"
+          },
+          {
+            "id": "E",
+            "expression": "sum(irate(redis_commands_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"} [2m]))by(instance)",
+            "legend": "__auto"
+          },
+          {
+            "id": "F",
+            "expression": "redis_uptime_in_seconds{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"} - 0",
+            "legend": "__auto"
+          },
+          {
+            "id": "G",
+            "expression": "avg(irate(redis_keyspace_hits_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]) / (irate(redis_keyspace_misses_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}[1m]) + irate(redis_keyspace_hits_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))) by (instance)",
+            "legend": "__auto"
+          },
+          {
+            "id": "H",
+            "expression": "sum (redis_db_keys{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+            "legend": "__auto"
+          },
+          {
+            "id": "I",
+            "expression": "sum(irate(redis_net_input_bytes_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (instance)",
+            "legend": "__auto"
+          },
+          {
+            "id": "J",
+            "expression": "sum(irate(redis_net_output_bytes_total{account=~\"${account:regex}\",group=~\"${group:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (instance)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "tableColumns": [
+          {
+            "name": "name",
+            "label": "名称"
+          },
+          {
+            "name": "ver",
+            "label": "版本"
+          },
+          {
+            "name": "mem",
+            "label": "总内存"
+          },
+          {
+            "name": "Value #B",
+            "label": "CPU%"
+          },
+          {
+            "name": "Value #C",
+            "label": "内存%"
+          },
+          {
+            "name": "Value #G",
+            "label": "命中率"
+          },
+          {
+            "name": "Value #D",
+            "label": "连接数"
+          },
+          {
+            "name": "Value #E",
+            "label": "操作数/s"
+          },
+          {
+            "name": "Value #I",
+            "label": "流入"
+          },
+          {
+            "name": "Value #J",
+            "label": "流出"
+          },
+          {
+            "name": "Value #H",
+            "label": "总Keys"
+          },
+          {
+            "name": "Value #F",
+            "label": "启动"
+          },
+          {
+            "name": "exp",
+            "label": "到期日"
+          },
+          {
+            "name": "itype",
+            "label": "类型"
+          },
+          {
+            "name": "iid",
+            "label": "实例ID"
+          },
+          {
+            "name": "Value #K",
+            "label": "IOPS"
+          },
+          {
+            "name": "cpu",
+            "label": "总CPU"
+          },
+          {
+            "name": "disk",
+            "label": "总磁盘"
+          }
+        ],
+        "tableHiddenColumns": [
+          "Value #A",
+          "__name__",
+          "account",
+          "group",
+          "iaccount",
+          "igroup",
+          "iname",
+          "instance",
+          "job",
+          "origin_prometheus",
+          "region",
+          "vendor"
+        ],
+        "showValueColumn": false
+      }
+    },
+    {
+      "id": "grafana-38",
+      "title": "未命名指标",
+      "description": "未命名指标。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "redis_uptime_in_seconds{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "运行时间",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "redis_uptime_in_seconds{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "运行时间"
+          },
+          {
+            "id": "B",
+            "expression": "sum(redis_connected_clients{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "客户端连接"
+          },
+          {
+            "id": "C",
+            "expression": "sum(irate(redis_commands_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"} [2m]))",
+            "legend": "每秒操作数"
+          }
+        ]
+      },
+      "display": {
+        "unit": "locale",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "内存使用量",
+      "description": "内存使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "redis_memory_used_bytes{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "已使用",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "redis_memory_used_bytes{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "已使用"
+          },
+          {
+            "id": "B",
+            "expression": "redis_memory_max_bytes{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "max"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "每秒网络流量",
+      "description": "每秒网络流量。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(redis_net_input_bytes_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))",
+        "params": {},
+        "legend": "流入",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(redis_net_input_bytes_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))",
+            "legend": "流入"
+          },
+          {
+            "id": "B",
+            "expression": "sum(irate(redis_net_output_bytes_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))",
+            "legend": "流出"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-1",
+      "title": "每秒命中和未命中数量",
+      "description": "每秒命中和未命中数量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+        "params": {},
+        "legend": "命中数",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+            "legend": "命中数"
+          },
+          {
+            "id": "B",
+            "expression": "irate(redis_keyspace_misses_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+            "legend": "未命中数"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "每秒操作数",
+      "description": "每秒操作数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(redis_commands_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"} [2m])) by (cmd) >1",
+        "params": {},
+        "legend": "{{ cmd }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(redis_commands_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"} [2m])) by (cmd) >1",
+            "legend": "{{ cmd }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "命中率",
+      "description": "命中率。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "avg(irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]) / (irate(redis_keyspace_misses_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[1m]) + irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))) by (instance)",
+        "params": {},
+        "legend": "{{instance}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "avg(irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]) / (irate(redis_keyspace_misses_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[1m]) + irate(redis_keyspace_hits_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m]))) by (instance)",
+            "legend": "{{instance}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "连接与拒绝的客户端",
+      "description": "连接与拒绝的客户端。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(redis_connected_clients{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "connected",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(redis_connected_clients{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "connected"
+          },
+          {
+            "id": "B",
+            "expression": "sum(redis_blocked_clients{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "blocked"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "命令执行平均耗时",
+      "description": "命令执行平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(redis_commands_duration_seconds_total{instance =~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd)\n  /\nsum(irate(redis_commands_total{instance =~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd)",
+        "params": {},
+        "legend": "{{ cmd }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(redis_commands_duration_seconds_total{instance =~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd)\n  /\nsum(irate(redis_commands_total{instance =~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd)",
+            "legend": "{{ cmd }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "每秒命令花费的总时长",
+      "description": "每秒命令花费的总时长。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(redis_commands_duration_seconds_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd) != 0",
+        "params": {},
+        "legend": "{{ cmd }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(redis_commands_duration_seconds_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (cmd) != 0",
+            "legend": "{{ cmd }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "实例从属连接",
+      "description": "实例从属连接。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(redis_connected_slaves{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(redis_connected_slaves{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-13",
+      "title": "过期与未过期的Keys",
+      "description": "过期与未过期的Keys。",
+      "type": "line",
+      "layout": {
+        "x": 1,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (redis_db_keys{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance) - sum (redis_db_keys_expiring{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+        "params": {},
+        "legend": "not expiring",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (redis_db_keys{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance) - sum (redis_db_keys_expiring{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+            "legend": "not expiring"
+          },
+          {
+            "id": "B",
+            "expression": "sum (redis_db_keys_expiring{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (instance)",
+            "legend": "expiring"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "过期与驱逐的Keys",
+      "description": "过期与驱逐的Keys。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(irate(redis_expired_keys_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (instance)",
+        "params": {},
+        "legend": "expired",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(irate(redis_expired_keys_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])) by (instance)",
+            "legend": "expired"
+          },
+          {
+            "id": "B",
+            "expression": "sum(rate(redis_evicted_keys_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[5m])) by (instance)",
+            "legend": "evicted"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-26",
+      "title": "每秒键值对删除次数",
+      "description": "每秒键值对删除次数。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 7,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "irate(redis_evicted_keys_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "irate(redis_evicted_keys_total{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-5",
+      "title": "各DB KEY分布",
+      "description": "各DB KEY分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum (redis_db_keys{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (db, instance)",
+        "params": {},
+        "legend": "{{ db }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum (redis_db_keys{instance=~\"${instance:regex}\", cluster_id=~\"${cluster_id:regex}\"}) by (db, instance)",
+            "legend": "{{ db }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

@@ -1,0 +1,1529 @@
+{
+  "id": "",
+  "name": "RabbitMQ 官方指标",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：rabbitmq-official。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "namespace",
+      "label": "命名空间",
+      "type": "namespace",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(rabbitmq_identity_info{cluster_id=~\"$cluster_id\"}, namespace)",
+      "labels": [
+        "namespace",
+        "namespace_name",
+        "namespaceName",
+        "src_namespace",
+        "dst_namespace"
+      ]
+    },
+    {
+      "name": "rabbitmq_cluster",
+      "label": "RabbitMQ 集群",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(rabbitmq_identity_info{namespace=\"$namespace\", cluster_id=~\"$cluster_id\"}, rabbitmq_cluster)",
+      "labels": [
+        "rabbitmq_cluster"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-64",
+      "title": "就绪消息数",
+      "description": "就绪消息数。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 10000.0,
+        "criticalThreshold": 100000.0
+      }
+    },
+    {
+      "id": "grafana-62",
+      "title": "每秒进入消息数",
+      "description": "每秒进入消息数。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": -1.0,
+        "criticalThreshold": 50.0
+      }
+    },
+    {
+      "id": "grafana-66",
+      "title": "发布者",
+      "description": "发布者。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_global_publishers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_global_publishers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-37",
+      "title": "连接",
+      "description": "连接。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "队列",
+      "description": "队列。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-65",
+      "title": "未确认消息数",
+      "description": "未确认消息数。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 100.0,
+        "criticalThreshold": 500.0
+      }
+    },
+    {
+      "id": "grafana-63",
+      "title": "每秒发出消息数",
+      "description": "每秒发出消息数。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\nsum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": -1.0,
+        "criticalThreshold": 50.0
+      }
+    },
+    {
+      "id": "grafana-41",
+      "title": "消费者",
+      "description": "消费者。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_consumers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_consumers * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-38",
+      "title": "通道",
+      "description": "通道。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-67",
+      "title": "节点",
+      "description": "节点。",
+      "type": "stat",
+      "layout": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 3.0,
+        "criticalThreshold": 8.0
+      }
+    },
+    {
+      "id": "grafana-69",
+      "title": "未命名指标",
+      "description": "未命名指标。",
+      "type": "table",
+      "layout": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_build_info * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "发布者阻塞前可用内存",
+      "description": "发布者阻塞前可用内存。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "(rabbitmq_resident_memory_limit_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_resident_memory_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "(rabbitmq_resident_memory_limit_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_resident_memory_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0,
+        "criticalThreshold": 536870912.0
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "发布者阻塞前可用磁盘空间",
+      "description": "发布者阻塞前可用磁盘空间。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_disk_space_available_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_disk_space_available_bytes * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 1,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 1073741824.0,
+        "criticalThreshold": 5368709120.0
+      }
+    },
+    {
+      "id": "grafana-2",
+      "title": "可用文件描述符",
+      "description": "可用文件描述符。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "(rabbitmq_process_max_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_open_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "(rabbitmq_process_max_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_open_fds * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 500.0,
+        "criticalThreshold": 1000.0
+      }
+    },
+    {
+      "id": "grafana-5",
+      "title": "可用 TCP 套接字",
+      "description": "可用 TCP 套接字。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 3,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "(rabbitmq_process_max_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_open_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "(rabbitmq_process_max_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) -\n(rabbitmq_process_open_tcp_sockets * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 500.0,
+        "criticalThreshold": 1000.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "待投递给消费者的消息",
+      "description": "待投递给消费者的消息。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_queue_messages_ready * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-19",
+      "title": "等待消费者确认的消息",
+      "description": "等待消费者确认的消息。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rabbitmq_queue_messages_unacked * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-13",
+      "title": "每秒发布消息数",
+      "description": "每秒发布消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_received_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "每秒向发布者确认消息数",
+      "description": "每秒向发布者确认消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-61",
+      "title": "每秒路由到队列的消息数",
+      "description": "每秒路由到队列的消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_routed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_routed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "每秒未向发布者确认的消息数",
+      "description": "每秒未向发布者确认的消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_received_confirm_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"} - \nrate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}\n) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_received_confirm_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"} - \nrate(rabbitmq_global_messages_confirmed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}\n) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-34",
+      "title": "每秒丢弃的不可路由消息数",
+      "description": "每秒丢弃的不可路由消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_unroutable_dropped_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_unroutable_dropped_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "每秒退回发布者的不可路由消息数",
+      "description": "每秒退回发布者的不可路由消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_unroutable_returned_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_unroutable_returned_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "每秒投递消息数",
+      "description": "每秒投递消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(\n  (rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\n  (rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})\n) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(\n  (rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) +\n  (rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"})\n) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-15",
+      "title": "每秒重新投递消息数",
+      "description": "每秒重新投递消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_redelivered_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 20.0,
+        "criticalThreshold": 100.0
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "每秒手动确认模式投递消息数",
+      "description": "每秒手动确认模式投递消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_delivered_consume_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "每秒自动确认模式投递消息数",
+      "description": "每秒自动确认模式投递消息数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_delivered_consume_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "每秒确认消息数",
+      "description": "每秒确认消息数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_acknowledged_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_acknowledged_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "每秒自动确认轮询次数",
+      "description": "每秒自动确认轮询次数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_delivered_get_auto_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-25",
+      "title": "每秒无结果轮询次数",
+      "description": "每秒无结果轮询次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_get_empty_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_get_empty_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-23",
+      "title": "每秒手动确认轮询次数",
+      "description": "每秒手动确认轮询次数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_global_messages_delivered_get_manual_ack_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.0
+      }
+    },
+    {
+      "id": "grafana-57",
+      "title": "队列总数",
+      "description": "队列总数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_queues * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-58",
+      "title": "每秒声明队列数",
+      "description": "每秒声明队列数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 15,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_queues_declared_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_queues_declared_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-60",
+      "title": "每秒创建队列数",
+      "description": "每秒创建队列数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 15,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_queues_created_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_queues_created_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-59",
+      "title": "每秒删除队列数",
+      "description": "每秒删除队列数。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 15,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_queues_deleted_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_queues_deleted_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-54",
+      "title": "通道总数",
+      "description": "通道总数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_channels * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-55",
+      "title": "每秒打开通道数",
+      "description": "每秒打开通道数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 17,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_channels_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_channels_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-56",
+      "title": "每秒关闭通道数",
+      "description": "每秒关闭通道数。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 17,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_channels_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_channels_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-47",
+      "title": "连接总数",
+      "description": "连接总数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rabbitmq_connections * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-48",
+      "title": "每秒新建连接数",
+      "description": "每秒新建连接数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 18,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_connections_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_connections_opened_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    },
+    {
+      "id": "grafana-49",
+      "title": "每秒关闭连接数",
+      "description": "每秒关闭连接数。",
+      "type": "line",
+      "layout": {
+        "x": 3,
+        "y": 18,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(rabbitmq_connections_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+        "params": {},
+        "legend": "{{rabbitmq_node}}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(rabbitmq_connections_closed_total[60s]) * on(instance, job) group_left(rabbitmq_cluster, rabbitmq_node) rabbitmq_identity_info{rabbitmq_cluster=\"$rabbitmq_cluster\", namespace=\"$namespace\", cluster_id=~\"${cluster_id:regex}\"}) by(rabbitmq_node)",
+            "legend": "{{rabbitmq_node}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "short",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 2.0,
+        "criticalThreshold": 10.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

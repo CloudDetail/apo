@@ -247,7 +247,7 @@ def convert_variables(raw_variables: list[dict[str, Any]], exclude_names: set[st
     excluded = exclude_names or set()
     for raw in raw_variables:
         name = str(raw.get("name") or "").strip()
-        if not name or raw.get("type") == "datasource" or name in excluded:
+        if not name or raw.get("type") in {"datasource", "adhoc"} or name in excluded:
             continue
         current_value = variable_current_value(raw)
         all_value = str(raw.get("allValue") or ".*")
@@ -331,7 +331,7 @@ def variable_type(raw: dict[str, Any]) -> str:
     resource = RESOURCE_VARIABLES.get(name)
     if resource:
         return resource[0]
-    if raw.get("type") == "custom":
+    if raw.get("type") in {"custom", "interval"}:
         return "custom"
     return "label"
 
@@ -342,12 +342,12 @@ def variable_options(raw: dict[str, Any]) -> list[dict[str, str]]:
         for option in raw["options"]:
             value = option.get("value", option.get("text")) if isinstance(option, dict) else option
             text = option.get("text", value) if isinstance(option, dict) else option
-            if value in {None, ""}:
+            if value is None:
                 continue
             result.append({"label": str(text), "value": str(value)})
         return result
     query = raw.get("query")
-    if raw.get("type") != "custom" or not isinstance(query, str):
+    if raw.get("type") not in {"custom", "interval"} or not isinstance(query, str):
         return []
     return [{"label": item.strip(), "value": item.strip()} for item in query.split(",") if item.strip()]
 
@@ -501,6 +501,7 @@ def normalize_query(query: str, variable_names: list[str], static_custom_values:
             f'=~"${{{name}:regex}}"',
             expression,
         )
+        expression = expression.replace(f"${{{name}:value}}", f"${{{name}:raw}}")
     return expression
 
 
@@ -521,6 +522,11 @@ def promql_string_literal_value(value: str) -> str:
 def widget_type(grafana_type: Any) -> str:
     return {
         "timeseries": "line",
+        "graph": "line",
+        "heatmap": "line",
+        "nodeGraph": "line",
+        "piechart": "bar",
+        "gauge": "barGauge",
         "bargauge": "barGauge",
         "stat": "stat",
         "table": "table",
@@ -546,10 +552,27 @@ def widget_display(panel: dict[str, Any]) -> dict[str, Any]:
         "emptyText": "",
         "errorText": "",
     }
+    display.update(panel_thresholds(panel))
     table_config = table_transform_display(panel)
     if table_config:
         display.update(table_config)
     return display
+
+
+def panel_thresholds(panel: dict[str, Any]) -> dict[str, float]:
+    thresholds = panel_defaults(panel).get("thresholds") or {}
+    steps = thresholds.get("steps") if isinstance(thresholds, dict) else []
+    values = [
+        float(step["value"])
+        for step in steps or []
+        if isinstance(step, dict) and isinstance(step.get("value"), (int, float))
+    ]
+    if not values:
+        return {}
+    result = {"warningThreshold": values[0]}
+    if len(values) > 1:
+        result["criticalThreshold"] = values[-1]
+    return result
 
 
 def panel_defaults(panel: dict[str, Any]) -> dict[str, Any]:

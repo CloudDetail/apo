@@ -1,0 +1,945 @@
+{
+  "id": "",
+  "name": "Originx 北极星指标（容器层级）",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：originx-polaris-container。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "service_name",
+      "label": "服务",
+      "type": "service",
+      "value": "All",
+      "multi": true,
+      "required": false,
+      "defaultValue": "All",
+      "includeAll": true,
+      "allValue": "All",
+      "query": "label_values(kindling_span_trace_duration_nanoseconds_count{cluster_id=~\"$cluster_id\"},svc_name)",
+      "labels": [
+        "svc",
+        "svc_name",
+        "service",
+        "service_name"
+      ]
+    },
+    {
+      "name": "container_id",
+      "label": "容器 ID",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kindling_span_trace_duration_nanoseconds_count{svc_name=\"$service_name\", cluster_id=~\"$cluster_id\"},container_id)",
+      "labels": [
+        "container_id"
+      ]
+    },
+    {
+      "name": "content_key",
+      "label": "请求端点",
+      "type": "endpoint",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"$service_name\", cluster_id=~\"$cluster_id\"},content_key)",
+      "labels": [
+        "endpoint",
+        "endpoint_name",
+        "content_key",
+        "contentKey"
+      ]
+    },
+    {
+      "name": "interval",
+      "label": "采样间隔",
+      "type": "custom",
+      "value": "30s",
+      "multi": false,
+      "required": false,
+      "defaultValue": "30s",
+      "options": [
+        {
+          "label": "自动",
+          "value": "$__auto_interval_interval"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        },
+        {
+          "label": "10m",
+          "value": "10m"
+        },
+        {
+          "label": "30m",
+          "value": "30m"
+        },
+        {
+          "label": "1h",
+          "value": "1h"
+        },
+        {
+          "label": "6h",
+          "value": "6h"
+        },
+        {
+          "label": "12h",
+          "value": "12h"
+        },
+        {
+          "label": "1d",
+          "value": "1d"
+        },
+        {
+          "label": "7d",
+          "value": "7d"
+        },
+        {
+          "label": "14d",
+          "value": "14d"
+        },
+        {
+          "label": "30d",
+          "value": "30d"
+        }
+      ],
+      "query": "30s,1m,5m,10m,30m,1h,6h,12h,1d,7d,14d,30d"
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-1",
+      "title": "请求次数",
+      "description": "请求次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-6",
+      "title": "请求成功率",
+      "description": "请求成功率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{is_error=\"false\", svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) OR on() vector(0)",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{is_error=\"false\", svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) OR on() vector(0)",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-2",
+      "title": "平均响应时间",
+      "description": "平均响应时间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/1000000",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (svc_name, content_key) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/1000000",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ms",
+        "unitPreset": "milliseconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-5",
+      "title": "响应时间分位数",
+      "description": "响应时间分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "P90: 服务名={{svc_name}}, 请求端点={{content_key}}",
+        "queries": [
+          {
+            "id": "P90",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\", container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90: 服务名={{svc_name}}, 请求端点={{content_key}}"
+          },
+          {
+            "id": "P95",
+            "expression": "histogram_quantile(0.95, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P95: 服务名={{svc_name}}, 请求端点={{content_key}}"
+          },
+          {
+            "id": "P99",
+            "expression": "histogram_quantile(0.99, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P99: 服务名={{svc_name}}, 请求端点={{content_key}}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "北极星综合指标",
+      "description": "北极星综合指标。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "P90 总延时",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 总延时"
+          },
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange)) + histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 等待网络耗时"
+          },
+          {
+            "id": "D",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_file_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 等待文件耗时"
+          },
+          {
+            "id": "E",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 锁/GC耗时"
+          },
+          {
+            "id": "F",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_cpu_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 onCPU执行耗时"
+          },
+          {
+            "id": "G",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90 CPU调度耗时"
+          },
+          {
+            "id": "H",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_other_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "P90其他耗时"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "快速判断是否是网络问题：将应用和下游应用同时看即可",
+      "description": "快速判断是否是网络问题：将应用和下游应用同时看即可。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange)) + histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "{{svc_name}} 对外调用耗时",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange)) + histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "{{svc_name}} 对外调用耗时"
+          },
+          {
+            "id": "B",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_span_trace_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "{{svc_name}} 延时"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-23",
+      "title": "快速判断容器规格是否需要提升",
+      "description": "快速判断容器规格是否需要提升。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "等待CPU调度P90耗时",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "等待CPU调度P90耗时"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "TPS"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-25",
+      "title": "快速判断锁耗时是否影响了吞吐量",
+      "description": "快速判断锁耗时是否影响了吞吐量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "等待锁/GC P90耗时",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "等待锁/GC P90耗时"
+          },
+          {
+            "id": "B",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_span_trace_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "TPS"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "每次请求中在CPU上执行的平均耗时",
+      "description": "每次请求中在CPU上执行的平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_cpu_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "每次请求中在CPU上执行的耗时90%分位数",
+      "description": "每次请求中在CPU上执行的耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 8,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_cpu_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_cpu_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "每次请求中的网络平均耗时",
+      "description": "每次请求中的网络平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_net_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "每次请求中的网络耗时90%分位数",
+      "description": "每次请求中的网络耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 10,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "B",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_net_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "每次请求中的epoll网络平均耗时",
+      "description": "每次请求中的epoll网络平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 12,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_epoll_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "每次请求中的epoll网络耗时90%分位数",
+      "description": "每次请求中的epoll网络耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 12,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_epoll_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "每次请求中的锁等待或GC平均耗时",
+      "description": "每次请求中的锁等待或GC平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_futex_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-17",
+      "title": "每次请求中的锁等待或GC耗时90%分位数",
+      "description": "每次请求中的锁等待或GC耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_futex_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-13",
+      "title": "每次请求中的等待调度到CPU平均耗时",
+      "description": "每次请求中的等待调度到CPU平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 16,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_runq_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-19",
+      "title": "每次请求中的等待调度到CPU耗时90%分位数",
+      "description": "每次请求中的等待调度到CPU耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 16,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_runq_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "每次请求中的文件读写平均耗时",
+      "description": "每次请求中的文件读写平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_file_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "每次请求中的文件读写耗时90%分位数",
+      "description": "每次请求中的文件读写耗时90%分位数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 18,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_file_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(kindling_profiling_file_duration_nanoseconds_bucket{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval])) by (svc_name, content_key, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-15",
+      "title": "每次请求中的等待其他资源平均耗时",
+      "description": "每次请求中的等待其他资源平均耗时。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 20,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_sum{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))/sum by (content_key, svc_name) (increase(kindling_profiling_other_duration_nanoseconds_count{svc_name=~\"${service_name:regex}\", content_key=~\"${content_key:regex}\",container_id=~\"${container_id:regex}\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

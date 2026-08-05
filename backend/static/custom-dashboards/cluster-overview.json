@@ -1,0 +1,949 @@
+{
+  "id": "",
+  "name": "集群总览",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：cluster-overview。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "resolution",
+      "label": "精度",
+      "type": "custom",
+      "value": "1m",
+      "multi": false,
+      "required": false,
+      "defaultValue": "1m",
+      "options": [
+        {
+          "label": "1s",
+          "value": "1s"
+        },
+        {
+          "label": "15s",
+          "value": "15s"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "3m",
+          "value": "3m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        }
+      ],
+      "query": "1s, 15s, 30s, 1m, 3m, 5m"
+    },
+    {
+      "name": "job_name",
+      "label": "采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(node_cpu_seconds_total{ cluster_id=~\"$cluster_id\"},job_name)",
+      "labels": [
+        "job_name"
+      ]
+    },
+    {
+      "name": "cadvisor_job_name",
+      "label": "容器采集任务",
+      "type": "label",
+      "value": "",
+      "multi": false,
+      "required": false,
+      "defaultValue": "",
+      "query": "label_values(container_cpu_usage_seconds_total,job_name)",
+      "labels": [
+        "job_name"
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-77",
+      "title": "集群总CPU使用率",
+      "description": "集群总CPU使用率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+        "params": {},
+        "legend": "Real Linux",
+        "queries": [
+          {
+            "id": "Real Linux",
+            "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+            "legend": "Real Linux"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-78",
+      "title": "集群总内存使用率",
+      "description": "集群总内存使用率。",
+      "type": "barGauge",
+      "layout": {
+        "x": 1,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) / sum(max_over_time(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[5m]))",
+        "params": {},
+        "legend": "Real Linux",
+        "queries": [
+          {
+            "id": "Real Linux",
+            "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) / sum(max_over_time(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[5m]))",
+            "legend": "Real Linux"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-59",
+      "title": "命名空间数量",
+      "description": "命名空间数量。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-63",
+      "title": "节点数",
+      "description": "节点数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 1,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(group by (instance_name) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(group by (instance_name) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-37",
+      "title": "CPU使用量",
+      "description": "CPU使用量。",
+      "type": "stat",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "Real Linux",
+        "queries": [
+          {
+            "id": "Real Linux",
+            "expression": "sum(rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Real Linux"
+          },
+          {
+            "id": "Total",
+            "expression": "max_over_time(sum ((group by (instance_name,cpu) (node_cpu_seconds_total{job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})))[5m])",
+            "legend": "总量"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-39",
+      "title": "内存使用量",
+      "description": "内存使用量。",
+      "type": "stat",
+      "layout": {
+        "x": 1,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "Real Linux",
+        "queries": [
+          {
+            "id": "Real Linux",
+            "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "Real Linux"
+          },
+          {
+            "id": "Total",
+            "expression": "sum(max_over_time(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[5m]))",
+            "legend": "总量"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-62",
+      "title": "运行的Pod数",
+      "description": "运行的Pod数。",
+      "type": "stat",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(group by (pod) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+        "params": {},
+        "legend": "",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(group by (pod) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}))",
+            "legend": ""
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-72",
+      "title": "集群CPU使用率",
+      "description": "集群CPU使用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+        "params": {},
+        "legend": "Linux",
+        "queries": [
+          {
+            "id": "Linux",
+            "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])))",
+            "legend": "Linux"
+          },
+          {
+            "id": "Windows",
+            "expression": "1 - avg(rate(windows_cpu_time_total{mode=\"idle\", job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Windows"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.5,
+        "criticalThreshold": 0.7
+      }
+    },
+    {
+      "id": "grafana-55",
+      "title": "集群内存使用率",
+      "description": "集群内存使用率。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 3,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) / sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})",
+        "params": {},
+        "legend": "Linux",
+        "queries": [
+          {
+            "id": "Linux",
+            "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) / sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "Linux"
+          },
+          {
+            "id": "Windows",
+            "expression": "sum(windows_os_visible_memory_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - windows_memory_available_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) / sum(windows_os_visible_memory_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"})",
+            "legend": "Windows"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 0.5,
+        "criticalThreshold": 0.7
+      }
+    },
+    {
+      "id": "grafana-44",
+      "title": "集群整体网络带宽(按设备统计)",
+      "description": "集群整体网络带宽(按设备统计)。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (device)",
+        "params": {},
+        "legend": "接收 : {{ device }}",
+        "queries": [
+          {
+            "id": "Linux Received",
+            "expression": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (device)",
+            "legend": "接收 : {{ device }}"
+          },
+          {
+            "id": "Linux Transmitted",
+            "expression": "- sum(rate(node_network_transmit_bytes_total{device!~\"(veth|azv|lxc|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (device)",
+            "legend": "发送 : {{ device }}"
+          },
+          {
+            "id": "Windows Received",
+            "expression": "sum(rate(windows_net_bytes_received_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (nic)",
+            "legend": "接收 : {{ nic }}"
+          },
+          {
+            "id": "Windows Transmitted",
+            "expression": "- sum(rate(windows_net_bytes_sent_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (nic)",
+            "legend": "发送 : {{ device }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-53",
+      "title": "网络饱和 - 丢包数",
+      "description": "网络饱和 - 丢包数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 5,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_network_receive_drop_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+        "params": {},
+        "legend": "Linux Packets dropped (接收)",
+        "queries": [
+          {
+            "id": "Linux Packets dropped (receive)",
+            "expression": "sum(rate(node_network_receive_drop_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Linux Packets dropped (接收)"
+          },
+          {
+            "id": "Linux Packets dropped (transmit)",
+            "expression": "- sum(rate(node_network_transmit_drop_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Linux Packets dropped (发送)"
+          },
+          {
+            "id": "Windows Packets dropped (receive)",
+            "expression": "sum(rate(windows_net_packets_received_discarded_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Windows Packets dropped (接收)"
+          },
+          {
+            "id": "Windows Packets dropped (transmit)",
+            "expression": "- sum(rate(windows_net_packets_outbound_discarded_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))",
+            "legend": "Windows Packets dropped (发送)"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-54",
+      "title": "节点CPU使用率",
+      "description": "节点CPU使用率。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))) by (instance_name)",
+        "params": {},
+        "legend": "{{ node }}",
+        "queries": [
+          {
+            "id": "Linux",
+            "expression": "avg(sum by (instance_name, cpu) (rate(node_cpu_seconds_total{mode!~\"idle|iowait|steal\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))) by (instance_name)",
+            "legend": "{{ node }}"
+          },
+          {
+            "id": "Windows",
+            "expression": "avg(sum by (instance_name,core) (rate(windows_cpu_time_total{mode!=\"idle\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval]))) by (instance_name)",
+            "legend": "{{ node }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "%",
+        "unitPreset": "percent",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-73",
+      "title": "节点内存使用量",
+      "description": "节点内存使用量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 7,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (instance_name)",
+        "params": {},
+        "legend": "{{ instance_name }}",
+        "queries": [
+          {
+            "id": "Linux",
+            "expression": "sum(node_memory_MemTotal_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - node_memory_MemAvailable_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (instance_name)",
+            "legend": "{{ instance_name }}"
+          },
+          {
+            "id": "Windows",
+            "expression": "sum(windows_os_visible_memory_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"} - windows_memory_available_bytes{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (instance_name)",
+            "legend": "{{ instance_name }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-80",
+      "title": "节点的网络使用量",
+      "description": "节点的网络使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_network_receive_bytes_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+        "params": {},
+        "legend": "接收: {{ instance_name }}",
+        "queries": [
+          {
+            "id": "Linux Received bytes",
+            "expression": "sum(rate(node_network_receive_bytes_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "接收: {{ instance_name }}"
+          },
+          {
+            "id": "Linux Transmitted bytes",
+            "expression": "- sum(rate(node_network_transmit_bytes_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "发送: {{ instance_name }}"
+          },
+          {
+            "id": "Windows Received bytes",
+            "expression": "sum(rate(windows_net_bytes_received_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "接收 bytes in {{ instance_name }}"
+          },
+          {
+            "id": "Windows Transmitted bytes",
+            "expression": "- sum(rate(windows_net_bytes_sent_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "发送 bytes in {{ instance_name }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-56",
+      "title": "节点的网络使用量(不含回环/虚拟设备)",
+      "description": "节点的网络使用量(不含回环/虚拟设备)。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|lo|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+        "params": {},
+        "legend": "接收 bytes in {{ instance_name }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(node_network_receive_bytes_total{device!~\"(veth|azv|lxc|lo|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "接收 bytes in {{ instance_name }}"
+          },
+          {
+            "id": "B",
+            "expression": "- sum(rate(node_network_transmit_bytes_total{device!~\"(veth|azv|lxc|lo|cali).*\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "发送 bytes in {{ instance_name }}"
+          },
+          {
+            "id": "C",
+            "expression": "sum(rate(windows_net_bytes_received_total{nic!~\".*Virtual.*\", job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "接收 bytes in {{ instance_name }}"
+          },
+          {
+            "id": "D",
+            "expression": "- sum(rate(windows_net_bytes_sent_total{nic!~\".*Virtual.*\", job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "发送 bytes in {{ instance_name }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-81",
+      "title": "节点的网络使用量(仅回环)",
+      "description": "节点的网络使用量(仅回环)。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_network_receive_bytes_total{device=\"lo\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+        "params": {},
+        "legend": "接收 bytes in {{ instance_name }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(node_network_receive_bytes_total{device=\"lo\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "接收 bytes in {{ instance_name }}"
+          },
+          {
+            "id": "B",
+            "expression": "- sum(rate(node_network_transmit_bytes_total{device=\"lo\",  job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "发送 bytes in {{ instance_name }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-83",
+      "title": "节点CPU限流时长",
+      "description": "节点CPU限流时长。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(node_cpu_core_throttles_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+        "params": {},
+        "legend": "{{ instance_name }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(node_cpu_core_throttles_total{ job_name=\"$job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (instance_name)",
+            "legend": "{{ instance_name }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-46",
+      "title": "命名空间的CPU使用量",
+      "description": "命名空间的CPU使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_cpu_usage_seconds_total{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+        "params": {},
+        "legend": "{{ namespace }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum(rate(container_cpu_usage_seconds_total{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+            "legend": "{{ namespace }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum(rate(container_cpu_usage_seconds_total{ job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+            "legend": "{{ namespace }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-82",
+      "title": "命名空间的CPU限流时长",
+      "description": "命名空间的CPU限流时长。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 13,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_cpu_cfs_throttled_seconds_total{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) > 0",
+        "params": {},
+        "legend": "{{ namespace }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum(rate(container_cpu_cfs_throttled_seconds_total{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) > 0",
+            "legend": "{{ namespace }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum(rate(container_cpu_cfs_throttled_seconds_total{job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace) > 0",
+            "legend": "{{ namespace }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "s",
+        "unitPreset": "seconds",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-79",
+      "title": "命名空间的网络使用量",
+      "description": "命名空间的网络使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(rate(container_network_receive_bytes_total{namespace!=\"\",job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace)\nOR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+        "params": {},
+        "legend": "接收 : {{ namespace }}",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum(rate(container_network_receive_bytes_total{namespace!=\"\",job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace)\nOR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+            "legend": "接收 : {{ namespace }}"
+          },
+          {
+            "id": "B",
+            "expression": "- (sum(rate(container_network_transmit_bytes_total{namespace!=\"\",job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}[$__rate_interval])) by (namespace)\nOR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 ) )",
+            "legend": "发送 : {{ namespace }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-50",
+      "title": "命名空间的内存使用量",
+      "description": "命名空间的内存使用量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 15,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum(container_memory_working_set_bytes{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (namespace)\n OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+        "params": {},
+        "legend": "{{ namespace }}",
+        "queries": [
+          {
+            "id": "Containerd",
+            "expression": "sum(container_memory_working_set_bytes{image!=\"\", job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) by (namespace)\n OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+            "legend": "{{ namespace }}"
+          },
+          {
+            "id": "Docker",
+            "expression": "sum(container_memory_working_set_bytes{job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}) by (namespace)\n OR (group by (namespace) (container_memory_rss{job_name=\"$cadvisor_job_name\",id=~\".*docker.*\", cluster_id=~\"${cluster_id:regex}\"}) * 0 )",
+            "legend": "{{ namespace }}"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}

@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "sourceRepository": "apo-init-dashboards",
+  "sourceRevision": "30de16b",
+  "sourceDashboardCount": 18,
+  "generatedDashboardCount": 18,
+  "importedPanelCount": 506,
+  "promQLQueryCount": 937,
+  "unsupportedPanelCount": 70,
+  "unsupportedSources": [
+    {
+      "path": "zh/default/Java-Agent-Monitor.json",
+      "dashboard": "Java 探针监控",
+      "panels": 4,
+      "reason": "面板使用 ClickHouse SQL，当前我的面板仅支持 PromQL 查询"
+    },
+    {
+      "path": "zh/middleware/nginx.json",
+      "dashboard": "NGINX 请求日志分析",
+      "panels": 65,
+      "reason": "面板使用 ClickHouse SQL 和动态日志表，当前我的面板仅支持 PromQL 查询"
+    },
+    {
+      "path": "en/default/Originx-Otel-Collector.json",
+      "dashboard": "OpenTelemetry Collector 指标",
+      "panels": 1,
+      "reason": "Grafana 文本说明面板不属于当前我的面板组件类型"
+    }
+  ],
+  "dashboards": [
+    {
+      "id": "cluster-overview",
+      "file": "cluster-overview.json",
+      "name": "集群总览",
+      "category": "cluster",
+      "source": "zh/default/ClusterOverview.json",
+      "widgets": 21,
+      "queries": 44
+    },
+    {
+      "id": "infrastructure",
+      "file": "infrastructure.json",
+      "name": "基础设施情况",
+      "category": "infrastructure",
+      "source": "zh/default/Infrastructure.json",
+      "widgets": 32,
+      "queries": 72
+    },
+    {
+      "id": "node-exporter-overview",
+      "file": "node-exporter-overview.json",
+      "name": "宿主机监控指标 - 概览、CPU 与内存",
+      "category": "infrastructure",
+      "source": "zh/default/Node-Exporter-Full.json",
+      "widgets": 42,
+      "queries": 98
+    },
+    {
+      "id": "node-exporter-system",
+      "file": "node-exporter-system.json",
+      "name": "宿主机监控指标 - 系统与硬件",
+      "category": "infrastructure",
+      "source": "zh/default/Node-Exporter-Full.json",
+      "widgets": 25,
+      "queries": 52
+    },
+    {
+      "id": "node-exporter-storage-network",
+      "file": "node-exporter-storage-network.json",
+      "name": "宿主机监控指标 - 存储与网络",
+      "category": "infrastructure",
+      "source": "zh/default/Node-Exporter-Full.json",
+      "widgets": 49,
+      "queries": 96
+    },
+    {
+      "id": "originx-data-monitor",
+      "file": "originx-data-monitor.json",
+      "name": "Originx 数据自监控",
+      "category": "observability",
+      "source": "zh/default/Originx-Data-Monitor.json",
+      "widgets": 7,
+      "queries": 11
+    },
+    {
+      "id": "originx-polaris-container",
+      "file": "originx-polaris-container.json",
+      "name": "Originx 北极星指标（容器层级）",
+      "category": "application",
+      "source": "zh/default/Originx-Polaris-Metrics-Container.json",
+      "widgets": 21,
+      "queries": 32
+    },
+    {
+      "id": "originx-polaris-service",
+      "file": "originx-polaris-service.json",
+      "name": "Originx 北极星指标（服务层级）",
+      "category": "application",
+      "source": "zh/default/Originx-Polaris-Metrics.json",
+      "widgets": 20,
+      "queries": 31
+    },
+    {
+      "id": "service-middleware",
+      "file": "service-middleware.json",
+      "name": "服务调用中间件",
+      "category": "middleware",
+      "source": "zh/default/Service-MiddleWare-Metrics.json",
+      "widgets": 3,
+      "queries": 3
+    },
+    {
+      "id": "thread-polaris-container",
+      "file": "thread-polaris-container.json",
+      "name": "线程级北极星指标（容器）",
+      "category": "application",
+      "source": "zh/default/Thread Polaris Metrics-zh.json",
+      "widgets": 41,
+      "queries": 88
+    },
+    {
+      "id": "thread-polaris-vm",
+      "file": "thread-polaris-vm.json",
+      "name": "线程级北极星指标（虚拟机）",
+      "category": "application",
+      "source": "zh/default/Thread-Polaris-Metrics-VM-zh.json",
+      "widgets": 41,
+      "queries": 88
+    },
+    {
+      "id": "elasticsearch",
+      "file": "elasticsearch.json",
+      "name": "Elasticsearch 指标",
+      "category": "middleware",
+      "source": "zh/middleware/es.json",
+      "widgets": 55,
+      "queries": 81
+    },
+    {
+      "id": "kafka",
+      "file": "kafka.json",
+      "name": "Kafka 指标",
+      "category": "middleware",
+      "source": "zh/middleware/kafka.json",
+      "widgets": 21,
+      "queries": 22
+    },
+    {
+      "id": "mysql",
+      "file": "mysql.json",
+      "name": "MySQL 指标",
+      "category": "middleware",
+      "source": "zh/middleware/mysql-temp-zh-cn.json",
+      "widgets": 27,
+      "queries": 66
+    },
+    {
+      "id": "rabbitmq-exporter",
+      "file": "rabbitmq-exporter.json",
+      "name": "RabbitMQ Exporter 指标",
+      "category": "middleware",
+      "source": "zh/middleware/rabbitmq-exporter.json",
+      "widgets": 12,
+      "queries": 18
+    },
+    {
+      "id": "rabbitmq-official",
+      "file": "rabbitmq-official.json",
+      "name": "RabbitMQ 官方指标",
+      "category": "middleware",
+      "source": "zh/middleware/rabbitmq-official.json",
+      "widgets": 41,
+      "queries": 41
+    },
+    {
+      "id": "redis",
+      "file": "redis.json",
+      "name": "Redis 指标",
+      "category": "middleware",
+      "source": "zh/middleware/redis.json",
+      "widgets": 15,
+      "queries": 30
+    },
+    {
+      "id": "otel-collector",
+      "file": "otel-collector.json",
+      "name": "OpenTelemetry Collector 指标",
+      "category": "observability",
+      "source": "en/default/Originx-Otel-Collector.json",
+      "widgets": 33,
+      "queries": 64
+    }
+  ]
+}

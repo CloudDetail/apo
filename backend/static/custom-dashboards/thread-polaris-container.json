@@ -1,0 +1,1824 @@
+{
+  "id": "",
+  "name": "线程级北极星指标（容器）",
+  "description": "从 Grafana 面板迁移并汉化，已转换为“我的面板”原生格式。来源：thread-polaris-container。",
+  "ownerId": 0,
+  "creator": "",
+  "visibility": "everyone",
+  "teamIds": [],
+  "variables": [
+    {
+      "name": "cluster_id",
+      "label": "集群",
+      "type": "cluster",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "SELECT DISTINCT scope_id AS __value, \nCASE \n  WHEN c.name != '' THEN c.name\n  ELSE scope_id\nEND AS __text\nFROM data_scope \nLEFT JOIN clusters c ON scope_id  = c.id\nWHERE type = 'cluster'",
+      "labels": [
+        "cluster",
+        "cluster_id",
+        "clusterId",
+        "clusterID",
+        "cluster_name"
+      ]
+    },
+    {
+      "name": "namespace",
+      "label": "命名空间",
+      "type": "namespace",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(container_cpu_usage_seconds_total{cluster_id=~\"$cluster_id\"},namespace)",
+      "labels": [
+        "namespace",
+        "namespace_name",
+        "namespaceName",
+        "src_namespace",
+        "dst_namespace"
+      ]
+    },
+    {
+      "name": "pod",
+      "label": "Pod 实例",
+      "type": "pod",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(container_cpu_usage_seconds_total{namespace=\"$namespace\", cluster_id=~\"$cluster_id\"},pod)",
+      "labels": [
+        "pod",
+        "pod_name",
+        "src_pod",
+        "dst_pod"
+      ]
+    },
+    {
+      "name": "container_id",
+      "label": "容器 ID",
+      "type": "label",
+      "value": ".*",
+      "multi": false,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(container_cpu_usage_seconds_total{pod=\"$pod\", namespace=\"$namespace\", cluster_id=~\"$cluster_id\"},name)",
+      "labels": [
+        "name"
+      ]
+    },
+    {
+      "name": "tid",
+      "label": "线程",
+      "type": "label",
+      "value": ".*",
+      "multi": true,
+      "required": false,
+      "defaultValue": ".*",
+      "includeAll": true,
+      "allValue": ".*",
+      "query": "label_values(originx_thread_polaris_nanoseconds_count{container_id=\"$container_id\", cluster_id=~\"$cluster_id\"},tid_key)",
+      "labels": [
+        "tid_key"
+      ]
+    },
+    {
+      "name": "interval",
+      "label": "采样间隔",
+      "type": "custom",
+      "value": "1m",
+      "multi": false,
+      "required": false,
+      "defaultValue": "1m",
+      "options": [
+        {
+          "label": "15s",
+          "value": "15s"
+        },
+        {
+          "label": "30s",
+          "value": "30s"
+        },
+        {
+          "label": "1m",
+          "value": "1m"
+        },
+        {
+          "label": "5m",
+          "value": "5m"
+        },
+        {
+          "label": "10m",
+          "value": "10m"
+        },
+        {
+          "label": "30m",
+          "value": "30m"
+        },
+        {
+          "label": "1h",
+          "value": "1h"
+        },
+        {
+          "label": "6h",
+          "value": "6h"
+        },
+        {
+          "label": "12h",
+          "value": "12h"
+        },
+        {
+          "label": "1d",
+          "value": "1d"
+        },
+        {
+          "label": "7d",
+          "value": "7d"
+        }
+      ],
+      "query": "15s,30s,1m,5m,10m,30m,1h,6h,12h,1d,7d"
+    }
+  ],
+  "widgets": [
+    {
+      "id": "grafana-1",
+      "title": "探针CPU使用量",
+      "description": "探针CPU使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(container_cpu_usage_seconds_total{container=\"ebpf-agent\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(container_cpu_usage_seconds_total{container=\"ebpf-agent\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-2",
+      "title": "探针内存使用量",
+      "description": "探针内存使用量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 0,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "container_memory_rss{container=\"ebpf-agent\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "container_memory_rss{container=\"ebpf-agent\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-28",
+      "title": "进程CPU使用量",
+      "description": "进程CPU使用量。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "rate(container_cpu_usage_seconds_total{name=~\"$container_id.*\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "rate(container_cpu_usage_seconds_total{name=~\"$container_id.*\", cluster_id=~\"${cluster_id:regex}\"}[2m])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-29",
+      "title": "进程内存使用量",
+      "description": "进程内存使用量。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 2,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "container_memory_rss{name=~\"$container_id.*\", cluster_id=~\"${cluster_id:regex}\"}",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "container_memory_rss{name=~\"$container_id.*\", cluster_id=~\"${cluster_id:regex}\"}",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "B",
+        "unitPreset": "bytes",
+        "autoScale": true,
+        "decimals": 0,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-46",
+      "title": "活跃线程数",
+      "description": "活跃线程数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-47",
+      "title": "各类型线程数",
+      "description": "各类型线程数。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 4,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+        "params": {},
+        "legend": "Futex 等待",
+        "queries": [
+          {
+            "id": "futex",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "net",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "file",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "other",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "count(increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval]) > 0) or 0",
+            "legend": "运行队列"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-40",
+      "title": "CPU 耗时分布",
+      "description": "CPU 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-38",
+      "title": "Futex 耗时分布",
+      "description": "Futex 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 6,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-41",
+      "title": "Net 耗时分布",
+      "description": "Net 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-42",
+      "title": "Epoll 耗时分布",
+      "description": "Epoll 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 9,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-43",
+      "title": "File 耗时分布",
+      "description": "File 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-44",
+      "title": "Other 耗时分布",
+      "description": "Other 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 11,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-45",
+      "title": "Runq 耗时分布",
+      "description": "Runq 耗时分布。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "sum by (le)(increase(prometheus_buckets(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"})[$interval]))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-31",
+      "title": "OnCPU调用次数",
+      "description": "OnCPU调用次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-35",
+      "title": "Futex 等待",
+      "description": "Futex 等待。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 17,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-33",
+      "title": "Net调用次数",
+      "description": "Net调用次数。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 19,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-34",
+      "title": "Epoll 等待",
+      "description": "Epoll 等待。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 19,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-32",
+      "title": "文件 I/O",
+      "description": "文件 I/O。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 21,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-36",
+      "title": "其他等待",
+      "description": "其他等待。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 21,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-37",
+      "title": "运行队列",
+      "description": "运行队列。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 23,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-48",
+      "title": "空闲",
+      "description": "空闲。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 23,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_count{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "",
+        "unitPreset": "",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-11",
+      "title": "CPU 执行时间",
+      "description": "CPU 执行时间。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 25,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-16",
+      "title": "CPU 执行时间 P90",
+      "description": "CPU 执行时间 P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 25,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-7",
+      "title": "文件 I/O",
+      "description": "文件 I/O。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 27,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-17",
+      "title": "文件 I/O P90",
+      "description": "文件 I/O P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 27,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-8",
+      "title": "网络 I/O",
+      "description": "网络 I/O。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 29,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-18",
+      "title": "网络 I/O P90",
+      "description": "网络 I/O P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 29,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-9",
+      "title": "Epoll 等待",
+      "description": "Epoll 等待。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 31,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-19",
+      "title": "Epoll 等待 P90",
+      "description": "Epoll 等待 P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 31,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-3",
+      "title": "Futex 等待",
+      "description": "Futex 等待。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 33,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-20",
+      "title": "Futex 等待 P90",
+      "description": "Futex 等待 P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 33,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-10",
+      "title": "其他等待",
+      "description": "其他等待。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 35,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-22",
+      "title": "其他等待 P90",
+      "description": "其他等待 P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 35,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-12",
+      "title": "运行队列延迟",
+      "description": "运行队列延迟。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 37,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-21",
+      "title": "运行队列延迟 P90",
+      "description": "运行队列延迟 P90。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 37,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+        "params": {},
+        "legend": "__auto",
+        "queries": [
+          {
+            "id": "A",
+            "expression": "histogram_quantile(0.9, sum(rate(originx_thread_polaris_nanoseconds_bucket{container_id=~\"${container_id:regex}\", tid_key=~\"${tid:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval]))  by (container_id, tid, vmrange))",
+            "legend": "__auto"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-25",
+      "title": "各类型耗时叠图",
+      "description": "各类型耗时叠图。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 39,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-24",
+      "title": "各类型耗时折线图",
+      "description": "各类型耗时折线图。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 39,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-27",
+      "title": "各类型耗时占比",
+      "description": "各类型耗时占比。",
+      "type": "bar",
+      "layout": {
+        "x": 0,
+        "y": 41,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(sum without (tid_key) (originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"})[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    },
+    {
+      "id": "grafana-15",
+      "title": "各类型耗时叠图",
+      "description": "各类型耗时叠图。",
+      "type": "line",
+      "layout": {
+        "x": 0,
+        "y": 39,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-6",
+      "title": "各类型耗时折线图",
+      "description": "各类型耗时折线图。",
+      "type": "line",
+      "layout": {
+        "x": 2,
+        "y": 39,
+        "w": 2,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": "",
+        "warningThreshold": 80.0
+      }
+    },
+    {
+      "id": "grafana-14",
+      "title": "各类型总耗时占比",
+      "description": "各类型总耗时占比。",
+      "type": "bar",
+      "layout": {
+        "x": 0,
+        "y": 42,
+        "w": 1,
+        "h": 1
+      },
+      "query": {
+        "mode": "custom",
+        "presetId": "",
+        "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+        "params": {},
+        "legend": "OnCPU",
+        "queries": [
+          {
+            "id": "oncpu",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"cpu\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "OnCPU"
+          },
+          {
+            "id": "File",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"file\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "文件 I/O"
+          },
+          {
+            "id": "net",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"net\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "网络 I/O"
+          },
+          {
+            "id": "epoll",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"epoll\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Epoll 等待"
+          },
+          {
+            "id": "futex",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"futex\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Futex 等待"
+          },
+          {
+            "id": "idle",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"idle\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "空闲"
+          },
+          {
+            "id": "other",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"other\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "其他等待"
+          },
+          {
+            "id": "runq",
+            "expression": "increase(originx_thread_polaris_nanoseconds_sum{container_id=~\"${container_id:regex}\", tid_key=\"$tid\", type=\"runq\", cluster_id=~\"${cluster_id:regex}\"}[$interval])",
+            "legend": "Runqueue"
+          }
+        ]
+      },
+      "display": {
+        "unit": "ns",
+        "unitPreset": "custom",
+        "autoScale": false,
+        "decimals": 2,
+        "emptyText": "",
+        "errorText": ""
+      }
+    }
+  ],
+  "timeRange": {},
+  "refreshSeconds": 0,
+  "canEdit": false,
+  "canDelete": false,
+  "canCopy": false,
+  "createdAt": 0,
+  "updatedAt": 0,
+  "lastVisitedAt": 0
+}
