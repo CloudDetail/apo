@@ -1135,7 +1135,7 @@
   max-width: 100%;
   overflow: hidden;
   color: var(--ant-color-text);
-  font-size: 56px;
+  font-size: clamp(28px, 3vw, 42px);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -1231,9 +1231,9 @@
 }
 
 .custom-dashboard-bar-gauge-value {
-  min-width: 88px;
+  min-width: 72px;
   text-align: right;
-  font-size: clamp(24px, 2.6vw, 38px);
+  font-size: clamp(20px, 2vw, 30px);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;

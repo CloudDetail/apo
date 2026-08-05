@@ -35,12 +35,21 @@ func TestDefaultCustomDashboardSQLIsIdempotentAndPreservesChanges(t *testing.T) 
 	if err := db.Order("id").Find(&dashboards).Error; err != nil {
 		t.Fatalf("list imported dashboards: %v", err)
 	}
-	if len(dashboards) != 18 {
-		t.Fatalf("expected 18 imported dashboards, got %d", len(dashboards))
+	if len(dashboards) != defaultCustomDashboardCountForSQLTest {
+		t.Fatalf("expected %d imported dashboards, got %d", defaultCustomDashboardCountForSQLTest, len(dashboards))
 	}
+	nodeExporterDashboardCount := 0
 	for _, row := range dashboards {
 		if row.OwnerID != 100 {
 			t.Fatalf("dashboard %s owner = %d, want 100", row.ID, row.OwnerID)
+		}
+		if row.Name == "宿主机监控指标" {
+			nodeExporterDashboardCount++
+		}
+		if row.Name == "宿主机监控指标 - 概览、CPU 与内存" ||
+			row.Name == "宿主机监控指标 - 系统与硬件" ||
+			row.Name == "宿主机监控指标 - 存储与网络" {
+			t.Fatalf("split node exporter dashboard %q should not be imported", row.Name)
 		}
 		var dashboard customdashboardmodel.Dashboard
 		if err := json.Unmarshal([]byte(row.Config), &dashboard); err != nil {
@@ -49,6 +58,9 @@ func TestDefaultCustomDashboardSQLIsIdempotentAndPreservesChanges(t *testing.T) 
 		if len(dashboard.Widgets) == 0 || len(dashboard.Widgets) > maxDashboardWidgetsForSQLTest {
 			t.Fatalf("dashboard %s widget count = %d", row.ID, len(dashboard.Widgets))
 		}
+	}
+	if nodeExporterDashboardCount != 1 {
+		t.Fatalf("expected one unsplit node exporter dashboard, got %d", nodeExporterDashboardCount)
 	}
 
 	changedID := dashboards[0].ID
@@ -63,8 +75,8 @@ func TestDefaultCustomDashboardSQLIsIdempotentAndPreservesChanges(t *testing.T) 
 	if err := db.Model(&CustomDashboard{}).Count(&count).Error; err != nil {
 		t.Fatalf("count imported dashboards: %v", err)
 	}
-	if count != 18 {
-		t.Fatalf("expected 18 dashboards after repeated initialization, got %d", count)
+	if count != defaultCustomDashboardCountForSQLTest {
+		t.Fatalf("expected %d dashboards after repeated initialization, got %d", defaultCustomDashboardCountForSQLTest, count)
 	}
 	var changed CustomDashboard
 	if err := db.Where("id = ?", changedID).First(&changed).Error; err != nil {
@@ -75,7 +87,10 @@ func TestDefaultCustomDashboardSQLIsIdempotentAndPreservesChanges(t *testing.T) 
 	}
 }
 
-const maxDashboardWidgetsForSQLTest = 60
+const (
+	defaultCustomDashboardCountForSQLTest = 16
+	maxDashboardWidgetsForSQLTest         = 120
+)
 
 func TestDefaultCustomDashboardSQLPath(t *testing.T) {
 	for _, dialect := range []string{"sqlite", "mysql", "postgres"} {

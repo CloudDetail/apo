@@ -20,7 +20,12 @@ import import_custom_dashboard_json
 
 
 SOURCE_REVISION = "30de16b"
-MAX_WIDGETS = 60
+MAX_WIDGETS = 120
+LEGACY_NODE_EXPORTER_OUTPUTS = (
+    "node-exporter-overview.json",
+    "node-exporter-system.json",
+    "node-exporter-storage-network.json",
+)
 
 SOURCES = [
     ("cluster-overview", "zh/default/ClusterOverview.json", "集群总览", "cluster"),
@@ -91,16 +96,16 @@ PANEL_TITLES = {
     "Memory Active / Inactive Detail": "活跃与非活跃内存明细",
     "Memory Writeback and Dirty": "回写与脏页内存",
     "Memory Shared and Mapped": "共享与映射内存",
-    "Memory Slab": "Slab 内存",
+    "Memory Slab": "内核缓存（Slab）内存",
     "Memory Vmalloc": "虚拟内存分配",
-    "Memory Bounce": "Bounce 内存",
+    "Memory Bounce": "块设备回弹缓冲区内存",
     "Memory Anonymous": "匿名内存",
     "Memory Kernel / CPU": "内核与 CPU 内存",
     "Memory HugePages Counter": "大页数量",
     "Memory HugePages Size": "大页容量",
     "Memory DirectMap": "直接映射内存",
     "Memory Unevictable and MLocked": "不可回收与锁定内存",
-    "Memory NFS": "NFS 内存",
+    "Memory NFS": "网络文件系统（NFS）内存",
     "Memory Pages In / Out": "内存页面换入换出",
     "Memory Pages Swap In / Out": "交换页面换入换出",
     "Memory Page Faults": "内存缺页",
@@ -157,12 +162,12 @@ PANEL_TITLES = {
     "MTU": "MTU 配置",
     "Speed": "网卡速率",
     "Queue Length": "发送队列长度",
-    "Softnet Packets": "Softnet 数据包",
-    "Softnet Out of Quota": "Softnet 超限",
+    "Softnet Packets": "网络软中断数据包",
+    "Softnet Out of Quota": "网络软中断处理超限",
     "Network Operational Status": "网络运行状态",
     "Sockstat TCP": "TCP 套接字统计",
     "Sockstat UDP": "UDP 套接字统计",
-    "Sockstat FRAG / RAW": "FRAG 与 RAW 套接字统计",
+    "Sockstat FRAG / RAW": "IP 分片与原始套接字统计",
     "Sockstat Memory Size": "套接字内存",
     "Sockstat Used": "已用套接字",
     "Netstat IP In / Out Octets": "IP 收发字节",
@@ -178,8 +183,8 @@ PANEL_TITLES = {
     "TCP SYN Cookie": "TCP SYN Cookie 状态",
     "TCP Direct Transition": "TCP 直接状态转换",
     "TCP Stat": "TCP 状态统计",
-    "Node Exporter Scrape Time": "Node Exporter 采集耗时",
-    "Node Exporter Scrape": "Node Exporter 采集状态",
+    "Node Exporter Scrape Time": "节点指标采集耗时",
+    "Node Exporter Scrape": "节点指标采集状态",
     "Futex": "Futex 等待",
     "Epoll": "Epoll 等待",
     "File": "文件 I/O",
@@ -354,6 +359,237 @@ LEGEND_REPLACEMENTS = [
     ("Error", "错误"), ("Requests", "请求"), ("Connections", "连接"), ("Messages", "消息"),
 ]
 
+NODE_EXPORTER_LEGEND_TRANSLATIONS = {
+    "CPU": "CPU 指标",
+    "Mem": "内存指标",
+    "I/O": "I/O 指标",
+    "Busy System": "系统态繁忙",
+    "Busy User": "用户态繁忙",
+    "Busy Iowait": "I/O 等待",
+    "Busy IRQs": "中断处理繁忙",
+    "Busy Other": "其他繁忙",
+    "Idle": "空闲",
+    "RAM Total": "内存总容量",
+    "RAM Used": "内存使用率",
+    "RAM Cache + Buffer": "缓存与缓冲区",
+    "RAM Free": "可用内存",
+    "SWAP Used": "交换空间使用率",
+    "recv {{device}}": "接收 {{device}}",
+    "trans {{device}} ": "发送 {{device}}",
+    "System - Processes executing in kernel mode": "系统态 - 内核模式进程",
+    "User - Normal processes executing in user mode": "用户态 - 普通用户进程",
+    "Nice - Niced processes executing in user mode": "低优先级 - 调整过优先级的用户进程",
+    "Iowait - Waiting for I/O to complete": "I/O 等待 - 等待输入输出完成",
+    "Irq - Servicing interrupts": "硬中断 - 处理硬件中断",
+    "Softirq - Servicing softirqs": "软中断 - 处理软件中断",
+    "Steal - Time spent in other operating systems when running in a virtualized environment": "虚拟化窃取 - 被其他虚拟机占用的 CPU 时间",
+    "Idle - Waiting for something to happen": "空闲 - 等待任务",
+    "Apps - Memory used by user-space applications": "应用程序 - 用户空间应用占用内存",
+    "PageTables - Memory used to map between virtual and physical memory addresses": "页表 - 虚拟地址与物理地址映射内存",
+    "SwapCache - Memory that keeps track of pages that have been fetched from swap but not yet been modified": "交换缓存 - 已从交换空间读回且尚未修改的页面",
+    "Slab - Memory used by the kernel to cache data structures for its own use (caches like inode, dentry, etc)": "内核缓存 - 内核数据结构缓存（如 inode、dentry）",
+    "Cache - Parked file data (file content) cache": "文件缓存 - 缓存的文件内容",
+    "Buffers - Block device (e.g. harddisk) cache": "块设备缓冲区 - 磁盘等块设备缓存",
+    "Unused - Free memory unassigned": "未使用 - 尚未分配的可用内存",
+    "Swap - Swap space used": "交换空间 - 已使用容量",
+    "Hardware Corrupted - Amount of RAM that the kernel identified as corrupted / not working": "硬件损坏 - 内核识别为损坏或不可用的内存",
+    "{{device}} - Receive": "{{device}} - 接收",
+    "{{device}} - Transmit": "{{device}} - 发送",
+    "{{device}} - Reads completed": "{{device}} - 已完成读取",
+    "{{device}} - Writes completed": "{{device}} - 已完成写入",
+    "{{device}} - Successfully read bytes": "{{device}} - 成功读取字节数",
+    "{{device}} - Successfully written bytes": "{{device}} - 成功写入字节数",
+    "Guest - Time spent running a virtual CPU for a guest operating system": "虚拟机 - 客户操作系统虚拟 CPU 运行时间",
+    "GuestNice - Time spent running a niced guest  (virtual CPU for guest operating system)": "低优先级虚拟机 - 调整过优先级的虚拟 CPU 运行时间",
+    "Inactive - Memory which has been less recently used.  It is more eligible to be reclaimed for other purposes": "非活跃内存 - 最近较少使用且更容易被回收",
+    "Active - Memory that has been used more recently and usually not reclaimed unless absolutely necessary": "活跃内存 - 最近使用且通常不会被回收",
+    "Committed_AS - Amount of memory presently allocated on the system": "已提交内存 - 系统当前承诺分配的内存",
+    "CommitLimit - Amount of  memory currently available to be allocated on the system": "提交上限 - 系统当前可承诺分配的内存上限",
+    "Inactive_file - File-backed memory on inactive LRU list": "非活跃文件页 - 非活跃 LRU 列表中的文件页内存",
+    "Inactive_anon - Anonymous and swap cache on inactive LRU list, including tmpfs (shmem)": "非活跃匿名页 - 非活跃 LRU 中的匿名页与交换缓存（含 tmpfs）",
+    "Active_file - File-backed memory on active LRU list": "活跃文件页 - 活跃 LRU 列表中的文件页内存",
+    "Active_anon - Anonymous and swap cache on active least-recently-used (LRU) list, including tmpfs": "活跃匿名页 - 活跃 LRU 中的匿名页与交换缓存（含 tmpfs）",
+    "Writeback - Memory which is actively being written back to disk": "正在回写 - 正在写回磁盘的内存",
+    "WritebackTmp - Memory used by FUSE for temporary writeback buffers": "临时回写 - FUSE 临时回写缓冲区",
+    "Dirty - Memory which is waiting to get written back to the disk": "脏页 - 等待写回磁盘的内存",
+    "Mapped - Used memory in mapped pages files which have been mapped, such as libraries": "映射内存 - 动态库等文件映射页占用内存",
+    "Shmem - Used shared memory (shared between several processes, thus including RAM disks)": "共享内存 - 多进程共享内存（含内存盘）",
+    "ShmemHugePages - Memory used by shared memory (shmem) and tmpfs allocated  with huge pages": "共享大页 - 共享内存与 tmpfs 使用的大页内存",
+    "ShmemPmdMapped - Amount of shared (shmem/tmpfs) memory backed by huge pages": "共享大页映射 - 由大页支持的共享内存与 tmpfs",
+    "SUnreclaim - Part of Slab, that cannot be reclaimed on memory pressure": "不可回收内核缓存 - 内存压力下无法回收的部分",
+    "SReclaimable - Part of Slab, that might be reclaimed, such as caches": "可回收内核缓存 - 缓存等可回收部分",
+    "VmallocChunk - Largest contiguous block of vmalloc area which is free": "虚拟连续内存最大空闲块",
+    "VmallocTotal - Total size of vmalloc memory area": "虚拟连续内存总容量",
+    "VmallocUsed - Amount of vmalloc area which is used": "虚拟连续内存已使用容量",
+    "Bounce - Memory used for block device bounce buffers": "回弹缓冲区 - 块设备回弹缓冲区内存",
+    "AnonHugePages - Memory in anonymous huge pages": "匿名大页内存",
+    "AnonPages - Memory in user pages not backed by files": "匿名页 - 未由文件支持的用户页内存",
+    "KernelStack - Kernel memory stack. This is not reclaimable": "内核栈 - 不可回收的内核栈内存",
+    "PerCPU - Per CPU memory allocated dynamically by loadable modules": "每 CPU 内存 - 内核模块动态分配的 CPU 独占内存",
+    "HugePages_Free - Huge pages in the pool that are not yet allocated": "空闲大页 - 大页池中尚未分配的大页",
+    "HugePages_Rsvd - Huge pages for which a commitment to allocate from the pool has been made, but no allocation has yet been made": "预留大页 - 已承诺但尚未实际分配的大页",
+    "HugePages_Surp - Huge pages in the pool above the value in /proc/sys/vm/nr_hugepages": "超额大页 - 超出系统配置数量的大页",
+    "HugePages - Total size of the pool of huge pages": "大页池总容量",
+    "Hugepagesize - Huge Page size": "单个大页容量",
+    "DirectMap1G - Amount of pages mapped as this size": "1 GiB 直接映射内存",
+    "DirectMap2M - Amount of pages mapped as this size": "2 MiB 直接映射内存",
+    "DirectMap4K - Amount of pages mapped as this size": "4 KiB 直接映射内存",
+    "Unevictable - Amount of unevictable memory that can't be swapped out for a variety of reasons": "不可回收内存 - 无法换出的内存",
+    "MLocked - Size of pages locked to memory using the mlock() system call": "锁定内存 - 通过 mlock() 锁定的页面",
+    "NFS Unstable - Memory in NFS pages sent to the server, but not yet committed to the storage": "NFS 未稳定页 - 已发送但尚未持久化的网络文件系统页面",
+    "Pagesin - Page in operations": "页面换入次数",
+    "Pagesout - Page out operations": "页面换出次数",
+    "Pswpin - Pages swapped in": "交换页换入次数",
+    "Pswpout - Pages swapped out": "交换页换出次数",
+    "Pgfault - Page major and minor fault operations": "缺页次数 - 包含主缺页与次缺页",
+    "Pgmajfault - Major page fault operations": "主缺页次数",
+    "Pgminfault - Minor page fault operations": "次缺页次数",
+    "oom killer invocations ": "内存不足终止器调用次数",
+    "Estimated error in seconds": "预计时间误差（秒）",
+    "Time offset in between local system and reference clock": "本地时间与参考时钟偏差",
+    "Maximum error in seconds": "最大时间误差（秒）",
+    "Phase-locked loop time adjust": "锁相环时间调整",
+    "Is clock synchronized to a reliable server (1 = yes, 0 = no)": "时钟是否已与可靠服务器同步（1=是，0=否）",
+    "Local clock frequency adjustment": "本地时钟频率调整",
+    "Seconds between clock ticks": "时钟滴答间隔（秒）",
+    "International Atomic Time (TAI) offset": "国际原子时（TAI）偏移",
+    "Processes blocked waiting for I/O to complete": "等待 I/O 完成的阻塞进程数",
+    "Processes in runnable state": "可运行状态进程数",
+    "Processes forks second": "每秒创建进程数",
+    "Processes virtual memory size in bytes": "进程虚拟内存大小（字节）",
+    "Maximum amount of virtual memory available in bytes": "虚拟内存最大可用容量（字节）",
+    "Number of PIDs": "PID 数量",
+    "PIDs limit": "PID 数量上限",
+    "CPU {{ cpu }} - seconds spent running a process": "CPU {{ cpu }} - 进程运行耗时（秒）",
+    "CPU {{ cpu }} - seconds spent by processing waiting for this CPU": "CPU {{ cpu }} - 进程等待调度耗时（秒）",
+    "Allocated threads": "已分配线程数",
+    "Threads limit": "线程数量上限",
+    "Context switches": "上下文切换次数",
+    "Interrupts": "中断次数",
+    "Load 1m": "1 分钟负载",
+    "Load 5m": "5 分钟负载",
+    "Load 15m": "15 分钟负载",
+    "Max": "最大值",
+    "Min": "最小值",
+    "CPU some": "CPU 部分任务等待",
+    "Memory some": "内存部分任务等待",
+    "Memory full": "内存全部任务停顿",
+    "I/O some": "I/O 部分任务等待",
+    "I/O full": "I/O 全部任务停顿",
+    "Entropy available to random number generators": "随机数生成器可用熵",
+    "Time spent": "耗时",
+    "Maximum open file descriptors": "可打开文件描述符上限",
+    "Open file descriptors": "已打开文件描述符数",
+    "{{ chip_name }} {{ sensor }} temp": "{{ chip_name }} {{ sensor }} 温度",
+    "{{ chip_name }} {{ sensor }} Critical Alarm": "{{ chip_name }} {{ sensor }} 严重告警阈值",
+    "{{ chip_name }} {{ sensor }} Critical": "{{ chip_name }} {{ sensor }} 严重阈值",
+    "{{ chip_name }} {{ sensor }} Critical Historical": "{{ chip_name }} {{ sensor }} 历史严重阈值",
+    "{{ chip_name }} {{ sensor }} Max": "{{ chip_name }} {{ sensor }} 最大温度",
+    "Current {{ name }} in {{ type }}": "{{ type }} 中 {{ name }} 的当前值",
+    "Max {{ name }} in {{ type }}": "{{ type }} 中 {{ name }} 的最大值",
+    "{{ power_supply }} online": "{{ power_supply }} 在线状态",
+    "{{ name }} Connections": "{{ name }} 连接数",
+    "Activating": "正在激活",
+    "Active": "活跃",
+    "Deactivating": "正在停用",
+    "Failed": "失败",
+    "Inactive": "未激活",
+    "{{device}} - Read bytes": "{{device}} - 读取字节数",
+    "{{device}} - Written bytes": "{{device}} - 写入字节数",
+    "{{device}} - Read wait time avg": "{{device}} - 平均读取等待时间",
+    "{{device}} - Write wait time avg": "{{device}} - 平均写入等待时间",
+    "{{device}} - Read merged": "{{device}} - 合并读取次数",
+    "{{device}} - Write merged": "{{device}} - 合并写入次数",
+    "{{device}} - IO": "{{device}} - I/O 耗时",
+    "{{device}} - discard": "{{device}} - 丢弃耗时",
+    "{{device}} - IO now": "{{device}} - 当前 I/O 数量",
+    "{{device}} - Discards completed": "{{device}} - 已完成丢弃次数",
+    "{{device}} - Discards merged": "{{device}} - 合并丢弃次数",
+    "{{mountpoint}} - Available": "{{mountpoint}} - 可用容量",
+    "{{mountpoint}} - Free": "{{mountpoint}} - 空闲容量",
+    "{{mountpoint}} - Size": "{{mountpoint}} - 总容量",
+    "{{mountpoint}} - Free file nodes": "{{mountpoint}} - 可用文件节点数",
+    "Max open files": "可打开文件数上限",
+    "Open files": "已打开文件数",
+    "{{mountpoint}} - File nodes total": "{{mountpoint}} - 文件节点总数",
+    "{{mountpoint}} - ReadOnly": "{{mountpoint}} - 只读状态",
+    "{{mountpoint}} - Device error": "{{mountpoint}} - 设备错误状态",
+    "{{device}} - Receive errors": "{{device}} - 接收错误",
+    "{{device}} - Transmit errors": "{{device}} - 发送错误",
+    "{{device}} - Receive drop": "{{device}} - 接收丢包",
+    "{{device}} - Transmit drop": "{{device}} - 发送丢包",
+    "{{device}} - Receive compressed": "{{device}} - 接收压缩包",
+    "{{device}} - Transmit compressed": "{{device}} - 发送压缩包",
+    "{{device}} - Receive multicast": "{{device}} - 接收组播包",
+    "{{device}} - Receive fifo": "{{device}} - 接收 FIFO 错误",
+    "{{device}} - Transmit fifo": "{{device}} - 发送 FIFO 错误",
+    "{{device}} - Receive frame": "{{device}} - 接收帧错误",
+    "{{device}} - Statistic transmit_carrier": "{{device}} - 发送载波错误",
+    "{{device}} - Transmit colls": "{{device}} - 发送冲突",
+    "NF conntrack entries": "连接跟踪条目数",
+    "NF conntrack limit": "连接跟踪条目上限",
+    "{{ device }} - ARP entries": "{{ device }} - ARP 条目数",
+    "{{ device }} - Bytes": "{{ device }} - MTU 字节数",
+    "{{ device }} - Speed": "{{ device }} - 网卡速率",
+    "{{ device }} -   Interface transmit queue length": "{{ device }} - 接口发送队列长度",
+    "CPU {{cpu}} - Processed": "CPU {{cpu}} - 已处理数据包",
+    "CPU {{cpu}} - Dropped": "CPU {{cpu}} - 已丢弃数据包",
+    "CPU {{cpu}} - Squeezed": "CPU {{cpu}} - 处理超限次数",
+    "{{interface}} - Operational state UP": "{{interface}} - 运行状态正常",
+    "{{device}} - Physical link state": "{{device}} - 物理链路状态",
+    "TCP_alloc - Allocated sockets": "TCP 已分配套接字数",
+    "TCP_inuse - Tcp sockets currently in use": "TCP 正在使用的套接字数",
+    "TCP_mem - Used memory for tcp": "TCP 套接字占用内存页数",
+    "TCP_orphan - Orphan sockets": "TCP 孤儿套接字数",
+    "TCP_tw - Sockets waiting close": "TCP 等待关闭套接字数",
+    "UDPLITE_inuse - Udplite sockets currently in use": "UDPLite 正在使用的套接字数",
+    "UDP_inuse - Udp sockets currently in use": "UDP 正在使用的套接字数",
+    "UDP_mem - Used memory for udp": "UDP 套接字占用内存页数",
+    "FRAG_inuse - Frag sockets currently in use": "IP 分片正在使用的套接字数",
+    "RAW_inuse - Raw sockets currently in use": "原始套接字正在使用的数量",
+    "mem_bytes - TCP sockets in that state": "TCP 套接字占用内存字节数",
+    "mem_bytes - UDP sockets in that state": "UDP 套接字占用内存字节数",
+    "FRAG_memory - Used memory for frag": "IP 分片占用内存",
+    "Sockets_used - Sockets currently in use": "当前正在使用的套接字总数",
+    "InOctets - Received octets": "接收字节数",
+    "OutOctets - Sent octets": "发送字节数",
+    "Forwarding - IP forwarding": "IP 转发状态",
+    "InMsgs -  Messages which the entity received. Note that this counter includes all those counted by icmpInErrors": "接收消息数 - 包含 ICMP 错误消息",
+    "OutMsgs - Messages which this entity attempted to send. Note that this counter includes all those counted by icmpOutErrors": "发送消息数 - 包含 ICMP 发送错误消息",
+    "InErrors - Messages which the entity received but determined as having ICMP-specific errors (bad ICMP checksums, bad length, etc.)": "接收错误 - ICMP 校验和错误、长度错误等",
+    "InDatagrams - Datagrams received": "接收数据报数",
+    "OutDatagrams - Datagrams sent": "发送数据报数",
+    "InErrors - UDP Datagrams that could not be delivered to an application": "接收错误 - 无法投递给应用的 UDP 数据报",
+    "NoPorts - UDP Datagrams received on a port with no listener": "无监听端口 - 接收到但端口无监听者的 UDP 数据报",
+    "InErrors Lite - UDPLite Datagrams that could not be delivered to an application": "UDPLite 接收错误 - 无法投递给应用的数据报",
+    "RcvbufErrors - UDP buffer errors received": "接收缓冲区错误 - UDP 接收缓冲区不足",
+    "SndbufErrors - UDP buffer errors send": "发送缓冲区错误 - UDP 发送缓冲区不足",
+    "InSegs - Segments received, including those received in error. This count includes segments received on currently established connections": "接收报文段数 - 包含错误报文段和已建立连接报文段",
+    "OutSegs - Segments sent, including those on current connections but excluding those containing only retransmitted octets": "发送报文段数 - 不含仅包含重传字节的报文段",
+    "ListenOverflows - Times the listen queue of a socket overflowed": "监听队列溢出次数",
+    "ListenDrops - SYNs to LISTEN sockets ignored": "监听丢弃次数 - 被忽略的 SYN 请求",
+    "TCPSynRetrans - SYN-SYN/ACK retransmits to break down retransmissions in SYN, fast/timeout retransmits": "SYN 重传次数 - 包含 SYN 与 SYN/ACK 重传",
+    "RetransSegs - Segments retransmitted - that is, the number of TCP segments transmitted containing one or more previously transmitted octets": "重传报文段数 - 包含已发送字节的 TCP 重传报文段",
+    "InErrs - Segments received in error (e.g., bad TCP checksums)": "接收错误报文段数 - 如 TCP 校验和错误",
+    "OutRsts - Segments sent with RST flag": "发送 RST 报文段数",
+    "TCPRcvQDrop - Packets meant to be queued in rcv queue but dropped because socket rcvbuf limit hit": "接收队列丢包数 - 套接字接收缓冲区达到上限",
+    "TCPOFOQueue - TCP layer receives an out of order packet and has enough memory to queue it": "乱序队列次数 - TCP 接收乱序包并成功入队",
+    "CurrEstab - TCP connections for which the current state is either ESTABLISHED or CLOSE- WAIT": "当前已建立连接数 - ESTABLISHED 或 CLOSE_WAIT 状态",
+    "MaxConn - Limit on the total number of TCP connections the entity can support (Dynamic is \"-1\")": "连接数上限 - 动态上限显示为 -1",
+    "SyncookiesFailed - Invalid SYN cookies received": "无效 SYN Cookie 接收次数",
+    "SyncookiesRecv - SYN cookies received": "SYN Cookie 接收次数",
+    "SyncookiesSent - SYN cookies sent": "SYN Cookie 发送次数",
+    "ActiveOpens - TCP connections that have made a direct transition to the SYN-SENT state from the CLOSED state": "主动打开连接数 - 从 CLOSED 转为 SYN_SENT",
+    "PassiveOpens - TCP connections that have made a direct transition to the SYN-RCVD state from the LISTEN state": "被动打开连接数 - 从 LISTEN 转为 SYN_RECV",
+    "established - TCP sockets in established state": "已建立连接状态",
+    "fin_wait2 - TCP sockets in fin_wait2 state": "等待远端关闭状态",
+    "listen - TCP sockets in listen state": "监听状态",
+    "time_wait - TCP sockets in time_wait state": "等待超时关闭状态",
+    "{{collector}} - Scrape duration": "{{collector}} - 采集耗时",
+    "{{collector}} - Scrape success": "{{collector}} - 采集成功状态",
+    "{{collector}} - Scrape textfile error (1 = true)": "{{collector}} - 文本文件采集错误（1=错误）",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
@@ -373,8 +609,10 @@ def localize_title(value: Any) -> str:
     return PANEL_TITLES.get(text, ROW_TITLES.get(text, text))
 
 
-def localize_legend(value: Any) -> str:
+def localize_legend(value: Any, source_id: str = "") -> str:
     text = str(value or "")
+    if source_id == "node-exporter" and text in NODE_EXPORTER_LEGEND_TRANSLATIONS:
+        return NODE_EXPORTER_LEGEND_TRANSLATIONS[text]
     if text in PANEL_TITLES:
         return PANEL_TITLES[text]
     for source, target in LEGEND_REPLACEMENTS:
@@ -392,7 +630,21 @@ def custom_description(descriptions: dict[str, str], path: list[str]) -> str:
     return "；".join(values[:3])
 
 
-def localize_dashboard(grafana: dict[str, Any], name: str, descriptions: dict[str, str]) -> dict[str, Any]:
+def localize_description(value: str, source_id: str = "") -> str:
+    if source_id != "node-exporter":
+        return value
+    return (
+        value.replace("Niced进程", "调整过优先级的进程")
+        .replace("Node Exporter", "节点指标采集器")
+    )
+
+
+def localize_dashboard(
+    grafana: dict[str, Any],
+    name: str,
+    descriptions: dict[str, str],
+    source_id: str = "",
+) -> dict[str, Any]:
     localized = copy.deepcopy(grafana)
     source_title = str(grafana.get("title") or name)
     localized["title"] = name
@@ -406,10 +658,13 @@ def localize_dashboard(grafana: dict[str, Any], name: str, descriptions: dict[st
                 continue
             target_panel["title"] = localize_title(source_panel_title)
             description = custom_description(descriptions, [source_title, *rows, source_panel_title])
-            target_panel["description"] = description or f"{target_panel['title']}。"
+            target_panel["description"] = localize_description(
+                description or f"{target_panel['title']}。",
+                source_id,
+            )
             for target in target_panel.get("targets") or []:
                 if isinstance(target, dict) and target.get("legendFormat"):
-                    target["legendFormat"] = localize_legend(target["legendFormat"])
+                    target["legendFormat"] = localize_legend(target["legendFormat"], source_id)
 
     walk(grafana.get("panels") or [], localized.get("panels") or [], [])
     for variable in (localized.get("templating") or {}).get("list") or []:
@@ -443,22 +698,6 @@ def dashboard_config(grafana: dict[str, Any], name: str, source_id: str) -> dict
     )
     compact_layout(dashboard["widgets"])
     return import_custom_dashboard_json.normalize_dashboard_json(dashboard, visibility="everyone")
-
-
-def split_node_dashboard(grafana: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]]]:
-    panels = grafana.get("panels") or []
-    definitions = [
-        ("node-exporter-overview", "宿主机监控指标 - 概览、CPU 与内存", panels[:35]),
-        ("node-exporter-system", "宿主机监控指标 - 系统与硬件", panels[35:40]),
-        ("node-exporter-storage-network", "宿主机监控指标 - 存储与网络", panels[40:]),
-    ]
-    result = []
-    for source_id, name, part_panels in definitions:
-        part = copy.deepcopy(grafana)
-        part["title"] = name
-        part["panels"] = copy.deepcopy(part_panels)
-        result.append((source_id, name, part))
-    return result
 
 
 def apply_source_query_fixes(source_id: str, grafana: dict[str, Any]) -> None:
@@ -524,6 +763,13 @@ def validate_dashboard(dashboard: dict[str, Any]) -> None:
         raise ValueError(f"unresolved variables in {dashboard.get('name')}: {sorted(unresolved)}")
 
 
+def remove_legacy_node_exporter_outputs(output_dir: Path) -> None:
+    for filename in LEGACY_NODE_EXPORTER_OUTPUTS:
+        path = output_dir / filename
+        if path.is_file():
+            path.unlink()
+
+
 def main() -> None:
     args = parse_args()
     descriptions = json.loads((args.source_root / "script/custom-describe.json").read_text(encoding="utf-8"))
@@ -532,37 +778,36 @@ def main() -> None:
     source_widget_count = 0
     query_count = 0
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    remove_legacy_node_exporter_outputs(args.output_dir)
     for source_id, relative_path, name, category in SOURCES:
         grafana = json.loads((dashboard_root / relative_path).read_text(encoding="utf-8"))
         apply_source_query_fixes(source_id, grafana)
-        localized = localize_dashboard(grafana, name, descriptions)
-        parts = split_node_dashboard(localized) if source_id == "node-exporter" else [(source_id, name, localized)]
-        for part_id, part_name, part in parts:
-            dashboard = dashboard_config(part, part_name, part_id)
-            validate_dashboard(dashboard)
-            widget_count = len(dashboard["widgets"])
-            dashboard_query_count = sum(
-                len((widget.get("query") or {}).get("queries") or [])
-                for widget in dashboard["widgets"]
-            )
-            source_widget_count += widget_count
-            query_count += dashboard_query_count
-            filename = f"{part_id}.json"
-            (args.output_dir / filename).write_text(
-                json.dumps(dashboard, ensure_ascii=False, indent=2) + "\n",
-                encoding="utf-8",
-            )
-            dashboards.append(
-                {
-                    "id": part_id,
-                    "file": filename,
-                    "name": part_name,
-                    "category": category,
-                    "source": relative_path,
-                    "widgets": widget_count,
-                    "queries": dashboard_query_count,
-                }
-            )
+        localized = localize_dashboard(grafana, name, descriptions, source_id)
+        dashboard = dashboard_config(localized, name, source_id)
+        validate_dashboard(dashboard)
+        widget_count = len(dashboard["widgets"])
+        dashboard_query_count = sum(
+            len((widget.get("query") or {}).get("queries") or [])
+            for widget in dashboard["widgets"]
+        )
+        source_widget_count += widget_count
+        query_count += dashboard_query_count
+        filename = f"{source_id}.json"
+        (args.output_dir / filename).write_text(
+            json.dumps(dashboard, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        dashboards.append(
+            {
+                "id": source_id,
+                "file": filename,
+                "name": name,
+                "category": category,
+                "source": relative_path,
+                "widgets": widget_count,
+                "queries": dashboard_query_count,
+            }
+        )
 
     manifest = {
         "version": 1,

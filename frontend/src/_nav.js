@@ -7,7 +7,7 @@ import React from 'react'
 import CIcon from '@coreui/icons-react'
 import { cilSpeedometer } from '@coreui/icons'
 import { PiPath } from 'react-icons/pi'
-import { LuBookOpen, LuFileText, LuWorkflow } from 'react-icons/lu'
+import { LuBookOpen, LuFileText, LuServer, LuWorkflow } from 'react-icons/lu'
 import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
@@ -165,6 +165,7 @@ const navIcon = {
   trace: <PiPath />,
   system: <AiOutlineDashboard />,
   basic: <AiOutlineDashboard />,
+  hostResource: <LuServer />,
   application: <AiOutlineDashboard />,
   middleware: <AiOutlineDashboard />,
   config: <MdOutlineSettings />,

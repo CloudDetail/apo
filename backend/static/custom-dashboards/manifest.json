@@ -3,7 +3,7 @@
   "sourceRepository": "apo-init-dashboards",
   "sourceRevision": "30de16b",
   "sourceDashboardCount": 18,
-  "generatedDashboardCount": 18,
+  "generatedDashboardCount": 16,
   "importedPanelCount": 506,
   "promQLQueryCount": 937,
   "unsupportedPanelCount": 70,
@@ -47,31 +47,13 @@
       "queries": 72
     },
     {
-      "id": "node-exporter-overview",
-      "file": "node-exporter-overview.json",
-      "name": "宿主机监控指标 - 概览、CPU 与内存",
+      "id": "node-exporter",
+      "file": "node-exporter.json",
+      "name": "宿主机监控指标",
       "category": "infrastructure",
       "source": "zh/default/Node-Exporter-Full.json",
-      "widgets": 42,
-      "queries": 98
-    },
-    {
-      "id": "node-exporter-system",
-      "file": "node-exporter-system.json",
-      "name": "宿主机监控指标 - 系统与硬件",
-      "category": "infrastructure",
-      "source": "zh/default/Node-Exporter-Full.json",
-      "widgets": 25,
-      "queries": 52
-    },
-    {
-      "id": "node-exporter-storage-network",
-      "file": "node-exporter-storage-network.json",
-      "name": "宿主机监控指标 - 存储与网络",
-      "category": "infrastructure",
-      "source": "zh/default/Node-Exporter-Full.json",
-      "widgets": 49,
-      "queries": 96
+      "widgets": 116,
+      "queries": 246
     },
     {
       "id": "originx-data-monitor",

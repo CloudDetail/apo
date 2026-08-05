@@ -7,6 +7,7 @@ import React, { createContext, useContext, useEffect } from 'react'
 import { getUserPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
+import { replaceBuiltInDashboardMenuRoutes } from '../components/AppSidebarBehavior.mjs'
 
 const UserContext = createContext({})
 
@@ -21,7 +22,10 @@ export const UserProvider = ({ children }) => {
   const getUserPermission = () => {
     // getUserPermissionApi(state.user?.userId).then((res) => {
     return getUserPermissionApi({ userId: user.userId, language: i18n.language }).then((res) => {
-      dispatch({ type: 'setMenu', payload: res?.menuItem || [] })
+      dispatch({
+        type: 'setMenu',
+        payload: replaceBuiltInDashboardMenuRoutes(res?.menuItem || []),
+      })
       dispatch({ type: 'setRoutes', payload: res?.routes || [] })
     })
   }
