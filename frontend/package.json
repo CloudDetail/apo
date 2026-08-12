@@ -6,7 +6,8 @@
     "build": "vite build --mode production ",
     "lint": "eslint \"src/**/*.js\"",
     "serve": "vite preview --mode production",
-    "start": "vite --host --mode development"
+    "start": "vite --host --mode development",
+    "test:hermes": "node --experimental-strip-types --test src/pro/features/hermes/client/*.test.mjs src/pro/features/hermes/state/*.test.mjs"
   },
   "dependencies": {
     "@ag-ui/client": "^0.0.35",

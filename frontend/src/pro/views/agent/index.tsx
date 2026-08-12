@@ -4,8 +4,22 @@ import AGUIChat from '../../components/AGUIChat'
 import './index.css'
 import { useSearchParams } from 'react-router-dom'
 import { BasicCard } from 'src/core/components/Card/BasicCard'
+import HermesAgentWorkspace from '../../features/hermes/HermesAgentWorkspace'
+import { configuredAgentEngine } from '../../features/hermes/client/config.ts'
 
 const AgentPage: React.FC = () => {
+  if (configuredAgentEngine() === 'hermes') {
+    return (
+      <BasicCard bodyStyle={{ padding: '8px' }}>
+        <HermesAgentWorkspace />
+      </BasicCard>
+    )
+  }
+
+  return <LegacyAgentSREPage />
+}
+
+const LegacyAgentSREPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const threadId = searchParams.get('threadId') || undefined
   return (
