@@ -4,6 +4,7 @@ import type {
   HermesSessionStatus,
   PersistedConversationEvent,
 } from './types.ts'
+import { normalizeHermesEventPayload } from './eventPayload.ts'
 
 type Fetcher = typeof fetch
 
@@ -200,7 +201,7 @@ function normalizeConversationEvent(value: unknown): PersistedConversationEvent 
     direction,
     eventType,
     runId: String(value.run_id || '').trim() || null,
-    payload: isObject(value.payload) ? value.payload : {},
+    payload: normalizeHermesEventPayload(value.payload),
     occurredAt,
   }
 }

@@ -64,6 +64,68 @@ export interface HermesPlan {
   steps: HermesPlanStep[]
 }
 
+export interface ApoMetricItem {
+  title: string
+  unit: string
+  timeseries: Array<{
+    legend: string
+    labels?: Record<string, unknown>
+    chart: { chartData: Record<string, number> }
+  }>
+  detection?: string
+}
+
+export interface ApoLogRecord {
+  timestamp: number | string
+  message: string
+  level?: string
+  service?: string
+  instance?: string
+  traceId?: string
+}
+
+export interface ApoTopologyNode {
+  id: string
+  type?: string
+  position: { x: number; y: number }
+  data: {
+    label: string
+    service?: string
+    endpoint?: string
+    instance?: string
+    isTraced?: boolean
+    outOfGroup?: boolean
+    status?: 'normal' | 'warning' | 'critical'
+    [key: string]: unknown
+  }
+}
+
+export interface ApoTopologyEdge {
+  id: string
+  source: string
+  target: string
+  type?: string
+  data?: Record<string, unknown>
+}
+
+export interface HermesEvidence<T = unknown> {
+  id: string
+  kind: 'apo_metrics' | 'apo_topology' | 'apo_logs' | 'apo_json' | (string & {})
+  title: string
+  summary?: string
+  source: { sourceId: string; operationId: string }
+  query?: {
+    startTime?: number
+    endTime?: number
+    service?: string
+    instance?: string
+    host?: string
+  }
+  data: T
+  total?: number
+  conversionError?: string
+}
+
 export interface HermesToolActivity {
   id: string
   kind: 'tool'
@@ -72,6 +134,7 @@ export interface HermesToolActivity {
   context?: string
   args?: Record<string, unknown>
   result?: unknown
+  evidence?: HermesEvidence[]
   durationMs?: number
 }
 

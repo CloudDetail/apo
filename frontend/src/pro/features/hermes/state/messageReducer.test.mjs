@@ -90,6 +90,34 @@ test('keeps tool activity and clarification checkpoints in timeline order', () =
   assert.equal(state.busy, false)
 })
 
+test('attaches evidence to the producing tool activity', () => {
+  let state = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED', text: '查询指标', runId: 'run-evidence',
+  })
+  state = hermesMessageReducer(state, event('tool.start', { tool_id: 'tool-evidence', name: 'query_metrics' }))
+  state = hermesMessageReducer(state, event('tool.complete', {
+    tool_id: 'tool-evidence',
+    name: 'query_metrics',
+    evidence: [{ id: 'metric-1', kind: 'apo_metrics', title: 'CPU', source: { sourceId: 'system-apo', operationId: 'queryMetrics' }, data: [] }],
+  }))
+
+  assert.equal(activities(state)[0].evidence[0].id, 'metric-1')
+  assert.equal(state.timeline.find((item) => item.kind === 'activity').runId, 'run-evidence')
+})
+
+test('renders normalized capability result evidence on the tool activity', () => {
+  let state = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED', text: '查询指标', runId: 'run-capability-evidence',
+  })
+  state = hermesMessageReducer(state, event('tool.complete', {
+    tool_id: 'tool-capability',
+    name: 'capability_invoke',
+    result: { schemaVersion: 'capability.result.v1', evidence: [{ evidenceId: 'metric-2', kind: 'apo_metrics', data: [] }] },
+    evidence: [{ evidenceId: 'metric-2', kind: 'apo_metrics', data: [] }],
+  }))
+  assert.equal(activities(state)[0].evidence[0].evidenceId, 'metric-2')
+})
+
 test('keeps every model-generated plan in realtime without version labels', () => {
   let state = hermesMessageReducer(initialHermesMessageState, {
     type: 'SUBMIT_STARTED',

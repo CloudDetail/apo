@@ -555,6 +555,9 @@ function upsertTool(
     context: String(payload.context ?? payload.message ?? ''),
     args: isObject(rawArgs) ? rawArgs : undefined,
     result: payload.result ?? payload.output,
+    evidence: Array.isArray(payload.evidence)
+      ? (payload.evidence as HermesToolActivity['evidence'])
+      : undefined,
     durationMs: typeof payload.duration_ms === 'number' ? payload.duration_ms : undefined,
   }
   const index = timeline.findIndex(

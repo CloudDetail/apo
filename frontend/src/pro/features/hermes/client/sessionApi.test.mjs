@@ -79,3 +79,22 @@ test('serializes writes for the same newly created session', async () => {
   await Promise.all([first, second])
   assert.deepEqual(calls, ['start:ready', 'end:ready', 'start:running', 'end:running'])
 })
+
+test('promotes persisted capability result evidence into event payload', async () => {
+  const evidence = [{ evidenceId: 'logs-1', kind: 'apo_logs', data: [] }]
+  const api = new HermesSessionApi('/hermes-api', async () => new Response(JSON.stringify({
+    events: [{
+      event_id: 'event-1',
+      sequence_no: 1,
+      direction: 'gateway_to_browser',
+      event_type: 'tool.complete',
+      run_id: 'run-1',
+      occurred_at: '2026-08-12T00:00:00.000Z',
+      payload: { tool_id: 'tool-1', result: { schemaVersion: 'capability.result.v1', evidence } },
+    }],
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+
+  const events = await api.history('stored-1')
+  assert.equal(events[0].payload.evidence[0].id, 'logs-1')
+  assert.deepEqual(events[0].payload.evidence[0].data, [])
+})

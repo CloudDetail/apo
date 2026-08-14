@@ -6,6 +6,8 @@ import {
 } from '@ant-design/icons'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
+import remarkGfm from 'remark-gfm'
 import type { HermesCheckpoint } from '../client/types.ts'
 import styles from '../HermesAgentWorkspace.module.scss'
 
@@ -65,7 +67,9 @@ export default function CheckpointCard({
         {checkpoint.description &&
           (plan ? (
             <div className={styles.planDescription}>
-              <ReactMarkdown>{checkpoint.description}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                {checkpoint.description}
+              </ReactMarkdown>
             </div>
           ) : (
             <p>{checkpoint.description}</p>

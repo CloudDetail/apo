@@ -429,6 +429,21 @@
   border-collapse: collapse;
 }
 
+.markdownBody :global(table) {
+  width: max-content;
+  min-width: 100%;
+  margin: 10px 0;
+}
+
+.markdownBody :global(thead) {
+  background: var(--ant-color-fill-quaternary);
+}
+
+.markdownBody :global(th) {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .markdownBody :global(th),
 .markdownBody :global(td) {
   padding: 6px 9px;
@@ -587,6 +602,81 @@
   padding: 10px;
   overflow: auto;
   font-size: 11px;
+  background: var(--ant-color-fill-secondary);
+  border-radius: 6px;
+}
+
+.evidenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.evidenceCard {
+  padding: 10px;
+  overflow: hidden;
+  background: var(--ant-color-bg-layout);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 8px;
+}
+
+.evidenceHeading {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.evidenceHeading > span:first-child {
+  margin-top: 2px;
+  color: var(--ant-color-primary);
+}
+
+.evidenceHeading > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.evidenceHeading strong {
+  display: block;
+  font-size: 13px;
+}
+
+.evidenceHeading p {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+
+.evidenceTopology {
+  position: relative;
+  height: 420px;
+  overflow: hidden;
+  background: var(--ant-color-bg-container);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 7px;
+}
+
+.evidenceTopologyExpand {
+  position: absolute;
+  z-index: 5;
+  top: 10px;
+  right: 10px;
+}
+
+.evidenceTopologyModal {
+  height: min(76vh, 760px);
+  overflow: hidden;
+}
+
+.evidenceJson pre {
+  max-height: 320px;
+  margin: 8px 0 0;
+  padding: 10px;
+  overflow: auto;
+  font-size: 11px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   background: var(--ant-color-fill-secondary);
   border-radius: 6px;
 }

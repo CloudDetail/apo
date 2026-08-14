@@ -57,6 +57,21 @@ test('restores messages and execution activities in persisted event order', () =
   assert.equal(snapshot.timeline[1].status, 'completed')
 })
 
+test('restores persisted evidence on its original tool activity', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '查询日志' }, 'run-evidence'),
+    record(2, 'gateway_to_browser', 'tool.start', { tool_id: 'tool-evidence', name: 'query_logs' }, 'run-evidence'),
+    record(3, 'gateway_to_browser', 'tool.completed', {
+      tool_id: 'tool-evidence',
+      name: 'query_logs',
+      evidence: [{ id: 'logs-1', kind: 'apo_logs', title: '错误日志', source: { sourceId: 'system-apo', operationId: 'queryLogs' }, data: [] }],
+    }, 'run-evidence'),
+  ])
+  const activity = snapshot.timeline.find((item) => item.kind === 'activity')
+  assert.equal(activity.activity.evidence[0].id, 'logs-1')
+  assert.equal(activity.runId, 'run-evidence')
+})
+
 test('keeps a resolved confirmation card at its original timeline position', () => {
   const snapshot = historyFromPersistedEvents([
     record(1, 'browser_to_gateway', 'prompt.submit', { text: '检查异常' }),

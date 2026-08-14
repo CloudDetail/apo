@@ -9,6 +9,7 @@ import type {
   HermesRunStatus,
   HermesRunStatusTimelineItem,
   HermesTimelineItem,
+  HermesToolActivity,
   PersistedConversationEvent,
 } from './types.ts'
 import { isPlanToolPayload, planFingerprint, planFromToolPayload } from './plan.ts'
@@ -530,7 +531,7 @@ function upsertTool(
   const failed = record.eventType === 'tool.failed'
   const completed = record.eventType === 'tool.complete' || record.eventType === 'tool.completed'
   const rawArgs = payload.args ?? payload.arguments
-  const activity: HermesActivity = {
+  const activity: HermesToolActivity = {
     id,
     kind: 'tool',
     name: String(payload.name ?? payload.tool ?? 'tool'),
@@ -538,6 +539,9 @@ function upsertTool(
     context: String(payload.context ?? payload.message ?? ''),
     args: isObject(rawArgs) ? rawArgs : undefined,
     result: payload.result ?? payload.output,
+    evidence: Array.isArray(payload.evidence)
+      ? (payload.evidence as HermesToolActivity['evidence'])
+      : undefined,
     durationMs: typeof payload.duration_ms === 'number' ? payload.duration_ms : undefined,
   }
   const index = indexes.get(key)

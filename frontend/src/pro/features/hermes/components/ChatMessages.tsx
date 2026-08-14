@@ -10,6 +10,8 @@ import {
 } from '@ant-design/icons'
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkBreaks from 'remark-breaks'
+import remarkGfm from 'remark-gfm'
 import type {
   HermesCheckpoint,
   HermesRunStatusTimelineItem,
@@ -200,7 +202,9 @@ function renderTimeline(
               </span>
             ) : assistant ? (
               <div className={styles.markdownBody}>
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                  {message.content}
+                </ReactMarkdown>
               </div>
             ) : (
               <>

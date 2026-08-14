@@ -1,6 +1,7 @@
 import { historyFromGateway } from './history.ts'
 import { JsonRpcClient, JsonRpcError, type JsonRpcNotification } from './jsonRpcClient.ts'
 import type { HermesEvent, HermesHistorySnapshot, HermesSession } from './types.ts'
+import { normalizeHermesEventPayload } from './eventPayload.ts'
 
 const CREATE_TIMEOUT = 5_000
 const ACTIVATE_TIMEOUT = 5_000
@@ -143,7 +144,7 @@ export function normalizeEvent(notification: JsonRpcNotification): HermesEvent |
   return {
     type: String(notification.params.type || 'unknown'),
     sessionId: String(notification.params.session_id || '').trim() || null,
-    payload: isObject(notification.params.payload) ? notification.params.payload : {},
+    payload: normalizeHermesEventPayload(notification.params.payload),
   }
 }
 

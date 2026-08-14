@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons'
 import type { HermesActivity } from '../client/types.ts'
 import styles from '../HermesAgentWorkspace.module.scss'
+import EvidenceRenderer from './EvidenceRenderer'
 
 export default function ToolActivity({
   activities,
@@ -65,6 +66,7 @@ export default function ToolActivity({
               ) : (
                 <div className={styles.toolDetail}>
                   {activity.context && <p>{activity.context}</p>}
+                  {activity.evidence?.length ? <EvidenceRenderer evidence={activity.evidence} /> : null}
                   {activity.args && (
                     <details>
                       <summary>调用参数</summary>

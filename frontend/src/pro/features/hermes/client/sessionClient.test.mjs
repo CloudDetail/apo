@@ -77,6 +77,42 @@ test('normalizes native sessions and event notifications', () => {
   )
 })
 
+test('promotes capability result evidence into the normalized event payload', () => {
+  const evidence = [{ evidenceId: 'metric-1', kind: 'apo_metrics', data: [] }]
+  const event = normalizeEvent({
+    jsonrpc: '2.0',
+    method: 'event',
+    params: {
+      type: 'tool.complete',
+      session_id: 'live-1',
+      payload: {
+        tool_id: 'tool-1',
+        result: { schemaVersion: 'capability.result.v1', evidence },
+      },
+    },
+  })
+
+  assert.equal(event.payload.evidence[0].id, 'metric-1')
+  assert.deepEqual(event.payload.evidence[0].data, [])
+  assert.deepEqual(event.payload.result.evidence, evidence)
+})
+
+test('normalizes foundation evidence and fills missing data from model projection', () => {
+  const event = normalizeEvent({
+    jsonrpc: '2.0', method: 'event', params: { type: 'tool.complete', session_id: 'live-1', payload: {
+      result: {
+        schemaVersion: 'capability.result.v1',
+        modelProjection: { data: { operationCount: 11 } },
+        evidence: [{ evidenceId: 'catalog-1', kind: 'api_catalog', summary: 'Inspected operations.', locator: { sourceId: 'APO-dataplane' } }],
+      },
+    } },
+  })
+  assert.equal(event.payload.evidence[0].id, 'catalog-1')
+  assert.equal(event.payload.evidence[0].title, 'Inspected operations.')
+  assert.deepEqual(event.payload.evidence[0].data, { operationCount: 11 })
+  assert.deepEqual(event.payload.evidence[0].source, { sourceId: 'APO-dataplane', operationId: '' })
+})
+
 test('resolves relative websocket proxy paths against the current APO origin', () => {
   assert.equal(
     resolveWebSocketUrl('/hermes-ws', {
