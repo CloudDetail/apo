@@ -21,6 +21,26 @@
   border-right: 1px solid var(--ant-color-border-secondary);
 }
 
+.capabilityEntry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.capabilityEntryButton {
+  justify-content: flex-start;
+  color: var(--ant-color-text-secondary);
+}
+
+.capabilityEntry small {
+  padding-left: 31px;
+  color: var(--ant-color-text-tertiary);
+  font-size: 10px;
+}
+
 .sidebarHeader,
 .workspaceHeader,
 .headerTitle,

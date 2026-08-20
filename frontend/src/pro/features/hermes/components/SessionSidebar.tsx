@@ -1,5 +1,5 @@
 import { Button, Dropdown, Empty, Input, Modal, Skeleton, Tooltip } from 'antd'
-import { MenuFoldOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons'
+import { AppstoreOutlined, MenuFoldOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { HermesSessionBookmark } from '../client/types.ts'
 import styles from '../HermesAgentWorkspace.module.scss'
@@ -12,6 +12,7 @@ interface SessionSidebarProps {
   onNew: () => void
   onRename: (storedSessionId: string, title: string) => Promise<void>
   onDelete: (storedSessionId: string) => Promise<void>
+  onOpenCapabilities?: () => void
   onClose?: () => void
 }
 
@@ -23,6 +24,7 @@ export default function SessionSidebar({
   onNew,
   onRename,
   onDelete,
+  onOpenCapabilities,
   onClose,
 }: SessionSidebarProps) {
   const rename = (session: HermesSessionBookmark) => {
@@ -124,6 +126,20 @@ export default function SessionSidebar({
           ))
         )}
       </div>
+      {onOpenCapabilities && (
+        <div className={styles.capabilityEntry}>
+          <Button
+            type="text"
+            block
+            icon={<AppstoreOutlined />}
+            className={styles.capabilityEntryButton}
+            onClick={onOpenCapabilities}
+          >
+            运维任务库
+          </Button>
+          <small>复用已验证的运维任务方案</small>
+        </div>
+      )}
     </aside>
   )
 }

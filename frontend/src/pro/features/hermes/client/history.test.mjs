@@ -1,7 +1,7 @@
 // @ts-nocheck
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { historyFromGateway, historyFromPersistedEvents } from './history.ts'
+import { historyFromGateway, historyFromPersistedEvents, visibleMessageText } from './history.ts'
 
 function record(sequenceNo, direction, eventType, payload, runId = 'run-1') {
   return {
@@ -178,5 +178,16 @@ test('restores a model-generated plan from gateway message history', () => {
   assert.deepEqual(
     plan.plan.steps.map((step) => step.title),
     ['确认影响范围', '查询异常指标'],
+  )
+})
+
+test('hides current Workflow and legacy Playbook selection markers from history', () => {
+  assert.equal(
+    visibleMessageText('检查订单服务\n\n<hermes_qa_workflow_selection>{"workflowId":"workflow-order"}</hermes_qa_workflow_selection>'),
+    '检查订单服务',
+  )
+  assert.equal(
+    visibleMessageText('检查订单服务\n\n<hermes_qa_playbook_selection>{"playbookId":"legacy"}</hermes_qa_playbook_selection>'),
+    '检查订单服务',
   )
 })

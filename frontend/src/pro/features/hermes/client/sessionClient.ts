@@ -8,6 +8,8 @@ const ACTIVATE_TIMEOUT = 5_000
 const RESUME_TIMEOUT = 8_000
 const SESSION_ACTION_TIMEOUT = 5_000
 const SUBMIT_TIMEOUT = 10_000
+const WORKFLOW_SELECTION_PATTERN = /\n*<hermes_qa_workflow_selection>[\s\S]*?<\/hermes_qa_workflow_selection>\s*/gi
+const LEGACY_PLAYBOOK_SELECTION_PATTERN = /\n*<hermes_qa_playbook_selection>[\s\S]*?<\/hermes_qa_playbook_selection>\s*/gi
 
 export class HermesSessionClient {
   private readonly rpc: JsonRpcClient
@@ -77,12 +79,17 @@ export class HermesSessionClient {
     return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `run-${Date.now()}`
   }
 
-  submit(liveSessionId: string, text: string, clientRunId = this.createRunId()) {
+  submit(
+    liveSessionId: string,
+    text: string,
+    clientRunId = this.createRunId(),
+    workflowId?: string,
+  ) {
     return this.rpc.request(
       'prompt.submit',
       {
         session_id: liveSessionId,
-        text,
+        text: promptWithWorkflowSelection(text, workflowId),
         client_run_id: clientRunId,
       },
       { timeoutMs: SUBMIT_TIMEOUT },
@@ -137,6 +144,17 @@ export class HermesSessionClient {
       if (event) listener(event)
     })
   }
+}
+
+export function promptWithWorkflowSelection(text: string, workflowId?: string): string {
+  const visibleText = text
+    .replace(WORKFLOW_SELECTION_PATTERN, '')
+    .replace(LEGACY_PLAYBOOK_SELECTION_PATTERN, '')
+    .trim()
+  const selectedId = String(workflowId || '').trim().slice(0, 64)
+  if (!selectedId) return visibleText
+  const selection = JSON.stringify({ workflowId: selectedId })
+  return `${visibleText}\n\n<hermes_qa_workflow_selection>${selection}</hermes_qa_workflow_selection>`
 }
 
 export function normalizeEvent(notification: JsonRpcNotification): HermesEvent | null {

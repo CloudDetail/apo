@@ -323,20 +323,18 @@ export function useHermesSession(requestedSessionId?: string) {
   )
 
   const sendMessage = useCallback(
-    async (rawText: string): Promise<string | undefined> => {
+    async (rawText: string, workflowId?: string): Promise<string | undefined> => {
       const text = rawText.trim()
       if (!text) return selectedStoredSessionIdRef.current || undefined
       if (messageState.busy) {
         addUserMessage(text, messageState.activeRunId)
         try {
           const session = await ensureSession(text)
-          void sessionClient.steer(session.liveSessionId, text).catch((reason) => {
-            setSessionError(errorMessage(reason, '无法补充当前任务要求。'))
-          })
+          await sessionClient.steer(session.liveSessionId, text)
           return session.storedSessionId
         } catch (reason) {
           setSessionError(errorMessage(reason, '无法补充当前任务要求。'))
-          return selectedStoredSessionIdRef.current || undefined
+          return undefined
         }
       }
 
@@ -353,20 +351,20 @@ export function useHermesSession(requestedSessionId?: string) {
           },
           session,
         )
-        void sessionClient.submit(session.liveSessionId, text, runId).catch((reason) => {
+        try {
+          await sessionClient.submit(session.liveSessionId, text, runId, workflowId)
+        } catch (reason) {
           const currentState = messageStateRef.current
-          if (currentState.activeRunId !== runId || !currentState.busy) return
+          if (currentState.activeRunId !== runId || !currentState.busy) {
+            return session.storedSessionId
+          }
           if (reason instanceof JsonRpcTimeoutError) {
             setSessionError('任务已提交，但服务未及时确认，正在继续等待运行结果。')
             setStatus('任务已提交，正在等待运行事件', true)
-            return
+            return session.storedSessionId
           }
-          sendFailed(errorMessage(reason, '消息发送失败。'))
-          void updateActiveBookmark(
-            { status: 'failed', activeRunId: null, checkpoint: null },
-            session,
-          )
-        })
+          throw reason
+        }
         return session.storedSessionId
       } catch (reason) {
         sendFailed(errorMessage(reason, '消息发送失败。'))
@@ -376,7 +374,7 @@ export function useHermesSession(requestedSessionId?: string) {
             session,
           )
         }
-        return session?.storedSessionId || selectedStoredSessionIdRef.current || undefined
+        return undefined
       }
     },
     [

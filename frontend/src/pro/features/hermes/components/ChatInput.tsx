@@ -1,6 +1,6 @@
 import { Button, Input, Tooltip } from 'antd'
 import { SendOutlined, StopOutlined } from '@ant-design/icons'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styles from '../HermesAgentWorkspace.module.scss'
 
 export default function ChatInput({
@@ -10,6 +10,7 @@ export default function ChatInput({
   disabled,
   onSend,
   onStop,
+  initialValue,
 }: {
   busy: boolean
   stopping?: boolean
@@ -17,9 +18,14 @@ export default function ChatInput({
   disabled?: boolean
   onSend: (text: string) => Promise<void>
   onStop: () => Promise<void>
+  initialValue?: string
 }) {
   const [value, setValue] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (initialValue) setValue(initialValue)
+  }, [initialValue])
 
   const submit = async () => {
     const text = value.trim()

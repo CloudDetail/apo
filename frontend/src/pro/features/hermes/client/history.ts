@@ -335,6 +335,7 @@ export function visibleMessageText(value: string): string {
     '\n\n<hermes_qa_document_context>',
     '\n\n<hermes_foundation_runtime_context>',
     '\n\n<hermes_qa_regenerate_context>',
+    '\n\n<hermes_qa_workflow_selection>',
     '\n\n<hermes_qa_playbook_selection>',
   ]
   const firstMarker = markers

@@ -1,21 +1,37 @@
 import { Alert, Button, Spin, Tooltip } from 'antd'
 import { MenuUnfoldOutlined, ReloadOutlined } from '@ant-design/icons'
-import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ChatInput from './components/ChatInput'
 import ChatMessages from './components/ChatMessages'
 import ConnectionStatus from './components/ConnectionStatus'
 import SessionSidebar from './components/SessionSidebar'
 import { useHermesSession } from './state/useHermesSession.ts'
+import type { WorkflowLaunchContext } from './capabilities/client/types.ts'
 import styles from './HermesAgentWorkspace.module.scss'
 
 export default function HermesAgentWorkspace() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const requestedSessionId = searchParams.get('sessionId') || undefined
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth > 1366,
   )
   const workspace = useHermesSession(requestedSessionId)
+  const [workflowLaunch, setWorkflowLaunch] = useState<WorkflowLaunchContext | null>(null)
+
+  useEffect(() => {
+    const state = location.state as { workflowLaunch?: WorkflowLaunchContext } | null
+    const launch = state?.workflowLaunch
+    if (!launch?.goal) return
+    workspace.newConversation()
+    setWorkflowLaunch(launch)
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      replace: true,
+      state: null,
+    })
+  }, [location.hash, location.key, location.pathname, location.search, location.state, navigate, workspace.newConversation])
 
   const setRouteSession = (storedSessionId?: string) => {
     const next = new URLSearchParams(searchParams)
@@ -36,7 +52,9 @@ export default function HermesAgentWorkspace() {
   }
 
   const send = async (text: string) => {
-    const storedSessionId = await workspace.sendMessage(text)
+    const storedSessionId = await workspace.sendMessage(text, workflowLaunch?.workflowId)
+    if (!storedSessionId) throw new Error('消息发送失败。')
+    if (storedSessionId) setWorkflowLaunch(null)
     if (storedSessionId && storedSessionId !== requestedSessionId) setRouteSession(storedSessionId)
   }
 
@@ -60,6 +78,7 @@ export default function HermesAgentWorkspace() {
           onNew={newConversation}
           onRename={workspace.renameSession}
           onDelete={removeSession}
+          onOpenCapabilities={() => navigate('/agent/capabilities')}
           onClose={() => setSidebarOpen(false)}
         />
       )}
@@ -111,6 +130,18 @@ export default function HermesAgentWorkspace() {
           />
         )}
 
+        {workflowLaunch && (
+          <Alert
+            className={styles.workspaceAlert}
+            type="info"
+            showIcon
+            closable
+            message={`已带入任务：${workflowLaunch.workflowName || '运维任务'} · 查看时版本 v${workflowLaunch.version}`}
+            description="发送后将明确选择该 Hermes Workflow，并由 Hermes 使用发送时的当前可用版本创建新运行；不会修改任务库。"
+            onClose={() => setWorkflowLaunch(null)}
+          />
+        )}
+
         <div className={styles.conversationArea}>
           {workspace.openingSession ? (
             <div className={styles.workspaceLoading}>
@@ -125,7 +156,7 @@ export default function HermesAgentWorkspace() {
               activeCheckpoint={workspace.state.checkpoint}
               hydrationVersion={workspace.state.hydrationVersion}
               onCheckpointRespond={workspace.respondCheckpoint}
-              onExample={(text) => void send(text)}
+              onExample={(text) => { void send(text).catch(() => undefined) }}
             />
           )}
         </div>
@@ -141,6 +172,7 @@ export default function HermesAgentWorkspace() {
           }
           onSend={send}
           onStop={workspace.interrupt}
+          initialValue={workflowLaunch?.goal}
         />
       </main>
     </div>
