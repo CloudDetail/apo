@@ -19,6 +19,7 @@ var _ Middleware = (*middleware)(nil)
 
 type Middleware interface {
 	AuthMiddleware() core.HandlerFunc
+	AgentAuthMiddleware() core.HandlerFunc
 	PermissionMiddleware() core.HandlerFunc
 	LicMiddleware() core.HandlerFunc
 }

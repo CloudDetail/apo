@@ -7,6 +7,7 @@ import (
 	"context"
 
 	appconfig "github.com/CloudDetail/apo/backend/config"
+	"github.com/CloudDetail/apo/backend/pkg/api/agentconfig"
 	"github.com/CloudDetail/apo/backend/pkg/api/alertanalyze"
 	alertinput "github.com/CloudDetail/apo/backend/pkg/api/alertinput"
 	"github.com/CloudDetail/apo/backend/pkg/api/alerts"
@@ -36,6 +37,40 @@ import (
 
 func setApiRouter(r *resource) {
 	middlewares := middleware.New(r.cache, r.pkg_db, r.dify, r.prom, r.logger)
+	agentConfigHandler := agentconfig.New(r.pkg_db)
+	agentConfigAPI := r.mux.Group("/api/agent-config").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
+	{
+		agentConfigAPI.POST("/templates/inspect", agentConfigHandler.Inspect())
+		agentConfigAPI.GET("/templates", agentConfigHandler.ListTemplates())
+		agentConfigAPI.POST("/templates", agentConfigHandler.CreateTemplate())
+		agentConfigAPI.GET("/templates/:id", agentConfigHandler.GetTemplate())
+		agentConfigAPI.PUT("/templates/:id", agentConfigHandler.UpdateTemplate())
+		agentConfigAPI.DELETE("/templates/:id", agentConfigHandler.DeleteTemplate())
+		agentConfigAPI.GET("/nodes", agentConfigHandler.ListNodes())
+		agentConfigAPI.GET("/states", agentConfigHandler.ListStates())
+		agentConfigAPI.GET("/defaults/circuit-breaker", agentConfigHandler.GetGlobalCircuit())
+		agentConfigAPI.PUT("/defaults/circuit-breaker", agentConfigHandler.SaveGlobalCircuit())
+		agentConfigAPI.POST("/batch-assignments", agentConfigHandler.BatchAssign())
+		agentConfigAPI.POST("/circuit-breaker/batch", agentConfigHandler.BatchSaveCircuit())
+		agentConfigAPI.GET("/nodes/:nodeId/current-configs", agentConfigHandler.GetCurrentNodeConfigs())
+		agentConfigAPI.PUT("/nodes/:nodeId/current-configs", agentConfigHandler.UpdateNodeConfigs())
+		agentConfigAPI.GET("/nodes/:nodeId/circuit-breaker", agentConfigHandler.GetNodeCircuit())
+		agentConfigAPI.PUT("/nodes/:nodeId/circuit-breaker", agentConfigHandler.SaveNodeCircuit())
+		agentConfigAPI.GET("/nodes/:nodeId/probes/:probeType/initial-config", agentConfigHandler.GetInitialConfig())
+		agentConfigAPI.GET("/nodes/:nodeId/probes/:probeType/releases", agentConfigHandler.ListNodeConfigHistory())
+		agentConfigAPI.POST("/nodes/:nodeId/probes/:probeType/commands", agentConfigHandler.CreateCommand())
+		agentConfigAPI.GET("/nodes/:nodeId/probes/:probeType/commands", agentConfigHandler.ListCommands())
+	}
+	agentAPI := r.mux.Group("/api/agent/v1").Use(middlewares.AgentAuthMiddleware())
+	{
+		agentAPI.POST("/register", agentConfigHandler.Register())
+		agentAPI.POST("/initial-configs", agentConfigHandler.SaveInitialConfig())
+		agentAPI.GET("/settings", agentConfigHandler.Settings())
+		agentAPI.GET("/configs", agentConfigHandler.GetConfig())
+		agentAPI.POST("/reports", agentConfigHandler.Report())
+		agentAPI.GET("/commands", agentConfigHandler.Commands())
+		agentAPI.POST("/commands/:id/result", agentConfigHandler.FinishCommand())
+	}
 
 	serviceApi := r.mux.Group("/api/service").Use(middlewares.AuthMiddleware()).Use(middlewares.LicMiddleware())
 	{
