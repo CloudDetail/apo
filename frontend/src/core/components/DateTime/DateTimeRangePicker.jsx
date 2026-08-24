@@ -14,6 +14,7 @@ import {
   CInputGroupText,
 } from '@coreui/react'
 import React, { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
 import { DateRange } from 'react-date-range'
 
 import 'react-date-range/dist/styles.css' // main style file
@@ -31,7 +32,7 @@ import { IoMdArrowDropdown } from 'react-icons/io'
 const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
   const { t } = useTranslation('core/dateTime')
   const [dropdownVisible, setDropdownVisible] = useState(false)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const storeTimeRange = useSelector((state) => state.timeRange)
   const [state, setState] = useState({
     startDate: timeUtils.startOfDay(new Date()),
@@ -50,6 +51,8 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
   const [oldTimeParam, setOldTimeParam] = useState(null)
 
   const dispatch = useDispatch()
+  const getQuickRangeLabel = (key) =>
+    t(`dateTimeRangePicker.quickRanges.${key}`, { defaultValue: timeRangeMap[key]?.name })
 
   const setStoreTimeRange = (value) => {
     dispatch({ type: 'SET_TIMERANGE', payload: value })
@@ -66,7 +69,7 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
     const params = new URLSearchParams(searchParams)
     const from = searchParams.get('from')
     const to = searchParams.get('to')
-    const relativeTime = searchParams.get('to')
+    const relativeTime = searchParams.get('relativeTime')
 
     let needChangeUrl = false
     if (storeTimeRange.rangeTypeKey) {
@@ -105,7 +108,9 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
     // 判断url参数是否合法
     const fromTimestamp = ISOToTimestamp(from)
     const toTimestamp = ISOToTimestamp(to)
-    const rangeTypeKey = timeRangeMap.hasOwnProperty(relativeTime) ? relativeTime : null
+    const rangeTypeKey = Object.prototype.hasOwnProperty.call(timeRangeMap, relativeTime)
+      ? relativeTime
+      : null
     if (
       oldTimeParam &&
       oldTimeParam?.from === from &&
@@ -354,7 +359,7 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
                 className="bg-transparent"
               >
                 {Object.keys(timeRangeMap).map((key) => (
-                  <Menu.Item key={key}>{timeRangeMap[key].name}</Menu.Item>
+                  <Menu.Item key={key}>{getQuickRangeLabel(key)}</Menu.Item>
                 ))}
               </Menu>
             </div>
@@ -365,7 +370,7 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
           <CIcon icon={cilClock} className="mr-2" />
           <span className={size === 'small' ? 'text-xs' : 'text-sm'}>
             {storeTimeRange?.rangeTypeKey
-              ? timeRangeMap[storeTimeRange?.rangeTypeKey].name
+              ? getQuickRangeLabel(storeTimeRange.rangeTypeKey)
               : convertTime(storeTimeRange?.startTime, 'yyyy-mm-dd hh:mm:ss') +
                 ' to ' +
                 convertTime(storeTimeRange?.endTime, 'yyyy-mm-dd hh:mm:ss')}
@@ -376,5 +381,9 @@ const DateTimeRangePicker = React.memo(({ size = 'normal' }) => {
     </>
   )
 })
+
+DateTimeRangePicker.propTypes = {
+  size: PropTypes.string,
+}
 
 export default DateTimeRangePicker

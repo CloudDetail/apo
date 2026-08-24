@@ -8,6 +8,7 @@ import { getUserPermissionApi } from '../api/permission'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { replaceBuiltInDashboardMenuRoutes } from '../components/AppSidebarBehavior.mjs'
+import { normalizeSystemHealthMenu } from 'src/core/utils/systemHealthRoute'
 
 const UserContext = createContext({})
 
@@ -24,7 +25,9 @@ export const UserProvider = ({ children }) => {
     return getUserPermissionApi({ userId: user.userId, language: i18n.language }).then((res) => {
       dispatch({
         type: 'setMenu',
-        payload: replaceBuiltInDashboardMenuRoutes(res?.menuItem || []),
+        payload: normalizeSystemHealthMenu(
+          replaceBuiltInDashboardMenuRoutes(res?.menuItem || []),
+        ),
       })
       dispatch({ type: 'setRoutes', payload: res?.routes || [] })
     })

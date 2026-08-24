@@ -124,7 +124,7 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
   //   setEntryTrace(nodes[0])
   //   setTopologyData({ nodes: nodesWithUpstream, edges })
   // }
-  function fetchSlowData(mutatedType) {
+  function fetchSlowData(mutatedType, groupId) {
     setLoading(true)
     setDataMissing(false)
     // 定义各个请求的 Promise
@@ -140,7 +140,7 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
         console.error('Mutated traces error:', err)
       })
 
-    const flowsPromise = getFlowsApi(traceId, spanId, mutatedType)
+    const flowsPromise = getFlowsApi(traceId, spanId, mutatedType, groupId)
       .then((res) => {
         if (res.status === 'failure' && res.message.includes('timeout')) {
           setIsTimeOut(true)
@@ -186,10 +186,11 @@ export const CauseReportProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
     setCategory(category)
     let mutatedType = searchParams.get('mutatedType') || ''
+    let groupId = searchParams.get('groupId') || ''
     if (traceId) {
       if (category === 'slow') {
         if (spanId) {
-          fetchSlowData(mutatedType)
+          fetchSlowData(mutatedType, groupId)
         }
       } else {
         getErrorTraces()

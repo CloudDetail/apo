@@ -12,7 +12,7 @@ import { AiOutlineDashboard } from 'react-icons/ai'
 import { FaRegBell } from 'react-icons/fa'
 import { MdOutlineSettings } from 'react-icons/md'
 import { IoIosTrendingUp, IoMdCloudOutline } from 'react-icons/io'
-import { TbWaveSawTool } from 'react-icons/tb'
+import { TbActivityHeartbeat, TbWaveSawTool } from 'react-icons/tb'
 import { GrSystem } from 'react-icons/gr'
 import TranslationCom from './oss/components/TranslationCom'
 import { BsBezier2 } from 'react-icons/bs'
@@ -129,10 +129,17 @@ let _nav = [
   },
   {
     key: 'healthy',
-    label: '服务健康状态',
-    abbreviation: '服务健康',
+    label: '健康度',
+    abbreviation: '健康度',
     to: '/healthy-service',
     icon: <TbWaveSawTool />,
+  },
+  {
+    key: 'healthLab',
+    label: '健康度实验室',
+    abbreviation: '健康度',
+    to: '/health-lab',
+    icon: <TbActivityHeartbeat />,
   },
   {
     key: 'manage',
@@ -174,6 +181,7 @@ const navIcon = {
   mysql: <AiOutlineDashboard />,
   customDashboard: <AiOutlineDashboard />,
   healthy: <TbWaveSawTool />,
+  healthLab: <TbActivityHeartbeat />,
   // dataGroup: <FiDatabase />,
   integration: <BsBezier2 />,
   workflows: <LuWorkflow />,

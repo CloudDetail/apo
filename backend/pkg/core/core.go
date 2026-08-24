@@ -9,13 +9,14 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -47,6 +48,20 @@ func New(logger *zap.Logger) (*Mux, error) {
 		ts := time.Now()
 		context := newContext(ctx)
 		defer releaseContext(context)
+		requestID := strings.TrimSpace(ctx.GetHeader("X-Request-ID"))
+		if requestID == "" {
+			requestID = uuid.NewString()
+		}
+		context.Set(RequestIDKey, requestID)
+		context.SetHeader("X-Request-ID", requestID)
+		decodedURL, _ := url.QueryUnescape(ctx.Request.URL.RequestURI())
+		logger.Info("request-start",
+			zap.String("requestId", requestID),
+			zap.String("method", ctx.Request.Method),
+			zap.String("path", decodedURL),
+			zap.String("clientIP", ctx.ClientIP()),
+			zap.String("userAgent", ctx.Request.UserAgent()),
+		)
 
 		defer func() {
 			var (
@@ -59,7 +74,11 @@ func New(logger *zap.Logger) (*Mux, error) {
 			// Panic occurs
 			if err := recover(); err != nil {
 				stackInfo := string(debug.Stack())
-				logger.Error("got panic", zap.String("panic", fmt.Sprintf("%+v", err)), zap.String("stack", stackInfo))
+				logger.Error("got panic",
+					zap.String("requestId", requestID),
+					zap.String("panic", fmt.Sprintf("%+v", err)),
+					zap.String("stack", stackInfo),
+				)
 
 				// BuisnessError return code is 500
 				context.AbortWithError(
@@ -108,6 +127,18 @@ func New(logger *zap.Logger) (*Mux, error) {
 				if len(ctx.GetHeader("X-Data-Flow")) > 0 {
 					// No need to log debug for X-Data-Flow = Meta type data
 					// At the same time, the response data is processed and returned inside the handler.
+					logger.Info("request-finish",
+						zap.String("requestId", requestID),
+						zap.Any("method", ctx.Request.Method),
+						zap.Any("path", decodedURL),
+						zap.Any("http_code", ctx.Writer.Status()),
+						zap.Any("business_code", businessCode),
+						zap.Any("business_message", businessCodeMsg),
+						zap.Any("success", !ctx.IsAborted()),
+						zap.Any("cost_seconds", time.Since(ts).Seconds()),
+						zap.String("reason", "data_flow_response"),
+						zap.Error(abortErr),
+					)
 					return
 				}
 
@@ -116,10 +147,10 @@ func New(logger *zap.Logger) (*Mux, error) {
 			}
 
 			success := !ctx.IsAborted() && (ctx.Writer.Status() == http.StatusOK)
-			decodedURL, _ := url.QueryUnescape(ctx.Request.URL.RequestURI())
 			costSeconds := time.Since(ts).Seconds()
 			if !success {
 				logger.Error("query-request",
+					zap.String("requestId", requestID),
 					zap.Any("method", ctx.Request.Method),
 					zap.Any("path", decodedURL),
 					zap.Any("http_code", ctx.Writer.Status()),
@@ -128,8 +159,9 @@ func New(logger *zap.Logger) (*Mux, error) {
 					zap.Any("cost_seconds", costSeconds),
 					zap.Error(abortErr),
 				)
-			} else if ce := logger.Check(zapcore.DebugLevel, ""); ce != nil {
-				logger.Debug("query-request",
+			} else {
+				logger.Info("query-request",
+					zap.String("requestId", requestID),
 					zap.Any("method", ctx.Request.Method),
 					zap.Any("path", decodedURL),
 					zap.Any("http_code", ctx.Writer.Status()),

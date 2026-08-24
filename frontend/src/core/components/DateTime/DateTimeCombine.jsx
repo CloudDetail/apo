@@ -9,7 +9,7 @@ import DateTimeRangePicker from './DateTimeRangePicker'
 import { Button, Input, Popover, Segmented, theme } from 'antd'
 import { FiSend } from 'react-icons/fi'
 import CopyButton from '../CopyButton'
-import { useLocation, useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { convertTime, TimestampToISO } from 'src/core/utils/time'
 import { timeRangeMap } from 'src/core/store/reducers/timeRangeReducer'
@@ -22,7 +22,8 @@ function ShareLink() {
   const [shareType, setShareType] = useState(t('dataTimeCombine.absoluteTimeText'))
   const { rangeTypeKey, startTime, endTime } = useSelector((state) => state.timeRange)
   const [copyUrl, setCopyUrl] = useState(window.location.href)
-  const [searchParams] = useSearchParams()
+  const getQuickRangeLabel = (key) =>
+    t(`dateTimeRangePicker.quickRanges.${key}`, { defaultValue: timeRangeMap[key]?.name })
 
   useEffect(() => {
     // 在翻译加载完成后设置shareType
@@ -71,7 +72,7 @@ function ShareLink() {
                 {convertTime(endTime, 'yyyy-mm-dd hh:mm:ss')}
               </>
             ) : (
-              timeRangeMap[rangeTypeKey]?.name
+              getQuickRangeLabel(rangeTypeKey)
             )}
           </div>
           <Input value={copyUrl} addonAfter={<CopyButton value={copyUrl} />} />
@@ -87,7 +88,7 @@ export default function DateTimeCombine() {
   const { rangeTypeKey } = useSelector((state) => state.timeRange)
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2">
       {rangeTypeKey && <TimeSinceRefresh />}
       <DateTimeRangePicker />
       {rangeTypeKey && <RefreshDateTime />}

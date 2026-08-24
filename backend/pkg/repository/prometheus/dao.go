@@ -66,6 +66,8 @@ type Repo interface {
 	// ========== originx_logparser_level_count_total Start ==========
 	// Query the number of errors in the instance log
 	QueryLogCountByInstanceId(ctx core.Context, instance *model.ServiceInstance, startTime int64, endTime int64, step int64) (map[int64]float64, error)
+	// Query the number of errors in the instance log by node and log source.
+	QueryLogCountByInstanceSource(ctx core.Context, nodeName string, source string, startTime int64, endTime int64, step int64) (map[int64]float64, error)
 	// QueryInstanceLogRangeData query instance-level log graphs
 	QueryInstanceLogRangeData(ctx core.Context, pqlTemplate AggPQLWithFilters, startTime int64, endTime int64, stepMicroS int64, granularity Granularity, podFilterKVs, vmFilterKVs []string) ([]MetricResult, error)
 	// ========== originx_logparser_level_count_total END ==========
@@ -170,6 +172,7 @@ type Labels struct {
 	Namespace   string `json:"namespace"`
 	ClusterID   string `json:"cluster_id"`
 	NodeIP      string `json:"node_ip"`
+	SourceFrom  string `json:"source_from"`
 
 	DBSystem string `json:"db_system"`
 	DBName   string `json:"db_name"`
@@ -248,6 +251,8 @@ func (l *Labels) SetValue(name string, value string) {
 		l.MonitorName = string(value)
 	case "node_ip":
 		l.NodeIP = string(value)
+	case "source_from":
+		l.SourceFrom = string(value)
 	case "host_ip":
 		l.NodeIP = string(value)
 	case "host_name":

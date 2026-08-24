@@ -5,7 +5,7 @@
   "mysqlDashboard": "MySQL大盘",
   "customDashboard": "我的大盘",
   "customDashboardEditor": "大盘编辑",
-  "serviceHealth": "服务健康状态",
+  "serviceHealth": "健康度",
   "aiRootCauseAnalysis": "大模型根因分析",
   "free": "公测",
   "licenseManage": "许可证"

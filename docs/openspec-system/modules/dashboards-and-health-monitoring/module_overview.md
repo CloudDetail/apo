@@ -6,7 +6,7 @@
 - 通过 iframe 直接承载 Grafana / Jaeger 风格的大盘页面，覆盖全局资源、基础设施、应用指标、中间件以及 MySQL 监控场景。
 - 通过 `/healthy-service` 页面提供服务健康状态总览，按 service 输出 RYG 风险灯、百分制健康分和评分详情。
 
-它不是单一业务流程，而是“宏观大盘入口 + 健康评分页”的组合模块。
+它不是单一业务流程，而是“宏观大盘入口 + 健康度页”的组合模块。
 
 ## Scope
 当前代码证据支持以下范围：
@@ -44,7 +44,7 @@
 |---|---|---|
 | Router Group | `backend/pkg/router/router_api.go` | 健康相关接口挂在 `/api/service` 下。 |
 | Handler Package | `backend/pkg/api/serviceoverview` | `GetRYGLight`、`GetMonitorStatus`。 |
-| Service Package | `backend/pkg/services/serviceoverview` | 健康评分与监控状态的核心实现。 |
+| Service Package | `backend/pkg/services/serviceoverview` | 健康度与监控状态的核心实现。 |
 | DB Init Mapping | `backend/pkg/repository/database/init_router_page.go` 等 | dashboard 页面 URL 与菜单并非只在前端硬编码。 |
 
 ## Core Concepts
@@ -53,7 +53,7 @@
 |---|---|
 | `dashboardKey` | `IframeDashboard` 用它从 `menuItems` 中找到目标 dashboard URL。 |
 | `router.page.url` | 后端初始化并最终通过权限配置下发给前端的 dashboard iframe 地址。 |
-| `RYGResult` | 服务健康评分结果，包含 `percentScore`、`score`、`status`、`scoreDetail`。 |
+| `RYGResult` | 服务健康度结果，包含 `percentScore`、`score`、`status`、`scoreDetail`。 |
 | `RYGStatus` | 健康状态枚举，取值 `red` / `yellow` / `green`。 |
 | `RYGScoreDetail` | 每个检查项的分值和解释文案。 |
 | `MonitorStatus` | 监控项名称与存活状态结果。 |
@@ -85,8 +85,8 @@
 | Frontend Shared | `timeRangeReducer` | dashboard URL 和健康页查询都依赖统一时间范围。 |
 | Frontend Shared | `AuthRouter` | 页面入口被统一 guard 包装。 |
 | Backend Shared | `data.Service.CheckGroupPermission` | `/api/service/ryglight` 会检查数据组权限。 |
-| Repository | `prometheus.Repo` | dashboard 健康评分和 monitor status 的主要数据来源。 |
-| Repository | `clickhouse.Repo` | 健康评分中告警事件计数依赖它。 |
+| Repository | `prometheus.Repo` | dashboard 健康度和 monitor status 的主要数据来源。 |
+| Repository | `clickhouse.Repo` | 健康度中告警事件计数依赖它。 |
 | Repository | `database.Repo` | dashboard / menu / feature / router page 初始化依赖它。 |
 | External Service | Grafana / Jaeger page URLs | dashboard 页面本质上是外部可视化页面嵌入。 |
 | Cross Module | `service-observability` | service 详情里也复用 `IframeDashboard` 机制嵌入 dashboard。 |

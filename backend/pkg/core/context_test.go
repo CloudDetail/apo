@@ -40,3 +40,10 @@ func TestContext_Clone(t *testing.T) {
 	_, exists := originalCtx.Get("new_key")
 	assert.False(t, exists, "There should be no newly added keys in the original object")
 }
+
+func TestEmptyContextGetMethodPathReturnsEmptyValues(t *testing.T) {
+	method, path := EmptyCtx().GetMethodPath()
+
+	assert.Empty(t, method)
+	assert.Empty(t, path)
+}

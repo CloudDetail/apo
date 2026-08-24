@@ -5,6 +5,7 @@
 
 import { Dropdown, Tooltip } from 'antd'
 import React, { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import { LuRefreshCw } from 'react-icons/lu'
 import { MdArrowDropDown } from 'react-icons/md'
 import { useDispatch, useSelector } from 'react-redux'
@@ -119,4 +120,8 @@ export default function RefreshDateTime({ size = 'normal' }) {
       </Dropdown.Button>
     </div>
   )
+}
+
+RefreshDateTime.propTypes = {
+  size: PropTypes.oneOf(['normal', 'small']),
 }

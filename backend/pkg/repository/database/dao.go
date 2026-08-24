@@ -36,6 +36,13 @@ type Repo interface {
 	CreateOrUpdateThreshold(ctx core.Context, model *Threshold) error
 	GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error
+	GetOrCreateSystemHealthConfig(ctx core.Context) (SystemHealthConfig, error)
+	UpdateSystemHealthConfig(ctx core.Context, severeAbnormalScoreThreshold int, generalAbnormalScoreThreshold int) (SystemHealthConfig, error)
+	SaveSystemHealthSnapshots(ctx core.Context, systems []SystemHealthSystemSnapshot, services []SystemHealthServiceSnapshot) error
+	LatestSystemHealthSnapshotBucketStart(ctx core.Context) (time.Time, bool, error)
+	TryClaimSystemHealthSnapshotBucket(ctx core.Context, bucketStart time.Time, ttl time.Duration) (bool, error)
+	ListSystemHealthSystemSnapshots(ctx core.Context, groupIDs []int64, startTime time.Time, endTime time.Time) ([]SystemHealthSystemSnapshot, error)
+	ListSystemHealthServiceSnapshots(ctx core.Context, groupIDs []int64, startTime time.Time, endTime time.Time) ([]SystemHealthServiceSnapshot, error)
 	OperateLogTableInfo(ctx core.Context, model *LogTableInfo, op Operator) error
 	GetAllLogTable(ctx core.Context) ([]LogTableInfo, error)
 	UpdateLogParseRule(ctx core.Context, model *LogTableInfo) error
@@ -151,6 +158,9 @@ type Repo interface {
 	DeleteCustomDashboardWithMenu(ctx core.Context, id string) error
 	TouchCustomDashboardVisit(ctx core.Context, id string, at time.Time) error
 	CreateCustomDashboardQueryAudit(ctx core.Context, audit *CustomDashboardQueryAudit) error
+	SaveSystemHealthReportRecord(ctx core.Context, record *SystemHealthReportRecord) error
+	ListSystemHealthReportRecords(ctx core.Context, groupID int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error)
+	GetSystemHealthReportRecord(ctx core.Context, recordID string) (*SystemHealthReportRecord, error)
 
 	// GetContextDB Gets transaction form ctx.
 	GetContextDB(ctx core.Context) *gorm.DB
@@ -373,6 +383,10 @@ func migrateTable(db *gorm.DB) error {
 		&profile.UserRole{},
 		&Router{},
 		&Threshold{},
+		&SystemHealthConfig{},
+		&SystemHealthSystemSnapshot{},
+		&SystemHealthServiceSnapshot{},
+		&SystemHealthSnapshotLock{},
 		&profile.User{},
 		&API{},
 		&AuthDataGroup{},
@@ -387,6 +401,7 @@ func migrateTable(db *gorm.DB) error {
 		&CustomServiceTopology{},
 		&CustomDashboard{},
 		&CustomDashboardQueryAudit{},
+		&SystemHealthReportRecord{},
 		&mi.DataPlaneType{},
 		&mi.DataPlane{},
 		&mi.Cluster2DataPlane{},

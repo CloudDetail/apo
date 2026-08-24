@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统健康中心</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f5f7fb;
+        color: #1f2937;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 13px;
+      }
+
+      .page {
+        max-width: 1440px;
+        min-width: 1120px;
+        margin: 0 auto;
+        padding: 12px;
+      }
+
+      .header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 2px 12px;
+        border-bottom: 1px solid #d9dee8;
+      }
+
+      .header h1 {
+        margin: 0 0 5px;
+        font-size: 20px;
+        line-height: 26px;
+        font-weight: 700;
+      }
+
+      .meta {
+        color: #667085;
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .meta strong {
+        color: #344054;
+        font-weight: 600;
+      }
+
+      .jump {
+        color: #175cd3;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .top-grid {
+        grid-template-columns: 260px 260px 1fr;
+      }
+
+      .two-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .card {
+        background: #fff;
+        border: 1px solid #d9dee8;
+        border-radius: 6px;
+        min-height: 116px;
+        overflow: hidden;
+      }
+
+      .card-head {
+        min-height: 38px;
+        padding: 9px 12px;
+        border-bottom: 1px solid #eaecf0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: 700;
+        background: #fbfcfe;
+      }
+
+      .card-body {
+        padding: 12px;
+      }
+
+      .status-word {
+        font-size: 32px;
+        line-height: 42px;
+        font-weight: 760;
+        color: #b54708;
+        margin-bottom: 12px;
+      }
+
+      .score-word {
+        font-size: 30px;
+        line-height: 40px;
+        font-weight: 760;
+        color: #344054;
+      }
+
+      .down {
+        color: #d92d20;
+        font-weight: 700;
+        margin-left: 8px;
+      }
+
+      .kv {
+        display: grid;
+        gap: 7px;
+        color: #475467;
+      }
+
+      .summary-text {
+        line-height: 23px;
+        color: #344054;
+      }
+
+      .muted {
+        color: #667085;
+      }
+
+      .slo-list,
+      .chain-list,
+      .evidence-list,
+      .risk-box {
+        display: grid;
+        gap: 9px;
+      }
+
+      .line {
+        display: grid;
+        grid-template-columns: 22px 1fr auto auto;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+      }
+
+      .chain-line {
+        display: grid;
+        grid-template-columns: 22px 1fr 80px;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .evidence-line {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        gap: 8px;
+        line-height: 20px;
+      }
+
+      .evidence-source {
+        grid-column: 2;
+        color: #667085;
+        margin-top: -5px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 22px;
+        padding: 1px 7px;
+        border-radius: 4px;
+        border: 1px solid #d0d5dd;
+        background: #fff;
+        color: #475467;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tag.red {
+        color: #b42318;
+        border-color: #fecdca;
+        background: #fef3f2;
+      }
+
+      .tag.orange {
+        color: #b54708;
+        border-color: #fedf89;
+        background: #fffaeb;
+      }
+
+      .tag.yellow {
+        color: #93370d;
+        border-color: #fedf89;
+        background: #fffaeb;
+      }
+
+      .tag.green {
+        color: #067647;
+        border-color: #abefc6;
+        background: #ecfdf3;
+      }
+
+      .tag.blue {
+        color: #175cd3;
+        border-color: #b2ddff;
+        background: #eff8ff;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #eaecf0;
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: middle;
+        line-height: 20px;
+      }
+
+      th {
+        color: #667085;
+        font-weight: 700;
+        background: #fbfcfe;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .entry-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 10px;
+      }
+
+      .entry {
+        color: #175cd3;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .section {
+        margin-top: 12px;
+      }
+
+      .notice {
+        margin-top: 8px;
+        padding: 9px 10px;
+        border: 1px solid #b2ddff;
+        border-radius: 6px;
+        color: #175cd3;
+        background: #eff8ff;
+        line-height: 20px;
+      }
+
+      @media (max-width: 1180px) {
+        .page {
+          min-width: 0;
+        }
+
+        .top-grid,
+        .two-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div>
+          <h1>系统健康中心</h1>
+          <div class="meta">
+            <span>环境: <strong>生产</strong></span>
+            <span>时间范围: <strong>最近 1 小时</strong></span>
+            <span>业务域: <strong>全部</strong></span>
+            <span>刷新: <strong>30s</strong></span>
+          </div>
+        </div>
+        <span class="tag blue">排障导航入口</span>
+      </header>
+
+      <section class="grid top-grid">
+        <div class="card">
+          <div class="card-head">当前状态 <span class="jump">[>]</span></div>
+          <div class="card-body">
+            <div class="status-word">风险</div>
+            <div class="kv">
+              <div>受影响服务: <strong>3</strong> <span class="jump">[>]</span></div>
+              <div>活跃告警: <strong>12</strong> <span class="jump">[>]</span></div>
+              <div>P1 事件: <strong>1</strong> <span class="jump">[>]</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">健康分 <span class="jump">[>]</span></div>
+          <div class="card-body">
+            <div class="score-word">76 / 100 <span class="down">↓ 12</span></div>
+            <div class="kv" style="margin-top: 22px">
+              <div>扣分项: <strong>延迟 / 错误率</strong> <span class="jump">[>]</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">AI 健康摘要 <span class="jump">[>]</span></div>
+          <div class="card-body summary-text">
+            支付链路延迟升高，主要受 <strong>payment-api</strong> 和 <strong>order-db</strong> 影响。预计影响
+            <strong>3.2%</strong> 支付请求。建议优先检查 <strong>14:20</strong> 发布和
+            <strong>order-db</strong> 慢 SQL。置信度: <strong>82%</strong>
+            <div class="notice">
+              AI 输入边界: 异常对象 TopN、诊断证据 TopN、关联变更 TopN；不输入全量日志、全量 Trace 或全量指标。
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two-grid section">
+        <div class="card">
+          <div class="card-head">核心 SLO <span class="jump">[>]</span></div>
+          <div class="card-body slo-list">
+            <div class="line"><span class="jump">[>]</span><span>API 可用性</span><strong>99.91% / 99.95%</strong><span class="tag orange">未达标</span></div>
+            <div class="line"><span class="jump">[>]</span><span>支付成功率</span><strong>98.60% / 99.50%</strong><span class="tag red">异常</span></div>
+            <div class="line"><span class="jump">[>]</span><span>P95 响应时间</span><strong>430ms / 500ms</strong><span class="tag green">正常</span></div>
+            <div class="line"><span class="jump">[>]</span><span>错误率</span><strong>0.22% / 0.10%</strong><span class="tag red">异常</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">AI 风险预测 <span class="jump">[>]</span></div>
+          <div class="card-body risk-box">
+            <div><strong>order-db CPU</strong> 连续 3 天峰值上升</div>
+            <div>预计 <strong>5 天后</strong> 高峰期超过 <strong>90%</strong></div>
+            <div class="muted">建议: 本周完成 SQL 优化或扩容评估</div>
+            <div class="notice">预测来源: 历史指标趋势 + 容量阈值模型；历史数据不足时不展示预测结论。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card section">
+        <div class="card-head">异常对象 Top N <span class="jump">[>]</span></div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 54px">#</th>
+              <th style="width: 180px">对象</th>
+              <th style="width: 110px">状态</th>
+              <th>AI 判断</th>
+              <th style="width: 340px">可跳转入口</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="entry">payment-api [>]</span></td>
+              <td><span class="tag red">严重</span></td>
+              <td>P99 延迟超过基线 2.4 倍</td>
+              <td><div class="entry-list"><span class="entry">指标[>]</span><span class="entry">日志[>]</span><span class="entry">Trace[>]</span><span class="entry">变更[>]</span></div></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="entry">order-db [>]</span></td>
+              <td><span class="tag orange">风险</span></td>
+              <td>CPU 92%，慢 SQL 增长 4.2 倍</td>
+              <td><div class="entry-list"><span class="entry">指标[>]</span><span class="entry">慢SQL[>]</span><span class="entry">告警[>]</span><span class="entry">容量[>]</span></div></td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><span class="entry">mq-settlement [>]</span></td>
+              <td><span class="tag yellow">注意</span></td>
+              <td>队列积压持续增长</td>
+              <td><div class="entry-list"><span class="entry">指标[>]</span><span class="entry">消费者[>]</span><span class="entry">日志[>]</span><span class="entry">告警[>]</span></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="grid two-grid section">
+        <div class="card">
+          <div class="card-head">业务链路健康 <span class="jump">[>]</span></div>
+          <div class="card-body chain-list">
+            <div class="chain-line"><span class="jump">[>]</span><span>登录链路</span><span class="tag green">正常</span></div>
+            <div class="chain-line"><span class="jump">[>]</span><span>下单链路</span><span class="tag orange">风险</span></div>
+            <div class="chain-line"><span class="jump">[>]</span><span>支付链路</span><span class="tag red">严重</span></div>
+            <div class="chain-line"><span class="jump">[>]</span><span>退款链路</span><span class="tag green">正常</span></div>
+            <div class="chain-line"><span class="jump">[>]</span><span>结算链路</span><span class="tag yellow">注意</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">AI 诊断证据 <span class="jump">[>]</span></div>
+          <div class="card-body evidence-list">
+            <div class="evidence-line"><span class="jump">[>]</span><span>14:20 后 payment-api 5xx 上升</span><div class="evidence-source">来源: 指标 / 错误率趋势</div></div>
+            <div class="evidence-line"><span class="jump">[>]</span><span>Trace 显示 DB Span 占比 78%</span><div class="evidence-source">来源: 链路追踪样本</div></div>
+            <div class="evidence-line"><span class="jump">[>]</span><span>order-db 慢 SQL 数量增长 4.2 倍</span><div class="evidence-source">来源: 慢 SQL 分析</div></div>
+            <div class="evidence-line"><span class="jump">[>]</span><span>相关告警已聚合为 1 个主事件</span><div class="evidence-source">来源: 告警聚合 / 事件详情</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card section">
+        <div class="card-head">服务健康矩阵 <span class="jump">[>]</span></div>
+        <table>
+          <thead>
+            <tr>
+              <th>服务</th>
+              <th>可用性</th>
+              <th>延迟</th>
+              <th>错误率</th>
+              <th>资源</th>
+              <th>告警</th>
+              <th>变更关联</th>
+              <th>总状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="entry">payment-api [>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td><span class="tag red">严重</span><span class="jump">[>]</span></td>
+              <td><span class="tag orange">风险</span><span class="jump">[>]</span></td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+              <td><span class="tag red">严重</span><span class="jump">[>]</span></td>
+              <td>是<span class="jump">[>]</span></td>
+              <td><span class="tag red">严重</span><span class="jump">[>]</span></td>
+            </tr>
+            <tr>
+              <td><span class="entry">order-service [>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td><span class="tag orange">风险</span><span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+              <td>否</td>
+              <td><span class="tag orange">风险</span><span class="jump">[>]</span></td>
+            </tr>
+            <tr>
+              <td><span class="entry">user-service [>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>否</td>
+              <td><span class="tag green">健康</span><span class="jump">[>]</span></td>
+            </tr>
+            <tr>
+              <td><span class="entry">settlement-job [>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td>正常<span class="jump">[>]</span></td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+              <td>否</td>
+              <td><span class="tag yellow">注意</span><span class="jump">[>]</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card section">
+        <div class="card-head">建议动作</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 54px">#</th>
+              <th>动作</th>
+              <th style="width: 110px">优先级</th>
+              <th style="width: 150px">入口</th>
+              <th style="width: 140px">状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>查看 14:20 payment-api 发布记录</td><td><span class="tag red">P0</span></td><td><span class="entry">[查看变更]</span></td><td>未处理</td></tr>
+            <tr><td>2</td><td>检查 order-db 慢 SQL Top 5</td><td><span class="tag red">P0</span></td><td><span class="entry">[查看 SQL]</span></td><td>未处理</td></tr>
+            <tr><td>3</td><td>查看支付链路异常 Trace</td><td><span class="tag orange">P1</span></td><td><span class="entry">[查看 Trace]</span></td><td>未处理</td></tr>
+            <tr><td>4</td><td>创建 P1 事件并通知支付负责人</td><td><span class="tag orange">P1</span></td><td><span class="entry">[创建事件]</span></td><td>未处理</td></tr>
+            <tr><td>5</td><td>生成事件复盘草稿</td><td><span class="tag yellow">P2</span></td><td><span class="entry">[生成复盘]</span></td><td>待事件关闭</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

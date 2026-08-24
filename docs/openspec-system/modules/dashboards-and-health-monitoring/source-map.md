@@ -21,7 +21,7 @@
 | Frontend | `frontend/src/core/store/reducers/timeRangeReducer.js` | dashboard URL 拼接时间范围；健康页也使用共享时间范围。 |
 | Backend | `backend/pkg/router/router_api.go` | 健康状态相关接口挂在 `/api/service`。 |
 | Backend | `backend/pkg/api/serviceoverview` | `GetRYGLight`、`GetMonitorStatus` handler 所在目录。 |
-| Backend | `backend/pkg/services/serviceoverview` | 服务健康评分与监控状态计算逻辑。 |
+| Backend | `backend/pkg/services/serviceoverview` | 服务健康度与监控状态计算逻辑。 |
 | Backend | `backend/pkg/model/request/service_req.go` | `GetRygLightRequest`、`GetMonitorStatusRequest`。 |
 | Backend | `backend/pkg/model/response/service_resp.go` | `ServiceRYGLightRes`、`RYGResult`、`GetMonitorStatusResponse`。 |
 | Backend | `backend/pkg/repository/database/init_router.go` | dashboard / healthy 路由初始化。 |
@@ -69,7 +69,7 @@
 
 | Service Area | Files | Notes |
 |---|---|---|
-| Health Score | `backend/pkg/services/serviceoverview/service_ryg_light.go` | 聚合 Prometheus 与 ClickHouse 数据，计算 RYG 健康评分。 |
+| Health Score | `backend/pkg/services/serviceoverview/service_ryg_light.go` | 聚合 Prometheus 与 ClickHouse 数据，计算 RYG 健康度。 |
 | Monitor Status | `backend/pkg/services/serviceoverview/service_get_monitor_status.go` | 从 Prometheus 读取 `uptime-kuma` 风格监控项状态。 |
 | Shared Interface | `backend/pkg/services/serviceoverview/service.go` | 暴露 `GetServicesRYGLightStatus` 与 `GetMonitorStatus`。 |
 
@@ -89,8 +89,8 @@
 | Time Range | `frontend/src/core/store/reducers/timeRangeReducer.js` | dashboard URL 会附带时间范围；健康页也使用共享时间范围。 |
 | Permission/Menu Storage | `backend/pkg/repository/database/init_menu_item.go`, `init_feature_mapping.go`, `init_router.go` | dashboard / healthy 页面并非纯前端硬编码，而有数据库初始化映射。 |
 | Router Page Storage | `backend/pkg/repository/database/init_router_page.go` | 初始化 Grafana / Jaeger 页面 URL。 |
-| Prometheus Repo | `backend/pkg/repository/prometheus` | 健康评分与监控状态的主要指标来源。 |
-| ClickHouse Repo | `backend/pkg/repository/clickhouse` | 健康评分中告警事件分组计数依赖它。 |
+| Prometheus Repo | `backend/pkg/repository/prometheus` | 健康度与监控状态的主要指标来源。 |
+| ClickHouse Repo | `backend/pkg/repository/clickhouse` | 健康度中告警事件分组计数依赖它。 |
 | Data Group Permission | `backend/pkg/services/data` | `/api/service/ryglight` 的数据组权限检查依赖它。 |
 | Shared Dashboard Embedding | `frontend/src/oss/views/serviceInfo/component/infoUni/MetricsDashboard.jsx`, `frontend/src/pro/components/DataViewCom/MetricsDashboard.jsx` | 其他模块也复用 `IframeDashboard` 能力。 |
 

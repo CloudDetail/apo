@@ -8,7 +8,20 @@
     "startTitle": "开始",
     "endTitle": "结束",
     "applyTimeRangeButtonText": "应用时间范围",
-    "quickRangeTitle": "快速范围"
+    "quickRangeTitle": "快速范围",
+    "quickRanges": {
+      "5m": "过去 5 分钟",
+      "15m": "过去 15 分钟",
+      "30m": "过去 30 分钟",
+      "1h": "过去 1 小时",
+      "3h": "过去 3 小时",
+      "6h": "过去 6 小时",
+      "12h": "过去 12 小时",
+      "today": "今天",
+      "yesterday": "昨天",
+      "thisWeek": "本周",
+      "last7Days": "过去 7 天"
+    }
   },
   "refreshDateTime": {
     "RefreshDateTimeOffText": "关"

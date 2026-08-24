@@ -5,7 +5,7 @@
   "mysqlDashboard": "MySQL Dashboard",
   "customDashboard": "My Dashboards",
   "customDashboardEditor": "Dashboard Editor",
-  "serviceHealth": "Service Health Status",
+  "serviceHealth": "System Health Score",
   "aiRootCauseAnalysis": "AI Root Cause Analysis",
   "free": "Public Beta",
   "licenseManage": "License"

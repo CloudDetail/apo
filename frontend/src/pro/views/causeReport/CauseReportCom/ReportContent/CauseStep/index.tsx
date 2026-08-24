@@ -7,6 +7,7 @@ import ChainStep from './components/chainStep'
 import _ from 'lodash'
 import CauseStep2 from './components/causeStep2'
 import { useTranslation } from 'react-i18next'
+import SpanDetailStep from './components/SpanDetailStep'
 interface CauseProps {
   data: any
   occurrenceAt?: number
@@ -19,6 +20,8 @@ function CauseStep({ data, occurrenceAt }: CauseProps) {
     return <CauseStep1 data={data} />
   } else if (data.type === 'profiling_duration') {
     return <CauseStep2 data={data} />
+  } else if (data.type === 'spanDetail') {
+    return <SpanDetailStep data={data} />
   } else if (
     data.type === 'metrics_baseline' ||
     data.type === 'tableMetrics' ||

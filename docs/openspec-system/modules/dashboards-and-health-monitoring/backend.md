@@ -73,7 +73,7 @@
 | Relational DB | Menu items | `init_menu_item.go` 中初始化 `system`、`basic`、`application`、`middleware`、`mysql`、`healthy`。 |
 | Relational DB | Router pages | `init_router_page.go` 中为 dashboard route 绑定 Grafana / Jaeger URL。 |
 | Prometheus | Health metrics | `service_ryg_light.go` 和 `service_get_monitor_status.go` 的主要指标来源。 |
-| ClickHouse | Alert event counts | 健康评分里按实例聚合告警事件数。 |
+| ClickHouse | Alert event counts | 健康度里按实例聚合告警事件数。 |
 
 ## Validation And Rules
 
@@ -91,7 +91,7 @@
 1. 参数绑定失败统一通过 `AbortWithError(..., code.ParamBindError, err)` 返回。
 2. `GetRYGLight` 权限失败时返回空 `serviceList` 的响应体。
 3. `GetMonitorStatus` service 在 Prometheus 查询失败时返回空结果和 `nil` error，这意味着 handler 侧可能返回一个空 `monitorList` 而不是显式失败。
-4. 健康评分逻辑中，多项 Prometheus 查询如果单项失败，会被跳过，不会直接终止整个评分流程。
+4. 健康度逻辑中，多项 Prometheus 查询如果单项失败，会被跳过，不会直接终止整个评分流程。
 
 ## Notes
 

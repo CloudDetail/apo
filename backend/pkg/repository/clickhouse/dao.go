@@ -107,6 +107,10 @@ type Repo interface {
 
 	GetAlertEventReport(ctx core.Context, startTime time.Time, endTime time.Time, tags map[string]string) (*model.AlertEventReport, error)
 	ListAlertEventReports(ctx core.Context, startTime time.Time, endTime time.Time, limit int) ([]model.AlertEventReport, error)
+	GetAlertEventReportByAnalyzeRunID(ctx core.Context, startTime time.Time, endTime time.Time, analyzeRunID string) (*model.AlertEventReport, error)
+	GetAlertEventReportsByAlertID(ctx core.Context, startTime time.Time, endTime time.Time, alertID string) ([]model.AlertEventReport, error)
+	GetAlertEventHistoryStatsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventHistoryStats, error)
+	GetAlertEventRawSegmentsByAlertIDs(ctx core.Context, startTime time.Time, endTime time.Time, alertIDs []string) ([]AlertEventRawSegment, error)
 
 	AddAlertEventReport(ctx core.Context, req *request.AddAlertEventReportRequest) error
 
@@ -175,6 +179,7 @@ type Repo interface {
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error)
 	CleanDataplaneServiceInstance(ctx core.Context, startTime int64, endTime int64, ruleId int, dataSource string) error
 	GetDataplaneServiceByInstance(ctx core.Context, startTime int64, endTime int64, cluster string, pod, namespace string, node string, pid int) ([]AlertService, error)
+	GetLatestSourceByNodePIDs(ctx core.Context, pairs []NodePID) (map[NodePID]string, error)
 
 	integration.Input
 }

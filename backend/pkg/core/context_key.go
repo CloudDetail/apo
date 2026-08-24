@@ -4,5 +4,6 @@
 package core
 
 const (
-	UserIDKey = "_user_id_"
+	UserIDKey    = "_user_id_"
+	RequestIDKey = "_request_id_"
 )

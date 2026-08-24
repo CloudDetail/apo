@@ -5,8 +5,8 @@ export function getMutatedtracesApi(traceId: string, spanId: string) {
 }
 // 可以带url参数mutatedType,指定要分析的根因类型;
 // /flows/span/run/{traceId:string}/{spanId:string}?mutatedType=
-export function getFlowsApi(traceId: string, spanId: string, mutatedType?: string) {
-  return get(`/originx/api/flows/span/run/${traceId}/${spanId}`, { mutatedType })
+export function getFlowsApi(traceId: string, spanId: string, mutatedType?: string, groupId?: string) {
+  return get(`/originx/api/flows/span/run/${traceId}/${spanId}`, { mutatedType, groupId })
 }
 export function getErrorTraceLogApi(traceId: string, spanId: string) {
   return get(`/originx/api/query/logs/${traceId}/${spanId}`)

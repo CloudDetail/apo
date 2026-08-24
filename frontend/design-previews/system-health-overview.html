@@ -1,0 +1,1647 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统健康概览</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --panel-soft: #fbfcfe;
+        --line: #d9dee8;
+        --line-soft: #eaecf0;
+        --text: #1f2937;
+        --muted: #667085;
+        --muted-2: #98a2b3;
+        --blue: #175cd3;
+        --green: #12b76a;
+        --yellow: #f79009;
+        --red: #f04438;
+        --gray: #c6ccd6;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+          sans-serif;
+        font-size: 13px;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 12px;
+      }
+
+      .topbar {
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 11px 14px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+
+      .topbar.detail {
+        align-items: center;
+      }
+
+      .title-block {
+        display: grid;
+        gap: 4px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 19px;
+        line-height: 25px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .top-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .select-like,
+      .search,
+      .button {
+        height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: #fff;
+        color: #344054;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 10px;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      .button.primary {
+        border-color: #b2ddff;
+        background: #eff8ff;
+        color: var(--blue);
+      }
+
+      .select-like {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 9px;
+      }
+
+      .search {
+        width: 240px;
+        padding: 0 10px;
+        outline: none;
+      }
+
+      .service-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .service-toolbar .search {
+        width: 210px;
+      }
+
+      select.select-like {
+        appearance: none;
+        min-width: 112px;
+        padding-right: 26px;
+        background:
+          linear-gradient(45deg, transparent 50%, #667085 50%) right 11px center / 6px 6px no-repeat,
+          linear-gradient(135deg, #667085 50%, transparent 50%) right 7px center / 6px 6px no-repeat,
+          #fff;
+      }
+
+      .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: #344054;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .switch input {
+        display: none;
+      }
+
+      .switch-track {
+        width: 34px;
+        height: 18px;
+        padding: 2px;
+        border-radius: 999px;
+        background: #d0d5dd;
+        transition: background 0.18s ease;
+      }
+
+      .switch-thumb {
+        width: 14px;
+        height: 14px;
+        display: block;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.18);
+        transition: transform 0.18s ease;
+      }
+
+      .switch input:checked + .switch-track {
+        background: var(--blue);
+      }
+
+      .switch input:checked + .switch-track .switch-thumb {
+        transform: translateX(16px);
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .metric {
+        min-height: 74px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metric-value {
+        margin-top: 6px;
+        font-size: 26px;
+        line-height: 30px;
+        font-weight: 760;
+      }
+
+      .metric-foot {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .metric.danger .metric-value {
+        color: #b42318;
+      }
+
+      .metric.warn .metric-value {
+        color: #b54708;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .detail-section {
+        margin-top: 10px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 9px 12px;
+        border-bottom: 1px solid var(--line-soft);
+        background: var(--panel-soft);
+      }
+
+      .panel-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-weight: 700;
+      }
+
+      .panel-head .info-tip::after {
+        top: calc(100% + 8px);
+        bottom: auto;
+      }
+
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        height: 48px;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line-soft);
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      th {
+        height: 38px;
+        color: var(--muted);
+        background: #fcfcfd;
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      th:not(:first-child),
+      td:not(:first-child) {
+        text-align: center;
+      }
+
+      .service-table th:last-child,
+      .service-table td:last-child {
+        text-align: left;
+      }
+
+      tbody tr {
+        cursor: pointer;
+        transition:
+          background 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      tbody tr:hover,
+      tbody tr.active {
+        background: #f6faff;
+      }
+
+      tbody tr.active {
+        box-shadow: inset 3px 0 0 var(--blue);
+      }
+
+      .system-cell {
+        display: grid;
+        min-width: 0;
+      }
+
+      .system-name {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        font-weight: 700;
+      }
+
+      .system-name span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .health-ring {
+        --score: 80;
+        --ring: var(--green);
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: radial-gradient(circle at center, #fff 0 56%, transparent 57%),
+          conic-gradient(var(--ring) calc(var(--score) * 1%), #edf0f5 0 100%);
+        color: #344054;
+        font-size: 12px;
+        font-weight: 780;
+      }
+
+      .score-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .detail-score {
+        width: 58px;
+        height: 58px;
+        font-size: 14px;
+      }
+
+      .lamp {
+        width: 14px;
+        height: 14px;
+        display: inline-block;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow:
+          0 0 0 1px rgba(16, 24, 40, 0.12),
+          0 1px 2px rgba(16, 24, 40, 0.08);
+      }
+
+      .lamp.green {
+        background: var(--green);
+      }
+
+      .lamp.yellow {
+        background: var(--yellow);
+      }
+
+      .lamp.red {
+        background: var(--red);
+      }
+
+      .lamp.gray {
+        background: var(--gray);
+      }
+
+      .lamp-cell {
+        text-align: center;
+      }
+
+      .lamp-cell .lamp {
+        vertical-align: middle;
+      }
+
+      .status-word {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .detail-summary {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.2fr) repeat(2, minmax(160px, 1fr)) minmax(
+            260px,
+            1.2fr
+          );
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .detail-score-card,
+      .detail-stat {
+        min-height: 92px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+
+      .detail-score-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .detail-score-card .detail-score {
+        flex: 0 0 auto;
+        width: 72px;
+        height: 72px;
+        font-size: 18px;
+      }
+
+      .score-card-copy {
+        display: grid;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .score-card-label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .score-card-state {
+        font-size: 18px;
+        line-height: 22px;
+        font-weight: 760;
+      }
+
+      .score-card-state.red {
+        color: #b42318;
+      }
+
+      .score-card-state.yellow {
+        color: #b54708;
+      }
+
+      .score-card-state.green {
+        color: #067647;
+      }
+
+      .score-card-note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 17px;
+      }
+
+      .detail-stat span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .detail-stat strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 24px;
+        line-height: 28px;
+      }
+
+      .detail-stat.red strong {
+        color: #b42318;
+      }
+
+      .detail-stat.yellow strong {
+        color: #b54708;
+      }
+
+      .key-service-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .info-tip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-left: 5px;
+        border: 1px solid #d0d5dd;
+        border-radius: 50%;
+        color: #667085;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: help;
+      }
+
+      .info-tip::after {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 8px);
+        z-index: 5;
+        display: none;
+        width: max-content;
+        max-width: 220px;
+        padding: 7px 9px;
+        border: 1px solid #d0d5dd;
+        border-radius: 5px;
+        background: #1f2937;
+        color: #fff;
+        content: attr(data-tip);
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 18px;
+        transform: translateX(-50%);
+        box-shadow: 0 6px 18px rgba(16, 24, 40, 0.18);
+        white-space: nowrap;
+      }
+
+      .info-tip:hover::after {
+        display: block;
+      }
+
+      .key-service-name {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        border: 1px solid #b2ddff;
+        border-radius: 999px;
+        background: #eff8ff;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .metric-tile {
+        min-height: 104px;
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .metric-tile-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: 700;
+      }
+
+      .metric-tile-value {
+        font-size: 19px;
+        line-height: 23px;
+        font-weight: 760;
+      }
+
+      .metric-tile-note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 17px;
+      }
+
+      .service-table th,
+      .service-table td {
+        height: 52px;
+      }
+
+      .service-name {
+        display: grid;
+        gap: 3px;
+        min-width: 0;
+      }
+
+      .service-name strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .service-name span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .detail-stat > .tag-list {
+        margin-top: 10px;
+      }
+
+      .mini-tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 21px;
+        padding: 0 7px;
+        border: 1px solid var(--line-soft);
+        border-radius: 999px;
+        background: #fff;
+        color: #475467;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .mini-tag.red {
+        border-color: #fecdca;
+        background: #fef3f2;
+        color: #b42318;
+      }
+
+      .mini-tag.yellow {
+        border-color: #fedf89;
+        background: #fffaeb;
+        color: #b54708;
+      }
+
+      .priority-list {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .priority-item {
+        display: grid;
+        grid-template-columns: 18px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 9px;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .priority-item.expanded {
+        align-items: start;
+      }
+
+      .priority-main {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+      }
+
+      .priority-main strong,
+      .priority-main span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .priority-main span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .ai-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 26px;
+        padding: 0 9px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: #fff;
+        color: #344054;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .ai-action:hover,
+      .ai-action.active {
+        border-color: var(--blue);
+        background: #eff6ff;
+        color: var(--blue);
+      }
+
+      .priority-ai-detail {
+        grid-column: 2 / 4;
+        display: grid;
+        gap: 8px;
+        margin-top: 2px;
+        padding: 10px 12px;
+        border: 1px solid var(--line-soft);
+        border-radius: 6px;
+        background: #eff6ff;
+      }
+
+      .priority-ai-detail > div {
+        display: grid;
+        gap: 3px;
+      }
+
+      .priority-ai-detail b {
+        color: var(--text);
+        font-size: 12px;
+      }
+
+      .priority-ai-detail span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 18px;
+      }
+
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 24px 8px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .nowrap {
+        white-space: nowrap;
+      }
+
+      @media (max-width: 720px) {
+        .priority-item {
+          grid-template-columns: 18px minmax(0, 1fr);
+        }
+
+        .ai-action,
+        .priority-ai-detail {
+          grid-column: 2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div id="overviewView">
+        <section class="topbar">
+          <div class="title-block">
+            <h1>系统健康概览</h1>
+            <div class="subtitle">默认优先展示异常系统，按健康度和指标状态快速定位问题系统。</div>
+          </div>
+          <div class="top-meta">
+            <span>时间范围：最近 30 分钟</span>
+            <span class="select-like">生产环境</span>
+            <span>更新时间：14:28:16</span>
+          </div>
+        </section>
+
+        <section class="summary" aria-label="健康汇总">
+          <div class="metric danger">
+            <div class="metric-label">异常系统</div>
+            <div class="metric-value">4 / 12</div>
+            <div class="metric-foot">2 个系统健康度低于 60</div>
+          </div>
+          <div class="metric warn">
+            <div class="metric-label">异常指标</div>
+            <div class="metric-value">31</div>
+            <div class="metric-foot">错误率、响应延时、错误日志占比最高</div>
+          </div>
+          <div class="metric danger">
+            <div class="metric-label">严重异常</div>
+            <div class="metric-value">7</div>
+            <div class="metric-foot">集中在订单、支付、会员系统</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">新增异常</div>
+            <div class="metric-value">5</div>
+            <div class="metric-foot">最近 10 分钟新增</div>
+          </div>
+        </section>
+
+        <section class="layout">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">
+                系统健康度
+                <span
+                  class="info-tip"
+                  data-tip="由资源水位、资源波动、错误率、响应延时、错误日志、活跃告警、锁等待综合计算"
+                  >?</span
+                >
+              </div>
+              <div class="legend">
+                <label class="switch">
+                  <input id="onlyAbnormal" type="checkbox" checked />
+                  <span class="switch-track"><span class="switch-thumb"></span></span>
+                  <span>只看异常</span>
+                </label>
+                <input id="searchInput" class="search" type="search" placeholder="搜索系统" />
+                <span class="legend-item"><span class="lamp green"></span><span>正常</span></span>
+                <span class="legend-item"><span class="lamp yellow"></span><span>关注</span></span>
+                <span class="legend-item"><span class="lamp red"></span><span>异常</span></span>
+                <span class="legend-item"><span class="lamp gray"></span><span>无数据</span></span>
+              </div>
+            </div>
+            <table>
+              <colgroup>
+                <col style="width: 220px" />
+                <col style="width: 86px" />
+                <col span="7" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>系统</th>
+                  <th>健康度</th>
+                  <th class="nowrap">资源水位</th>
+                  <th class="nowrap">资源波动</th>
+                  <th class="nowrap">错误率</th>
+                  <th class="nowrap">响应延时</th>
+                  <th class="nowrap">错误日志</th>
+                  <th class="nowrap">活跃告警</th>
+                  <th class="nowrap">锁等待</th>
+                </tr>
+              </thead>
+              <tbody id="systemRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <div id="detailView" class="hidden">
+        <section class="topbar detail">
+          <button id="backToOverview" class="button" type="button">返回</button>
+          <div class="title-block">
+            <h1 id="detailTitle">系统详情</h1>
+            <div class="subtitle" id="detailSubtitle">
+              查看系统内服务健康、异常维度和优先处理项。
+            </div>
+          </div>
+          <div class="top-meta">
+            <span>时间范围：最近 30 分钟</span>
+            <span class="select-like">生产环境</span>
+            <span>更新时间：14:28:16</span>
+          </div>
+        </section>
+
+        <section class="detail-summary" aria-label="系统详情汇总">
+          <div class="detail-score-card" id="detailScore"></div>
+          <div class="detail-stat red">
+            <span>主要异常</span>
+            <div id="detailPrimaryAbnormal" class="tag-list"></div>
+          </div>
+          <div class="detail-stat yellow">
+            <span>关注指标</span>
+            <div id="detailWatchMetrics" class="tag-list"></div>
+          </div>
+          <div class="detail-stat">
+            <span>
+              系统关键服务
+              <span class="info-tip" data-tip="系统中被依赖最多的服务">?</span>
+            </span>
+            <div id="detailKeyServices" class="key-service-list"></div>
+          </div>
+        </section>
+
+        <section class="panel detail-section">
+          <div class="panel-head">
+            <div class="panel-title">系统级指标</div>
+            <div class="legend">
+              <span class="legend-item"><span class="lamp green"></span><span>正常</span></span>
+              <span class="legend-item"><span class="lamp yellow"></span><span>关注</span></span>
+              <span class="legend-item"><span class="lamp red"></span><span>异常</span></span>
+              <span class="legend-item"><span class="lamp gray"></span><span>无数据</span></span>
+            </div>
+          </div>
+          <div id="detailMetricGrid" class="metric-grid"></div>
+        </section>
+
+        <section class="panel detail-section">
+          <div class="panel-head">
+            <div class="panel-title">服务列表</div>
+            <div class="service-toolbar">
+              <input id="serviceSearchInput" class="search" type="search" placeholder="搜索服务" />
+              <select id="serviceStatusFilter" class="select-like" aria-label="服务状态过滤">
+                <option value="all">全部服务</option>
+                <option value="red">只看异常</option>
+                <option value="yellow">只看关注</option>
+                <option value="green">只看正常</option>
+              </select>
+            </div>
+          </div>
+          <table class="service-table">
+            <colgroup>
+              <col style="width: 230px" />
+              <col style="width: 86px" />
+              <col span="7" />
+              <col style="width: 210px" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>服务</th>
+                <th>健康度</th>
+                <th class="nowrap">资源水位</th>
+                <th class="nowrap">资源波动</th>
+                <th class="nowrap">错误率</th>
+                <th class="nowrap">响应延时</th>
+                <th class="nowrap">错误日志</th>
+                <th class="nowrap">活跃告警</th>
+                <th class="nowrap">锁等待</th>
+                <th>主要异常</th>
+              </tr>
+            </thead>
+            <tbody id="serviceRows"></tbody>
+          </table>
+        </section>
+
+        <section class="panel detail-section">
+          <div class="panel-head">
+            <div class="panel-title">优先处理</div>
+          </div>
+          <div id="priorityList" class="priority-list"></div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const metricLabels = [
+        ['resource', '资源水位'],
+        ['resourceShift', '资源波动'],
+        ['errorRate', '错误率'],
+        ['latency', '响应延时'],
+        ['errorLog', '错误日志'],
+        ['badRequests', '活跃告警'],
+        ['lockCost', '锁等待'],
+      ]
+
+      const statusMeta = {
+        green: { text: '正常', label: '正常' },
+        yellow: { text: '关注', label: '需要关注' },
+        red: { text: '异常', label: '异常' },
+        gray: { text: '无数据', label: '暂无数据' },
+      }
+
+      const metricSamples = {
+        resource: {
+          green: ['43%', 'CPU / 内存处于可用区间'],
+          yellow: ['74%', '接近资源阈值'],
+          red: ['91%', '资源使用已超过阈值'],
+          gray: ['--', '暂无资源数据'],
+        },
+        resourceShift: {
+          green: ['8%', '波动低于基线'],
+          yellow: ['31%', '波动接近异常阈值'],
+          red: ['57%', '短时间剧烈波动'],
+          gray: ['--', '暂无波动数据'],
+        },
+        errorRate: {
+          green: ['0.12%', '错误率稳定'],
+          yellow: ['1.9%', '错误率高于基线'],
+          red: ['5.7%', '错误率超过异常阈值'],
+          gray: ['--', '暂无请求数据'],
+        },
+        latency: {
+          green: ['128ms', 'P95 响应延时稳定'],
+          yellow: ['420ms', 'P95 响应延时升高'],
+          red: ['960ms', 'P95 响应延时明显异常'],
+          gray: ['--', '暂无响应延时数据'],
+        },
+        errorLog: {
+          green: ['12', '错误日志未异常增长'],
+          yellow: ['146', '错误日志高于基线'],
+          red: ['621', '错误日志激增'],
+          gray: ['--', '日志源未上报'],
+        },
+        badRequests: {
+          green: ['18', '活跃告警稳定'],
+          yellow: ['233', '活跃告警升高'],
+          red: ['874', '活跃告警集中出现'],
+          gray: ['--', '暂无请求明细'],
+        },
+        lockCost: {
+          green: ['24ms', '锁等待稳定'],
+          yellow: ['188ms', '锁等待升高'],
+          red: ['740ms', '锁等待严重异常'],
+          gray: ['--', '暂无锁等待数据'],
+        },
+      }
+
+      const systems = [
+        {
+          id: 'order',
+          name: '订单系统',
+          owner: '交易域 / 李明',
+          score: 38,
+          trend: '10 分钟内下降 19 分',
+          metrics: {
+            resource: 'green',
+            resourceShift: 'yellow',
+            errorRate: 'red',
+            latency: 'yellow',
+            errorLog: 'red',
+            badRequests: 'yellow',
+            lockCost: 'green',
+          },
+          services: [
+            {
+              name: 'order-api',
+              desc: '核心下单接口',
+              score: 35,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'yellow',
+                errorRate: 'red',
+                latency: 'yellow',
+                errorLog: 'red',
+                badRequests: 'yellow',
+                lockCost: 'green',
+              },
+            },
+            {
+              name: 'order-callback',
+              desc: '支付结果回调',
+              score: 46,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'green',
+                errorRate: 'yellow',
+                latency: 'green',
+                errorLog: 'red',
+                badRequests: 'yellow',
+                lockCost: 'green',
+              },
+            },
+            {
+              name: 'order-scheduler',
+              desc: '超时订单处理',
+              score: 61,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'yellow',
+                errorRate: 'green',
+                latency: 'yellow',
+                errorLog: 'green',
+                badRequests: 'green',
+                lockCost: 'red',
+              },
+            },
+          ],
+        },
+        {
+          id: 'payment',
+          name: '支付系统',
+          owner: '交易域 / 周晨',
+          score: 52,
+          trend: 'P95 延时持续升高',
+          metrics: {
+            resource: 'red',
+            resourceShift: 'yellow',
+            errorRate: 'yellow',
+            latency: 'red',
+            errorLog: 'yellow',
+            badRequests: 'green',
+            lockCost: 'green',
+          },
+          services: [
+            {
+              name: 'payment-gateway',
+              desc: '收银台与支付网关',
+              score: 44,
+              metrics: {
+                resource: 'red',
+                resourceShift: 'yellow',
+                errorRate: 'yellow',
+                latency: 'red',
+                errorLog: 'yellow',
+                badRequests: 'green',
+                lockCost: 'green',
+              },
+            },
+            {
+              name: 'refund-worker',
+              desc: '退款异步任务',
+              score: 67,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'green',
+                errorRate: 'green',
+                latency: 'yellow',
+                errorLog: 'green',
+                badRequests: 'green',
+                lockCost: 'yellow',
+              },
+            },
+          ],
+        },
+        {
+          id: 'member',
+          name: '会员系统',
+          owner: '用户域 / 王敏',
+          score: 71,
+          trend: '错误日志较基线增加 2.4 倍',
+          metrics: {
+            resource: 'green',
+            resourceShift: 'green',
+            errorRate: 'green',
+            latency: 'yellow',
+            errorLog: 'yellow',
+            badRequests: 'green',
+            lockCost: 'red',
+          },
+          services: [
+            {
+              name: 'member-profile',
+              desc: '会员资料服务',
+              score: 69,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'green',
+                errorRate: 'green',
+                latency: 'yellow',
+                errorLog: 'yellow',
+                badRequests: 'green',
+                lockCost: 'red',
+              },
+            },
+          ],
+        },
+        {
+          id: 'inventory',
+          name: '库存系统',
+          owner: '供应链 / 陈辰',
+          score: 86,
+          trend: '运行稳定',
+          metrics: {
+            resource: 'green',
+            resourceShift: 'green',
+            errorRate: 'green',
+            latency: 'green',
+            errorLog: 'green',
+            badRequests: 'green',
+            lockCost: 'green',
+          },
+          services: [
+            {
+              name: 'stock-query',
+              desc: '库存查询接口',
+              score: 88,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'green',
+                errorRate: 'green',
+                latency: 'green',
+                errorLog: 'green',
+                badRequests: 'green',
+                lockCost: 'green',
+              },
+            },
+          ],
+        },
+        {
+          id: 'promotion',
+          name: '营销系统',
+          owner: '增长域 / 赵琳',
+          score: 64,
+          trend: '资源波动超过阈值',
+          metrics: {
+            resource: 'yellow',
+            resourceShift: 'red',
+            errorRate: 'green',
+            latency: 'yellow',
+            errorLog: 'green',
+            badRequests: 'green',
+            lockCost: 'green',
+          },
+          services: [
+            {
+              name: 'coupon-center',
+              desc: '优惠券中心',
+              score: 58,
+              metrics: {
+                resource: 'yellow',
+                resourceShift: 'red',
+                errorRate: 'green',
+                latency: 'yellow',
+                errorLog: 'green',
+                badRequests: 'green',
+                lockCost: 'green',
+              },
+            },
+          ],
+        },
+        {
+          id: 'report',
+          name: '报表系统',
+          owner: '数据域 / 孙宁',
+          score: 79,
+          trend: '部分日志源未上报',
+          metrics: {
+            resource: 'green',
+            resourceShift: 'green',
+            errorRate: 'green',
+            latency: 'green',
+            errorLog: 'gray',
+            badRequests: 'green',
+            lockCost: 'yellow',
+          },
+          services: [
+            {
+              name: 'export-worker',
+              desc: '报表导出任务',
+              score: 72,
+              metrics: {
+                resource: 'green',
+                resourceShift: 'green',
+                errorRate: 'green',
+                latency: 'green',
+                errorLog: 'gray',
+                badRequests: 'green',
+                lockCost: 'yellow',
+              },
+            },
+          ],
+        },
+      ]
+
+      let selectedId = ''
+      let currentDetailSystem = null
+      let expandedPriorityKey = ''
+
+      function ringColor(score) {
+        if (score < 60) return '#f04438'
+        if (score < 80) return '#f79009'
+        return '#12b76a'
+      }
+
+      function lamp(status) {
+        const meta = statusMeta[status] || statusMeta.gray
+        return `<span class="lamp ${status}" title="${meta.label}" aria-label="${meta.label}"></span>`
+      }
+
+      function healthRing(score, extraClass = '') {
+        return `<span class="health-ring ${extraClass}" style="--score:${score};--ring:${ringColor(score)}">${score}</span>`
+      }
+
+      function scoreState(score) {
+        if (score < 60) {
+          return {
+            className: 'red',
+            note: '低于健康线，建议优先处理红灯指标',
+            text: '严重异常',
+          }
+        }
+        if (score < 80) {
+          return {
+            className: 'yellow',
+            note: '存在持续黄灯指标，需要关注变化',
+            text: '需要关注',
+          }
+        }
+        return {
+          className: 'green',
+          note: '核心指标处于稳定区间',
+          text: '运行健康',
+        }
+      }
+
+      function renderScoreCard(system) {
+        const state = scoreState(system.score)
+        return `
+          ${healthRing(system.score, 'detail-score')}
+          <div class="score-card-copy">
+            <span class="score-card-label">健康度</span>
+            <strong class="score-card-state ${state.className}">${state.text}</strong>
+            <span class="score-card-note">${state.note}</span>
+          </div>
+        `
+      }
+
+      function isAbnormal(system) {
+        return (
+          system.score < 80 ||
+          Object.values(system.metrics).some((value) => value === 'red' || value === 'yellow')
+        )
+      }
+
+      function countStatus(system, status) {
+        return Object.values(system.metrics).filter((value) => value === status).length
+      }
+
+      function severityValue(status) {
+        return { red: 4, yellow: 3, gray: 2, green: 1 }[status] || 0
+      }
+
+      function metricLabel(key) {
+        return metricLabels.find(([metricKey]) => metricKey === key)?.[1] || key
+      }
+
+      function countServiceStatus(service, status) {
+        return Object.values(service.metrics).filter((value) => value === status).length
+      }
+
+      function serviceMatchesFilter(service, filter) {
+        const values = Object.values(service.metrics)
+        if (filter === 'red') return values.includes('red')
+        if (filter === 'yellow') return !values.includes('red') && values.includes('yellow')
+        if (filter === 'green') return values.every((value) => value === 'green')
+        return true
+      }
+
+      function serviceSeverity(service) {
+        return Object.values(service.metrics).reduce(
+          (sum, status) => sum + severityValue(status),
+          0,
+        )
+      }
+
+      const priorityInsightMap = {
+        resource: {
+          analysis: '资源水位偏高，服务容量余量不足，继续上涨会放大响应延时和错误率。',
+          action:
+            '先确认突增流量、批任务或实例异常；必要时临时扩容，并回收异常任务占用的 CPU / 内存。',
+        },
+        resourceShift: {
+          analysis: '资源波动超过近期基线，说明负载或实例状态不稳定，容易触发间歇性故障。',
+          action: '对比发布时间、批处理窗口和节点重启记录，优先稳定实例分布，再观察波动是否回落。',
+        },
+        errorRate: {
+          analysis: '错误率已经进入异常区间，用户请求正在直接失败，是当前优先级最高的问题之一。',
+          action:
+            '先看该服务最近 5 分钟错误 Top 接口和状态码；若集中在新版本或依赖调用，优先回滚或降级依赖。',
+        },
+        latency: {
+          analysis: '响应延时持续升高，可能来自下游等待、慢查询、队列堆积或资源竞争。',
+          action: '按 P95 延时拆解接口和下游依赖，先隔离最慢链路；必要时启用限流或降级非核心路径。',
+        },
+        errorLog: {
+          analysis: '错误日志短时间集中出现，说明异常路径已经形成稳定复现信号。',
+          action: '聚合错误堆栈和关键字段，先处理出现频次最高且关联请求失败的日志类型。',
+        },
+        badRequests: {
+          analysis: '活跃告警量升高，可能是参数、鉴权、依赖返回或客户端调用模式发生变化。',
+          action: '按接口、来源和错误码聚合活跃告警，确认是否需要拦截异常流量或修复调用方参数。',
+        },
+        lockCost: {
+          analysis: '锁等待耗时过高，说明并发竞争或事务持有时间正在影响服务吞吐。',
+          action: '定位最长锁等待的接口、SQL 或任务，优先缩短事务范围，并暂停高冲突的批处理任务。',
+        },
+      }
+
+      function priorityInsight(item) {
+        const insight = priorityInsightMap[item.key] || {
+          analysis: `${item.service} 的 ${item.label} 已偏离正常区间，可能继续影响核心链路稳定性。`,
+          action: '先确认最近变更和依赖状态，再按影响面从红灯指标开始处理。',
+        }
+
+        return {
+          analysis: `${item.service}：${insight.analysis}`,
+          action: insight.action,
+        }
+      }
+
+      function abnormalMetricTags(metrics, limit = 3) {
+        const tags = metricLabels
+          .map(([key, label]) => ({ key, label, status: metrics[key] }))
+          .filter((item) => item.status === 'red' || item.status === 'yellow')
+          .sort((left, right) => severityValue(right.status) - severityValue(left.status))
+          .slice(0, limit)
+
+        if (!tags.length) {
+          return '<span class="mini-tag">无明显异常</span>'
+        }
+
+        return tags
+          .map((item) => `<span class="mini-tag ${item.status}">${item.label}</span>`)
+          .join('')
+      }
+
+      function showOverview() {
+        document.getElementById('detailView').classList.add('hidden')
+        document.getElementById('overviewView').classList.remove('hidden')
+        selectedId = ''
+        renderRows()
+      }
+
+      function showDetail(systemId) {
+        const system = systems.find((item) => item.id === systemId)
+        if (!system) return
+        selectedId = systemId
+        currentDetailSystem = system
+        expandedPriorityKey = ''
+        document.getElementById('serviceSearchInput').value = ''
+        document.getElementById('serviceStatusFilter').value = 'all'
+        document.getElementById('overviewView').classList.add('hidden')
+        document.getElementById('detailView').classList.remove('hidden')
+        renderDetail(system)
+      }
+
+      function renderMetricGrid(system) {
+        document.getElementById('detailMetricGrid').innerHTML = metricLabels
+          .map(([key, label]) => {
+            const status = system.metrics[key] || 'gray'
+            const [value, note] = metricSamples[key]?.[status] || ['--', '暂无数据']
+            return `
+              <div class="metric-tile">
+                <div class="metric-tile-head">
+                  <span>${label}</span>
+                  ${lamp(status)}
+                </div>
+                <div class="metric-tile-value">${value}</div>
+                <div class="metric-tile-note">${note}</div>
+              </div>
+            `
+          })
+          .join('')
+      }
+
+      function renderServices(system) {
+        const keyword = document.getElementById('serviceSearchInput').value.trim().toLowerCase()
+        const filter = document.getElementById('serviceStatusFilter').value
+        const serviceRows = [...system.services]
+          .filter((service) => {
+            if (!keyword) return true
+            return `${service.name} ${service.desc}`.toLowerCase().includes(keyword)
+          })
+          .filter((service) => serviceMatchesFilter(service, filter))
+          .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
+          .map((service) => {
+            const metricCells = metricLabels
+              .map(([key]) => `<td class="lamp-cell">${lamp(service.metrics[key])}</td>`)
+              .join('')
+            return `
+              <tr>
+                <td>
+                  <div class="service-name">
+                    <strong>${service.name}</strong>
+                    <span>${service.desc}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="score-cell">${healthRing(service.score)}</div>
+                </td>
+                ${metricCells}
+                <td><div class="tag-list">${abnormalMetricTags(service.metrics)}</div></td>
+              </tr>
+            `
+          })
+          .join('')
+
+        document.getElementById('serviceRows').innerHTML =
+          serviceRows || `<tr><td colspan="10" class="empty">没有匹配的服务</td></tr>`
+      }
+
+      function renderPriority(system) {
+        const items = []
+        system.services.forEach((service) => {
+          metricLabels.forEach(([key, label]) => {
+            const status = service.metrics[key]
+            if (status === 'red' || status === 'yellow') {
+              items.push({
+                key,
+                label,
+                service: service.name,
+                status,
+                score: severityValue(status) * 10 + (100 - service.score),
+              })
+            }
+          })
+        })
+
+        const html = items
+          .sort((left, right) => right.score - left.score)
+          .slice(0, 6)
+          .map((item) => {
+            const itemKey = `${item.service}-${item.key}`
+            const isExpanded = expandedPriorityKey === itemKey
+            const insight = priorityInsight(item)
+
+            return `
+              <div class="priority-item ${isExpanded ? 'expanded' : ''}">
+                ${lamp(item.status)}
+                <div class="priority-main">
+                  <strong>${item.label}</strong>
+                  <span>${item.service} · ${item.status === 'red' ? '已超过异常阈值' : '接近异常阈值'}</span>
+                </div>
+                <button class="ai-action ${isExpanded ? 'active' : ''}" data-priority-key="${itemKey}">
+                  AI 分析
+                </button>
+                ${
+                  isExpanded
+                    ? `<div class="priority-ai-detail">
+                        <div>
+                          <b>分析</b>
+                          <span>${insight.analysis}</span>
+                        </div>
+                        <div>
+                          <b>处理建议</b>
+                          <span>${insight.action}</span>
+                        </div>
+                      </div>`
+                    : ''
+                }
+              </div>
+            `
+          })
+          .join('')
+
+        document.getElementById('priorityList').innerHTML =
+          html || `<div class="empty">暂无需要优先处理的异常</div>`
+
+        document.querySelectorAll('.ai-action[data-priority-key]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const itemKey = button.dataset.priorityKey
+            expandedPriorityKey = expandedPriorityKey === itemKey ? '' : itemKey
+            if (currentDetailSystem) renderPriority(currentDetailSystem)
+          })
+        })
+      }
+
+      function renderKeyServices(system) {
+        const services = [...system.services]
+          .sort((left, right) => serviceSeverity(right) - serviceSeverity(left))
+          .slice(0, 4)
+
+        document.getElementById('detailKeyServices').innerHTML = services
+          .map((service) => `<span class="key-service-name">${service.name}</span>`)
+          .join('')
+      }
+
+      function renderStatusTags(system, status, targetId, emptyText) {
+        const tags = metricLabels
+          .map(([key, label]) => ({ label, status: system.metrics[key] }))
+          .filter((item) => item.status === status)
+
+        document.getElementById(targetId).innerHTML =
+          tags.map((item) => `<span class="mini-tag ${status}">${item.label}</span>`).join('') ||
+          `<span class="mini-tag">${emptyText}</span>`
+      }
+
+      function renderDetail(system) {
+        document.getElementById('detailTitle').textContent = system.name
+        document.getElementById('detailSubtitle').textContent =
+          '按服务查看健康状态，优先处理红灯和持续黄灯指标。'
+        document.getElementById('detailScore').innerHTML = renderScoreCard(system)
+        renderStatusTags(system, 'red', 'detailPrimaryAbnormal', '暂无红灯指标')
+        renderStatusTags(system, 'yellow', 'detailWatchMetrics', '暂无黄灯指标')
+        renderKeyServices(system)
+        renderMetricGrid(system)
+        renderServices(system)
+        renderPriority(system)
+      }
+
+      function renderRows() {
+        const keyword = document.getElementById('searchInput').value.trim().toLowerCase()
+        const onlyAbnormal = document.getElementById('onlyAbnormal').checked
+        const rows = systems
+          .filter((system) => !onlyAbnormal || isAbnormal(system))
+          .filter((system) => {
+            if (!keyword) return true
+            return system.name.toLowerCase().includes(keyword)
+          })
+          .sort((left, right) => left.score - right.score)
+          .map((system) => {
+            const metricCells = metricLabels
+              .map(([key]) => `<td class="lamp-cell">${lamp(system.metrics[key])}</td>`)
+              .join('')
+            return `
+              <tr class="${system.id === selectedId ? 'active' : ''}" data-id="${system.id}">
+                <td>
+                  <div class="system-cell">
+                    <div class="system-name">
+                      ${lamp(countStatus(system, 'red') > 0 ? 'red' : countStatus(system, 'yellow') > 0 ? 'yellow' : 'green')}
+                      <span>${system.name}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="score-cell">
+                    ${healthRing(system.score)}
+                  </div>
+                </td>
+                ${metricCells}
+              </tr>
+            `
+          })
+          .join('')
+
+        document.getElementById('systemRows').innerHTML =
+          rows || `<tr><td colspan="9" class="empty">没有匹配的系统</td></tr>`
+
+        document.querySelectorAll('#systemRows tr[data-id]').forEach((row) => {
+          row.addEventListener('click', () => {
+            showDetail(row.dataset.id)
+          })
+        })
+      }
+
+      document.getElementById('backToOverview').addEventListener('click', showOverview)
+      document.getElementById('onlyAbnormal').addEventListener('change', renderRows)
+      document.getElementById('searchInput').addEventListener('input', renderRows)
+      document.getElementById('serviceSearchInput').addEventListener('input', () => {
+        if (currentDetailSystem) renderServices(currentDetailSystem)
+      })
+      document.getElementById('serviceStatusFilter').addEventListener('change', () => {
+        if (currentDetailSystem) renderServices(currentDetailSystem)
+      })
+
+      renderRows()
+    </script>
+  </body>
+</html>

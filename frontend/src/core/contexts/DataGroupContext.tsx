@@ -14,6 +14,7 @@ const DataGroupContext = createContext<DataGroupContextType>({} as DataGroupCont
 
 export const useDataGroupContext = <T,>(selector: (context: any) => T): T =>
   useContextSelector(DataGroupContext, selector)
+
 export const DataGroupProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useUserContext()
   const [originalDataGroup, setOriginalDataGroup] = useState<DataGroupItem[]>([])
