@@ -1,41 +1,40 @@
 import { Button, Input, Tooltip } from 'antd'
 import { SendOutlined, StopOutlined } from '@ant-design/icons'
-import { useEffect, useState } from 'react'
+import { useRef, useState } from 'react'
+import { shouldSubmitChatInput } from './chatInputPolicy.ts'
 import styles from '../HermesAgentWorkspace.module.scss'
 
 export default function ChatInput({
+  value,
   busy,
   stopping,
   stopRetryAllowed,
   disabled,
+  onChange,
   onSend,
   onStop,
-  initialValue,
 }: {
+  value: string
   busy: boolean
   stopping?: boolean
   stopRetryAllowed?: boolean
   disabled?: boolean
+  onChange: (value: string) => void
   onSend: (text: string) => Promise<void>
   onStop: () => Promise<void>
-  initialValue?: string
 }) {
-  const [value, setValue] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    if (initialValue) setValue(initialValue)
-  }, [initialValue])
+  const composingRef = useRef(false)
 
   const submit = async () => {
     const text = value.trim()
     if (!text || disabled || submitting) return
     setSubmitting(true)
-    setValue('')
+    onChange('')
     try {
       await onSend(text)
     } catch {
-      setValue(text)
+      onChange(text)
     } finally {
       setSubmitting(false)
     }
@@ -54,16 +53,21 @@ export default function ChatInput({
               ? '可补充分析对象、时间范围或排除条件…'
               : '描述对象、时间范围和异常现象，例如：分析最近 30 分钟订单服务错误率升高'
         }
-        onChange={(event) => setValue(event.target.value)}
+        onChange={(event) => onChange(event.target.value)}
+        onCompositionStart={() => {
+          composingRef.current = true
+        }}
+        onCompositionEnd={() => {
+          composingRef.current = false
+        }}
         onPressEnter={(event) => {
-          if (!event.shiftKey) {
+          if (shouldSubmitChatInput(event, composingRef.current)) {
             event.preventDefault()
             void submit()
           }
         }}
       />
       <div className={styles.composerActions}>
-        <span>Enter 发送，Shift + Enter 换行</span>
         <div>
           {busy && (
             <Tooltip title={stopRetryAllowed ? '再次发送停止请求' : '停止当前任务'}>

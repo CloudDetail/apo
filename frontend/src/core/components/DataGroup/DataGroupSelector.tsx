@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DataGroupTreeSelector from './DataGroupTreeSelector'
+import { buildDataGroupNavigation } from './navigation.ts'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
 
 const DataGroupSelector = ({ readonly = false, hidden = false }) => {
@@ -46,7 +47,8 @@ const DataGroupSelector = ({ readonly = false, hidden = false }) => {
         const isCurrentValid = typeof dataGroupId === 'number' && availableNodeIds.has(dataGroupId)
         if (isCurrentValid && !groupIdStr) {
           urlParams.set('groupId', dataGroupId.toString())
-          navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
+          const navigation = buildDataGroupNavigation(location, urlParams)
+          navigate(navigation.to, navigation.options)
         } else if (!isCurrentValid) {
           const firstAvailableNode = flattenedAvailableNodes[0]
           if (firstAvailableNode) {
@@ -56,7 +58,8 @@ const DataGroupSelector = ({ readonly = false, hidden = false }) => {
               payload: newGroupId,
             })
             urlParams.set('groupId', newGroupId.toString())
-            navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
+            const navigation = buildDataGroupNavigation(location, urlParams)
+            navigate(navigation.to, navigation.options)
           }
         }
       }
@@ -79,7 +82,8 @@ const DataGroupSelector = ({ readonly = false, hidden = false }) => {
       urlParams = { set: () => {}, toString: () => '' }
     }
     urlParams.set('groupId', newValue.toString())
-    navigate(`${location.pathname}?${urlParams.toString()}`, { replace: true })
+    const navigation = buildDataGroupNavigation(location, urlParams)
+    navigate(navigation.to, navigation.options)
   }
 
   return import.meta.env.VITE_APP_CODE_VERSION !== 'CE' && !hidden ? (

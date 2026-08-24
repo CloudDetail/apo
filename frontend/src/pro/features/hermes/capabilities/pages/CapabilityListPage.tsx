@@ -2,14 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, Button, Empty, Input, message, Modal, Select, Space, Table, Tag, Tooltip, Typography } from 'antd'
 import { ArrowLeftOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { workCapabilityApi } from '../client/workCapabilityApi.ts'
 import type { CapabilityListParams, WorkCapability } from '../client/types.ts'
 import { StatusTag, formatCount, formatDate } from '../components/CapabilityPanels.tsx'
+import { useWorkCapabilityApi } from '../useWorkCapabilityApi.ts'
 import styles from './index.module.scss'
 
 const { Title, Text } = Typography
 
 export default function CapabilityListPage() {
+  const workCapabilityApi = useWorkCapabilityApi()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '')
@@ -46,7 +47,7 @@ export default function CapabilityListPage() {
     } finally {
       setLoading(false)
     }
-  }, [params])
+  }, [params, workCapabilityApi])
 
   useEffect(() => {
     void load()
@@ -188,12 +189,11 @@ export default function CapabilityListPage() {
       <div className={styles.shell}>
         <div className={styles.header}>
           <div className={styles.headerTitle}>
-            <span className={styles.eyebrow}>AGENT · WORKFLOW LIBRARY</span>
+            <Button type="text" icon={<ArrowLeftOutlined />} onClick={() => navigate('/agent')}>返回运维会话</Button>
             <Title level={2}>运维任务库</Title>
             <p>查看由成功运行自动沉淀的可复用任务方案。</p>
           </div>
           <Space wrap>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/agent')}>返回运维会话</Button>
             <Tooltip title="重新加载任务库"><Button aria-label="重新加载任务库" icon={<ReloadOutlined />} onClick={() => void load()} /></Tooltip>
           </Space>
         </div>

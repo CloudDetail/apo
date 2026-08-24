@@ -34,9 +34,9 @@ interface ChatMessagesProps {
 
 const examples = [
   {
-    title: '分析最近告警',
+    title: '分析最近出现延时的服务',
     detail: '最近 30 分钟 · 服务与实例',
-    prompt: '分析最近 30 分钟内的服务告警，先说明影响范围，再定位可能原因。',
+    prompt: '分析最近 30 分钟内的出现延时的服务，并定位可能原因。',
   },
   {
     title: '查询服务 RED 指标',
@@ -49,9 +49,9 @@ const examples = [
     prompt: '检查最近 30 分钟的错误日志，按服务汇总主要异常并给出排查建议。',
   },
   {
-    title: '定位慢 Trace',
-    detail: '最近 1 小时 · 慢调用链路',
-    prompt: '定位最近 1 小时的慢 Trace，说明最慢链路、关键 Span 和可能瓶颈。',
+    title: '查询主机资源',
+    detail: '最近 1 小时 · 主机资源',
+    prompt: '查询最近一小时的主机资源使用情况，并总结趋势。',
   },
 ]
 
@@ -105,7 +105,6 @@ export default function ChatMessages({
               <RobotOutlined />
             </div>
             <div>
-              <span>Hermes 运维助手</span>
               <h2>从一个真实运维任务开始</h2>
               <p>请尽量说明对象、时间范围和异常现象，我会按步骤分析并给出可继续追问的结论。</p>
             </div>

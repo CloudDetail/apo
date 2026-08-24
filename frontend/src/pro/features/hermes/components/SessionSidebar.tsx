@@ -61,7 +61,6 @@ export default function SessionSidebar({
     <aside className={styles.sessionSidebar}>
       <div className={styles.sidebarHeader}>
         <div>
-          <span className={styles.eyebrow}>Hermes 运维助手</span>
           <strong>运维会话</strong>
         </div>
         {onClose && (

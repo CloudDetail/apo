@@ -20,6 +20,7 @@ export default function HermesAgentWorkspace() {
   )
   const workspace = useHermesSession(requestedSessionId)
   const [workflowLaunch, setWorkflowLaunch] = useState<WorkflowLaunchContext | null>(null)
+  const [draft, setDraft] = useState('')
 
   useEffect(() => {
     const state = location.state as { workflowLaunch?: WorkflowLaunchContext } | null
@@ -27,6 +28,7 @@ export default function HermesAgentWorkspace() {
     if (!launch?.goal) return
     workspace.newConversation()
     setWorkflowLaunch(launch)
+    setDraft(launch.goal)
     navigate(`${location.pathname}${location.search}${location.hash}`, {
       replace: true,
       state: null,
@@ -42,6 +44,8 @@ export default function HermesAgentWorkspace() {
   }
 
   const openSession = async (storedSessionId: string) => {
+    setWorkflowLaunch(null)
+    setDraft('')
     setRouteSession(storedSessionId)
     await workspace.openSession(storedSessionId)
   }
@@ -49,6 +53,13 @@ export default function HermesAgentWorkspace() {
   const newConversation = () => {
     setRouteSession()
     workspace.newConversation()
+    setWorkflowLaunch(null)
+    setDraft('')
+  }
+
+  const useExample = (text: string) => {
+    setWorkflowLaunch(null)
+    setDraft(text)
   }
 
   const send = async (text: string) => {
@@ -96,7 +107,6 @@ export default function HermesAgentWorkspace() {
               </Tooltip>
             )}
             <div>
-              <span className={styles.eyebrow}>Hermes 运维助手</span>
               <strong title={title}>{title}</strong>
             </div>
           </div>
@@ -156,12 +166,13 @@ export default function HermesAgentWorkspace() {
               activeCheckpoint={workspace.state.checkpoint}
               hydrationVersion={workspace.state.hydrationVersion}
               onCheckpointRespond={workspace.respondCheckpoint}
-              onExample={(text) => { void send(text).catch(() => undefined) }}
+              onExample={useExample}
             />
           )}
         </div>
 
         <ChatInput
+          value={draft}
           busy={workspace.state.busy}
           stopping={workspace.state.stopping}
           stopRetryAllowed={workspace.state.stopRetryAllowed}
@@ -170,9 +181,9 @@ export default function HermesAgentWorkspace() {
             Boolean(workspace.state.checkpoint) ||
             workspace.state.stopping
           }
+          onChange={setDraft}
           onSend={send}
           onStop={workspace.interrupt}
-          initialValue={workflowLaunch?.goal}
         />
       </main>
     </div>

@@ -73,13 +73,6 @@
   min-width: 0;
 }
 
-.eyebrow {
-  color: var(--ant-color-primary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
 .newSessionButton {
   margin-bottom: 11px;
 }
@@ -740,14 +733,8 @@
   border-radius: 13px;
 }
 
-.emptyHero span {
-  color: var(--ant-color-primary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 .emptyHero h2 {
-  margin: 3px 0 5px;
+  margin: 0 0 5px;
   font-size: 22px;
 }
 
@@ -931,7 +918,7 @@
 }
 
 .composerActions {
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   color: var(--ant-color-text-tertiary);
   font-size: 11px;
