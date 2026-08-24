@@ -19,7 +19,7 @@ func (s *service) GetLogMetrics(ctx core.Context, req *request.GetLogMetricsRequ
 	result := make([]*response.GetLogMetricsResponse, 0)
 	for _, instance := range serviceInstances.GetInstances() {
 		// Log alarm query based on Instance grouping
-		logs, err := s.queryLogCountByInstance(ctx, instance, req.StartTime, req.EndTime, req.Step)
+		logs, err := s.promRepo.QueryLogCountByInstanceId(ctx, instance, req.StartTime, req.EndTime, req.Step)
 		if err != nil {
 			return nil, err
 		}

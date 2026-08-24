@@ -1364,43 +1364,6 @@ const queryPidLogCountTemplate = `(
   or
   sum(increase(originx_logparser_exception_count_total{pid=~"%s"}[%s] offset %s)) by(pid))`
 
-const querySourceLogCountTemplate = `(
-  (sum(increase(originx_logparser_level_count_total{node="%s",source_from=~"%s",level=~"error|critical"}[%s]) offset %s)
-    +
-  (sum(increase(originx_logparser_exception_count_total{node="%s",source_from=~"%s"}[%s]) offset %s) or 0))
-  or
-  sum(increase(originx_logparser_level_count_total{node="%s",source_from=~"%s",level=~"error|critical"}[%s] offset %s))
-  or
-  sum(increase(originx_logparser_exception_count_total{node="%s",source_from=~"%s"}[%s] offset %s)))`
-
-func QueryLogBySourcePromql(duration string, queryType QueryType, nodeName string, source string) string {
-	escapedSource := EscapeRegexp(source)
-	switch queryType {
-	case AvgLog, LogNow:
-		return fmt.Sprintf(querySourceLogCountTemplate,
-			nodeName, escapedSource, duration, "0", nodeName, escapedSource, duration, "0",
-			nodeName, escapedSource, duration, "0", nodeName, escapedSource, duration, "0")
-	case LogYesterday:
-		return fmt.Sprintf(querySourceLogCountTemplate,
-			nodeName, escapedSource, duration, "24h", nodeName, escapedSource, duration, "24h",
-			nodeName, escapedSource, duration, "24h", nodeName, escapedSource, duration, "24h")
-	case LogLastWeek:
-		return fmt.Sprintf(querySourceLogCountTemplate,
-			nodeName, escapedSource, duration, "7d", nodeName, escapedSource, duration, "7d",
-			nodeName, escapedSource, duration, "7d", nodeName, escapedSource, duration, "7d")
-	case LogDOD:
-		now := QueryLogBySourcePromql(duration, LogNow, nodeName, source)
-		yesterday := QueryLogBySourcePromql(duration, LogYesterday, nodeName, source)
-		return now + "/" + yesterday + "-1"
-	case LogWOW:
-		now := QueryLogBySourcePromql(duration, LogNow, nodeName, source)
-		lastWeek := QueryLogBySourcePromql(duration, LogLastWeek, nodeName, source)
-		return now + "/" + lastWeek + "-1"
-	default:
-		return ""
-	}
-}
-
 func QueryLogByPidPromql(duration string, queryType QueryType, pids []string) string {
 	// Generate regex patterns using strings.Join
 	regexPattern := strings.Join(pids, "|")

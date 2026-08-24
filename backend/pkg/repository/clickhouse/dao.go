@@ -179,7 +179,6 @@ type Repo interface {
 	GetDataplaneServiceInstances(ctx core.Context, startTime int64, endTime int64, cluster string, serviceNames []string) ([]*model.ServiceInstance, error)
 	CleanDataplaneServiceInstance(ctx core.Context, startTime int64, endTime int64, ruleId int, dataSource string) error
 	GetDataplaneServiceByInstance(ctx core.Context, startTime int64, endTime int64, cluster string, pod, namespace string, node string, pid int) ([]AlertService, error)
-	GetLatestSourceByNodePIDs(ctx core.Context, pairs []NodePID) (map[NodePID]string, error)
 
 	integration.Input
 }

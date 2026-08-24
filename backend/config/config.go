@@ -70,9 +70,8 @@ type Config struct {
 		DialTimeoutSeconds     int `mapstructure:"dial_timeout_seconds"`
 	} `mapstructure:"clickhouse"`
 	Promethues struct {
-		Address                        string `mapstructure:"address"`
-		Storage                        string `mapstructure:"storage"`
-		LogparserPIDSourceQueryEnabled bool   `mapstructure:"logparser_pid_source_query_enabled"`
+		Address string `mapstructure:"address"`
+		Storage string `mapstructure:"storage"`
 	} `mapstructure:"promethues"`
 	AlertManager struct {
 		Address string `mapstructure:"address"`
