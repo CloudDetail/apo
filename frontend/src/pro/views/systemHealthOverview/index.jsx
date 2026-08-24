@@ -75,6 +75,7 @@ import ServiceHealthTable from './components/ServiceHealthTable.jsx'
 import ServiceHealthAssistantModal from './components/ServiceHealthAssistantModal.jsx'
 import ThresholdSettingsContent from './components/ThresholdSettingsContent.jsx'
 import { getTrendRangeTitleLabel } from './components/TrendCommon.jsx'
+import { canManageSystemHealthConfig } from './systemHealthPermissions.mjs'
 import './index.css'
 
 const metricLabels = [
@@ -231,6 +232,8 @@ const metricDetail = (target, key) => {
 export default function SystemHealthOverviewPage() {
   const location = useLocation()
   const timeRange = useSelector((state) => state.timeRange)
+  const currentUser = useSelector((state) => state.userReducer?.user)
+  const canManageThresholds = canManageSystemHealthConfig(currentUser)
   const pageLoadedAtRef = useRef(Date.now() * 1000)
   const initialTimeRangeSignatureRef = useRef(null)
   const overviewRequestSeqRef = useRef(0)
@@ -1062,30 +1065,32 @@ export default function SystemHealthOverviewPage() {
                 onChange={handleTrendRangeChange}
               />
             </div>
-            <Popover
-              content={
-                <ThresholdSettingsContent
-                  hasThresholdChange={hasThresholdChange}
-                  normalizedDraft={normalizedThresholdDraft}
-                  thresholdDraft={thresholdDraft}
-                  thresholdSaving={thresholdSaving}
-                  onDraftChange={setThresholdDraft}
-                  onSave={saveAbnormalScoreThreshold}
-                />
-              }
-              onOpenChange={handleThresholdSettingsOpenChange}
-              open={thresholdSettingsOpen}
-              placement="bottomRight"
-              trigger="click"
-            >
-              <Button
-                aria-label="健康异常判定设置"
-                className="sho-threshold-toolbar-trigger"
-                icon={<Settings size={15} />}
+            {canManageThresholds && (
+              <Popover
+                content={
+                  <ThresholdSettingsContent
+                    hasThresholdChange={hasThresholdChange}
+                    normalizedDraft={normalizedThresholdDraft}
+                    thresholdDraft={thresholdDraft}
+                    thresholdSaving={thresholdSaving}
+                    onDraftChange={setThresholdDraft}
+                    onSave={saveAbnormalScoreThreshold}
+                  />
+                }
+                onOpenChange={handleThresholdSettingsOpenChange}
+                open={thresholdSettingsOpen}
+                placement="bottomRight"
+                trigger="click"
               >
-                健康异常判定
-              </Button>
-            </Popover>
+                <Button
+                  aria-label="健康异常判定设置"
+                  className="sho-threshold-toolbar-trigger"
+                  icon={<Settings size={15} />}
+                >
+                  健康异常判定
+                </Button>
+              </Popover>
+            )}
           </div>
         </div>
 

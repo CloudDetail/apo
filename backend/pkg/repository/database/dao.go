@@ -159,7 +159,7 @@ type Repo interface {
 	TouchCustomDashboardVisit(ctx core.Context, id string, at time.Time) error
 	CreateCustomDashboardQueryAudit(ctx core.Context, audit *CustomDashboardQueryAudit) error
 	SaveSystemHealthReportRecord(ctx core.Context, record *SystemHealthReportRecord) error
-	ListSystemHealthReportRecords(ctx core.Context, groupID int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error)
+	ListSystemHealthReportRecords(ctx core.Context, groupIDs []int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error)
 	GetSystemHealthReportRecord(ctx core.Context, recordID string) (*SystemHealthReportRecord, error)
 
 	// GetContextDB Gets transaction form ctx.

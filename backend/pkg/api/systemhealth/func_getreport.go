@@ -776,6 +776,15 @@ func (h *handler) GetReport() core.HandlerFunc {
 			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
 			return
 		}
+		authorizedGroupIDs, err := h.authorizedSystemHealthReportGroupIDs(c)
+		if err != nil {
+			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
+			return
+		}
+		if !systemHealthReportGroupAllowed(authorizedGroupIDs, req.GroupID) {
+			c.AbortWithError(http.StatusForbidden, code.UserNoPermissionError, nil)
+			return
+		}
 		systemHealthInfoCtx(c, "system-health report request bound",
 			zap.Int64("groupId", req.GroupID),
 			zap.String("relativeTime", req.RelativeTime),
@@ -1091,7 +1100,23 @@ func (h *handler) ListReportRecords() core.HandlerFunc {
 		if req.PageSize <= 0 {
 			req.PageSize = 20
 		}
-		records, total, err := h.dbRepo.ListSystemHealthReportRecords(c, req.GroupID, req.Page, req.PageSize)
+		if req.PageSize > 100 {
+			req.PageSize = 100
+		}
+		authorizedGroupIDs, err := h.authorizedSystemHealthReportGroupIDs(c)
+		if err != nil {
+			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
+			return
+		}
+		groupIDs := authorizedGroupIDs
+		if req.GroupID != 0 {
+			if !systemHealthReportGroupAllowed(authorizedGroupIDs, req.GroupID) {
+				c.AbortWithError(http.StatusForbidden, code.UserNoPermissionError, nil)
+				return
+			}
+			groupIDs = []int64{req.GroupID}
+		}
+		records, total, err := h.dbRepo.ListSystemHealthReportRecords(c, groupIDs, req.Page, req.PageSize)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
 			return
@@ -1125,6 +1150,15 @@ func (h *handler) GetReportRecord() core.HandlerFunc {
 		record, err := h.dbRepo.GetSystemHealthReportRecord(c, req.RecordID)
 		if err != nil {
 			c.AbortWithError(http.StatusBadRequest, code.ServerError, err)
+			return
+		}
+		authorizedGroupIDs, err := h.authorizedSystemHealthReportGroupIDs(c)
+		if err != nil {
+			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
+			return
+		}
+		if !systemHealthReportGroupAllowed(authorizedGroupIDs, record.GroupID) {
+			c.AbortWithError(http.StatusForbidden, code.UserNoPermissionError, nil)
 			return
 		}
 		var data response.SystemHealthReportResp

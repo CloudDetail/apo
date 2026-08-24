@@ -415,13 +415,14 @@ test('threshold toolbar trigger vertically centers icon and label', () => {
 test('trend range selector lives in toolbar before threshold settings', () => {
   const toolbarActionsSource = sourceBetween(
     '<div className="sho-toolbar-actions">',
-    '<Button\n                aria-label="健康异常判定设置"',
+    '{canManageThresholds && (',
   )
 
   assert.ok(toolbarActionsSource.includes('趋势图历史范围'))
   assert.ok(toolbarActionsSource.includes('className="sho-trend-range-select"'))
   assert.ok(toolbarActionsSource.includes('value={trendRange}'))
   assert.ok(toolbarActionsSource.includes('onChange={handleTrendRangeChange}'))
+  assert.ok(viewSource.includes('aria-label="健康异常判定设置"'))
   assert.ok(viewSource.includes("judgement: 'snapshot'"))
   assert.equal(viewSource.includes("judgement: 'current'"), false)
   assert.equal(viewSource.includes('判定口径：'), false)

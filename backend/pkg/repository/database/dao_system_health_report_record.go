@@ -7,6 +7,12 @@ import (
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
+	"gorm.io/gorm"
+)
+
+const (
+	MaxSystemHealthReportRecordsPerGroup = 500
+	SystemHealthReportRecordRetention    = 30 * 24 * time.Hour
 )
 
 type SystemHealthReportRecord struct {
@@ -37,10 +43,45 @@ func (repo *daoRepo) SaveSystemHealthReportRecord(ctx core.Context, record *Syst
 	if record.CreatedAt.IsZero() {
 		record.CreatedAt = time.Now()
 	}
-	return repo.GetContextDB(ctx).Create(record).Error
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(record).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("group_id = ? AND created_at < ?", record.GroupID, time.Now().Add(-SystemHealthReportRecordRetention)).
+			Delete(&SystemHealthReportRecord{}).Error; err != nil {
+			return err
+		}
+
+		var count int64
+		if err := tx.Model(&SystemHealthReportRecord{}).
+			Where("group_id = ?", record.GroupID).
+			Count(&count).Error; err != nil {
+			return err
+		}
+		staleCount := count - MaxSystemHealthReportRecordsPerGroup
+		if staleCount <= 0 {
+			return nil
+		}
+
+		var staleRecordIDs []string
+		if err := tx.Model(&SystemHealthReportRecord{}).
+			Where("group_id = ?", record.GroupID).
+			Order("created_at ASC, record_id ASC").
+			Limit(int(staleCount)).
+			Pluck("record_id", &staleRecordIDs).Error; err != nil {
+			return err
+		}
+		if len(staleRecordIDs) == 0 {
+			return nil
+		}
+		return tx.Where("record_id IN ?", staleRecordIDs).Delete(&SystemHealthReportRecord{}).Error
+	})
 }
 
-func (repo *daoRepo) ListSystemHealthReportRecords(ctx core.Context, groupID int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error) {
+func (repo *daoRepo) ListSystemHealthReportRecords(ctx core.Context, groupIDs []int64, page int, pageSize int) ([]SystemHealthReportRecord, int64, error) {
+	if len(groupIDs) == 0 {
+		return []SystemHealthReportRecord{}, 0, nil
+	}
 	if page <= 0 {
 		page = 1
 	}
@@ -51,10 +92,8 @@ func (repo *daoRepo) ListSystemHealthReportRecords(ctx core.Context, groupID int
 		pageSize = 100
 	}
 
-	query := repo.GetContextDB(ctx).Model(&SystemHealthReportRecord{})
-	if groupID > 0 {
-		query = query.Where("group_id = ?", groupID)
-	}
+	query := repo.GetContextDB(ctx).Model(&SystemHealthReportRecord{}).
+		Where("group_id IN ? AND created_at >= ?", groupIDs, time.Now().Add(-SystemHealthReportRecordRetention))
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -72,6 +111,8 @@ func (repo *daoRepo) ListSystemHealthReportRecords(ctx core.Context, groupID int
 
 func (repo *daoRepo) GetSystemHealthReportRecord(ctx core.Context, recordID string) (*SystemHealthReportRecord, error) {
 	var record SystemHealthReportRecord
-	err := repo.GetContextDB(ctx).Where("record_id = ?", recordID).First(&record).Error
+	err := repo.GetContextDB(ctx).
+		Where("record_id = ? AND created_at >= ?", recordID, time.Now().Add(-SystemHealthReportRecordRetention)).
+		First(&record).Error
 	return &record, err
 }

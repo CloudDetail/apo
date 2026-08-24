@@ -27,6 +27,16 @@ func (h *handler) GetConfig() core.HandlerFunc {
 
 func (h *handler) UpdateConfig() core.HandlerFunc {
 	return func(c core.Context) {
+		allowed, err := h.canManageSystemHealthConfig(c)
+		if err != nil {
+			c.AbortWithError(http.StatusForbidden, code.AuthError, err)
+			return
+		}
+		if !allowed {
+			c.AbortWithError(http.StatusForbidden, code.UserNoPermissionError, nil)
+			return
+		}
+
 		req := new(request.UpdateSystemHealthConfigRequest)
 		if err := c.ShouldBindJSON(req); err != nil {
 			c.AbortWithError(http.StatusBadRequest, code.ParamBindError, err)
