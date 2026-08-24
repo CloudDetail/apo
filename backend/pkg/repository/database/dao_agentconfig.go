@@ -30,6 +30,8 @@ type AgentConfigRepo interface {
 	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig) error
 	GetNodeCircuitConfig(core.Context, string) (*ac.NodeCircuitConfig, error)
 	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error
+	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
+	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
@@ -144,6 +146,30 @@ func (repo *daoRepo) SaveNodeCircuitConfigs(ctx core.Context, configs []*ac.Node
 		for _, config := range configs {
 			var old ac.NodeCircuitConfig
 			err := tx.Where("node_id=?", config.NodeID).Order("updated_at desc").First(&old).Error
+			if err == nil {
+				config.ID = old.ID
+				config.CreatedAt = old.CreatedAt
+				config.Version = old.Version + 1
+			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+			if err := tx.Save(config).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+func (repo *daoRepo) GetNodeLogConfig(ctx core.Context, node, probe string) (*ac.NodeLogConfig, error) {
+	var config ac.NodeLogConfig
+	err := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=?", node, probe).First(&config).Error
+	return &config, err
+}
+func (repo *daoRepo) SaveNodeLogConfigs(ctx core.Context, configs []*ac.NodeLogConfig) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, config := range configs {
+			var old ac.NodeLogConfig
+			err := tx.Where("node_id=? AND probe_type=?", config.NodeID, config.ProbeType).First(&old).Error
 			if err == nil {
 				config.ID = old.ID
 				config.CreatedAt = old.CreatedAt

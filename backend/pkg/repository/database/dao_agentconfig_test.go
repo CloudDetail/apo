@@ -50,6 +50,37 @@ func TestSaveAgentBindingsChecksEverySubmittedGeneration(t *testing.T) {
 	}
 }
 
+func TestSaveNodeLogConfigsReplacesEachNodeAtomically(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-log-configs?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&ac.NodeLogConfig{}); err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	first := []*ac.NodeLogConfig{
+		{NodeID: "node-a", ProbeType: "ilogtail", Sources: ac.JSON(`[{"type":"file","path":"/var/log/a"}]`), Version: 1},
+		{NodeID: "node-b", ProbeType: "ilogtail", Sources: ac.JSON(`[{"type":"file","path":"/var/log/b"}]`), Version: 1},
+	}
+	if err := repo.SaveNodeLogConfigs(nil, first); err != nil {
+		t.Fatal(err)
+	}
+	second := []*ac.NodeLogConfig{
+		{NodeID: "node-a", ProbeType: "ilogtail", Sources: ac.JSON(`[]`), Version: 1},
+		{NodeID: "node-b", ProbeType: "ilogtail", Sources: ac.JSON(`[]`), Version: 1},
+	}
+	if err := repo.SaveNodeLogConfigs(nil, second); err != nil {
+		t.Fatal(err)
+	}
+	for _, node := range []string{"node-a", "node-b"} {
+		stored, err := repo.GetNodeLogConfig(nil, node, "ilogtail")
+		if err != nil || stored.Version != 2 || string(stored.Sources) != "[]" {
+			t.Fatalf("%s stored=%+v err=%v", node, stored, err)
+		}
+	}
+}
+
 func TestUpsertAgentNodePreservesCreatedAtAndRefreshesHeartbeat(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open("file:agent-node-heartbeat?mode=memory&cache=shared"), &gorm.Config{})
 	if err != nil {

@@ -49,3 +49,65 @@ func TestNormalizeLogSources(t *testing.T) {
 		t.Fatal("file log source accepted maxBytes")
 	}
 }
+
+func TestLogSourcesAreSavedAndResolvedIndependently(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	service := New(repo)
+
+	settings, err := service.SettingsForProbe(nil, "node-1", "ilogtail")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !settings.UseLocalDefaults || settings.CircuitBreaker == nil {
+		t.Fatalf("missing deployment fallback or circuit policy: %+v", settings)
+	}
+
+	sources := []ac.LogSource{{Path: "/var/log/pods", Pattern: `.*\.log$`}, {Type: "stdout", MaxBytes: 8 * 1024 * 1024}}
+	saved, err := service.SaveNodeLogSources(nil, "node-1", "ilogtail", sources, 7)
+	if err != nil || len(saved) != 2 {
+		t.Fatalf("save log sources: sources=%+v err=%v", saved, err)
+	}
+	settings, err = service.SettingsForProbe(nil, "node-1", "ilogtail")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.UseLocalDefaults || len(settings.LogSources) != 2 || settings.CircuitBreaker == nil {
+		t.Fatalf("independent settings were not resolved: %+v", settings)
+	}
+
+	global := *settings.CircuitBreaker
+	global.MaxCPUPercent = 70
+	if _, err := service.SaveGlobalCircuit(nil, global, 8); err != nil {
+		t.Fatal(err)
+	}
+	configured, _, err := service.GetNodeLogSources(nil, "node-1", "ilogtail")
+	if err != nil || len(configured) != 2 {
+		t.Fatalf("circuit save changed log sources: sources=%+v err=%v", configured, err)
+	}
+}
+
+func TestBatchLogSourcesOverwriteEveryTargetNode(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	for _, node := range []string{"node-a", "node-b"} {
+		repo.nodes[node] = ac.Node{ID: node, ClusterID: "cluster-a"}
+	}
+	service := New(repo)
+	result, err := service.BatchSaveLogSources(nil, LogSourcesBatchInput{
+		ClusterIDs: []string{"cluster-a"},
+		ProbeType:  "ilogtail",
+		LogSources: []ac.LogSource{{Path: "/var/log/containers", Pattern: `.*\.log$`}},
+	}, 9)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.TargetNodeCount != 2 || result.SucceededCount != 2 {
+		t.Fatalf("unexpected batch result: %+v", result)
+	}
+	for _, node := range []string{"node-a", "node-b"} {
+		sources, configured, err := service.GetNodeLogSources(nil, node, "ilogtail")
+		if err != nil || !configured || len(sources) != 1 || sources[0].Path != "/var/log/containers" {
+			t.Fatalf("%s log sources=%+v configured=%t err=%v", node, sources, configured, err)
+		}
+	}
+}

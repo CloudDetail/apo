@@ -375,6 +375,7 @@ func migrateTable(db *gorm.DB) error {
 		&ac.InitialConfig{},
 		&ac.GlobalCircuitConfig{},
 		&ac.NodeCircuitConfig{},
+		&ac.NodeLogConfig{},
 		&ac.Binding{},
 		&ac.Release{},
 		&ac.ApplyState{},

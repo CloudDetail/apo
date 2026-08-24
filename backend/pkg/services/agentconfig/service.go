@@ -45,6 +45,8 @@ type Repository interface {
 	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig) error
 	GetNodeCircuitConfig(core.Context, string) (*ac.NodeCircuitConfig, error)
 	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error
+	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
+	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
@@ -173,12 +175,29 @@ func (s *Service) SettingsForProbe(ctx core.Context, nodeID, probeType string) (
 	if _, err := s.repo.GetAgentNode(ctx, nodeID); err != nil {
 		return ac.AgentSettings{}, err
 	}
+	settings := ac.AgentSettings{UseLocalDefaults: true}
+	probeType = ac.NormalizeProbe(probeType)
+	if assigned, err := s.repo.GetNodeLogConfig(ctx, nodeID, probeType); err == nil {
+		var sources []ac.LogSource
+		if decodeErr := json.Unmarshal(assigned.Sources, &sources); decodeErr != nil {
+			log.Printf("agentconfig: invalid stored log sources for %s/%s; use deployment defaults: %v", nodeID, probeType, decodeErr)
+		} else if normalized, normalizeErr := normalizeLogSources(&sources); normalizeErr != nil {
+			log.Printf("agentconfig: invalid stored log sources for %s/%s; use deployment defaults: %v", nodeID, probeType, normalizeErr)
+		} else if decodeErr := json.Unmarshal(normalized, &settings.LogSources); decodeErr != nil {
+			log.Printf("agentconfig: cannot decode normalized log sources for %s/%s; use deployment defaults: %v", nodeID, probeType, decodeErr)
+		} else {
+			settings.UseLocalDefaults = false
+		}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return ac.AgentSettings{}, err
+	}
 	if assigned, err := s.repo.GetNodeCircuitConfig(ctx, nodeID); err == nil {
-		settings, decodeErr := decodeCircuitSettings(assigned.Settings)
-		validationErr := validateCircuitBreaker(&settings)
+		circuit, decodeErr := decodeCircuitSettings(assigned.Settings)
+		validationErr := validateCircuitBreaker(&circuit)
 		if decodeErr == nil && validationErr == nil {
-			resolved := circuitPolicyForProbe(settings, probeType)
-			return ac.AgentSettings{UseLocalDefaults: true, CircuitBreaker: &resolved}, nil
+			resolved := circuitPolicyForProbe(circuit, probeType)
+			settings.CircuitBreaker = &resolved
+			return settings, nil
 		}
 		if decodeErr != nil {
 			log.Printf("agentconfig: invalid stored node circuit settings for %s; use global default: %v", nodeID, decodeErr)
@@ -188,12 +207,13 @@ func (s *Service) SettingsForProbe(ctx core.Context, nodeID, probeType string) (
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return ac.AgentSettings{}, err
 	}
-	settings, err := s.GetGlobalCircuit(ctx)
+	circuit, err := s.GetGlobalCircuit(ctx)
 	if err != nil {
 		return ac.AgentSettings{}, err
 	}
-	resolved := circuitPolicyForProbe(*settings, probeType)
-	return ac.AgentSettings{UseLocalDefaults: true, CircuitBreaker: &resolved}, nil
+	resolved := circuitPolicyForProbe(*circuit, probeType)
+	settings.CircuitBreaker = &resolved
+	return settings, nil
 }
 
 type TemplateInput struct {
@@ -229,6 +249,11 @@ type BatchAssignmentInput struct {
 type CircuitBatchInput struct {
 	ClusterIDs     []string                  `json:"clusterIds" binding:"required"`
 	CircuitBreaker ac.CircuitBreakerSettings `json:"circuitBreaker" binding:"required"`
+}
+type LogSourcesBatchInput struct {
+	ClusterIDs []string       `json:"clusterIds" binding:"required"`
+	ProbeType  string         `json:"probeType" binding:"required"`
+	LogSources []ac.LogSource `json:"logSources"`
 }
 type BatchResult struct {
 	TargetNodeCount int      `json:"targetNodeCount"`
@@ -585,6 +610,69 @@ func (s *Service) BatchSaveCircuit(ctx core.Context, input CircuitBatchInput, us
 		return nil, err
 	}
 	return s.saveNodeCircuitConfigs(ctx, nodes, input.CircuitBreaker, user)
+}
+
+func (s *Service) GetNodeLogSources(ctx core.Context, node, probe string) ([]ac.LogSource, bool, error) {
+	if _, err := s.repo.GetAgentNode(ctx, node); err != nil {
+		return nil, false, err
+	}
+	probe = ac.NormalizeProbe(probe)
+	if probe == "" {
+		return nil, false, fmt.Errorf("probe type is required")
+	}
+	config, err := s.repo.GetNodeLogConfig(ctx, node, probe)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return []ac.LogSource{}, false, nil
+	}
+	if err != nil {
+		return nil, false, err
+	}
+	var sources []ac.LogSource
+	if err := json.Unmarshal(config.Sources, &sources); err != nil {
+		return nil, false, err
+	}
+	return sources, true, nil
+}
+
+func (s *Service) saveNodeLogSources(ctx core.Context, nodes []ac.Node, probe string, sources []ac.LogSource, user int64) (*BatchResult, error) {
+	probe = ac.NormalizeProbe(probe)
+	if probe == "" {
+		return nil, fmt.Errorf("probe type is required")
+	}
+	normalized, err := normalizeLogSources(&sources)
+	if err != nil {
+		return nil, err
+	}
+	configs := make([]*ac.NodeLogConfig, 0, len(nodes))
+	for _, node := range nodes {
+		configs = append(configs, &ac.NodeLogConfig{
+			NodeID: node.ID, ProbeType: probe, Sources: append(ac.JSON(nil), normalized...), Version: 1, UpdatedBy: user,
+		})
+	}
+	if err := s.repo.SaveNodeLogConfigs(ctx, configs); err != nil {
+		return nil, err
+	}
+	return &BatchResult{TargetNodeCount: len(nodes), SucceededCount: len(nodes)}, nil
+}
+
+func (s *Service) SaveNodeLogSources(ctx core.Context, node, probe string, sources []ac.LogSource, user int64) ([]ac.LogSource, error) {
+	target, err := s.repo.GetAgentNode(ctx, node)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.saveNodeLogSources(ctx, []ac.Node{*target}, probe, sources, user); err != nil {
+		return nil, err
+	}
+	stored, _, err := s.GetNodeLogSources(ctx, node, probe)
+	return stored, err
+}
+
+func (s *Service) BatchSaveLogSources(ctx core.Context, input LogSourcesBatchInput, user int64) (*BatchResult, error) {
+	nodes, err := s.nodesInClusters(ctx, input.ClusterIDs)
+	if err != nil {
+		return nil, err
+	}
+	return s.saveNodeLogSources(ctx, nodes, input.ProbeType, input.LogSources, user)
 }
 
 func (s *Service) nodesInClusters(ctx core.Context, clusterIDs []string) ([]ac.Node, error) {

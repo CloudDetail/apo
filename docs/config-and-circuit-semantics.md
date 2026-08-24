@@ -30,6 +30,18 @@ configuration release. `generation` is monotonic for a node and probe type.
   single-file probe and are rejected for directory-style probes such as
   ilogtail.
 
+## Diagnostic log sources
+
+Diagnostic log sources are independent from configuration releases and circuit
+policy. They describe logs on the target node or Kubernetes cluster that
+daemon-go may list, preview, and download. Saving them does not create a
+configuration generation or modify circuit policy.
+
+- A node-and-probe save fully replaces the previous source list.
+- Multi-cluster delivery fully replaces the source list for every target node.
+- Without a saved source list, daemon-go keeps its deployment-time defaults.
+- An explicitly saved empty list disables log access for that node and probe.
+
 ## Circuit policy
 
 Circuit policy persistence is independent from configuration templates,

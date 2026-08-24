@@ -164,6 +164,7 @@ type CircuitBreakerSettings struct {
 }
 
 type AgentSettings struct {
+	LogSources             []LogSource             `json:"logSources"`
 	UseLocalDefaults       bool                    `json:"useLocalDefaults"`
 	UseLocalCircuitBreaker bool                    `json:"useLocalCircuitBreaker"`
 	CircuitBreaker         *CircuitBreakerSettings `json:"circuitBreaker,omitempty"`
@@ -181,6 +182,17 @@ type NodeCircuitConfig struct {
 	ID        uint64    `gorm:"primaryKey" json:"id"`
 	NodeID    string    `gorm:"size:255;not null;uniqueIndex:idx_node_circuit" json:"nodeId"`
 	Settings  JSON      `gorm:"type:jsonb;not null" json:"settings"`
+	Version   int64     `gorm:"not null;default:1" json:"version"`
+	UpdatedBy int64     `json:"updatedBy"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type NodeLogConfig struct {
+	ID        uint64    `gorm:"primaryKey" json:"id"`
+	NodeID    string    `gorm:"size:255;not null;uniqueIndex:idx_node_probe_logs" json:"nodeId"`
+	ProbeType string    `gorm:"size:128;not null;uniqueIndex:idx_node_probe_logs" json:"probeType"`
+	Sources   JSON      `gorm:"type:jsonb;not null" json:"sources"`
 	Version   int64     `gorm:"not null;default:1" json:"version"`
 	UpdatedBy int64     `json:"updatedBy"`
 	CreatedAt time.Time `json:"createdAt"`

@@ -188,6 +188,48 @@ func (h *Handler) BatchSaveCircuit() core.HandlerFunc {
 		c.Payload(result)
 	}
 }
+func (h *Handler) GetNodeLogSources() core.HandlerFunc {
+	return func(c core.Context) {
+		sources, configured, err := h.s.GetNodeLogSources(c, c.Param("nodeId"), c.Param("probeType"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(map[string]any{"logSources": sources, "configured": configured})
+	}
+}
+func (h *Handler) SaveNodeLogSources() core.HandlerFunc {
+	return func(c core.Context) {
+		var input struct {
+			LogSources []ac.LogSource `json:"logSources"`
+		}
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		sources, err := h.s.SaveNodeLogSources(c, c.Param("nodeId"), c.Param("probeType"), input.LogSources, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(map[string]any{"logSources": sources, "configured": true})
+	}
+}
+func (h *Handler) BatchSaveLogSources() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.LogSourcesBatchInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		result, err := h.s.BatchSaveLogSources(c, input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(result)
+	}
+}
 func (h *Handler) GetCurrentNodeConfigs() core.HandlerFunc {
 	return func(c core.Context) {
 		config, err := h.s.CurrentNodeConfigs(c, c.Param("nodeId"))

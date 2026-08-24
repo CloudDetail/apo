@@ -20,6 +20,7 @@ type configSemanticsRepo struct {
 	templates      map[uuid.UUID]ac.Template
 	globalCircuit  *ac.GlobalCircuitConfig
 	nodeCircuits   map[string]ac.NodeCircuitConfig
+	nodeLogs       map[string]ac.NodeLogConfig
 	batchSaveCalls int
 	lastExpected   map[string]int64
 }
@@ -32,6 +33,7 @@ func newConfigSemanticsRepo() *configSemanticsRepo {
 		releases:     map[string]ac.Release{},
 		templates:    map[uuid.UUID]ac.Template{},
 		nodeCircuits: map[string]ac.NodeCircuitConfig{},
+		nodeLogs:     map[string]ac.NodeLogConfig{},
 	}
 }
 
@@ -142,6 +144,24 @@ func (r *configSemanticsRepo) SaveNodeCircuitConfigs(_ core.Context, configs []*
 			copy.Version = old.Version + 1
 		}
 		r.nodeCircuits[config.NodeID] = copy
+	}
+	return nil
+}
+func (r *configSemanticsRepo) GetNodeLogConfig(_ core.Context, node, probe string) (*ac.NodeLogConfig, error) {
+	value, ok := r.nodeLogs[releaseKey(node, probe)]
+	if !ok {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &value, nil
+}
+func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.NodeLogConfig) error {
+	for _, config := range configs {
+		copy := *config
+		key := releaseKey(config.NodeID, config.ProbeType)
+		if old, ok := r.nodeLogs[key]; ok {
+			copy.Version = old.Version + 1
+		}
+		r.nodeLogs[key] = copy
 	}
 	return nil
 }
