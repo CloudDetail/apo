@@ -1,0 +1,583 @@
+.page {
+  min-height: 100%;
+  padding: 12px 20px 24px;
+}
+
+.card {
+  margin-top: 4px;
+}
+
+.card :global(.ant-card-body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header,
+.editorFooter,
+.historyHeader,
+.historyHeader span {
+  display: flex;
+  align-items: center;
+}
+
+.header,
+.editorFooter,
+.historyHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header :global(.ant-typography) {
+  margin: 0;
+}
+
+.titleBlock,
+.sectionHeading,
+.templateBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleBlock > div,
+.sectionHeading > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.globalScopeIcon,
+.nodeScopeIcon,
+.clusterScopeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 6px;
+}
+
+.globalScopeIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.nodeScopeIcon {
+  color: var(--ant-color-success-text);
+  background: var(--ant-color-success-bg);
+}
+
+.clusterScopeIcon {
+  color: var(--ant-color-warning-text);
+  background: var(--ant-color-warning-bg);
+}
+
+.probeSelect {
+  width: 210px;
+}
+
+.tabContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeading,
+.templateBar {
+  justify-content: space-between;
+}
+
+.templateBar :global(.ant-select) {
+  min-width: 260px;
+}
+
+.sourceToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.sourceGroup {
+  display: flex;
+  min-width: 220px;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sourceGroup > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.sourceGroup :global(.ant-select) {
+  min-width: 190px;
+}
+
+.batchGrid,
+.variableGrid,
+.thresholdGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.batchGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.variableGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.batchGrid label,
+.variableGrid label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.thresholdGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.circuitScopeBar,
+.recoveryRow,
+.recoveryToggle {
+  display: flex;
+  align-items: center;
+}
+
+.circuitScopeBar {
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.circuitScopeBar label,
+.recoveryRow label {
+  display: flex;
+  min-width: 190px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.circuitScopeBar label > span,
+.recoveryRow label > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.circuitScopeBar :global(.ant-select) {
+  min-width: 220px;
+}
+
+.recoveryRow {
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.recoveryToggle {
+  min-width: 190px;
+  gap: 10px;
+}
+
+.recoveryToggle :global(.ant-switch) {
+  margin-left: auto;
+}
+
+.thresholdItem {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 112px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.thresholdItem :global(.ant-input-number-group-wrapper) {
+  width: 112px;
+  min-width: 0;
+}
+
+.thresholdIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+}
+
+.thresholdCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cpuIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.memoryIcon {
+  color: var(--ant-color-warning-text);
+  background: var(--ant-color-warning-bg);
+}
+
+.durationIcon {
+  color: var(--ant-color-success-text);
+  background: var(--ant-color-success-bg);
+}
+
+.recoveryIcon {
+  color: var(--ant-color-info-text);
+  background: var(--ant-color-info-bg);
+}
+
+.configPreview {
+  max-height: 360px;
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--ant-color-border);
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.editor {
+  height: clamp(300px, 40vh, 440px);
+  min-width: 0;
+  border: 1px solid var(--ant-color-border);
+}
+
+.configWorkspace {
+  height: clamp(340px, 46vh, 500px);
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border);
+}
+
+.logSourceToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.logSourceToolbar .sourceGroup {
+  max-width: 520px;
+}
+
+.logSourceList {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logSourceRow {
+  display: grid;
+  grid-template-columns: 140px minmax(220px, 1.4fr) minmax(190px, 1fr) 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.logSourceRow :global(.ant-input-number-group-wrapper) {
+  width: min(240px, 100%);
+}
+
+.filePanel,
+.diffPanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.filePanel {
+  padding: 12px;
+  border-right: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.filePanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 10px;
+}
+
+.filePanelTitle :global(.ant-tag),
+.fileItem :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.fileList {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 38px;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fileItem span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileItem:hover {
+  background: var(--ant-color-fill-secondary);
+}
+
+.fileItemActive {
+  border-color: var(--ant-color-primary-border);
+  background: var(--ant-color-primary-bg);
+}
+
+.diffPanel :global(.monaco-diff-editor),
+.diffPanel :global(.monaco-editor) {
+  height: 100%;
+}
+
+.templatePreviewPanel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.templatePreviewPanel .configPreview {
+  min-height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.templateEditorPanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.templateEditor {
+  min-height: 0;
+  flex: 1;
+  border: 1px solid var(--ant-color-border-secondary);
+}
+
+.templateEditor :global(.monaco-editor) {
+  height: 100%;
+}
+
+.editorFooter {
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.dispatchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--ant-color-primary-border);
+  border-radius: 6px;
+  background: var(--ant-color-primary-bg);
+}
+
+.dispatchIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 4px;
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-bg-container);
+}
+
+.dispatchCopy,
+.targetVersion,
+.stackedText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dispatchCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+.targetVersion {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.targetVersion strong {
+  color: var(--ant-color-text);
+}
+
+.historyHeader {
+  margin-top: 2px;
+}
+
+.historyHeader span {
+  gap: 7px;
+}
+
+.taskTable {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.progressCell {
+  max-width: 190px;
+}
+
+.progressLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.progressLabel :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-inline: 12px;
+  }
+
+  .header,
+  .editorFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sectionHeading,
+  .templateBar,
+  .sourceToolbar,
+  .logSourceToolbar,
+  .circuitScopeBar,
+  .recoveryRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .templateBar :global(.ant-select),
+  .probeSelect {
+    width: 100%;
+  }
+
+  .sourceGroup {
+    width: 100%;
+  }
+
+  .configWorkspace {
+    height: 560px;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .filePanel {
+    flex: 0 0 auto !important;
+    border-right: 0;
+    border-bottom: 1px solid var(--ant-color-border-secondary);
+  }
+
+  .fileList {
+    max-height: 150px;
+  }
+
+  .diffPanel {
+    min-width: 480px;
+    min-height: 360px;
+  }
+
+  .templateEditorPanel,
+  .templatePreviewPanel {
+    min-width: 480px;
+    min-height: 360px;
+  }
+
+  .batchGrid,
+  .thresholdGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .logSourceRow {
+    grid-template-columns: 1fr;
+  }
+
+  .dispatchBar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .dispatchCopy {
+    min-width: calc(100% - 44px);
+  }
+
+  .targetVersion {
+    flex: 1;
+  }
+}

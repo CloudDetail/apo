@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DataGroupTreeSelector from './DataGroupTreeSelector'
 import { useDataGroupContext } from 'src/core/contexts/DataGroupContext'
+import { isProbeManagementPreviewRoute } from 'src/core/utils/probeManagementRoute'
 
 const DataGroupSelector = ({ readonly = false, hidden = false }) => {
   const { t } = useTranslation('core/dataGroup')
@@ -66,6 +67,7 @@ const DataGroupSelector = ({ readonly = false, hidden = false }) => {
   }, [flattenedAvailableNodes, availableNodeIds, dispatch, location, dataGroupId, navigate])
 
   useEffect(() => {
+    if (isProbeManagementPreviewRoute()) return
     getDataGroup()
   }, [])
   const onChange = (newValue: number) => {

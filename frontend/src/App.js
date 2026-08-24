@@ -20,6 +20,10 @@ import {
   isSystemHealthPreviewRoute,
   normalizeSystemHealthMenu,
 } from 'src/core/utils/systemHealthRoute'
+import {
+  isProbeManagementPreviewRoute,
+  PROBE_MANAGEMENT_PATH,
+} from 'src/core/utils/probeManagementRoute'
 // Containers
 const DefaultLayout = React.lazy(() => import('src/core/layout/DefaultLayout'))
 const UnitedLayout = React.lazy(() => import('src/pro/layout/UnitedLayout'))
@@ -48,8 +52,8 @@ const App = () => {
     const groupId = Number(new URLSearchParams(queryString).get('groupId') ?? 1)
     return Number.isFinite(groupId) ? groupId : 1
   }
-  const buildPreviewMenu = () =>
-    normalizeSystemHealthMenu(
+  const buildPreviewMenu = () => {
+    const menu = normalizeSystemHealthMenu(
       _nav.map((item) => ({
         ...item,
         router: { to: item.to },
@@ -59,11 +63,24 @@ const App = () => {
         })),
       })),
     )
+    return isProbeManagementPreviewRoute()
+      ? [
+          {
+            key: 'integration',
+            label: '探针管理',
+            abbreviation: '探针',
+            router: { to: PROBE_MANAGEMENT_PATH },
+          },
+        ]
+      : menu
+  }
   const buildPreviewRoutes = () =>
-    buildPreviewMenu().flatMap((item) => [
-      item.router?.to,
-      ...(item.children || []).map((child) => child.router?.to),
-    ]).filter(Boolean)
+    buildPreviewMenu()
+      .flatMap((item) => [
+        item.router?.to,
+        ...(item.children || []).map((child) => child.router?.to),
+      ])
+      .filter(Boolean)
   const getRuleGroupLabels = () => {
     getRuleGroupLabelApi().then((res) => {
       setGroupLabel(res?.groupsLabel ?? [])
@@ -99,16 +116,22 @@ const App = () => {
   }, [loading, getTitle, getFavicon, i18n.language, t])
 
   useEffect(() => {
-    if (isSystemHealthPreviewRoute()) {
+    const isDevelopmentPreview = isSystemHealthPreviewRoute() || isProbeManagementPreviewRoute()
+    if (isDevelopmentPreview) {
       dispatch({
         type: 'setUser',
-        payload: { username: 'APO Preview', userId: 'preview-user', role: 'admin', roleList: 'admin' },
+        payload: {
+          username: 'APO Preview',
+          userId: 'preview-user',
+          role: 'admin',
+          roleList: 'admin',
+        },
       })
       dispatch({ type: 'setMenu', payload: buildPreviewMenu() })
       dispatch({ type: 'setRoutes', payload: buildPreviewRoutes() })
       dispatch({ type: 'setSelectedDataGroupId', payload: getDevSystemReportGroupId() })
     }
-    if (window.location.hash !== '#/login' && !isSystemHealthPreviewRoute()) {
+    if (window.location.hash !== '#/login' && !isDevelopmentPreview) {
       getRuleGroupLabels()
     }
     getMonacoPromqlConfig()
@@ -129,9 +152,9 @@ const App = () => {
             path="*"
             name="Home"
             element={<DefaultLayout />}
-          // element={
-          //   import.meta.env.VITE_APP_VERSION === 'pro' ? <DefaultLayout /> : <UnitedLayout />
-          // }
+            // element={
+            //   import.meta.env.VITE_APP_VERSION === 'pro' ? <DefaultLayout /> : <UnitedLayout />
+            // }
           />
         </Routes>
       </Suspense>

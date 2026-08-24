@@ -1,5 +1,6 @@
 import { t } from 'i18next'
 import React from 'react'
+import { isProbeManagementPreviewRoute } from 'src/core/utils/probeManagementRoute'
 import AuthRouter from 'src/core/components/AuthRouter'
 
 // 商业版
@@ -26,12 +27,27 @@ const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index'
 const KnowledgeBasesPage = AuthRouter(
   React.lazy(() => import('src/pro/views/knowledgeBases/index')),
 )
-const CustomDashboardList = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/List')))
-const CustomDashboardViewer = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/Viewer')))
-const CustomDashboardEditor = AuthRouter(React.lazy(() => import('src/pro/views/CustomDashboard/Editor')))
-const ProbeManagementPage = AuthRouter(
-  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration')),
+const CustomDashboardList = AuthRouter(
+  React.lazy(() => import('src/pro/views/CustomDashboard/List')),
 )
+const CustomDashboardViewer = AuthRouter(
+  React.lazy(() => import('src/pro/views/CustomDashboard/Viewer')),
+)
+const CustomDashboardEditor = AuthRouter(
+  React.lazy(() => import('src/pro/views/CustomDashboard/Editor')),
+)
+const ProbeManagementView = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration'),
+)
+const ProbeConfigView = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration/ProbeConfigPage'),
+)
+const ProbeManagementPage = isProbeManagementPreviewRoute()
+  ? ProbeManagementView
+  : AuthRouter(ProbeManagementView)
+const ProbeConfigPage = isProbeManagementPreviewRoute()
+  ? ProbeConfigView
+  : AuthRouter(ProbeConfigView)
 
 const IntegrationSettings = AuthRouter(
   React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
@@ -130,7 +146,6 @@ let proRoutes = [
     name: 'Agent',
     element: AgentPage,
     hideSystemTimeRangePicker: true,
-
   },
   {
     path: '/knowledge-bases',
@@ -147,6 +162,11 @@ let proRoutes = [
   {
     path: '/probe-management/settings',
     element: IntegrationSettings,
+  },
+  {
+    path: '/probe-management/config',
+    name: 'ProbeConfig',
+    element: ProbeConfigPage,
   },
 ]
 export default proRoutes

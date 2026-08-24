@@ -5,6 +5,7 @@ import { notify } from 'src/core/utils/notify'
 import { useTranslation } from 'react-i18next'
 import { useSelector } from 'react-redux'
 import { isSystemHealthPreviewRoute } from 'src/core/utils/systemHealthRoute'
+import { isProbeManagementPreviewRoute } from 'src/core/utils/probeManagementRoute'
 
 type LicenseInfo = {
   licenseId: string
@@ -60,7 +61,7 @@ export const LicenseProvider = ({ children }: { children: ReactNode }) => {
   }
   useEffect(() => {
     if (user.userId) {
-      if (isSystemHealthPreviewRoute()) return
+      if (isSystemHealthPreviewRoute() || isProbeManagementPreviewRoute()) return
       fetchLicenseInfo()
     }
   }, [user.userId])
