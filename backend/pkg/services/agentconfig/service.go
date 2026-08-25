@@ -34,7 +34,7 @@ type Repository interface {
 	UpdateAgentTemplate(core.Context, *ac.Template) error
 	DeleteAgentTemplate(core.Context, uuid.UUID) error
 	GetAgentTemplate(core.Context, uuid.UUID) (*ac.Template, error)
-	ListAgentTemplates(core.Context, string) ([]ac.Template, error)
+	ListAgentTemplates(core.Context) ([]ac.Template, error)
 	UpsertAgentNode(core.Context, *ac.Node) error
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
@@ -65,8 +65,8 @@ func New(repo Repository) *Service {
 }
 
 const (
-	defaultCircuitMaxCPUPercent               = 80
-	defaultCircuitMaxMemoryBytes              = 512 * 1024 * 1024
+	defaultCircuitMaxCPUCores                 = 1
+	defaultCircuitMaxMemoryBytes              = 2 * 1024 * 1024 * 1024
 	defaultCircuitDurationSeconds             = 30
 	defaultCircuitRecoveryInitialDelaySeconds = 30
 	defaultCircuitRecoveryMaxDelaySeconds     = 60 * 60
@@ -75,7 +75,7 @@ const (
 func loadDefaultAgentSettings() ac.AgentSettings {
 	settings := ac.CircuitBreakerSettings{
 		Enabled:                     true,
-		MaxCPUPercent:               defaultCircuitMaxCPUPercent,
+		MaxCPUCores:                 defaultCircuitMaxCPUCores,
 		MaxMemoryBytes:              defaultCircuitMaxMemoryBytes,
 		DurationSeconds:             defaultCircuitDurationSeconds,
 		AutoRecover:                 true,
@@ -90,12 +90,12 @@ func loadDefaultAgentSettings() ac.AgentSettings {
 			settings.Enabled = parsed
 		}
 	}
-	if value := strings.TrimSpace(os.Getenv("AGENT_DEFAULT_CIRCUIT_MAX_CPU_PERCENT")); value != "" {
+	if value := strings.TrimSpace(os.Getenv("AGENT_DEFAULT_CIRCUIT_MAX_CPU_CORES")); value != "" {
 		parsed, err := strconv.ParseFloat(value, 64)
 		if err != nil || parsed < 0 {
-			log.Printf("agentconfig: invalid AGENT_DEFAULT_CIRCUIT_MAX_CPU_PERCENT=%q; use %.2f", value, settings.MaxCPUPercent)
+			log.Printf("agentconfig: invalid AGENT_DEFAULT_CIRCUIT_MAX_CPU_CORES=%q; use %.2f", value, settings.MaxCPUCores)
 		} else {
-			settings.MaxCPUPercent = parsed
+			settings.MaxCPUCores = parsed
 		}
 	}
 	if value := strings.TrimSpace(os.Getenv("AGENT_DEFAULT_CIRCUIT_MAX_MEMORY_BYTES")); value != "" {
@@ -138,16 +138,16 @@ func loadDefaultAgentSettings() ac.AgentSettings {
 			settings.RecoveryMaxDelaySeconds = parsed
 		}
 	}
-	if settings.Enabled && settings.MaxCPUPercent == 0 && settings.MaxMemoryBytes == 0 {
+	if settings.Enabled && settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 {
 		log.Printf("agentconfig: default circuit breaker has no active threshold; use built-in CPU and memory limits")
-		settings.MaxCPUPercent = defaultCircuitMaxCPUPercent
+		settings.MaxCPUCores = defaultCircuitMaxCPUCores
 		settings.MaxMemoryBytes = defaultCircuitMaxMemoryBytes
 	}
 	if err := validateCircuitBreaker(&settings); err != nil {
 		log.Printf("agentconfig: invalid configured default circuit breaker; use built-in settings: %v", err)
 		settings = ac.CircuitBreakerSettings{
 			Enabled:                     true,
-			MaxCPUPercent:               defaultCircuitMaxCPUPercent,
+			MaxCPUCores:                 defaultCircuitMaxCPUCores,
 			MaxMemoryBytes:              defaultCircuitMaxMemoryBytes,
 			DurationSeconds:             defaultCircuitDurationSeconds,
 			AutoRecover:                 true,
@@ -195,8 +195,7 @@ func (s *Service) SettingsForProbe(ctx core.Context, nodeID, probeType string) (
 		circuit, decodeErr := decodeCircuitSettings(assigned.Settings)
 		validationErr := validateCircuitBreaker(&circuit)
 		if decodeErr == nil && validationErr == nil {
-			resolved := circuitPolicyForProbe(circuit, probeType)
-			settings.CircuitBreaker = &resolved
+			settings.CircuitBreaker = &circuit
 			return settings, nil
 		}
 		if decodeErr != nil {
@@ -211,19 +210,15 @@ func (s *Service) SettingsForProbe(ctx core.Context, nodeID, probeType string) (
 	if err != nil {
 		return ac.AgentSettings{}, err
 	}
-	resolved := circuitPolicyForProbe(*circuit, probeType)
-	settings.CircuitBreaker = &resolved
+	settings.CircuitBreaker = circuit
 	return settings, nil
 }
 
 type TemplateInput struct {
-	ProbeType   string                 `json:"probeType" binding:"required"`
-	Name        string                 `json:"name" binding:"required"`
-	Description string                 `json:"description"`
-	Content     string                 `json:"content"`
-	Files       []ac.InitialConfigFile `json:"files"`
-	Format      string                 `json:"format"`
-	Variables   []ac.TemplateVariable  `json:"variables"`
+	Configs     []ac.TemplateProbeConfig `json:"configs"`
+	Name        string                   `json:"name" binding:"required"`
+	Description string                   `json:"description"`
+	Variables   []ac.TemplateVariable    `json:"variables"`
 }
 type AssignmentInput struct {
 	TemplateID         uuid.UUID         `json:"templateId" binding:"required"`
@@ -242,7 +237,6 @@ type NodeConfigsInput struct {
 }
 type BatchAssignmentInput struct {
 	ClusterIDs []string          `json:"clusterIds" binding:"required"`
-	ProbeType  string            `json:"probeType" binding:"required"`
 	TemplateID uuid.UUID         `json:"templateId" binding:"required"`
 	Variables  map[string]string `json:"variables"`
 }
@@ -323,31 +317,41 @@ func normalizeConfigFiles(input []ac.InitialConfigFile, description string) ([]a
 	return files, nil
 }
 
-func normalizeTemplatePayload(in TemplateInput) (string, ac.JSON, string, string, error) {
-	if len(in.Files) == 0 {
-		if in.Content == "" {
-			return "", nil, "", "", fmt.Errorf("template content or files are required")
-		}
-		return in.Content, ac.JSON("null"), ac.HashContent(in.Content), in.Content, nil
+func normalizeTemplatePayload(in TemplateInput) (ac.JSON, string, string, error) {
+	configs := append([]ac.TemplateProbeConfig(nil), in.Configs...)
+	if len(configs) == 0 {
+		return nil, "", "", fmt.Errorf("template must contain at least one probe configuration")
 	}
-	files, err := normalizeConfigFiles(in.Files, "template")
-	if err != nil {
-		return "", nil, "", "", err
-	}
-	data, err := json.Marshal(files)
-	if err != nil {
-		return "", nil, "", "", err
-	}
-	content := ""
-	if len(files) == 1 {
-		content = files[0].Content
-	}
+	seen := make(map[string]struct{}, len(configs))
 	var variableSource strings.Builder
-	for _, file := range files {
-		variableSource.WriteString(file.Content)
-		variableSource.WriteByte('\n')
+	for index := range configs {
+		probe := ac.NormalizeProbe(configs[index].ProbeType)
+		if probe == "" {
+			return nil, "", "", fmt.Errorf("template probe type is required")
+		}
+		if _, duplicate := seen[probe]; duplicate {
+			return nil, "", "", fmt.Errorf("template probe %s is duplicated", probe)
+		}
+		seen[probe] = struct{}{}
+		files, err := normalizeConfigFiles(configs[index].Files, "template "+probe)
+		if err != nil {
+			return nil, "", "", err
+		}
+		configs[index] = ac.TemplateProbeConfig{ProbeType: probe, Files: files}
+		for _, file := range files {
+			variableSource.WriteString(file.Content)
+			variableSource.WriteByte('\n')
+		}
 	}
-	return content, ac.JSON(data), ac.HashInitialConfigFiles(files), variableSource.String(), nil
+	sort.Slice(configs, func(i, j int) bool { return configs[i].ProbeType < configs[j].ProbeType })
+	data, err := json.Marshal(configs)
+	if err != nil {
+		return nil, "", "", err
+	}
+	if len(data) > 1024*1024 {
+		return nil, "", "", fmt.Errorf("template exceeds 1 MiB")
+	}
+	return ac.JSON(data), ac.HashContent(string(data)), variableSource.String(), nil
 }
 
 func mergeVariables(content string, supplied []ac.TemplateVariable) []ac.TemplateVariable {
@@ -369,20 +373,14 @@ func mergeVariables(content string, supplied []ac.TemplateVariable) []ac.Templat
 }
 func (s *Service) Inspect(content string) []VariableSpec { return ExtractVariables(content) }
 func (s *Service) CreateTemplate(ctx core.Context, in TemplateInput, user int64) (*ac.Template, error) {
-	content, files, checksum, variableSource, err := normalizeTemplatePayload(in)
+	configs, checksum, variableSource, err := normalizeTemplatePayload(in)
 	if err != nil {
 		return nil, err
 	}
 	t := ac.NewTemplate()
-	t.ProbeType = ac.NormalizeProbe(in.ProbeType)
+	t.Configs = configs
 	t.Name = strings.TrimSpace(in.Name)
 	t.Description = in.Description
-	t.Content = content
-	t.Files = files
-	t.Format = in.Format
-	if t.Format == "" {
-		t.Format = "text"
-	}
 	t.ContentSHA256 = checksum
 	t.CreatedBy = user
 	t.UpdatedBy = user
@@ -397,16 +395,13 @@ func (s *Service) UpdateTemplate(ctx core.Context, id uuid.UUID, in TemplateInpu
 	if e != nil {
 		return nil, e
 	}
-	content, files, checksum, variableSource, e := normalizeTemplatePayload(in)
+	configs, checksum, variableSource, e := normalizeTemplatePayload(in)
 	if e != nil {
 		return nil, e
 	}
-	old.ProbeType = ac.NormalizeProbe(in.ProbeType)
+	old.Configs = configs
 	old.Name = strings.TrimSpace(in.Name)
 	old.Description = in.Description
-	old.Content = content
-	old.Files = files
-	old.Format = in.Format
 	old.Version++
 	old.ContentSHA256 = checksum
 	old.UpdatedBy = user
@@ -418,11 +413,27 @@ func (s *Service) UpdateTemplate(ctx core.Context, id uuid.UUID, in TemplateInpu
 	e = s.repo.UpdateAgentTemplate(ctx, old)
 	return old, e
 }
-func (s *Service) ListTemplates(ctx core.Context, probe string) ([]ac.Template, error) {
-	return s.repo.ListAgentTemplates(ctx, ac.NormalizeProbe(probe))
+func (s *Service) ListTemplates(ctx core.Context) ([]ac.Template, error) {
+	templates, err := s.repo.ListAgentTemplates(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for index := range templates {
+		if err := hydrateTemplateConfigs(&templates[index]); err != nil {
+			return nil, fmt.Errorf("decode template %s: %w", templates[index].ID, err)
+		}
+	}
+	return templates, nil
 }
 func (s *Service) GetTemplate(ctx core.Context, id uuid.UUID) (*ac.Template, error) {
-	return s.repo.GetAgentTemplate(ctx, id)
+	template, err := s.repo.GetAgentTemplate(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := hydrateTemplateConfigs(template); err != nil {
+		return nil, err
+	}
+	return template, nil
 }
 func (s *Service) DeleteTemplate(ctx core.Context, id uuid.UUID) error {
 	return s.repo.DeleteAgentTemplate(ctx, id)
@@ -463,23 +474,23 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	if settings == nil {
 		return nil
 	}
-	for probeType, policy := range settings.ProbePolicies {
-		normalized := ac.NormalizeProbe(probeType)
-		if normalized == "" || normalized != probeType {
-			return fmt.Errorf("probe policy key %q must be normalized", probeType)
+	for componentType, policy := range settings.ComponentPolicies {
+		normalized := ac.NormalizeProbe(componentType)
+		if normalized == "" || normalized != componentType {
+			return fmt.Errorf("component policy key %q must be normalized", componentType)
 		}
-		if len(policy.ProbePolicies) > 0 {
-			return fmt.Errorf("probe policy %s must not contain nested probe policies", probeType)
+		if len(policy.ComponentPolicies) > 0 {
+			return fmt.Errorf("component policy %s must not contain nested component policies", componentType)
 		}
 		if err := validateCircuitBreaker(&policy); err != nil {
-			return fmt.Errorf("probe policy %s: %w", probeType, err)
+			return fmt.Errorf("component policy %s: %w", componentType, err)
 		}
 	}
 	if !settings.Enabled {
 		return nil
 	}
-	if settings.MaxCPUPercent != 0 && (settings.MaxCPUPercent < 10 || settings.MaxCPUPercent > 100) {
-		return fmt.Errorf("max CPU percent must be 0 or between 10 and 100")
+	if settings.MaxCPUCores != 0 && (settings.MaxCPUCores < 0.1 || settings.MaxCPUCores > 256) {
+		return fmt.Errorf("max CPU cores must be 0 or between 0.1 and 256")
 	}
 	const (
 		minimumMemory = 64 * 1024 * 1024
@@ -488,7 +499,7 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	if settings.MaxMemoryBytes != 0 && (settings.MaxMemoryBytes < minimumMemory || settings.MaxMemoryBytes > maximumMemory) {
 		return fmt.Errorf("max memory bytes must be 0 or between 64 MiB and 64 GiB")
 	}
-	if settings.MaxCPUPercent == 0 && settings.MaxMemoryBytes == 0 {
+	if settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 {
 		return fmt.Errorf("enabled circuit breaker requires a CPU or memory threshold")
 	}
 	if settings.DurationSeconds < 5 || settings.DurationSeconds > 600 {
@@ -503,15 +514,6 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 		}
 	}
 	return nil
-}
-
-func circuitPolicyForProbe(settings ac.CircuitBreakerSettings, probeType string) ac.CircuitBreakerSettings {
-	if policy, ok := settings.ProbePolicies[ac.NormalizeProbe(probeType)]; ok {
-		policy.ProbePolicies = nil
-		return policy
-	}
-	settings.ProbePolicies = nil
-	return settings
 }
 
 func decodeCircuitSettings(data ac.JSON) (ac.CircuitBreakerSettings, error) {
@@ -955,25 +957,46 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 	if err != nil {
 		return nil, err
 	}
-	t, err := s.repo.GetAgentTemplate(ctx, input.TemplateID)
+	template, err := s.repo.GetAgentTemplate(ctx, input.TemplateID)
+	if err != nil {
+		return nil, fmt.Errorf("get batch template: %w", err)
+	}
+	configs, err := templateProbeConfigs(template)
 	if err != nil {
 		return nil, err
 	}
-	probe := ac.NormalizeProbe(input.ProbeType)
-	if probe != t.ProbeType {
-		return nil, fmt.Errorf("template probe type %s does not match %s", t.ProbeType, probe)
+	byProbe := make(map[string]ac.TemplateProbeConfig, len(configs))
+	for _, config := range configs {
+		byProbe[config.ProbeType] = config
 	}
-	bindings := make([]*ac.Binding, 0, len(targets))
-	releases := make([]*ac.Release, 0, len(targets))
-	expected := make(map[string]int64, len(targets))
+	bindings := make([]*ac.Binding, 0, len(targets)*len(configs))
+	releases := make([]*ac.Release, 0, len(targets)*len(configs))
+	expected := make(map[string]int64, len(targets)*len(configs))
 	for _, node := range targets {
-		release, binding, previous, err := s.prepareAssignment(ctx, node.ID, probe, t, AssignmentInput{TemplateID: input.TemplateID, Variables: input.Variables})
+		current, err := s.CurrentNodeConfigs(ctx, node.ID)
 		if err != nil {
-			return nil, fmt.Errorf("prepare template assignment for %s/%s: %w", node.ID, probe, err)
+			return nil, fmt.Errorf("get current configuration for %s: %w", node.ID, err)
 		}
-		releases = append(releases, release)
-		bindings = append(bindings, binding)
-		expected[releaseKey(node.ID, probe)] = previous
+		if len(current.Configs) == 0 {
+			return nil, fmt.Errorf("node %s has no probe configuration", node.ID)
+		}
+		if len(current.Configs) != len(configs) {
+			return nil, fmt.Errorf("template contains %d probes but node %s has %d", len(configs), node.ID, len(current.Configs))
+		}
+		for _, currentConfig := range current.Configs {
+			probe := currentConfig.ProbeType
+			selected, exists := byProbe[probe]
+			if !exists {
+				return nil, fmt.Errorf("template does not contain probe %s required by node %s", probe, node.ID)
+			}
+			release, binding, previous, err := s.prepareAssignment(ctx, node.ID, probe, template, selected.Files, AssignmentInput{TemplateID: template.ID, Variables: input.Variables})
+			if err != nil {
+				return nil, fmt.Errorf("prepare template assignment for %s/%s: %w", node.ID, probe, err)
+			}
+			releases = append(releases, release)
+			bindings = append(bindings, binding)
+			expected[releaseKey(node.ID, probe)] = previous
+		}
 	}
 	if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected); err != nil {
 		return nil, err
@@ -990,10 +1013,21 @@ func (s *Service) Assign(ctx core.Context, node, probe string, in AssignmentInpu
 		return nil, e
 	}
 	probe = ac.NormalizeProbe(probe)
-	if probe != t.ProbeType {
-		return nil, fmt.Errorf("template probe type %s does not match %s", t.ProbeType, probe)
+	configs, e := templateProbeConfigs(t)
+	if e != nil {
+		return nil, e
 	}
-	release, binding, previous, err := s.prepareAssignment(ctx, node, probe, t, in)
+	var selected *ac.TemplateProbeConfig
+	for index := range configs {
+		if configs[index].ProbeType == probe {
+			selected = &configs[index]
+			break
+		}
+	}
+	if selected == nil {
+		return nil, fmt.Errorf("template does not contain probe %s", probe)
+	}
+	release, binding, previous, err := s.prepareAssignment(ctx, node, probe, t, selected.Files, in)
 	if err != nil {
 		return nil, err
 	}
@@ -1006,15 +1040,38 @@ func (s *Service) Assign(ctx core.Context, node, probe string, in AssignmentInpu
 	return release, nil
 }
 
-func templateFiles(t *ac.Template) ([]ac.InitialConfigFile, error) {
-	if t == nil || len(t.Files) == 0 || string(t.Files) == "null" || string(t.Files) == "{}" {
-		return nil, nil
+func templateProbeConfigs(t *ac.Template) ([]ac.TemplateProbeConfig, error) {
+	if t == nil {
+		return nil, fmt.Errorf("template is required")
 	}
-	var files []ac.InitialConfigFile
-	if err := json.Unmarshal(t.Files, &files); err != nil {
-		return nil, fmt.Errorf("decode template files: %w", err)
+	if len(t.Configs) == 0 || string(t.Configs) == "null" || string(t.Configs) == "[]" || string(t.Configs) == "{}" {
+		return nil, fmt.Errorf("template contains no probe configuration")
 	}
-	return normalizeConfigFiles(files, "template")
+	var configs []ac.TemplateProbeConfig
+	if err := json.Unmarshal(t.Configs, &configs); err != nil {
+		return nil, fmt.Errorf("decode template configurations: %w", err)
+	}
+	normalized, _, _, err := normalizeTemplatePayload(TemplateInput{Configs: configs})
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(normalized, &configs); err != nil {
+		return nil, err
+	}
+	return configs, nil
+}
+
+func hydrateTemplateConfigs(t *ac.Template) error {
+	configs, err := templateProbeConfigs(t)
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(configs)
+	if err != nil {
+		return err
+	}
+	t.Configs = ac.JSON(data)
+	return nil
 }
 
 func sameConfigFilePaths(left, right []ac.InitialConfigFile) bool {
@@ -1033,7 +1090,7 @@ func sameConfigFilePaths(left, right []ac.InitialConfigFile) bool {
 	return true
 }
 
-func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.Template, in AssignmentInput) (*ac.Release, *ac.Binding, int64, error) {
+func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.Template, definedFiles []ac.InitialConfigFile, in AssignmentInput) (*ac.Release, *ac.Binding, int64, error) {
 	missing := []string{}
 	invalid := []string{}
 	used := map[string]bool{}
@@ -1070,42 +1127,28 @@ func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.
 	if e != nil {
 		return nil, nil, 0, e
 	}
-	definedFiles, e := templateFiles(t)
-	if e != nil {
-		return nil, nil, 0, e
-	}
 	renderedContent := ""
 	releaseFiles := ac.JSON("null")
 	contentSHA256 := ""
-	if len(definedFiles) == 0 {
-		if len(current.Files) != 1 {
-			return nil, nil, 0, fmt.Errorf("legacy template does not define the complete %d-file configuration", len(current.Files))
-		}
-		renderedContent, e = Render(t.Content, values)
+	if !sameConfigFilePaths(definedFiles, current.Files) {
+		return nil, nil, 0, fmt.Errorf("template file set does not match the current %d-file configuration", len(current.Files))
+	}
+	definedFiles = append([]ac.InitialConfigFile(nil), definedFiles...)
+	for index := range definedFiles {
+		definedFiles[index].Content, e = Render(definedFiles[index].Content, values)
 		if e != nil {
-			return nil, nil, 0, e
+			return nil, nil, 0, fmt.Errorf("render template file %s: %w", definedFiles[index].Path, e)
 		}
-		contentSHA256 = ac.HashContent(renderedContent)
-	} else {
-		if !sameConfigFilePaths(definedFiles, current.Files) {
-			return nil, nil, 0, fmt.Errorf("template file set does not match the current %d-file configuration", len(current.Files))
-		}
-		for index := range definedFiles {
-			definedFiles[index].Content, e = Render(definedFiles[index].Content, values)
-			if e != nil {
-				return nil, nil, 0, fmt.Errorf("render template file %s: %w", definedFiles[index].Path, e)
-			}
-			definedFiles[index].ContentSHA256 = ac.HashContent(definedFiles[index].Content)
-		}
-		data, marshalErr := json.Marshal(definedFiles)
-		if marshalErr != nil {
-			return nil, nil, 0, marshalErr
-		}
-		releaseFiles = ac.JSON(data)
-		contentSHA256 = ac.HashInitialConfigFiles(definedFiles)
-		if len(definedFiles) == 1 {
-			renderedContent = definedFiles[0].Content
-		}
+		definedFiles[index].ContentSHA256 = ac.HashContent(definedFiles[index].Content)
+	}
+	data, marshalErr := json.Marshal(definedFiles)
+	if marshalErr != nil {
+		return nil, nil, 0, marshalErr
+	}
+	releaseFiles = ac.JSON(data)
+	contentSHA256 = ac.HashInitialConfigFiles(definedFiles)
+	if len(definedFiles) == 1 {
+		renderedContent = definedFiles[0].Content
 	}
 	last, e := s.repo.GetAgentRelease(ctx, node, probe)
 	generation := int64(1)

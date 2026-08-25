@@ -368,6 +368,16 @@ func migrateTable(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	// Probe configuration templates are a new feature. Recreate the pre-release
+	// table when it has the discarded per-probe shape instead of migrating data
+	// that does not satisfy the complete-template contract.
+	if migrator.HasTable(&ac.Template{}) && (migrator.HasColumn(&ac.Template{}, "probe_type") ||
+		migrator.HasColumn(&ac.Template{}, "content") ||
+		migrator.HasColumn(&ac.Template{}, "files")) {
+		if err = migrator.DropTable(&ac.TemplateVariable{}, &ac.Template{}); err != nil {
+			return err
+		}
+	}
 	return db.AutoMigrate(
 		&ac.Template{},
 		&ac.TemplateVariable{},
@@ -376,6 +386,7 @@ func migrateTable(db *gorm.DB) error {
 		&ac.GlobalCircuitConfig{},
 		&ac.NodeCircuitConfig{},
 		&ac.NodeLogConfig{},
+		&ac.LogCollectionConfig{},
 		&ac.Binding{},
 		&ac.Release{},
 		&ac.ApplyState{},

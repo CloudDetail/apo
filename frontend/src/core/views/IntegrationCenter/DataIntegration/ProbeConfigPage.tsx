@@ -2,18 +2,19 @@ import {
   Button,
   Card,
   Col,
+  Collapse,
   Form,
   Input,
   InputNumber,
   Modal,
   Row,
-  Segmented,
   Select,
   Space,
   Switch,
   Table,
   Tabs,
   Tag,
+  Tree,
   Typography,
 } from 'antd'
 import { LeftOutlined, PlusOutlined } from '@ant-design/icons'
@@ -37,7 +38,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   batchAssignAgentConfigApi,
   batchUpdateCircuitBreakerApi,
-  batchUpdateLogSourcesApi,
   createAgentConfigTemplateApi,
   getAgentConfigNodesApi,
   getAgentConfigStatesApi,
@@ -46,39 +46,44 @@ import {
   getNodeCircuitBreakerApi,
   getNodeConfigHistoryApi,
   getNodeCurrentConfigsApi,
-  getNodeLogSourcesApi,
   updateAgentConfigTemplateApi,
   updateGlobalCircuitBreakerApi,
   updateNodeCircuitBreakerApi,
   updateNodeCurrentConfigsApi,
-  updateNodeLogSourcesApi,
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
+import { LogCollectionConfigPanel } from './LogCollectionConfigPage'
 import styles from './probeConfigPage.module.scss'
 
-type AgentNode = { id: string; name?: string; clusterId?: string }
+type AgentNode = {
+  id: string
+  name?: string
+  clusterId?: string
+  environment?: string
+  labels?: Record<string, string>
+  reportedVariables?: Record<string, string>
+}
 type ProbeState = { nodeId: string; probeType: string }
 type TemplateVariable = { name: string; required?: boolean; defaultValue?: string }
 type ConfigFile = { path: string; content: string; contentSha256: string }
+type TemplateProbeConfig = { probeType: string; files: ConfigFile[] }
 type AgentTemplate = {
   id: string
-  probeType: string
   name: string
-  content: string
-  files?: ConfigFile[]
-  format: string
+  description?: string
+  configs: TemplateProbeConfig[]
   version: number
   variables?: TemplateVariable[]
 }
 type CircuitPolicy = {
   enabled: boolean
-  maxCpuPercent: number
+  maxCpuCores: number
   maxMemoryBytes: number
   durationSeconds: number
   autoRecover: boolean
   recoveryInitialDelaySeconds: number
   recoveryMaxDelaySeconds: number
-  probePolicies?: Record<string, CircuitPolicy>
+  componentPolicies?: Record<string, CircuitPolicy>
 }
 type CurrentConfig = {
   probeType: string
@@ -89,25 +94,23 @@ type CurrentConfig = {
   source: string
   createdAt?: string
 }
-type LogSource = {
-  type: 'file' | 'stdout'
-  path: string
-  pattern: string
-  maxBytes: number
-}
 type DeliveryRecord = {
   id: string
-  kind: 'CONFIG' | 'CIRCUIT' | 'LOG'
+  kind: 'CONFIG' | 'CIRCUIT'
   target: string
   succeeded: number
   total: number
   createdAt: string
 }
+type BatchPreviewFile = ConfigFile & {
+  key: string
+  probeType: string
+}
 
 const DEFAULT_CIRCUIT: CircuitPolicy = {
   enabled: true,
-  maxCpuPercent: 80,
-  maxMemoryBytes: 512 * 1024 * 1024,
+  maxCpuCores: 1,
+  maxMemoryBytes: 2 * 1024 * 1024 * 1024,
   durationSeconds: 30,
   autoRecover: true,
   recoveryInitialDelaySeconds: 30,
@@ -116,17 +119,22 @@ const DEFAULT_CIRCUIT: CircuitPolicy = {
 
 const toMemoryMiB = (bytes: number) => Math.round(bytes / 1024 / 1024)
 const fromMemoryMiB = (mib: number) => mib * 1024 * 1024
-const newLogSource = (): LogSource => ({ type: 'file', path: '', pattern: '', maxBytes: 0 })
+const isK8sEnvironment = (value?: string) =>
+  ['', 'k8s', 'kubernetes', 'helm'].includes(
+    String(value || '')
+      .trim()
+      .toLowerCase(),
+  )
 const draftKey = (probeType: string, path: string) => `${probeType}\u0000${path}`
 const concreteCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => {
-  const { probePolicies: _ignored, ...policy } = value || {}
+  const { componentPolicies: _ignored, ...policy } = value || {}
   return { ...DEFAULT_CIRCUIT, ...policy }
 }
 const normalizeCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => ({
   ...concreteCircuitPolicy(value),
-  probePolicies: Object.fromEntries(
-    Object.entries(value?.probePolicies || {}).map(([probeType, policy]) => [
-      probeType,
+  componentPolicies: Object.fromEntries(
+    Object.entries(value?.componentPolicies || {}).map(([componentType, policy]) => [
+      componentType,
       concreteCircuitPolicy(policy),
     ]),
   ),
@@ -135,11 +143,8 @@ const filesForConfig = (config: CurrentConfig): ConfigFile[] =>
   config.files?.length
     ? config.files
     : [{ path: 'config.yaml', content: config.content || '', contentSha256: config.contentSha256 }]
-const filesForTemplate = (template?: AgentTemplate): ConfigFile[] => {
-  if (!template) return []
-  if (template.files?.length) return template.files
-  return [{ path: '', content: template.content || '', contentSha256: '' }]
-}
+const configsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
+  template?.configs || []
 const languageForPath = (path: string, fallback = 'yaml') =>
   path.endsWith('.xml')
     ? 'xml'
@@ -152,9 +157,11 @@ const languageForPath = (path: string, fallback = 'yaml') =>
           : fallback
 
 function CircuitEditor({
+  title,
   value,
   onChange,
 }: {
+  title: string
   value: CircuitPolicy
   onChange: (next: CircuitPolicy) => void
 }) {
@@ -162,7 +169,7 @@ function CircuitEditor({
   return (
     <div className={styles.tabContent}>
       <div className={styles.sectionHeading}>
-        <Typography.Text strong>资源熔断策略</Typography.Text>
+        <Typography.Text strong>{title}</Typography.Text>
         <Switch
           checked={value.enabled}
           checkedChildren="启用"
@@ -176,17 +183,19 @@ function CircuitEditor({
             <Cpu size={17} />
           </span>
           <span className={styles.thresholdCopy}>
-            <strong>CPU 使用率</strong>
-            <small>10% - 100%</small>
+            <strong>CPU 配额</strong>
+            <small>0.1 - 256 Core</small>
           </span>
           <InputNumber
             aria-label="CPU 熔断阈值"
-            min={10}
-            max={100}
-            value={value.maxCpuPercent}
+            min={0.1}
+            max={256}
+            step={0.1}
+            precision={1}
+            value={value.maxCpuCores}
             disabled={!value.enabled}
-            addonAfter="%"
-            onChange={(next) => patch({ maxCpuPercent: Number(next || 10) })}
+            addonAfter="Core"
+            onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
           />
         </label>
         <label className={styles.thresholdItem}>
@@ -282,6 +291,7 @@ export default function ProbeConfigPage() {
   const [searchParams] = useSearchParams()
   const nodeId = searchParams.get('nodeId') || ''
   const initialCluster = searchParams.get('clusterId') || ''
+  const initialClusterEnvironment = searchParams.get('clusterType') || ''
   const isGlobal = searchParams.get('scope') === 'global'
   const isNode = Boolean(nodeId)
   const mode = isGlobal ? 'global' : isNode ? 'node' : 'batch'
@@ -293,31 +303,30 @@ export default function ProbeConfigPage() {
   const [selectedClusters, setSelectedClusters] = useState<string[]>(
     initialCluster ? [initialCluster] : [],
   )
-  const [variables, setVariables] = useState<Record<string, string>>({})
+  const [selectedBatchTemplateId, setSelectedBatchTemplateId] = useState('')
+  const [selectedBatchFileKey, setSelectedBatchFileKey] = useState('')
+  const [batchNodeConfigs, setBatchNodeConfigs] = useState<Record<string, CurrentConfig[]>>({})
+  const [batchConfigsLoading, setBatchConfigsLoading] = useState(false)
   const [currentConfigs, setCurrentConfigs] = useState<CurrentConfig[]>([])
   const [configDrafts, setConfigDrafts] = useState<Record<string, string>>({})
   const [selectedFilePath, setSelectedFilePath] = useState('')
   const [historyConfigs, setHistoryConfigs] = useState<CurrentConfig[]>([])
   const [selectedHistoryGeneration, setSelectedHistoryGeneration] = useState<number>()
-  const [templateDraftFiles, setTemplateDraftFiles] = useState<ConfigFile[]>([])
+  const [templateDraftConfigs, setTemplateDraftConfigs] = useState<TemplateProbeConfig[]>([])
+  const [selectedTemplateProbe, setSelectedTemplateProbe] = useState('')
   const [selectedTemplateFileIndex, setSelectedTemplateFileIndex] = useState(0)
+  const [newTemplateProbe, setNewTemplateProbe] = useState('')
   const [circuit, setCircuit] = useState<CircuitPolicy>(DEFAULT_CIRCUIT)
   const [circuitSource, setCircuitSource] = useState('')
-  const [circuitScope, setCircuitScope] = useState<'all' | 'probe'>('all')
-  const [circuitProbe, setCircuitProbe] = useState('')
-  const [logSources, setLogSources] = useState<LogSource[]>([])
-  const [logSourcesConfigured, setLogSourcesConfigured] = useState(false)
-  const [logSourcesLoading, setLogSourcesLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState('config')
+  const [circuitComponent, setCircuitComponent] = useState('')
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get('section') === 'logs' ? 'logs' : 'config',
+  )
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [records, setRecords] = useState<DeliveryRecord[]>([])
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm] = Form.useForm()
-
-  useEffect(() => {
-    setCircuitScope('all')
-  }, [mode, nodeId])
 
   const loadBase = useCallback(async () => {
     setLoading(true)
@@ -331,7 +340,7 @@ export default function ProbeConfigPage() {
       setStates((stateResult as any)?.states || [])
       setTemplates((templateResult as any)?.templates || [])
     } catch (error: any) {
-      notify({ type: 'error', message: error.message || '加载探针配置失败' })
+      notify({ type: 'error', message: error.message || '加载节点配置失败' })
     } finally {
       setLoading(false)
     }
@@ -341,18 +350,29 @@ export default function ProbeConfigPage() {
     loadBase()
   }, [loadBase])
 
+  useEffect(() => {
+    if (mode === 'global' && activeTab === 'logs') setActiveTab('config')
+  }, [activeTab, mode])
+
+  useEffect(() => {
+    if (mode !== 'global' && searchParams.get('section') === 'logs') setActiveTab('logs')
+  }, [mode, searchParams])
+
+  useEffect(() => {
+    if (mode !== 'batch') return
+    setSelectedClusters(initialCluster ? [initialCluster] : [])
+  }, [initialCluster, mode])
+
   const availableProbeTypes = useMemo(() => {
     if (isNode) return currentConfigs.map((config) => config.probeType).sort()
     const values = new Set<string>()
     states.forEach((state) => {
       values.add(state.probeType)
     })
-    templates.forEach((template) => values.add(template.probeType))
     return [...values].sort()
   }, [currentConfigs, isNode, states, templates])
 
-  const circuitProbeTypes = useMemo(() => {
-    if (mode === 'global') return []
+  const circuitComponentTypes = useMemo(() => {
     const values = new Set<string>()
     states.forEach((state) => {
       if (mode !== 'node' || state.nodeId === nodeId) values.add(state.probeType)
@@ -370,30 +390,27 @@ export default function ProbeConfigPage() {
   }, [availableProbeTypes])
 
   useEffect(() => {
-    setCircuitProbe((current) =>
-      circuitProbeTypes.includes(current) ? current : circuitProbeTypes[0] || '',
+    setCircuitComponent((current) =>
+      circuitComponentTypes.includes(current) ? current : circuitComponentTypes[0] || '',
     )
-  }, [circuitProbeTypes])
+  }, [circuitComponentTypes])
 
-  const matchingTemplates = templates.filter((template) => template.probeType === selectedProbe)
-  const selectedTemplate = matchingTemplates.find((template) => template.id === selectedTemplateId)
+  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId)
 
   useEffect(() => {
     setSelectedTemplateId((current) =>
-      matchingTemplates.some((template) => template.id === current)
-        ? current
-        : matchingTemplates[0]?.id || '',
+      templates.some((template) => template.id === current) ? current : templates[0]?.id || '',
     )
-  }, [selectedProbe, templates])
+  }, [templates])
 
   useEffect(() => {
-    setTemplateDraftFiles(filesForTemplate(selectedTemplate))
+    const configs = configsForTemplate(selectedTemplate).map((config) => ({
+      ...config,
+      files: config.files.map((file) => ({ ...file })),
+    }))
+    setTemplateDraftConfigs(configs)
+    setSelectedTemplateProbe(configs[0]?.probeType || '')
     setSelectedTemplateFileIndex(0)
-    const defaults: Record<string, string> = {}
-    selectedTemplate?.variables?.forEach((variable) => {
-      defaults[variable.name] = variable.defaultValue || ''
-    })
-    setVariables(defaults)
   }, [selectedTemplateId, selectedTemplate?.version])
 
   useEffect(() => {
@@ -431,6 +448,18 @@ export default function ProbeConfigPage() {
 
   const selectedCurrentConfig = currentConfigs.find((config) => config.probeType === selectedProbe)
   const selectedFiles = selectedCurrentConfig ? filesForConfig(selectedCurrentConfig) : []
+  const nodeFileCount = currentConfigs.reduce(
+    (count, config) => count + filesForConfig(config).length,
+    0,
+  )
+  const currentNode = nodes.find((node) => node.id === nodeId)
+  const inheritedClusterId = currentNode?.clusterId || initialCluster
+  const inheritedClusterEnvironment =
+    currentNode?.environment || initialClusterEnvironment || 'kubernetes'
+  const reportedVariables = currentNode?.reportedVariables || currentNode?.labels || {}
+  const reportedVariableEntries = Object.entries(reportedVariables).sort(([left], [right]) =>
+    left.localeCompare(right),
+  )
 
   useEffect(() => {
     setSelectedFilePath((current) =>
@@ -456,32 +485,93 @@ export default function ProbeConfigPage() {
       })
   }, [mode, nodeId, selectedProbe, selectedCurrentConfig?.generation])
 
-  useEffect(() => {
-    if (mode !== 'node' || !selectedProbe) {
-      setLogSources([])
-      setLogSourcesConfigured(false)
-      return
-    }
-    setLogSourcesLoading(true)
-    getNodeLogSourcesApi(nodeId, selectedProbe)
-      .then((result: any) => {
-        setLogSources((result?.logSources || []) as LogSource[])
-        setLogSourcesConfigured(Boolean(result?.configured))
-      })
-      .catch((error: any) => {
-        console.error('[ProbeConfigPage] failed to load log sources', error)
-        notify({ type: 'error', message: error.message || '加载日志配置失败' })
-        setLogSources([])
-        setLogSourcesConfigured(false)
-      })
-      .finally(() => setLogSourcesLoading(false))
-  }, [mode, nodeId, selectedProbe])
-
   const clusterOptions = useMemo(
     () => [...new Set(nodes.map((node) => node.clusterId).filter(Boolean) as string[])].sort(),
     [nodes],
   )
-  const targetCount = nodes.filter((node) => selectedClusters.includes(node.clusterId || '')).length
+  const selectedClusterEnvironment =
+    nodes.find((node) => node.clusterId === selectedClusters[0])?.environment ||
+    (selectedClusters[0] === initialCluster ? initialClusterEnvironment : '')
+  const targetNodes = useMemo(
+    () => nodes.filter((node) => selectedClusters.includes(node.clusterId || '')),
+    [nodes, selectedClusters],
+  )
+  const targetCount = targetNodes.length
+  useEffect(() => {
+    if (mode !== 'batch' || !targetNodes.length) {
+      setBatchNodeConfigs({})
+      setBatchConfigsLoading(false)
+      return
+    }
+    let cancelled = false
+    setBatchConfigsLoading(true)
+    Promise.all(
+      targetNodes.map(async (node) => {
+        const result = (await getNodeCurrentConfigsApi(node.id)) as any
+        return [node.id, (result?.configs || []) as CurrentConfig[]] as const
+      }),
+    )
+      .then((entries) => {
+        if (!cancelled) setBatchNodeConfigs(Object.fromEntries(entries))
+      })
+      .catch((error: any) => {
+        console.error('[ProbeConfigPage] failed to load batch node configurations', error)
+        if (!cancelled) {
+          setBatchNodeConfigs({})
+          notify({ type: 'error', message: error.message || '读取节点当前配置失败' })
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBatchConfigsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [mode, targetNodes])
+
+  const batchProbeTypes = useMemo(() => {
+    if (mode !== 'batch' || !targetNodes.length) return []
+    return [
+      ...new Set(
+        targetNodes.flatMap((node) =>
+          (batchNodeConfigs[node.id] || []).map((config) => config.probeType),
+        ),
+      ),
+    ].sort()
+  }, [batchNodeConfigs, mode, targetNodes])
+  const selectedBatchTemplate = templates.find(
+    (template) => template.id === selectedBatchTemplateId,
+  )
+  const batchFiles = useMemo<BatchPreviewFile[]>(
+    () =>
+      configsForTemplate(selectedBatchTemplate).flatMap((config) =>
+        config.files.map((file, index) => ({
+          ...file,
+          key: `${config.probeType}\u0000${file.path || index}`,
+          probeType: config.probeType,
+        })),
+      ),
+    [selectedBatchTemplate],
+  )
+  const selectedBatchFile = batchFiles.find((file) => file.key === selectedBatchFileKey)
+  const batchTemplateProbeTypes = configsForTemplate(selectedBatchTemplate).map(
+    (config) => config.probeType,
+  )
+  const batchTemplateComplete = Boolean(selectedBatchTemplate && batchTemplateProbeTypes.length)
+
+  useEffect(() => {
+    if (mode !== 'batch') return
+    setSelectedBatchTemplateId((current) =>
+      templates.some((template) => template.id === current) ? current : templates[0]?.id || '',
+    )
+  }, [mode, templates])
+
+  useEffect(() => {
+    setSelectedBatchFileKey((current) =>
+      batchFiles.some((file) => file.key === current) ? current : batchFiles[0]?.key || '',
+    )
+  }, [batchFiles])
+
   const nodeConfigChanged = currentConfigs.some((config) =>
     filesForConfig(config).some(
       (file) =>
@@ -530,7 +620,7 @@ export default function ProbeConfigPage() {
         ),
       )
       addRecord('CONFIG', nodeId, { succeededCount: 1, targetNodeCount: 1 })
-      notify({ type: 'success', message: `该节点的 ${configs.length} 个探针配置已一次下发` })
+      notify({ type: 'success', message: '节点配置已保存并下发' })
     } catch (error: any) {
       notify({ type: 'error', message: error.message || '节点配置保存失败' })
     } finally {
@@ -559,81 +649,72 @@ export default function ProbeConfigPage() {
     notify({ type: 'success', message: `已载入版本 ${history.generation}` })
   }
 
-  const loadTemplateIntoFile = () => {
-    if (!selectedTemplate || !selectedFilePath) return
-    const templateFiles = filesForTemplate(selectedTemplate)
-    if (templateFiles.length > 1) {
-      const currentPaths = new Set(selectedFiles.map((file) => file.path))
-      if (
-        templateFiles.length !== selectedFiles.length ||
-        templateFiles.some((file) => !currentPaths.has(file.path))
-      ) {
-        notify({ type: 'error', message: '模板文件列表与当前探针配置不一致，无法载入' })
-        return
-      }
-      setConfigDrafts((current) => ({
-        ...current,
-        ...Object.fromEntries(
-          templateFiles.map((file) => [draftKey(selectedProbe, file.path), file.content]),
-        ),
-      }))
-      notify({
-        type: 'success',
-        message: `模板“${selectedTemplate.name}”已载入全部 ${templateFiles.length} 个文件`,
+  const loadTemplateIntoNode = () => {
+    if (!selectedTemplate) return
+    const templateConfigs = configsForTemplate(selectedTemplate)
+    const currentByProbe = new Map(currentConfigs.map((config) => [config.probeType, config]))
+    const complete =
+      templateConfigs.length === currentConfigs.length &&
+      templateConfigs.every((config) => {
+        const current = currentByProbe.get(config.probeType)
+        if (!current) return false
+        const currentPaths = new Set(filesForConfig(current).map((file) => file.path))
+        return (
+          config.files.length === currentPaths.size &&
+          config.files.every((file) => currentPaths.has(file.path))
+        )
       })
-      return
-    }
-    const templateFile = templateFiles[0]
-    const targetPath = templateFile?.path || selectedFilePath
-    if (!selectedFiles.some((file) => file.path === targetPath)) {
-      notify({ type: 'error', message: `模板文件 ${targetPath} 不属于当前探针配置` })
+    if (!complete) {
+      notify({ type: 'error', message: '配置模版与当前节点的组件或配置文件列表不一致，无法载入' })
       return
     }
     setConfigDrafts((current) => ({
       ...current,
-      [draftKey(selectedProbe, targetPath)]: templateFile?.content || '',
+      ...Object.fromEntries(
+        templateConfigs.flatMap((config) =>
+          config.files.map((file) => [draftKey(config.probeType, file.path), file.content]),
+        ),
+      ),
     }))
-    setSelectedFilePath(targetPath)
-    notify({ type: 'success', message: `模板“${selectedTemplate.name}”已载入当前文件` })
+    notify({ type: 'success', message: `配置模版“${selectedTemplate.name}”已载入当前节点` })
   }
 
   const saveTemplate = async () => {
     if (!selectedTemplate) return
-    const legacy = templateDraftFiles.length === 1 && !templateDraftFiles[0].path.trim()
     setSaving(true)
     try {
       await updateAgentConfigTemplateApi(selectedTemplate.id, {
-        ...selectedTemplate,
-        content: templateDraftFiles.length === 1 ? templateDraftFiles[0].content : '',
-        files: legacy
-          ? []
-          : templateDraftFiles.map((file) => ({ path: file.path.trim(), content: file.content })),
+        name: selectedTemplate.name,
+        description: selectedTemplate.description,
+        variables: selectedTemplate.variables,
+        configs: templateDraftConfigs.map((config) => ({
+          probeType: config.probeType,
+          files: config.files.map((file) => ({ path: file.path.trim(), content: file.content })),
+        })),
       })
       await loadBase()
-      notify({ type: 'success', message: '全局模板已保存' })
+      notify({ type: 'success', message: '配置模版已保存' })
     } catch (error: any) {
-      notify({ type: 'error', message: error.message || '模板保存失败' })
+      notify({ type: 'error', message: error.message || '配置模版保存失败' })
     } finally {
       setSaving(false)
     }
   }
 
   const dispatchTemplate = async () => {
-    if (!selectedTemplate || !selectedClusters.length) return
+    if (!batchTemplateComplete || !selectedClusters.length) return
     setSaving(true)
     try {
       const result: any = await batchAssignAgentConfigApi({
         clusterIds: selectedClusters,
-        probeType: selectedProbe,
-        templateId: selectedTemplate.id,
-        variables,
+        templateId: selectedBatchTemplateId,
       })
       addRecord('CONFIG', selectedClusters.join(', '), result)
       notify({
         type: result.failedNodeIds?.length ? 'warning' : 'success',
         message: result.failedNodeIds?.length
           ? `${result.succeededCount} 个节点成功，${result.failedNodeIds.length} 个失败`
-          : `已覆盖下发到 ${result.succeededCount} 个节点`,
+          : `完整配置已覆盖下发到 ${result.succeededCount} 个节点`,
       })
     } catch (error: any) {
       notify({ type: 'error', message: error.message || '批量配置下发失败' })
@@ -672,75 +753,19 @@ export default function ProbeConfigPage() {
     }
   }
 
-  const updateLogSource = (index: number, patch: Partial<LogSource>) => {
-    setLogSources((current) =>
-      current.map((source, sourceIndex) =>
-        sourceIndex === index ? { ...source, ...patch } : source,
-      ),
-    )
-  }
-
-  const saveLogSources = async () => {
-    if (!selectedProbe) return
-    const normalized = logSources.map((source) =>
-      source.type === 'stdout'
-        ? {
-            type: 'stdout' as const,
-            path: '',
-            pattern: '',
-            maxBytes: source.maxBytes || 10 * 1024 * 1024,
-          }
-        : {
-            type: 'file' as const,
-            path: source.path.trim(),
-            pattern: source.pattern.trim(),
-            maxBytes: 0,
-          },
-    )
-    if (normalized.some((source) => source.type === 'file' && !source.path.startsWith('/'))) {
-      notify({ type: 'error', message: '文件日志路径必须是绝对路径' })
-      return
-    }
-    setSaving(true)
-    try {
-      if (mode === 'node') {
-        const result: any = await updateNodeLogSourcesApi(nodeId, selectedProbe, {
-          logSources: normalized,
-        })
-        setLogSources((result?.logSources || normalized) as LogSource[])
-        setLogSourcesConfigured(true)
-        addRecord('LOG', nodeId, { succeededCount: 1, targetNodeCount: 1 })
-        notify({ type: 'success', message: '日志配置已保存到当前节点' })
-      } else {
-        const result: any = await batchUpdateLogSourcesApi({
-          clusterIds: selectedClusters,
-          probeType: selectedProbe,
-          logSources: normalized,
-        })
-        addRecord('LOG', selectedClusters.join(', '), result)
-        notify({ type: 'success', message: `日志配置已下发到 ${result.succeededCount} 个节点` })
-      }
-    } catch (error: any) {
-      notify({ type: 'error', message: error.message || '日志配置保存失败' })
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const createTemplate = async () => {
     const values = await createForm.validateFields()
     setSaving(true)
     try {
-      const { path, content, ...template } = values
+      const { probeType, path, content, ...template } = values
       await createAgentConfigTemplateApi({
         ...template,
-        content,
-        files: [{ path, content }],
+        configs: [{ probeType, files: [{ path, content }] }],
       })
       setCreateOpen(false)
       createForm.resetFields()
       await loadBase()
-      notify({ type: 'success', message: '模板已创建' })
+      notify({ type: 'success', message: '配置模版已创建' })
     } finally {
       setSaving(false)
     }
@@ -751,81 +776,150 @@ export default function ProbeConfigPage() {
     ? configDrafts[draftKey(selectedProbe, selectedFile.path)] ?? selectedFile.content
     : ''
   const selectedLanguage = languageForPath(selectedFilePath)
-  const selectedTemplateFile = templateDraftFiles[selectedTemplateFileIndex]
-  const originalTemplateFiles = filesForTemplate(selectedTemplate)
+  const selectedTemplateConfig = templateDraftConfigs.find(
+    (config) => config.probeType === selectedTemplateProbe,
+  )
+  const selectedTemplateFile = selectedTemplateConfig?.files[selectedTemplateFileIndex]
+  const templateFileCount = templateDraftConfigs.reduce(
+    (total, config) => total + config.files.length,
+    0,
+  )
   const templateChanged =
     JSON.stringify(
-      templateDraftFiles.map((file) => ({ path: file.path, content: file.content })),
+      templateDraftConfigs.map((config) => ({
+        probeType: config.probeType,
+        files: config.files.map((file) => ({ path: file.path, content: file.content })),
+      })),
     ) !==
     JSON.stringify(
-      originalTemplateFiles.map((file) => ({ path: file.path, content: file.content })),
+      configsForTemplate(selectedTemplate).map((config) => ({
+        probeType: config.probeType,
+        files: config.files.map((file) => ({ path: file.path, content: file.content })),
+      })),
     )
   const updateTemplateFile = (patch: Partial<ConfigFile>) => {
-    setTemplateDraftFiles((current) =>
-      current.map((file, index) =>
-        index === selectedTemplateFileIndex ? { ...file, ...patch } : file,
+    setTemplateDraftConfigs((current) =>
+      current.map((config) =>
+        config.probeType === selectedTemplateProbe
+          ? {
+              ...config,
+              files: config.files.map((file, index) =>
+                index === selectedTemplateFileIndex ? { ...file, ...patch } : file,
+              ),
+            }
+          : config,
       ),
     )
   }
   const addTemplateFile = () => {
-    setTemplateDraftFiles((current) => [
-      ...current,
-      { path: `config-${current.length + 1}.yaml`, content: '', contentSha256: '' },
-    ])
-    setSelectedTemplateFileIndex(templateDraftFiles.length)
+    const nextIndex = selectedTemplateConfig?.files.length || 0
+    setTemplateDraftConfigs((current) =>
+      current.map((config) =>
+        config.probeType === selectedTemplateProbe
+          ? {
+              ...config,
+              files: [
+                ...config.files,
+                { path: `config-${nextIndex + 1}.yaml`, content: '', contentSha256: '' },
+              ],
+            }
+          : config,
+      ),
+    )
+    setSelectedTemplateFileIndex(nextIndex)
   }
   const removeTemplateFile = () => {
-    if (templateDraftFiles.length <= 1) return
-    setTemplateDraftFiles((current) =>
-      current.filter((_, index) => index !== selectedTemplateFileIndex),
+    if (!selectedTemplateConfig || selectedTemplateConfig.files.length <= 1) return
+    setTemplateDraftConfigs((current) =>
+      current.map((config) =>
+        config.probeType === selectedTemplateProbe
+          ? {
+              ...config,
+              files: config.files.filter((_, index) => index !== selectedTemplateFileIndex),
+            }
+          : config,
+      ),
     )
     setSelectedTemplateFileIndex((current) => Math.max(0, current - 1))
   }
+  const addTemplateProbe = () => {
+    const probeType = newTemplateProbe.trim()
+    if (!probeType || templateDraftConfigs.some((config) => config.probeType === probeType)) return
+    setTemplateDraftConfigs((current) => [
+      ...current,
+      {
+        probeType,
+        files: [{ path: 'config.yaml', content: '', contentSha256: '' }],
+      },
+    ])
+    setSelectedTemplateProbe(probeType)
+    setSelectedTemplateFileIndex(0)
+    setNewTemplateProbe('')
+  }
+  const removeTemplateProbe = () => {
+    if (templateDraftConfigs.length <= 1) return
+    const remaining = templateDraftConfigs.filter(
+      (config) => config.probeType !== selectedTemplateProbe,
+    )
+    setTemplateDraftConfigs(remaining)
+    setSelectedTemplateProbe(remaining[0]?.probeType || '')
+    setSelectedTemplateFileIndex(0)
+  }
 
-  const hasProbeCircuitPolicy = Boolean(circuitProbe && circuit.probePolicies?.[circuitProbe])
-  const selectedCircuitPolicy =
-    circuitScope === 'probe' && circuitProbe
-      ? concreteCircuitPolicy(circuit.probePolicies?.[circuitProbe] || circuit)
-      : concreteCircuitPolicy(circuit)
-  const updateSelectedCircuitPolicy = (next: CircuitPolicy) => {
-    if (circuitScope === 'all' || !circuitProbe) {
-      setCircuit((current) => ({
-        ...concreteCircuitPolicy(next),
-        probePolicies: current.probePolicies,
-      }))
-      return
-    }
+  const hasComponentCircuitPolicy = Boolean(
+    circuitComponent && circuit.componentPolicies?.[circuitComponent],
+  )
+  const selectedComponentPolicy = concreteCircuitPolicy(
+    circuit.componentPolicies?.[circuitComponent] || circuit,
+  )
+  const updateNodeCircuitPolicy = (next: CircuitPolicy) => {
+    setCircuit((current) => ({
+      ...concreteCircuitPolicy(next),
+      componentPolicies: current.componentPolicies,
+    }))
+  }
+  const updateComponentCircuitPolicy = (next: CircuitPolicy) => {
+    if (!circuitComponent) return
     setCircuit((current) => ({
       ...current,
-      probePolicies: {
-        ...current.probePolicies,
-        [circuitProbe]: concreteCircuitPolicy(next),
+      componentPolicies: {
+        ...current.componentPolicies,
+        [circuitComponent]: concreteCircuitPolicy(next),
       },
     }))
   }
-  const removeProbeCircuitPolicy = () => {
-    if (!circuitProbe) return
+  const removeComponentCircuitPolicy = () => {
+    if (!circuitComponent) return
     setCircuit((current) => {
-      const probePolicies = { ...current.probePolicies }
-      delete probePolicies[circuitProbe]
-      return { ...current, probePolicies }
+      const componentPolicies = { ...current.componentPolicies }
+      delete componentPolicies[circuitComponent]
+      return { ...current, componentPolicies }
     })
   }
 
+  const isClusterConfig = mode === 'batch' && Boolean(initialCluster)
   const title =
-    mode === 'global' ? '全局配置' : mode === 'node' ? `节点配置 · ${nodeId}` : '多集群批量配置'
+    mode === 'global'
+      ? '默认配置'
+      : mode === 'node'
+        ? `节点配置 · ${nodeId}`
+        : isClusterConfig
+          ? `集群配置 · ${initialCluster}`
+          : '批量配置'
   const subtitle =
     mode === 'global'
-      ? '管理批量下发模板和新节点使用的默认熔断策略'
+      ? '管理配置模版和新节点默认使用的熔断策略'
       : mode === 'node'
         ? '修改当前节点配置'
-        : '选择模板和目标集群，批量覆盖对应探针的原配置'
+        : isClusterConfig
+          ? '管理当前集群的配置文件、日志采集和熔断策略'
+          : '选择目标集群和配置方案，将完整配置统一下发至集群节点'
 
   const configTab =
     mode === 'batch' ? (
       <div className={styles.tabContent}>
-        <div className={styles.batchGrid}>
-          <label>
+        <div className={styles.batchTargetRow}>
+          <label className={styles.sourceGroup}>
             <span>目标集群</span>
             <Select
               mode="multiple"
@@ -834,74 +928,85 @@ export default function ProbeConfigPage() {
               options={clusterOptions.map((value) => ({ value, label: value }))}
             />
           </label>
-          <label>
-            <span>配置模板</span>
-            <Select
-              value={selectedTemplateId || undefined}
-              onChange={setSelectedTemplateId}
-              options={matchingTemplates.map((template) => ({
-                value: template.id,
-                label: `${template.name} · v${template.version}`,
-              }))}
-            />
-          </label>
         </div>
-        {!!selectedTemplate?.variables?.length && (
-          <div className={styles.variableGrid}>
-            {selectedTemplate.variables.map((variable) => (
-              <label key={variable.name}>
-                <span>
-                  {variable.name}
-                  {variable.required ? ' *' : ''}
-                </span>
-                <Input
-                  value={variables[variable.name]}
-                  onChange={(event) =>
-                    setVariables((current) => ({ ...current, [variable.name]: event.target.value }))
-                  }
-                />
-              </label>
-            ))}
+        <div className={styles.batchTemplateSection}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <Typography.Text strong>配置方案</Typography.Text>
+              <Typography.Text type="secondary">
+                {targetCount ? `${targetCount} 个节点的完整配置` : '选择集群后生成完整配置方案'}
+              </Typography.Text>
+            </div>
+            <Tag>{batchTemplateProbeTypes.length} 个组件</Tag>
           </div>
-        )}
+          <Select
+            style={{ width: '100%' }}
+            value={selectedBatchTemplateId || undefined}
+            placeholder="选择配置模版"
+            onChange={setSelectedBatchTemplateId}
+            options={templates.map((template) => ({
+              value: template.id,
+              label: `${template.name} · v${template.version}`,
+            }))}
+          />
+        </div>
         <Row className={styles.configWorkspace} wrap={false}>
-          <Col flex="240px" className={styles.filePanel}>
+          <Col flex="280px" className={styles.filePanel}>
             <div className={styles.filePanelTitle}>
               <FileText size={16} />
-              <Typography.Text strong>模板文件</Typography.Text>
-              <Tag>{templateDraftFiles.length}</Tag>
+              <Typography.Text strong>配置文件</Typography.Text>
+              <Tag>{batchFiles.length}</Tag>
             </div>
-            <div className={styles.fileList}>
-              {templateDraftFiles.map((file, index) => (
-                <button
-                  type="button"
-                  key={`${index}:${file.path}`}
-                  className={`${styles.fileItem} ${selectedTemplateFileIndex === index ? styles.fileItemActive : ''}`}
-                  onClick={() => setSelectedTemplateFileIndex(index)}
-                >
-                  <span>{file.path || '默认配置文件'}</span>
-                </button>
-              ))}
-            </div>
+            <Tree
+              key={batchProbeTypes.join(':')}
+              className={styles.probeFileTree}
+              blockNode
+              defaultExpandAll
+              showLine={{ showLeafIcon: false }}
+              selectedKeys={selectedBatchFileKey ? [selectedBatchFileKey] : []}
+              treeData={batchTemplateProbeTypes.map((probeType) => {
+                const files = batchFiles.filter((file) => file.probeType === probeType)
+                return {
+                  key: `probe:${probeType}`,
+                  selectable: false,
+                  title: (
+                    <span className={styles.probeTreeTitle}>
+                      <strong>{probeType}</strong>
+                      <small>{files.length} 个文件</small>
+                    </span>
+                  ),
+                  children: files.map((file) => ({
+                    key: file.key,
+                    title: (
+                      <span className={styles.fileTreeTitle}>
+                        <span>{file.path || '默认配置文件'}</span>
+                      </span>
+                    ),
+                  })),
+                }
+              })}
+              onSelect={(keys) => setSelectedBatchFileKey(String(keys[0] || ''))}
+            />
           </Col>
           <Col flex="1" className={styles.templatePreviewPanel}>
             <pre className={styles.configPreview}>
-              {selectedTemplateFile?.content || '请选择模板'}
+              {selectedBatchFile?.content || '请选择集群和配置模版'}
             </pre>
           </Col>
         </Row>
         <div className={styles.editorFooter}>
           <Typography.Text type="secondary">
-            {selectedClusters.length} 个集群 · {targetCount} 个节点
+            {selectedClusters.length} 个集群 · {targetCount} 个节点 ·{' '}
+            {batchTemplateProbeTypes.length} 项组件配置
           </Typography.Text>
           <Button
             type="primary"
             icon={<Send size={15} />}
             loading={saving}
-            disabled={!selectedTemplate || !targetCount}
+            disabled={!targetCount || !batchTemplateComplete}
             onClick={dispatchTemplate}
           >
-            按模板批量覆盖下发
+            覆盖下发到所选集群
           </Button>
         </div>
       </div>
@@ -912,7 +1017,7 @@ export default function ProbeConfigPage() {
             <Select
               value={selectedTemplateId || undefined}
               onChange={setSelectedTemplateId}
-              options={matchingTemplates.map((template) => ({
+              options={templates.map((template) => ({
                 value: template.id,
                 label: `${template.name} · v${template.version}`,
               }))}
@@ -920,96 +1025,134 @@ export default function ProbeConfigPage() {
             <Button
               icon={<PlusOutlined />}
               onClick={() => {
-                createForm.setFieldsValue({ probeType: selectedProbe, format: 'yaml' })
+                createForm.setFieldsValue({ probeType: '', path: 'config.yaml' })
                 setCreateOpen(true)
               }}
             >
-              新建模板
+              新建配置模版
             </Button>
           </div>
         )}
         {mode === 'node' && (
-          <div className={styles.sourceToolbar}>
-            <label className={styles.sourceGroup}>
-              <span>探针</span>
-              <Select
-                value={selectedProbe || undefined}
-                onChange={setSelectedProbe}
-                options={availableProbeTypes.map((value) => ({
-                  value,
-                  label: `${value} · 版本 ${currentConfigs.find((config) => config.probeType === value)?.generation ?? 0}`,
-                }))}
-              />
-            </label>
-            <label className={styles.sourceGroup}>
-              <span>历史版本</span>
-              <Space.Compact>
-                <Select
-                  value={selectedHistoryGeneration}
-                  placeholder="暂无历史版本"
-                  onChange={setSelectedHistoryGeneration}
-                  options={historyConfigs.map((config) => ({
-                    value: config.generation,
-                    label: `版本 ${config.generation}${config.generation === selectedCurrentConfig?.generation ? ' · 当前' : ''}`,
-                  }))}
-                />
-                <Button
-                  icon={<History size={15} />}
-                  disabled={selectedHistoryGeneration === undefined}
-                  onClick={loadHistory}
-                >
-                  载入
-                </Button>
-              </Space.Compact>
-            </label>
-            <label className={styles.sourceGroup}>
-              <span>配置模板</span>
-              <Space.Compact>
-                <Select
-                  value={selectedTemplateId || undefined}
-                  placeholder="暂无可用模板"
-                  onChange={setSelectedTemplateId}
-                  options={matchingTemplates.map((template) => ({
-                    value: template.id,
-                    label: `${template.name} · v${template.version}`,
-                  }))}
-                />
-                <Button
-                  disabled={!selectedTemplate || !selectedFilePath}
-                  onClick={loadTemplateIntoFile}
-                >
-                  使用模板
-                </Button>
-              </Space.Compact>
-            </label>
-          </div>
+          <>
+            <div className={styles.nodeVariablesSection}>
+              <div className={styles.sectionHeading}>
+                <div>
+                  <Typography.Text strong>节点变量</Typography.Text>
+                  <Typography.Text type="secondary">探针上报</Typography.Text>
+                </div>
+                <Tag>{reportedVariableEntries.length}</Tag>
+              </div>
+              {reportedVariableEntries.length ? (
+                <div className={styles.nodeVariableList}>
+                  {reportedVariableEntries.map(([name, value]) => (
+                    <div className={styles.nodeVariableItem} key={name}>
+                      <Typography.Text>{name}</Typography.Text>
+                      <Typography.Text code>{value}</Typography.Text>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Typography.Text type="secondary">暂无探针上报变量</Typography.Text>
+              )}
+            </div>
+            <div className={styles.sourceToolbar}>
+              <label className={styles.sourceGroup}>
+                <span>当前组件历史版本</span>
+                <Space.Compact>
+                  <Select
+                    value={selectedHistoryGeneration}
+                    placeholder="暂无历史版本"
+                    onChange={setSelectedHistoryGeneration}
+                    options={historyConfigs.map((config) => ({
+                      value: config.generation,
+                      label: `版本 ${config.generation}${config.generation === selectedCurrentConfig?.generation ? ' · 当前' : ''}`,
+                    }))}
+                  />
+                  <Button
+                    icon={<History size={15} />}
+                    disabled={selectedHistoryGeneration === undefined}
+                    onClick={loadHistory}
+                  >
+                    载入
+                  </Button>
+                </Space.Compact>
+              </label>
+              <label className={styles.sourceGroup}>
+                <span>配置模版</span>
+                <Space.Compact>
+                  <Select
+                    value={selectedTemplateId || undefined}
+                    placeholder="暂无可用配置模版"
+                    onChange={setSelectedTemplateId}
+                    options={templates.map((template) => ({
+                      value: template.id,
+                      label: `${template.name} · v${template.version}`,
+                    }))}
+                  />
+                  <Button disabled={!selectedTemplate} onClick={loadTemplateIntoNode}>
+                    使用模版
+                  </Button>
+                </Space.Compact>
+              </label>
+            </div>
+          </>
         )}
         {mode === 'node' ? (
           <Row className={styles.configWorkspace} wrap={false}>
-            <Col flex="240px" className={styles.filePanel}>
-              <div className={styles.filePanelTitle}>
+            <Col flex="280px" className={styles.filePanel}>
+              <div className={`${styles.filePanelTitle} ${styles.nodeFilePanelTitle}`}>
                 <FileText size={16} />
-                <Typography.Text strong>配置文件</Typography.Text>
-                <Tag>{selectedFiles.length}</Tag>
+                <div>
+                  <Typography.Text strong>配置文件</Typography.Text>
+                  <Typography.Text type="secondary">
+                    {currentConfigs.length} 个组件 · {nodeFileCount} 个文件
+                  </Typography.Text>
+                </div>
               </div>
-              <div className={styles.fileList}>
-                {selectedFiles.map((file) => {
-                  const changed =
-                    (configDrafts[draftKey(selectedProbe, file.path)] ?? file.content) !==
-                    file.content
-                  return (
-                    <button
-                      type="button"
-                      key={file.path}
-                      className={`${styles.fileItem} ${selectedFilePath === file.path ? styles.fileItemActive : ''}`}
-                      onClick={() => setSelectedFilePath(file.path)}
-                    >
-                      <span>{file.path}</span>
-                      {changed && <Tag color="warning">已修改</Tag>}
-                    </button>
-                  )
-                })}
-              </div>
+              <Tree
+                key={currentConfigs.map((config) => config.probeType).join(':')}
+                className={styles.probeFileTree}
+                blockNode
+                defaultExpandAll
+                showLine={{ showLeafIcon: false }}
+                selectedKeys={
+                  selectedProbe && selectedFilePath
+                    ? [draftKey(selectedProbe, selectedFilePath)]
+                    : []
+                }
+                treeData={currentConfigs.map((config) => ({
+                  key: `probe:${config.probeType}`,
+                  selectable: false,
+                  title: (
+                    <span className={styles.probeTreeTitle}>
+                      <strong>{config.probeType}</strong>
+                    </span>
+                  ),
+                  children: filesForConfig(config).map((file) => {
+                    const changed =
+                      (configDrafts[draftKey(config.probeType, file.path)] ?? file.content) !==
+                      file.content
+                    return {
+                      key: draftKey(config.probeType, file.path),
+                      probeType: config.probeType,
+                      filePath: file.path,
+                      title: (
+                        <span className={styles.fileTreeTitle}>
+                          <span>{file.path}</span>
+                          {changed && <Tag color="warning">已修改</Tag>}
+                        </span>
+                      ),
+                    }
+                  }),
+                }))}
+                onSelect={(_, info) => {
+                  const node = info.node as any
+                  if (!node.probeType || !node.filePath) return
+                  setSelectedProbe(node.probeType)
+                  setSelectedFilePath(node.filePath)
+                }}
+              />
             </Col>
             <Col flex="1" className={styles.diffPanel}>
               <DiffEditor
@@ -1044,29 +1187,67 @@ export default function ProbeConfigPage() {
             <Col flex="240px" className={styles.filePanel}>
               <div className={styles.filePanelTitle}>
                 <FileText size={16} />
-                <Typography.Text strong>模板文件</Typography.Text>
-                <Tag>{templateDraftFiles.length}</Tag>
+                <Typography.Text strong>组件配置</Typography.Text>
+                <Tag>{templateFileCount}</Tag>
               </div>
-              <div className={styles.fileList}>
-                {templateDraftFiles.map((file, index) => (
-                  <button
-                    type="button"
-                    key={`${index}:${file.path}`}
-                    className={`${styles.fileItem} ${selectedTemplateFileIndex === index ? styles.fileItemActive : ''}`}
-                    onClick={() => setSelectedTemplateFileIndex(index)}
-                  >
-                    <span>{file.path || '默认配置文件'}</span>
-                  </button>
-                ))}
-              </div>
+              <Tree
+                className={styles.probeFileTree}
+                blockNode
+                defaultExpandAll
+                showLine={{ showLeafIcon: false }}
+                selectedKeys={
+                  selectedTemplateFile
+                    ? [draftKey(selectedTemplateProbe, selectedTemplateFile.path)]
+                    : []
+                }
+                treeData={templateDraftConfigs.map((config) => ({
+                  key: `template-probe:${config.probeType}`,
+                  selectable: false,
+                  title: (
+                    <span className={styles.probeTreeTitle}>
+                      <strong>{config.probeType}</strong>
+                      <small>{config.files.length} 个文件</small>
+                    </span>
+                  ),
+                  children: config.files.map((file, fileIndex) => ({
+                    key: draftKey(config.probeType, file.path),
+                    probeType: config.probeType,
+                    fileIndex,
+                    title: <span className={styles.fileTreeTitle}>{file.path}</span>,
+                  })),
+                }))}
+                onSelect={(_, info) => {
+                  const node = info.node as any
+                  if (!node.probeType || node.fileIndex === undefined) return
+                  setSelectedTemplateProbe(node.probeType)
+                  setSelectedTemplateFileIndex(node.fileIndex)
+                }}
+              />
+              <Space.Compact block>
+                <Input
+                  value={newTemplateProbe}
+                  placeholder="组件类型"
+                  onChange={(event) => setNewTemplateProbe(event.target.value)}
+                  onPressEnter={addTemplateProbe}
+                />
+                <Button icon={<PlusOutlined />} onClick={addTemplateProbe} title="新增探针" />
+              </Space.Compact>
               <Space.Compact block>
                 <Button icon={<PlusOutlined />} onClick={addTemplateFile}>
                   新增文件
                 </Button>
                 <Button
                   icon={<Trash2 size={15} />}
-                  disabled={templateDraftFiles.length <= 1}
+                  disabled={!selectedTemplateConfig || selectedTemplateConfig.files.length <= 1}
                   onClick={removeTemplateFile}
+                  title="删除文件"
+                />
+                <Button
+                  danger
+                  icon={<Trash2 size={15} />}
+                  disabled={templateDraftConfigs.length <= 1}
+                  onClick={removeTemplateProbe}
+                  title="删除探针"
                 />
               </Space.Compact>
             </Col>
@@ -1079,10 +1260,7 @@ export default function ProbeConfigPage() {
               <div className={styles.templateEditor}>
                 <Editor
                   value={selectedTemplateFile?.content || ''}
-                  language={languageForPath(
-                    selectedTemplateFile?.path || '',
-                    selectedTemplate?.format || 'yaml',
-                  )}
+                  language={languageForPath(selectedTemplateFile?.path || '')}
                   theme="vs"
                   onChange={(value) => updateTemplateFile({ content: value || '' })}
                   options={{
@@ -1097,6 +1275,11 @@ export default function ProbeConfigPage() {
           </Row>
         )}
         <div className={styles.editorFooter}>
+          {mode === 'node' && (
+            <Typography.Text type="secondary">
+              {currentConfigs.length} 个组件 · {nodeFileCount} 个配置文件将一次下发
+            </Typography.Text>
+          )}
           <Button
             type="primary"
             icon={<Save size={15} />}
@@ -1104,124 +1287,34 @@ export default function ProbeConfigPage() {
             disabled={mode === 'node' ? !nodeConfigChanged : !selectedTemplate || !templateChanged}
             onClick={mode === 'node' ? saveNodeConfig : saveTemplate}
           >
-            {mode === 'node' ? '保存并下发到当前节点' : '保存全局模板'}
+            {mode === 'node' ? '保存并下发到当前节点' : '保存配置模版'}
           </Button>
         </div>
       </div>
     )
 
-  const logSourcesTab = mode !== 'global' && (
-    <div className={styles.tabContent}>
-      <div className={styles.logSourceToolbar}>
-        {mode === 'node' ? (
-          <label className={styles.sourceGroup}>
-            <span>探针</span>
-            <Select
-              value={selectedProbe || undefined}
-              onChange={setSelectedProbe}
-              options={availableProbeTypes.map((value) => ({ value, label: value }))}
-            />
-          </label>
-        ) : (
-          <label className={styles.sourceGroup}>
-            <span>目标集群</span>
-            <Select
-              mode="multiple"
-              value={selectedClusters}
-              onChange={setSelectedClusters}
-              options={clusterOptions.map((value) => ({ value, label: value }))}
-            />
-          </label>
-        )}
-        {mode === 'node' && (
-          <Tag color={logSourcesConfigured ? 'processing' : 'default'}>
-            {logSourcesConfigured ? '节点配置' : '部署默认'}
-          </Tag>
-        )}
-        <Button
-          icon={<PlusOutlined />}
-          onClick={() => setLogSources((current) => [...current, newLogSource()])}
-        >
-          添加日志源
-        </Button>
-      </div>
-      <div className={styles.logSourceList}>
-        {logSources.map((source, index) => (
-          <div className={styles.logSourceRow} key={`${index}:${source.type}`}>
-            <Select
-              aria-label={`日志源 ${index + 1} 类型`}
-              value={source.type}
-              onChange={(type) =>
-                updateLogSource(index, {
-                  type,
-                  path: '',
-                  pattern: '',
-                  maxBytes: type === 'stdout' ? 10 * 1024 * 1024 : 0,
-                })
-              }
-              options={[
-                { value: 'file', label: '文件' },
-                { value: 'stdout', label: '标准输出' },
-              ]}
-            />
-            {source.type === 'file' ? (
-              <>
-                <Input
-                  aria-label={`日志源 ${index + 1} 路径`}
-                  value={source.path}
-                  placeholder="/var/log/pods"
-                  onChange={(event) => updateLogSource(index, { path: event.target.value })}
-                />
-                <Input
-                  aria-label={`日志源 ${index + 1} 文件匹配`}
-                  value={source.pattern}
-                  placeholder="文件名正则（可选）"
-                  onChange={(event) => updateLogSource(index, { pattern: event.target.value })}
-                />
-              </>
-            ) : (
-              <InputNumber
-                aria-label={`日志源 ${index + 1} 保留大小`}
-                min={0.0625}
-                max={1024}
-                step={1}
-                value={(source.maxBytes || 10 * 1024 * 1024) / 1024 / 1024}
-                addonAfter="MiB"
-                onChange={(value) =>
-                  updateLogSource(index, {
-                    maxBytes: Math.round(Number(value || 0.0625) * 1024 * 1024),
-                  })
-                }
-              />
-            )}
-            <Button
-              aria-label={`删除日志源 ${index + 1}`}
-              icon={<Trash2 size={15} />}
-              onClick={() =>
-                setLogSources((current) =>
-                  current.filter((_, sourceIndex) => sourceIndex !== index),
-                )
-              }
-            />
-          </div>
-        ))}
-        {!logSources.length && !logSourcesLoading && (
-          <Typography.Text type="secondary">暂无日志源</Typography.Text>
-        )}
-      </div>
-      <div className={styles.editorFooter}>
-        <Button
-          type="primary"
-          icon={<Save size={15} />}
-          loading={saving || logSourcesLoading}
-          disabled={!selectedProbe || (mode === 'batch' && !targetCount)}
-          onClick={saveLogSources}
-        >
-          {mode === 'node' ? '保存日志配置' : `下发到 ${targetCount} 个节点`}
-        </Button>
-      </div>
-    </div>
-  )
+  const logCollectionTab =
+    mode === 'node' ? (
+      <LogCollectionConfigPanel
+        mode="host"
+        nodeId={nodeId}
+        inheritedClusterId={inheritedClusterId}
+        inheritedClusterEnvironment={inheritedClusterEnvironment}
+        onEditInherited={() =>
+          navigate(
+            `/probe-management/config?clusterId=${encodeURIComponent(inheritedClusterId)}&clusterType=${encodeURIComponent(inheritedClusterEnvironment)}&section=logs`,
+          )
+        }
+      />
+    ) : mode === 'batch' ? (
+      <LogCollectionConfigPanel
+        mode="container"
+        clusterIds={selectedClusters}
+        clusterOptions={clusterOptions}
+        showK8sFilters={isK8sEnvironment(selectedClusterEnvironment)}
+        onClusterIdsChange={setSelectedClusters}
+      />
+    ) : null
 
   const circuitTab = (
     <div className={styles.tabContent}>
@@ -1243,39 +1336,58 @@ export default function ProbeConfigPage() {
           </label>
         </div>
       )}
-      <div className={styles.circuitScopeBar}>
-        <label>
-          <span>设置范围</span>
-          <Segmented
-            value={circuitScope}
-            options={[
-              { value: 'all', label: '全部探针' },
-              {
-                value: 'probe',
-                label: '单个探针',
-                disabled: mode === 'global' || !circuitProbeTypes.length,
-              },
-            ]}
-            onChange={(value) => setCircuitScope(value as 'all' | 'probe')}
-          />
-        </label>
-        {circuitScope === 'probe' && (
-          <label>
-            <span>探针</span>
-            <Select
-              value={circuitProbe || undefined}
-              onChange={setCircuitProbe}
-              options={circuitProbeTypes.map((value) => ({ value, label: value }))}
-            />
-          </label>
-        )}
-        {circuitScope === 'probe' && hasProbeCircuitPolicy && (
-          <Button icon={<Trash2 size={15} />} onClick={removeProbeCircuitPolicy}>
-            移除单独设置
-          </Button>
-        )}
-      </div>
-      <CircuitEditor value={selectedCircuitPolicy} onChange={updateSelectedCircuitPolicy} />
+      <CircuitEditor
+        title="节点总资源配额"
+        value={concreteCircuitPolicy(circuit)}
+        onChange={updateNodeCircuitPolicy}
+      />
+      {!!circuitComponentTypes.length && (
+        <Collapse
+          ghost
+          className={styles.advancedCircuit}
+          items={[
+            {
+              key: 'component-quotas',
+              label: '高级配置',
+              children: (
+                <div>
+                  <div className={styles.circuitScopeBar}>
+                    <label>
+                      <span>组件</span>
+                      <Select
+                        value={circuitComponent || undefined}
+                        onChange={setCircuitComponent}
+                        options={circuitComponentTypes.map((value) => ({ value, label: value }))}
+                      />
+                    </label>
+                    {hasComponentCircuitPolicy && (
+                      <Button icon={<Trash2 size={15} />} onClick={removeComponentCircuitPolicy}>
+                        移除组件配额
+                      </Button>
+                    )}
+                  </div>
+                  {hasComponentCircuitPolicy ? (
+                    <CircuitEditor
+                      title={`组件资源配额 · ${circuitComponent}`}
+                      value={selectedComponentPolicy}
+                      onChange={updateComponentCircuitPolicy}
+                    />
+                  ) : (
+                    <Button
+                      type="primary"
+                      icon={<Settings size={15} />}
+                      disabled={!circuitComponent}
+                      onClick={() => updateComponentCircuitPolicy(selectedComponentPolicy)}
+                    >
+                      设置组件配额
+                    </Button>
+                  )}
+                </div>
+              ),
+            },
+          ]}
+        />
+      )}
       <div className={styles.editorFooter}>
         <Button
           type="primary"
@@ -1328,17 +1440,6 @@ export default function ProbeConfigPage() {
               <Typography.Text type="secondary">{subtitle}</Typography.Text>
             </div>
           </div>
-          {mode !== 'node' && (activeTab === 'config' || activeTab === 'logs') && (
-            <Space>
-              <Typography.Text strong>目标探针</Typography.Text>
-              <Select
-                className={styles.probeSelect}
-                value={selectedProbe || undefined}
-                onChange={setSelectedProbe}
-                options={availableProbeTypes.map((value) => ({ value, label: value }))}
-              />
-            </Space>
-          )}
         </div>
         <Tabs
           activeKey={activeTab}
@@ -1347,7 +1448,7 @@ export default function ProbeConfigPage() {
             { key: 'config', label: '配置文件', children: configTab },
             ...(mode === 'global'
               ? []
-              : [{ key: 'logs', label: '日志配置', children: logSourcesTab }]),
+              : [{ key: 'logs', label: '日志采集', children: logCollectionTab }]),
             { key: 'circuit', label: '熔断策略', children: circuitTab },
           ]}
         />
@@ -1375,31 +1476,23 @@ export default function ProbeConfigPage() {
         )}
       </Card>
       <Modal
-        title="新建全局模板"
+        title="新建配置模版"
         open={createOpen}
         confirmLoading={saving}
         onOk={createTemplate}
         onCancel={() => setCreateOpen(false)}
       >
         <Form form={createForm} layout="vertical">
-          <Form.Item name="name" label="模板名称" rules={[{ required: true }]}>
+          <Form.Item name="name" label="模版名称" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="probeType" label="探针类型" rules={[{ required: true }]}>
+          <Form.Item name="probeType" label="组件类型" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="path" label="配置文件相对路径" rules={[{ required: true }]}>
             <Input placeholder="例如 config/local/collection.yaml" />
           </Form.Item>
-          <Form.Item name="format" label="格式" rules={[{ required: true }]}>
-            <Select
-              options={['yaml', 'json', 'xml', 'hcl', 'text'].map((value) => ({
-                value,
-                label: value,
-              }))}
-            />
-          </Form.Item>
-          <Form.Item name="content" label="模板内容" rules={[{ required: true }]}>
+          <Form.Item name="content" label="模版内容" rules={[{ required: true }]}>
             <Input.TextArea rows={10} />
           </Form.Item>
         </Form>

@@ -32,7 +32,7 @@ func (h *Handler) Inspect() core.HandlerFunc {
 }
 func (h *Handler) ListTemplates() core.HandlerFunc {
 	return func(c core.Context) {
-		v, e := h.s.ListTemplates(c, c.Request().URL.Query().Get("probeType"))
+		v, e := h.s.ListTemplates(c)
 		if e != nil {
 			fail(c, e)
 			return
@@ -228,6 +228,86 @@ func (h *Handler) BatchSaveLogSources() core.HandlerFunc {
 			return
 		}
 		c.Payload(result)
+	}
+}
+func (h *Handler) GetHostFileCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		config, err := h.s.GetHostFileCollection(c, c.Param("nodeId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
+	}
+}
+func (h *Handler) SaveHostFileCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.HostFileCollectionInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		config, err := h.s.SaveHostFileCollection(c, c.Param("nodeId"), input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
+	}
+}
+func (h *Handler) PreviewHostFileCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.HostFileCollectionInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		preview, err := h.s.PreviewHostFileCollection(c, c.Param("nodeId"), input)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(preview)
+	}
+}
+func (h *Handler) GetContainerStdoutCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		config, err := h.s.GetContainerStdoutCollection(c, c.Param("clusterId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
+	}
+}
+func (h *Handler) SaveContainerStdoutCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.ContainerStdoutCollectionInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		config, err := h.s.SaveContainerStdoutCollection(c, c.Param("clusterId"), input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
+	}
+}
+func (h *Handler) PreviewContainerStdoutCollection() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.ContainerStdoutCollectionInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		preview, err := h.s.PreviewContainerStdoutCollection(c, c.Param("clusterId"), input)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(preview)
 	}
 }
 func (h *Handler) GetCurrentNodeConfigs() core.HandlerFunc {

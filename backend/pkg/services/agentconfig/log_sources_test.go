@@ -77,7 +77,7 @@ func TestLogSourcesAreSavedAndResolvedIndependently(t *testing.T) {
 	}
 
 	global := *settings.CircuitBreaker
-	global.MaxCPUPercent = 70
+	global.MaxCPUCores = 2
 	if _, err := service.SaveGlobalCircuit(nil, global, 8); err != nil {
 		t.Fatal(err)
 	}

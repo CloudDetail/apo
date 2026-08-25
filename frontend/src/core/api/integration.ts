@@ -29,16 +29,17 @@ export function getAgentConfigStatesApi() {
   return get('/api/agent-config/states')
 }
 
-export function getAgentConfigTemplatesApi(probeType?: string) {
-  return get('/api/agent-config/templates', { probeType })
+export function getAgentConfigTemplatesApi() {
+  return get('/api/agent-config/templates')
 }
 
 export function createAgentConfigTemplateApi(data: {
-  probeType: string
   name: string
-  content: string
-  files?: Array<{ path: string; content: string }>
-  format: string
+  description?: string
+  configs: Array<{
+    probeType: string
+    files: Array<{ path: string; content: string }>
+  }>
 }) {
   return post('/api/agent-config/templates', data)
 }
@@ -120,6 +121,44 @@ export function updateNodeLogSourcesApi(nodeId: string, probeType: string, data:
 
 export function batchUpdateLogSourcesApi(data: unknown) {
   return post('/api/agent-config/log-sources/batch', data)
+}
+
+export function getHostFileCollectionApi(nodeId: string) {
+  return get(`/api/agent-config/log-collection/nodes/${encodeURIComponent(nodeId)}/host-files`)
+}
+
+export function updateHostFileCollectionApi(nodeId: string, data: unknown) {
+  return put(
+    `/api/agent-config/log-collection/nodes/${encodeURIComponent(nodeId)}/host-files`,
+    data,
+  )
+}
+
+export function previewHostFileCollectionApi(nodeId: string, data: unknown) {
+  return post(
+    `/api/agent-config/log-collection/nodes/${encodeURIComponent(nodeId)}/host-files/preview`,
+    data,
+  )
+}
+
+export function getContainerStdoutCollectionApi(clusterId: string) {
+  return get(
+    `/api/agent-config/log-collection/clusters/${encodeURIComponent(clusterId)}/container-stdout`,
+  )
+}
+
+export function updateContainerStdoutCollectionApi(clusterId: string, data: unknown) {
+  return put(
+    `/api/agent-config/log-collection/clusters/${encodeURIComponent(clusterId)}/container-stdout`,
+    data,
+  )
+}
+
+export function previewContainerStdoutCollectionApi(clusterId: string, data: unknown) {
+  return post(
+    `/api/agent-config/log-collection/clusters/${encodeURIComponent(clusterId)}/container-stdout/preview`,
+    data,
+  )
 }
 
 export function getAgentInitialConfigApi(nodeId: string, probeType: string) {

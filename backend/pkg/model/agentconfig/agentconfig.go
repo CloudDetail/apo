@@ -64,12 +64,9 @@ func (j *JSON) Scan(v any) error {
 
 type Template struct {
 	ID            uuid.UUID          `gorm:"type:uuid;primaryKey" json:"id"`
-	ProbeType     string             `gorm:"size:128;not null;index:idx_agent_template_probe" json:"probeType"`
+	Configs       JSON               `gorm:"type:jsonb;not null;default:'[]'" json:"configs"`
 	Name          string             `gorm:"size:255;not null" json:"name"`
 	Description   string             `gorm:"type:text" json:"description"`
-	Content       string             `gorm:"type:text;not null" json:"content"`
-	Files         JSON               `gorm:"type:jsonb;not null;default:'null'" json:"files,omitempty"`
-	Format        string             `gorm:"size:32;not null;default:'text'" json:"format"`
 	Version       int64              `gorm:"not null;default:1" json:"version"`
 	ContentSHA256 string             `gorm:"size:64;not null" json:"contentSha256"`
 	Variables     []TemplateVariable `gorm:"foreignKey:TemplateID;constraint:OnDelete:CASCADE" json:"variables,omitempty"`
@@ -77,6 +74,11 @@ type Template struct {
 	UpdatedBy     int64              `json:"updatedBy"`
 	CreatedAt     time.Time          `json:"createdAt"`
 	UpdatedAt     time.Time          `json:"updatedAt"`
+}
+
+type TemplateProbeConfig struct {
+	ProbeType string              `json:"probeType"`
+	Files     []InitialConfigFile `json:"files"`
 }
 
 type TemplateVariable struct {
@@ -154,13 +156,13 @@ type LogSource struct {
 
 type CircuitBreakerSettings struct {
 	Enabled                     bool                              `json:"enabled"`
-	MaxCPUPercent               float64                           `json:"maxCpuPercent"`
+	MaxCPUCores                 float64                           `json:"maxCpuCores"`
 	MaxMemoryBytes              uint64                            `json:"maxMemoryBytes"`
 	DurationSeconds             uint64                            `json:"durationSeconds"`
 	AutoRecover                 bool                              `json:"autoRecover"`
 	RecoveryInitialDelaySeconds uint64                            `json:"recoveryInitialDelaySeconds"`
 	RecoveryMaxDelaySeconds     uint64                            `json:"recoveryMaxDelaySeconds"`
-	ProbePolicies               map[string]CircuitBreakerSettings `json:"probePolicies,omitempty"`
+	ComponentPolicies           map[string]CircuitBreakerSettings `json:"componentPolicies,omitempty"`
 }
 
 type AgentSettings struct {
@@ -193,6 +195,17 @@ type NodeLogConfig struct {
 	NodeID    string    `gorm:"size:255;not null;uniqueIndex:idx_node_probe_logs" json:"nodeId"`
 	ProbeType string    `gorm:"size:128;not null;uniqueIndex:idx_node_probe_logs" json:"probeType"`
 	Sources   JSON      `gorm:"type:jsonb;not null" json:"sources"`
+	Version   int64     `gorm:"not null;default:1" json:"version"`
+	UpdatedBy int64     `json:"updatedBy"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type LogCollectionConfig struct {
+	ID        uint64    `gorm:"primaryKey" json:"id"`
+	ScopeType string    `gorm:"size:32;not null;uniqueIndex:idx_log_collection_scope" json:"scopeType"`
+	ScopeID   string    `gorm:"size:255;not null;uniqueIndex:idx_log_collection_scope" json:"scopeId"`
+	Config    JSON      `gorm:"type:jsonb;not null" json:"config"`
 	Version   int64     `gorm:"not null;default:1" json:"version"`
 	UpdatedBy int64     `json:"updatedBy"`
 	CreatedAt time.Time `json:"createdAt"`
@@ -237,7 +250,7 @@ type Command struct {
 	UpdatedAt            time.Time  `json:"updatedAt"`
 }
 
-func NewTemplate() *Template      { return &Template{ID: uuid.New(), Format: "text", Version: 1} }
+func NewTemplate() *Template      { return &Template{ID: uuid.New(), Version: 1} }
 func HashContent(s string) string { h := sha256.Sum256([]byte(s)); return hex.EncodeToString(h[:]) }
 func HashInitialConfigFiles(files []InitialConfigFile) string {
 	ordered := append([]InitialConfigFile(nil), files...)

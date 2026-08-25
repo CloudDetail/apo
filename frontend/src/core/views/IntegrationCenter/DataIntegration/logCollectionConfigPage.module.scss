@@ -1,0 +1,559 @@
+.page {
+  min-height: 100%;
+  padding: 12px 20px 24px;
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panel .pageHeading {
+  margin: 0 0 14px;
+}
+
+.panel .workbench {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.panel .sourceList {
+  min-height: 150px;
+}
+
+.panel .sourceList :global(.ant-empty) {
+  margin-block: 36px;
+}
+
+.backButton {
+  padding-inline: 0;
+}
+
+.pageHeading,
+.scopeToolbar,
+.rulesHeader,
+.footer,
+.syncStatus {
+  display: flex;
+  align-items: center;
+}
+
+.pageHeading {
+  justify-content: space-between;
+  gap: 16px;
+  margin: 8px 0 16px;
+}
+
+.pageHeading > div:first-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pageHeading :global(.ant-typography) {
+  margin: 0;
+}
+
+.syncStatus {
+  flex: 0 0 auto;
+  gap: 7px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.syncStatus > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ant-color-success);
+}
+
+.syncStatusError {
+  color: var(--ant-color-error);
+}
+
+.syncStatusError > span {
+  background: var(--ant-color-error);
+}
+
+.workbench {
+  min-width: 0;
+  min-height: 520px;
+  padding: 18px 20px 20px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+  background: var(--ant-color-bg-container);
+}
+
+.scopeToolbar {
+  align-items: flex-end;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.scopeToolbar > .field:first-child {
+  width: min(320px, 30vw);
+}
+
+.scopeToolbar > .field:nth-child(2) {
+  flex: 0 0 auto;
+}
+
+.version {
+  margin-right: auto;
+  padding-bottom: 7px;
+  white-space: nowrap;
+}
+
+.inheritedSection {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--ant-color-info-border);
+  border-radius: 5px;
+  background: var(--ant-color-info-bg);
+}
+
+.inheritedHeader,
+.filterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inheritedHeader > div:first-child,
+.inheritedRuleContent,
+.sourceIdentity,
+.scopeIdentity,
+.ruleOrigin {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inheritedSourceRow {
+  display: grid;
+  grid-template-columns: 8px 104px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-info-bg);
+}
+
+.inheritedSourceRow:last-child {
+  border-bottom: 0;
+}
+
+.enabledDot,
+.disabledDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.enabledDot {
+  background: var(--ant-color-success);
+}
+
+.disabledDot {
+  background: var(--ant-color-text-quaternary);
+}
+
+.inheritedFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 5px;
+}
+
+.inheritedFilters > span {
+  display: inline-flex;
+  min-width: 0;
+  gap: 5px;
+}
+
+.inheritedFilters small {
+  color: var(--ant-color-text-secondary);
+}
+
+.inheritedFilters code {
+  overflow-wrap: anywhere;
+}
+
+.ruleOrigin {
+  align-self: center;
+}
+
+.ruleOrigin > span {
+  width: fit-content;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.ruleOrigin small {
+  color: var(--ant-color-text-secondary);
+}
+
+.inheritedBadge {
+  border-color: var(--ant-color-info-border) !important;
+  color: var(--ant-color-info-text) !important;
+  background: var(--ant-color-info-bg-hover);
+}
+
+.nodeBadge {
+  border-color: var(--ant-color-border-secondary) !important;
+  color: var(--ant-color-text-secondary) !important;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.field > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.field :global(.ant-input-number),
+.field :global(.ant-select) {
+  width: 100%;
+}
+
+.rulesHeader {
+  gap: 7px;
+  margin: 18px 0 10px;
+}
+
+.sourceList {
+  min-height: 260px;
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 5px;
+}
+
+.sourceList :global(.ant-empty) {
+  margin-block: 64px;
+}
+
+.hostSourceRow,
+.containerSourceRow {
+  display: grid;
+  align-items: end;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.hostSourceRow:last-child,
+.containerSourceRow:last-child,
+.inheritedSourceRow:last-child {
+  border-bottom: 0;
+}
+
+.hostSourceRow {
+  grid-template-columns: 34px 104px minmax(220px, 1.7fr) 120px minmax(160px, 1fr) 34px;
+}
+
+.containerSourceRow {
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: start;
+}
+
+.hostSourceRow > :global(.ant-switch),
+.containerSourceRow > :global(.ant-switch) {
+  align-self: center;
+  justify-self: center;
+}
+
+.containerSourceRow > :global(.ant-btn) {
+  grid-row: 1;
+  grid-column: -2 / -1;
+}
+
+.sourceIdentity {
+  align-self: center;
+}
+
+.filterEditor {
+  display: grid;
+  grid-column: 2 / -2;
+  gap: 10px;
+  padding: 10px 0 2px;
+  border-top: 1px dashed var(--ant-color-border-secondary);
+}
+
+.filterHeader :global(.ant-select) {
+  width: 180px;
+}
+
+.filterList {
+  display: grid;
+  gap: 8px;
+}
+
+.filterRow {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+}
+
+.advancedCollapse {
+  grid-column: 2 / -2;
+  margin-top: -2px;
+  border-top: 1px dashed var(--ant-color-border-secondary);
+}
+
+.advancedCollapse :global(.ant-collapse-header) {
+  padding: 8px 0 2px !important;
+  color: var(--ant-color-text-secondary) !important;
+}
+
+.advancedCollapse :global(.ant-collapse-content-box) {
+  padding: 12px 0 2px !important;
+}
+
+.advancedContent {
+  display: grid;
+  gap: 18px;
+}
+
+.advancedSection {
+  display: grid;
+  gap: 10px;
+}
+
+.advancedGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.toggleField {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--ant-color-border);
+  border-radius: 4px;
+}
+
+.toggleField > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.footer {
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.previewWorkspace {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  height: min(560px, 65vh);
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border);
+}
+
+.previewFiles {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding: 8px;
+  border-right: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.previewFiles button {
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.previewFileActive {
+  border-color: var(--ant-color-primary-border) !important;
+  background: var(--ant-color-primary-bg) !important;
+}
+
+.previewWorkspace pre {
+  min-width: 0;
+  margin: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--ant-color-bg-container);
+  color: var(--ant-color-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1100px) {
+  .scopeToolbar {
+    flex-wrap: wrap;
+  }
+
+  .scopeToolbar > .field:first-child {
+    width: min(100%, 320px);
+  }
+
+  .hostSourceRow {
+    grid-template-columns: 34px 94px minmax(220px, 1fr) 120px 34px;
+  }
+
+  .hostSourceRow > .field:nth-child(5) {
+    grid-column: 3 / 5;
+  }
+
+  .advancedGrid {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-inline: 12px;
+  }
+
+  .pageHeading {
+    align-items: flex-start;
+  }
+
+  .workbench {
+    padding: 14px 12px 18px;
+  }
+
+  .scopeToolbar,
+  .footer,
+  .inheritedHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .scopeToolbar > .field:first-child {
+    width: 100%;
+  }
+
+  .version {
+    margin-right: 0;
+    padding-bottom: 0;
+  }
+
+  .scopeToolbar > :global(.ant-btn) {
+    align-self: flex-start;
+  }
+
+  .hostSourceRow,
+  .containerSourceRow {
+    grid-template-columns: 34px minmax(0, 1fr) 34px;
+  }
+
+  .hostSourceRow > .field,
+  .containerSourceRow > .field,
+  .sourceIdentity,
+  .hostSourceRow > .ruleOrigin {
+    grid-column: 2 / -1;
+  }
+
+  .hostSourceRow > :global(.ant-switch),
+  .containerSourceRow > :global(.ant-switch) {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .hostSourceRow > :global(.ant-btn),
+  .containerSourceRow > :global(.ant-btn) {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .hostSourceRow > .field:nth-child(5),
+  .containerSourceRow > .field:nth-child(4) {
+    grid-column: 2 / -1;
+  }
+
+  .advancedCollapse {
+    grid-column: 1 / -1;
+  }
+
+  .filterEditor {
+    grid-column: 1 / -1;
+  }
+
+  .filterHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filterHeader :global(.ant-select) {
+    width: 100%;
+  }
+
+  .filterRow {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  .filterRow > :global(.ant-typography) {
+    grid-column: 1 / -1;
+  }
+
+  .inheritedSourceRow {
+    grid-template-columns: 8px minmax(0, 1fr);
+  }
+
+  .inheritedSourceRow > :global(.ant-typography),
+  .inheritedSourceRow > .inheritedRuleContent {
+    grid-column: 2;
+  }
+
+  .advancedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer > :global(.ant-space) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer :global(.ant-btn) {
+    width: 100%;
+  }
+
+  .previewWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .previewFiles {
+    max-height: 140px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ant-color-border-secondary);
+  }
+}

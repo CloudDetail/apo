@@ -188,6 +188,15 @@ func addBaselineFiles(t *testing.T, repo *configSemanticsRepo, node, probe strin
 	repo.baselines[releaseKey(node, probe)] = ac.InitialConfig{NodeID: node, ProbeType: probe, Files: ac.JSON(data), ContentSHA256: ac.HashInitialConfigFiles(files)}
 }
 
+func addBundleTemplate(t *testing.T, repo *configSemanticsRepo, id uuid.UUID, configs []ac.TemplateProbeConfig, variables []ac.TemplateVariable) {
+	t.Helper()
+	data, err := json.Marshal(configs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo.templates[id] = ac.Template{ID: id, Configs: ac.JSON(data), Version: 1, Variables: variables}
+}
+
 func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
@@ -274,28 +283,41 @@ func TestNodeConfigUpdateSavesAllProbeChangesTogether(t *testing.T) {
 	}
 }
 
-func TestBatchAssignmentUsesTemplateAndAtomicallyOverwritesTargets(t *testing.T) {
+func TestBatchAssignmentUsesOneCompleteTemplateAndAtomicallyOverwritesTargets(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
 	repo.nodes["node-b"] = ac.Node{ID: "node-b", ClusterID: "cluster-b"}
 	repo.nodes["node-c"] = ac.Node{ID: "node-c", ClusterID: "cluster-c"}
 	for index, node := range []string{"node-a", "node-b", "node-c"} {
+		addBaseline(t, repo, node, "probe-a", "old-a\n")
+		addBaseline(t, repo, node, "probe-b", "old-b\n")
 		repo.releases[releaseKey(node, "probe-a")] = ac.Release{NodeID: node, ProbeType: "probe-a", Generation: int64(index + 3), RenderedContent: "node-specific\n", LogSources: ac.JSON("null")}
+		repo.releases[releaseKey(node, "probe-b")] = ac.Release{NodeID: node, ProbeType: "probe-b", Generation: int64(index + 6), RenderedContent: "node-specific-b\n", LogSources: ac.JSON("null")}
 	}
 	templateID := uuid.New()
-	repo.templates[templateID] = ac.Template{ID: templateID, ProbeType: "probe-a", Content: "value: ${VALUE}\n", Version: 4, Variables: []ac.TemplateVariable{{Name: "VALUE", Required: true}}}
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{
+		{ProbeType: "probe-a", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "value: ${VALUE}\n"}}},
+		{ProbeType: "probe-b", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "enabled: ${ENABLED}\n"}}},
+	}, []ac.TemplateVariable{{Name: "VALUE", Required: true}, {Name: "ENABLED", Required: true}})
 	service := New(repo)
 
-	result, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a", "cluster-b"}, ProbeType: "probe-a", TemplateID: templateID, Variables: map[string]string{"VALUE": "shared"}}, 7)
+	result, err := service.BatchAssign(nil, BatchAssignmentInput{
+		ClusterIDs: []string{"cluster-a", "cluster-b"},
+		TemplateID: templateID,
+		Variables:  map[string]string{"VALUE": "shared", "ENABLED": "true"},
+	}, 7)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.TargetNodeCount != 2 || result.SucceededCount != 2 || repo.batchSaveCalls != 1 {
-		t.Fatalf("unexpected atomic batch result: result=%+v calls=%d", result, repo.batchSaveCalls)
+	if result.TargetNodeCount != 2 || result.SucceededCount != 2 || repo.batchSaveCalls != 1 || len(repo.lastExpected) != 4 {
+		t.Fatalf("unexpected atomic batch result: result=%+v calls=%d expected=%v", result, repo.batchSaveCalls, repo.lastExpected)
 	}
 	for _, node := range []string{"node-a", "node-b"} {
 		if got := repo.releases[releaseKey(node, "probe-a")].RenderedContent; got != "value: shared\n" {
 			t.Fatalf("%s retained node-specific content: %q", node, got)
+		}
+		if got := repo.releases[releaseKey(node, "probe-b")].RenderedContent; got != "enabled: true\n" {
+			t.Fatalf("%s retained node-specific probe-b content: %q", node, got)
 		}
 	}
 	if got := repo.releases[releaseKey("node-c", "probe-a")].RenderedContent; got != "node-specific\n" {
@@ -326,23 +348,12 @@ func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.
 	for index := range templateFiles {
 		templateFiles[index].ContentSHA256 = ac.HashContent(templateFiles[index].Content)
 	}
-	filesJSON, err := json.Marshal(templateFiles)
-	if err != nil {
-		t.Fatal(err)
-	}
 	templateID := uuid.New()
-	repo.templates[templateID] = ac.Template{
-		ID:        templateID,
-		ProbeType: "ilogtail",
-		Version:   3,
-		Files:     ac.JSON(filesJSON),
-		Variables: []ac.TemplateVariable{{Name: "LEVEL", Required: true}},
-	}
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ilogtail", Files: templateFiles}}, []ac.TemplateVariable{{Name: "LEVEL", Required: true}})
 	service := New(repo)
 
 	result, err := service.BatchAssign(nil, BatchAssignmentInput{
 		ClusterIDs: []string{"cluster-a"},
-		ProbeType:  "ilogtail",
 		TemplateID: templateID,
 		Variables:  map[string]string{"LEVEL": "info"},
 	}, 7)
@@ -372,7 +383,7 @@ func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.
 	}
 }
 
-func TestBatchAssignmentRejectsLegacyTemplateForMultiFileProbe(t *testing.T) {
+func TestBatchAssignmentRejectsIncompleteFileSet(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
 	addBaselineFiles(t, repo, "node-a", "ilogtail", []ac.InitialConfigFile{
@@ -380,15 +391,36 @@ func TestBatchAssignmentRejectsLegacyTemplateForMultiFileProbe(t *testing.T) {
 		{Path: "b.yaml", Content: "b: old\n"},
 	})
 	templateID := uuid.New()
-	repo.templates[templateID] = ac.Template{ID: templateID, ProbeType: "ilogtail", Content: "single: value\n", Version: 1}
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ilogtail", Files: []ac.InitialConfigFile{{Path: "a.yaml", Content: "a: new\n"}}}}, nil)
 	service := New(repo)
 
-	_, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a"}, ProbeType: "ilogtail", TemplateID: templateID}, 7)
-	if err == nil || !strings.Contains(err.Error(), "does not define the complete 2-file configuration") {
-		t.Fatalf("legacy template was accepted for a multi-file probe: %v", err)
+	_, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a"}, TemplateID: templateID}, 7)
+	if err == nil || !strings.Contains(err.Error(), "file set does not match") {
+		t.Fatalf("incomplete template was accepted for a multi-file probe: %v", err)
 	}
 	if repo.batchSaveCalls != 0 {
 		t.Fatalf("rejected batch wrote releases: calls=%d", repo.batchSaveCalls)
+	}
+}
+
+func TestBatchAssignmentRejectsTemplateWithoutEveryNodeProbe(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-a", "probe-a", "a: old\n")
+	addBaseline(t, repo, "node-a", "probe-b", "b: old\n")
+	templateA := uuid.New()
+	addBundleTemplate(t, repo, templateA, []ac.TemplateProbeConfig{{ProbeType: "probe-a", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "a: new\n"}}}}, nil)
+	service := New(repo)
+
+	_, err := service.BatchAssign(nil, BatchAssignmentInput{
+		ClusterIDs: []string{"cluster-a"},
+		TemplateID: templateA,
+	}, 7)
+	if err == nil || !strings.Contains(err.Error(), "contains 1 probes but node node-a has 2") {
+		t.Fatalf("incomplete template set was accepted: %v", err)
+	}
+	if repo.batchSaveCalls != 0 {
+		t.Fatalf("incomplete batch wrote releases: calls=%d", repo.batchSaveCalls)
 	}
 }
 
@@ -397,39 +429,56 @@ func TestCircuitPolicyIsNodeLevelAndIndependentFromConfigReleases(t *testing.T) 
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
 	addBaseline(t, repo, "node-1", "probe-a", "a: 1\n")
 	service := New(repo)
-	global := ac.CircuitBreakerSettings{Enabled: true, MaxCPUPercent: 70, MaxMemoryBytes: 256 * 1024 * 1024, DurationSeconds: 20}
+	global := ac.CircuitBreakerSettings{Enabled: true, MaxCPUCores: 2, MaxMemoryBytes: 256 * 1024 * 1024, DurationSeconds: 20}
 	if _, err := service.SaveGlobalCircuit(nil, global, 1); err != nil {
 		t.Fatal(err)
 	}
 	settings, err := service.SettingsForNode(nil, "node-1")
-	if err != nil || settings.CircuitBreaker.MaxCPUPercent != 70 {
+	if err != nil || settings.CircuitBreaker.MaxCPUCores != 2 {
 		t.Fatalf("node did not use global default: settings=%+v err=%v", settings, err)
 	}
 	nodePolicy := ac.CircuitBreakerSettings{
 		Enabled:         true,
-		MaxCPUPercent:   55,
+		MaxCPUCores:     1.5,
 		MaxMemoryBytes:  128 * 1024 * 1024,
 		DurationSeconds: 15,
-		ProbePolicies: map[string]ac.CircuitBreakerSettings{
-			"probe-a": {Enabled: true, MaxCPUPercent: 45, MaxMemoryBytes: 96 * 1024 * 1024, DurationSeconds: 10, AutoRecover: true, RecoveryInitialDelaySeconds: 30, RecoveryMaxDelaySeconds: 3600},
+		ComponentPolicies: map[string]ac.CircuitBreakerSettings{
+			"probe-a": {Enabled: true, MaxCPUCores: 0.5, MaxMemoryBytes: 96 * 1024 * 1024, DurationSeconds: 10, AutoRecover: true, RecoveryInitialDelaySeconds: 30, RecoveryMaxDelaySeconds: 3600},
 		},
 	}
 	if _, err := service.SaveNodeCircuit(nil, "node-1", nodePolicy, 2); err != nil {
 		t.Fatal(err)
 	}
 	probeSettings, err := service.SettingsForProbe(nil, "node-1", "probe-a")
-	if err != nil || probeSettings.CircuitBreaker.MaxCPUPercent != 45 || len(probeSettings.CircuitBreaker.ProbePolicies) != 0 {
-		t.Fatalf("probe did not receive its concrete policy: settings=%+v err=%v", probeSettings, err)
+	if err != nil || probeSettings.CircuitBreaker.MaxCPUCores != 1.5 || probeSettings.CircuitBreaker.ComponentPolicies["probe-a"].MaxCPUCores != 0.5 {
+		t.Fatalf("node did not receive its complete policy: settings=%+v err=%v", probeSettings, err)
 	}
 	defaultSettings, err := service.SettingsForProbe(nil, "node-1", "probe-b")
-	if err != nil || defaultSettings.CircuitBreaker.MaxCPUPercent != 55 {
-		t.Fatalf("unlisted probe did not receive bundle default: settings=%+v err=%v", defaultSettings, err)
+	if err != nil || defaultSettings.CircuitBreaker.MaxCPUCores != 1.5 {
+		t.Fatalf("component settings did not retain the node total: settings=%+v err=%v", defaultSettings, err)
 	}
 	if _, err := service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "probe-a", Content: "a: 2\n", ExpectedGeneration: 0}}}); err != nil {
 		t.Fatal(err)
 	}
 	after, source, err := service.GetNodeCircuit(nil, "node-1")
-	if err != nil || source != "NODE" || after.MaxCPUPercent != 55 {
+	if err != nil || source != "NODE" || after.MaxCPUCores != 1.5 {
 		t.Fatalf("config release changed node circuit policy: policy=%+v source=%s err=%v", after, source, err)
+	}
+}
+
+func TestCircuitPolicyAllowsIndependentComponentRule(t *testing.T) {
+	policy := ac.CircuitBreakerSettings{
+		Enabled: false,
+		ComponentPolicies: map[string]ac.CircuitBreakerSettings{
+			"probe-a": {
+				Enabled:         true,
+				MaxCPUCores:     0.5,
+				MaxMemoryBytes:  128 * 1024 * 1024,
+				DurationSeconds: 10,
+			},
+		},
+	}
+	if err := validateCircuitBreaker(&policy); err != nil {
+		t.Fatalf("independent component policy was rejected: %v", err)
 	}
 }

@@ -122,7 +122,6 @@
 }
 
 .batchGrid,
-.variableGrid,
 .thresholdGrid {
   display: grid;
   gap: 12px;
@@ -132,16 +131,57 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.variableGrid {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.batchGrid label,
-.variableGrid label {
+.batchGrid label {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 6px;
+}
+
+.batchTargetRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.batchTargetRow .sourceGroup {
+  max-width: 620px;
+}
+
+.batchTemplateSection,
+.batchTemplateList,
+.batchProbeName {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.batchTemplateSection {
+  gap: 10px;
+  padding-block: 4px 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.batchTemplateList {
+  gap: 0;
+}
+
+.batchTemplateRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.5fr) minmax(240px, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.batchTemplateRow:last-child {
+  border-bottom: 0;
+}
+
+.batchProbeName {
+  gap: 3px;
 }
 
 .thresholdGrid {
@@ -161,6 +201,18 @@
   gap: 12px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.advancedCircuit {
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.advancedCircuit :global(.ant-collapse-header) {
+  padding-inline: 0 !important;
+}
+
+.advancedCircuit :global(.ant-collapse-content-box) {
+  padding: 0 0 16px !important;
 }
 
 .circuitScopeBar label,
@@ -292,6 +344,24 @@
   border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
+.logCollectionSwitchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.logCollectionSwitchRow > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .logSourceToolbar .sourceGroup {
   max-width: 520px;
 }
@@ -301,6 +371,10 @@
   min-height: 180px;
   flex-direction: column;
   gap: 8px;
+}
+
+.logSourceListDisabled {
+  min-height: 96px;
 }
 
 .logSourceRow {
@@ -337,6 +411,50 @@
   padding: 0 4px 10px;
 }
 
+.nodeFilePanelTitle > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeFilePanelTitle :global(.ant-typography) {
+  margin: 0;
+}
+
+.nodeFilePanelTitle :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.nodeVariablesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.nodeVariableList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 20px;
+}
+
+.nodeVariableItem {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.75fr) minmax(120px, 1.25fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.nodeVariableItem :global(code) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .filePanelTitle :global(.ant-tag),
 .fileItem :global(.ant-tag) {
   margin-inline-end: 0;
@@ -349,6 +467,43 @@
   flex-direction: column;
   gap: 6px;
   overflow: auto;
+}
+
+.probeFileTree {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background: transparent;
+}
+
+.probeFileTree :global(.ant-tree-node-content-wrapper) {
+  min-width: 0;
+}
+
+.probeTreeTitle,
+.fileTreeTitle {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.probeTreeTitle small {
+  flex: 0 0 auto;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.fileTreeTitle > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileTreeTitle :global(.ant-tag) {
+  margin-inline-end: 0;
 }
 
 .fileItem {
@@ -517,10 +672,19 @@
   .templateBar,
   .sourceToolbar,
   .logSourceToolbar,
+  .logCollectionSwitchRow,
   .circuitScopeBar,
   .recoveryRow {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .logCollectionSwitchRow {
+    align-items: stretch;
+  }
+
+  .sectionHeading > :global(.ant-tag) {
+    align-self: flex-start;
   }
 
   .templateBar :global(.ant-select),
@@ -561,6 +725,15 @@
 
   .batchGrid,
   .thresholdGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .batchTargetRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .batchTemplateRow {
     grid-template-columns: 1fr;
   }
 

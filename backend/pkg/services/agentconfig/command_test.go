@@ -19,7 +19,7 @@ func (*commandRepo) CreateAgentTemplate(core.Context, *ac.Template) error       
 func (*commandRepo) UpdateAgentTemplate(core.Context, *ac.Template) error           { return nil }
 func (*commandRepo) DeleteAgentTemplate(core.Context, uuid.UUID) error              { return nil }
 func (*commandRepo) GetAgentTemplate(core.Context, uuid.UUID) (*ac.Template, error) { return nil, nil }
-func (*commandRepo) ListAgentTemplates(core.Context, string) ([]ac.Template, error) { return nil, nil }
+func (*commandRepo) ListAgentTemplates(core.Context) ([]ac.Template, error)         { return nil, nil }
 func (*commandRepo) UpsertAgentNode(core.Context, *ac.Node) error                   { return nil }
 func (*commandRepo) ListAgentNodes(core.Context) ([]ac.Node, error)                 { return nil, nil }
 func (*commandRepo) GetAgentNode(core.Context, string) (*ac.Node, error)            { return nil, nil }

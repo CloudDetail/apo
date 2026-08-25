@@ -19,7 +19,7 @@ type AgentConfigRepo interface {
 	UpdateAgentTemplate(core.Context, *ac.Template) error
 	DeleteAgentTemplate(core.Context, uuid.UUID) error
 	GetAgentTemplate(core.Context, uuid.UUID) (*ac.Template, error)
-	ListAgentTemplates(core.Context, string) ([]ac.Template, error)
+	ListAgentTemplates(core.Context) ([]ac.Template, error)
 	UpsertAgentNode(core.Context, *ac.Node) error
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
@@ -32,6 +32,8 @@ type AgentConfigRepo interface {
 	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error
 	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
 	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
+	GetLogCollectionConfig(core.Context, string, string) (*ac.LogCollectionConfig, error)
+	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
@@ -70,12 +72,9 @@ func (repo *daoRepo) GetAgentTemplate(ctx core.Context, id uuid.UUID) (*ac.Templ
 	e := repo.GetContextDB(ctx).Preload("Variables").First(&t, "id = ?", id).Error
 	return &t, e
 }
-func (repo *daoRepo) ListAgentTemplates(ctx core.Context, probe string) ([]ac.Template, error) {
+func (repo *daoRepo) ListAgentTemplates(ctx core.Context) ([]ac.Template, error) {
 	var ts []ac.Template
 	q := repo.GetContextDB(ctx).Preload("Variables")
-	if probe != "" {
-		q = q.Where("probe_type = ?", probe)
-	}
 	e := q.Order("updated_at desc").Find(&ts).Error
 	return ts, e
 }
@@ -182,6 +181,25 @@ func (repo *daoRepo) SaveNodeLogConfigs(ctx core.Context, configs []*ac.NodeLogC
 			}
 		}
 		return nil
+	})
+}
+func (repo *daoRepo) GetLogCollectionConfig(ctx core.Context, scopeType, scopeID string) (*ac.LogCollectionConfig, error) {
+	var config ac.LogCollectionConfig
+	err := repo.GetContextDB(ctx).Where("scope_type=? AND scope_id=?", scopeType, scopeID).First(&config).Error
+	return &config, err
+}
+func (repo *daoRepo) SaveLogCollectionConfig(ctx core.Context, config *ac.LogCollectionConfig) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		var old ac.LogCollectionConfig
+		err := tx.Where("scope_type=? AND scope_id=?", config.ScopeType, config.ScopeID).First(&old).Error
+		if err == nil {
+			config.ID = old.ID
+			config.CreatedAt = old.CreatedAt
+			config.Version = old.Version + 1
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		return tx.Save(config).Error
 	})
 }
 func (repo *daoRepo) SaveAgentBinding(ctx core.Context, b *ac.Binding, r *ac.Release) error {

@@ -27,6 +27,7 @@ type AgentNode = {
   id: string
   name?: string
   clusterId?: string
+  environment?: string
   labels?: Record<string, string>
   lastSeenAt?: string
 }
@@ -37,6 +38,14 @@ type ProbeRuntime = {
   guardRssBytes?: number
   childRunning?: boolean
   supervisorHealthy?: boolean
+  resourceUsage?: {
+    windowSeconds: number
+    sampleIntervalSeconds: number
+    sampleCount: number
+    cpuPercentAvg?: number
+    memoryBytesAvg?: number
+    sampledAt: string
+  }
 }
 
 type ProbeState = {
@@ -46,15 +55,21 @@ type ProbeState = {
   runtime?: ProbeRuntime
 }
 
+const getAveragedResourceUsage = (state: ProbeState) => {
+  const usage = state.runtime?.resourceUsage
+  return usage?.windowSeconds === 600 && usage.sampleIntervalSeconds === 60 ? usage : undefined
+}
+
 type NodeRow = {
   kind: 'node'
   key: string
   clusterId: string
   nodeId: string
   name: string
+  environment: string
   states: ProbeState[]
-  cpuPercent: number
-  memoryBytes: number
+  cpuPercent?: number
+  memoryBytes?: number
   healthyCount: number
   probeCount: number
 }
@@ -64,9 +79,10 @@ type ClusterRow = {
   key: string
   clusterId: string
   name: string
+  environment: string
   children: NodeRow[]
-  cpuPercent: number
-  memoryBytes: number
+  cpuPercent?: number
+  memoryBytes?: number
   healthyCount: number
   probeCount: number
 }
@@ -76,6 +92,7 @@ type LogFile = { path: string; name: string; size: number; modifiedAt: string }
 type LogPreview = { file: LogFile; preview: string; lines: number; truncated: boolean }
 
 const UNASSIGNED_CLUSTER = '未分配集群'
+const STATUS_REFRESH_INTERVAL_MS = 60_000
 
 const getClusterId = (node: AgentNode) =>
   String(node.clusterId || node.labels?.cluster_id || node.labels?.clusterId || '').trim() ||
@@ -86,19 +103,22 @@ const isHealthy = (state: ProbeState) =>
   state.runtime?.childRunning !== false &&
   state.runtime?.supervisorHealthy !== false
 
-const summarizeStates = (states: ProbeState[]) =>
-  states.reduce(
-    (summary, state) => ({
-      cpuPercent: summary.cpuPercent + Number(state.runtime?.childCpuPercent || 0),
-      memoryBytes:
-        summary.memoryBytes +
-        Number(state.runtime?.childRssBytes || 0) +
-        Number(state.runtime?.guardRssBytes || 0),
-      healthyCount: summary.healthyCount + (isHealthy(state) ? 1 : 0),
-      probeCount: summary.probeCount + 1,
-    }),
-    { cpuPercent: 0, memoryBytes: 0, healthyCount: 0, probeCount: 0 },
-  )
+const summarizeStates = (states: ProbeState[]) => {
+  const usage = states.map(getAveragedResourceUsage)
+  const cpuAvailable = usage.length > 0 && usage.every((item) => item?.cpuPercentAvg !== undefined)
+  const memoryAvailable =
+    usage.length > 0 && usage.every((item) => item?.memoryBytesAvg !== undefined)
+  return {
+    cpuPercent: cpuAvailable
+      ? usage.reduce((total, item) => total + Number(item?.cpuPercentAvg), 0)
+      : undefined,
+    memoryBytes: memoryAvailable
+      ? usage.reduce((total, item) => total + Number(item?.memoryBytesAvg), 0)
+      : undefined,
+    healthyCount: states.filter(isHealthy).length,
+    probeCount: states.length,
+  }
+}
 
 const groupNodesByCluster = (nodes: AgentNode[], states: ProbeState[]): ClusterRow[] => {
   const statesByNode = new Map<string, ProbeState[]>()
@@ -128,6 +148,7 @@ const groupNodesByCluster = (nodes: AgentNode[], states: ProbeState[]): ClusterR
       clusterId,
       nodeId: node.id,
       name: node.name || node.id,
+      environment: node.environment || '',
       states: nodeStates,
       ...summarizeStates(nodeStates),
     }
@@ -138,33 +159,46 @@ const groupNodesByCluster = (nodes: AgentNode[], states: ProbeState[]): ClusterR
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([clusterId, children]) => {
       children.sort((a, b) => a.name.localeCompare(b.name))
-      const summary = children.reduce(
-        (total, node) => ({
-          cpuPercent: total.cpuPercent + node.cpuPercent,
-          memoryBytes: total.memoryBytes + node.memoryBytes,
-          healthyCount: total.healthyCount + node.healthyCount,
-          probeCount: total.probeCount + node.probeCount,
-        }),
-        { cpuPercent: 0, memoryBytes: 0, healthyCount: 0, probeCount: 0 },
-      )
+      const cpuAvailable =
+        children.some((node) => node.probeCount > 0) &&
+        children.every((node) => !node.probeCount || node.cpuPercent !== undefined)
+      const memoryAvailable =
+        children.some((node) => node.probeCount > 0) &&
+        children.every((node) => !node.probeCount || node.memoryBytes !== undefined)
+      const summary = {
+        cpuPercent: cpuAvailable
+          ? children.reduce((total, node) => total + Number(node.cpuPercent), 0)
+          : undefined,
+        memoryBytes: memoryAvailable
+          ? children.reduce((total, node) => total + Number(node.memoryBytes), 0)
+          : undefined,
+        healthyCount: children.reduce((total, node) => total + node.healthyCount, 0),
+        probeCount: children.reduce((total, node) => total + node.probeCount, 0),
+      }
       return {
         kind: 'cluster',
         key: `cluster:${clusterId}`,
         clusterId,
         name: clusterId,
+        environment:
+          [...new Set(children.map((node) => node.environment).filter(Boolean))][0] || '',
         children,
         ...summary,
       }
     })
 }
 
-const formatMemory = (bytes: number) => {
-  if (!bytes) return '-'
+const formatMemory = (bytes?: number) => {
+  if (bytes === undefined) return '-'
+  if (!bytes) return '0 MiB'
   if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GiB`
   return `${Math.round(bytes / 1024 ** 2)} MiB`
 }
 
-const formatCPU = (value: number) => (value ? `${value.toFixed(value >= 10 ? 0 : 1)}%` : '0%')
+const formatCPU = (value?: number) => {
+  if (value === undefined) return '-'
+  return value ? `${value.toFixed(value >= 10 ? 0 : 1)}%` : '0%'
+}
 
 export default function ProbeManagement() {
   const navigate = useNavigate()
@@ -189,7 +223,22 @@ export default function ProbeManagement() {
         getAgentConfigStatesApi(),
       ])
       setNodes(Array.isArray((nodeResult as any)?.nodes) ? (nodeResult as any).nodes : [])
-      setStates(Array.isArray((stateResult as any)?.states) ? (stateResult as any).states : [])
+      const loadedStates = Array.isArray((stateResult as any)?.states)
+        ? (stateResult as any).states
+        : []
+      const missingAverage = loadedStates.filter(
+        (state: ProbeState) => state.runtime && !getAveragedResourceUsage(state),
+      )
+      if (missingAverage.length) {
+        console.warn(
+          '[ProbeManagement] 10-minute resource average is unavailable for reported probes',
+          missingAverage.map((state: ProbeState) => ({
+            nodeId: state.nodeId,
+            probeType: state.probeType,
+          })),
+        )
+      }
+      setStates(loadedStates)
     } catch (error) {
       console.error('[ProbeManagement] failed to load registered probes', error)
       setNodes([])
@@ -201,7 +250,7 @@ export default function ProbeManagement() {
 
   useEffect(() => {
     load()
-    const timer = window.setInterval(load, 5000)
+    const timer = window.setInterval(load, STATUS_REFRESH_INTERVAL_MS)
     return () => window.clearInterval(timer)
   }, [load])
 
@@ -383,7 +432,7 @@ export default function ProbeManagement() {
       },
     },
     {
-      title: '探针资源开销',
+      title: '探针资源开销（近 10 分钟均值）',
       key: 'resourceUsage',
       width: '24%',
       render: (_: unknown, record: TableRow) => (
@@ -417,19 +466,11 @@ export default function ProbeManagement() {
               icon={<SettingOutlined />}
               onClick={() =>
                 navigate(
-                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&clusterType=k8s`,
+                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&clusterType=${encodeURIComponent(record.environment)}`,
                 )
               }
             >
-              批量配置
-            </Button>
-            <Button
-              type="link"
-              icon={<Radio size={15} />}
-              disabled={!record.probeCount}
-              onClick={() => openRealtimeLogs(record.children)}
-            >
-              实时日志
+              集群配置
             </Button>
           </Space>
         ) : (
@@ -440,7 +481,7 @@ export default function ProbeManagement() {
               disabled={!record.states.length}
               onClick={() =>
                 navigate(
-                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&nodeId=${encodeURIComponent(record.nodeId)}&clusterType=k8s`,
+                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&nodeId=${encodeURIComponent(record.nodeId)}&clusterType=${encodeURIComponent(record.environment)}`,
                 )
               }
             >
@@ -471,14 +512,14 @@ export default function ProbeManagement() {
             icon={<Settings size={15} />}
             onClick={() => navigate('/probe-management/config?scope=global')}
           >
-            全局配置
+            默认配置
           </Button>
           <Button
             type="primary"
             icon={<Network size={15} />}
             onClick={() => navigate('/probe-management/config')}
           >
-            多集群批量配置
+            批量配置
           </Button>
           <Tag color="processing">
             {clusters.length} 个集群 · {nodeCount} 个节点

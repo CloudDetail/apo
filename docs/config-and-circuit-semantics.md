@@ -30,6 +30,39 @@ configuration release. `generation` is monotonic for a node and probe type.
   single-file probe and are rejected for directory-style probes such as
   ilogtail.
 
+## Template variables
+
+Template variables describe stable target-node attributes. They are not
+operator-supplied deployment overrides. daemon-go reports the node attributes
+during registration, and the service renders a template separately for each
+target node before creating its releases.
+
+The canonical variable set required by the v1.0.3 Kubernetes agent package is:
+
+| Variable | Source | Used by |
+| --- | --- | --- |
+| `node_name` | Kubernetes `spec.nodeName` | apo-otel-collector-agent, vmagent |
+| `node_ip` | Kubernetes `status.hostIP` | vmagent |
+| `cluster_id` | Node registration's cluster assignment | apo-otel-collector-agent, vmagent |
+
+`cluster_id` is the exception to node self-discovery. daemon-go sends its
+configured cluster identity as part of registration, while the service uses
+the persisted node-to-cluster assignment as the rendering source of truth.
+An empty reported value must not erase a non-empty persisted cluster
+assignment.
+
+Package-specific environment names such as `MY_NODE_NAME`, `MY_NODE_IP`,
+`VM_HOSTNAME`, `VM_MY_NODE_IP`, `_node_name_`, and `_node_ip_` are aliases of
+the canonical node attributes. They are not separate template variables. The
+deployment manifest must inject the host IP into daemon-go explicitly; deriving
+it from the daemon Pod network is not reliable.
+
+The current v1.0.3 configuration bundle contains node or cluster-dependent
+values only in `apo-otel-collector-agent/otelcol-config.yaml` and
+`vmagent/scrape.yml`. The other ten managed files do not require reported
+variables. Runtime-only values such as Pod UID, resource limits, mount paths,
+and diagnostic log paths are outside the template-variable contract.
+
 ## Diagnostic log sources
 
 Diagnostic log sources are independent from configuration releases and circuit
