@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createSerializedSessionWriter, HermesSessionApi } from './sessionApi.ts'
 
+const readUserId = () => 101
+
 test('normalizes server session checkpoints with string choices', async () => {
   const api = new HermesSessionApi(
     '/hermes-api',
@@ -30,6 +32,7 @@ test('normalizes server session checkpoints with string choices', async () => {
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       ),
+    readUserId,
   )
 
   const sessions = await api.list()
@@ -92,9 +95,46 @@ test('promotes persisted capability result evidence into event payload', async (
       occurred_at: '2026-08-12T00:00:00.000Z',
       payload: { tool_id: 'tool-1', result: { schemaVersion: 'capability.result.v1', evidence } },
     }],
-  }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+  }), { status: 200, headers: { 'Content-Type': 'application/json' } }), readUserId)
 
   const events = await api.history('stored-1')
   assert.equal(events[0].payload.evidence[0].id, 'logs-1')
   assert.deepEqual(events[0].payload.evidence[0].data, [])
+})
+
+test('adds the current APO user id to every session request', async () => {
+  const calls = []
+  const api = new HermesSessionApi(
+    '/hermes-api',
+    async (_input, init) => {
+      calls.push('request')
+      assert.equal(init.credentials, 'include')
+      assert.equal(new Headers(init.headers).has('Authorization'), false)
+      assert.equal(new Headers(init.headers).get('X-Hermes-User-Id'), '101')
+      return new Response(JSON.stringify({ sessions: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    },
+    readUserId,
+  )
+
+  await api.list()
+  await api.list()
+  assert.deepEqual(calls, ['request', 'request'])
+})
+
+test('does not send a session request before the APO user id is available', async () => {
+  let requested = false
+  const api = new HermesSessionApi(
+    '/hermes-api',
+    async () => {
+      requested = true
+      return new Response(null, { status: 204 })
+    },
+    () => undefined,
+  )
+
+  await assert.rejects(() => api.remove('stored-1'), /APO 用户信息尚未加载/)
+  assert.equal(requested, false)
 })

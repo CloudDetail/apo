@@ -4,7 +4,6 @@ export { default as CapabilityVersionPage } from './pages/CapabilityVersionPage.
 export { default as CapabilityUseDrawer } from './pages/CapabilityUseDrawer.tsx'
 export * from './client/types.ts'
 export {
-  workCapabilityApi,
   WorkCapabilityApi,
   WorkCapabilityApiError,
   HermesWorkflowUnavailableError,
@@ -13,3 +12,4 @@ export {
   toWorkflowRun,
   toWorkflowVersion,
 } from './client/workCapabilityApi.ts'
+export { useWorkCapabilityApi } from './useWorkCapabilityApi.ts'

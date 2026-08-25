@@ -5,16 +5,27 @@ import type {
   PersistedConversationEvent,
 } from './types.ts'
 import { normalizeHermesEventPayload } from './eventPayload.ts'
+import {
+  HERMES_USER_ID_HEADER,
+  requireHermesUserId,
+  type HermesUserIdReader,
+} from './userScope.ts'
 
 type Fetcher = typeof fetch
 
 export class HermesSessionApi {
   private readonly baseUrl: string
   private readonly request: Fetcher
+  private readonly readUserId: HermesUserIdReader
 
-  constructor(baseUrl: string, request: Fetcher = (input, init) => fetch(input, init)) {
+  constructor(
+    baseUrl: string,
+    request: Fetcher = (input, init) => fetch(input, init),
+    readUserId: HermesUserIdReader = () => null,
+  ) {
     this.baseUrl = baseUrl
     this.request = request
+    this.readUserId = readUserId
   }
 
   async list(): Promise<HermesSessionBookmark[]> {
@@ -50,12 +61,11 @@ export class HermesSessionApi {
   }
 
   async remove(storedSessionId: string): Promise<void> {
-    const response = await this.request(
-      this.url(`/sessions/${encodeURIComponent(storedSessionId)}`),
+    const response = await this.sendRequest(
+      `/sessions/${encodeURIComponent(storedSessionId)}`,
       {
         method: 'DELETE',
         headers: requestHeaders(false),
-        credentials: 'include',
       },
     )
     if (!response.ok) throw new Error('无法删除该会话，请稍后重试。')
@@ -75,19 +85,23 @@ export class HermesSessionApi {
   }
 
   private async send<T>(path: string, init: RequestInit): Promise<T> {
-    const response = await this.request(this.url(path), {
-      ...init,
-      headers: {
-        ...requestHeaders(Boolean(init.body)),
-        ...(init.headers || {}),
-      },
-      credentials: 'include',
-    })
+    const response = await this.sendRequest(path, init)
     if (!response.ok) {
       const message = await response.text().catch(() => '')
       throw new Error(message || `Hermes 请求失败（${response.status}）。`)
     }
     return (await response.json()) as T
+  }
+
+  private async sendRequest(path: string, init: RequestInit): Promise<Response> {
+    const userId = requireHermesUserId(this.readUserId())
+    const headers = requestHeaders(Boolean(init.body), init.headers)
+    headers.set(HERMES_USER_ID_HEADER, userId)
+    return this.request(this.url(path), {
+      ...init,
+      headers,
+      credentials: 'include',
+    })
   }
 
   private url(path: string): string {
@@ -119,12 +133,10 @@ export function createSerializedSessionWriter(
   }
 }
 
-function requestHeaders(hasBody: boolean): Record<string, string> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
-  if (hasBody) headers['Content-Type'] = 'application/json'
-  const storage = typeof localStorage === 'undefined' ? null : localStorage
-  const token = storage && typeof storage.getItem === 'function' ? storage.getItem('token') : ''
-  if (token) headers.Authorization = `Bearer ${token}`
+function requestHeaders(hasBody: boolean, initial?: HeadersInit): Headers {
+  const headers = new Headers(initial)
+  headers.set('Accept', 'application/json')
+  if (hasBody) headers.set('Content-Type', 'application/json')
   return headers
 }
 

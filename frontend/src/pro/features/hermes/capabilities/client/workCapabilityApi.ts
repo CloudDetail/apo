@@ -21,6 +21,11 @@ import type {
 } from './types.ts'
 import { redactSensitiveText } from './sensitive.ts'
 import { hermesApiBaseUrl } from '../../client/config.ts'
+import {
+  HERMES_USER_ID_HEADER,
+  requireHermesUserId,
+  type HermesUserIdReader,
+} from '../../client/userScope.ts'
 
 const WORKFLOW_PREFIX = '/workflows'
 const WORKFLOW_RUN_PREFIX = '/workflow-runs'
@@ -38,6 +43,7 @@ type RequestLike = typeof fetch
 export interface WorkCapabilityApiOptions {
   request?: RequestLike
   baseUrl?: string
+  readUserId?: HermesUserIdReader
 }
 
 export class WorkCapabilityApiError extends Error {
@@ -97,13 +103,10 @@ const endpointUrl = (base: string, path: string): string => {
   return `${trimTrailingSlash(base)}${path.startsWith('/') ? path : `/${path}`}`
 }
 
-function requestHeaders(hasBody: boolean): Record<string, string> {
-  const headers: Record<string, string> = { Accept: 'application/json' }
-  if (hasBody) headers['Content-Type'] = 'application/json'
-  if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
-    const token = localStorage.getItem('token')
-    if (token) headers.Authorization = `Bearer ${token}`
-  }
+function requestHeaders(hasBody: boolean, initial?: HeadersInit): Headers {
+  const headers = new Headers(initial)
+  headers.set('Accept', 'application/json')
+  if (hasBody) headers.set('Content-Type', 'application/json')
   return headers
 }
 
@@ -495,10 +498,12 @@ function matchesRecentRun(item: WorkCapability, recentRun: string): boolean {
 export class WorkCapabilityApi {
   private readonly request: RequestLike
   private readonly baseUrl: string
+  private readonly readUserId: HermesUserIdReader
 
   constructor(options: WorkCapabilityApiOptions = {}) {
     this.request = options.request || ((input, init) => fetch(input, init))
     this.baseUrl = trimTrailingSlash(options.baseUrl ?? hermesApiBaseUrl())
+    this.readUserId = options.readUserId || (() => null)
   }
 
   async list(params: CapabilityListParams = {}): Promise<CapabilityListResult> {
@@ -608,15 +613,15 @@ export class WorkCapabilityApi {
   }
 
   private async sendJson(path: string, init: RequestInit): Promise<unknown> {
+    const userId = requireHermesUserId(this.readUserId())
     let response: Response
+    const headers = requestHeaders(Boolean(init.body), init.headers)
+    headers.set(HERMES_USER_ID_HEADER, userId)
     try {
       response = await this.request(endpointUrl(this.baseUrl, path), {
         ...init,
         credentials: 'include',
-        headers: {
-          ...requestHeaders(Boolean(init.body)),
-          ...(init.headers || {}),
-        },
+        headers,
       })
     } catch (reason) {
       throw new HermesWorkflowUnavailableError(
@@ -914,7 +919,6 @@ function assertTextLength(value: string, min: number, max: number, label: string
   }
 }
 
-export const workCapabilityApi = new WorkCapabilityApi()
 
 // Route/page names still use "capabilities" for URL compatibility.
 export const toCapability = toWorkflow

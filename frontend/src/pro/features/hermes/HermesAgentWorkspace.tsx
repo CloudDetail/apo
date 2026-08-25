@@ -1,6 +1,7 @@
 import { Alert, Button, Spin, Tooltip } from 'antd'
 import { MenuUnfoldOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ChatInput from './components/ChatInput'
 import ChatMessages from './components/ChatMessages'
@@ -8,9 +9,16 @@ import ConnectionStatus from './components/ConnectionStatus'
 import SessionSidebar from './components/SessionSidebar'
 import { useHermesSession } from './state/useHermesSession.ts'
 import type { WorkflowLaunchContext } from './capabilities/client/types.ts'
+import { canonicalHermesUserId } from './client/userScope.ts'
 import styles from './HermesAgentWorkspace.module.scss'
 
 export default function HermesAgentWorkspace() {
+  const rawUserId = useSelector((state: any) => state.userReducer?.user?.userId)
+  const userId = canonicalHermesUserId(rawUserId)
+  return <HermesAgentWorkspaceContent key={userId ? `user:${userId}` : 'pending-user'} />
+}
+
+function HermesAgentWorkspaceContent() {
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
   const navigate = useNavigate()
@@ -70,8 +78,8 @@ export default function HermesAgentWorkspace() {
   }
 
   const removeSession = async (storedSessionId: string) => {
-    await workspace.deleteSession(storedSessionId)
-    if (storedSessionId === workspace.selectedStoredSessionId) setRouteSession()
+    const deleted = await workspace.deleteSession(storedSessionId)
+    if (deleted && storedSessionId === workspace.selectedStoredSessionId) setRouteSession()
   }
 
   const title =
@@ -123,6 +131,7 @@ export default function HermesAgentWorkspace() {
               <Button
                 type="text"
                 icon={<ReloadOutlined />}
+                disabled={!workspace.userScopeReady}
                 onClick={() => void workspace.refreshSessions()}
               />
             </Tooltip>
@@ -177,6 +186,7 @@ export default function HermesAgentWorkspace() {
           stopping={workspace.state.stopping}
           stopRetryAllowed={workspace.state.stopRetryAllowed}
           disabled={
+            !workspace.userScopeReady ||
             workspace.openingSession ||
             Boolean(workspace.state.checkpoint) ||
             workspace.state.stopping

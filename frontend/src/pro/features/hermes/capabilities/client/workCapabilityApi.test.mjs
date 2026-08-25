@@ -18,6 +18,8 @@ function response(value, status = 200) {
   })
 }
 
+const readUserId = () => 101
+
 const stepMetric = {
   id: 'query_metrics',
   purpose: '查询订单错误率',
@@ -116,6 +118,7 @@ test('list requests archived Workflows and filters the Workflow envelope locally
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input) => {
       calls.push(String(input))
       return response({
@@ -137,6 +140,7 @@ test('paginates locally without sending unsupported query parameters', async () 
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input) => {
       calls.push(String(input))
       return response({ workflows: [
@@ -157,6 +161,7 @@ test('reads versions and recent runs from Workflow detail', async () => {
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input) => {
       calls.push(String(input))
       return response(detailFixture)
@@ -179,6 +184,7 @@ test('uses the migrated Workflow action and projection routes', async () => {
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input, init = {}) => {
       const url = String(input)
       calls.push([url, init.method || 'GET', init.body])
@@ -218,6 +224,7 @@ test('updates camelCase Workflow fields and preserves complete step bindings', a
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input, init = {}) => {
       const body = JSON.parse(String(init.body))
       calls.push([String(input), init.method, body])
@@ -266,6 +273,7 @@ test('only submits changed fields when other content is redacted for display', a
   const update = diffWorkflowUpdate(initial, { ...initial, name: '订单链路排查' })
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input, init = {}) => {
       calls.push([String(input), init.method, JSON.parse(String(init.body))])
       return response({ ...sensitiveFixture, name: '订单链路排查' })
@@ -329,6 +337,7 @@ test('uses single and atomic bulk delete contracts', async () => {
   const calls = []
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async (input, init = {}) => {
       calls.push([String(input), init.method, init.body ? JSON.parse(String(init.body)) : undefined])
       const ids = init.body ? JSON.parse(String(init.body)).workflowIds : ['workflow/1']
@@ -348,6 +357,7 @@ test('uses single and atomic bulk delete contracts', async () => {
 test('surfaces a running Workflow delete conflict', async () => {
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async () => response({ detail: '运行中的任务方案不能删除，请等待运行结束。' }, 409),
   })
 
@@ -360,6 +370,7 @@ test('surfaces a running Workflow delete conflict', async () => {
 test('reports Hermes connectivity failures without mentioning an APO Adapter', async () => {
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async () => { throw new Error('connection refused') },
   })
 
@@ -374,6 +385,7 @@ test('reports Hermes connectivity failures without mentioning an APO Adapter', a
 test('keeps a missing Workflow distinct from a connection failure', async () => {
   const api = new WorkCapabilityApi({
     baseUrl: '/hermes-api',
+    readUserId,
     request: async () => response({ detail: '任务方案不存在。' }, 404),
   })
 
@@ -381,6 +393,40 @@ test('keeps a missing Workflow distinct from a connection failure', async () => 
     () => api.get('missing'),
     (error) => error?.code === 'not_found' && error?.message === '任务方案不存在。',
   )
+})
+
+test('adds the current APO user id to every Workflow request', async () => {
+  const calls = []
+  const api = new WorkCapabilityApi({
+    baseUrl: '/hermes-api',
+    readUserId,
+    request: async (_input, init) => {
+      calls.push('request')
+      assert.equal(init.credentials, 'include')
+      assert.equal(new Headers(init.headers).has('Authorization'), false)
+      assert.equal(new Headers(init.headers).get('X-Hermes-User-Id'), '101')
+      return response({ workflows: [] })
+    },
+  })
+
+  await api.list()
+  await api.list()
+  assert.deepEqual(calls, ['request', 'request'])
+})
+
+test('does not send a Workflow request before the APO user id is available', async () => {
+  let requested = false
+  const api = new WorkCapabilityApi({
+    baseUrl: '/hermes-api',
+    readUserId: () => undefined,
+    request: async () => {
+      requested = true
+      return response({ workflows: [] })
+    },
+  })
+
+  await assert.rejects(() => api.list(), /APO 用户信息尚未加载/)
+  assert.equal(requested, false)
 })
 
 test('normalizes the current Workflow projection result, nodes and evidence', () => {

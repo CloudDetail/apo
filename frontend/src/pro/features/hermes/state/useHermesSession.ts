@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { checkpointFromPayload, historyFromPersistedEvents } from '../client/history.ts'
 import { JsonRpcTimeoutError } from '../client/jsonRpcClient.ts'
 import { createSerializedSessionWriter } from '../client/sessionApi.ts'
+import type { HermesSessionClient } from '../client/sessionClient.ts'
+import {
+  HermesUserScopeError,
+  HermesUserScopeGeneration,
+  type HermesUserScopeSnapshot,
+} from '../client/userScope.ts'
 import type {
   HermesEvent,
   HermesHistorySnapshot,
@@ -14,7 +20,14 @@ import { useHermesMessages } from './useHermesMessages.ts'
 import { shouldRestoreInBackground } from './sessionPolicy.ts'
 
 export function useHermesSession(requestedSessionId?: string) {
-  const { sessionClient, sessionApi, connectionStatus, connectionError } = useHermesConnection()
+  const {
+    sessionClient,
+    sessionApi,
+    userScopeKey,
+    userScopeReady,
+    connectionStatus,
+    connectionError,
+  } = useHermesConnection()
   const {
     state: messageState,
     reset: resetMessages,
@@ -44,17 +57,54 @@ export function useHermesSession(requestedSessionId?: string) {
   const restorePromiseRef = useRef<{
     storedSessionId: string
     promise: Promise<HermesSession>
+    scope: HermesUserScopeSnapshot<HermesSessionClient>
   } | null>(null)
   const messageStateRef = useRef(messageState)
   const sessionsRef = useRef<HermesSessionBookmark[]>([])
-  const writeBookmarkRef = useRef<ReturnType<typeof createSerializedSessionWriter> | null>(null)
+  const scopeGuardRef = useRef<HermesUserScopeGeneration | null>(null)
+  const previousUserScopeKeyRef = useRef(userScopeKey)
+  const sessionApiIdentityRef = useRef(sessionApi)
+  const sessionClientIdentityRef = useRef(sessionClient)
+  const writeBookmarkRef = useRef<{
+    api: typeof sessionApi
+    write: ReturnType<typeof createSerializedSessionWriter>
+  } | null>(null)
   const openGeneration = useRef(0)
   const previousConnectionStatus = useRef(connectionStatus)
   const stopFeedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  messageStateRef.current = messageState
-  if (!writeBookmarkRef.current) {
-    writeBookmarkRef.current = createSerializedSessionWriter(sessionApi)
+  if (previousUserScopeKeyRef.current !== userScopeKey) {
+    previousUserScopeKeyRef.current = userScopeKey
+    activeSessionRef.current = null
+    selectedStoredSessionIdRef.current = null
+    selectedBookmarkRef.current = null
+    restorePromiseRef.current = null
+    sessionsRef.current = []
+    openGeneration.current += 1
   }
+  if (!scopeGuardRef.current) scopeGuardRef.current = new HermesUserScopeGeneration()
+  const scopeGuard = scopeGuardRef.current
+  scopeGuard.update(userScopeKey)
+  sessionApiIdentityRef.current = sessionApi
+  sessionClientIdentityRef.current = sessionClient
+  messageStateRef.current = messageState
+  if (writeBookmarkRef.current?.api !== sessionApi) {
+    writeBookmarkRef.current = {
+      api: sessionApi,
+      write: createSerializedSessionWriter(sessionApi),
+    }
+  }
+  const bookmarkWriter = writeBookmarkRef.current
+
+  useLayoutEffect(() => {
+    scopeGuard.update(userScopeKey)
+    return () => {
+      scopeGuard.update(null)
+      if (stopFeedbackTimer.current) {
+        clearTimeout(stopFeedbackTimer.current)
+        stopFeedbackTimer.current = null
+      }
+    }
+  }, [scopeGuard, userScopeKey])
 
   const replaceSessions = useCallback((next: HermesSessionBookmark[]) => {
     const sorted = [...next].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
@@ -73,32 +123,65 @@ export function useHermesSession(requestedSessionId?: string) {
   )
 
   const refreshSessions = useCallback(async () => {
+    let scope: HermesUserScopeSnapshot<typeof sessionApi>
+    try {
+      scope = captureCurrentScope(scopeGuard, sessionApi, sessionApiIdentityRef.current)
+    } catch (reason) {
+      if (!(reason instanceof HermesUserScopeChangedError)) {
+        setSessionError(errorMessage(reason, '无法加载 Hermes 历史会话。'))
+        setLoadingSessions(false)
+      }
+      return
+    }
     setLoadingSessions(true)
     try {
       const next = await sessionApi.list()
+      if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) return
       replaceSessions(next)
       setSessionError(null)
     } catch (reason) {
+      if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) return
       setSessionError(errorMessage(reason, '无法加载 Hermes 历史会话。'))
     } finally {
-      setLoadingSessions(false)
+      if (scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) {
+        setLoadingSessions(false)
+      }
     }
-  }, [replaceSessions, sessionApi])
+  }, [replaceSessions, scopeGuard, sessionApi])
 
   const persistBookmark = useCallback(
     async (bookmark: HermesSessionBookmark, required = false) => {
+      let scope: HermesUserScopeSnapshot<typeof sessionApi>
+      try {
+        scope = captureCurrentScope(
+          scopeGuard,
+          bookmarkWriter.api,
+          sessionApiIdentityRef.current,
+        )
+      } catch (reason) {
+        if (required) throw reason
+        return bookmark
+      }
       if (selectedStoredSessionIdRef.current === bookmark.storedSessionId) {
         selectedBookmarkRef.current = bookmark
       }
       mergeSession(bookmark)
       try {
-        const saved = await writeBookmarkRef.current!(bookmark)
+        const saved = await bookmarkWriter.write(bookmark)
+        if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) {
+          if (required) throw new HermesUserScopeChangedError()
+          return bookmark
+        }
         if (selectedStoredSessionIdRef.current === saved.storedSessionId) {
           selectedBookmarkRef.current = saved
         }
         mergeSession(saved)
         return saved
       } catch (reason) {
+        if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) {
+          if (required) throw new HermesUserScopeChangedError()
+          return bookmark
+        }
         const message = errorMessage(
           reason,
           required ? '无法保存新会话，消息尚未提交。' : '会话状态暂时无法同步。',
@@ -108,7 +191,7 @@ export function useHermesSession(requestedSessionId?: string) {
         return bookmark
       }
     },
-    [mergeSession],
+    [bookmarkWriter, mergeSession, scopeGuard],
   )
 
   const restoreSelectedSession = useCallback(
@@ -116,20 +199,35 @@ export function useHermesSession(requestedSessionId?: string) {
       bookmark: HermesSessionBookmark | null = selectedBookmarkRef.current,
       force = false,
     ): Promise<HermesSession> => {
+      if (!sessionClient) throw new HermesUserScopeError()
+      const scope = captureCurrentScope(
+        scopeGuard,
+        sessionClient,
+        sessionClientIdentityRef.current,
+      )
       if (!bookmark) throw new Error('请先选择需要继续的历史会话。')
       if (!force && activeSessionRef.current?.storedSessionId === bookmark.storedSessionId) {
         return activeSessionRef.current
       }
-      if (restorePromiseRef.current?.storedSessionId === bookmark.storedSessionId) {
+      if (
+        restorePromiseRef.current?.storedSessionId === bookmark.storedSessionId &&
+        scopeGuard.isCurrent(
+          restorePromiseRef.current.scope,
+          sessionClientIdentityRef.current,
+        )
+      ) {
         return restorePromiseRef.current.promise
       }
 
       setRestoringSessionId(bookmark.storedSessionId)
       const promise = sessionClient.restore(bookmark.storedSessionId, bookmark.liveSessionId)
-      restorePromiseRef.current = { storedSessionId: bookmark.storedSessionId, promise }
+      restorePromiseRef.current = { storedSessionId: bookmark.storedSessionId, promise, scope }
       try {
         const restored = await promise
-        if (selectedStoredSessionIdRef.current !== bookmark.storedSessionId) {
+        if (
+          !scopeGuard.isCurrent(scope, sessionClientIdentityRef.current) ||
+          selectedStoredSessionIdRef.current !== bookmark.storedSessionId
+        ) {
           throw new Error('会话已切换，本次连接已取消。')
         }
         activeSessionRef.current = restored
@@ -144,17 +242,36 @@ export function useHermesSession(requestedSessionId?: string) {
         return restored
       } finally {
         if (restorePromiseRef.current?.promise === promise) restorePromiseRef.current = null
-        if (selectedStoredSessionIdRef.current === bookmark.storedSessionId) {
+        if (
+          scopeGuard.isCurrent(scope, sessionClientIdentityRef.current) &&
+          selectedStoredSessionIdRef.current === bookmark.storedSessionId
+        ) {
           setRestoringSessionId(null)
         }
       }
     },
-    [persistBookmark, sessionClient],
+    [persistBookmark, scopeGuard, sessionClient],
   )
 
   const openSession = useCallback(
     async (storedSessionId: string, force = false) => {
       if (!storedSessionId) return
+      if (!sessionClient) {
+        setSessionError(new HermesUserScopeError().message)
+        return
+      }
+      let scope: HermesUserScopeSnapshot<typeof sessionApi>
+      try {
+        scope = captureCurrentScope(scopeGuard, sessionApi, sessionApiIdentityRef.current)
+        if (sessionClientIdentityRef.current !== sessionClient) {
+          throw new HermesUserScopeChangedError()
+        }
+      } catch (reason) {
+        if (!(reason instanceof HermesUserScopeChangedError)) {
+          setSessionError(errorMessage(reason, '无法打开该会话，请稍后重试。'))
+        }
+        return
+      }
       if (!force && selectedStoredSessionIdRef.current === storedSessionId) return
       const generation = ++openGeneration.current
       selectedStoredSessionIdRef.current = storedSessionId
@@ -175,7 +292,11 @@ export function useHermesSession(requestedSessionId?: string) {
           knownBookmark ? Promise.resolve(knownBookmark) : sessionApi.get(storedSessionId),
           sessionApi.history(storedSessionId).catch(() => []),
         ])
-        if (generation !== openGeneration.current) return
+        if (
+          generation !== openGeneration.current ||
+          !scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) ||
+          sessionClientIdentityRef.current !== sessionClient
+        ) return
         selectedBookmarkRef.current = bookmark
 
         let snapshot: HermesHistorySnapshot | null = null
@@ -184,7 +305,11 @@ export function useHermesSession(requestedSessionId?: string) {
           const restored = await restoreSelectedSession(bookmark)
           snapshot = await sessionClient.historySnapshot(restored.liveSessionId)
         }
-        if (generation !== openGeneration.current) return
+        if (
+          generation !== openGeneration.current ||
+          !scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) ||
+          sessionClientIdentityRef.current !== sessionClient
+        ) return
 
         const hydratedSnapshot = {
           ...snapshot,
@@ -206,27 +331,51 @@ export function useHermesSession(requestedSessionId?: string) {
         if (persistedEvents.length && shouldRestoreInBackground(bookmark.status)) {
           void restoreSelectedSession(bookmark)
             .then(() => {
-              if (selectedStoredSessionIdRef.current !== storedSessionId) return
+              if (
+                !scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) ||
+                sessionClientIdentityRef.current !== sessionClient ||
+                selectedStoredSessionIdRef.current !== storedSessionId
+              ) return
               setStatus(
                 bookmark.status === 'waiting_confirmation' ? '等待用户回复' : '任务仍在运行',
                 bookmark.status === 'running',
               )
             })
             .catch((reason) => {
-              if (selectedStoredSessionIdRef.current !== storedSessionId) return
+              if (
+                !scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) ||
+                sessionClientIdentityRef.current !== sessionClient ||
+                selectedStoredSessionIdRef.current !== storedSessionId
+              ) return
               setSessionError(errorMessage(reason, '历史记录已显示，但实时会话暂时无法连接。'))
               setStatus('历史记录已加载，发送消息时将重试连接', running)
             })
         }
       } catch (reason) {
-        if (generation !== openGeneration.current) return
+        if (
+          generation !== openGeneration.current ||
+          !scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) ||
+          sessionClientIdentityRef.current !== sessionClient
+        ) return
         resetMessages()
         setSessionError(errorMessage(reason, '无法打开该会话，请稍后重试。'))
       } finally {
-        if (generation === openGeneration.current) setOpeningSession(false)
+        if (
+          generation === openGeneration.current &&
+          scopeGuard.isCurrent(scope, sessionApiIdentityRef.current) &&
+          sessionClientIdentityRef.current === sessionClient
+        ) setOpeningSession(false)
       }
     },
-    [hydrateMessages, resetMessages, restoreSelectedSession, sessionApi, sessionClient, setStatus],
+    [
+      hydrateMessages,
+      resetMessages,
+      restoreSelectedSession,
+      scopeGuard,
+      sessionApi,
+      sessionClient,
+      setStatus,
+    ],
   )
 
   const newConversation = useCallback(() => {
@@ -245,6 +394,12 @@ export function useHermesSession(requestedSessionId?: string) {
 
   const ensureSession = useCallback(
     async (firstPrompt: string): Promise<HermesSession> => {
+      if (!sessionClient) throw new HermesUserScopeError()
+      const scope = captureCurrentScope(
+        scopeGuard,
+        sessionClient,
+        sessionClientIdentityRef.current,
+      )
       const selectedBookmark = selectedBookmarkRef.current
       if (
         activeSessionRef.current &&
@@ -258,6 +413,9 @@ export function useHermesSession(requestedSessionId?: string) {
         return restoreSelectedSession(selectedBookmark)
       }
       const created = await sessionClient.create()
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) {
+        throw new HermesUserScopeChangedError()
+      }
       activeSessionRef.current = created
       setActiveSession(created)
       const now = new Date().toISOString()
@@ -277,6 +435,9 @@ export function useHermesSession(requestedSessionId?: string) {
       try {
         await persistBookmark(bookmark, true)
       } catch (reason) {
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) {
+          throw new HermesUserScopeChangedError()
+        }
         if (activeSessionRef.current?.storedSessionId === created.storedSessionId) {
           activeSessionRef.current = null
           setActiveSession(null)
@@ -291,9 +452,19 @@ export function useHermesSession(requestedSessionId?: string) {
         )
         throw reason
       }
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) {
+        throw new HermesUserScopeChangedError()
+      }
       return created
     },
-    [persistBookmark, replaceSessions, restoreSelectedSession, sessionClient, setStatus],
+    [
+      persistBookmark,
+      replaceSessions,
+      restoreSelectedSession,
+      scopeGuard,
+      sessionClient,
+      setStatus,
+    ],
   )
 
   const updateActiveBookmark = useCallback(
@@ -326,13 +497,33 @@ export function useHermesSession(requestedSessionId?: string) {
     async (rawText: string, workflowId?: string): Promise<string | undefined> => {
       const text = rawText.trim()
       if (!text) return selectedStoredSessionIdRef.current || undefined
+      if (!userScopeReady || !sessionClient) {
+        setSessionError(new HermesUserScopeError().message)
+        return undefined
+      }
+      let scope: HermesUserScopeSnapshot<HermesSessionClient>
+      try {
+        scope = captureCurrentScope(
+          scopeGuard,
+          sessionClient,
+          sessionClientIdentityRef.current,
+        )
+      } catch (reason) {
+        if (!(reason instanceof HermesUserScopeChangedError)) {
+          setSessionError(errorMessage(reason, '消息发送失败。'))
+        }
+        return undefined
+      }
       if (messageState.busy) {
         addUserMessage(text, messageState.activeRunId)
         try {
           const session = await ensureSession(text)
+          if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
           await sessionClient.steer(session.liveSessionId, text)
+          if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
           return session.storedSessionId
         } catch (reason) {
+          if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
           setSessionError(errorMessage(reason, '无法补充当前任务要求。'))
           return undefined
         }
@@ -343,6 +534,7 @@ export function useHermesSession(requestedSessionId?: string) {
       submitStarted(text, runId)
       try {
         session = await ensureSession(text)
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
         void updateActiveBookmark(
           {
             status: 'running',
@@ -353,7 +545,9 @@ export function useHermesSession(requestedSessionId?: string) {
         )
         try {
           await sessionClient.submit(session.liveSessionId, text, runId, workflowId)
+          if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
         } catch (reason) {
+          if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
           const currentState = messageStateRef.current
           if (currentState.activeRunId !== runId || !currentState.busy) {
             return session.storedSessionId
@@ -367,6 +561,7 @@ export function useHermesSession(requestedSessionId?: string) {
         }
         return session.storedSessionId
       } catch (reason) {
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return undefined
         sendFailed(errorMessage(reason, '消息发送失败。'))
         if (session) {
           void updateActiveBookmark(
@@ -382,25 +577,51 @@ export function useHermesSession(requestedSessionId?: string) {
       ensureSession,
       messageState.activeRunId,
       messageState.busy,
+      scopeGuard,
       sendFailed,
       sessionClient,
       setStatus,
       submitStarted,
       updateActiveBookmark,
+      userScopeReady,
     ],
   )
 
   const interrupt = useCallback(async () => {
     if (!messageState.busy) return
     if (messageState.stopping && !messageState.stopRetryAllowed) return
+    if (!sessionClient) {
+      setSessionError(new HermesUserScopeError().message)
+      return
+    }
+    let scope: HermesUserScopeSnapshot<HermesSessionClient>
+    try {
+      scope = captureCurrentScope(
+        scopeGuard,
+        sessionClient,
+        sessionClientIdentityRef.current,
+      )
+    } catch (reason) {
+      if (!(reason instanceof HermesUserScopeChangedError)) {
+        setSessionError(errorMessage(reason, '无法停止当前任务。'))
+      }
+      return
+    }
     if (stopFeedbackTimer.current) clearTimeout(stopFeedbackTimer.current)
     stopRequested()
-    stopFeedbackTimer.current = setTimeout(stopRetryAvailable, 3_000)
+    stopFeedbackTimer.current = setTimeout(() => {
+      if (scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) {
+        stopRetryAvailable()
+      }
+    }, 3_000)
     try {
       const session = activeSessionRef.current || (await ensureSession(''))
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
       await sessionClient.interrupt(session.liveSessionId)
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
       stopAcknowledged()
     } catch (reason) {
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
       if (stopFeedbackTimer.current) {
         clearTimeout(stopFeedbackTimer.current)
         stopFeedbackTimer.current = null
@@ -412,6 +633,7 @@ export function useHermesSession(requestedSessionId?: string) {
     messageState.busy,
     messageState.stopRetryAllowed,
     messageState.stopping,
+    scopeGuard,
     sessionClient,
     stopAcknowledged,
     stopFailed,
@@ -423,15 +645,34 @@ export function useHermesSession(requestedSessionId?: string) {
     async (answer: string) => {
       const checkpoint = messageState.checkpoint
       if (!checkpoint || !answer.trim()) return
+      if (!sessionClient) {
+        setSessionError(new HermesUserScopeError().message)
+        return
+      }
+      let scope: HermesUserScopeSnapshot<HermesSessionClient>
+      try {
+        scope = captureCurrentScope(
+          scopeGuard,
+          sessionClient,
+          sessionClientIdentityRef.current,
+        )
+      } catch (reason) {
+        if (!(reason instanceof HermesUserScopeChangedError)) {
+          setSessionError(errorMessage(reason, '无法提交确认结果。'))
+        }
+        return
+      }
       const visibleAnswer =
         checkpoint.choices.find((choice) => choice.value === answer)?.label || answer
       try {
         const session = await ensureSession(visibleAnswer)
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
         if (checkpoint.type === 'approval') {
           await sessionClient.respondApproval(session.liveSessionId, checkpoint.requestId, answer)
         } else {
           await sessionClient.respondClarification(checkpoint.requestId, answer)
         }
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
         checkpointResponded(visibleAnswer)
         await updateActiveBookmark({
           status: 'running',
@@ -439,6 +680,7 @@ export function useHermesSession(requestedSessionId?: string) {
           activeRunId: messageState.activeRunId,
         })
       } catch (reason) {
+        if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
         sendFailed(errorMessage(reason, '无法提交确认结果。'))
       }
     },
@@ -447,6 +689,7 @@ export function useHermesSession(requestedSessionId?: string) {
       ensureSession,
       messageState.activeRunId,
       messageState.checkpoint,
+      scopeGuard,
       sendFailed,
       sessionClient,
       updateActiveBookmark,
@@ -468,31 +711,64 @@ export function useHermesSession(requestedSessionId?: string) {
 
   const deleteSession = useCallback(
     async (storedSessionId: string) => {
+      let scope: HermesUserScopeSnapshot<typeof sessionApi>
+      try {
+        scope = captureCurrentScope(scopeGuard, sessionApi, sessionApiIdentityRef.current)
+      } catch (reason) {
+        if (!(reason instanceof HermesUserScopeChangedError)) {
+          setSessionError(errorMessage(reason, '无法删除该会话，请稍后重试。'))
+        }
+        return false
+      }
       await sessionApi.remove(storedSessionId)
+      if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) return false
       replaceSessions(
         sessionsRef.current.filter((item) => item.storedSessionId !== storedSessionId),
       )
       if (selectedStoredSessionIdRef.current === storedSessionId) newConversation()
+      return true
     },
-    [newConversation, replaceSessions, sessionApi],
+    [newConversation, replaceSessions, scopeGuard, sessionApi],
   )
 
   useEffect(() => {
-    void refreshSessions()
-  }, [refreshSessions])
+    if (stopFeedbackTimer.current) {
+      clearTimeout(stopFeedbackTimer.current)
+      stopFeedbackTimer.current = null
+    }
+    previousConnectionStatus.current = 'idle'
+    setLoadingSessions(true)
+    replaceSessions([])
+    newConversation()
+    if (userScopeReady) void refreshSessions()
+    else setLoadingSessions(false)
+  }, [newConversation, refreshSessions, replaceSessions, userScopeKey, userScopeReady])
 
   useEffect(() => {
     if (
+      userScopeReady &&
       requestedSessionId &&
       requestedSessionId !== selectedStoredSessionIdRef.current &&
       !openingSession
     ) {
       void openSession(requestedSessionId)
     }
-  }, [openSession, openingSession, requestedSessionId])
+  }, [openSession, openingSession, requestedSessionId, userScopeReady])
 
   useEffect(() => {
+    if (!sessionClient) return undefined
+    let scope: HermesUserScopeSnapshot<HermesSessionClient>
+    try {
+      scope = captureCurrentScope(
+        scopeGuard,
+        sessionClient,
+        sessionClientIdentityRef.current,
+      )
+    } catch {
+      return undefined
+    }
     const unsubscribe = sessionClient.subscribe((event) => {
+      if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
       const session = activeSessionRef.current
       if (!session || (event.sessionId && event.sessionId !== session.liveSessionId)) return
       applyEvent(event)
@@ -512,7 +788,7 @@ export function useHermesSession(requestedSessionId?: string) {
       }
     })
     return unsubscribe
-  }, [applyEvent, sessionClient, updateActiveBookmark])
+  }, [applyEvent, scopeGuard, sessionClient, updateActiveBookmark])
 
   useEffect(() => {
     const previous = previousConnectionStatus.current
@@ -524,23 +800,27 @@ export function useHermesSession(requestedSessionId?: string) {
       (activeSessionRef.current || shouldRestoreInBackground(selectedBookmarkRef.current.status))
     ) {
       const bookmark = selectedBookmarkRef.current
+      const client = sessionClientIdentityRef.current
+      let scope: HermesUserScopeSnapshot<typeof client>
+      try {
+        scope = captureCurrentScope(scopeGuard, client, sessionClientIdentityRef.current)
+      } catch {
+        return
+      }
       void restoreSelectedSession(bookmark, true).catch((reason) => {
-        if (selectedStoredSessionIdRef.current !== bookmark.storedSessionId) return
+        if (
+          !scopeGuard.isCurrent(scope, sessionClientIdentityRef.current) ||
+          selectedStoredSessionIdRef.current !== bookmark.storedSessionId
+        ) return
         setSessionError(errorMessage(reason, '实时会话重新连接失败。'))
       })
     }
-  }, [connectionStatus, restoreSelectedSession])
-
-  useEffect(
-    () => () => {
-      if (stopFeedbackTimer.current) clearTimeout(stopFeedbackTimer.current)
-    },
-    [],
-  )
+  }, [connectionStatus, restoreSelectedSession, scopeGuard])
 
   return {
     sessions,
     activeSession,
+    userScopeReady,
     selectedStoredSessionId,
     restoringSession: Boolean(restoringSessionId && restoringSessionId === selectedStoredSessionId),
     loadingSessions,
@@ -604,4 +884,23 @@ function promptTitle(prompt: string): string {
 
 function errorMessage(reason: unknown, fallback: string): string {
   return reason instanceof Error && reason.message ? reason.message : fallback
+}
+
+class HermesUserScopeChangedError extends Error {
+  constructor() {
+    super('APO 用户已切换，本次 Hermes 操作已取消。')
+    this.name = 'HermesUserScopeChangedError'
+  }
+}
+
+function captureCurrentScope<T>(
+  guard: HermesUserScopeGeneration,
+  identity: T,
+  currentIdentity: T,
+): HermesUserScopeSnapshot<T> {
+  const snapshot = guard.capture(identity)
+  if (!guard.isCurrent(snapshot, currentIdentity)) {
+    throw new HermesUserScopeChangedError()
+  }
+  return snapshot
 }

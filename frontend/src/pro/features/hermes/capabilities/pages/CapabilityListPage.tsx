@@ -4,12 +4,20 @@ import { ArrowLeftOutlined, DeleteOutlined, EyeOutlined, ReloadOutlined, SearchO
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { CapabilityListParams, WorkCapability } from '../client/types.ts'
 import { StatusTag, formatCount, formatDate } from '../components/CapabilityPanels.tsx'
-import { useWorkCapabilityApi } from '../useWorkCapabilityApi.ts'
+import {
+  useWorkCapabilityApi,
+  useWorkCapabilityUserScopeKey,
+} from '../useWorkCapabilityApi.ts'
 import styles from './index.module.scss'
 
 const { Title, Text } = Typography
 
 export default function CapabilityListPage() {
+  const userScopeKey = useWorkCapabilityUserScopeKey()
+  return <CapabilityListView key={userScopeKey ? `user:${userScopeKey}` : 'pending-user'} />
+}
+
+function CapabilityListView() {
   const workCapabilityApi = useWorkCapabilityApi()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()

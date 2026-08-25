@@ -24,10 +24,7 @@ import {
   UndoOutlined,
 } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  WorkCapabilityApiError,
-  workCapabilityApi,
-} from '../client/workCapabilityApi.ts'
+import { WorkCapabilityApiError } from '../client/workCapabilityApi.ts'
 import type {
   CapabilityProjection,
   WorkflowRun,
@@ -47,6 +44,10 @@ import {
 } from '../components/CapabilityPanels.tsx'
 import CapabilityUseDrawer from './CapabilityUseDrawer.tsx'
 import CapabilityEditDrawer from './CapabilityEditDrawer.tsx'
+import {
+  useWorkCapabilityApi,
+  useWorkCapabilityUserScopeKey,
+} from '../useWorkCapabilityApi.ts'
 import styles from './index.module.scss'
 
 const { Title, Text } = Typography
@@ -61,6 +62,17 @@ export default function CapabilityDetailPage() {
 }
 
 export function CapabilityDetailView({ forcedVersion }: CapabilityDetailViewProps) {
+  const userScopeKey = useWorkCapabilityUserScopeKey()
+  return (
+    <CapabilityDetailViewContent
+      key={userScopeKey ? `user:${userScopeKey}` : 'pending-user'}
+      forcedVersion={forcedVersion}
+    />
+  )
+}
+
+function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProps) {
+  const workCapabilityApi = useWorkCapabilityApi()
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const [capability, setCapability] = useState<WorkCapability | null>(null)
@@ -106,7 +118,7 @@ export function CapabilityDetailView({ forcedVersion }: CapabilityDetailViewProp
     } finally {
       setLoading(false)
     }
-  }, [id, replaceCapability])
+  }, [id, replaceCapability, workCapabilityApi])
 
   useEffect(() => {
     void load()

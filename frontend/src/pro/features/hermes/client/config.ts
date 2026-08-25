@@ -1,3 +1,8 @@
+import {
+  HERMES_USER_ID_QUERY,
+  requireHermesUserId,
+} from './userScope.ts'
+
 const DEFAULT_API_BASE_URL = '/hermes-api'
 const DEFAULT_WS_URL = '/hermes-ws'
 
@@ -8,9 +13,16 @@ export function hermesApiBaseUrl(): string {
   return trimTrailingSlash(configured || DEFAULT_API_BASE_URL)
 }
 
-export function hermesWebSocketUrl(locationValue: Location = window.location): string {
+export function hermesWebSocketUrl(
+  userId?: unknown,
+  locationValue: Location = window.location,
+): string {
   const configured = String((import.meta as any).env?.VITE_HERMES_WS_URL || '').trim()
-  return resolveWebSocketUrl(configured || DEFAULT_WS_URL, locationValue)
+  const resolved = resolveWebSocketUrl(configured || DEFAULT_WS_URL, locationValue)
+  const normalizedUserId = requireHermesUserId(userId)
+  const url = new URL(resolved)
+  url.searchParams.set(HERMES_USER_ID_QUERY, normalizedUserId)
+  return url.toString()
 }
 
 export function configuredAgentEngine(): AgentEngine {
