@@ -84,6 +84,22 @@ export class HermesSessionApi {
       : []
   }
 
+  async interrupt(
+    storedSessionId: string,
+    activeRunId: string | null,
+  ): Promise<HermesSessionBookmark> {
+    const payload = await this.send<unknown>(
+      `/sessions/${encodeURIComponent(storedSessionId)}/interrupt`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ active_run_id: activeRunId, cause: 'user_requested' }),
+      },
+    )
+    const session = normalizeBookmark(payload)
+    if (!session) throw new Error('Hermes 没有成功保存停止状态。')
+    return session
+  }
+
   private async send<T>(path: string, init: RequestInit): Promise<T> {
     const response = await this.sendRequest(path, init)
     if (!response.ok) {

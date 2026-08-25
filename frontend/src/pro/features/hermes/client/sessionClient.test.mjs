@@ -4,14 +4,17 @@ import test from 'node:test'
 import { resolveWebSocketUrl } from './config.ts'
 import { HermesSessionClient, normalizeEvent, normalizeSession, promptWithWorkflowSelection } from './sessionClient.ts'
 
-function clientWithRequests(result = { accepted: true }) {
+function clientWithRequests(
+  result = { status: 'queued' },
+  interruptResult = { status: 'interrupted' },
+) {
   const requests = []
   const requestOptions = []
   const rpc = {
     request(method, params, options) {
       requests.push([method, params])
       requestOptions.push([method, options])
-      return Promise.resolve(result)
+      return Promise.resolve(method === 'session.interrupt' ? interruptResult : result)
     },
     subscribe() {
       return () => {}
@@ -42,6 +45,28 @@ test('HermesSessionClient uses the native session JSON-RPC methods', async () =>
     ['approval.respond', { timeoutMs: 5_000 }],
     ['clarify.respond', { timeoutMs: 5_000 }],
   ])
+})
+
+test('requires the native interrupt acknowledgement to be terminal', async () => {
+  const { client } = clientWithRequests({ status: 'queued' }, { status: 'accepted' })
+
+  await assert.rejects(() => client.interrupt('live-1'), /没有确认当前任务已停止/)
+})
+
+test('requires prompt submission to be queued or streaming', async () => {
+  for (const result of [{ status: 'rejected' }, { accepted: true }, null]) {
+    const { client } = clientWithRequests(result)
+    await assert.rejects(
+      () => client.submit('live-1', '分析订单服务', 'run-rejected'),
+      /未接受当前任务/,
+    )
+  }
+
+  const { client } = clientWithRequests({ status: 'streaming' })
+  assert.deepEqual(
+    await client.submit('live-1', '分析订单服务', 'run-streaming'),
+    { status: 'streaming' },
+  )
 })
 
 test('submits an explicitly selected Hermes Workflow without accepting forged markers', async () => {

@@ -44,6 +44,41 @@ test('normalizes server session checkpoints with string choices', async () => {
   assert.equal(sessions[0].checkpoint.purpose, 'plan_confirmation')
 })
 
+test('persists a user-requested interruption for the active run', async () => {
+  const requests = []
+  const api = new HermesSessionApi(
+    '/hermes-api',
+    async (input, init) => {
+      requests.push({ input, init })
+      return new Response(
+        JSON.stringify({
+          stored_session_id: 'stored/stop',
+          live_session_id: 'live-stop',
+          title: '停止测试',
+          created_at: '2026-08-25T03:15:30.000Z',
+          updated_at: '2026-08-25T03:16:00.000Z',
+          status: 'interrupted',
+          active_run_id: 'run-stop',
+          checkpoint: null,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      )
+    },
+    readUserId,
+  )
+
+  const interrupted = await api.interrupt('stored/stop', 'run-stop')
+
+  assert.equal(interrupted.status, 'interrupted')
+  assert.equal(interrupted.activeRunId, 'run-stop')
+  assert.equal(requests[0].input, '/hermes-api/sessions/stored%2Fstop/interrupt')
+  assert.equal(requests[0].init.method, 'POST')
+  assert.deepEqual(JSON.parse(requests[0].init.body), {
+    active_run_id: 'run-stop',
+    cause: 'user_requested',
+  })
+})
+
 test('serializes writes for the same newly created session', async () => {
   const calls = []
   let releaseFirst

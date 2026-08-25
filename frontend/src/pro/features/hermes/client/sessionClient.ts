@@ -79,13 +79,13 @@ export class HermesSessionClient {
     return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `run-${Date.now()}`
   }
 
-  submit(
+  async submit(
     liveSessionId: string,
     text: string,
     clientRunId = this.createRunId(),
     workflowId?: string,
   ) {
-    return this.rpc.request(
+    const result = await this.rpc.request<unknown>(
       'prompt.submit',
       {
         session_id: liveSessionId,
@@ -94,6 +94,11 @@ export class HermesSessionClient {
       },
       { timeoutMs: SUBMIT_TIMEOUT },
     )
+    const status = isObject(result) ? String(result.status || '').trim() : ''
+    if (status !== 'queued' && status !== 'streaming') {
+      throw new Error('Hermes 未接受当前任务，请重新发送。')
+    }
+    return result
   }
 
   steer(liveSessionId: string, text: string) {
@@ -107,12 +112,16 @@ export class HermesSessionClient {
     )
   }
 
-  interrupt(liveSessionId: string) {
-    return this.rpc.request(
+  async interrupt(liveSessionId: string) {
+    const result = await this.rpc.request<unknown>(
       'session.interrupt',
       { session_id: liveSessionId },
       { timeoutMs: SESSION_ACTION_TIMEOUT },
     )
+    if (!isObject(result) || String(result.status || '').trim() !== 'interrupted') {
+      throw new Error('Hermes 没有确认当前任务已停止，请重试。')
+    }
+    return result
   }
 
   respondApproval(liveSessionId: string, requestId: string, choice: string) {

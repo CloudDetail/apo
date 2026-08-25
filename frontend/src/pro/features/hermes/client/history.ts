@@ -12,6 +12,12 @@ import type {
   HermesToolActivity,
   PersistedConversationEvent,
 } from './types.ts'
+import {
+  isInterruptedTerminalEvent,
+  isRunScopedEventType,
+  runIdFromEventPayload,
+  runStartEventDecision,
+} from './eventPayload.ts'
 import { isPlanToolPayload, planFingerprint, planFromToolPayload } from './plan.ts'
 
 export function historyFromPersistedEvents(
@@ -21,8 +27,11 @@ export function historyFromPersistedEvents(
   const toolIndexes = new Map<string, number>()
   const planFingerprints = new Set<string>()
   const runStatusIndexes = new Map<string, number>()
+  const interruptedRunIds = new Set<string>()
   let checkpoint: HermesCheckpoint | null = null
   let activeRunId: string | null = null
+  let interruptedRunAwaitingNextStart = false
+  let pendingRunStartId: string | null = null
   let reasoning = ''
   let reasoningRecord: PersistedConversationEvent | null = null
 
@@ -41,11 +50,16 @@ export function historyFromPersistedEvents(
   for (const record of [...records].sort((left, right) => left.sequenceNo - right.sequenceNo)) {
     const payload = record.payload
     const runId = record.runId || activeRunId
+    const payloadRunId = runIdFromEventPayload(payload)
 
     if (record.direction === 'browser_to_gateway') {
       if (record.eventType === 'prompt.submit') {
         activeRunId = record.runId
         checkpoint = null
+        if (interruptedRunAwaitingNextStart) {
+          pendingRunStartId = record.runId || payloadRunId
+          interruptedRunAwaitingNextStart = false
+        }
         const content = visibleMessageText(contentText(payload.text))
         if (content) pushMessage(timeline, 'user', content, record, true)
         if (record.runId) {
@@ -78,6 +92,22 @@ export function historyFromPersistedEvents(
       continue
     }
 
+    const runStartDecision = runStartEventDecision(
+      pendingRunStartId,
+      record.eventType,
+      payloadRunId,
+    )
+    if (runStartDecision === 'ignore') continue
+    if (runStartDecision === 'clear') pendingRunStartId = null
+
+    const interruptedTerminal = isInterruptedTerminalEvent(record.eventType, payload)
+    const eventIdentityRunId = payloadRunId || runId
+    if (
+      eventIdentityRunId &&
+      isRunScopedEventType(record.eventType) &&
+      interruptedRunIds.has(eventIdentityRunId)
+    ) continue
+
     if (record.eventType === 'message.delta') {
       flushReasoning()
       appendAssistant(
@@ -97,8 +127,8 @@ export function historyFromPersistedEvents(
     if (record.eventType === 'message.complete') {
       flushReasoning()
       completeAssistant(timeline, contentText(payload.text ?? payload.content), record)
-      checkpoint = null
-      const interrupted = payload.status === 'interrupted'
+      const interrupted = interruptedTerminal
+      const interruptedActiveRun = interrupted && Boolean(runId) && activeRunId === runId
       if (runId) {
         finishRunStatus(
           timeline,
@@ -109,8 +139,13 @@ export function historyFromPersistedEvents(
           interrupted ? '任务已停止' : '本轮分析已完成',
           interrupted ? '已保留停止前产生的内容' : '可以继续追问或补充分析范围',
         )
+        if (interrupted) interruptedRunIds.add(runId)
       }
-      activeRunId = null
+      if (interruptedActiveRun) interruptedRunAwaitingNextStart = true
+      if (activeRunId === runId) {
+        activeRunId = null
+        checkpoint = null
+      }
       continue
     }
     if (record.eventType === 'reasoning.delta') {
@@ -180,8 +215,10 @@ export function historyFromPersistedEvents(
           '可以继续追问或补充分析范围',
         )
       }
-      activeRunId = null
-      checkpoint = null
+      if (activeRunId === runId) {
+        activeRunId = null
+        checkpoint = null
+      }
       continue
     }
     if (record.eventType === 'run.failed' || record.eventType === 'error') {
@@ -196,11 +233,14 @@ export function historyFromPersistedEvents(
           contentText(payload.message) || '运行过程中发生异常',
         )
       }
-      activeRunId = null
-      checkpoint = null
+      if (activeRunId === runId) {
+        activeRunId = null
+        checkpoint = null
+      }
       continue
     }
-    if (record.eventType === 'session.interrupted') {
+    if (interruptedTerminal) {
+      const interruptedActiveRun = Boolean(runId) && activeRunId === runId
       if (runId) {
         finishRunStatus(
           timeline,
@@ -211,9 +251,13 @@ export function historyFromPersistedEvents(
           '任务已停止',
           '已保留停止前产生的内容',
         )
+        interruptedRunIds.add(runId)
       }
-      activeRunId = null
-      checkpoint = null
+      if (interruptedActiveRun) interruptedRunAwaitingNextStart = true
+      if (activeRunId === runId) {
+        activeRunId = null
+        checkpoint = null
+      }
     }
   }
 
@@ -616,7 +660,8 @@ function updateRunStatus(
   const index = indexes.get(runId)
   if (index === undefined) return
   const item = timeline[index]
-  if (item.kind === 'run_status') timeline[index] = { ...item, ...patch }
+  if (item.kind !== 'run_status' || item.status === 'interrupted') return
+  timeline[index] = { ...item, ...patch }
 }
 
 function finishRunStatus(
@@ -632,6 +677,7 @@ function finishRunStatus(
   if (index === undefined) return
   const item = timeline[index]
   if (item.kind !== 'run_status') return
+  if (item.status === 'interrupted' && status !== 'interrupted') return
   const durationMs = Math.max(
     0,
     new Date(record.occurredAt).getTime() - new Date(item.startedAt || item.occurredAt).getTime(),

@@ -57,6 +57,138 @@ test('restores messages and execution activities in persisted event order', () =
   assert.equal(snapshot.timeline[1].status, 'completed')
 })
 
+test('restores a persisted user interruption as a terminal run', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '分析主机资源' }, 'run-stop'),
+    record(
+      2,
+      'gateway_to_browser',
+      'session.interrupted',
+      { message: '用户已停止当前任务。' },
+      'run-stop',
+    ),
+  ])
+
+  const runStatus = snapshot.timeline.find((item) => item.kind === 'run_status')
+  assert.equal(runStatus.status, 'interrupted')
+  assert.equal(runStatus.label, '任务已停止')
+  assert.equal(snapshot.activeRunId, null)
+  assert.equal(snapshot.checkpoint, null)
+})
+
+for (const eventType of ['run.cancelled', 'run.canceled']) {
+  test(`restores ${eventType} as an interrupted terminal run`, () => {
+    const runId = `run-${eventType}`
+    const snapshot = historyFromPersistedEvents([
+      record(1, 'browser_to_gateway', 'prompt.submit', { text: '停止任务' }, runId),
+      record(2, 'gateway_to_browser', eventType, {}, runId),
+    ])
+
+    const runStatus = snapshot.timeline.find(
+      (item) => item.kind === 'run_status' && item.runId === runId,
+    )
+    assert.equal(runStatus.status, 'interrupted')
+    assert.equal(runStatus.label, '任务已停止')
+    assert.equal(snapshot.activeRunId, null)
+  })
+}
+
+test('keeps a newer run active when an interrupted run receives a delayed terminal event', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '旧任务' }, 'run-old'),
+    record(2, 'gateway_to_browser', 'session.interrupted', {}, 'run-old'),
+    record(3, 'browser_to_gateway', 'prompt.submit', { text: '新任务' }, 'run-new'),
+    record(4, 'gateway_to_browser', 'error', { message: '旧任务迟到错误' }, 'run-old'),
+    record(5, 'gateway_to_browser', 'message.complete', { text: '旧任务迟到回答' }, 'run-old'),
+    record(6, 'gateway_to_browser', 'session.interrupted', {}, 'run-old'),
+    record(7, 'gateway_to_browser', 'run.cancelled', {}, 'run-old'),
+    record(
+      8,
+      'gateway_to_browser',
+      'message.complete',
+      { text: '旧任务迟到的中断回答', status: 'interrupted' },
+      'run-old',
+    ),
+  ])
+
+  const runStatuses = snapshot.timeline.filter((item) => item.kind === 'run_status')
+  assert.equal(runStatuses.find((item) => item.runId === 'run-old').status, 'interrupted')
+  assert.equal(runStatuses.find((item) => item.runId === 'run-new').status, 'running')
+  assert.equal(snapshot.activeRunId, 'run-new')
+  assert.equal(
+    snapshot.timeline.some(
+      (item) =>
+        item.kind === 'message' &&
+        ['旧任务迟到回答', '旧任务迟到的中断回答'].includes(item.message.content),
+    ),
+    false,
+  )
+})
+
+test('ignores unscoped activity persisted after an interrupted run', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '旧任务' }, 'run-old'),
+    record(2, 'gateway_to_browser', 'session.interrupted', {}, 'run-old'),
+    record(
+      3,
+      'gateway_to_browser',
+      'tool.completed',
+      { tool_id: 'old-tool', name: 'query_old_data', result: { stale: true } },
+      'run-old',
+    ),
+  ])
+
+  assert.equal(snapshot.timeline.some((item) => item.kind === 'activity'), false)
+  assert.equal(snapshot.timeline.find((item) => item.kind === 'run_status').status, 'interrupted')
+  assert.equal(snapshot.activeRunId, null)
+})
+
+test('ignores an unscoped old completion persisted against a queued run before message.start', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '旧任务' }, 'run-old'),
+    record(
+      2,
+      'gateway_to_browser',
+      'session.interrupted',
+      { run_id: 'run-old' },
+      'run-old',
+    ),
+    record(3, 'browser_to_gateway', 'prompt.submit', { text: '新任务' }, 'run-new'),
+    record(
+      4,
+      'gateway_to_browser',
+      'message.complete',
+      { text: '旧任务迟到回答' },
+      'run-new',
+    ),
+    record(5, 'gateway_to_browser', 'message.start', {}, 'run-new'),
+    record(
+      6,
+      'gateway_to_browser',
+      'message.complete',
+      { text: '新任务回答' },
+      'run-new',
+    ),
+  ])
+
+  const runStatuses = snapshot.timeline.filter((item) => item.kind === 'run_status')
+  assert.equal(runStatuses.find((item) => item.runId === 'run-old').status, 'interrupted')
+  assert.equal(runStatuses.find((item) => item.runId === 'run-new').status, 'completed')
+  assert.equal(snapshot.activeRunId, null)
+  assert.equal(
+    snapshot.timeline.some(
+      (item) => item.kind === 'message' && item.message.content === '旧任务迟到回答',
+    ),
+    false,
+  )
+  assert.equal(
+    snapshot.timeline.some(
+      (item) => item.kind === 'message' && item.message.content === '新任务回答',
+    ),
+    true,
+  )
+})
+
 test('restores persisted evidence on its original tool activity', () => {
   const snapshot = historyFromPersistedEvents([
     record(1, 'browser_to_gateway', 'prompt.submit', { text: '查询日志' }, 'run-evidence'),

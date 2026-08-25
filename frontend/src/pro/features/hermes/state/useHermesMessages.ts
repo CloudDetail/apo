@@ -42,7 +42,7 @@ export function useHermesMessages() {
     [],
   )
   const stopFailed = useCallback(
-    (error: string) => dispatch({ type: 'STOP_FAILED', error }),
+    (error: string, runId: string | null) => dispatch({ type: 'STOP_FAILED', error, runId }),
     [],
   )
   const setStatus = useCallback(

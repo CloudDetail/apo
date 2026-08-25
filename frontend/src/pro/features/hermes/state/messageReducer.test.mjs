@@ -230,6 +230,158 @@ test('shows an immediate stopping state and enables retry after timeout', () => 
   assert.equal(retryable.statusText, '停止请求尚未确认，可重试')
 })
 
+test('finishes the stopping state when the interrupt acknowledgement is persisted', () => {
+  const started = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED',
+    text: '停止测试',
+    runId: 'run-stop-ack',
+  })
+  const stopping = hermesMessageReducer(started, { type: 'STOP_REQUESTED' })
+  const acknowledged = hermesMessageReducer(stopping, { type: 'STOP_ACKNOWLEDGED' })
+  const interrupted = hermesMessageReducer(
+    acknowledged,
+    event('session.interrupted', { run_id: 'run-stop-ack', message: '用户已停止当前任务。' }),
+  )
+
+  assert.equal(interrupted.busy, false)
+  assert.equal(interrupted.stopping, false)
+  assert.equal(interrupted.stopRetryAllowed, false)
+  assert.equal(interrupted.activeRunId, null)
+  assert.equal(interrupted.statusText, '处理已中断')
+  assert.equal(interrupted.timeline[1].status, 'interrupted')
+  assert.equal(interrupted.timeline[1].label, '任务已停止')
+})
+
+for (const eventType of ['run.cancelled', 'run.canceled']) {
+  test(`treats ${eventType} as an interrupted terminal event`, () => {
+    const started = hermesMessageReducer(initialHermesMessageState, {
+      type: 'SUBMIT_STARTED',
+      text: '停止测试',
+      runId: `run-${eventType}`,
+    })
+    const interrupted = hermesMessageReducer(
+      started,
+      event(eventType, { run_id: `run-${eventType}` }),
+    )
+
+    assert.equal(interrupted.busy, false)
+    assert.equal(interrupted.activeRunId, null)
+    assert.equal(interrupted.statusText, '处理已中断')
+    assert.equal(interrupted.timeline[1].status, 'interrupted')
+  })
+}
+
+test('ignores a delayed terminal event for an interrupted run after a new run starts', () => {
+  let state = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED',
+    text: '旧任务',
+    runId: 'run-interrupted-old',
+  })
+  state = hermesMessageReducer(
+    state,
+    event('session.interrupted', { run_id: 'run-interrupted-old' }),
+  )
+  state = hermesMessageReducer(state, {
+    type: 'SUBMIT_STARTED',
+    text: '新任务',
+    runId: 'run-active-new',
+  })
+
+  const lateEvents = [
+    event('error', { run_id: 'run-interrupted-old', message: '旧任务迟到错误' }),
+    event('session.interrupted', { run_id: 'run-interrupted-old' }),
+    event('run.cancelled', { run_id: 'run-interrupted-old' }),
+    event('message.complete', { run_id: 'run-interrupted-old', status: 'interrupted' }),
+  ]
+  for (const lateEvent of lateEvents) {
+    const afterLateTerminal = hermesMessageReducer(state, lateEvent)
+    assert.equal(afterLateTerminal, state)
+    assert.equal(afterLateTerminal.busy, true)
+    assert.equal(afterLateTerminal.activeRunId, 'run-active-new')
+    assert.equal(afterLateTerminal.error, null)
+  }
+  assert.equal(
+    state.timeline.find(
+      (item) => item.kind === 'run_status' && item.runId === 'run-interrupted-old',
+    ).status,
+    'interrupted',
+  )
+  assert.equal(
+    state.timeline.find(
+      (item) => item.kind === 'run_status' && item.runId === 'run-active-new',
+    ).status,
+    'running',
+  )
+})
+
+test('ignores unscoped activity that arrives after an interrupted session is reopened', () => {
+  let state = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED',
+    text: '旧任务',
+    runId: 'run-reopened-stop',
+  })
+  state = hermesMessageReducer(
+    state,
+    event('session.interrupted', { run_id: 'run-reopened-stop' }),
+  )
+
+  for (const delayedEvent of [
+    event('message.delta', { text: '旧任务迟到片段' }),
+    event('tool.completed', { tool_id: 'old-tool', result: { stale: true } }),
+  ]) {
+    assert.equal(hermesMessageReducer(state, delayedEvent), state)
+  }
+})
+
+test('ignores a delayed stop failure after the expected run already reached a terminal state', () => {
+  const started = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED',
+    text: '自然完成任务',
+    runId: 'run-completed-before-stop-failure',
+  })
+  const completed = hermesMessageReducer(
+    started,
+    event('run.completed', { run_id: 'run-completed-before-stop-failure' }),
+  )
+  const afterLateFailure = hermesMessageReducer(completed, {
+    type: 'STOP_FAILED',
+    error: '迟到的停止失败',
+    runId: 'run-completed-before-stop-failure',
+  })
+
+  assert.equal(afterLateFailure, completed)
+  assert.equal(afterLateFailure.statusText, '已完成')
+  assert.equal(afterLateFailure.error, null)
+})
+
+test('does not let an old stop failure overwrite a newer active run', () => {
+  let state = hermesMessageReducer(initialHermesMessageState, {
+    type: 'SUBMIT_STARTED',
+    text: '旧任务',
+    runId: 'run-old-stop-failure',
+  })
+  state = hermesMessageReducer(
+    state,
+    event('session.interrupted', { run_id: 'run-old-stop-failure' }),
+  )
+  state = hermesMessageReducer(state, {
+    type: 'SUBMIT_STARTED',
+    text: '新任务',
+    runId: 'run-new-after-stop',
+  })
+
+  const afterLateFailure = hermesMessageReducer(state, {
+    type: 'STOP_FAILED',
+    error: '旧任务停止失败',
+    runId: 'run-old-stop-failure',
+  })
+
+  assert.equal(afterLateFailure, state)
+  assert.equal(afterLateFailure.busy, true)
+  assert.equal(afterLateFailure.activeRunId, 'run-new-after-stop')
+  assert.equal(afterLateFailure.error, null)
+})
+
 test('marks the active run failed when message delivery fails', () => {
   const started = hermesMessageReducer(initialHermesMessageState, {
     type: 'SUBMIT_STARTED',

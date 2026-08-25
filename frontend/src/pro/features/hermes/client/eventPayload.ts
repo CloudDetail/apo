@@ -10,6 +10,61 @@ export function normalizeHermesEventPayload(value: unknown): Record<string, unkn
   return payload
 }
 
+export function isInterruptedTerminalEvent(
+  eventType: string,
+  payload: Record<string, unknown>,
+): boolean {
+  if (['session.interrupted', 'run.cancelled', 'run.canceled'].includes(eventType)) return true
+  if (eventType !== 'message.complete') return false
+  return ['interrupted', 'cancelled', 'canceled'].includes(
+    String(payload.status || '').trim().toLowerCase(),
+  )
+}
+
+export type HermesRunStartEventDecision = 'pass' | 'ignore' | 'clear'
+
+const RUN_SCOPED_EVENT_TYPES = new Set([
+  'message.delta',
+  'message.complete',
+  'message.interim',
+  'reasoning.delta',
+  'tool.start',
+  'tool.started',
+  'tool.complete',
+  'tool.completed',
+  'tool.failed',
+  'approval.request',
+  'clarify.request',
+  'run.completed',
+  'run.failed',
+  'run.cancelled',
+  'run.canceled',
+  'session.interrupted',
+  'error',
+])
+
+export function isRunScopedEventType(eventType: string): boolean {
+  return RUN_SCOPED_EVENT_TYPES.has(eventType)
+}
+
+export function runIdFromEventPayload(payload: Record<string, unknown>): string | null {
+  const value = payload.run_id ?? payload.runId ?? payload.client_run_id ?? payload.clientRunId
+  return typeof value === 'string' && value ? value : null
+}
+
+export function runStartEventDecision(
+  expectedRunId: string | null,
+  eventType: string,
+  eventRunId: string | null,
+): HermesRunStartEventDecision {
+  if (!expectedRunId) return 'pass'
+  if (eventType === 'message.start') {
+    return !eventRunId || eventRunId === expectedRunId ? 'clear' : 'pass'
+  }
+  if (eventRunId) return 'pass'
+  return isRunScopedEventType(eventType) ? 'ignore' : 'pass'
+}
+
 function normalizeEvidence(
   evidence: unknown[],
   payload: Record<string, unknown>,

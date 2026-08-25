@@ -1,4 +1,9 @@
 import { checkpointForTimeline, checkpointFromPayload, contentText } from '../client/history.ts'
+import {
+  isInterruptedTerminalEvent,
+  isRunScopedEventType,
+  runIdFromEventPayload,
+} from '../client/eventPayload.ts'
 import { isPlanToolPayload, planFingerprint, planFromToolPayload } from '../client/plan.ts'
 import type {
   HermesActivity,
@@ -38,7 +43,7 @@ export type HermesMessageAction =
   | { type: 'STOP_REQUESTED' }
   | { type: 'STOP_ACKNOWLEDGED' }
   | { type: 'STOP_RETRY_AVAILABLE' }
-  | { type: 'STOP_FAILED'; error: string }
+  | { type: 'STOP_FAILED'; error: string; runId: string | null }
   | { type: 'SET_STATUS'; statusText: string; busy?: boolean }
   | { type: 'CLEAR_ERROR' }
 
@@ -210,6 +215,7 @@ export function hermesMessageReducer(
     }
   }
   if (action.type === 'STOP_FAILED') {
+    if (!state.busy || (action.runId && state.activeRunId !== action.runId)) return state
     return {
       ...state,
       stopping: false,
@@ -238,8 +244,9 @@ export function applyHermesEvent(
   state: HermesMessageState,
   event: HermesEvent,
 ): HermesMessageState {
+  if (shouldIgnoreEventAfterInterrupt(state, event)) return state
   const payload = event.payload
-  const runId = eventRunId(event) || state.activeRunId
+  const runId = runIdFromEventPayload(event.payload) || state.activeRunId
   const occurredAt = eventOccurredAt(event)
 
   if (event.type === 'message.delta') {
@@ -266,7 +273,7 @@ export function applyHermesEvent(
   }
   if (event.type === 'message.complete') {
     const content = contentText(payload.text ?? payload.content)
-    const interrupted = payload.status === 'interrupted'
+    const interrupted = isInterruptedTerminalEvent(event.type, payload)
     const flushed = flushReasoning(state, occurredAt, runId)
     const completed = completeAssistant(
       flushed.timeline,
@@ -404,7 +411,7 @@ export function applyHermesEvent(
       contentText(payload.message) || '本次处理未能完成，请稍后重试。',
     )
   }
-  if (event.type === 'session.interrupted') {
+  if (isInterruptedTerminalEvent(event.type, payload)) {
     return terminalState(state, runId, occurredAt, 'interrupted', '处理已中断', null)
   }
   return state
@@ -619,6 +626,7 @@ function updateRunStatus(
   for (let index = timeline.length - 1; index >= 0; index -= 1) {
     const item = timeline[index]
     if (item.kind === 'run_status' && item.runId === runId) {
+      if (item.status === 'interrupted') return timeline
       const next = [...timeline]
       next[index] = { ...item, ...patch }
       return next
@@ -639,6 +647,7 @@ function finishRunStatus(
   for (let index = timeline.length - 1; index >= 0; index -= 1) {
     const item = timeline[index]
     if (item.kind === 'run_status' && item.runId === runId) {
+      if (item.status === 'interrupted' && status !== 'interrupted') return timeline
       const startedAt = item.startedAt || item.occurredAt
       const durationMs = Math.max(0, new Date(occurredAt).getTime() - new Date(startedAt).getTime())
       const next = [...timeline]
@@ -654,6 +663,31 @@ function finishRunStatus(
     }
   }
   return timeline
+}
+
+export function shouldIgnoreEventAfterInterrupt(
+  state: HermesMessageState,
+  event: HermesEvent,
+): boolean {
+  const runId = runIdFromEventPayload(event.payload)
+  if (!isRunScopedEventType(event.type)) return false
+
+  if (runId) {
+    const matchingRunStatus = [...state.timeline]
+      .reverse()
+      .find(
+        (item): item is HermesRunStatusTimelineItem =>
+          item.kind === 'run_status' && item.runId === runId,
+      )
+    if (matchingRunStatus?.status === 'interrupted') return true
+    return Boolean(state.activeRunId && state.activeRunId !== runId)
+  }
+
+  if (state.activeRunId) return false
+  const latestRunStatus = [...state.timeline]
+    .reverse()
+    .find((item): item is HermesRunStatusTimelineItem => item.kind === 'run_status')
+  return latestRunStatus?.status === 'interrupted'
 }
 
 function resolveLatestCheckpoint(
@@ -737,11 +771,6 @@ function createMessage(
     complete,
     ...(runId ? { runId } : {}),
   }
-}
-
-function eventRunId(event: HermesEvent): string | null {
-  const value = event.payload.run_id ?? event.payload.runId
-  return typeof value === 'string' && value ? value : null
 }
 
 function eventOccurredAt(event: HermesEvent): string {
