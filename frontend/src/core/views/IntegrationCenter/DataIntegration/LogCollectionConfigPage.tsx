@@ -14,9 +14,11 @@ import {
   Typography,
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { ExternalLink, Eye, Save, Trash2 } from 'lucide-react'
+import { ExternalLink, Eye, Save, ScanSearch, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import {
+  createAgentCommandApi,
+  getAgentCommandsApi,
   getContainerStdoutCollectionApi,
   getHostFileCollectionApi,
   previewContainerStdoutCollectionApi,
@@ -39,6 +41,8 @@ type LogCollectionConfigPanelProps = {
   inheritedClusterId?: string
   inheritedClusterEnvironment?: string
   onEditInherited?: () => void
+  enableJavaLogScan?: boolean
+  javaLogScanProbeType?: string
 }
 
 type HostFileSource = {
@@ -55,10 +59,12 @@ type ContainerStdoutSource = {
   name: string
   enabled: boolean
   namespaceRegex: string
+  excludeNamespaces: string[]
   podRegex: string
   containerRegex: string
   collectStdout: boolean
   collectStderr: boolean
+  maxBytesPerMinute: number
   ignoreParseWarning: boolean
   keepingSourceWhenParseFail: boolean
   tailSizeKB: number
@@ -83,8 +89,11 @@ type ContainerStdoutSource = {
 
 type PreviewFile = { path: string; content: string }
 
+type JavaLogScanDirectory = { path: string; fileCount?: number }
+
 type ContainerFilterField =
   | 'namespaceRegex'
+  | 'excludeNamespaces'
   | 'podRegex'
   | 'containerRegex'
   | 'includeK8sLabel'
@@ -102,9 +111,17 @@ type ContainerFilterDefinition = {
   placeholder: string
   k8sOnly?: boolean
   multiline?: boolean
+  tags?: boolean
 }
 
 const containerFilterDefinitions: ContainerFilterDefinition[] = [
+  {
+    field: 'excludeNamespaces',
+    label: '排除 Namespace',
+    placeholder: '输入 Namespace 后回车',
+    k8sOnly: true,
+    tags: true,
+  },
   {
     field: 'namespaceRegex',
     label: 'Namespace 正则',
@@ -167,15 +184,15 @@ const tagMappingFields: [ContainerTextField, string][] = [
 const createSourceId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `source-${Date.now()}`
 
-const newHostFile = (): HostFileSource => {
+const newHostFile = (path = '/var/log', filePattern = '*.log'): HostFileSource => {
   const id = createSourceId()
   return {
     id,
     name: `host-file-${id}`,
     enabled: true,
-    path: '/var/log',
+    path,
     maxDirSearchDepth: 0,
-    filePattern: '*.log',
+    filePattern,
   }
 }
 
@@ -186,10 +203,12 @@ const newContainerStdout = (): ContainerStdoutSource => {
     name: `container-stdout-${id}`,
     enabled: true,
     namespaceRegex: '',
+    excludeNamespaces: [],
     podRegex: '',
     containerRegex: '',
     collectStdout: true,
     collectStderr: true,
+    maxBytesPerMinute: 0,
     ignoreParseWarning: false,
     keepingSourceWhenParseFail: true,
     tailSizeKB: 1024,
@@ -232,7 +251,10 @@ const normalizeContainerSources = (sources: Partial<ContainerStdoutSource>[]) =>
         source.activeFilters ||
         containerFilterDefinitions
           .map(({ field }) => field)
-          .filter((field) => normalized[field].trim()),
+          .filter((field) => {
+            const value = normalized[field]
+            return Array.isArray(value) ? value.length > 0 : value.trim().length > 0
+          }),
     }
   })
 
@@ -248,6 +270,7 @@ const containerSourcesForEnvironment = (
     return {
       ...source,
       namespaceRegex: '',
+      excludeNamespaces: [],
       podRegex: '',
       containerRegex: '',
       includeK8sLabel: '',
@@ -269,6 +292,8 @@ export function LogCollectionConfigPanel({
   inheritedClusterId = '',
   inheritedClusterEnvironment = '',
   onEditInherited,
+  enableJavaLogScan = false,
+  javaLogScanProbeType = '',
 }: LogCollectionConfigPanelProps) {
   const selectedNode = nodeId
   const selectedCluster = clusterIds[0] || ''
@@ -291,6 +316,7 @@ export function LogCollectionConfigPanel({
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([])
   const [selectedPreviewPath, setSelectedPreviewPath] = useState('')
+  const [scanningJavaLogs, setScanningJavaLogs] = useState(false)
 
   const selectedPreviewFile = previewFiles.find((file) => file.path === selectedPreviewPath)
   const hostChanged = JSON.stringify(hostFiles) !== originalHostFiles
@@ -411,9 +437,20 @@ export function LogCollectionConfigPanel({
     )
   }
 
+  const updateContainerFilter = (
+    index: number,
+    field: ContainerFilterField,
+    value: string | string[],
+  ) => {
+    updateContainerStdout(index, { [field]: value } as Partial<ContainerStdoutSource>)
+  }
+
   const validateContainerFilters = () => {
     const incomplete = containerStdout.some((source) =>
-      source.activeFilters.some((field) => !source[field].trim()),
+      source.activeFilters.some((field) => {
+        const value = source[field]
+        return Array.isArray(value) ? value.length === 0 : !value.trim()
+      }),
     )
     if (!incomplete) return true
     notify({ type: 'error', message: '请填写已添加过滤器的匹配条件，或移除该过滤器' })
@@ -496,6 +533,67 @@ export function LogCollectionConfigPanel({
   const addSource = () => {
     if (mode === 'host') setHostFiles((current) => [...current, newHostFile()])
     else setContainerStdout((current) => [...current, newContainerStdout()])
+  }
+
+  const scanJavaLogs = async () => {
+    if (!selectedNode || !javaLogScanProbeType) return
+    setScanningJavaLogs(true)
+    try {
+      const created: any = await createAgentCommandApi(
+        selectedNode,
+        javaLogScanProbeType,
+        'SCAN_JAVA_LOG_FILES',
+      )
+      let command: any
+      for (let attempt = 0; attempt < 75; attempt += 1) {
+        const response: any = await getAgentCommandsApi(selectedNode, javaLogScanProbeType)
+        command = (response?.commands || []).find((item: any) => item.id === created.id)
+        if (command?.status === 'SUCCEEDED' || command?.status === 'FAILED') break
+        await new Promise((resolve) => window.setTimeout(resolve, 1000))
+      }
+      if (!command || (command.status !== 'SUCCEEDED' && command.status !== 'FAILED')) {
+        throw new Error('等待节点返回扫描结果超时')
+      }
+      let result: any = {}
+      try {
+        result = command.result ? JSON.parse(command.result) : {}
+      } catch (error) {
+        console.error('[LogCollectionConfigPage] failed to parse Java log scan result', error)
+      }
+      if (command.status === 'FAILED') {
+        throw new Error(result?.error?.message || command.result || 'Java 日志扫描失败')
+      }
+      const directories = ((result.directories || []) as JavaLogScanDirectory[])
+        .map((directory) => directory.path?.trim())
+        .filter(Boolean) as string[]
+      if (!directories.length) {
+        notify({
+          type: 'warning',
+          message: result.javaProcesses
+            ? `发现 ${result.javaProcesses} 个 Java 进程，但未找到日志文件`
+            : '未发现正在运行的 Java 服务',
+        })
+        return
+      }
+      const existingPaths = new Set(hostFiles.map((source) => source.path.trim()))
+      const additions = directories
+        .filter((path) => !existingPaths.has(path))
+        .map((path) => newHostFile(path, '*.log*'))
+      if (additions.length) {
+        setHostFiles((current) => [...current, ...additions])
+      }
+      notify({
+        type: additions.length ? 'success' : 'info',
+        message: additions.length
+          ? `扫描到 ${directories.length} 个日志目录，已新增 ${additions.length} 条采集规则`
+          : `扫描到的 ${directories.length} 个日志目录均已配置`,
+      })
+    } catch (error: any) {
+      console.error('[LogCollectionConfigPage] failed to scan Java logs', error)
+      notify({ type: 'error', message: error.message || 'Java 日志扫描失败' })
+    } finally {
+      setScanningJavaLogs(false)
+    }
   }
 
   const statusText = loading
@@ -603,6 +701,19 @@ export function LogCollectionConfigPanel({
                   : '尚未配置'}
             </Typography.Text>
 
+            {mode === 'host' && enableJavaLogScan && (
+              <Tooltip title={javaLogScanProbeType ? '' : '当前节点没有可用的探针命令通道'}>
+                <Button
+                  icon={<ScanSearch size={15} />}
+                  loading={scanningJavaLogs}
+                  disabled={!currentScope || !javaLogScanProbeType || loadFailed}
+                  onClick={scanJavaLogs}
+                >
+                  自动扫描 Java 日志
+                </Button>
+              </Tooltip>
+            )}
+
             <Button
               icon={<PlusOutlined />}
               disabled={!currentScope || loadFailed}
@@ -639,7 +750,11 @@ export function LogCollectionConfigPanel({
                                 )?.label
                               }
                             </small>
-                            <code>{source[field]}</code>
+                            <code>
+                              {Array.isArray(source[field])
+                                ? source[field].join('、')
+                                : source[field]}
+                            </code>
                           </span>
                         ))}
                       </div>
@@ -758,25 +873,29 @@ export function LogCollectionConfigPanel({
                           return (
                             <div className={styles.filterRow} key={field}>
                               <Typography.Text>{definition.label}</Typography.Text>
-                              {definition.multiline ? (
+                              {definition.tags ? (
+                                <Select
+                                  mode="tags"
+                                  value={source[field] as string[]}
+                                  placeholder={definition.placeholder}
+                                  tokenSeparators={[',', ' ']}
+                                  onChange={(value) => updateContainerFilter(index, field, value)}
+                                />
+                              ) : definition.multiline ? (
                                 <Input.TextArea
                                   autoSize={{ minRows: 1, maxRows: 3 }}
-                                  value={source[field]}
+                                  value={source[field] as string}
                                   placeholder={definition.placeholder}
                                   onChange={(event) =>
-                                    updateContainerStdout(index, {
-                                      [field]: event.target.value,
-                                    })
+                                    updateContainerFilter(index, field, event.target.value)
                                   }
                                 />
                               ) : (
                                 <Input
-                                  value={source[field]}
+                                  value={source[field] as string}
                                   placeholder={definition.placeholder}
                                   onChange={(event) =>
-                                    updateContainerStdout(index, {
-                                      [field]: event.target.value,
-                                    })
+                                    updateContainerFilter(index, field, event.target.value)
                                   }
                                 />
                               )}
@@ -784,14 +903,14 @@ export function LogCollectionConfigPanel({
                                 <Button
                                   aria-label={`移除${definition.label}`}
                                   icon={<Trash2 size={14} />}
-                                  onClick={() =>
+                                  onClick={() => {
                                     updateContainerStdout(index, {
-                                      [field]: '',
+                                      [field]: definition.tags ? [] : '',
                                       activeFilters: source.activeFilters.filter(
                                         (activeField) => activeField !== field,
                                       ),
-                                    })
-                                  }
+                                    } as Partial<ContainerStdoutSource>)
+                                  }}
                                 />
                               </Tooltip>
                             </div>
@@ -842,6 +961,20 @@ export function LogCollectionConfigPanel({
                                     </Checkbox>
                                   </Space>
                                 </div>
+                                <label className={styles.field}>
+                                  <span>最大日志采集量（Bytes/分钟）</span>
+                                  <InputNumber
+                                    min={0}
+                                    max={1099511627776}
+                                    placeholder="0 表示不限制"
+                                    value={source.maxBytesPerMinute}
+                                    onChange={(value) =>
+                                      updateContainerStdout(index, {
+                                        maxBytesPerMinute: Number(value || 0),
+                                      })
+                                    }
+                                  />
+                                </label>
                                 <label className={styles.field}>
                                   <span>首次采集末尾大小（KB）</span>
                                   <InputNumber

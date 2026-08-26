@@ -87,6 +87,57 @@ func TestLogSourcesAreSavedAndResolvedIndependently(t *testing.T) {
 	}
 }
 
+func TestSettingsIncludeClusterNamespaceInjection(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	ready := true
+	repo.odigletReady = &ready
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	repo.namespaceConfigs["cluster-a"] = ac.NamespaceInjection{
+		InstrumentAll:        true,
+		InstrumentNS:         []string{"orders"},
+		InstrumentDisabledNS: []string{"monitoring"},
+	}
+
+	settings, err := New(repo).SettingsForProbeAndCluster(nil, "node-1", "odigos-instrumentor", "cluster-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.NamespaceInjection == nil || !settings.NamespaceInjection.InstrumentAll ||
+		len(settings.NamespaceInjection.InstrumentNS) != 1 || settings.NamespaceInjection.InstrumentNS[0] != "orders" ||
+		len(settings.NamespaceInjection.InstrumentDisabledNS) != 1 || settings.NamespaceInjection.InstrumentDisabledNS[0] != "monitoring" {
+		t.Fatalf("namespace injection settings=%+v", settings.NamespaceInjection)
+	}
+	if settings.OdigletReady == nil || !*settings.OdigletReady {
+		t.Fatalf("odiglet readiness=%v", settings.OdigletReady)
+	}
+}
+
+func TestDirectInstallWithoutClusterIntegrationUsesLocalNamespaceConfig(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	settings, err := New(repo).SettingsForProbeAndCluster(nil, "node-1", "ilogtail", "cluster-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.NamespaceInjection != nil || settings.OdigletReady != nil || settings.CircuitBreaker == nil || !settings.UseLocalDefaults {
+		t.Fatalf("unexpected settings fallback: %+v", settings)
+	}
+}
+
+func TestSettingsReportAllOdigletsUnavailable(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	ready := false
+	repo.odigletReady = &ready
+	settings, err := New(repo).SettingsForProbeAndCluster(nil, "node-1", "odigos-instrumentor", "cluster-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if settings.OdigletReady == nil || *settings.OdigletReady {
+		t.Fatalf("odiglet readiness=%v", settings.OdigletReady)
+	}
+}
+
 func TestBatchLogSourcesOverwriteEveryTargetNode(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	for _, node := range []string{"node-a", "node-b"} {

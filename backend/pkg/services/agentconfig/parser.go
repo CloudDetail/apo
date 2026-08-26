@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var variablePattern = regexp.MustCompile(`\$\{([A-Z_][A-Z0-9_]*)(?::-[^}]*)?\}`)
+var variablePattern = regexp.MustCompile(`\{%\s*([A-Z_][A-Z0-9_]*)\s*%\}`)
 
 type VariableSpec struct {
 	Name         string `json:"name"`
@@ -19,13 +19,8 @@ func ExtractVariables(content string) []VariableSpec {
 	seen := map[string]VariableSpec{}
 	for _, m := range variablePattern.FindAllStringSubmatch(content, -1) {
 		name := m[1]
-		full := m[0]
-		def := ""
-		if i := strings.Index(full, ":-"); i >= 0 {
-			def = strings.TrimSuffix(full[i+2:], "}")
-		}
 		if _, ok := seen[name]; !ok {
-			seen[name] = VariableSpec{Name: name, DefaultValue: def, Required: def == ""}
+			seen[name] = VariableSpec{Name: name, Required: true}
 		}
 	}
 	res := make([]VariableSpec, 0, len(seen))
@@ -43,9 +38,6 @@ func Render(content string, values map[string]string) (string, error) {
 		name := m[1]
 		if v, ok := values[name]; ok && v != "" {
 			return v
-		}
-		if i := strings.Index(token, ":-"); i >= 0 {
-			return strings.TrimSuffix(token[i+2:], "}")
 		}
 		missing = append(missing, name)
 		return token

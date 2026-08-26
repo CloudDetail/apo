@@ -17,9 +17,13 @@ import (
 )
 
 const (
-	logCollectionScopeNode    = "node"
-	logCollectionScopeCluster = "cluster"
+	logCollectionScopeNode      = "node"
+	logCollectionScopeCluster   = "cluster"
+	defaultK8sContainerSourceID = "k8s-default-container-stdout"
+	maxLogBytesPerMinute        = int64(1 << 40)
 )
+
+var defaultExcludedNamespaces = []string{"syncause", "apo", "kube-system"}
 
 type HostFileSource struct {
 	ID                string `json:"id"`
@@ -31,20 +35,22 @@ type HostFileSource struct {
 }
 
 type ContainerStdoutSource struct {
-	ID                    string `json:"id"`
-	Name                  string `json:"name"`
-	Enabled               bool   `json:"enabled"`
-	NamespaceRegex        string `json:"namespaceRegex"`
-	PodRegex              string `json:"podRegex"`
-	ContainerRegex        string `json:"containerRegex"`
-	IncludeK8sLabel       string `json:"includeK8sLabel"`
-	ExcludeK8sLabel       string `json:"excludeK8sLabel"`
-	IncludeEnv            string `json:"includeEnv"`
-	ExcludeEnv            string `json:"excludeEnv"`
-	IncludeContainerLabel string `json:"includeContainerLabel"`
-	ExcludeContainerLabel string `json:"excludeContainerLabel"`
-	CollectStdout         bool   `json:"collectStdout"`
-	CollectStderr         bool   `json:"collectStderr"`
+	ID                    string   `json:"id"`
+	Name                  string   `json:"name"`
+	Enabled               bool     `json:"enabled"`
+	NamespaceRegex        string   `json:"namespaceRegex"`
+	ExcludeNamespaces     []string `json:"excludeNamespaces"`
+	PodRegex              string   `json:"podRegex"`
+	ContainerRegex        string   `json:"containerRegex"`
+	IncludeK8sLabel       string   `json:"includeK8sLabel"`
+	ExcludeK8sLabel       string   `json:"excludeK8sLabel"`
+	IncludeEnv            string   `json:"includeEnv"`
+	ExcludeEnv            string   `json:"excludeEnv"`
+	IncludeContainerLabel string   `json:"includeContainerLabel"`
+	ExcludeContainerLabel string   `json:"excludeContainerLabel"`
+	CollectStdout         bool     `json:"collectStdout"`
+	CollectStderr         bool     `json:"collectStderr"`
+	MaxBytesPerMinute     int64    `json:"maxBytesPerMinute"`
 }
 
 type HostFileCollectionInput struct {
@@ -98,8 +104,14 @@ type hostFileInput struct {
 }
 
 type containerStdoutPipeline struct {
-	Enable bool                   `yaml:"enable"`
-	Inputs []containerStdoutInput `yaml:"inputs"`
+	Enable     bool                       `yaml:"enable"`
+	Inputs     []containerStdoutInput     `yaml:"inputs"`
+	Processors []containerStdoutProcessor `yaml:"processors,omitempty"`
+}
+
+type containerStdoutProcessor struct {
+	Type                string `yaml:"Type"`
+	LimitBytesPerMinute int64  `yaml:"LimitBytesPerMinute"`
 }
 
 type containerStdoutInput struct {
@@ -242,6 +254,17 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		source.ID = normalizeSourceID(source.ID)
 		source.Name = strings.TrimSpace(source.Name)
 		source.NamespaceRegex = strings.TrimSpace(source.NamespaceRegex)
+		excludedNamespaces := make([]string, 0, len(source.ExcludeNamespaces))
+		seenNamespaces := map[string]bool{}
+		for _, namespace := range source.ExcludeNamespaces {
+			namespace = strings.TrimSpace(namespace)
+			if namespace == "" || seenNamespaces[namespace] {
+				continue
+			}
+			seenNamespaces[namespace] = true
+			excludedNamespaces = append(excludedNamespaces, namespace)
+		}
+		source.ExcludeNamespaces = excludedNamespaces
 		source.PodRegex = strings.TrimSpace(source.PodRegex)
 		source.ContainerRegex = strings.TrimSpace(source.ContainerRegex)
 		source.IncludeK8sLabel = strings.TrimSpace(source.IncludeK8sLabel)
@@ -263,6 +286,15 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		}
 		if !source.CollectStdout && !source.CollectStderr {
 			return nil, fmt.Errorf("%s must collect stdout or stderr", source.Name)
+		}
+		if source.MaxBytesPerMinute < 0 || source.MaxBytesPerMinute > maxLogBytesPerMinute {
+			return nil, fmt.Errorf("maximum log bytes per minute for %s must be between 0 and %d", source.Name, maxLogBytesPerMinute)
+		}
+		if source.NamespaceRegex != "" && len(source.ExcludeNamespaces) > 0 {
+			return nil, fmt.Errorf("%s cannot use namespace regular expression and excluded namespaces together", source.Name)
+		}
+		if _, err := namespaceRegexExcluding(source.ExcludeNamespaces); err != nil {
+			return nil, fmt.Errorf("invalid excluded namespace for %s: %v", source.Name, err)
 		}
 		for label, expression := range map[string]string{
 			"namespace": source.NamespaceRegex,
@@ -345,8 +377,15 @@ func containerFiltersForSource(source ContainerStdoutSource) (*containerFilters,
 	if err != nil {
 		return nil, err
 	}
+	namespaceRegex := source.NamespaceRegex
+	if len(source.ExcludeNamespaces) > 0 {
+		namespaceRegex, err = namespaceRegexExcluding(source.ExcludeNamespaces)
+		if err != nil {
+			return nil, err
+		}
+	}
 	filters := &containerFilters{
-		K8sNamespaceRegex:     source.NamespaceRegex,
+		K8sNamespaceRegex:     namespaceRegex,
 		K8sPodRegex:           source.PodRegex,
 		K8sContainerRegex:     source.ContainerRegex,
 		IncludeK8sLabel:       includeK8sLabel,
@@ -372,10 +411,16 @@ func renderContainerStdout(sources []ContainerStdoutSource) ([]RenderedLogCollec
 		if err != nil {
 			return nil, err
 		}
-		content, err := yaml.Marshal(containerStdoutPipeline{Enable: true, Inputs: []containerStdoutInput{{
+		pipeline := containerStdoutPipeline{Enable: true, Inputs: []containerStdoutInput{{
 			Type: "input_container_stdio", IgnoringStdout: !source.CollectStdout, IgnoringStderr: !source.CollectStderr,
 			ContainerFilter: filters,
-		}}})
+		}}}
+		if source.MaxBytesPerMinute > 0 {
+			pipeline.Processors = []containerStdoutProcessor{{
+				Type: "processor_rate_limit", LimitBytesPerMinute: source.MaxBytesPerMinute,
+			}}
+		}
+		content, err := yaml.Marshal(pipeline)
 		if err != nil {
 			return nil, err
 		}
@@ -383,6 +428,104 @@ func renderContainerStdout(sources []ContainerStdoutSource) ([]RenderedLogCollec
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return files, nil
+}
+
+type namespaceRegexTrie struct {
+	terminal bool
+	children map[byte]*namespaceRegexTrie
+}
+
+const namespaceRegexAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789-"
+
+var kubernetesNamespacePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
+
+func namespaceRegexExcluding(namespaces []string) (string, error) {
+	if len(namespaces) == 0 {
+		return "", nil
+	}
+	root := &namespaceRegexTrie{children: map[byte]*namespaceRegexTrie{}}
+	for _, namespace := range namespaces {
+		if len(namespace) > 63 || !kubernetesNamespacePattern.MatchString(namespace) {
+			return "", fmt.Errorf("%q is not a valid Kubernetes namespace", namespace)
+		}
+		node := root
+		for index := 0; index < len(namespace); index++ {
+			char := namespace[index]
+			if node.children[char] == nil {
+				node.children[char] = &namespaceRegexTrie{children: map[byte]*namespaceRegexTrie{}}
+			}
+			node = node.children[char]
+		}
+		node.terminal = true
+	}
+	return "^(?:" + buildNamespaceRegex(root, 0) + ")$", nil
+}
+
+func buildNamespaceRegex(node *namespaceRegexTrie, depth int) string {
+	alternatives := make([]string, 0, len(node.children)+2)
+	if depth > 0 && !node.terminal {
+		alternatives = append(alternatives, "")
+	}
+	if depth < 63 {
+		remainingChars := make([]byte, 0, len(namespaceRegexAlphabet))
+		for index := 0; index < len(namespaceRegexAlphabet); index++ {
+			char := namespaceRegexAlphabet[index]
+			if node.children[char] == nil {
+				remainingChars = append(remainingChars, char)
+			}
+		}
+		if len(remainingChars) > 0 {
+			alternatives = append(alternatives, namespaceCharClass(remainingChars)+fmt.Sprintf("[a-z0-9-]{0,%d}", 62-depth))
+		}
+	}
+	childKeys := make([]byte, 0, len(node.children))
+	for char := range node.children {
+		childKeys = append(childKeys, char)
+	}
+	sort.Slice(childKeys, func(i, j int) bool { return childKeys[i] < childKeys[j] })
+	for _, char := range childKeys {
+		childPattern := buildNamespaceRegex(node.children[char], depth+1)
+		if childPattern != "" {
+			alternatives = append(alternatives, regexp.QuoteMeta(string(char))+"(?:"+childPattern+")")
+		}
+	}
+	return strings.Join(alternatives, "|")
+}
+
+func namespaceCharClass(chars []byte) string {
+	var regular strings.Builder
+	regular.WriteByte('[')
+	for _, char := range chars {
+		if char != '-' {
+			regular.WriteByte(char)
+		}
+	}
+	for _, char := range chars {
+		if char == '-' {
+			regular.WriteString(`\-`)
+		}
+	}
+	regular.WriteByte(']')
+	return regular.String()
+}
+
+func defaultContainerStdoutSources(nodes []ac.Node, clusterID string) []ContainerStdoutSource {
+	for _, node := range nodes {
+		if node.ClusterID != clusterID {
+			continue
+		}
+		environment := strings.ToLower(strings.TrimSpace(node.Environment))
+		if environment != "k8s" && environment != "kubernetes" {
+			continue
+		}
+		return []ContainerStdoutSource{{
+			ID: defaultK8sContainerSourceID, Name: "Kubernetes default container stdout", Enabled: true,
+			ExcludeNamespaces: append([]string(nil), defaultExcludedNamespaces...),
+			ExcludeK8sLabel:   "app.kubernetes.io/instance=^(syncause|syncause-agent)$",
+			CollectStdout:     true, CollectStderr: true,
+		}}
+	}
+	return []ContainerStdoutSource{}
 }
 
 func (s *Service) validateLogCollectionScope(ctx core.Context, scopeType, scopeID string) error {
@@ -483,7 +626,11 @@ func (s *Service) GetContainerStdoutCollection(ctx core.Context, clusterID strin
 	}
 	stored, err := repo.GetLogCollectionConfig(ctx, logCollectionScopeCluster, clusterID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &ContainerStdoutCollection{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, ContainerStdout: []ContainerStdoutSource{}}, nil
+		nodes, listErr := s.repo.ListAgentNodes(ctx)
+		if listErr != nil {
+			return nil, listErr
+		}
+		return &ContainerStdoutCollection{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, ContainerStdout: defaultContainerStdoutSources(nodes, clusterID)}, nil
 	}
 	if err != nil {
 		return nil, err

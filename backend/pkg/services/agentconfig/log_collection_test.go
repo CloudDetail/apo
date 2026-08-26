@@ -1,6 +1,7 @@
 package agentconfig
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -133,6 +134,9 @@ func TestContainerStdoutCollectionRejectsInvalidFilters(t *testing.T) {
 		{Name: "no stream", Enabled: true},
 		{Name: "bad regex", Enabled: true, CollectStdout: true, PodRegex: "["},
 		{Name: "duplicate map key", Enabled: true, CollectStdout: true, IncludeEnv: "SERVICE=api\nSERVICE=worker"},
+		{Name: "mixed namespace filters", Enabled: true, CollectStdout: true, NamespaceRegex: "prod", ExcludeNamespaces: []string{"dev"}},
+		{Name: "invalid excluded namespace", Enabled: true, CollectStdout: true, ExcludeNamespaces: []string{"Invalid"}},
+		{Name: "invalid byte limit", Enabled: true, CollectStdout: true, MaxBytesPerMinute: maxLogBytesPerMinute + 1},
 	}
 	for _, source := range invalid {
 		if _, err := service.PreviewContainerStdoutCollection(nil, "cluster-a", ContainerStdoutCollectionInput{ContainerStdout: []ContainerStdoutSource{source}}); err == nil {
@@ -148,5 +152,78 @@ func TestContainerStdoutCollectionRejectsInvalidFilters(t *testing.T) {
 	}
 	if len(preview.Files) != 1 || strings.Contains(preview.Files[0].Content, "ContainerFilters") {
 		t.Fatalf("unused filters should be absent from generated config: %+v", preview.Files)
+	}
+}
+
+func TestDefaultK8sContainerStdoutCollection(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a", Environment: "kubernetes"}
+	service := New(repo)
+
+	collection, err := service.GetContainerStdoutCollection(nil, "cluster-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if collection.Version != 0 || len(collection.ContainerStdout) != 1 {
+		t.Fatalf("unexpected default collection: %+v", collection)
+	}
+	source := collection.ContainerStdout[0]
+	if source.ID != defaultK8sContainerSourceID || !source.CollectStdout || !source.CollectStderr {
+		t.Fatalf("unexpected default source: %+v", source)
+	}
+	if strings.Join(source.ExcludeNamespaces, ",") != "syncause,apo,kube-system" {
+		t.Fatalf("unexpected excluded namespaces: %+v", source.ExcludeNamespaces)
+	}
+	if source.ExcludeK8sLabel != "app.kubernetes.io/instance=^(syncause|syncause-agent)$" {
+		t.Fatalf("unexpected self exclusion: %s", source.ExcludeK8sLabel)
+	}
+
+	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-a", ContainerStdoutCollectionInput{ContainerStdout: collection.ContainerStdout})
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := preview.Files[0].Content
+	for _, expected := range []string{"K8sNamespaceRegex:", "ExcludeK8sLabel:", "app.kubernetes.io/instance: ^(syncause|syncause-agent)$"} {
+		if !strings.Contains(content, expected) {
+			t.Fatalf("default preview does not contain %q:\n%s", expected, content)
+		}
+	}
+}
+
+func TestNamespaceRegexExcludingExactNames(t *testing.T) {
+	expression, err := namespaceRegexExcluding(defaultExcludedNamespaces)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compiled, err := regexp.Compile(expression)
+	if err != nil {
+		t.Fatalf("generated expression is invalid: %v\n%s", err, expression)
+	}
+	for _, namespace := range defaultExcludedNamespaces {
+		if compiled.MatchString(namespace) {
+			t.Fatalf("excluded namespace %q matched %s", namespace, expression)
+		}
+	}
+	for _, namespace := range []string{"default", "production", "syncause-agent", "ap", "apo-1", "kube-public"} {
+		if !compiled.MatchString(namespace) {
+			t.Fatalf("allowed namespace %q did not match %s", namespace, expression)
+		}
+	}
+}
+
+func TestContainerStdoutCollectionRendersByteLimit(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a", Environment: "k8s"}
+	service := New(repo)
+	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-a", ContainerStdoutCollectionInput{ContainerStdout: []ContainerStdoutSource{{
+		ID: "limited", Name: "limited", Enabled: true, CollectStdout: true, MaxBytesPerMinute: 1048576,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{"processors:", "Type: processor_rate_limit", "LimitBytesPerMinute: 1048576"} {
+		if !strings.Contains(preview.Files[0].Content, expected) {
+			t.Fatalf("limited preview does not contain %q:\n%s", expected, preview.Files[0].Content)
+		}
 	}
 }

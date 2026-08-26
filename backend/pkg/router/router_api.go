@@ -43,6 +43,7 @@ func setApiRouter(r *resource) {
 		agentConfigAPI.POST("/templates/inspect", agentConfigHandler.Inspect())
 		agentConfigAPI.GET("/templates", agentConfigHandler.ListTemplates())
 		agentConfigAPI.POST("/templates", agentConfigHandler.CreateTemplate())
+		agentConfigAPI.POST("/templates/import", agentConfigHandler.ImportTemplate())
 		agentConfigAPI.GET("/templates/:id", agentConfigHandler.GetTemplate())
 		agentConfigAPI.PUT("/templates/:id", agentConfigHandler.UpdateTemplate())
 		agentConfigAPI.DELETE("/templates/:id", agentConfigHandler.DeleteTemplate())

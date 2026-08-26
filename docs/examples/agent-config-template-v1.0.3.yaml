@@ -1,0 +1,445 @@
+---
+name: v1.0.3
+description: 基于 v1.0.3 Kubernetes 探针部署包默认配置生成，包含 9 个可配置组件和 11 个配置文件；熔断策略及日志采集配置独立管理。
+clusterType: kubernetes
+variables:
+- name: CLUSTER_ID
+  required: true
+configs:
+- probeType: apo-odiglet
+  files:
+  - path: odiglet.env
+    template: |
+      OTEL_EXPORTER_OPAMP_ENDPOINT=
+      OTEL_TRACES_EXPORTER=otlp
+      OTEL_METRICS_EXPORTER=otlp
+      OTEL_LOGS_EXPORTER=none
+      SW_LOGGING_OUTPUT=
+      SW_LOGGING_DIR=/opt/skywalking/logs
+      SW_LOGGING_FILE_NAME=
+      SW_LOGGING_MAX_HISTORY_FILES=
+      SW_LOGGING_MAX_FILE_SIZE=
+      SW_METER_ACTIVE=
+      OTEL_LOG_LEVEL=info
+      OTEL_SDK_DISABLED=true
+- probeType: apo-otel-collector-agent
+  files:
+  - path: otelcol-config.yaml
+    template: |-
+      extensions:
+        fill_proc:
+          enable: true
+          interval: 5s
+        pprof:
+          endpoint: 0.0.0.0:1777
+      receivers:
+        prometheus/own_metrics:
+          config:
+            scrape_configs:
+              - job_name: 'apo-otel-collector-agent'
+                scrape_interval: 15s
+                static_configs:
+                  - targets: ['0.0.0.0:1778']
+        otlp:
+          fillproc_extension: fill_proc
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+              max_recv_msg_size_mib: 999999999
+            http:
+              endpoint: 0.0.0.0:4318
+        signalfxgatewayprometheusremotewrite:
+          endpoint: 0.0.0.0:4321
+        skywalking:
+          fillproc_extension: fill_proc
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:11800 # Ingest Trace data reported by the SkyWalking Agent
+            http:
+              endpoint: 0.0.0.0:12800 # Ingest Trace data reported via HTTP protocol from frontend/nginx, etc.
+      connectors:
+        redmetrics:
+          server_enabled: true
+          db_enabled: true
+          # Enable or disable HTTP/RPC outbound call metrics
+          external_enabled: true
+          # Enable or disable MQ middleware invocation metrics
+          mq_enabled: true
+          dimensions_cache_size: 1000
+          max_services_to_track: 256
+          max_operations_to_track_per_service: 2048
+          metrics_flush_interval: 15s
+          # vm(VictoriaMetrics) or prom(Promethues)
+          metrics_type: "vm"
+          # Promethues场景下需指定分桶.
+          latency_histogram_buckets: [5ms, 10ms, 20ms, 30ms, 50ms, 80ms, 100ms, 150ms, 200ms, 300ms, 400ms, 500ms, 800ms, 1200ms, 3s, 5s, 10s, 15s, 20s, 30s, 40s, 50s, 60s]
+          # URL aggregation algorithm: httpMethod / topUrl
+          http_parser: topUrl
+      processors:
+        batch:
+          send_batch_size: 5000
+          timeout: 2s
+        resource:
+          attributes:
+            - key: cluster_id
+              value: "{% CLUSTER_ID %}"
+              action: insert
+        backsampling:
+          # Notify eBPF to collect OnOffMetric and Profile; set to 0 or leave unset to disable.
+          ebpf_port: 9500
+          adaptive:
+            enable: true
+            span_slow_threshold: 10s
+            service_sample_window: 5s
+            service_sample_count: 1
+            memory_check_interval: 2s
+            memory_limit_mib_threshold: 500
+            traceid_holdtime: 120s
+          sampler:
+            log_enable: true
+            normal_top_sample: false
+            normal_sample_wait_time: 60
+            open_slow_sampling: true
+            open_error_sampling: true
+            enable_tail_base_profiling: true
+            sample_trace_repeat_num: 3
+            sample_trace_wait_time: 30
+            sample_trace_ignore_threshold: 0
+            sample_trace_slow_threshold_ms: 100
+            silent_period: 15
+            silent_count: 1
+            silent_mode: window
+          controller:
+            host: "apo-nginx-proxy-svc"
+            port: 30044
+            interval_query_slow_threshold: 30
+            interval_query_sample: 2
+            interval_send_trace: 1
+          notify:
+            enabled: true
+      exporters:
+        nop:
+        debug:
+          verbosity: normal
+          sampling_initial: 5
+          sampling_thereafter: 200
+        otlp:
+          endpoint: "http://apo-otel-collector-svc:4317"
+          tls:
+            insecure: true
+          sending_queue:
+            enabled: true
+            num_consumers: 5
+            queue_size: 100
+      service:
+        telemetry:
+          logs:
+            level: info
+          metrics:
+            level: basic
+            address: ":1778"
+          resource:
+            node_name: "${MY_NODE_NAME}"
+        extensions: [pprof, fill_proc]
+        pipelines:
+          traces/red:
+            receivers: [otlp, skywalking]
+            processors: [resource, batch]
+            exporters: [redmetrics]
+          traces:
+            receivers: [otlp, skywalking]
+            processors: [resource, backsampling, batch]
+            exporters: [otlp]
+          metrics:
+            receivers: [signalfxgatewayprometheusremotewrite, otlp, redmetrics, prometheus/own_metrics]
+            processors: [resource, batch]
+            exporters: [otlp]
+          metrics/sw:
+            receivers: [signalfxgatewayprometheusremotewrite, skywalking]
+            processors: []
+            exporters: [nop]
+          logs:
+            receivers: [otlp]
+            processors: [resource, batch]
+            exporters: [otlp]
+- probeType: ebpf-agent
+  files:
+  - path: config/camera-agent-config.yml
+    template: |
+      analyzers:
+        cpuanalyzer:
+          # segment_size defines how many segments(seconds) can be cached to wait for sending.
+          # The elder segments will be overwritten by the newer ones, so don't set it too low.
+          segment_size: 40
+          # edge_events_window_size is the size of the duration window that seats the edge events.
+          # The unit is second. The greater it is, the more data will be stored.
+          edge_events_window_size: 2
+          # enable_thread_cpu_metrics is the switch for whether to collect thread-level polaris metrics.
+          # It dosn't rely on trigger signals like tracing txin/txout.
+          enable_thread_polaris_metrics: true
+        traceidanalyzer:
+          # open_java_trace_sampling is the switch for whether to use Java-Trace to trigger sampling.
+          open_java_trace_sampling: true
+          # Set Slow Time Threshold(ms).
+          java_trace_slow_time: 100
+          # Set the max wait time(s) for traceId.
+          java_trace_wait_second: 300
+          # 是否生成RED指标.
+          enable_app_red_metrics: false
+          enable_sql_red_metrics: false
+      processors:
+        app_processor_enable: true
+        sampleprocessor:
+          enable: false
+          # 是否将hasException数据打标为Error，默认关闭.
+          exception_as_error: true
+          # Options: ["tailbase", "single"].
+          sampler: tailbase
+          # Collect one normal sample trace between [0 ~ N] seconds window. If set 0, normal trace will not collect.
+          # 展示窗口时间，即每N秒内采集一条正常Trace数据.
+          display_window: 300
+          # 是否入口全链路采样. If set false, 每个正常节点都会通知其他节点全链路采集.
+          normal_top_sample: false
+          # 同一URL正常全链路采样周期，被错慢正常链路采样后动态更新该值. If set 0, 正常全链路数据不会采样.
+          normal_sample_wait_time: 60
+          # open_slow_sampling is the switch for whether to collect slow traces.
+          # 提供慢请求采样开关，关闭则不采集慢请求
+          open_slow_sampling: true
+          # open_error_sampling is the switch for whether to collect error trace for diff.
+          open_error_sampling: true
+          # 是否开启保存全链路profiling数据，仅对慢链路有效，默认为false
+          enable_tail_base_profiling: true
+          # sample_trace_repeat_num is the times of recheck trace is sampled.
+          sample_trace_repeat_num: 5
+          # Set the max wait time for sampled traceIds.
+          sample_trace_wait_time: 60
+          # Ignore trace whose duration is less than the threshold(ms).
+          sample_trace_ignore_threshold: 2
+          # Set period for save trace after hit same url.
+          # 同一URL的静默窗口期 (原参数为sample_url_hit_duration).
+          silent_period: 15
+          # Set counts for save trace after hit same url.
+          # 设置静默窗口期内最大采样的次数.
+          silent_count: 1
+          # Options: ["window", "wait"].
+          silent_mode: window
+          # Set the query interval(s) for get sampled traceids.
+          query_profile_interval: 2
+          # Set the query interval(s) for update slow threshold.
+          query_slow_threshold_interval: 30
+      # formerly named Receiver
+      controller:
+        # enable the controller to receive configuration.
+        enable: true
+        host: apo-nginx-proxy-svc
+        port: 30044
+        # whether to fetch ebpf file from controller.
+        enable_fetch_ebpf_file: true
+        # Connect center API server via HTTP if true, otherwise connect receiver via gRPC.
+        center_direct: false
+      exporters:
+        cameraexporter:
+          # Options: ["elasticsearch", "grpc", "noop", "file"]
+          storage: grpc
+          # Effective when storage is "file"
+          file_config:
+            base_path: /tmp/kindling/data/
+          # Effective when storage is "elasticsearch"
+          es_config:
+            es_host: http://elasticsearch-master:9200
+            index_suffix: originx
+        metricexporter:
+          # Options: ["log", "prometheus"]
+          type: prometheus
+          prometheus:
+            # victoria metrics or prometheus histogram
+            # Options: ["pm", "vm"]
+            format: vm
+            port: 9500
+            cache_size: 5000
+            open_profiling_bucket: true
+      notifier:
+        enable: false
+      profiler:
+        # 转发profiler探针端口号，设置为0则不通知.
+        port: 19005
+        # 超时时间(秒).
+        timeout: 2
+  - path: config/log4rs.yml
+    template: |
+      refresh_rate: 30 seconds
+      appenders:
+        stdout:
+          kind: console
+        file:
+          kind: file
+          path: "log/originx-agent.log"
+          encoder:
+            pattern: "{d} - {m}{n}"
+      root:
+        level: info
+        appenders:
+          - stdout
+          - file
+      loggers:
+        camera_agent::cpu_analyzer:
+          level: info
+        camera_agent::time_aggregate:
+          level: info
+  - path: load-env.sh
+    template: |-
+      #!/bin/bash
+      export LD_LIBRARY_PATH=./libso/:${LD_LIBRARY_PATH:-}
+      export CACHE_SECOND="${CACHE_SECOND:-30}"
+      export ASYNC_PROFILER_PARAMS="${ASYNC_PROFILER_PARAMS:--e traceid -o sw_otel}"
+      export all_north_star="${all_north_star:-true}"
+      export switch_agg_num="${switch_agg_num:-2}"
+      export SNAPLEN="${SNAPLEN:-1000}"
+      export SYSDIG_HOST_ROOT="${SYSDIG_HOST_ROOT:-/}"
+      export HOST_PROC="${HOST_PROC:-/proc}"
+      export RUST_BACKTRACE="${RUST_BACKTRACE:-full}"
+- probeType: grafana-alloy
+  files:
+  - path: config.alloy
+    template: |-
+      logging {
+        level  = "info"
+        format = "logfmt"
+      }
+
+      prometheus.exporter.unix "local_system" {
+        rootfs_path = "/host/rootfs"
+        filesystem {
+          fs_types_exclude = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|tmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|fuse.gvfsd-fuse)$"
+          mount_points_exclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/kubelet/pods/.+|var/lib/docker/.+|var/lib/containers/.+)($|/)"
+        }
+      }
+- probeType: ilogtail
+  files:
+  - path: conf/plugin_logger.xml
+    template: |
+      <seelog type="asynctimer" asyncinterval="500000" minlevel="info" >
+      <outputs formatid="common">
+              <rollingfile type="size" filename="/usr/local/ilogtail/logtail_plugin.LOG" maxsize="20000000" maxrolls="10"/>
+      </outputs>
+      <formats>
+              <format id="common" format="%Date %Time [%LEV] [%File:%Line] [%FuncShort] %Msg%n" />
+      </formats>
+      </seelog>
+- probeType: node-agent
+  files:
+  - path: config.yaml
+    template: |
+      metric:
+        ping_span: 5 # get network rtt every 5s
+        pid_span: 1 # get process info every 1min
+        lru_cache_size: 50000 # metric cache size
+        process_time: true # enable collector process time metric
+
+      whitelist:
+        process_type: [java,python,node] # match process cmdline, if not config match all
+        k8s_namespace: [] # match k8s namespace, if not config match all
+
+      k8s_metadata:
+        fetch_source_addr: apo-otel-collector-svc:8080 # metadata fetch source addr
+        auth_type: # kube_auth_type, support kubeConfig
+        kube_config: # kube_auth_config, kubeConfig file path, only used when kube_auth_type is kubeConfig
+
+      middleware_port: # match middleware port
+        rabbitmq: [5672]
+        kafka: [9092]
+        activemq: [61616]
+        rocketmq: [10911]
+        mysql: [3306]
+        postgresql: [5432]
+        mongodb: [27017]
+- probeType: profile-agent
+  files:
+  - path: profile-agent.yml
+    template: |
+      profile:
+        port: 19005
+        # Interval of scanning JFR files (seconds)
+        scan-interval: 10
+        # Cache seconds for each profiling segment.
+        cache-second: 120
+        # Send data types of profiling data
+        types: ["wall", "cpu"]
+        # Endpoint of apo-collector
+        endpoint: "apo-nginx-proxy-svc:30044"
+- probeType: originx-gc-agent
+  files:
+  - path: originx-gc-agent.env
+    template: |
+      RECEIVER_HOST=apo-nginx-proxy-svc
+      RECEIVER_PORT=30044
+- probeType: vmagent
+  files:
+  - path: scrape.yml
+    template: |-
+      global:
+        scrape_interval: 60s
+        external_labels:
+          cluster_id: "{% CLUSTER_ID %}"
+
+      scrape_configs:
+      - job_name: apo-one-agent
+        scrape_interval: 30s
+        static_configs:
+          - targets: ["localhost:8429","localhost:9500","localhost:9499","localhost:9408"]
+        relabel_configs:
+          - action: replace
+            source_labels: ["instance"]
+            target_label: "instance_name"
+          - action: replace
+            source_labels: ["job"]
+            target_label: "job_name"
+
+      - job_name: integrations/unix
+        static_configs:
+          - targets: ["%{VM_MY_NODE_IP}:12345/api/v0/component/prometheus.exporter.unix.local_system/metrics"]
+            labels:
+                instance_name: "%{VM_HOSTNAME}"
+        metric_relabel_configs:
+          - action: replace
+            source_labels: ["job"]
+            target_label: "job_name"
+
+      - job_name: "integrations/kubernetes/cadvisor"
+        scheme: "https"
+        scrape_interval: 60s
+        bearer_token_file: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config:
+          insecure_skip_verify: true
+        static_configs:
+          - targets:
+              - "%{VM_MY_NODE_IP}:10250"
+            labels:
+              node_name: "%{VM_HOSTNAME}"
+        metrics_path: "/metrics/cadvisor"
+        metric_relabel_configs:
+          - action: replace
+            source_labels: ["instance"]
+            target_label: "instance_name"
+          - action: replace
+            source_labels: ["job"]
+            target_label: "job_name"
+
+      - job_name: "kubelet"
+        scheme: "https"
+        scrape_interval: 60s
+        bearer_token_file: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config:
+          insecure_skip_verify: true
+        static_configs:
+          - targets:
+              - "%{VM_MY_NODE_IP}:10250"
+            labels:
+              node_name: "%{VM_HOSTNAME}"
+        metric_relabel_configs:
+          - action: replace
+            source_labels: ["instance"]
+            target_label: "instance_name"
+          - action: replace
+            source_labels: ["job"]
+            target_label: "job_name"

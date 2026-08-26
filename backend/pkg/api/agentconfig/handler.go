@@ -18,6 +18,11 @@ type Handler struct{ s *svc.Service }
 func New(repo database.Repo) *Handler   { return &Handler{s: svc.New(repo)} }
 func fail(c core.Context, e error)      { c.AbortWithError(http.StatusBadRequest, code.ParamBindError, e) }
 func agentNodeID(c core.Context) string { v, _ := c.Get("agentNodeID"); s, _ := v.(string); return s }
+func agentClusterID(c core.Context) string {
+	v, _ := c.Get("agentClusterID")
+	s, _ := v.(string)
+	return s
+}
 func (h *Handler) Inspect() core.HandlerFunc {
 	return func(c core.Context) {
 		var r struct {
@@ -68,6 +73,22 @@ func (h *Handler) CreateTemplate() core.HandlerFunc {
 			return
 		}
 		c.Payload(v)
+	}
+}
+
+func (h *Handler) ImportTemplate() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.TemplateImportInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		template, err := h.s.ImportTemplate(c, input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(template)
 	}
 }
 func (h *Handler) UpdateTemplate() core.HandlerFunc {
@@ -399,6 +420,7 @@ func (h *Handler) Register() core.HandlerFunc {
 			return
 		}
 		n.ID = agentNodeID(c)
+		n.ClusterID = agentClusterID(c)
 		if e := h.s.Register(c, &n); e != nil {
 			fail(c, e)
 			return
@@ -449,7 +471,7 @@ func (h *Handler) GetConfig() core.HandlerFunc {
 }
 func (h *Handler) Settings() core.HandlerFunc {
 	return func(c core.Context) {
-		settings, err := h.s.SettingsForProbe(c, agentNodeID(c), c.Request().URL.Query().Get("probeType"))
+		settings, err := h.s.SettingsForProbeAndCluster(c, agentNodeID(c), c.Request().URL.Query().Get("probeType"), agentClusterID(c))
 		if err != nil {
 			fail(c, err)
 			return

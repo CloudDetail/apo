@@ -1,6 +1,7 @@
 package agentconfig
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +24,12 @@ func (*commandRepo) ListAgentTemplates(core.Context) ([]ac.Template, error)     
 func (*commandRepo) UpsertAgentNode(core.Context, *ac.Node) error                   { return nil }
 func (*commandRepo) ListAgentNodes(core.Context) ([]ac.Node, error)                 { return nil, nil }
 func (*commandRepo) GetAgentNode(core.Context, string) (*ac.Node, error)            { return nil, nil }
+func (*commandRepo) GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error) {
+	return nil, nil
+}
+func (*commandRepo) GetOdigletReadiness(core.Context, string, time.Time) (*bool, error) {
+	return nil, nil
+}
 func (*commandRepo) SaveAgentInitialConfigIfUnassigned(core.Context, *ac.InitialConfig) (bool, error) {
 	return false, nil
 }
@@ -114,5 +121,34 @@ func TestCreateLogDiagnosticCommands(t *testing.T) {
 	}
 	if _, err := service.CreateCommand(nil, "node", "probe", CommandInput{Type: "PREVIEW_LOG_FILE", FilePath: "/tmp/a", TailLines: 101}, 1); err == nil {
 		t.Fatal("preview over 100 lines was accepted")
+	}
+}
+
+func TestCreateJavaLogScanCommand(t *testing.T) {
+	repo := &commandRepo{}
+	service := New(repo)
+	command, err := service.CreateCommand(nil, "node", "ilogtail", CommandInput{Type: "scan_java_log_files"}, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if command.Type != "SCAN_JAVA_LOG_FILES" || command.ProbeType != "ilogtail" {
+		t.Fatalf("unexpected Java log scan command: %+v", command)
+	}
+}
+
+func TestCreatePreloadControlCommands(t *testing.T) {
+	for _, commandType := range []string{"enable_preload", "DISABLE_PRELOAD"} {
+		repo := &commandRepo{}
+		service := New(repo)
+		command, err := service.CreateCommand(nil, "node", "preload", CommandInput{Type: commandType}, 1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if command.Type != strings.ToUpper(commandType) || command.ProbeType != "preload" {
+			t.Fatalf("unexpected preload command: %+v", command)
+		}
+	}
+	if _, err := New(&commandRepo{}).CreateCommand(nil, "node", "ebpf-agent", CommandInput{Type: "ENABLE_PRELOAD"}, 1); err == nil {
+		t.Fatal("preload control was accepted for another component")
 	}
 }

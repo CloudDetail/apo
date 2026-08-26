@@ -38,6 +38,8 @@ type Repository interface {
 	UpsertAgentNode(core.Context, *ac.Node) error
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
+	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
+	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
 	SaveAgentInitialConfigIfUnassigned(core.Context, *ac.InitialConfig) (bool, error)
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
 	ListAgentInitialConfigs(core.Context, string) ([]ac.InitialConfig, error)
@@ -70,6 +72,7 @@ const (
 	defaultCircuitDurationSeconds             = 30
 	defaultCircuitRecoveryInitialDelaySeconds = 30
 	defaultCircuitRecoveryMaxDelaySeconds     = 60 * 60
+	agentStateFreshnessTimeout                = 2 * time.Minute
 )
 
 func loadDefaultAgentSettings() ac.AgentSettings {
@@ -172,10 +175,28 @@ func (s *Service) SettingsForNode(ctx core.Context, nodeID string) (ac.AgentSett
 }
 
 func (s *Service) SettingsForProbe(ctx core.Context, nodeID, probeType string) (ac.AgentSettings, error) {
+	return s.SettingsForProbeAndCluster(ctx, nodeID, probeType, "")
+}
+
+func (s *Service) SettingsForProbeAndCluster(ctx core.Context, nodeID, probeType, clusterID string) (ac.AgentSettings, error) {
 	if _, err := s.repo.GetAgentNode(ctx, nodeID); err != nil {
 		return ac.AgentSettings{}, err
 	}
 	settings := ac.AgentSettings{UseLocalDefaults: true}
+	if clusterID != "" {
+		namespaceInjection, err := s.repo.GetNamespaceInjection(ctx, clusterID)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("agentconfig: namespace injection settings are unavailable for cluster %s: %v", clusterID, err)
+		} else if err == nil {
+			settings.NamespaceInjection = namespaceInjection
+		}
+		odigletReady, err := s.repo.GetOdigletReadiness(ctx, clusterID, s.now().Add(-agentStateFreshnessTimeout))
+		if err != nil {
+			log.Printf("agentconfig: odiglet readiness is unavailable for cluster %s: %v", clusterID, err)
+		} else {
+			settings.OdigletReady = odigletReady
+		}
+	}
 	probeType = ac.NormalizeProbe(probeType)
 	if assigned, err := s.repo.GetNodeLogConfig(ctx, nodeID, probeType); err == nil {
 		var sources []ac.LogSource
@@ -218,6 +239,7 @@ type TemplateInput struct {
 	Configs     []ac.TemplateProbeConfig `json:"configs"`
 	Name        string                   `json:"name" binding:"required"`
 	Description string                   `json:"description"`
+	ClusterType string                   `json:"clusterType"`
 	Variables   []ac.TemplateVariable    `json:"variables"`
 }
 type AssignmentInput struct {
@@ -258,6 +280,7 @@ type CurrentNodeConfig struct {
 	NodeID        string                 `json:"nodeId"`
 	ProbeType     string                 `json:"probeType"`
 	Generation    int64                  `json:"generation"`
+	Version       int64                  `json:"version"`
 	Content       string                 `json:"content,omitempty"`
 	Files         []ac.InitialConfigFile `json:"files"`
 	ContentSHA256 string                 `json:"contentSha256"`
@@ -284,6 +307,37 @@ type ValidationError struct {
 	MissingVariables []string `json:"missingVariables"`
 	InvalidVariables []string `json:"invalidVariables"`
 	UnusedVariables  []string `json:"unusedVariables"`
+}
+
+const (
+	templateClusterTypeKubernetes = "kubernetes"
+	templateClusterTypeVM         = "vm"
+)
+
+func normalizeTemplateClusterType(value string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "k8s", "kubernetes", "helm":
+		return templateClusterTypeKubernetes, nil
+	case "vm", "binary":
+		return templateClusterTypeVM, nil
+	default:
+		return "", fmt.Errorf("unsupported template cluster type %q; expected kubernetes or vm", value)
+	}
+}
+
+func ensureTemplateMatchesNode(template *ac.Template, node *ac.Node) error {
+	templateType, err := normalizeTemplateClusterType(template.ClusterType)
+	if err != nil {
+		return err
+	}
+	nodeType, err := normalizeTemplateClusterType(node.Environment)
+	if err != nil {
+		return fmt.Errorf("node %s has unsupported environment %q", node.ID, node.Environment)
+	}
+	if templateType != nodeType {
+		return fmt.Errorf("template cluster type %s does not match node %s environment %s", templateType, node.ID, nodeType)
+	}
+	return nil
 }
 
 func (e *ValidationError) Error() string {
@@ -377,10 +431,15 @@ func (s *Service) CreateTemplate(ctx core.Context, in TemplateInput, user int64)
 	if err != nil {
 		return nil, err
 	}
+	clusterType, err := normalizeTemplateClusterType(in.ClusterType)
+	if err != nil {
+		return nil, err
+	}
 	t := ac.NewTemplate()
 	t.Configs = configs
 	t.Name = strings.TrimSpace(in.Name)
 	t.Description = in.Description
+	t.ClusterType = clusterType
 	t.ContentSHA256 = checksum
 	t.CreatedBy = user
 	t.UpdatedBy = user
@@ -395,13 +454,36 @@ func (s *Service) UpdateTemplate(ctx core.Context, id uuid.UUID, in TemplateInpu
 	if e != nil {
 		return nil, e
 	}
+	oldConfigs, e := templateProbeConfigs(old)
+	if e != nil {
+		return nil, e
+	}
 	configs, checksum, variableSource, e := normalizeTemplatePayload(in)
 	if e != nil {
 		return nil, e
 	}
+	oldClusterType, e := normalizeTemplateClusterType(old.ClusterType)
+	if e != nil {
+		return nil, e
+	}
+	nextClusterType, e := normalizeTemplateClusterType(in.ClusterType)
+	if e != nil {
+		return nil, e
+	}
+	if oldClusterType != nextClusterType {
+		return nil, fmt.Errorf("template cluster type cannot be changed; create a new template instead")
+	}
+	var nextConfigs []ac.TemplateProbeConfig
+	if e = json.Unmarshal(configs, &nextConfigs); e != nil {
+		return nil, e
+	}
+	if !sameTemplateConfigFilePaths(oldConfigs, nextConfigs) {
+		return nil, fmt.Errorf("template registration cannot be changed; only file template content may be updated")
+	}
 	old.Configs = configs
 	old.Name = strings.TrimSpace(in.Name)
 	old.Description = in.Description
+	old.ClusterType = oldClusterType
 	old.Version++
 	old.ContentSHA256 = checksum
 	old.UpdatedBy = user
@@ -419,6 +501,11 @@ func (s *Service) ListTemplates(ctx core.Context) ([]ac.Template, error) {
 		return nil, err
 	}
 	for index := range templates {
+		clusterType, err := normalizeTemplateClusterType(templates[index].ClusterType)
+		if err != nil {
+			return nil, fmt.Errorf("normalize template %s cluster type: %w", templates[index].ID, err)
+		}
+		templates[index].ClusterType = clusterType
 		if err := hydrateTemplateConfigs(&templates[index]); err != nil {
 			return nil, fmt.Errorf("decode template %s: %w", templates[index].ID, err)
 		}
@@ -433,6 +520,11 @@ func (s *Service) GetTemplate(ctx core.Context, id uuid.UUID) (*ac.Template, err
 	if err := hydrateTemplateConfigs(template); err != nil {
 		return nil, err
 	}
+	clusterType, err := normalizeTemplateClusterType(template.ClusterType)
+	if err != nil {
+		return nil, err
+	}
+	template.ClusterType = clusterType
 	return template, nil
 }
 func (s *Service) DeleteTemplate(ctx core.Context, id uuid.UUID) error {
@@ -482,12 +574,26 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 		if len(policy.ComponentPolicies) > 0 {
 			return fmt.Errorf("component policy %s must not contain nested component policies", componentType)
 		}
+		if policy.SystemPressure != nil {
+			return fmt.Errorf("component policy %s must not contain system pressure settings", componentType)
+		}
 		if err := validateCircuitBreaker(&policy); err != nil {
 			return fmt.Errorf("component policy %s: %w", componentType, err)
 		}
 	}
 	if !settings.Enabled {
 		return nil
+	}
+	if settings.SystemPressure != nil && settings.SystemPressure.Enabled {
+		if settings.SystemPressure.MaxCPUPercent != 0 && (settings.SystemPressure.MaxCPUPercent < 1 || settings.SystemPressure.MaxCPUPercent > 100) {
+			return fmt.Errorf("system max CPU percent must be 0 or between 1 and 100")
+		}
+		if settings.SystemPressure.MaxMemoryPercent != 0 && (settings.SystemPressure.MaxMemoryPercent < 1 || settings.SystemPressure.MaxMemoryPercent > 100) {
+			return fmt.Errorf("system max memory percent must be 0 or between 1 and 100")
+		}
+		if settings.SystemPressure.MaxCPUPercent == 0 && settings.SystemPressure.MaxMemoryPercent == 0 {
+			return fmt.Errorf("enabled system pressure breaker requires a CPU or memory threshold")
+		}
 	}
 	if settings.MaxCPUCores != 0 && (settings.MaxCPUCores < 0.1 || settings.MaxCPUCores > 256) {
 		return fmt.Errorf("max CPU cores must be 0 or between 0.1 and 256")
@@ -499,7 +605,7 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	if settings.MaxMemoryBytes != 0 && (settings.MaxMemoryBytes < minimumMemory || settings.MaxMemoryBytes > maximumMemory) {
 		return fmt.Errorf("max memory bytes must be 0 or between 64 MiB and 64 GiB")
 	}
-	if settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 {
+	if settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 && (settings.SystemPressure == nil || !settings.SystemPressure.Enabled) {
 		return fmt.Errorf("enabled circuit breaker requires a CPU or memory threshold")
 	}
 	if settings.DurationSeconds < 5 || settings.DurationSeconds > 600 {
@@ -512,6 +618,22 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 		if settings.RecoveryMaxDelaySeconds < settings.RecoveryInitialDelaySeconds || settings.RecoveryMaxDelaySeconds > 3600 {
 			return fmt.Errorf("recovery max delay seconds must be between the initial delay and 3600")
 		}
+	}
+	return nil
+}
+
+func validateClusterCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
+	if err := validateCircuitBreaker(settings); err != nil {
+		return err
+	}
+	if settings == nil {
+		return nil
+	}
+	if settings.MaxCPUCores != 0 || settings.MaxMemoryBytes != 0 {
+		return fmt.Errorf("cluster circuit breaker must use system CPU and memory percentages")
+	}
+	if settings.Enabled && (settings.SystemPressure == nil || !settings.SystemPressure.Enabled) {
+		return fmt.Errorf("enabled cluster circuit breaker requires system CPU or memory percentages")
 	}
 	return nil
 }
@@ -607,6 +729,9 @@ func (s *Service) SaveNodeCircuit(ctx core.Context, node string, settings ac.Cir
 }
 
 func (s *Service) BatchSaveCircuit(ctx core.Context, input CircuitBatchInput, user int64) (*BatchResult, error) {
+	if err := validateClusterCircuitBreaker(&input.CircuitBreaker); err != nil {
+		return nil, err
+	}
 	nodes, err := s.nodesInClusters(ctx, input.ClusterIDs)
 	if err != nil {
 		return nil, err
@@ -742,7 +867,7 @@ func (s *Service) CurrentNodeConfig(ctx core.Context, node, probe string) (*Curr
 }
 
 func currentNodeConfig(node, probe string, generation int64, files []ac.InitialConfigFile, sha, source string) *CurrentNodeConfig {
-	config := &CurrentNodeConfig{NodeID: node, ProbeType: probe, Generation: generation, Files: files, ContentSHA256: sha, Source: source}
+	config := &CurrentNodeConfig{NodeID: node, ProbeType: probe, Generation: generation, Version: generation + 1, Files: files, ContentSHA256: sha, Source: source}
 	if len(files) == 1 {
 		config.Content = files[0].Content
 	}
@@ -767,6 +892,23 @@ func (s *Service) ListNodeConfigHistory(ctx core.Context, node, probe string, li
 		config := currentNodeConfig(node, probe, releases[index].Generation, files, releases[index].ContentSHA256, "RELEASE")
 		config.CreatedAt = releases[index].CreatedAt
 		result = append(result, *config)
+	}
+	if len(result) < limit {
+		baseline, baselineErr := s.repo.GetAgentInitialConfig(ctx, node, probe)
+		if baselineErr == nil {
+			var files []ac.InitialConfigFile
+			if err := json.Unmarshal(baseline.Files, &files); err != nil {
+				return nil, err
+			}
+			if len(files) == 0 {
+				return nil, fmt.Errorf("node has no initial configuration for %s", probe)
+			}
+			config := currentNodeConfig(node, probe, 0, files, baseline.ContentSHA256, "INITIAL")
+			config.CreatedAt = baseline.CapturedAt
+			result = append(result, *config)
+		} else if !errors.Is(baselineErr, gorm.ErrRecordNotFound) {
+			return nil, baselineErr
+		}
 	}
 	return result, nil
 }
@@ -875,6 +1017,9 @@ func (s *Service) UpdateNodeConfigs(ctx core.Context, node string, input NodeCon
 		if err != nil {
 			return nil, fmt.Errorf("invalid files for %s: %w", probe, err)
 		}
+		if !sameConfigFilePaths(files, current.Files) {
+			return nil, fmt.Errorf("registered configuration files for %s cannot be added, removed, or renamed", probe)
+		}
 		if sameConfigFiles(files, current.Files) {
 			continue
 		}
@@ -912,28 +1057,7 @@ func normalizeNodeUpdateFiles(update NodeProbeConfigInput, current CurrentNodeCo
 	if len(files) == 0 && len(current.Files) == 1 {
 		files = []ac.InitialConfigFile{{Path: current.Files[0].Path, Content: update.Content}}
 	}
-	if len(files) != len(current.Files) {
-		return nil, fmt.Errorf("all %d current files are required", len(current.Files))
-	}
-	currentPaths := make(map[string]struct{}, len(current.Files))
-	for _, file := range current.Files {
-		currentPaths[file.Path] = struct{}{}
-	}
-	seen := make(map[string]struct{}, len(files))
-	normalized := make([]ac.InitialConfigFile, 0, len(files))
-	for _, file := range files {
-		path := filepath.Clean(strings.TrimSpace(file.Path))
-		if _, exists := currentPaths[path]; !exists {
-			return nil, fmt.Errorf("path %s is not part of the current configuration", path)
-		}
-		if _, duplicate := seen[path]; duplicate {
-			return nil, fmt.Errorf("path %s is duplicated", path)
-		}
-		seen[path] = struct{}{}
-		normalized = append(normalized, ac.InitialConfigFile{Path: path, Content: file.Content, ContentSHA256: ac.HashContent(file.Content)})
-	}
-	sort.Slice(normalized, func(i, j int) bool { return normalized[i].Path < normalized[j].Path })
-	return normalized, nil
+	return normalizeConfigFiles(files, "node configuration")
 }
 
 func sameConfigFiles(left, right []ac.InitialConfigFile) bool {
@@ -973,6 +1097,9 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 	releases := make([]*ac.Release, 0, len(targets)*len(configs))
 	expected := make(map[string]int64, len(targets)*len(configs))
 	for _, node := range targets {
+		if err := ensureTemplateMatchesNode(template, &node); err != nil {
+			return nil, err
+		}
 		current, err := s.CurrentNodeConfigs(ctx, node.ID)
 		if err != nil {
 			return nil, fmt.Errorf("get current configuration for %s: %w", node.ID, err)
@@ -989,7 +1116,10 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 			if !exists {
 				return nil, fmt.Errorf("template does not contain probe %s required by node %s", probe, node.ID)
 			}
-			release, binding, previous, err := s.prepareAssignment(ctx, node.ID, probe, template, selected.Files, AssignmentInput{TemplateID: template.ID, Variables: input.Variables})
+			if !sameConfigFilePaths(selected.Files, currentConfig.Files) {
+				return nil, fmt.Errorf("template files for %s do not match registered configuration files on node %s", probe, node.ID)
+			}
+			release, binding, previous, err := s.prepareAssignment(ctx, node.ID, probe, template, selected.Files, AssignmentInput{TemplateID: template.ID, Variables: input.Variables}, nodeTemplateVariables(&node))
 			if err != nil {
 				return nil, fmt.Errorf("prepare template assignment for %s/%s: %w", node.ID, probe, err)
 			}
@@ -1005,11 +1135,15 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 }
 
 func (s *Service) Assign(ctx core.Context, node, probe string, in AssignmentInput) (*ac.Release, error) {
-	if _, e := s.repo.GetAgentNode(ctx, node); e != nil {
+	targetNode, e := s.repo.GetAgentNode(ctx, node)
+	if e != nil {
 		return nil, e
 	}
 	t, e := s.repo.GetAgentTemplate(ctx, in.TemplateID)
 	if e != nil {
+		return nil, e
+	}
+	if e = ensureTemplateMatchesNode(t, targetNode); e != nil {
 		return nil, e
 	}
 	probe = ac.NormalizeProbe(probe)
@@ -1027,7 +1161,14 @@ func (s *Service) Assign(ctx core.Context, node, probe string, in AssignmentInpu
 	if selected == nil {
 		return nil, fmt.Errorf("template does not contain probe %s", probe)
 	}
-	release, binding, previous, err := s.prepareAssignment(ctx, node, probe, t, selected.Files, in)
+	current, e := s.CurrentNodeConfig(ctx, node, probe)
+	if e != nil {
+		return nil, e
+	}
+	if !sameConfigFilePaths(selected.Files, current.Files) {
+		return nil, fmt.Errorf("template files for %s do not match registered configuration files on node %s", probe, node)
+	}
+	release, binding, previous, err := s.prepareAssignment(ctx, node, probe, t, selected.Files, in, nodeTemplateVariables(targetNode))
 	if err != nil {
 		return nil, err
 	}
@@ -1051,13 +1192,14 @@ func templateProbeConfigs(t *ac.Template) ([]ac.TemplateProbeConfig, error) {
 	if err := json.Unmarshal(t.Configs, &configs); err != nil {
 		return nil, fmt.Errorf("decode template configurations: %w", err)
 	}
-	normalized, _, _, err := normalizeTemplatePayload(TemplateInput{Configs: configs})
+	normalized, _, variableSource, err := normalizeTemplatePayload(TemplateInput{Configs: configs})
 	if err != nil {
 		return nil, err
 	}
 	if err := json.Unmarshal(normalized, &configs); err != nil {
 		return nil, err
 	}
+	t.Variables = mergeVariables(variableSource, t.Variables)
 	return configs, nil
 }
 
@@ -1090,13 +1232,40 @@ func sameConfigFilePaths(left, right []ac.InitialConfigFile) bool {
 	return true
 }
 
-func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.Template, definedFiles []ac.InitialConfigFile, in AssignmentInput) (*ac.Release, *ac.Binding, int64, error) {
+func sameTemplateConfigFilePaths(left, right []ac.TemplateProbeConfig) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	rightByProbe := make(map[string][]ac.InitialConfigFile, len(right))
+	for _, config := range right {
+		rightByProbe[config.ProbeType] = config.Files
+	}
+	for _, config := range left {
+		files, ok := rightByProbe[config.ProbeType]
+		if !ok || !sameConfigFilePaths(config.Files, files) {
+			return false
+		}
+	}
+	return true
+}
+
+func nodeTemplateVariables(node *ac.Node) map[string]string {
+	if node == nil || strings.TrimSpace(node.ClusterID) == "" {
+		return nil
+	}
+	return map[string]string{"CLUSTER_ID": node.ClusterID}
+}
+
+func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.Template, definedFiles []ac.InitialConfigFile, in AssignmentInput, builtins map[string]string) (*ac.Release, *ac.Binding, int64, error) {
 	missing := []string{}
 	invalid := []string{}
 	used := map[string]bool{}
 	values := map[string]string{}
 	for _, v := range t.Variables {
-		value, ok := in.Variables[v.Name]
+		value, ok := builtins[v.Name]
+		if !ok || value == "" {
+			value, ok = in.Variables[v.Name]
+		}
 		if !ok || value == "" {
 			value = v.DefaultValue
 		}
@@ -1123,16 +1292,13 @@ func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.
 	if len(missing)+len(invalid) > 0 {
 		return nil, nil, 0, &ValidationError{MissingVariables: missing, InvalidVariables: invalid, UnusedVariables: unused}
 	}
-	current, e := s.CurrentNodeConfig(ctx, node, probe)
-	if e != nil {
+	if _, e := s.CurrentNodeConfig(ctx, node, probe); e != nil {
 		return nil, nil, 0, e
 	}
+	var e error
 	renderedContent := ""
 	releaseFiles := ac.JSON("null")
 	contentSHA256 := ""
-	if !sameConfigFilePaths(definedFiles, current.Files) {
-		return nil, nil, 0, fmt.Errorf("template file set does not match the current %d-file configuration", len(current.Files))
-	}
 	definedFiles = append([]ac.InitialConfigFile(nil), definedFiles...)
 	for index := range definedFiles {
 		definedFiles[index].Content, e = Render(definedFiles[index].Content, values)
@@ -1240,12 +1406,26 @@ func (s *Service) Report(ctx core.Context, state *ac.ApplyState) error {
 	return s.repo.ReportAgentState(ctx, state)
 }
 func (s *Service) ListStates(ctx core.Context) ([]ac.ApplyState, error) {
-	return s.repo.ListAgentStates(ctx)
+	states, err := s.repo.ListAgentStates(ctx)
+	if err != nil {
+		return nil, err
+	}
+	cutoff := s.now().Add(-agentStateFreshnessTimeout)
+	for index := range states {
+		if states[index].ReportedAt == nil || states[index].ReportedAt.Before(cutoff) {
+			states[index].Status = "OFFLINE"
+			states[index].Reason = "status report expired"
+		}
+	}
+	return states, nil
 }
 func (s *Service) CreateCommand(ctx core.Context, node, probe string, in CommandInput, user int64) (*ac.Command, error) {
 	typ := strings.ToUpper(strings.TrimSpace(in.Type))
-	if typ != "RESTART" && typ != "OPEN_CIRCUIT" && typ != "RESET_CIRCUIT" && typ != "LIST_LOG_FILES" && typ != "PREVIEW_LOG_FILE" && typ != "DOWNLOAD_LOG_FILE" {
+	if typ != "RESTART" && typ != "OPEN_CIRCUIT" && typ != "RESET_CIRCUIT" && typ != "LIST_LOG_FILES" && typ != "PREVIEW_LOG_FILE" && typ != "DOWNLOAD_LOG_FILE" && typ != "SCAN_JAVA_LOG_FILES" && typ != "ENABLE_PRELOAD" && typ != "DISABLE_PRELOAD" {
 		return nil, fmt.Errorf("unsupported command type")
+	}
+	if (typ == "ENABLE_PRELOAD" || typ == "DISABLE_PRELOAD") && ac.NormalizeProbe(probe) != "preload" {
+		return nil, fmt.Errorf("preload control command requires the preload component")
 	}
 	if typ == "OPEN_CIRCUIT" || typ == "RESET_CIRCUIT" {
 		if in.ExpectedCircuitEpoch == nil {

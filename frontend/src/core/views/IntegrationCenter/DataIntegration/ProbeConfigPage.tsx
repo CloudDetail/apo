@@ -3,11 +3,11 @@ import {
   Card,
   Col,
   Collapse,
-  Form,
   Input,
   InputNumber,
   Modal,
   Row,
+  Segmented,
   Select,
   Space,
   Switch,
@@ -17,7 +17,7 @@ import {
   Tree,
   Typography,
 } from 'antd'
-import { LeftOutlined, PlusOutlined } from '@ant-design/icons'
+import { LeftOutlined } from '@ant-design/icons'
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import {
   Cpu,
@@ -32,8 +32,9 @@ import {
   Settings,
   ShieldAlert,
   Trash2,
+  Upload,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   batchAssignAgentConfigApi,
@@ -46,6 +47,7 @@ import {
   getNodeCircuitBreakerApi,
   getNodeConfigHistoryApi,
   getNodeCurrentConfigsApi,
+  importAgentConfigTemplateApi,
   updateAgentConfigTemplateApi,
   updateGlobalCircuitBreakerApi,
   updateNodeCircuitBreakerApi,
@@ -64,6 +66,7 @@ type AgentNode = {
   reportedVariables?: Record<string, string>
 }
 type ProbeState = { nodeId: string; probeType: string }
+type ClusterType = 'kubernetes' | 'vm'
 type TemplateVariable = { name: string; required?: boolean; defaultValue?: string }
 type ConfigFile = { path: string; content: string; contentSha256: string }
 type TemplateProbeConfig = { probeType: string; files: ConfigFile[] }
@@ -71,6 +74,7 @@ type AgentTemplate = {
   id: string
   name: string
   description?: string
+  clusterType?: string
   configs: TemplateProbeConfig[]
   version: number
   variables?: TemplateVariable[]
@@ -83,11 +87,18 @@ type CircuitPolicy = {
   autoRecover: boolean
   recoveryInitialDelaySeconds: number
   recoveryMaxDelaySeconds: number
+  systemPressure?: SystemPressurePolicy
   componentPolicies?: Record<string, CircuitPolicy>
+}
+type SystemPressurePolicy = {
+  enabled: boolean
+  maxCpuPercent: number
+  maxMemoryPercent: number
 }
 type CurrentConfig = {
   probeType: string
   generation: number
+  version: number
   content: string
   files: ConfigFile[]
   contentSha256: string
@@ -115,6 +126,11 @@ const DEFAULT_CIRCUIT: CircuitPolicy = {
   autoRecover: true,
   recoveryInitialDelaySeconds: 30,
   recoveryMaxDelaySeconds: 3600,
+  systemPressure: {
+    enabled: false,
+    maxCpuPercent: 90,
+    maxMemoryPercent: 90,
+  },
 }
 
 const toMemoryMiB = (bytes: number) => Math.round(bytes / 1024 / 1024)
@@ -125,20 +141,57 @@ const isK8sEnvironment = (value?: string) =>
       .trim()
       .toLowerCase(),
   )
+const normalizeClusterType = (value?: string): ClusterType =>
+  ['vm', 'binary'].includes(
+    String(value || '')
+      .trim()
+      .toLowerCase(),
+  )
+    ? 'vm'
+    : 'kubernetes'
+const templateClusterType = (template?: AgentTemplate) =>
+  normalizeClusterType(template?.clusterType)
+const clusterTypeLabel = (value?: string) =>
+  normalizeClusterType(value) === 'vm' ? 'VM' : 'Kubernetes'
+const templateLabel = (template: AgentTemplate) =>
+  `${clusterTypeLabel(template.clusterType)} · ${template.name} · v${template.version}`
 const draftKey = (probeType: string, path: string) => `${probeType}\u0000${path}`
 const concreteCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => {
   const { componentPolicies: _ignored, ...policy } = value || {}
-  return { ...DEFAULT_CIRCUIT, ...policy }
+  return {
+    ...DEFAULT_CIRCUIT,
+    ...policy,
+    systemPressure: {
+      ...DEFAULT_CIRCUIT.systemPressure!,
+      ...value?.systemPressure,
+    },
+  }
+}
+const concreteComponentCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => {
+  const { systemPressure: _systemPressure, ...policy } = concreteCircuitPolicy(value)
+  return policy
 }
 const normalizeCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => ({
   ...concreteCircuitPolicy(value),
   componentPolicies: Object.fromEntries(
     Object.entries(value?.componentPolicies || {}).map(([componentType, policy]) => [
       componentType,
-      concreteCircuitPolicy(policy),
+      concreteComponentCircuitPolicy(policy),
     ]),
   ),
 })
+const clusterCircuitPolicy = (value: CircuitPolicy): CircuitPolicy => {
+  const normalized = normalizeCircuitPolicy(value)
+  return {
+    ...normalized,
+    maxCpuCores: 0,
+    maxMemoryBytes: 0,
+    systemPressure: {
+      ...normalized.systemPressure!,
+      enabled: normalized.enabled,
+    },
+  }
+}
 const filesForConfig = (config: CurrentConfig): ConfigFile[] =>
   config.files?.length
     ? config.files
@@ -160,12 +213,79 @@ function CircuitEditor({
   title,
   value,
   onChange,
+  showSystemPressure = false,
+  systemOnly = false,
 }: {
   title: string
   value: CircuitPolicy
   onChange: (next: CircuitPolicy) => void
+  showSystemPressure?: boolean
+  systemOnly?: boolean
 }) {
   const patch = (next: Partial<CircuitPolicy>) => onChange({ ...value, ...next })
+  const systemPressure = value.systemPressure || DEFAULT_CIRCUIT.systemPressure!
+  const patchSystemPressure = (next: Partial<SystemPressurePolicy>) =>
+    patch({ systemPressure: { ...systemPressure, ...next } })
+  const durationField = (
+    <label className={styles.thresholdItem}>
+      <span className={`${styles.thresholdIcon} ${styles.durationIcon}`}>
+        <ShieldAlert size={17} />
+      </span>
+      <span className={styles.thresholdCopy}>
+        <strong>持续时间</strong>
+        <small>5 秒 - 10 分钟</small>
+      </span>
+      <InputNumber
+        aria-label="持续超限时间"
+        min={5}
+        max={600}
+        value={value.durationSeconds}
+        disabled={!value.enabled}
+        addonAfter="秒"
+        onChange={(next) => patch({ durationSeconds: Number(next || 5) })}
+      />
+    </label>
+  )
+  const systemThresholdFields = (
+    <>
+      <label className={styles.thresholdItem}>
+        <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+          <Cpu size={17} />
+        </span>
+        <span className={styles.thresholdCopy}>
+          <strong>系统 CPU 使用率</strong>
+          <small>1% - 100%</small>
+        </span>
+        <InputNumber
+          aria-label="系统 CPU 熔断阈值"
+          min={1}
+          max={100}
+          value={systemPressure.maxCpuPercent}
+          disabled={!value.enabled || (!systemOnly && !systemPressure.enabled)}
+          addonAfter="%"
+          onChange={(next) => patchSystemPressure({ maxCpuPercent: Number(next || 1) })}
+        />
+      </label>
+      <label className={styles.thresholdItem}>
+        <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+          <MemoryStick size={17} />
+        </span>
+        <span className={styles.thresholdCopy}>
+          <strong>系统内存使用率</strong>
+          <small>1% - 100%</small>
+        </span>
+        <InputNumber
+          aria-label="系统内存熔断阈值"
+          min={1}
+          max={100}
+          value={systemPressure.maxMemoryPercent}
+          disabled={!value.enabled || (!systemOnly && !systemPressure.enabled)}
+          addonAfter="%"
+          onChange={(next) => patchSystemPressure({ maxMemoryPercent: Number(next || 1) })}
+        />
+      </label>
+    </>
+  )
   return (
     <div className={styles.tabContent}>
       <div className={styles.sectionHeading}>
@@ -174,68 +294,91 @@ function CircuitEditor({
           checked={value.enabled}
           checkedChildren="启用"
           unCheckedChildren="停用"
-          onChange={(enabled) => patch({ enabled })}
+          onChange={(enabled) =>
+            patch({
+              enabled,
+              ...(systemOnly
+                ? {
+                    maxCpuCores: 0,
+                    maxMemoryBytes: 0,
+                    systemPressure: { ...systemPressure, enabled },
+                  }
+                : {}),
+            })
+          }
         />
       </div>
-      <div className={styles.thresholdGrid}>
-        <label className={styles.thresholdItem}>
-          <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
-            <Cpu size={17} />
-          </span>
-          <span className={styles.thresholdCopy}>
-            <strong>CPU 配额</strong>
-            <small>0.1 - 256 Core</small>
-          </span>
-          <InputNumber
-            aria-label="CPU 熔断阈值"
-            min={0.1}
-            max={256}
-            step={0.1}
-            precision={1}
-            value={value.maxCpuCores}
-            disabled={!value.enabled}
-            addonAfter="Core"
-            onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
-          />
-        </label>
-        <label className={styles.thresholdItem}>
-          <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
-            <MemoryStick size={17} />
-          </span>
-          <span className={styles.thresholdCopy}>
-            <strong>内存占用</strong>
-            <small>64 MiB - 64 GiB</small>
-          </span>
-          <InputNumber
-            aria-label="内存熔断阈值"
-            min={64}
-            max={65536}
-            step={64}
-            value={toMemoryMiB(value.maxMemoryBytes)}
-            disabled={!value.enabled}
-            addonAfter="MiB"
-            onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
-          />
-        </label>
-        <label className={styles.thresholdItem}>
-          <span className={`${styles.thresholdIcon} ${styles.durationIcon}`}>
-            <ShieldAlert size={17} />
-          </span>
-          <span className={styles.thresholdCopy}>
-            <strong>持续时间</strong>
-            <small>5 秒 - 10 分钟</small>
-          </span>
-          <InputNumber
-            aria-label="持续超限时间"
-            min={5}
-            max={600}
-            value={value.durationSeconds}
-            disabled={!value.enabled}
-            addonAfter="秒"
-            onChange={(next) => patch({ durationSeconds: Number(next || 5) })}
-          />
-        </label>
-      </div>
+      {systemOnly ? (
+        <div className={styles.thresholdGrid}>
+          {systemThresholdFields}
+          {durationField}
+        </div>
+      ) : (
+        <div className={styles.thresholdGrid}>
+          <label className={styles.thresholdItem}>
+            <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+              <Cpu size={17} />
+            </span>
+            <span className={styles.thresholdCopy}>
+              <strong>CPU 配额</strong>
+              <small>0.1 - 256 Core</small>
+            </span>
+            <InputNumber
+              aria-label="CPU 熔断阈值"
+              min={0.1}
+              max={256}
+              step={0.1}
+              precision={1}
+              value={value.maxCpuCores}
+              disabled={!value.enabled}
+              addonAfter="Core"
+              onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
+            />
+          </label>
+          <label className={styles.thresholdItem}>
+            <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+              <MemoryStick size={17} />
+            </span>
+            <span className={styles.thresholdCopy}>
+              <strong>内存占用</strong>
+              <small>64 MiB - 64 GiB</small>
+            </span>
+            <InputNumber
+              aria-label="内存熔断阈值"
+              min={64}
+              max={65536}
+              step={64}
+              value={toMemoryMiB(value.maxMemoryBytes)}
+              disabled={!value.enabled}
+              addonAfter="MiB"
+              onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
+            />
+          </label>
+          {durationField}
+        </div>
+      )}
+      {showSystemPressure && !systemOnly && (
+        <div className={styles.systemPressureSection}>
+          <div className={styles.sectionHeading}>
+            <div>
+              <span className={`${styles.thresholdIcon} ${styles.systemIcon}`}>
+                <Server size={17} />
+              </span>
+              <Typography.Text strong>系统资源保护</Typography.Text>
+            </div>
+            <Switch
+              checked={systemPressure.enabled}
+              checkedChildren="启用"
+              unCheckedChildren="停用"
+              disabled={!value.enabled}
+              onChange={(enabled) => patchSystemPressure({ enabled })}
+            />
+          </div>
+          <div className={`${styles.thresholdGrid} ${styles.systemThresholdGrid}`}>
+            {systemThresholdFields}
+          </div>
+        </div>
+      )}
       <div className={styles.recoveryRow}>
         <div className={styles.recoveryToggle}>
           <span className={`${styles.thresholdIcon} ${styles.recoveryIcon}`}>
@@ -298,6 +441,9 @@ export default function ProbeConfigPage() {
   const [nodes, setNodes] = useState<AgentNode[]>([])
   const [states, setStates] = useState<ProbeState[]>([])
   const [templates, setTemplates] = useState<AgentTemplate[]>([])
+  const [globalClusterType, setGlobalClusterType] = useState<ClusterType>(
+    normalizeClusterType(initialClusterEnvironment),
+  )
   const [selectedProbe, setSelectedProbe] = useState('')
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedClusters, setSelectedClusters] = useState<string[]>(
@@ -305,17 +451,20 @@ export default function ProbeConfigPage() {
   )
   const [selectedBatchTemplateId, setSelectedBatchTemplateId] = useState('')
   const [selectedBatchFileKey, setSelectedBatchFileKey] = useState('')
+  const [batchDraftConfigs, setBatchDraftConfigs] = useState<TemplateProbeConfig[]>([])
+  const [saveBatchTemplateOpen, setSaveBatchTemplateOpen] = useState(false)
+  const [batchTemplateCopyName, setBatchTemplateCopyName] = useState('')
   const [batchNodeConfigs, setBatchNodeConfigs] = useState<Record<string, CurrentConfig[]>>({})
   const [batchConfigsLoading, setBatchConfigsLoading] = useState(false)
   const [currentConfigs, setCurrentConfigs] = useState<CurrentConfig[]>([])
   const [configDrafts, setConfigDrafts] = useState<Record<string, string>>({})
+  const [configFileDrafts, setConfigFileDrafts] = useState<Record<string, ConfigFile[]>>({})
   const [selectedFilePath, setSelectedFilePath] = useState('')
   const [historyConfigs, setHistoryConfigs] = useState<CurrentConfig[]>([])
   const [selectedHistoryGeneration, setSelectedHistoryGeneration] = useState<number>()
   const [templateDraftConfigs, setTemplateDraftConfigs] = useState<TemplateProbeConfig[]>([])
   const [selectedTemplateProbe, setSelectedTemplateProbe] = useState('')
   const [selectedTemplateFileIndex, setSelectedTemplateFileIndex] = useState(0)
-  const [newTemplateProbe, setNewTemplateProbe] = useState('')
   const [circuit, setCircuit] = useState<CircuitPolicy>(DEFAULT_CIRCUIT)
   const [circuitSource, setCircuitSource] = useState('')
   const [circuitComponent, setCircuitComponent] = useState('')
@@ -325,8 +474,7 @@ export default function ProbeConfigPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [records, setRecords] = useState<DeliveryRecord[]>([])
-  const [createOpen, setCreateOpen] = useState(false)
-  const [createForm] = Form.useForm()
+  const importTemplateInputRef = useRef<HTMLInputElement>(null)
 
   const loadBase = useCallback(async () => {
     setLoading(true)
@@ -338,7 +486,12 @@ export default function ProbeConfigPage() {
       ])
       setNodes((nodeResult as any)?.nodes || [])
       setStates((stateResult as any)?.states || [])
-      setTemplates((templateResult as any)?.templates || [])
+      setTemplates(
+        (((templateResult as any)?.templates || []) as AgentTemplate[]).map((template) => ({
+          ...template,
+          clusterType: normalizeClusterType(template.clusterType),
+        })),
+      )
     } catch (error: any) {
       notify({ type: 'error', message: error.message || '加载节点配置失败' })
     } finally {
@@ -395,13 +548,29 @@ export default function ProbeConfigPage() {
     )
   }, [circuitComponentTypes])
 
-  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId)
+  const nodeClusterType = normalizeClusterType(
+    nodes.find((node) => node.id === nodeId)?.environment || initialClusterEnvironment,
+  )
+  const selectableTemplates = useMemo(
+    () =>
+      mode === 'global'
+        ? templates.filter((template) => templateClusterType(template) === globalClusterType)
+        : mode === 'node'
+          ? templates.filter((template) => templateClusterType(template) === nodeClusterType)
+          : templates,
+    [globalClusterType, mode, nodeClusterType, templates],
+  )
+  const selectedTemplate = selectableTemplates.find(
+    (template) => template.id === selectedTemplateId,
+  )
 
   useEffect(() => {
     setSelectedTemplateId((current) =>
-      templates.some((template) => template.id === current) ? current : templates[0]?.id || '',
+      selectableTemplates.some((template) => template.id === current)
+        ? current
+        : selectableTemplates[0]?.id || '',
     )
-  }, [templates])
+  }, [selectableTemplates])
 
   useEffect(() => {
     const configs = configsForTemplate(selectedTemplate).map((config) => ({
@@ -423,6 +592,7 @@ export default function ProbeConfigPage() {
           ])
           const configs = ((configResult as any)?.configs || []) as CurrentConfig[]
           setCurrentConfigs(configs)
+          setConfigFileDrafts({})
           setConfigDrafts(
             Object.fromEntries(
               configs.flatMap((config) =>
@@ -447,15 +617,28 @@ export default function ProbeConfigPage() {
   }, [mode, nodeId])
 
   const selectedCurrentConfig = currentConfigs.find((config) => config.probeType === selectedProbe)
-  const selectedFiles = selectedCurrentConfig ? filesForConfig(selectedCurrentConfig) : []
+  const filesForDraft = (config: CurrentConfig) =>
+    configFileDrafts[config.probeType] || filesForConfig(config)
+  const selectedFiles = selectedCurrentConfig ? filesForDraft(selectedCurrentConfig) : []
+  const selectedFileSetKey = selectedFiles.map((file) => file.path).join('\u0000')
   const nodeFileCount = currentConfigs.reduce(
-    (count, config) => count + filesForConfig(config).length,
+    (count, config) => count + filesForDraft(config).length,
     0,
   )
   const currentNode = nodes.find((node) => node.id === nodeId)
   const inheritedClusterId = currentNode?.clusterId || initialCluster
   const inheritedClusterEnvironment =
     currentNode?.environment || initialClusterEnvironment || 'kubernetes'
+  const nodeProbeTypes = [
+    ...new Set([
+      ...states.filter((state) => state.nodeId === nodeId).map((state) => state.probeType),
+      ...currentConfigs.map((config) => config.probeType),
+    ]),
+  ]
+  const javaLogScanProbeType =
+    nodeProbeTypes.find((probeType) =>
+      ['ilogtail', 'loongcollector'].some((name) => probeType.toLowerCase().includes(name)),
+    ) || nodeProbeTypes[0]
   const reportedVariables = currentNode?.reportedVariables || currentNode?.labels || {}
   const reportedVariableEntries = Object.entries(reportedVariables).sort(([left], [right]) =>
     left.localeCompare(right),
@@ -465,7 +648,7 @@ export default function ProbeConfigPage() {
     setSelectedFilePath((current) =>
       selectedFiles.some((file) => file.path === current) ? current : selectedFiles[0]?.path || '',
     )
-  }, [selectedProbe, selectedCurrentConfig?.generation])
+  }, [selectedProbe, selectedCurrentConfig?.generation, selectedFileSetKey])
 
   useEffect(() => {
     if (mode !== 'node' || !selectedProbe) {
@@ -489,9 +672,29 @@ export default function ProbeConfigPage() {
     () => [...new Set(nodes.map((node) => node.clusterId).filter(Boolean) as string[])].sort(),
     [nodes],
   )
-  const selectedClusterEnvironment =
-    nodes.find((node) => node.clusterId === selectedClusters[0])?.environment ||
-    (selectedClusters[0] === initialCluster ? initialClusterEnvironment : '')
+  const selectedClusterTypes = useMemo(() => {
+    const values = new Set<ClusterType>()
+    selectedClusters.forEach((clusterId) => {
+      const clusterNodes = nodes.filter((node) => node.clusterId === clusterId)
+      if (clusterNodes.length) {
+        clusterNodes.forEach((node) => values.add(normalizeClusterType(node.environment)))
+      } else if (clusterId === initialCluster) {
+        values.add(normalizeClusterType(initialClusterEnvironment))
+      }
+    })
+    return [...values]
+  }, [initialCluster, initialClusterEnvironment, nodes, selectedClusters])
+  const selectedClusterType =
+    selectedClusterTypes.length === 1 ? selectedClusterTypes[0] : undefined
+  const selectedClusterEnvironment = selectedClusterType || ''
+  const hasMixedClusterTypes = selectedClusterTypes.length > 1
+  const batchTemplates = useMemo(
+    () =>
+      selectedClusterType
+        ? templates.filter((template) => templateClusterType(template) === selectedClusterType)
+        : [],
+    [selectedClusterType, templates],
+  )
   const targetNodes = useMemo(
     () => nodes.filter((node) => selectedClusters.includes(node.clusterId || '')),
     [nodes, selectedClusters],
@@ -539,32 +742,73 @@ export default function ProbeConfigPage() {
       ),
     ].sort()
   }, [batchNodeConfigs, mode, targetNodes])
-  const selectedBatchTemplate = templates.find(
+  const selectedBatchTemplate = batchTemplates.find(
     (template) => template.id === selectedBatchTemplateId,
   )
   const batchFiles = useMemo<BatchPreviewFile[]>(
     () =>
-      configsForTemplate(selectedBatchTemplate).flatMap((config) =>
+      batchDraftConfigs.flatMap((config) =>
         config.files.map((file, index) => ({
           ...file,
           key: `${config.probeType}\u0000${file.path || index}`,
           probeType: config.probeType,
         })),
       ),
-    [selectedBatchTemplate],
+    [batchDraftConfigs],
   )
   const selectedBatchFile = batchFiles.find((file) => file.key === selectedBatchFileKey)
-  const batchTemplateProbeTypes = configsForTemplate(selectedBatchTemplate).map(
-    (config) => config.probeType,
+  const batchTemplateProbeTypes = batchDraftConfigs.map((config) => config.probeType)
+  const batchTemplateChanged =
+    JSON.stringify(
+      batchDraftConfigs.map((config) => ({
+        probeType: config.probeType,
+        files: config.files.map((file) => ({ path: file.path, content: file.content })),
+      })),
+    ) !==
+    JSON.stringify(
+      configsForTemplate(selectedBatchTemplate).map((config) => ({
+        probeType: config.probeType,
+        files: config.files.map((file) => ({ path: file.path, content: file.content })),
+      })),
+    )
+  const batchTemplateComplete = Boolean(
+    selectedBatchTemplate &&
+      selectedClusterType === templateClusterType(selectedBatchTemplate) &&
+      targetNodes.length &&
+      targetNodes.every((node) => {
+        const current = batchNodeConfigs[node.id] || []
+        const templateConfigs = batchDraftConfigs
+        if (current.length !== templateConfigs.length) return false
+        const currentByProbe = new Map(current.map((config) => [config.probeType, config]))
+        return templateConfigs.every((config) => {
+          const registered = currentByProbe.get(config.probeType)
+          if (!registered) return false
+          const paths = new Set(filesForConfig(registered).map((file) => file.path))
+          return (
+            config.files.length === paths.size && config.files.every((file) => paths.has(file.path))
+          )
+        })
+      }),
   )
-  const batchTemplateComplete = Boolean(selectedBatchTemplate && batchTemplateProbeTypes.length)
 
   useEffect(() => {
     if (mode !== 'batch') return
     setSelectedBatchTemplateId((current) =>
-      templates.some((template) => template.id === current) ? current : templates[0]?.id || '',
+      batchTemplates.some((template) => template.id === current)
+        ? current
+        : batchTemplates[0]?.id || '',
     )
-  }, [mode, templates])
+  }, [batchTemplates, mode])
+
+  useEffect(() => {
+    if (mode !== 'batch') return
+    setBatchDraftConfigs(
+      configsForTemplate(selectedBatchTemplate).map((config) => ({
+        ...config,
+        files: config.files.map((file) => ({ ...file })),
+      })),
+    )
+  }, [mode, selectedBatchTemplateId, selectedBatchTemplate?.version])
 
   useEffect(() => {
     setSelectedBatchFileKey((current) =>
@@ -572,12 +816,20 @@ export default function ProbeConfigPage() {
     )
   }, [batchFiles])
 
-  const nodeConfigChanged = currentConfigs.some((config) =>
-    filesForConfig(config).some(
-      (file) =>
-        (configDrafts[draftKey(config.probeType, file.path)] ?? file.content) !== file.content,
-    ),
-  )
+  const nodeConfigChanged = currentConfigs.some((config) => {
+    const original = filesForConfig(config)
+    const draft = filesForDraft(config)
+    const originalByPath = new Map(original.map((file) => [file.path, file.content]))
+    return (
+      original.length !== draft.length ||
+      draft.some(
+        (file) =>
+          !originalByPath.has(file.path) ||
+          (configDrafts[draftKey(config.probeType, file.path)] ?? file.content) !==
+            originalByPath.get(file.path),
+      )
+    )
+  })
 
   const addRecord = (kind: DeliveryRecord['kind'], target: string, result: any) => {
     setRecords((current) => [
@@ -600,7 +852,7 @@ export default function ProbeConfigPage() {
       const result: any = await updateNodeCurrentConfigsApi(nodeId, {
         configs: currentConfigs.map((config) => ({
           probeType: config.probeType,
-          files: filesForConfig(config).map((file) => ({
+          files: filesForDraft(config).map((file) => ({
             path: file.path,
             content: configDrafts[draftKey(config.probeType, file.path)] ?? file.content,
           })),
@@ -609,6 +861,7 @@ export default function ProbeConfigPage() {
       })
       const configs = (result?.configs || []) as CurrentConfig[]
       setCurrentConfigs(configs)
+      setConfigFileDrafts({})
       setConfigDrafts(
         Object.fromEntries(
           configs.flatMap((config) =>
@@ -631,22 +884,15 @@ export default function ProbeConfigPage() {
   const loadHistory = () => {
     const history = historyConfigs.find((config) => config.generation === selectedHistoryGeneration)
     if (!history || !selectedCurrentConfig) return
-    const currentPaths = new Set(selectedFiles.map((file) => file.path))
     const historyFiles = filesForConfig(history)
-    if (
-      historyFiles.length !== selectedFiles.length ||
-      historyFiles.some((file) => !currentPaths.has(file.path))
-    ) {
-      notify({ type: 'error', message: '该历史版本的文件列表与当前版本不一致，无法载入' })
-      return
-    }
+    setConfigFileDrafts((current) => ({ ...current, [selectedProbe]: historyFiles }))
     setConfigDrafts((current) => ({
       ...current,
       ...Object.fromEntries(
         historyFiles.map((file) => [draftKey(selectedProbe, file.path), file.content]),
       ),
     }))
-    notify({ type: 'success', message: `已载入版本 ${history.generation}` })
+    notify({ type: 'success', message: `已载入版本 ${history.version}` })
   }
 
   const loadTemplateIntoNode = () => {
@@ -658,16 +904,19 @@ export default function ProbeConfigPage() {
       templateConfigs.every((config) => {
         const current = currentByProbe.get(config.probeType)
         if (!current) return false
-        const currentPaths = new Set(filesForConfig(current).map((file) => file.path))
+        const registeredPaths = new Set(filesForConfig(current).map((file) => file.path))
         return (
-          config.files.length === currentPaths.size &&
-          config.files.every((file) => currentPaths.has(file.path))
+          config.files.length === registeredPaths.size &&
+          config.files.every((file) => registeredPaths.has(file.path))
         )
       })
     if (!complete) {
-      notify({ type: 'error', message: '配置模版与当前节点的组件或配置文件列表不一致，无法载入' })
+      notify({ type: 'error', message: '配置模版与当前节点注册的配置文件不一致，无法载入' })
       return
     }
+    setConfigFileDrafts(
+      Object.fromEntries(templateConfigs.map((config) => [config.probeType, config.files])),
+    )
     setConfigDrafts((current) => ({
       ...current,
       ...Object.fromEntries(
@@ -686,6 +935,7 @@ export default function ProbeConfigPage() {
       await updateAgentConfigTemplateApi(selectedTemplate.id, {
         name: selectedTemplate.name,
         description: selectedTemplate.description,
+        clusterType: templateClusterType(selectedTemplate),
         variables: selectedTemplate.variables,
         configs: templateDraftConfigs.map((config) => ({
           probeType: config.probeType,
@@ -701,7 +951,59 @@ export default function ProbeConfigPage() {
     }
   }
 
+  const updateBatchFileContent = (content: string) => {
+    if (!selectedBatchFile) return
+    setBatchDraftConfigs((current) =>
+      current.map((config) =>
+        config.probeType === selectedBatchFile.probeType
+          ? {
+              ...config,
+              files: config.files.map((file) =>
+                file.path === selectedBatchFile.path ? { ...file, content } : file,
+              ),
+            }
+          : config,
+      ),
+    )
+  }
+
+  const openSaveBatchTemplate = () => {
+    if (!selectedBatchTemplate || !batchTemplateChanged) return
+    setBatchTemplateCopyName(`${selectedBatchTemplate.name}-副本`)
+    setSaveBatchTemplateOpen(true)
+  }
+
+  const saveBatchTemplateCopy = async () => {
+    const name = batchTemplateCopyName.trim()
+    if (!selectedBatchTemplate || !batchTemplateChanged || !name) return
+    setSaving(true)
+    try {
+      const created = (await createAgentConfigTemplateApi({
+        name,
+        description: selectedBatchTemplate.description,
+        clusterType: templateClusterType(selectedBatchTemplate),
+        variables: selectedBatchTemplate.variables,
+        configs: batchDraftConfigs.map((config) => ({
+          probeType: config.probeType,
+          files: config.files.map((file) => ({ path: file.path, content: file.content })),
+        })),
+      })) as any
+      await loadBase()
+      setSelectedBatchTemplateId(created.id)
+      setSaveBatchTemplateOpen(false)
+      notify({ type: 'success', message: `已保存为新模版“${created.name || name}”` })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || '新模版保存失败' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const dispatchTemplate = async () => {
+    if (batchTemplateChanged) {
+      notify({ type: 'warning', message: '请先将修改保存为新模版' })
+      return
+    }
     if (!batchTemplateComplete || !selectedClusters.length) return
     setSaving(true)
     try {
@@ -737,7 +1039,7 @@ export default function ProbeConfigPage() {
       } else {
         result = await batchUpdateCircuitBreakerApi({
           clusterIds: selectedClusters,
-          circuitBreaker: circuit,
+          circuitBreaker: clusterCircuitPolicy(circuit),
         })
         target = selectedClusters.join(', ')
       }
@@ -753,25 +1055,28 @@ export default function ProbeConfigPage() {
     }
   }
 
-  const createTemplate = async () => {
-    const values = await createForm.validateFields()
+  const importTemplate = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
     setSaving(true)
     try {
-      const { probeType, path, content, ...template } = values
-      await createAgentConfigTemplateApi({
-        ...template,
-        configs: [{ probeType, files: [{ path, content }] }],
-      })
-      setCreateOpen(false)
-      createForm.resetFields()
+      const imported = (await importAgentConfigTemplateApi({ yaml: await file.text() })) as any
       await loadBase()
-      notify({ type: 'success', message: '配置模版已创建' })
+      setGlobalClusterType(normalizeClusterType(imported?.clusterType))
+      setSelectedTemplateId(imported?.id || '')
+      notify({ type: 'success', message: `配置模版“${imported?.name || file.name}”已导入` })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || '配置模版导入失败' })
     } finally {
+      event.target.value = ''
       setSaving(false)
     }
   }
 
   const selectedFile = selectedFiles.find((file) => file.path === selectedFilePath)
+  const selectedOriginalFile = selectedCurrentConfig
+    ? filesForConfig(selectedCurrentConfig).find((file) => file.path === selectedFilePath)
+    : undefined
   const selectedDraft = selectedFile
     ? configDrafts[draftKey(selectedProbe, selectedFile.path)] ?? selectedFile.content
     : ''
@@ -811,61 +1116,6 @@ export default function ProbeConfigPage() {
       ),
     )
   }
-  const addTemplateFile = () => {
-    const nextIndex = selectedTemplateConfig?.files.length || 0
-    setTemplateDraftConfigs((current) =>
-      current.map((config) =>
-        config.probeType === selectedTemplateProbe
-          ? {
-              ...config,
-              files: [
-                ...config.files,
-                { path: `config-${nextIndex + 1}.yaml`, content: '', contentSha256: '' },
-              ],
-            }
-          : config,
-      ),
-    )
-    setSelectedTemplateFileIndex(nextIndex)
-  }
-  const removeTemplateFile = () => {
-    if (!selectedTemplateConfig || selectedTemplateConfig.files.length <= 1) return
-    setTemplateDraftConfigs((current) =>
-      current.map((config) =>
-        config.probeType === selectedTemplateProbe
-          ? {
-              ...config,
-              files: config.files.filter((_, index) => index !== selectedTemplateFileIndex),
-            }
-          : config,
-      ),
-    )
-    setSelectedTemplateFileIndex((current) => Math.max(0, current - 1))
-  }
-  const addTemplateProbe = () => {
-    const probeType = newTemplateProbe.trim()
-    if (!probeType || templateDraftConfigs.some((config) => config.probeType === probeType)) return
-    setTemplateDraftConfigs((current) => [
-      ...current,
-      {
-        probeType,
-        files: [{ path: 'config.yaml', content: '', contentSha256: '' }],
-      },
-    ])
-    setSelectedTemplateProbe(probeType)
-    setSelectedTemplateFileIndex(0)
-    setNewTemplateProbe('')
-  }
-  const removeTemplateProbe = () => {
-    if (templateDraftConfigs.length <= 1) return
-    const remaining = templateDraftConfigs.filter(
-      (config) => config.probeType !== selectedTemplateProbe,
-    )
-    setTemplateDraftConfigs(remaining)
-    setSelectedTemplateProbe(remaining[0]?.probeType || '')
-    setSelectedTemplateFileIndex(0)
-  }
-
   const hasComponentCircuitPolicy = Boolean(
     circuitComponent && circuit.componentPolicies?.[circuitComponent],
   )
@@ -880,11 +1130,12 @@ export default function ProbeConfigPage() {
   }
   const updateComponentCircuitPolicy = (next: CircuitPolicy) => {
     if (!circuitComponent) return
+    const { systemPressure: _systemPressure, ...componentPolicy } = concreteCircuitPolicy(next)
     setCircuit((current) => ({
       ...current,
       componentPolicies: {
         ...current.componentPolicies,
-        [circuitComponent]: concreteCircuitPolicy(next),
+        [circuitComponent]: componentPolicy,
       },
     }))
   }
@@ -939,14 +1190,26 @@ export default function ProbeConfigPage() {
             </div>
             <Tag>{batchTemplateProbeTypes.length} 个组件</Tag>
           </div>
+          {hasMixedClusterTypes && (
+            <Typography.Text type="danger">
+              Kubernetes 与 VM 集群使用不同模版，请按同一类别分别下发。
+            </Typography.Text>
+          )}
           <Select
             style={{ width: '100%' }}
             value={selectedBatchTemplateId || undefined}
-            placeholder="选择配置模版"
+            placeholder={
+              hasMixedClusterTypes
+                ? '不能为混合类别集群选择模版'
+                : selectedClusterType
+                  ? `选择 ${clusterTypeLabel(selectedClusterType)} 配置模版`
+                  : '先选择目标集群'
+            }
             onChange={setSelectedBatchTemplateId}
-            options={templates.map((template) => ({
+            disabled={!selectedClusterType}
+            options={batchTemplates.map((template) => ({
               value: template.id,
-              label: `${template.name} · v${template.version}`,
+              label: templateLabel(template),
             }))}
           />
         </div>
@@ -988,10 +1251,24 @@ export default function ProbeConfigPage() {
               onSelect={(keys) => setSelectedBatchFileKey(String(keys[0] || ''))}
             />
           </Col>
-          <Col flex="1" className={styles.templatePreviewPanel}>
-            <pre className={styles.configPreview}>
-              {selectedBatchFile?.content || '请选择集群和配置模版'}
-            </pre>
+          <Col flex="1" className={styles.templateEditorPanel}>
+            <Input value={selectedBatchFile?.path || ''} placeholder="配置文件相对路径" readOnly />
+            <div className={styles.templateEditor}>
+              <Editor
+                key={selectedBatchFile?.key || 'batch-empty'}
+                value={selectedBatchFile?.content || ''}
+                language={languageForPath(selectedBatchFile?.path || '')}
+                theme="vs"
+                onChange={(value) => updateBatchFileContent(value || '')}
+                options={{
+                  readOnly: !selectedBatchFile,
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                  wordWrap: 'on',
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </div>
           </Col>
         </Row>
         <div className={styles.editorFooter}>
@@ -999,37 +1276,61 @@ export default function ProbeConfigPage() {
             {selectedClusters.length} 个集群 · {targetCount} 个节点 ·{' '}
             {batchTemplateProbeTypes.length} 项组件配置
           </Typography.Text>
-          <Button
-            type="primary"
-            icon={<Send size={15} />}
-            loading={saving}
-            disabled={!targetCount || !batchTemplateComplete}
-            onClick={dispatchTemplate}
-          >
-            覆盖下发到所选集群
-          </Button>
+          <Space>
+            {batchTemplateChanged && <Tag color="warning">未保存修改</Tag>}
+            <Button
+              icon={<Save size={15} />}
+              disabled={!selectedBatchTemplate || !batchTemplateChanged}
+              onClick={openSaveBatchTemplate}
+            >
+              另存为新模版
+            </Button>
+            <Button
+              type="primary"
+              icon={<Send size={15} />}
+              loading={saving}
+              disabled={!targetCount || !batchTemplateComplete || batchTemplateChanged}
+              onClick={dispatchTemplate}
+            >
+              覆盖下发到所选集群
+            </Button>
+          </Space>
         </div>
       </div>
     ) : (
       <div className={styles.tabContent}>
         {mode === 'global' && (
           <div className={styles.templateBar}>
+            <Segmented
+              value={globalClusterType}
+              options={[
+                { label: 'Kubernetes', value: 'kubernetes' },
+                { label: 'VM', value: 'vm' },
+              ]}
+              onChange={(value) => setGlobalClusterType(value as ClusterType)}
+            />
             <Select
               value={selectedTemplateId || undefined}
+              placeholder={`暂无 ${clusterTypeLabel(globalClusterType)} 配置模版`}
               onChange={setSelectedTemplateId}
-              options={templates.map((template) => ({
+              options={selectableTemplates.map((template) => ({
                 value: template.id,
-                label: `${template.name} · v${template.version}`,
+                label: templateLabel(template),
               }))}
             />
+            <input
+              ref={importTemplateInputRef}
+              type="file"
+              accept=".yaml,.yml,application/yaml,text/yaml"
+              hidden
+              onChange={importTemplate}
+            />
             <Button
-              icon={<PlusOutlined />}
-              onClick={() => {
-                createForm.setFieldsValue({ probeType: '', path: 'config.yaml' })
-                setCreateOpen(true)
-              }}
+              icon={<Upload size={15} />}
+              loading={saving}
+              onClick={() => importTemplateInputRef.current?.click()}
             >
-              新建配置模版
+              导入配置模版
             </Button>
           </div>
         )}
@@ -1066,7 +1367,7 @@ export default function ProbeConfigPage() {
                     onChange={setSelectedHistoryGeneration}
                     options={historyConfigs.map((config) => ({
                       value: config.generation,
-                      label: `版本 ${config.generation}${config.generation === selectedCurrentConfig?.generation ? ' · 当前' : ''}`,
+                      label: `版本 ${config.version}${config.generation === selectedCurrentConfig?.generation ? ' · 当前' : ''}`,
                     }))}
                   />
                   <Button
@@ -1085,9 +1386,9 @@ export default function ProbeConfigPage() {
                     value={selectedTemplateId || undefined}
                     placeholder="暂无可用配置模版"
                     onChange={setSelectedTemplateId}
-                    options={templates.map((template) => ({
+                    options={selectableTemplates.map((template) => ({
                       value: template.id,
-                      label: `${template.name} · v${template.version}`,
+                      label: templateLabel(template),
                     }))}
                   />
                   <Button disabled={!selectedTemplate} onClick={loadTemplateIntoNode}>
@@ -1111,7 +1412,11 @@ export default function ProbeConfigPage() {
                 </div>
               </div>
               <Tree
-                key={currentConfigs.map((config) => config.probeType).join(':')}
+                key={currentConfigs
+                  .flatMap((config) =>
+                    filesForDraft(config).map((file) => `${config.probeType}:${file.path}`),
+                  )
+                  .join('|')}
                 className={styles.probeFileTree}
                 blockNode
                 defaultExpandAll
@@ -1129,10 +1434,14 @@ export default function ProbeConfigPage() {
                       <strong>{config.probeType}</strong>
                     </span>
                   ),
-                  children: filesForConfig(config).map((file) => {
+                  children: filesForDraft(config).map((file) => {
+                    const original = filesForConfig(config).find(
+                      (currentFile) => currentFile.path === file.path,
+                    )
                     const changed =
+                      !original ||
                       (configDrafts[draftKey(config.probeType, file.path)] ?? file.content) !==
-                      file.content
+                        original.content
                     return {
                       key: draftKey(config.probeType, file.path),
                       probeType: config.probeType,
@@ -1157,7 +1466,7 @@ export default function ProbeConfigPage() {
             <Col flex="1" className={styles.diffPanel}>
               <DiffEditor
                 key={`${selectedProbe}:${selectedFilePath}`}
-                original={selectedFile?.content || ''}
+                original={selectedOriginalFile?.content || ''}
                 modified={selectedDraft}
                 language={selectedLanguage}
                 theme="vs"
@@ -1223,39 +1532,12 @@ export default function ProbeConfigPage() {
                   setSelectedTemplateFileIndex(node.fileIndex)
                 }}
               />
-              <Space.Compact block>
-                <Input
-                  value={newTemplateProbe}
-                  placeholder="组件类型"
-                  onChange={(event) => setNewTemplateProbe(event.target.value)}
-                  onPressEnter={addTemplateProbe}
-                />
-                <Button icon={<PlusOutlined />} onClick={addTemplateProbe} title="新增探针" />
-              </Space.Compact>
-              <Space.Compact block>
-                <Button icon={<PlusOutlined />} onClick={addTemplateFile}>
-                  新增文件
-                </Button>
-                <Button
-                  icon={<Trash2 size={15} />}
-                  disabled={!selectedTemplateConfig || selectedTemplateConfig.files.length <= 1}
-                  onClick={removeTemplateFile}
-                  title="删除文件"
-                />
-                <Button
-                  danger
-                  icon={<Trash2 size={15} />}
-                  disabled={templateDraftConfigs.length <= 1}
-                  onClick={removeTemplateProbe}
-                  title="删除探针"
-                />
-              </Space.Compact>
             </Col>
             <Col flex="1" className={styles.templateEditorPanel}>
               <Input
                 value={selectedTemplateFile?.path || ''}
                 placeholder="配置文件相对路径"
-                onChange={(event) => updateTemplateFile({ path: event.target.value })}
+                readOnly
               />
               <div className={styles.templateEditor}>
                 <Editor
@@ -1300,6 +1582,8 @@ export default function ProbeConfigPage() {
         nodeId={nodeId}
         inheritedClusterId={inheritedClusterId}
         inheritedClusterEnvironment={inheritedClusterEnvironment}
+        enableJavaLogScan={!isK8sEnvironment(inheritedClusterEnvironment)}
+        javaLogScanProbeType={javaLogScanProbeType}
         onEditInherited={() =>
           navigate(
             `/probe-management/config?clusterId=${encodeURIComponent(inheritedClusterId)}&clusterType=${encodeURIComponent(inheritedClusterEnvironment)}&section=logs`,
@@ -1337,9 +1621,11 @@ export default function ProbeConfigPage() {
         </div>
       )}
       <CircuitEditor
-        title="节点总资源配额"
+        title={mode === 'batch' ? '集群系统资源熔断' : '探针消耗资源熔断'}
         value={concreteCircuitPolicy(circuit)}
         onChange={updateNodeCircuitPolicy}
+        showSystemPressure={mode !== 'batch'}
+        systemOnly={mode === 'batch'}
       />
       {!!circuitComponentTypes.length && (
         <Collapse
@@ -1476,26 +1762,23 @@ export default function ProbeConfigPage() {
         )}
       </Card>
       <Modal
-        title="新建配置模版"
-        open={createOpen}
+        title="另存为新模版"
+        open={saveBatchTemplateOpen}
+        okText="保存新模版"
+        cancelText="取消"
         confirmLoading={saving}
-        onOk={createTemplate}
-        onCancel={() => setCreateOpen(false)}
+        okButtonProps={{ disabled: !batchTemplateCopyName.trim() }}
+        onOk={saveBatchTemplateCopy}
+        onCancel={() => setSaveBatchTemplateOpen(false)}
       >
-        <Form form={createForm} layout="vertical">
-          <Form.Item name="name" label="模版名称" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="probeType" label="组件类型" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="path" label="配置文件相对路径" rules={[{ required: true }]}>
-            <Input placeholder="例如 config/local/collection.yaml" />
-          </Form.Item>
-          <Form.Item name="content" label="模版内容" rules={[{ required: true }]}>
-            <Input.TextArea rows={10} />
-          </Form.Item>
-        </Form>
+        <Input
+          autoFocus
+          maxLength={255}
+          value={batchTemplateCopyName}
+          placeholder="新模版名称"
+          onChange={(event) => setBatchTemplateCopyName(event.target.value)}
+          onPressEnter={saveBatchTemplateCopy}
+        />
       </Modal>
     </div>
   )

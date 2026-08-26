@@ -1,4 +1,17 @@
-import { Button, Card, Drawer, Input, Select, Space, Switch, Table, Tag, Typography } from 'antd'
+import {
+  Button,
+  Card,
+  Drawer,
+  Input,
+  Popconfirm,
+  Select,
+  Space,
+  Switch,
+  Table,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd'
 import { SettingOutlined } from '@ant-design/icons'
 import {
   Activity,
@@ -7,10 +20,12 @@ import {
   FileText,
   MemoryStick,
   Network,
+  Play,
   Radio,
   RefreshCw,
   Server,
   Settings,
+  Square,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -32,12 +47,21 @@ type AgentNode = {
   lastSeenAt?: string
 }
 
+type CircuitStatus = {
+  state?: string
+  epoch?: number
+  reason?: string
+}
+
 type ProbeRuntime = {
   childCpuPercent?: number
   childRssBytes?: number
   guardRssBytes?: number
   childRunning?: boolean
   supervisorHealthy?: boolean
+  preloadEnabled?: boolean
+  preloadConfigPath?: string
+  circuit?: CircuitStatus
   resourceUsage?: {
     windowSeconds: number
     sampleIntervalSeconds: number
@@ -52,7 +76,9 @@ type ProbeState = {
   nodeId: string
   probeType: string
   status: string
+  reportedAt?: string
   runtime?: ProbeRuntime
+  circuit?: CircuitStatus
 }
 
 const getAveragedResourceUsage = (state: ProbeState) => {
@@ -85,26 +111,74 @@ type ClusterRow = {
   memoryBytes?: number
   healthyCount: number
   probeCount: number
+  healthyNodeCount: number
+  nodeCount: number
 }
 
 type TableRow = ClusterRow | NodeRow
+type NodeStatusFilter = 'all' | 'healthy' | 'abnormal' | 'waiting'
 type LogFile = { path: string; name: string; size: number; modifiedAt: string }
 type LogPreview = { file: LogFile; preview: string; lines: number; truncated: boolean }
 
 const UNASSIGNED_CLUSTER = '未分配集群'
 const STATUS_REFRESH_INTERVAL_MS = 60_000
+const MAX_VISIBLE_ABNORMAL_PROBES = 2
 
 const getClusterId = (node: AgentNode) =>
   String(node.clusterId || node.labels?.cluster_id || node.labels?.clusterId || '').trim() ||
   UNASSIGNED_CLUSTER
 
-const isHealthy = (state: ProbeState) =>
-  state.status === 'RUNNING' &&
-  state.runtime?.childRunning !== false &&
-  state.runtime?.supervisorHealthy !== false
+const isKubernetesEnvironment = (environment?: string) =>
+  ['', 'k8s', 'kubernetes', 'helm'].includes(
+    String(environment || '')
+      .trim()
+      .toLowerCase(),
+  )
+
+const isHealthy = (state: ProbeState) => {
+  if (state.runtime?.preloadEnabled !== undefined) return state.status === 'RUNNING'
+  return (
+    state.status === 'RUNNING' &&
+    state.runtime?.childRunning !== false &&
+    state.runtime?.supervisorHealthy !== false
+  )
+}
+
+const isFused = (state: ProbeState) => {
+  const circuitState = String(state.circuit?.state || '').toUpperCase()
+  return state.status === 'FUSED' || circuitState === 'FUSED' || circuitState === 'OPEN'
+}
+
+const isLifecycleControllable = (state: ProbeState) =>
+  state.status !== 'OFFLINE' &&
+  state.runtime?.preloadEnabled === undefined &&
+  Boolean(state.circuit?.state)
+
+const probeTagColor = (state: ProbeState) => {
+  if (isHealthy(state)) return 'success'
+  return state.status === 'OFFLINE' ? 'default' : 'warning'
+}
+
+const getProbeStatusText = (state: ProbeState) => {
+  if (state.runtime?.preloadEnabled !== undefined) {
+    return state.runtime.preloadEnabled ? '注入已启用' : '注入未启用'
+  }
+  if (isHealthy(state)) return '运行正常'
+  if (state.status === 'OFFLINE') return '上报中断'
+  if (state.runtime?.supervisorHealthy === false) return '守护异常'
+  if (state.runtime?.childRunning === false) return '未运行'
+  return state.status || '状态异常'
+}
+
+const getNodeStatus = (node: NodeRow): Exclude<NodeStatusFilter, 'all'> => {
+  if (!node.states.length) return 'waiting'
+  return node.healthyCount === node.probeCount ? 'healthy' : 'abnormal'
+}
 
 const summarizeStates = (states: ProbeState[]) => {
-  const usage = states.map(getAveragedResourceUsage)
+  const usage = states.map((state) =>
+    isHealthy(state) ? getAveragedResourceUsage(state) : undefined,
+  )
   const cpuAvailable = usage.length > 0 && usage.every((item) => item?.cpuPercentAvg !== undefined)
   const memoryAvailable =
     usage.length > 0 && usage.every((item) => item?.memoryBytesAvg !== undefined)
@@ -183,9 +257,55 @@ const groupNodesByCluster = (nodes: AgentNode[], states: ProbeState[]): ClusterR
         environment:
           [...new Set(children.map((node) => node.environment).filter(Boolean))][0] || '',
         children,
+        healthyNodeCount: children.filter((node) => getNodeStatus(node) === 'healthy').length,
+        nodeCount: children.length,
         ...summary,
       }
     })
+}
+
+const filterClusters = (
+  clusters: ClusterRow[],
+  query: string,
+  statusFilter: NodeStatusFilter,
+): ClusterRow[] => {
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  return clusters.flatMap((cluster) => {
+    const clusterMatches = cluster.name.toLocaleLowerCase().includes(normalizedQuery)
+    const children = cluster.children.filter((node) => {
+      const nodeMatches =
+        !normalizedQuery ||
+        clusterMatches ||
+        node.name.toLocaleLowerCase().includes(normalizedQuery) ||
+        node.nodeId.toLocaleLowerCase().includes(normalizedQuery) ||
+        node.states.some((state) => state.probeType.toLocaleLowerCase().includes(normalizedQuery))
+      return nodeMatches && (statusFilter === 'all' || getNodeStatus(node) === statusFilter)
+    })
+    if (!children.length) return []
+
+    const cpuAvailable =
+      children.some((node) => node.probeCount > 0) &&
+      children.every((node) => !node.probeCount || node.cpuPercent !== undefined)
+    const memoryAvailable =
+      children.some((node) => node.probeCount > 0) &&
+      children.every((node) => !node.probeCount || node.memoryBytes !== undefined)
+    return [
+      {
+        ...cluster,
+        children,
+        cpuPercent: cpuAvailable
+          ? children.reduce((total, node) => total + Number(node.cpuPercent), 0)
+          : undefined,
+        memoryBytes: memoryAvailable
+          ? children.reduce((total, node) => total + Number(node.memoryBytes), 0)
+          : undefined,
+        healthyCount: children.reduce((total, node) => total + node.healthyCount, 0),
+        probeCount: children.reduce((total, node) => total + node.probeCount, 0),
+        healthyNodeCount: children.filter((node) => getNodeStatus(node) === 'healthy').length,
+        nodeCount: children.length,
+      },
+    ]
+  })
 }
 
 const formatMemory = (bytes?: number) => {
@@ -206,6 +326,10 @@ export default function ProbeManagement() {
   const [states, setStates] = useState<ProbeState[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([])
+  const [query, setQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<NodeStatusFilter>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [logNodes, setLogNodes] = useState<NodeRow[]>([])
   const [selectedLogNodeId, setSelectedLogNodeId] = useState('')
   const [selectedLogProbe, setSelectedLogProbe] = useState('')
@@ -214,6 +338,8 @@ export default function ProbeManagement() {
   const [logPreview, setLogPreview] = useState<LogPreview>()
   const [logLoading, setLogLoading] = useState(false)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [preloadUpdatingNodes, setPreloadUpdatingNodes] = useState<Set<string>>(new Set())
+  const [lifecycleUpdatingNodes, setLifecycleUpdatingNodes] = useState<Set<string>>(new Set())
   const logRequestActive = useRef(false)
 
   const load = useCallback(async () => {
@@ -255,7 +381,14 @@ export default function ProbeManagement() {
   }, [load])
 
   const clusters = useMemo(() => groupNodesByCluster(nodes, states), [nodes, states])
-  const clusterKeys = useMemo(() => clusters.map((cluster) => cluster.key), [clusters])
+  const filteredClusters = useMemo(
+    () => filterClusters(clusters, query, statusFilter),
+    [clusters, query, statusFilter],
+  )
+  const clusterKeys = useMemo(
+    () => filteredClusters.map((cluster) => cluster.key),
+    [filteredClusters],
+  )
 
   useEffect(() => {
     setExpandedRowKeys((current) =>
@@ -263,7 +396,11 @@ export default function ProbeManagement() {
     )
   }, [clusterKeys])
 
-  const nodeCount = clusters.reduce((total, cluster) => total + cluster.children.length, 0)
+  useEffect(() => {
+    const lastPage = Math.max(1, Math.ceil(filteredClusters.length / pageSize))
+    setCurrentPage((current) => Math.min(current, lastPage))
+  }, [filteredClusters.length, pageSize])
+
   const selectedLogNode = logNodes.find((node) => node.nodeId === selectedLogNodeId)
   const logProbeOptions = selectedLogNode?.states.map((state) => state.probeType) || []
 
@@ -280,8 +417,135 @@ export default function ProbeManagement() {
       if (command?.status === 'SUCCEEDED' || command?.status === 'FAILED') return command
       await new Promise((resolve) => window.setTimeout(resolve, 1000))
     }
-    throw new Error('等待节点返回日志结果超时')
+    throw new Error('等待节点执行命令超时')
   }
+
+  const setNodePreloadEnabled = async (record: NodeRow, enabled: boolean) => {
+    setPreloadUpdatingNodes((current) => new Set(current).add(record.nodeId))
+    try {
+      const created: any = await createAgentCommandApi(
+        record.nodeId,
+        'preload',
+        enabled ? 'ENABLE_PRELOAD' : 'DISABLE_PRELOAD',
+      )
+      const command = await waitForCommand(record.nodeId, 'preload', created.id)
+      if (command.status !== 'SUCCEEDED') {
+        throw new Error(command.result || 'Preload 状态调整失败')
+      }
+      await load()
+      notify({ type: 'success', message: enabled ? 'Preload 注入已启用' : 'Preload 注入已禁用' })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || 'Preload 状态调整失败' })
+    } finally {
+      setPreloadUpdatingNodes((current) => {
+        const next = new Set(current)
+        next.delete(record.nodeId)
+        return next
+      })
+    }
+  }
+
+  const setNodesRunning = async (records: NodeRow[], running: boolean, scope: '节点' | '集群') => {
+    const targets = records.flatMap((record) => {
+      const controllableStates = record.states.filter(isLifecycleControllable)
+      const states = running
+        ? controllableStates.filter(
+            (state) => isFused(state) || state.runtime?.childRunning === false,
+          )
+        : controllableStates.filter((state) => !isFused(state))
+      return states.map((state) => ({ nodeId: record.nodeId, state }))
+    })
+    if (!targets.length) return
+
+    const nodeIds = new Set(records.map((record) => record.nodeId))
+    setLifecycleUpdatingNodes((current) => new Set([...current, ...nodeIds]))
+    const outcomes = await Promise.all(
+      targets.map(async ({ nodeId, state }) => {
+        try {
+          const commandType = running
+            ? isFused(state)
+              ? 'RESET_CIRCUIT'
+              : 'RESTART'
+            : 'OPEN_CIRCUIT'
+          const options = commandType.includes('CIRCUIT')
+            ? {
+                expectedCircuitEpoch: state.circuit?.epoch ?? 0,
+                ...(running ? {} : { reason: 'manual_node_stop' }),
+              }
+            : {}
+          const created: any = await createAgentCommandApi(
+            nodeId,
+            state.probeType,
+            commandType,
+            options,
+          )
+          const command = await waitForCommand(nodeId, state.probeType, created.id)
+          if (command.status !== 'SUCCEEDED') {
+            throw new Error(command.result || '节点未完成操作')
+          }
+          let runtime: ProbeRuntime | undefined
+          try {
+            runtime = command.result ? JSON.parse(command.result) : undefined
+          } catch {
+            runtime = undefined
+          }
+          return { nodeId, probeType: state.probeType, runtime }
+        } catch (error) {
+          return { nodeId, probeType: state.probeType, error }
+        }
+      }),
+    )
+
+    const succeeded = outcomes.filter((outcome) => !outcome.error)
+    const failed = outcomes.filter((outcome) => outcome.error)
+    if (succeeded.length) {
+      const succeededByTarget = new Map(
+        succeeded.map((outcome) => [
+          `${outcome.nodeId}\u0000${outcome.probeType}`,
+          outcome.runtime,
+        ]),
+      )
+      setStates((current) =>
+        current.map((state) => {
+          const targetKey = `${state.nodeId}\u0000${state.probeType}`
+          if (!succeededByTarget.has(targetKey)) return state
+          const runtime = succeededByTarget.get(targetKey)
+          const circuit = runtime?.circuit || {
+            ...state.circuit,
+            state: running ? 'NORMAL' : 'FUSED',
+            epoch: (state.circuit?.epoch ?? 0) + 1,
+          }
+          return {
+            ...state,
+            status: running ? 'RUNNING' : 'FUSED',
+            runtime: runtime ? { ...state.runtime, ...runtime } : state.runtime,
+            circuit,
+          }
+        }),
+      )
+    }
+    if (failed.length) {
+      console.error('[ProbeManagement] node lifecycle command partially failed', {
+        nodeIds: [...nodeIds],
+        action: running ? 'start' : 'stop',
+        failures: failed,
+      })
+      notify({
+        type: 'error',
+        message: `${scope}${running ? '启动' : '停止'}未完全完成，请刷新状态后重试`,
+      })
+    } else {
+      notify({ type: 'success', message: `${scope}已${running ? '启动' : '停止'}` })
+    }
+    setLifecycleUpdatingNodes((current) => {
+      const next = new Set(current)
+      nodeIds.forEach((nodeId) => next.delete(nodeId))
+      return next
+    })
+  }
+
+  const setNodeRunning = (record: NodeRow, running: boolean) =>
+    setNodesRunning([record], running, '节点')
 
   const runLogCommand = async (
     type: string,
@@ -393,46 +657,66 @@ export default function ProbeManagement() {
           </span>
           <div>
             <Typography.Text strong>{record.name}</Typography.Text>
-            <span className={styles.secondaryLine}>
-              {record.kind === 'cluster'
-                ? `${record.children.length} 个节点 · ${record.probeCount} 个探针`
-                : `Node ID: ${record.nodeId}`}
-            </span>
+            {record.kind === 'node' && (
+              <span className={styles.secondaryLine}>Node ID: {record.nodeId}</span>
+            )}
           </div>
         </div>
       ),
     },
     {
-      title: '探针状态',
+      title: '运行状态',
       key: 'probeStatus',
       width: '34%',
       render: (_: unknown, record: TableRow) => {
         if (record.kind === 'cluster') {
-          const healthy = record.probeCount > 0 && record.healthyCount === record.probeCount
+          const healthy = record.nodeCount > 0 && record.healthyNodeCount === record.nodeCount
           return (
-            <Tag color={healthy ? 'success' : record.probeCount ? 'warning' : 'default'}>
-              {record.probeCount
-                ? `${record.healthyCount} / ${record.probeCount} 运行正常`
-                : '暂无探针上报'}
+            <Tag color={healthy ? 'success' : record.nodeCount ? 'warning' : 'default'}>
+              {record.healthyNodeCount} / {record.nodeCount} 个节点运行正常
             </Tag>
           )
         }
         if (!record.states.length) {
           return <span className={styles.resourceEmpty}>等待探针上报</span>
         }
-        return (
-          <div className={styles.probeTags}>
+        const abnormalStates = record.states.filter((state) => !isHealthy(state))
+        const visibleAbnormalStates = abnormalStates.slice(0, MAX_VISIBLE_ABNORMAL_PROBES)
+        const hiddenAbnormalCount = abnormalStates.length - visibleAbnormalStates.length
+        const statusDetails = (
+          <div className={styles.probeStatusTooltip}>
             {record.states.map((state) => (
-              <Tag key={state.probeType} color={isHealthy(state) ? 'success' : 'warning'}>
-                {state.probeType}
+              <span key={state.probeType}>
+                <span className={isHealthy(state) ? styles.healthyDot : styles.abnormalDot} />
+                <span>{state.probeType}</span>
+                <span>{getProbeStatusText(state)}</span>
+              </span>
+            ))}
+          </div>
+        )
+        return (
+          <div className={styles.probeStatusSummary}>
+            <Tooltip title={statusDetails} placement="bottomLeft">
+              <Tag color={abnormalStates.length ? 'warning' : 'success'}>
+                {record.healthyCount} 个运行正常
+              </Tag>
+            </Tooltip>
+            {visibleAbnormalStates.map((state) => (
+              <Tag key={state.probeType} color={probeTagColor(state)}>
+                {state.probeType} · {getProbeStatusText(state)}
               </Tag>
             ))}
+            {hiddenAbnormalCount > 0 && (
+              <Tooltip title={statusDetails} placement="bottomLeft">
+                <Tag color="warning">另 {hiddenAbnormalCount} 个异常</Tag>
+              </Tooltip>
+            )}
           </div>
         )
       },
     },
     {
-      title: '探针资源开销（近 10 分钟均值）',
+      title: '资源开销（近 10 分钟均值）',
       key: 'resourceUsage',
       width: '24%',
       render: (_: unknown, record: TableRow) => (
@@ -459,44 +743,141 @@ export default function ProbeManagement() {
       key: 'operation',
       width: '22%',
       render: (_: unknown, record: TableRow) =>
-        record.kind === 'cluster' ? (
-          <Space size={0}>
-            <Button
-              type="link"
-              icon={<SettingOutlined />}
-              onClick={() =>
-                navigate(
-                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&clusterType=${encodeURIComponent(record.environment)}`,
-                )
-              }
-            >
-              集群配置
-            </Button>
-          </Space>
-        ) : (
-          <Space size={0}>
-            <Button
-              type="link"
-              icon={<SettingOutlined />}
-              disabled={!record.states.length}
-              onClick={() =>
-                navigate(
-                  `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&nodeId=${encodeURIComponent(record.nodeId)}&clusterType=${encodeURIComponent(record.environment)}`,
-                )
-              }
-            >
-              节点配置
-            </Button>
-            <Button
-              type="link"
-              icon={<Radio size={15} />}
-              disabled={!record.states.length}
-              onClick={() => openRealtimeLogs([record])}
-            >
-              实时日志
-            </Button>
-          </Space>
-        ),
+        record.kind === 'cluster'
+          ? (() => {
+              const clusterNodes =
+                clusters.find((cluster) => cluster.clusterId === record.clusterId)?.children ||
+                record.children
+              const lifecycleStates = clusterNodes.flatMap((node) =>
+                node.states.filter(isLifecycleControllable),
+              )
+              const lifecycleUpdating = clusterNodes.some((node) =>
+                lifecycleUpdatingNodes.has(node.nodeId),
+              )
+              const canStart = lifecycleStates.some(
+                (state) => isFused(state) || state.runtime?.childRunning === false,
+              )
+              const canStop = lifecycleStates.some((state) => !isFused(state))
+              return (
+                <Space size={0} wrap>
+                  <Button
+                    size="small"
+                    icon={<Play size={14} />}
+                    loading={lifecycleUpdating}
+                    disabled={lifecycleUpdating || !canStart}
+                    onClick={() => setNodesRunning(clusterNodes, true, '集群')}
+                  >
+                    启动
+                  </Button>
+                  <Popconfirm
+                    title={`确认停止集群 ${record.name}？`}
+                    description="集群内节点将批量停止，管理通道保持在线。"
+                    okText="停止"
+                    cancelText="取消"
+                    okButtonProps={{ danger: true }}
+                    disabled={lifecycleUpdating || !canStop}
+                    onConfirm={() => setNodesRunning(clusterNodes, false, '集群')}
+                  >
+                    <Button
+                      danger
+                      size="small"
+                      icon={<Square size={13} />}
+                      loading={lifecycleUpdating}
+                      disabled={lifecycleUpdating || !canStop}
+                    >
+                      停止
+                    </Button>
+                  </Popconfirm>
+                  <Button
+                    type="link"
+                    icon={<SettingOutlined />}
+                    onClick={() =>
+                      navigate(
+                        `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&clusterType=${encodeURIComponent(record.environment)}`,
+                      )
+                    }
+                  >
+                    集群配置
+                  </Button>
+                </Space>
+              )
+            })()
+          : (() => {
+              const preloadState = record.states.find((state) => state.probeType === 'preload')
+              const preloadEnabled = preloadState?.runtime?.preloadEnabled
+              const preloadControllable =
+                !isKubernetesEnvironment(record.environment) && preloadEnabled !== undefined
+              const lifecycleStates = record.states.filter(isLifecycleControllable)
+              const lifecycleUpdating = lifecycleUpdatingNodes.has(record.nodeId)
+              const canStart = lifecycleStates.some(
+                (state) => isFused(state) || state.runtime?.childRunning === false,
+              )
+              const canStop = lifecycleStates.some((state) => !isFused(state))
+              return (
+                <Space size={0} wrap>
+                  {preloadControllable && (
+                    <span className={styles.preloadControl}>
+                      <Typography.Text>Preload</Typography.Text>
+                      <Switch
+                        size="small"
+                        checked={preloadEnabled}
+                        loading={preloadUpdatingNodes.has(record.nodeId)}
+                        disabled={preloadState?.status === 'OFFLINE'}
+                        onChange={(enabled) => setNodePreloadEnabled(record, enabled)}
+                      />
+                    </span>
+                  )}
+                  <Button
+                    size="small"
+                    icon={<Play size={14} />}
+                    loading={lifecycleUpdating}
+                    disabled={lifecycleUpdating || !canStart}
+                    onClick={() => setNodeRunning(record, true)}
+                  >
+                    启动
+                  </Button>
+                  <Popconfirm
+                    title={`确认停止节点 ${record.name}？`}
+                    description="停止后管理通道保持在线，可随时重新启动。"
+                    okText="停止"
+                    cancelText="取消"
+                    okButtonProps={{ danger: true }}
+                    disabled={lifecycleUpdating || !canStop}
+                    onConfirm={() => setNodeRunning(record, false)}
+                  >
+                    <Button
+                      danger
+                      size="small"
+                      icon={<Square size={13} />}
+                      loading={lifecycleUpdating}
+                      disabled={lifecycleUpdating || !canStop}
+                    >
+                      停止
+                    </Button>
+                  </Popconfirm>
+                  <Button
+                    type="link"
+                    icon={<SettingOutlined />}
+                    disabled={!record.states.length}
+                    onClick={() =>
+                      navigate(
+                        `/probe-management/config?clusterId=${encodeURIComponent(record.clusterId)}&nodeId=${encodeURIComponent(record.nodeId)}&clusterType=${encodeURIComponent(record.environment)}`,
+                      )
+                    }
+                  >
+                    节点配置
+                  </Button>
+                  <Button
+                    type="link"
+                    icon={<Radio size={15} />}
+                    disabled={!record.states.length}
+                    onClick={() => openRealtimeLogs([record])}
+                  >
+                    实时日志
+                  </Button>
+                </Space>
+              )
+            })(),
     },
   ]
 
@@ -505,7 +886,7 @@ export default function ProbeManagement() {
       <div className={styles.sectionHeader}>
         <div>
           <Typography.Title level={4}>探针管理</Typography.Title>
-          <Typography.Text type="secondary">按集群查看节点及其探针运行状态</Typography.Text>
+          <Typography.Text type="secondary">按集群查看节点运行状态</Typography.Text>
         </div>
         <Space className={styles.headerActions} wrap>
           <Button
@@ -521,18 +902,49 @@ export default function ProbeManagement() {
           >
             批量配置
           </Button>
-          <Tag color="processing">
-            {clusters.length} 个集群 · {nodeCount} 个节点
-          </Tag>
         </Space>
+      </div>
+      <div className={styles.tableFilters}>
+        <Input.Search
+          allowClear
+          value={query}
+          placeholder="搜索集群、节点或组件"
+          onChange={(event) => {
+            setQuery(event.target.value)
+            setCurrentPage(1)
+          }}
+        />
+        <Select<NodeStatusFilter>
+          value={statusFilter}
+          onChange={(value) => {
+            setStatusFilter(value)
+            setCurrentPage(1)
+          }}
+          options={[
+            { value: 'all', label: '全部状态' },
+            { value: 'healthy', label: '运行正常' },
+            { value: 'abnormal', label: '存在异常' },
+            { value: 'waiting', label: '等待上报' },
+          ]}
+        />
       </div>
       <Card className={styles.tableCard} styles={{ body: { padding: 0 } }}>
         <Table
           columns={columns}
-          dataSource={clusters}
+          dataSource={filteredClusters}
           rowKey="key"
           loading={loading}
-          pagination={false}
+          pagination={{
+            current: currentPage,
+            pageSize,
+            showSizeChanger: true,
+            showQuickJumper: filteredClusters.length > pageSize,
+            pageSizeOptions: [10, 20, 50],
+            onChange: (page, size) => {
+              setCurrentPage(page)
+              setPageSize(size)
+            },
+          }}
           size="small"
           scroll={{ x: 860 }}
           rowClassName={(record) =>
@@ -542,7 +954,7 @@ export default function ProbeManagement() {
             emptyText: (
               <span className={styles.resourceEmpty}>
                 <Activity size={15} />
-                暂无已注册探针
+                暂无已注册节点
               </span>
             ),
           }}

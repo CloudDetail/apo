@@ -9,6 +9,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
+	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -23,6 +24,8 @@ type AgentConfigRepo interface {
 	UpsertAgentNode(core.Context, *ac.Node) error
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
+	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
+	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
 	SaveAgentInitialConfigIfUnassigned(core.Context, *ac.InitialConfig) (bool, error)
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
 	ListAgentInitialConfigs(core.Context, string) ([]ac.InitialConfig, error)
@@ -83,7 +86,7 @@ func (repo *daoRepo) UpsertAgentNode(ctx core.Context, n *ac.Node) error {
 		Columns: []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{
 			"name", "cluster_id", "environment", "labels", "daemon_version",
-			"last_seen_at", "updated_at",
+			"odiglet_ready", "last_seen_at", "updated_at",
 		}),
 	}).Create(n).Error
 }
@@ -97,6 +100,50 @@ func (repo *daoRepo) GetAgentNode(ctx core.Context, id string) (*ac.Node, error)
 	e := repo.GetContextDB(ctx).First(&n, "id = ?", id).Error
 	return &n, e
 }
+func (repo *daoRepo) GetNamespaceInjection(ctx core.Context, clusterID string) (*ac.NamespaceInjection, error) {
+	var trace integrationmodel.TraceIntegration
+	err := repo.GetContextDB(ctx).
+		Select("self_collect_config").
+		Where("cluster_id = ? AND is_deleted = ?", clusterID, false).
+		First(&trace).Error
+	if err != nil {
+		return nil, err
+	}
+	config := trace.SelfCollectConfig.Obj
+	return &ac.NamespaceInjection{
+		InstrumentAll:        config.InstrumentAll,
+		InstrumentNS:         append([]string(nil), config.InstrumentNS...),
+		InstrumentDisabledNS: append([]string(nil), config.InstrumentDisabledNS...),
+	}, nil
+}
+func (repo *daoRepo) GetOdigletReadiness(ctx core.Context, clusterID string, cutoff time.Time) (*bool, error) {
+	var nodes []ac.Node
+	err := repo.GetContextDB(ctx).
+		Select("odiglet_ready").
+		Where("cluster_id = ? AND last_seen_at >= ?", clusterID, cutoff).
+		Find(&nodes).Error
+	if err != nil {
+		return nil, err
+	}
+	known := false
+	unknown := false
+	for _, node := range nodes {
+		if node.OdigletReady == nil {
+			unknown = true
+			continue
+		}
+		known = true
+		if *node.OdigletReady {
+			ready := true
+			return &ready, nil
+		}
+	}
+	if unknown || !known {
+		return nil, nil
+	}
+	ready := false
+	return &ready, nil
+}
 func (repo *daoRepo) SaveAgentInitialConfigIfUnassigned(ctx core.Context, baseline *ac.InitialConfig) (bool, error) {
 	saved := false
 	err := repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
@@ -107,7 +154,12 @@ func (repo *daoRepo) SaveAgentInitialConfigIfUnassigned(ctx core.Context, baseli
 		if count > 0 {
 			return nil
 		}
-		result := tx.Where("node_id=? AND probe_type=?", baseline.NodeID, baseline.ProbeType).FirstOrCreate(baseline)
+		result := tx.Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "node_id"}, {Name: "probe_type"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"files", "content_sha256", "captured_at",
+			}),
+		}).Create(baseline)
 		if result.Error != nil {
 			return result.Error
 		}

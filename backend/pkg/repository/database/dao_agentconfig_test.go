@@ -6,11 +6,95 @@ import (
 	"time"
 
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
+	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+func TestGetNamespaceInjectionUsesStoredClusterIntegration(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-namespace-injection?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&integrationmodel.TraceIntegration{}); err != nil {
+		t.Fatal(err)
+	}
+	trace := integrationmodel.TraceIntegration{
+		ClusterID: "cluster-a",
+		SelfCollectConfig: integrationmodel.JSONField[integrationmodel.TraceSelfCollectConfig]{Obj: integrationmodel.TraceSelfCollectConfig{
+			InstrumentAll:        true,
+			InstrumentNS:         []string{"orders"},
+			InstrumentDisabledNS: []string{"monitoring"},
+		}},
+	}
+	if err := db.Create(&trace).Error; err != nil {
+		t.Fatal(err)
+	}
+	config, err := (&daoRepo{DB: &driver.DB{DB: db}}).GetNamespaceInjection(nil, "cluster-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !config.InstrumentAll || len(config.InstrumentNS) != 1 || config.InstrumentNS[0] != "orders" || len(config.InstrumentDisabledNS) != 1 || config.InstrumentDisabledNS[0] != "monitoring" {
+		t.Fatalf("namespace injection config=%+v", config)
+	}
+}
+
+func TestGetOdigletReadinessAggregatesFreshClusterNodes(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-odiglet-readiness?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&ac.Node{}); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	ready, notReady := true, false
+	nodes := []ac.Node{
+		{ID: "node-a", ClusterID: "cluster-a", OdigletReady: &notReady, LastSeenAt: &now},
+		{ID: "node-b", ClusterID: "cluster-a", OdigletReady: &ready, LastSeenAt: &now},
+		{ID: "node-c", ClusterID: "cluster-b", OdigletReady: &ready, LastSeenAt: &now},
+	}
+	if err := db.Create(&nodes).Error; err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	result, err := repo.GetOdigletReadiness(nil, "cluster-missing", now.Add(-time.Minute))
+	if err != nil || result != nil {
+		t.Fatalf("missing-cluster readiness=%v err=%v", result, err)
+	}
+
+	result, err = repo.GetOdigletReadiness(nil, "cluster-a", now.Add(-time.Minute))
+	if err != nil || result == nil || !*result {
+		t.Fatalf("readiness=%v err=%v", result, err)
+	}
+
+	if err := db.Model(&ac.Node{}).Where("cluster_id = ?", "cluster-a").Update("odiglet_ready", false).Error; err != nil {
+		t.Fatal(err)
+	}
+	result, err = repo.GetOdigletReadiness(nil, "cluster-a", now.Add(-time.Minute))
+	if err != nil || result == nil || *result {
+		t.Fatalf("all-down readiness=%v err=%v", result, err)
+	}
+
+	stale := now.Add(-2 * time.Minute)
+	if err := db.Model(&ac.Node{}).Where("id = ?", "node-b").Updates(map[string]any{"odiglet_ready": true, "last_seen_at": stale}).Error; err != nil {
+		t.Fatal(err)
+	}
+	result, err = repo.GetOdigletReadiness(nil, "cluster-a", now.Add(-time.Minute))
+	if err != nil || result == nil || *result {
+		t.Fatalf("stale ready node affected readiness=%v err=%v", result, err)
+	}
+
+	if err := db.Model(&ac.Node{}).Where("id = ?", "node-a").Update("odiglet_ready", nil).Error; err != nil {
+		t.Fatal(err)
+	}
+	result, err = repo.GetOdigletReadiness(nil, "cluster-a", now.Add(-time.Minute))
+	if err != nil || result != nil {
+		t.Fatalf("mixed-version readiness=%v err=%v", result, err)
+	}
+}
 
 func TestSaveAgentBindingsChecksEverySubmittedGeneration(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open("file:agent-config-generations?mode=memory&cache=shared"), &gorm.Config{})
@@ -47,6 +131,42 @@ func TestSaveAgentBindingsChecksEverySubmittedGeneration(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("conflicted update wrote a release: count=%d", count)
+	}
+}
+
+func TestSaveAgentInitialConfigRefreshesOnlyBeforeFirstRelease(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-initial-refresh?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&ac.InitialConfig{}, &ac.Release{}); err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	first := &ac.InitialConfig{NodeID: "node-69", ProbeType: "ilogtail", Files: ac.JSON(`[{"path":"config/local/old.yaml"}]`), ContentSHA256: "old", CapturedAt: time.Now().Add(-time.Minute)}
+	if saved, err := repo.SaveAgentInitialConfigIfUnassigned(nil, first); err != nil || !saved {
+		t.Fatalf("save first baseline: saved=%v err=%v", saved, err)
+	}
+	updated := &ac.InitialConfig{NodeID: "node-69", ProbeType: "ilogtail", Files: ac.JSON(`[{"path":"conf/plugin_logger.xml"}]`), ContentSHA256: "new", CapturedAt: time.Now()}
+	if saved, err := repo.SaveAgentInitialConfigIfUnassigned(nil, updated); err != nil || !saved {
+		t.Fatalf("refresh unassigned baseline: saved=%v err=%v", saved, err)
+	}
+	stored, err := repo.GetAgentInitialConfig(nil, "node-69", "ilogtail")
+	if err != nil || stored.ContentSHA256 != "new" || string(stored.Files) != string(updated.Files) {
+		t.Fatalf("baseline was not refreshed: stored=%+v err=%v", stored, err)
+	}
+
+	release := ac.Release{ID: uuid.New(), NodeID: "node-69", ProbeType: "ilogtail", Generation: 1, Variables: ac.JSON("{}"), Files: ac.JSON("null"), LogSources: ac.JSON("null")}
+	if err := db.Create(&release).Error; err != nil {
+		t.Fatal(err)
+	}
+	blocked := &ac.InitialConfig{NodeID: "node-69", ProbeType: "ilogtail", Files: ac.JSON(`[{"path":"wrong.yaml"}]`), ContentSHA256: "wrong", CapturedAt: time.Now().Add(time.Minute)}
+	if saved, err := repo.SaveAgentInitialConfigIfUnassigned(nil, blocked); err != nil || saved {
+		t.Fatalf("released baseline changed: saved=%v err=%v", saved, err)
+	}
+	stored, err = repo.GetAgentInitialConfig(nil, "node-69", "ilogtail")
+	if err != nil || stored.ContentSHA256 != "new" {
+		t.Fatalf("released baseline was overwritten: stored=%+v err=%v", stored, err)
 	}
 }
 

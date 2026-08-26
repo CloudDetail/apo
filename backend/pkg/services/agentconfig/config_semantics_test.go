@@ -3,8 +3,10 @@ package agentconfig
 import (
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
@@ -14,27 +16,43 @@ import (
 
 type configSemanticsRepo struct {
 	*commandRepo
-	nodes          map[string]ac.Node
-	baselines      map[string]ac.InitialConfig
-	releases       map[string]ac.Release
-	templates      map[uuid.UUID]ac.Template
-	globalCircuit  *ac.GlobalCircuitConfig
-	nodeCircuits   map[string]ac.NodeCircuitConfig
-	nodeLogs       map[string]ac.NodeLogConfig
-	batchSaveCalls int
-	lastExpected   map[string]int64
+	nodes            map[string]ac.Node
+	baselines        map[string]ac.InitialConfig
+	releases         map[string]ac.Release
+	templates        map[uuid.UUID]ac.Template
+	globalCircuit    *ac.GlobalCircuitConfig
+	nodeCircuits     map[string]ac.NodeCircuitConfig
+	nodeLogs         map[string]ac.NodeLogConfig
+	namespaceConfigs map[string]ac.NamespaceInjection
+	odigletReady     *bool
+	states           []ac.ApplyState
+	batchSaveCalls   int
+	lastExpected     map[string]int64
 }
 
 func newConfigSemanticsRepo() *configSemanticsRepo {
 	return &configSemanticsRepo{
-		commandRepo:  &commandRepo{},
-		nodes:        map[string]ac.Node{},
-		baselines:    map[string]ac.InitialConfig{},
-		releases:     map[string]ac.Release{},
-		templates:    map[uuid.UUID]ac.Template{},
-		nodeCircuits: map[string]ac.NodeCircuitConfig{},
-		nodeLogs:     map[string]ac.NodeLogConfig{},
+		commandRepo:      &commandRepo{},
+		nodes:            map[string]ac.Node{},
+		baselines:        map[string]ac.InitialConfig{},
+		releases:         map[string]ac.Release{},
+		templates:        map[uuid.UUID]ac.Template{},
+		nodeCircuits:     map[string]ac.NodeCircuitConfig{},
+		nodeLogs:         map[string]ac.NodeLogConfig{},
+		namespaceConfigs: map[string]ac.NamespaceInjection{},
 	}
+}
+
+func (r *configSemanticsRepo) GetNamespaceInjection(_ core.Context, clusterID string) (*ac.NamespaceInjection, error) {
+	value, ok := r.namespaceConfigs[clusterID]
+	if !ok {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &value, nil
+}
+
+func (r *configSemanticsRepo) GetOdigletReadiness(core.Context, string, time.Time) (*bool, error) {
+	return r.odigletReady, nil
 }
 
 func (r *configSemanticsRepo) GetAgentNode(_ core.Context, node string) (*ac.Node, error) {
@@ -96,6 +114,10 @@ func (r *configSemanticsRepo) GetAgentTemplate(_ core.Context, id uuid.UUID) (*a
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &value, nil
+}
+func (r *configSemanticsRepo) CreateAgentTemplate(_ core.Context, template *ac.Template) error {
+	r.templates[template.ID] = *template
+	return nil
 }
 func (r *configSemanticsRepo) SaveAgentBindings(_ core.Context, bindings []*ac.Binding, releases []*ac.Release, expected map[string]int64) error {
 	if len(bindings) != len(releases) {
@@ -165,6 +187,9 @@ func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.N
 	}
 	return nil
 }
+func (r *configSemanticsRepo) ListAgentStates(core.Context) ([]ac.ApplyState, error) {
+	return append([]ac.ApplyState(nil), r.states...), nil
+}
 
 func addBaseline(t *testing.T, repo *configSemanticsRepo, node, probe, content string) {
 	t.Helper()
@@ -197,13 +222,88 @@ func addBundleTemplate(t *testing.T, repo *configSemanticsRepo, id uuid.UUID, co
 	repo.templates[id] = ac.Template{ID: id, Configs: ac.JSON(data), Version: 1, Variables: variables}
 }
 
+func TestInitialConfigIsHistoryVersionOneWithoutServerDelivery(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "node-agent", "sampling: 1\n")
+	key := releaseKey("node-1", "node-agent")
+	baseline := repo.baselines[key]
+	baseline.CapturedAt = time.Date(2026, time.August, 25, 12, 0, 0, 0, time.UTC)
+	repo.baselines[key] = baseline
+	service := New(repo)
+
+	current, err := service.CurrentNodeConfig(nil, "node-1", "node-agent")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current.Generation != 0 || current.Version != 1 || current.Source != "INITIAL" {
+		t.Fatalf("initial current config=%+v", current)
+	}
+	history, err := service.ListNodeConfigHistory(nil, "node-1", "node-agent", 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(history) != 1 || history[0].Generation != 0 || history[0].Version != 1 || history[0].Source != "INITIAL" || !history[0].CreatedAt.Equal(baseline.CapturedAt) {
+		t.Fatalf("initial history=%+v", history)
+	}
+	if len(repo.releases) != 0 || repo.batchSaveCalls != 0 {
+		t.Fatalf("initial history created a server release: releases=%d saves=%d", len(repo.releases), repo.batchSaveCalls)
+	}
+
+	updated, err := service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType:          "node-agent",
+		Content:            "sampling: 2\n",
+		ExpectedGeneration: 0,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(updated.Configs) != 1 || updated.Configs[0].Generation != 1 || updated.Configs[0].Version != 2 || updated.Configs[0].Source != "RELEASE" {
+		t.Fatalf("first server update=%+v", updated.Configs)
+	}
+	history, err = service.ListNodeConfigHistory(nil, "node-1", "node-agent", 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(history) != 2 || history[0].Version != 2 || history[0].Source != "RELEASE" || history[1].Version != 1 || history[1].Source != "INITIAL" {
+		t.Fatalf("history after first server update=%+v", history)
+	}
+}
+
+func TestListStatesMarksExpiredReportsOffline(t *testing.T) {
+	now := time.Date(2026, time.August, 26, 10, 0, 0, 0, time.UTC)
+	fresh := now.Add(-agentStateFreshnessTimeout + time.Second)
+	expired := now.Add(-agentStateFreshnessTimeout - time.Second)
+	repo := newConfigSemanticsRepo()
+	repo.states = []ac.ApplyState{
+		{NodeID: "node-1", ProbeType: "fresh", Status: "RUNNING", ReportedAt: &fresh},
+		{NodeID: "node-1", ProbeType: "expired", Status: "RUNNING", ReportedAt: &expired},
+		{NodeID: "node-1", ProbeType: "never-reported", Status: "RUNNING"},
+	}
+	service := New(repo)
+	service.now = func() time.Time { return now }
+
+	states, err := service.ListStates(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if states[0].Status != "RUNNING" || states[0].Reason != "" {
+		t.Fatalf("fresh state changed: %+v", states[0])
+	}
+	for _, state := range states[1:] {
+		if state.Status != "OFFLINE" || state.Reason != "status report expired" {
+			t.Fatalf("expired state remained healthy: %+v", state)
+		}
+	}
+}
+
 func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
-	addBaselineFiles(t, repo, "node-1", "ilogtail", []ac.InitialConfigFile{
-		{Path: "conf/plugin_logger.xml", Content: "<seelog/>\n"},
-		{Path: "config/local/pod_stdout_all.yaml", Content: "enable: true\n"},
-		{Path: "config/local/pod_stdout_file.yaml", Content: "enable: false\n"},
+	addBaselineFiles(t, repo, "node-1", "ebpf-agent", []ac.InitialConfigFile{
+		{Path: "config/camera-agent-config.yml", Content: "enabled: true\n"},
+		{Path: "config/log4rs.yml", Content: "level: info\n"},
+		{Path: "load-env.sh", Content: "export SNAPLEN=1000\n"},
 	})
 	service := New(repo)
 
@@ -213,14 +313,14 @@ func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 	}
 	files := append([]ac.InitialConfigFile(nil), current.Configs[0].Files...)
 	files[1].Content = "enable: changed\n"
-	updated, err := service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "ilogtail", Files: files, ExpectedGeneration: 0}}})
+	updated, err := service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "ebpf-agent", Files: files, ExpectedGeneration: 0}}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(updated.Configs[0].Files) != 3 || updated.Configs[0].Generation != 1 {
 		t.Fatalf("multi-file release was incomplete: %+v", updated.Configs[0])
 	}
-	release := repo.releases[releaseKey("node-1", "ilogtail")]
+	release := repo.releases[releaseKey("node-1", "ebpf-agent")]
 	var persisted []ac.InitialConfigFile
 	if err := json.Unmarshal(release.Files, &persisted); err != nil || len(persisted) != 3 {
 		t.Fatalf("persisted files=%+v err=%v", persisted, err)
@@ -229,9 +329,214 @@ func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 		t.Fatalf("bundle sha=%s want=%s", release.ContentSHA256, ac.HashInitialConfigFiles(persisted))
 	}
 
-	_, err = service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "ilogtail", Files: persisted[:2], ExpectedGeneration: 1}}})
-	if err == nil || repo.batchSaveCalls != 1 {
-		t.Fatalf("incomplete multi-file update was not rejected atomically: err=%v calls=%d", err, repo.batchSaveCalls)
+	_, err = service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "ebpf-agent", Files: persisted[:2], ExpectedGeneration: 1}}})
+	if err == nil || !strings.Contains(err.Error(), "cannot be added, removed, or renamed") || repo.batchSaveCalls != 1 {
+		t.Fatalf("changed registered file set was accepted: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+}
+
+func TestImportedTemplateCannotChangeRegisteredFileSet(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaselineFiles(t, repo, "node-1", "ebpf-agent", []ac.InitialConfigFile{
+		{Path: "config.yaml", Content: "old: true\n"},
+		{Path: "logging.yaml", Content: "level: info\n"},
+	})
+	service := New(repo)
+	template, err := service.ImportTemplate(nil, TemplateImportInput{YAML: `
+name: compact-ebpf
+description: imported template
+variables:
+  - name: LEVEL
+    required: true
+configs:
+  - probeType: ebpf-agent
+    files:
+      - path: runtime.yaml
+        template: |
+          level: {% LEVEL %}
+`}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = service.Assign(nil, "node-1", "ebpf-agent", AssignmentInput{
+		TemplateID: template.ID,
+		Variables:  map[string]string{"LEVEL": "debug"},
+	})
+	if err == nil || !strings.Contains(err.Error(), "do not match registered configuration files") || repo.batchSaveCalls != 0 {
+		t.Fatalf("imported template changed the registered file set: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+}
+
+func TestV103ExampleTemplateIsImportable(t *testing.T) {
+	data, err := os.ReadFile("../../../../docs/examples/agent-config-template-v1.0.3.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	template, err := New(newConfigSemanticsRepo()).ImportTemplate(nil, TemplateImportInput{YAML: string(data)}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+	configs, err := templateProbeConfigs(template)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileCount := 0
+	foundCollectorCluster := false
+	foundVMAgentCluster := false
+	foundOriginxEnv := false
+	for _, config := range configs {
+		fileCount += len(config.Files)
+		for _, file := range config.Files {
+			if config.ProbeType == "originx-gc-agent" && file.Path == "originx-gc-agent.env" &&
+				strings.Contains(file.Content, "RECEIVER_HOST=") && strings.Contains(file.Content, "RECEIVER_PORT=") {
+				foundOriginxEnv = true
+			}
+			if !strings.Contains(file.Content, "{% CLUSTER_ID %}") {
+				continue
+			}
+			if config.ProbeType == "apo-otel-collector-agent" {
+				foundCollectorCluster = true
+			}
+			if config.ProbeType == "vmagent" {
+				foundVMAgentCluster = true
+			}
+		}
+	}
+	if len(configs) != 9 || fileCount != 11 || !foundCollectorCluster || !foundVMAgentCluster || !foundOriginxEnv {
+		t.Fatalf("unexpected v1.0.3 example: configs=%d files=%d collectorCluster=%t vmagentCluster=%t originxEnv=%t", len(configs), fileCount, foundCollectorCluster, foundVMAgentCluster, foundOriginxEnv)
+	}
+	if len(template.Variables) != 1 || template.Variables[0].Name != "CLUSTER_ID" || !template.Variables[0].Required {
+		t.Fatalf("unexpected template variables: %+v", template.Variables)
+	}
+	if template.ClusterType != templateClusterTypeKubernetes {
+		t.Fatalf("example cluster type=%q", template.ClusterType)
+	}
+}
+
+func TestTemplateClusterTypeImportNormalization(t *testing.T) {
+	tests := []struct {
+		name        string
+		clusterType string
+		want        string
+	}{
+		{name: "legacy default", want: templateClusterTypeKubernetes},
+		{name: "k8s alias", clusterType: "k8s", want: templateClusterTypeKubernetes},
+		{name: "binary alias", clusterType: "binary", want: templateClusterTypeVM},
+		{name: "vm", clusterType: "vm", want: templateClusterTypeVM},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			template, err := New(newConfigSemanticsRepo()).ImportTemplate(nil, TemplateImportInput{YAML: `
+name: categorized
+clusterType: ` + test.clusterType + `
+configs:
+  - probeType: probe-a
+    files:
+      - path: config.yaml
+        template: |
+          enabled: true
+`}, 7)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if template.ClusterType != test.want {
+				t.Fatalf("cluster type=%q, want %q", template.ClusterType, test.want)
+			}
+		})
+	}
+
+	_, err := New(newConfigSemanticsRepo()).ImportTemplate(nil, TemplateImportInput{YAML: `
+name: invalid
+clusterType: bare-metal
+configs:
+  - probeType: probe-a
+    files:
+      - path: config.yaml
+        content: enabled
+`}, 7)
+	if err == nil || !strings.Contains(err.Error(), "unsupported template cluster type") {
+		t.Fatalf("unsupported cluster type was accepted: %v", err)
+	}
+}
+
+func TestImportedMultiFileTemplateRendersAssignmentEndToEnd(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaselineFiles(t, repo, "node-1", "ebpf-agent", []ac.InitialConfigFile{
+		{Path: "config/camera-agent-config.yml", Content: "legacy camera config\n"},
+		{Path: "config/log4rs.yml", Content: "legacy logging config\n"},
+		{Path: "load-env.sh", Content: "legacy environment\n"},
+	})
+	service := New(repo)
+
+	template, err := service.ImportTemplate(nil, TemplateImportInput{YAML: `
+name: ebpf-runtime
+description: multi-file runtime configuration
+variables:
+  - name: LEVEL
+    required: true
+    validationRegex: "^(debug|info)$"
+  - name: ENDPOINT
+    defaultValue: http://collector:4317
+configs:
+  - probeType: ebpf-agent
+    files:
+      - path: config/camera-agent-config.yml
+        template: |
+          log_level: {% LEVEL %}
+          endpoint: {% ENDPOINT %}
+      - path: config/log4rs.yml
+        template: |
+          level: {% LEVEL %}
+      - path: load-env.sh
+        template: |
+          export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}
+          export OTEL_ENDPOINT={% ENDPOINT %}
+`}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = service.Assign(nil, "node-1", "ebpf-agent", AssignmentInput{TemplateID: template.ID})
+	var validationErr *ValidationError
+	if !errors.As(err, &validationErr) || len(validationErr.MissingVariables) != 1 || validationErr.MissingVariables[0] != "LEVEL" {
+		t.Fatalf("missing required variable was not rejected: %v", err)
+	}
+
+	release, err := service.Assign(nil, "node-1", "ebpf-agent", AssignmentInput{
+		TemplateID: template.ID,
+		Variables:  map[string]string{"LEVEL": "debug"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var files []ac.InitialConfigFile
+	if err := json.Unmarshal(release.Files, &files); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]string{
+		"config/camera-agent-config.yml": "log_level: debug\nendpoint: http://collector:4317\n",
+		"config/log4rs.yml":              "level: debug\n",
+		"load-env.sh":                    "export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}\nexport OTEL_ENDPOINT=http://collector:4317\n",
+	}
+	if len(files) != len(want) || release.Generation != 1 {
+		t.Fatalf("unexpected release: generation=%d files=%#v", release.Generation, files)
+	}
+	for _, file := range files {
+		if file.Content != want[file.Path] {
+			t.Fatalf("unexpected rendered file %s: %q", file.Path, file.Content)
+		}
+	}
+	if release.ContentSHA256 != ac.HashInitialConfigFiles(files) {
+		t.Fatalf("bundle checksum=%s", release.ContentSHA256)
+	}
+	history, err := service.ListNodeConfigHistory(nil, "node-1", "ebpf-agent", 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(history) != 2 || history[0].Generation != 1 || history[1].Generation != 0 {
+		t.Fatalf("unexpected version history: %#v", history)
 	}
 }
 
@@ -296,8 +601,8 @@ func TestBatchAssignmentUsesOneCompleteTemplateAndAtomicallyOverwritesTargets(t 
 	}
 	templateID := uuid.New()
 	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{
-		{ProbeType: "probe-a", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "value: ${VALUE}\n"}}},
-		{ProbeType: "probe-b", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "enabled: ${ENABLED}\n"}}},
+		{ProbeType: "probe-a", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "value: {% VALUE %}\n"}}},
+		{ProbeType: "probe-b", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "enabled: {% ENABLED %}\n"}}},
 	}, []ac.TemplateVariable{{Name: "VALUE", Required: true}, {Name: "ENABLED", Required: true}})
 	service := New(repo)
 
@@ -325,31 +630,58 @@ func TestBatchAssignmentUsesOneCompleteTemplateAndAtomicallyOverwritesTargets(t 
 	}
 }
 
+func TestBatchAssignmentRendersClusterIDFromTargetNode(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-a", "vmagent", "cluster_id: old\n")
+	templateID := uuid.New()
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{
+		ProbeType: "vmagent",
+		Files: []ac.InitialConfigFile{{
+			Path:    "config.yaml",
+			Content: "cluster_id: {% CLUSTER_ID %}\n",
+		}},
+	}}, []ac.TemplateVariable{{Name: "CLUSTER_ID", Required: true}})
+	service := New(repo)
+
+	_, err := service.BatchAssign(nil, BatchAssignmentInput{
+		ClusterIDs: []string{"cluster-a"},
+		TemplateID: templateID,
+		Variables:  map[string]string{"CLUSTER_ID": "forged-cluster"},
+	}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := repo.releases[releaseKey("node-a", "vmagent")].RenderedContent; got != "cluster_id: cluster-a\n" {
+		t.Fatalf("cluster ID was not rendered from the target node: %q", got)
+	}
+}
+
 func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	paths := []string{
-		"conf/plugin_logger.xml",
-		"config/local/pod_stdout_all.yaml",
-		"config/local/pod_stdout_file.yaml",
+		"config/camera-agent-config.yml",
+		"config/log4rs.yml",
+		"load-env.sh",
 	}
 	for _, node := range []string{"node-a", "node-b"} {
 		repo.nodes[node] = ac.Node{ID: node, ClusterID: "cluster-a"}
-		addBaselineFiles(t, repo, node, "ilogtail", []ac.InitialConfigFile{
+		addBaselineFiles(t, repo, node, "ebpf-agent", []ac.InitialConfigFile{
 			{Path: paths[0], Content: "old logger\n"},
 			{Path: paths[1], Content: "old all\n"},
 			{Path: paths[2], Content: "old file\n"},
 		})
 	}
 	templateFiles := []ac.InitialConfigFile{
-		{Path: paths[0], Content: "level: ${LEVEL}\n"},
-		{Path: paths[1], Content: "all: ${LEVEL}\n"},
-		{Path: paths[2], Content: "file: ${LEVEL}\n"},
+		{Path: paths[0], Content: "level: {% LEVEL %}\n"},
+		{Path: paths[1], Content: "all: {% LEVEL %}\n"},
+		{Path: paths[2], Content: "file: {% LEVEL %}\n"},
 	}
 	for index := range templateFiles {
 		templateFiles[index].ContentSHA256 = ac.HashContent(templateFiles[index].Content)
 	}
 	templateID := uuid.New()
-	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ilogtail", Files: templateFiles}}, []ac.TemplateVariable{{Name: "LEVEL", Required: true}})
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ebpf-agent", Files: templateFiles}}, []ac.TemplateVariable{{Name: "LEVEL", Required: true}})
 	service := New(repo)
 
 	result, err := service.BatchAssign(nil, BatchAssignmentInput{
@@ -364,7 +696,7 @@ func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.
 		t.Fatalf("unexpected batch result: result=%+v calls=%d", result, repo.batchSaveCalls)
 	}
 	for _, node := range []string{"node-a", "node-b"} {
-		release := repo.releases[releaseKey(node, "ilogtail")]
+		release := repo.releases[releaseKey(node, "ebpf-agent")]
 		var files []ac.InitialConfigFile
 		if err := json.Unmarshal(release.Files, &files); err != nil {
 			t.Fatalf("decode %s release: %v", node, err)
@@ -383,23 +715,104 @@ func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.
 	}
 }
 
-func TestBatchAssignmentRejectsIncompleteFileSet(t *testing.T) {
+func TestBatchAssignmentRejectsChangedRegisteredFileSet(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
-	addBaselineFiles(t, repo, "node-a", "ilogtail", []ac.InitialConfigFile{
+	addBaselineFiles(t, repo, "node-a", "ebpf-agent", []ac.InitialConfigFile{
 		{Path: "a.yaml", Content: "a: old\n"},
 		{Path: "b.yaml", Content: "b: old\n"},
 	})
 	templateID := uuid.New()
-	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ilogtail", Files: []ac.InitialConfigFile{{Path: "a.yaml", Content: "a: new\n"}}}}, nil)
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{ProbeType: "ebpf-agent", Files: []ac.InitialConfigFile{{Path: "a.yaml", Content: "a: new\n"}}}}, nil)
 	service := New(repo)
 
 	_, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a"}, TemplateID: templateID}, 7)
-	if err == nil || !strings.Contains(err.Error(), "file set does not match") {
-		t.Fatalf("incomplete template was accepted for a multi-file probe: %v", err)
+	if err == nil || !strings.Contains(err.Error(), "do not match registered configuration files") || repo.batchSaveCalls != 0 {
+		t.Fatalf("batch assignment changed the registered file set: err=%v calls=%d", err, repo.batchSaveCalls)
 	}
-	if repo.batchSaveCalls != 0 {
-		t.Fatalf("rejected batch wrote releases: calls=%d", repo.batchSaveCalls)
+}
+
+func TestTemplateAssignmentRejectsDifferentClusterTypeBeforeWriting(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-k8s"] = ac.Node{ID: "node-k8s", ClusterID: "cluster-k8s", Environment: "kubernetes"}
+	repo.nodes["node-vm"] = ac.Node{ID: "node-vm", ClusterID: "cluster-vm", Environment: "binary"}
+	for _, node := range []string{"node-k8s", "node-vm"} {
+		addBaseline(t, repo, node, "probe-a", "old: true\n")
+	}
+	templateID := uuid.New()
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{
+		ProbeType: "probe-a",
+		Files:     []ac.InitialConfigFile{{Path: "config.yaml", Content: "new: true\n"}},
+	}}, nil)
+	template := repo.templates[templateID]
+	template.ClusterType = templateClusterTypeVM
+	repo.templates[templateID] = template
+	service := New(repo)
+
+	_, err := service.Assign(nil, "node-k8s", "probe-a", AssignmentInput{TemplateID: templateID})
+	if err == nil || !strings.Contains(err.Error(), "does not match node node-k8s") || repo.batchSaveCalls != 0 {
+		t.Fatalf("cross-category assignment was not rejected before writing: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+
+	_, err = service.BatchAssign(nil, BatchAssignmentInput{
+		ClusterIDs: []string{"cluster-k8s", "cluster-vm"},
+		TemplateID: templateID,
+	}, 7)
+	if err == nil || !strings.Contains(err.Error(), "does not match node node-k8s") || repo.batchSaveCalls != 0 {
+		t.Fatalf("mixed-category batch was not rejected before writing: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+}
+
+func TestTemplateUpdateCannotChangeRegisteredFileSet(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	templateID := uuid.New()
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{{
+		ProbeType: "ebpf-agent",
+		Files: []ac.InitialConfigFile{
+			{Path: "config.yaml", Content: "level: info\n"},
+			{Path: "logging.yaml", Content: "output: stdout\n"},
+		},
+	}}, nil)
+	service := New(repo)
+
+	_, err := service.UpdateTemplate(nil, templateID, TemplateInput{
+		Name: "updated",
+		Configs: []ac.TemplateProbeConfig{{
+			ProbeType: "ebpf-agent",
+			Files: []ac.InitialConfigFile{
+				{Path: "config.yaml", Content: "level: debug\n"},
+				{Path: "logging.yaml", Content: "output: file\n"},
+			},
+		}},
+	}, 7)
+	if err != nil {
+		t.Fatalf("template content update was rejected: %v", err)
+	}
+
+	_, err = service.UpdateTemplate(nil, templateID, TemplateInput{
+		Name: "invalid",
+		Configs: []ac.TemplateProbeConfig{{
+			ProbeType: "ebpf-agent",
+			Files:     []ac.InitialConfigFile{{Path: "config.yaml", Content: "level: debug\n"}},
+		}},
+	}, 7)
+	if err == nil || !strings.Contains(err.Error(), "template registration cannot be changed") {
+		t.Fatalf("template file removal was accepted: %v", err)
+	}
+
+	_, err = service.UpdateTemplate(nil, templateID, TemplateInput{
+		Name:        "invalid-category",
+		ClusterType: templateClusterTypeVM,
+		Configs: []ac.TemplateProbeConfig{{
+			ProbeType: "ebpf-agent",
+			Files: []ac.InitialConfigFile{
+				{Path: "config.yaml", Content: "level: debug\n"},
+				{Path: "logging.yaml", Content: "output: file\n"},
+			},
+		}},
+	}, 7)
+	if err == nil || !strings.Contains(err.Error(), "cluster type cannot be changed") {
+		t.Fatalf("template cluster type change was accepted: %v", err)
 	}
 }
 
@@ -463,6 +876,99 @@ func TestCircuitPolicyIsNodeLevelAndIndependentFromConfigReleases(t *testing.T) 
 	after, source, err := service.GetNodeCircuit(nil, "node-1")
 	if err != nil || source != "NODE" || after.MaxCPUCores != 1.5 {
 		t.Fatalf("config release changed node circuit policy: policy=%+v source=%s err=%v", after, source, err)
+	}
+}
+
+func TestCircuitPolicyPersistsNodeSystemPressureSettings(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	service := New(repo)
+	policy := ac.CircuitBreakerSettings{
+		Enabled:                     true,
+		DurationSeconds:             30,
+		AutoRecover:                 true,
+		RecoveryInitialDelaySeconds: 30,
+		RecoveryMaxDelaySeconds:     3600,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled:          true,
+			MaxCPUPercent:    90,
+			MaxMemoryPercent: 90,
+		},
+	}
+	if _, err := service.SaveNodeCircuit(nil, "node-1", policy, 2); err != nil {
+		t.Fatal(err)
+	}
+	settings, source, err := service.GetNodeCircuit(nil, "node-1")
+	if err != nil || source != "NODE" || settings.SystemPressure == nil || settings.SystemPressure.MaxCPUPercent != 90 || settings.SystemPressure.MaxMemoryPercent != 90 {
+		t.Fatalf("system pressure settings were not persisted: settings=%+v source=%s err=%v", settings, source, err)
+	}
+}
+
+func TestClusterCircuitPolicyUsesSystemPercentages(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	service := New(repo)
+
+	legacy := ac.CircuitBreakerSettings{
+		Enabled:         true,
+		MaxCPUCores:     1,
+		DurationSeconds: 30,
+	}
+	if _, err := service.BatchSaveCircuit(nil, CircuitBatchInput{ClusterIDs: []string{"cluster-a"}, CircuitBreaker: legacy}, 2); err == nil || !strings.Contains(err.Error(), "must use system CPU and memory percentages") {
+		t.Fatalf("cluster policy accepted process totals: %v", err)
+	}
+	if len(repo.nodeCircuits) != 0 {
+		t.Fatalf("invalid cluster policy was persisted: %+v", repo.nodeCircuits)
+	}
+
+	policy := ac.CircuitBreakerSettings{
+		Enabled:                     true,
+		DurationSeconds:             30,
+		AutoRecover:                 true,
+		RecoveryInitialDelaySeconds: 30,
+		RecoveryMaxDelaySeconds:     3600,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled:          true,
+			MaxCPUPercent:    85,
+			MaxMemoryPercent: 90,
+		},
+		ComponentPolicies: map[string]ac.CircuitBreakerSettings{
+			"probe-a": {Enabled: true, MaxCPUCores: 0.5, DurationSeconds: 10},
+		},
+	}
+	result, err := service.BatchSaveCircuit(nil, CircuitBatchInput{ClusterIDs: []string{"cluster-a"}, CircuitBreaker: policy}, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stored, ok := repo.nodeCircuits["node-1"]
+	if !ok || result.SucceededCount != 1 {
+		t.Fatalf("cluster system policy was not persisted: result=%+v stored=%+v", result, stored)
+	}
+	var settings ac.CircuitBreakerSettings
+	if err := json.Unmarshal(stored.Settings, &settings); err != nil {
+		t.Fatal(err)
+	}
+	if settings.MaxCPUCores != 0 || settings.MaxMemoryBytes != 0 || settings.SystemPressure == nil || settings.SystemPressure.MaxCPUPercent != 85 {
+		t.Fatalf("unexpected stored cluster policy: %+v", settings)
+	}
+}
+
+func TestCircuitPolicyRejectsSystemPressureOnAComponent(t *testing.T) {
+	policy := ac.CircuitBreakerSettings{
+		Enabled:         true,
+		MaxCPUCores:     1,
+		DurationSeconds: 30,
+		ComponentPolicies: map[string]ac.CircuitBreakerSettings{
+			"probe-a": {
+				Enabled:         true,
+				MaxCPUCores:     0.5,
+				DurationSeconds: 10,
+				SystemPressure:  &ac.SystemPressureSettings{Enabled: true, MaxCPUPercent: 90},
+			},
+		},
+	}
+	if err := validateCircuitBreaker(&policy); err == nil || !strings.Contains(err.Error(), "must not contain system pressure") {
+		t.Fatalf("component system pressure settings were accepted: %v", err)
 	}
 }
 

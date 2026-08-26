@@ -34,6 +34,21 @@
   margin-inline-end: 0;
 }
 
+.tableFilters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tableFilters :global(.ant-input-search) {
+  width: min(360px, 100%);
+}
+
+.tableFilters :global(.ant-select) {
+  width: 140px;
+}
+
 .tableCard {
   overflow: hidden;
   border-radius: 6px;
@@ -132,14 +147,57 @@
   min-height: 40px;
 }
 
-.probeTags {
+.preloadControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 8px;
+}
+
+.preloadControl :global(.ant-typography) {
+  font-size: 12px;
+}
+
+.probeStatusSummary {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.probeTags :global(.ant-tag) {
+.probeStatusSummary :global(.ant-tag) {
   margin: 0;
+}
+
+.probeStatusTooltip {
+  display: grid;
+  min-width: 260px;
+  gap: 7px;
+}
+
+.probeStatusTooltip > span {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.probeStatusTooltip > span > span:last-child {
+  color: rgb(255 255 255 / 70%);
+}
+
+.healthyDot,
+.abnormalDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.healthyDot {
+  background: var(--ant-color-success);
+}
+
+.abnormalDot {
+  background: var(--ant-color-warning);
 }
 
 .clusterRow > td {
@@ -271,6 +329,16 @@
   .headerActions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .tableFilters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tableFilters :global(.ant-input-search),
+  .tableFilters :global(.ant-select) {
+    width: 100%;
   }
 
   .logWorkspace {

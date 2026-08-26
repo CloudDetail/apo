@@ -188,6 +188,24 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.systemPressureSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block: 12px;
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.systemPressureSection .sectionHeading > div {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.systemThresholdGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .circuitScopeBar,
 .recoveryRow,
 .recoveryToggle {
@@ -299,6 +317,11 @@
 .recoveryIcon {
   color: var(--ant-color-info-text);
   background: var(--ant-color-info-bg);
+}
+
+.systemIcon {
+  color: var(--ant-color-error-text);
+  background: var(--ant-color-error-bg);
 }
 
 .configPreview {
@@ -726,6 +749,15 @@
   .batchGrid,
   .thresholdGrid {
     grid-template-columns: 1fr;
+  }
+
+  .thresholdItem {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .thresholdItem :global(.ant-input-number-group-wrapper) {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .batchTargetRow {

@@ -36,12 +36,22 @@ export function getAgentConfigTemplatesApi() {
 export function createAgentConfigTemplateApi(data: {
   name: string
   description?: string
+  clusterType: 'kubernetes' | 'vm'
+  variables?: Array<{
+    name: string
+    required?: boolean
+    defaultValue?: string
+  }>
   configs: Array<{
     probeType: string
     files: Array<{ path: string; content: string }>
   }>
 }) {
   return post('/api/agent-config/templates', data)
+}
+
+export function importAgentConfigTemplateApi(data: { yaml: string }) {
+  return post('/api/agent-config/templates/import', data)
 }
 
 export function updateAgentConfigTemplateApi(templateId: string, data: unknown) {

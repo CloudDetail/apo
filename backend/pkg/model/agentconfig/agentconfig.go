@@ -67,6 +67,7 @@ type Template struct {
 	Configs       JSON               `gorm:"type:jsonb;not null;default:'[]'" json:"configs"`
 	Name          string             `gorm:"size:255;not null" json:"name"`
 	Description   string             `gorm:"type:text" json:"description"`
+	ClusterType   string             `gorm:"size:32;not null;default:kubernetes" json:"clusterType"`
 	Version       int64              `gorm:"not null;default:1" json:"version"`
 	ContentSHA256 string             `gorm:"size:64;not null" json:"contentSha256"`
 	Variables     []TemplateVariable `gorm:"foreignKey:TemplateID;constraint:OnDelete:CASCADE" json:"variables,omitempty"`
@@ -97,6 +98,7 @@ type Node struct {
 	Name          string     `gorm:"size:255" json:"name"`
 	ClusterID     string     `gorm:"size:255;index" json:"clusterId"`
 	Environment   string     `gorm:"size:64" json:"environment"`
+	OdigletReady  *bool      `json:"odigletReady,omitempty"`
 	Labels        JSON       `gorm:"type:jsonb" json:"labels"`
 	DaemonVersion string     `gorm:"size:128" json:"daemonVersion"`
 	LastSeenAt    *time.Time `json:"lastSeenAt"`
@@ -162,7 +164,14 @@ type CircuitBreakerSettings struct {
 	AutoRecover                 bool                              `json:"autoRecover"`
 	RecoveryInitialDelaySeconds uint64                            `json:"recoveryInitialDelaySeconds"`
 	RecoveryMaxDelaySeconds     uint64                            `json:"recoveryMaxDelaySeconds"`
+	SystemPressure              *SystemPressureSettings           `json:"systemPressure,omitempty"`
 	ComponentPolicies           map[string]CircuitBreakerSettings `json:"componentPolicies,omitempty"`
+}
+
+type SystemPressureSettings struct {
+	Enabled          bool    `json:"enabled"`
+	MaxCPUPercent    float64 `json:"maxCpuPercent"`
+	MaxMemoryPercent float64 `json:"maxMemoryPercent"`
 }
 
 type AgentSettings struct {
@@ -170,6 +179,14 @@ type AgentSettings struct {
 	UseLocalDefaults       bool                    `json:"useLocalDefaults"`
 	UseLocalCircuitBreaker bool                    `json:"useLocalCircuitBreaker"`
 	CircuitBreaker         *CircuitBreakerSettings `json:"circuitBreaker,omitempty"`
+	NamespaceInjection     *NamespaceInjection     `json:"namespaceInjection,omitempty"`
+	OdigletReady           *bool                   `json:"odigletReady,omitempty"`
+}
+
+type NamespaceInjection struct {
+	InstrumentAll        bool     `json:"instrumentAll"`
+	InstrumentNS         []string `json:"instrumentNS"`
+	InstrumentDisabledNS []string `json:"instrumentDisabledNS"`
 }
 
 type GlobalCircuitConfig struct {
@@ -250,7 +267,9 @@ type Command struct {
 	UpdatedAt            time.Time  `json:"updatedAt"`
 }
 
-func NewTemplate() *Template      { return &Template{ID: uuid.New(), Version: 1} }
+func NewTemplate() *Template {
+	return &Template{ID: uuid.New(), ClusterType: "kubernetes", Version: 1}
+}
 func HashContent(s string) string { h := sha256.Sum256([]byte(s)); return hex.EncodeToString(h[:]) }
 func HashInitialConfigFiles(files []InitialConfigFile) string {
 	ordered := append([]InitialConfigFile(nil), files...)
