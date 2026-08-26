@@ -2,16 +2,21 @@
  * Copyright 2024 CloudDetail
  * SPDX-License-Identifier: Apache-2.0
  */
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 import autoprefixer from 'autoprefixer'
 import tailwindcss from 'tailwindcss'
 import strip from '@rollup/plugin-strip'
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
   const isPro = process.env.VITE_APP_VERSION === 'pro'
   const devServerPort = Number(process.env.VITE_DEV_SERVER_PORT || process.env.PORT || 3000)
   const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://localhost:18080'
+  const apoBackendTarget =
+    env.VITE_APO_DEV_BACKEND_TARGET || devProxyTarget
+  const hermesBackendTarget =
+    env.VITE_HERMES_DEV_BACKEND_TARGET || 'http://127.0.0.1:8100'
   return {
     base: './',
     build: {
@@ -81,8 +86,20 @@ export default defineConfig(() => {
       port: devServerPort,
       proxy: {
         '/api': {
-          target: devProxyTarget,
+          target: apoBackendTarget,
           changeOrigin: true,
+          ws: true,
+        },
+        '/hermes-api': {
+          target: hermesBackendTarget,
+          changeOrigin: true,
+          rewrite: (pathValue) => pathValue.replace(/^\/hermes-api/, '/api'),
+        },
+        '/hermes-ws': {
+          target: hermesBackendTarget,
+          changeOrigin: true,
+          ws: true,
+          rewrite: (pathValue) => pathValue.replace(/^\/hermes-ws/, '/ws/hermes'),
         },
       },
     },

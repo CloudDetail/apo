@@ -23,6 +23,15 @@ const AgentDataplanePage = AuthRouter(
   React.lazy(() => import('src/pro/views/agentDataplane/index')),
 )
 const AgentPage = AuthRouter(React.lazy(() => import('src/pro/views/agent/index')))
+const CapabilityListPage = React.lazy(
+  () => import('src/pro/features/hermes/capabilities/pages/CapabilityListPage'),
+)
+const CapabilityDetailPage = React.lazy(
+  () => import('src/pro/features/hermes/capabilities/pages/CapabilityDetailPage'),
+)
+const CapabilityVersionPage = React.lazy(
+  () => import('src/pro/features/hermes/capabilities/pages/CapabilityVersionPage'),
+)
 const KnowledgeBasesPage = AuthRouter(
   React.lazy(() => import('src/pro/views/knowledgeBases/index')),
 )
@@ -131,6 +140,24 @@ let proRoutes = [
     element: AgentPage,
     hideSystemTimeRangePicker: true,
 
+  },
+  {
+    path: '/agent/capabilities',
+    name: '运维任务库',
+    element: CapabilityListPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/agent/capabilities/:id/versions/:version',
+    name: '运维任务版本',
+    element: CapabilityVersionPage,
+    hideSystemTimeRangePicker: true,
+  },
+  {
+    path: '/agent/capabilities/:id',
+    name: '运维任务详情',
+    element: CapabilityDetailPage,
+    hideSystemTimeRangePicker: true,
   },
   {
     path: '/knowledge-bases',

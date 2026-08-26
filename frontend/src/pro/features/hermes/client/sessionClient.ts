@@ -1,0 +1,209 @@
+import { historyFromGateway } from './history.ts'
+import { JsonRpcClient, JsonRpcError, type JsonRpcNotification } from './jsonRpcClient.ts'
+import type { HermesEvent, HermesHistorySnapshot, HermesSession } from './types.ts'
+import { normalizeHermesEventPayload } from './eventPayload.ts'
+
+const CREATE_TIMEOUT = 5_000
+const ACTIVATE_TIMEOUT = 5_000
+const RESUME_TIMEOUT = 8_000
+const SESSION_ACTION_TIMEOUT = 5_000
+const SUBMIT_TIMEOUT = 10_000
+const WORKFLOW_SELECTION_PATTERN = /\n*<hermes_qa_workflow_selection>[\s\S]*?<\/hermes_qa_workflow_selection>\s*/gi
+const LEGACY_PLAYBOOK_SELECTION_PATTERN = /\n*<hermes_qa_playbook_selection>[\s\S]*?<\/hermes_qa_playbook_selection>\s*/gi
+
+export class HermesSessionClient {
+  private readonly rpc: JsonRpcClient
+
+  constructor(rpc: JsonRpcClient) {
+    this.rpc = rpc
+  }
+
+  async create(): Promise<HermesSession> {
+    const result = await this.rpc.request<unknown>(
+      'session.create',
+      {
+        source: 'apo-front',
+      },
+      { timeoutMs: CREATE_TIMEOUT },
+    )
+    return normalizeSession(result)
+  }
+
+  async resume(storedSessionId: string): Promise<HermesSession> {
+    const result = await this.rpc.request<unknown>(
+      'session.resume',
+      {
+        session_id: storedSessionId,
+      },
+      { timeoutMs: RESUME_TIMEOUT },
+    )
+    const resumed = normalizeSession(result, storedSessionId)
+    await this.rpc.request(
+      'session.activate',
+      { session_id: resumed.liveSessionId },
+      { timeoutMs: ACTIVATE_TIMEOUT },
+    )
+    return resumed
+  }
+
+  async restore(storedSessionId: string, liveSessionId: string | null): Promise<HermesSession> {
+    if (liveSessionId) {
+      try {
+        const result = await this.rpc.request<unknown>(
+          'session.activate',
+          {
+            session_id: liveSessionId,
+          },
+          { timeoutMs: ACTIVATE_TIMEOUT },
+        )
+        return normalizeSession(result, storedSessionId)
+      } catch (reason) {
+        if (!isMissingSession(reason)) throw reason
+      }
+    }
+    return this.resume(storedSessionId)
+  }
+
+  async historySnapshot(liveSessionId: string): Promise<HermesHistorySnapshot> {
+    const result = await this.rpc.request<unknown>(
+      'session.history',
+      {
+        session_id: liveSessionId,
+      },
+      { timeoutMs: SESSION_ACTION_TIMEOUT },
+    )
+    return historyFromGateway(result)
+  }
+
+  createRunId(): string {
+    return typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `run-${Date.now()}`
+  }
+
+  async submit(
+    liveSessionId: string,
+    text: string,
+    clientRunId = this.createRunId(),
+    workflowId?: string,
+  ) {
+    const result = await this.rpc.request<unknown>(
+      'prompt.submit',
+      {
+        session_id: liveSessionId,
+        text: promptWithWorkflowSelection(text, workflowId),
+        client_run_id: clientRunId,
+      },
+      { timeoutMs: SUBMIT_TIMEOUT },
+    )
+    const status = isObject(result) ? String(result.status || '').trim() : ''
+    if (status !== 'queued' && status !== 'streaming') {
+      throw new Error('Hermes 未接受当前任务，请重新发送。')
+    }
+    return result
+  }
+
+  steer(liveSessionId: string, text: string) {
+    return this.rpc.request(
+      'session.steer',
+      {
+        session_id: liveSessionId,
+        text,
+      },
+      { timeoutMs: SESSION_ACTION_TIMEOUT },
+    )
+  }
+
+  async interrupt(liveSessionId: string) {
+    const result = await this.rpc.request<unknown>(
+      'session.interrupt',
+      { session_id: liveSessionId },
+      { timeoutMs: SESSION_ACTION_TIMEOUT },
+    )
+    if (!isObject(result) || String(result.status || '').trim() !== 'interrupted') {
+      throw new Error('Hermes 没有确认当前任务已停止，请重试。')
+    }
+    return result
+  }
+
+  respondApproval(liveSessionId: string, requestId: string, choice: string) {
+    return this.rpc.request(
+      'approval.respond',
+      {
+        session_id: liveSessionId,
+        request_id: requestId,
+        choice,
+      },
+      { timeoutMs: SESSION_ACTION_TIMEOUT },
+    )
+  }
+
+  respondClarification(requestId: string, answer: string) {
+    return this.rpc.request(
+      'clarify.respond',
+      {
+        request_id: requestId,
+        answer,
+      },
+      { timeoutMs: SESSION_ACTION_TIMEOUT },
+    )
+  }
+
+  subscribe(listener: (event: HermesEvent) => void): () => void {
+    return this.rpc.subscribe((notification) => {
+      const event = normalizeEvent(notification)
+      if (event) listener(event)
+    })
+  }
+}
+
+export function promptWithWorkflowSelection(text: string, workflowId?: string): string {
+  const visibleText = text
+    .replace(WORKFLOW_SELECTION_PATTERN, '')
+    .replace(LEGACY_PLAYBOOK_SELECTION_PATTERN, '')
+    .trim()
+  const selectedId = String(workflowId || '').trim().slice(0, 64)
+  if (!selectedId) return visibleText
+  const selection = JSON.stringify({ workflowId: selectedId })
+  return `${visibleText}\n\n<hermes_qa_workflow_selection>${selection}</hermes_qa_workflow_selection>`
+}
+
+export function normalizeEvent(notification: JsonRpcNotification): HermesEvent | null {
+  if (notification.method !== 'event' || !isObject(notification.params)) return null
+  return {
+    type: String(notification.params.type || 'unknown'),
+    sessionId: String(notification.params.session_id || '').trim() || null,
+    payload: normalizeHermesEventPayload(notification.params.payload),
+  }
+}
+
+export function normalizeSession(value: unknown, fallbackStoredId?: string): HermesSession {
+  if (!isObject(value)) throw new Error('Hermes 没有成功创建会话，请重试。')
+  const liveSessionId = String(value.session_id || '').trim()
+  const storedSessionId = String(
+    value.stored_session_id ||
+      value.session_key ||
+      value.resumed ||
+      fallbackStoredId ||
+      liveSessionId,
+  ).trim()
+  if (!liveSessionId || !storedSessionId) {
+    throw new Error('Hermes 返回的会话信息不完整，请重试。')
+  }
+  const info = isObject(value.info) ? value.info : null
+  return {
+    liveSessionId,
+    storedSessionId,
+    ...(info && String(info.title || '').trim() ? { title: String(info.title).trim() } : {}),
+    ...(typeof value.running === 'boolean' ? { running: value.running } : {}),
+    ...(String(value.status || '').trim() ? { status: String(value.status).trim() } : {}),
+  }
+}
+
+function isMissingSession(reason: unknown): boolean {
+  if (!(reason instanceof JsonRpcError)) return false
+  const code = Number(reason.payload.code)
+  return code === 4001 || code === 4007
+}
+
+function isObject(value: unknown): value is Record<string, any> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}

@@ -13,6 +13,7 @@
     "baseUrl": ".",
 
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "paths": {
       "src/*": ["src/*"],
       "components/*": ["src/core/components/*"],

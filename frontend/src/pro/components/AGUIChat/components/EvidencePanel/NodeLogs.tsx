@@ -3,12 +3,20 @@ import { theme, Drawer, Button, Input } from 'antd'
 import { SnippetsOutlined, ExpandOutlined, SearchOutlined, CopyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import type { FindingsLogItem } from '../../../../api/conversation'
+
+export interface NodeLogItem {
+  timestamp: number | string
+  message: string
+  level?: string
+  service?: string
+  instance?: string
+  traceId?: string
+}
 
 const { useToken } = theme
 
 interface NodeLogsProps {
-  logs: FindingsLogItem[]
+  logs: NodeLogItem[]
 }
 
 const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
@@ -51,8 +59,8 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
   }, [logs, levelFilter, searchText])
 
   // 复制日志内容 (仅用于 Drawer)
-  const copyLogContent = (log: FindingsLogItem) => {
-    const timestamp = dayjs(Number(log.timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss.SSS')
+  const copyLogContent = (log: NodeLogItem) => {
+    const timestamp = formatLogTimestamp(log)
     const content = `[${timestamp}] ${log.message}`
     navigator.clipboard.writeText(content)
   }
@@ -61,7 +69,7 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
   const copyAllLogs = () => {
     const content = filteredLogs
       .map((log) => {
-        const timestamp = dayjs(Number(log.timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss.SSS')
+        const timestamp = formatLogTimestamp(log)
         return `[${timestamp}] ${log.message}`
       })
       .join('\n')
@@ -116,7 +124,7 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
             >
               <div className="flex-1 min-w-0">
                 <div className="text-xs mb-1" style={{ color: token.colorTextSecondary }}>
-                  {dayjs(Number(log.timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss')}
+                  {formatLogTimestamp(log, false)}
                 </div>
                 <div
                   className="text-xs cursor-pointer"
@@ -195,7 +203,7 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
           }}
         >
           {filteredLogs?.map((log, index) => {
-            const timestamp = dayjs(Number(log.timestamp) / 1000).format('YYYY-MM-DD HH:mm:ss.SSS')
+            const timestamp = formatLogTimestamp(log)
 
             return (
               <div
@@ -286,3 +294,37 @@ const NodeLogs: React.FC<NodeLogsProps> = ({ logs }) => {
 }
 
 export default NodeLogs
+
+function formatLogTimestamp(log: NodeLogItem, milliseconds = true): string {
+  const parsed = parseLogTimestamp(log.timestamp) || timestampFromMessage(log.message)
+  if (!parsed) return '时间未知'
+  return parsed.format(milliseconds ? 'YYYY-MM-DD HH:mm:ss.SSS' : 'YYYY-MM-DD HH:mm:ss')
+}
+
+function parseLogTimestamp(value: number | string) {
+  const text = String(value ?? '').trim()
+  if (!text) return null
+  if (/^-?\d+(?:\.\d+)?$/.test(text)) {
+    const numeric = Number(text)
+    if (!Number.isFinite(numeric)) return null
+    const absolute = Math.abs(numeric)
+    const milliseconds = absolute >= 10_000_000_000_000
+      ? numeric / 1000
+      : absolute < 10_000_000_000
+        ? numeric * 1000
+        : numeric
+    const parsed = dayjs(milliseconds)
+    return parsed.isValid() ? parsed : null
+  }
+  const parsed = dayjs(normalizeDateText(text))
+  return parsed.isValid() ? parsed : null
+}
+
+function timestampFromMessage(message: string) {
+  const match = message.match(/^(\d{4}[.-]\d{2}[.-]\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?)/)
+  return match ? parseLogTimestamp(match[1]) : null
+}
+
+function normalizeDateText(value: string) {
+  return value.replace(/^(\d{4})\.(\d{2})\.(\d{2})/, '$1-$2-$3')
+}
