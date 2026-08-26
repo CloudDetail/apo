@@ -14,8 +14,21 @@ import {
   Typography,
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { ExternalLink, Eye, Save, ScanSearch, Trash2 } from 'lucide-react'
+import {
+  ExternalLink,
+  Eye,
+  FileText,
+  GitBranch,
+  Save,
+  ScanSearch,
+  Send,
+  Trash2,
+  X,
+} from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import {
   createAgentCommandApi,
   getAgentCommandsApi,
@@ -54,17 +67,22 @@ type HostFileSource = {
   filePattern: string
 }
 
+type FilterMapEntry = {
+  id: string
+  key: string
+  value: string
+}
+
 type ContainerStdoutSource = {
   id: string
   name: string
   enabled: boolean
   namespaceRegex: string
-  excludeNamespaces: string[]
   podRegex: string
   containerRegex: string
   collectStdout: boolean
   collectStderr: boolean
-  maxBytesPerMinute: number
+  maxEventsPerSecond: number
   ignoreParseWarning: boolean
   keepingSourceWhenParseFail: boolean
   tailSizeKB: number
@@ -76,7 +94,7 @@ type ContainerStdoutSource = {
   multilineEndPattern: string
   unmatchedContentTreatment: 'single_line' | 'discard'
   includeK8sLabel: string
-  excludeK8sLabel: string
+  excludeK8sLabel: FilterMapEntry[]
   includeEnv: string
   excludeEnv: string
   includeContainerLabel: string
@@ -87,13 +105,18 @@ type ContainerStdoutSource = {
   activeFilters: ContainerFilterField[]
 }
 
-type PreviewFile = { path: string; content: string }
+type PreviewFile = {
+  path: string
+  content: string
+  inputCount?: number
+  processorCount?: number
+  flusherCount?: number
+}
 
 type JavaLogScanDirectory = { path: string; fileCount?: number }
 
 type ContainerFilterField =
   | 'namespaceRegex'
-  | 'excludeNamespaces'
   | 'podRegex'
   | 'containerRegex'
   | 'includeK8sLabel'
@@ -112,16 +135,10 @@ type ContainerFilterDefinition = {
   k8sOnly?: boolean
   multiline?: boolean
   tags?: boolean
+  map?: boolean
 }
 
 const containerFilterDefinitions: ContainerFilterDefinition[] = [
-  {
-    field: 'excludeNamespaces',
-    label: '排除 Namespace',
-    placeholder: '输入 Namespace 后回车',
-    k8sOnly: true,
-    tags: true,
-  },
   {
     field: 'namespaceRegex',
     label: 'Namespace 正则',
@@ -145,9 +162,9 @@ const containerFilterDefinitions: ContainerFilterDefinition[] = [
   {
     field: 'excludeK8sLabel',
     label: '排除 Pod 标签',
-    placeholder: '每行填写 key=value',
+    placeholder: '配置要排除的 Pod 标签',
     k8sOnly: true,
-    multiline: true,
+    map: true,
   },
   {
     field: 'includeEnv',
@@ -184,6 +201,62 @@ const tagMappingFields: [ContainerTextField, string][] = [
 const createSourceId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `source-${Date.now()}`
 
+const newFilterMapEntry = (key = '', value = ''): FilterMapEntry => ({
+  id: createSourceId(),
+  key,
+  value,
+})
+
+const normalizeFilterMapEntries = (value: unknown): FilterMapEntry[] => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => {
+      if (typeof entry === 'string') {
+        const [key, ...rest] = entry.split('=')
+        return newFilterMapEntry(key.trim(), rest.join('=').trim())
+      }
+      const item = entry as Partial<FilterMapEntry>
+      return {
+        id: item.id || createSourceId(),
+        key: String(item.key || ''),
+        value: String(item.value || ''),
+      }
+    })
+  }
+  if (typeof value === 'string') {
+    return value
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [key, ...rest] = line.split('=')
+        return newFilterMapEntry(key.trim(), rest.join('=').trim())
+      })
+  }
+  if (value && typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>).map(([key, entryValue]) =>
+      newFilterMapEntry(key, String(entryValue ?? '')),
+    )
+  }
+  return []
+}
+
+const filterMapPayload = (entries: FilterMapEntry[]) =>
+  Object.fromEntries(entries.map(({ key, value }) => [key.trim(), value.trim()]))
+
+const filterHasValue = (value: unknown) => {
+  if (Array.isArray(value)) return value.length > 0
+  return typeof value === 'string' && value.trim().length > 0
+}
+
+const formatFilterValue = (value: string | string[] | FilterMapEntry[]) => {
+  if (!Array.isArray(value)) return value
+  if (!value.length) return ''
+  if (typeof value[0] === 'string') return (value as string[]).join('、')
+  return (value as FilterMapEntry[])
+    .map(({ key, value: entryValue }) => `${key}${entryValue ? `=${entryValue}` : ''}`)
+    .join('、')
+}
+
 const newHostFile = (path = '/var/log', filePattern = '*.log'): HostFileSource => {
   const id = createSourceId()
   return {
@@ -203,12 +276,11 @@ const newContainerStdout = (): ContainerStdoutSource => {
     name: `container-stdout-${id}`,
     enabled: true,
     namespaceRegex: '',
-    excludeNamespaces: [],
     podRegex: '',
     containerRegex: '',
     collectStdout: true,
     collectStderr: true,
-    maxBytesPerMinute: 0,
+    maxEventsPerSecond: 0,
     ignoreParseWarning: false,
     keepingSourceWhenParseFail: true,
     tailSizeKB: 1024,
@@ -220,7 +292,7 @@ const newContainerStdout = (): ContainerStdoutSource => {
     multilineEndPattern: '',
     unmatchedContentTreatment: 'single_line',
     includeK8sLabel: '',
-    excludeK8sLabel: '',
+    excludeK8sLabel: [],
     includeEnv: '',
     excludeEnv: '',
     includeContainerLabel: '',
@@ -244,6 +316,7 @@ const normalizeContainerSources = (sources: Partial<ContainerStdoutSource>[]) =>
       ...newContainerStdout(),
       ...source,
       name: source.name?.trim() || `container-stdout-${source.id || index + 1}`,
+      excludeK8sLabel: normalizeFilterMapEntries(source.excludeK8sLabel),
     }
     return {
       ...normalized,
@@ -252,14 +325,18 @@ const normalizeContainerSources = (sources: Partial<ContainerStdoutSource>[]) =>
         containerFilterDefinitions
           .map(({ field }) => field)
           .filter((field) => {
-            const value = normalized[field]
-            return Array.isArray(value) ? value.length > 0 : value.trim().length > 0
+            return filterHasValue(normalized[field])
           }),
     }
   })
 
 const containerPayload = (sources: ContainerStdoutSource[]) =>
-  normalizeContainerSources(sources).map(({ activeFilters: _activeFilters, ...source }) => source)
+  normalizeContainerSources(sources).map(
+    ({ activeFilters: _activeFilters, excludeK8sLabel, ...source }) => ({
+      ...source,
+      excludeK8sLabel: filterMapPayload(excludeK8sLabel),
+    }),
+  )
 
 const containerSourcesForEnvironment = (
   sources: Partial<ContainerStdoutSource>[],
@@ -270,11 +347,10 @@ const containerSourcesForEnvironment = (
     return {
       ...source,
       namespaceRegex: '',
-      excludeNamespaces: [],
       podRegex: '',
       containerRegex: '',
       includeK8sLabel: '',
-      excludeK8sLabel: '',
+      excludeK8sLabel: [],
       activeFilters: source.activeFilters.filter(
         (field) =>
           !containerFilterDefinitions.find((definition) => definition.field === field)?.k8sOnly,
@@ -295,6 +371,7 @@ export function LogCollectionConfigPanel({
   enableJavaLogScan = false,
   javaLogScanProbeType = '',
 }: LogCollectionConfigPanelProps) {
+  const theme = useSelector((state: any) => state.settingReducer.theme)
   const selectedNode = nodeId
   const selectedCluster = clusterIds[0] || ''
   const [hostFiles, setHostFiles] = useState<HostFileSource[]>([])
@@ -317,6 +394,10 @@ export function LogCollectionConfigPanel({
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([])
   const [selectedPreviewPath, setSelectedPreviewPath] = useState('')
   const [scanningJavaLogs, setScanningJavaLogs] = useState(false)
+  const [processingRule, setProcessingRule] = useState('')
+  const [outputRule, setOutputRule] = useState('')
+  const [processorCount, setProcessorCount] = useState(0)
+  const [outputCount, setOutputCount] = useState(0)
 
   const selectedPreviewFile = previewFiles.find((file) => file.path === selectedPreviewPath)
   const hostChanged = JSON.stringify(hostFiles) !== originalHostFiles
@@ -336,6 +417,10 @@ export function LogCollectionConfigPanel({
     if (!selectedNode) {
       setHostFiles([])
       setOriginalHostFiles('[]')
+      setProcessingRule('')
+      setOutputRule('')
+      setProcessorCount(0)
+      setOutputCount(0)
       setLoading(false)
       return
     }
@@ -347,10 +432,18 @@ export function LogCollectionConfigPanel({
       setHostFiles(values)
       setOriginalHostFiles(JSON.stringify(values))
       setHostVersion(Number(result?.version || 0))
+      setProcessingRule(String(result?.processingRule || ''))
+      setOutputRule(String(result?.outputRule || ''))
+      setProcessorCount(Number(result?.processorCount || 0))
+      setOutputCount(Number(result?.outputCount || 0))
     } catch (error: any) {
       console.error('[LogCollectionConfigPage] failed to load host file collection', error)
       setHostFiles([])
       setOriginalHostFiles('[]')
+      setProcessingRule('')
+      setOutputRule('')
+      setProcessorCount(0)
+      setOutputCount(0)
       setLoadFailed(true)
       notify({ type: 'error', message: error.message || '加载宿主机文件采集配置失败' })
     } finally {
@@ -362,6 +455,10 @@ export function LogCollectionConfigPanel({
     if (!selectedCluster) {
       setContainerStdout([])
       setOriginalContainerStdout('[]')
+      setProcessingRule('')
+      setOutputRule('')
+      setProcessorCount(0)
+      setOutputCount(0)
       setLoading(false)
       return
     }
@@ -376,10 +473,18 @@ export function LogCollectionConfigPanel({
       setContainerStdout(values)
       setOriginalContainerStdout(JSON.stringify(values))
       setContainerVersion(Number(result?.version || 0))
+      setProcessingRule(String(result?.processingRule || ''))
+      setOutputRule(String(result?.outputRule || ''))
+      setProcessorCount(Number(result?.processorCount || 0))
+      setOutputCount(Number(result?.outputCount || 0))
     } catch (error: any) {
       console.error('[LogCollectionConfigPage] failed to load container stdout collection', error)
       setContainerStdout([])
       setOriginalContainerStdout('[]')
+      setProcessingRule('')
+      setOutputRule('')
+      setProcessorCount(0)
+      setOutputCount(0)
       setLoadFailed(true)
       notify({ type: 'error', message: error.message || '加载容器标准输出采集配置失败' })
     } finally {
@@ -440,16 +545,40 @@ export function LogCollectionConfigPanel({
   const updateContainerFilter = (
     index: number,
     field: ContainerFilterField,
-    value: string | string[],
+    value: string | string[] | FilterMapEntry[],
   ) => {
     updateContainerStdout(index, { [field]: value } as Partial<ContainerStdoutSource>)
+  }
+
+  const updateFilterMapEntry = (
+    sourceIndex: number,
+    entryId: string,
+    patch: Partial<FilterMapEntry>,
+  ) => {
+    const source = containerStdout[sourceIndex]
+    updateContainerFilter(
+      sourceIndex,
+      'excludeK8sLabel',
+      source.excludeK8sLabel.map((entry) =>
+        entry.id === entryId ? { ...entry, ...patch } : entry,
+      ),
+    )
   }
 
   const validateContainerFilters = () => {
     const incomplete = containerStdout.some((source) =>
       source.activeFilters.some((field) => {
         const value = source[field]
-        return Array.isArray(value) ? value.length === 0 : !value.trim()
+        if (field === 'excludeK8sLabel') {
+          const entries = value as FilterMapEntry[]
+          const keys = entries.map(({ key }) => key.trim()).filter(Boolean)
+          return (
+            entries.length === 0 ||
+            keys.length !== entries.length ||
+            new Set(keys).size !== keys.length
+          )
+        }
+        return !filterHasValue(value)
       }),
     )
     if (!incomplete) return true
@@ -470,6 +599,10 @@ export function LogCollectionConfigPanel({
         setHostFiles(values)
         setOriginalHostFiles(JSON.stringify(values))
         setHostVersion(Number(result?.version || hostVersion + 1))
+        setProcessingRule(String(result?.processingRule || processingRule))
+        setOutputRule(String(result?.outputRule || outputRule))
+        setProcessorCount(Number(result?.processorCount || processorCount))
+        setOutputCount(Number(result?.outputCount || outputCount))
         notify({ type: 'success', message: '节点追加的宿主机文件采集规则已保存' })
       } else {
         const payload = { containerStdout: containerPayload(containerStdout) }
@@ -484,6 +617,10 @@ export function LogCollectionConfigPanel({
         setContainerStdout(values)
         setOriginalContainerStdout(JSON.stringify(values))
         setContainerVersion(Number(result?.version || containerVersion + 1))
+        setProcessingRule(String(result?.processingRule || processingRule))
+        setOutputRule(String(result?.outputRule || outputRule))
+        setProcessorCount(Number(result?.processorCount || processorCount))
+        setOutputCount(Number(result?.outputCount || outputCount))
         notify({
           type: 'success',
           message: `容器标准输出采集配置已保存到 ${clusterIds.length} 个集群`,
@@ -724,7 +861,7 @@ export function LogCollectionConfigPanel({
           </div>
 
           <div className={styles.rulesHeader}>
-            <Typography.Text strong>{mode === 'host' ? '生效规则' : '容器规则'}</Typography.Text>
+            <Typography.Text strong>采集规则</Typography.Text>
             <Typography.Text type="secondary">{visibleRuleCount} 项</Typography.Text>
           </div>
 
@@ -750,11 +887,7 @@ export function LogCollectionConfigPanel({
                                 )?.label
                               }
                             </small>
-                            <code>
-                              {Array.isArray(source[field])
-                                ? source[field].join('、')
-                                : source[field]}
-                            </code>
+                            <code>{formatFilterValue(source[field])}</code>
                           </span>
                         ))}
                       </div>
@@ -853,11 +986,15 @@ export function LogCollectionConfigPanel({
                         value={undefined}
                         placeholder="添加过滤器"
                         disabled={source.activeFilters.length >= availableFilterDefinitions.length}
-                        onChange={(field: ContainerFilterField) =>
+                        onChange={(field: ContainerFilterField) => {
+                          const definition = containerFilterDefinitions.find(
+                            (item) => item.field === field,
+                          )
                           updateContainerStdout(index, {
+                            ...(definition?.map ? { [field]: [newFilterMapEntry()] } : {}),
                             activeFilters: [...source.activeFilters, field],
                           })
-                        }
+                        }}
                         options={availableFilterDefinitions
                           .filter(({ field }) => !source.activeFilters.includes(field))
                           .map(({ field, label }) => ({ value: field, label }))}
@@ -881,6 +1018,60 @@ export function LogCollectionConfigPanel({
                                   tokenSeparators={[',', ' ']}
                                   onChange={(value) => updateContainerFilter(index, field, value)}
                                 />
+                              ) : definition.map ? (
+                                <div className={styles.mapFilterEditor}>
+                                  {(source[field] as FilterMapEntry[]).map((entry) => (
+                                    <div className={styles.mapFilterRow} key={entry.id}>
+                                      <Input
+                                        aria-label={`${definition.label}键`}
+                                        value={entry.key}
+                                        placeholder="标签键，例如 app.kubernetes.io/instance"
+                                        onChange={(event) =>
+                                          updateFilterMapEntry(index, entry.id, {
+                                            key: event.target.value,
+                                          })
+                                        }
+                                      />
+                                      <Input
+                                        aria-label={`${definition.label}值`}
+                                        value={entry.value}
+                                        placeholder="标签值或正则；留空表示仅匹配标签键"
+                                        onChange={(event) =>
+                                          updateFilterMapEntry(index, entry.id, {
+                                            value: event.target.value,
+                                          })
+                                        }
+                                      />
+                                      <Tooltip title="删除标签条件">
+                                        <Button
+                                          aria-label="删除标签条件"
+                                          icon={<Trash2 size={14} />}
+                                          onClick={() =>
+                                            updateContainerFilter(
+                                              index,
+                                              field,
+                                              source.excludeK8sLabel.filter(
+                                                (item) => item.id !== entry.id,
+                                              ),
+                                            )
+                                          }
+                                        />
+                                      </Tooltip>
+                                    </div>
+                                  ))}
+                                  <Button
+                                    type="text"
+                                    icon={<PlusOutlined />}
+                                    onClick={() =>
+                                      updateContainerFilter(index, field, [
+                                        ...source.excludeK8sLabel,
+                                        newFilterMapEntry(),
+                                      ])
+                                    }
+                                  >
+                                    添加标签条件
+                                  </Button>
+                                </div>
                               ) : definition.multiline ? (
                                 <Input.TextArea
                                   autoSize={{ minRows: 1, maxRows: 3 }}
@@ -902,10 +1093,10 @@ export function LogCollectionConfigPanel({
                               <Tooltip title="移除过滤器">
                                 <Button
                                   aria-label={`移除${definition.label}`}
-                                  icon={<Trash2 size={14} />}
+                                  icon={<X size={14} />}
                                   onClick={() => {
                                     updateContainerStdout(index, {
-                                      [field]: definition.tags ? [] : '',
+                                      [field]: definition.tags || definition.map ? [] : '',
                                       activeFilters: source.activeFilters.filter(
                                         (activeField) => activeField !== field,
                                       ),
@@ -962,15 +1153,16 @@ export function LogCollectionConfigPanel({
                                   </Space>
                                 </div>
                                 <label className={styles.field}>
-                                  <span>最大日志采集量（Bytes/分钟）</span>
+                                  <span>最大事件数（条/秒）</span>
                                   <InputNumber
                                     min={0}
-                                    max={1099511627776}
+                                    max={1000000000}
+                                    precision={0}
                                     placeholder="0 表示不限制"
-                                    value={source.maxBytesPerMinute}
+                                    value={source.maxEventsPerSecond}
                                     onChange={(value) =>
                                       updateContainerStdout(index, {
-                                        maxBytesPerMinute: Number(value || 0),
+                                        maxEventsPerSecond: Number(value || 0),
                                       })
                                     }
                                   />
@@ -1167,6 +1359,67 @@ export function LogCollectionConfigPanel({
             )}
           </div>
 
+          <Collapse
+            className={styles.pipelineRules}
+            expandIconPosition="end"
+            items={[
+              {
+                key: 'processing',
+                label: (
+                  <span className={styles.pipelineRuleTitle}>
+                    <span>处理规则</span>
+                    <Typography.Text type="secondary">{processorCount} 个处理器</Typography.Text>
+                  </span>
+                ),
+                children: processingRule ? (
+                  <SyntaxHighlighter
+                    language="yaml"
+                    style={theme === 'dark' ? oneDark : oneLight}
+                    wrapLongLines
+                    customStyle={{
+                      margin: 0,
+                      padding: 14,
+                      background: 'var(--ant-color-fill-quaternary)',
+                      fontSize: 12,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {processingRule}
+                  </SyntaxHighlighter>
+                ) : (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="探针尚未上报处理规则" />
+                ),
+              },
+              {
+                key: 'output',
+                label: (
+                  <span className={styles.pipelineRuleTitle}>
+                    <span>输出规则</span>
+                    <Typography.Text type="secondary">{outputCount} 个输出</Typography.Text>
+                  </span>
+                ),
+                children: outputRule ? (
+                  <SyntaxHighlighter
+                    language="yaml"
+                    style={theme === 'dark' ? oneDark : oneLight}
+                    wrapLongLines
+                    customStyle={{
+                      margin: 0,
+                      padding: 14,
+                      background: 'var(--ant-color-fill-quaternary)',
+                      fontSize: 12,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {outputRule}
+                  </SyntaxHighlighter>
+                ) : (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="探针尚未上报输出规则" />
+                ),
+              },
+            ]}
+          />
+
           <div className={styles.footer}>
             <Typography.Text type="secondary">
               {mode === 'host'
@@ -1199,7 +1452,7 @@ export function LogCollectionConfigPanel({
 
       <Modal
         open={previewOpen}
-        width={920}
+        width={1060}
         title={`最终配置预览 · ${currentScope}`}
         footer={<Button onClick={() => setPreviewOpen(false)}>关闭</Button>}
         onCancel={() => setPreviewOpen(false)}
@@ -1207,18 +1460,72 @@ export function LogCollectionConfigPanel({
         {previewFiles.length ? (
           <div className={styles.previewWorkspace}>
             <div className={styles.previewFiles}>
-              {previewFiles.map((file) => (
-                <button
-                  type="button"
-                  key={file.path}
-                  className={file.path === selectedPreviewPath ? styles.previewFileActive : ''}
-                  onClick={() => setSelectedPreviewPath(file.path)}
-                >
-                  {file.path}
-                </button>
-              ))}
+              <div className={styles.previewFilesHeader}>
+                <span>配置文件</span>
+                <Typography.Text type="secondary">{previewFiles.length} 个</Typography.Text>
+              </div>
+              {previewFiles.map((file) => {
+                const hasPipelineStats =
+                  file.inputCount !== undefined ||
+                  file.processorCount !== undefined ||
+                  file.flusherCount !== undefined
+                return (
+                  <button
+                    type="button"
+                    key={file.path}
+                    className={file.path === selectedPreviewPath ? styles.previewFileActive : ''}
+                    onClick={() => setSelectedPreviewPath(file.path)}
+                  >
+                    <span className={styles.previewFileTitle}>
+                      <FileText size={15} />
+                      {file.path.split('/').pop()}
+                    </span>
+                    <span className={styles.previewFilePath}>
+                      {file.path.includes('/')
+                        ? file.path.slice(0, file.path.lastIndexOf('/'))
+                        : '配置根目录'}
+                    </span>
+                    {hasPipelineStats && (
+                      <span className={styles.previewFileStats}>
+                        <span>
+                          <FileText size={12} /> 输入 {file.inputCount ?? 0}
+                        </span>
+                        <span>
+                          <GitBranch size={12} /> 处理器 {file.processorCount ?? 0}
+                        </span>
+                        <span>
+                          <Send size={12} /> 输出 {file.flusherCount ?? 0}
+                        </span>
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
-            <pre>{selectedPreviewFile?.content || ''}</pre>
+            <div className={styles.previewCodePane}>
+              <div className={styles.previewCodeHeader}>
+                <span>{selectedPreviewFile?.path.split('/').pop()}</span>
+                <Typography.Text type="secondary">YAML · 最终下发内容</Typography.Text>
+              </div>
+              <SyntaxHighlighter
+                language="yaml"
+                style={theme === 'dark' ? oneDark : oneLight}
+                showLineNumbers
+                wrapLongLines
+                customStyle={{
+                  height: '100%',
+                  margin: 0,
+                  overflow: 'auto',
+                  padding: '16px 18px',
+                  background: 'transparent',
+                  fontSize: 12,
+                  lineHeight: 1.65,
+                }}
+                lineNumberStyle={{ minWidth: '2.5em', color: 'var(--ant-color-text-quaternary)' }}
+              >
+                {selectedPreviewFile?.content || ''}
+              </SyntaxHighlighter>
+            </div>
           </div>
         ) : (
           <Empty

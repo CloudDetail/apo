@@ -112,15 +112,15 @@ func TestSettingsIncludeClusterNamespaceInjection(t *testing.T) {
 	}
 }
 
-func TestDirectInstallWithoutClusterIntegrationUsesLocalNamespaceConfig(t *testing.T) {
+func TestDirectInstallWithoutClusterIntegrationGetsExplicitEmptyRemotePolicy(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
 	settings, err := New(repo).SettingsForProbeAndCluster(nil, "node-1", "ilogtail", "cluster-a")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if settings.NamespaceInjection != nil || settings.OdigletReady != nil || settings.CircuitBreaker == nil || !settings.UseLocalDefaults {
-		t.Fatalf("unexpected settings fallback: %+v", settings)
+	if settings.NamespaceInjection == nil || settings.NamespaceInjection.InstrumentAll || len(settings.NamespaceInjection.InstrumentNS) != 0 || settings.OdigletReady != nil || settings.CircuitBreaker == nil || !settings.UseLocalDefaults {
+		t.Fatalf("unexpected empty remote policy: %+v", settings)
 	}
 }
 
@@ -135,6 +135,58 @@ func TestSettingsReportAllOdigletsUnavailable(t *testing.T) {
 	}
 	if settings.OdigletReady == nil || *settings.OdigletReady {
 		t.Fatalf("odiglet readiness=%v", settings.OdigletReady)
+	}
+}
+
+func TestClusterInjectionControlPersistsForDirectInstall(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	ready := false
+	repo.odigletReady = &ready
+	service := New(repo)
+
+	control, err := service.SaveClusterInjectionControl(nil, "cluster-direct", ClusterInjectionControlInput{
+		NamespaceInjection: ac.NamespaceInjection{
+			InstrumentNS:         []string{"orders", "orders", "monitoring"},
+			InstrumentDisabledNS: []string{"monitoring"},
+			Namespaces:           []ac.NamespaceRule{{Namespace: "payments", Mode: "enabled"}},
+			ServiceName: &ac.ServiceNamePolicy{Mappings: []ac.ServiceNameMapping{{
+				NamespacePattern: "^payments$", WorkloadPattern: "^api$", ServiceName: "payments-api",
+			}}},
+		},
+	}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(control.NamespaceInjection.InstrumentNS) != 1 || control.NamespaceInjection.InstrumentNS[0] != "orders" ||
+		len(control.NamespaceInjection.Namespaces) != 1 || control.NamespaceInjection.Namespaces[0].Mode != "enabled" ||
+		control.NamespaceInjection.ServiceName == nil || len(control.NamespaceInjection.ServiceName.Mappings) != 1 {
+		t.Fatalf("cluster injection control=%+v", control)
+	}
+
+	control, err = service.SaveClusterInjectionControl(nil, "cluster-direct", ClusterInjectionControlInput{}, 7)
+	if err != nil || control.NamespaceInjection.InstrumentAll || len(control.NamespaceInjection.InstrumentNS) != 0 {
+		t.Fatalf("empty cluster injection policy=%+v err=%v", control, err)
+	}
+}
+
+func TestWorkloadInventoryIsReportedWithoutClusterIntegration(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	service := New(repo)
+	if err := service.ReportWorkloadInventory(nil, "cluster-direct", "node-a", WorkloadInventoryInput{
+		Namespaces: []string{"orders", "payments", "orders"},
+		Workloads: []ac.WorkloadRef{
+			{Namespace: "orders", Kind: "Deployment", Name: "api"},
+			{Namespace: "payments", Kind: "statefulset", Name: "db"},
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	control, err := service.GetClusterInjectionControl(nil, "cluster-direct")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(control.Inventory.Namespaces) != 2 || len(control.Inventory.Workloads) != 2 || control.Inventory.Workloads[0].Kind != "deployment" || control.InventoryObservedAt == nil {
+		t.Fatalf("workload inventory=%+v observedAt=%v", control.Inventory, control.InventoryObservedAt)
 	}
 }
 

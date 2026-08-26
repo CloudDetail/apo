@@ -13,9 +13,16 @@
 - 当前保存的是日志采集管理记录和可预览的 iLogtail 输入文件；在完整发布链路确认前，页面不声称配置已经下发到探针。
 - 非 K8s 节点可通过固定命令自动扫描 Java 日志目录；扫描结果只追加到当前表单，用户确认并保存后才持久化，不开放任意 Shell 命令。
 - Java 日志扫描由 daemon-go 直接读取 Linux `/proc` 并进行有界目录扫描，不依赖参考脚本，也不执行可能卡住的逐进程 `lsof -p`。
-- K8s 集群没有存量配置时提供确定性默认规则：采集其他 Namespace 的所有 Pod stdout/stderr，排除 `syncause`、`apo`和 `kube-system`，并排除 `app.kubernetes.io/instance` 为 `syncause` 或 `syncause-agent` 的 Pod。
-- 页面以“排除 Namespace”列表呈现默认策略，APO 后端生成 RE2 兼容的 `K8sNamespaceRegex`，避免用户维护复杂正则。
-- 容器规则的“最大日志采集量”按该规则对应 Pipeline 的原始 `content` UTF-8 字节数计算，单位为 Bytes/分钟；`0` 表示不限制，超额日志丢弃并记录丢弃条数和字节数。
+- K8s 集群没有存量配置时提供确定性默认规则：采集所有 Pod stdout/stderr，并排除 `app.kubernetes.io/instance` 为 `syncause` 或 `syncause-agent` 的 Pod。默认规则不生成 `K8sNamespaceRegex`。
+- 页面不提供 iLogtail 未定义的“排除 Namespace”过滤器；需要限制 Namespace 时使用原生 `K8sNamespaceRegex`。
+- `ExcludeK8sLabel` 按 iLogtail 原生 map 契约读写；页面使用可增删的键值行，支持同时配置多个标签条件。后端兼容读取早期版本保存的 `key=value` 多行字符串。
+- 容器规则按事件条数限制采集速率，单位为条/秒；`0` 表示不限，正整数 `N` 直接生成 iLogtail 原生 `processor_rate_limit.Limit: N/s`。
+- 最终配置预览以目标节点上报的 iLogtail 初始配置为基线，保留其中的 `global`、公共 `processors` 和 `flushers`，再替换为用户配置的 `inputs`；页面将 `flushers` 产品化展示为“输出”。
+- 日志采集页面按“采集规则、处理规则、输出规则”组织。采集规则保持可视化选择；处理和输出规则默认折叠，仅展示节点上报基线中已经完成变量替换的原始 YAML 配置块，不拆成详细表单项。
+- 处理和输出默认块属于辅助信息，抽取失败时记录服务端日志并显示空态，不阻断采集规则加载；最终预览缺少有效 `flushers` 时仍快速失败。
+- 容器规则的限速处理器追加在公共处理器之后；基线中已有的 `processor_rate_limit` 不直接继承，避免与当前规则的限速值重复或冲突。
+- 输出配置不使用服务端写死的地址作为 fallback。目标节点没有包含 `flushers` 的 iLogtail 基线，或同一集群节点的公共处理/输出管线不一致时，最终配置预览快速失败并提示原因。
+- “新增采集规则”属于采集规则列表，不属于目标范围选择。集群配置可新增“容器标准输出采集”或“文件采集”；节点配置继承集群两类规则，并只允许追加当前节点的文件采集规则。
 
 ## 待完成任务
 
@@ -44,10 +51,10 @@
 - [x] 优化节点页继承信息层级，将继承摘要置顶并在生效规则列表中统一标注规则来源。
 - [x] 为非 K8s 节点增加“自动扫描 Java 日志”，通过既有命令通道返回目录并去重追加宿主机文件规则。
 - [x] 后端仅放行固定的 `SCAN_JAVA_LOG_FILES` 命令，daemon-go 直接实现扫描，不引入远程 Shell。
-- [x] 为 K8s 集群提供排除系统 Namespace 和 Syncause 自身实例的默认容器日志采集策略。
-- [x] 为容器规则增加每分钟字节数限流，并在 iLogtail 端按内容字节真实执行。
+- [x] 为 K8s 集群提供通过 Pod 标签排除 Syncause 自身实例的默认容器日志采集策略，默认不生成 `K8sNamespaceRegex`。
+- [x] 为容器规则增加每秒事件条数限流，直接复用 iLogtail 原生 `processor_rate_limit.Limit`。
 
-- [ ] 定义日志采集输入文件与部署侧 processors、flushers 合并为完整 iLogtail generation 的契约。
+- [x] 定义并实现日志采集输入与节点 iLogtail 基线中的 global、processors、flushers 合并，生成完整最终配置预览。
 - [ ] 实现并验证从 APO 保存记录到 daemon-go 接收、落盘和生效的完整下发回执。
 - [ ] 在真实下发链路完成后，再将保存结果升级为“已下发”状态和历史记录。
 - [ ] 将新版 daemon-go 部署到真实非 K8s 节点，验证 Java 进程识别、权限受限告警和扫描目录追加结果。

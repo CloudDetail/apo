@@ -382,6 +382,8 @@ func migrateTable(db *gorm.DB) error {
 		&ac.Template{},
 		&ac.TemplateVariable{},
 		&ac.Node{},
+		&ac.ClusterInjectionConfig{},
+		&ac.ClusterWorkloadInventory{},
 		&ac.InitialConfig{},
 		&ac.GlobalCircuitConfig{},
 		&ac.NodeCircuitConfig{},

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func TestGetNamespaceInjectionUsesStoredClusterIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := db.AutoMigrate(&integrationmodel.TraceIntegration{}); err != nil {
+	if err := db.AutoMigrate(&integrationmodel.TraceIntegration{}, &ac.ClusterInjectionConfig{}); err != nil {
 		t.Fatal(err)
 	}
 	trace := integrationmodel.TraceIntegration{
@@ -38,6 +39,26 @@ func TestGetNamespaceInjectionUsesStoredClusterIntegration(t *testing.T) {
 	}
 	if !config.InstrumentAll || len(config.InstrumentNS) != 1 || config.InstrumentNS[0] != "orders" || len(config.InstrumentDisabledNS) != 1 || config.InstrumentDisabledNS[0] != "monitoring" {
 		t.Fatalf("namespace injection config=%+v", config)
+	}
+
+	data, err := json.Marshal(ac.NamespaceInjection{InstrumentNS: []string{"payments"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: true, Config: ac.JSON(data)}); err != nil {
+		t.Fatal(err)
+	}
+	config, err = repo.GetNamespaceInjection(nil, "cluster-a")
+	if err != nil || config == nil || len(config.InstrumentNS) != 1 || config.InstrumentNS[0] != "payments" {
+		t.Fatalf("dedicated namespace injection config=%+v err=%v", config, err)
+	}
+	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: false, Config: ac.JSON(`{}`)}); err != nil {
+		t.Fatal(err)
+	}
+	config, err = repo.GetNamespaceInjection(nil, "cluster-a")
+	if err != nil || config == nil || config.InstrumentAll || len(config.InstrumentNS) != 0 {
+		t.Fatalf("empty remote namespace injection config=%+v err=%v", config, err)
 	}
 }
 

@@ -39,6 +39,9 @@ type Repository interface {
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
 	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
+	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error
+	SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error
+	GetClusterWorkloadInventory(core.Context, string) (*ac.ClusterWorkloadInventory, error)
 	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
 	SaveAgentInitialConfigIfUnassigned(core.Context, *ac.InitialConfig) (bool, error)
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
@@ -74,6 +77,292 @@ const (
 	defaultCircuitRecoveryMaxDelaySeconds     = 60 * 60
 	agentStateFreshnessTimeout                = 2 * time.Minute
 )
+
+var kubernetesNamespacePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
+var kubernetesWorkloadNamePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$`)
+var serviceNameVariablePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+type ClusterInjectionControlInput struct {
+	NamespaceInjection ac.NamespaceInjection `json:"namespaceInjection"`
+}
+
+type ClusterInjectionControl struct {
+	NamespaceInjection  ac.NamespaceInjection `json:"namespaceInjection"`
+	Inventory           ac.WorkloadInventory  `json:"inventory"`
+	InventoryObservedAt *time.Time            `json:"inventoryObservedAt,omitempty"`
+}
+
+type WorkloadInventoryInput struct {
+	Namespaces []string         `json:"namespaces"`
+	Workloads  []ac.WorkloadRef `json:"workloads"`
+}
+
+func normalizeInjectionNamespaces(namespaces []string) ([]string, error) {
+	seen := make(map[string]struct{}, len(namespaces))
+	result := make([]string, 0, len(namespaces))
+	for _, namespace := range namespaces {
+		namespace = strings.TrimSpace(namespace)
+		if len(namespace) == 0 || len(namespace) > 63 || !kubernetesNamespacePattern.MatchString(namespace) {
+			return nil, fmt.Errorf("invalid Kubernetes namespace %q", namespace)
+		}
+		if _, exists := seen[namespace]; exists {
+			continue
+		}
+		seen[namespace] = struct{}{}
+		result = append(result, namespace)
+	}
+	return result, nil
+}
+
+func normalizeClusterInjection(config ac.NamespaceInjection) (ac.NamespaceInjection, error) {
+	if len(config.InstrumentNS)+len(config.InstrumentDisabledNS)+len(config.Namespaces)+len(config.Workloads) > 10000 {
+		return ac.NamespaceInjection{}, errors.New("namespace injection config exceeds 10000 entries")
+	}
+	disabled, err := normalizeInjectionNamespaces(config.InstrumentDisabledNS)
+	if err != nil {
+		return ac.NamespaceInjection{}, err
+	}
+	enabled, err := normalizeInjectionNamespaces(config.InstrumentNS)
+	if err != nil {
+		return ac.NamespaceInjection{}, err
+	}
+	disabledSet := make(map[string]struct{}, len(disabled))
+	for _, namespace := range disabled {
+		disabledSet[namespace] = struct{}{}
+	}
+	filteredEnabled := enabled[:0]
+	for _, namespace := range enabled {
+		if _, excluded := disabledSet[namespace]; !excluded {
+			filteredEnabled = append(filteredEnabled, namespace)
+		}
+	}
+	workloads, err := normalizeInjectionWorkloads(config.Workloads)
+	if err != nil {
+		return ac.NamespaceInjection{}, err
+	}
+	serviceName, err := normalizeServiceNamePolicy(config.ServiceName)
+	if err != nil {
+		return ac.NamespaceInjection{}, err
+	}
+	namespaceRules, err := normalizeNamespaceRules(config.Namespaces)
+	if err != nil {
+		return ac.NamespaceInjection{}, err
+	}
+	if len(namespaceRules) == 0 {
+		for _, namespace := range filteredEnabled {
+			namespaceRules = append(namespaceRules, ac.NamespaceRule{Namespace: namespace, Mode: "enabledFuture"})
+		}
+		for _, namespace := range disabled {
+			namespaceRules = append(namespaceRules, ac.NamespaceRule{Namespace: namespace, Mode: "disabled"})
+		}
+	}
+	return ac.NamespaceInjection{
+		InstrumentAll:        config.InstrumentAll,
+		InstrumentNS:         filteredEnabled,
+		InstrumentDisabledNS: disabled,
+		Namespaces:           namespaceRules,
+		Workloads:            workloads,
+		ServiceName:          serviceName,
+	}, nil
+}
+
+func normalizeNamespaceRules(rules []ac.NamespaceRule) ([]ac.NamespaceRule, error) {
+	result := make([]ac.NamespaceRule, 0, len(rules))
+	seen := make(map[string]struct{}, len(rules))
+	for _, rule := range rules {
+		rule.Namespace = strings.TrimSpace(rule.Namespace)
+		rule.Mode = strings.TrimSpace(rule.Mode)
+		if len(rule.Namespace) == 0 || len(rule.Namespace) > 63 || !kubernetesNamespacePattern.MatchString(rule.Namespace) {
+			return nil, fmt.Errorf("invalid Kubernetes namespace %q", rule.Namespace)
+		}
+		switch rule.Mode {
+		case "disabled", "enabled", "enabledFuture":
+		default:
+			return nil, fmt.Errorf("unsupported namespace injection mode %q", rule.Mode)
+		}
+		if _, exists := seen[rule.Namespace]; exists {
+			return nil, fmt.Errorf("duplicate namespace rule %q", rule.Namespace)
+		}
+		seen[rule.Namespace] = struct{}{}
+		result = append(result, rule)
+	}
+	return result, nil
+}
+
+func normalizeInjectionWorkloads(workloads []ac.WorkloadInjection) ([]ac.WorkloadInjection, error) {
+	result := make([]ac.WorkloadInjection, 0, len(workloads))
+	seen := make(map[string]struct{}, len(workloads))
+	for _, workload := range workloads {
+		workload.Namespace = strings.TrimSpace(workload.Namespace)
+		workload.Kind = strings.ToLower(strings.TrimSpace(workload.Kind))
+		workload.Name = strings.TrimSpace(workload.Name)
+		if len(workload.Namespace) == 0 || len(workload.Namespace) > 63 || !kubernetesNamespacePattern.MatchString(workload.Namespace) {
+			return nil, fmt.Errorf("invalid Kubernetes namespace %q", workload.Namespace)
+		}
+		switch workload.Kind {
+		case "deployment", "statefulset", "daemonset":
+		default:
+			return nil, fmt.Errorf("unsupported workload kind %q", workload.Kind)
+		}
+		if len(workload.Name) == 0 || len(workload.Name) > 253 || !kubernetesWorkloadNamePattern.MatchString(workload.Name) {
+			return nil, fmt.Errorf("invalid Kubernetes workload name %q", workload.Name)
+		}
+		key := workload.Namespace + "\x00" + workload.Kind + "\x00" + workload.Name
+		if _, exists := seen[key]; exists {
+			return nil, fmt.Errorf("duplicate workload rule %s/%s/%s", workload.Namespace, workload.Kind, workload.Name)
+		}
+		seen[key] = struct{}{}
+		result = append(result, workload)
+	}
+	return result, nil
+}
+
+func normalizeWorkloadInventory(input WorkloadInventoryInput) (ac.WorkloadInventory, error) {
+	if len(input.Namespaces)+len(input.Workloads) > 50000 {
+		return ac.WorkloadInventory{}, errors.New("workload inventory exceeds 50000 entries")
+	}
+	namespaces, err := normalizeInjectionNamespaces(input.Namespaces)
+	if err != nil {
+		return ac.WorkloadInventory{}, err
+	}
+	seenWorkloads := make(map[string]struct{}, len(input.Workloads))
+	workloads := make([]ac.WorkloadRef, 0, len(input.Workloads))
+	for _, item := range input.Workloads {
+		normalized, err := normalizeInjectionWorkloads([]ac.WorkloadInjection{{
+			Namespace: item.Namespace, Kind: item.Kind, Name: item.Name, Enabled: true,
+		}})
+		if err != nil {
+			return ac.WorkloadInventory{}, err
+		}
+		item.Namespace = normalized[0].Namespace
+		item.Kind = normalized[0].Kind
+		item.Name = normalized[0].Name
+		key := item.Namespace + "\x00" + item.Kind + "\x00" + item.Name
+		if _, exists := seenWorkloads[key]; exists {
+			continue
+		}
+		seenWorkloads[key] = struct{}{}
+		workloads = append(workloads, item)
+	}
+	return ac.WorkloadInventory{Namespaces: namespaces, Workloads: workloads}, nil
+}
+
+func normalizeServiceNamePolicy(policy *ac.ServiceNamePolicy) (*ac.ServiceNamePolicy, error) {
+	if policy == nil {
+		return nil, nil
+	}
+	if len(policy.Mappings) > 1000 || len(policy.Variables) > 128 || len(policy.DefaultFormat) > 1024 {
+		return nil, errors.New("service name policy exceeds supported limits")
+	}
+	result := &ac.ServiceNamePolicy{DefaultFormat: strings.TrimSpace(policy.DefaultFormat)}
+	seenVariables := make(map[string]struct{}, len(policy.Variables))
+	for _, variable := range policy.Variables {
+		variable.Name = strings.TrimSpace(variable.Name)
+		variable.Source = strings.TrimSpace(variable.Source)
+		if !serviceNameVariablePattern.MatchString(variable.Name) {
+			return nil, fmt.Errorf("invalid service name variable %q", variable.Name)
+		}
+		switch variable.Source {
+		case "workloadName", "workflowName", "deployName", "containerName":
+		default:
+			return nil, fmt.Errorf("unsupported service name variable source %q", variable.Source)
+		}
+		if len(variable.Regex) > 1024 || len(variable.Replacement) > 1024 {
+			return nil, fmt.Errorf("service name variable %q exceeds supported limits", variable.Name)
+		}
+		if variable.Regex != "" {
+			if _, err := regexp.Compile(variable.Regex); err != nil {
+				return nil, fmt.Errorf("invalid service name regex for %q: %w", variable.Name, err)
+			}
+		}
+		if _, exists := seenVariables[variable.Name]; exists {
+			return nil, fmt.Errorf("duplicate service name variable %q", variable.Name)
+		}
+		seenVariables[variable.Name] = struct{}{}
+		result.Variables = append(result.Variables, variable)
+	}
+	for _, mapping := range policy.Mappings {
+		mapping.NamespacePattern = strings.TrimSpace(mapping.NamespacePattern)
+		mapping.WorkloadPattern = strings.TrimSpace(mapping.WorkloadPattern)
+		mapping.ServiceName = strings.TrimSpace(mapping.ServiceName)
+		if mapping.NamespacePattern == "" || mapping.WorkloadPattern == "" || mapping.ServiceName == "" || len(mapping.ServiceName) > 255 {
+			return nil, errors.New("service name mapping requires namespace pattern, workload pattern, and service name")
+		}
+		if _, err := regexp.Compile(mapping.NamespacePattern); err != nil {
+			return nil, fmt.Errorf("invalid service name namespace regex %q: %w", mapping.NamespacePattern, err)
+		}
+		if _, err := regexp.Compile(mapping.WorkloadPattern); err != nil {
+			return nil, fmt.Errorf("invalid service name workload regex %q: %w", mapping.WorkloadPattern, err)
+		}
+		result.Mappings = append(result.Mappings, mapping)
+	}
+	return result, nil
+}
+
+func (s *Service) GetClusterInjectionControl(ctx core.Context, clusterID string) (*ClusterInjectionControl, error) {
+	clusterID = strings.TrimSpace(clusterID)
+	if clusterID == "" {
+		return nil, errors.New("cluster ID is required")
+	}
+	config, err := s.repo.GetNamespaceInjection(ctx, clusterID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	control := &ClusterInjectionControl{}
+	if config != nil {
+		control.NamespaceInjection = *config
+	}
+	storedInventory, err := s.repo.GetClusterWorkloadInventory(ctx, clusterID)
+	if err == nil {
+		if err := json.Unmarshal(storedInventory.Inventory, &control.Inventory); err != nil {
+			return nil, fmt.Errorf("decode cluster workload inventory: %w", err)
+		}
+		control.InventoryObservedAt = &storedInventory.ObservedAt
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return control, nil
+}
+
+func (s *Service) ReportWorkloadInventory(ctx core.Context, clusterID, nodeID string, input WorkloadInventoryInput) error {
+	clusterID = strings.TrimSpace(clusterID)
+	nodeID = strings.TrimSpace(nodeID)
+	if clusterID == "" || nodeID == "" {
+		return errors.New("cluster ID and node ID are required")
+	}
+	inventory, err := normalizeWorkloadInventory(input)
+	if err != nil {
+		return err
+	}
+	data, err := json.Marshal(inventory)
+	if err != nil {
+		return err
+	}
+	return s.repo.SaveClusterWorkloadInventory(ctx, &ac.ClusterWorkloadInventory{
+		ClusterID: clusterID, Inventory: ac.JSON(data), ReportedBy: nodeID, ObservedAt: s.now(),
+	})
+}
+
+func (s *Service) SaveClusterInjectionControl(ctx core.Context, clusterID string, input ClusterInjectionControlInput, user int64) (*ClusterInjectionControl, error) {
+	clusterID = strings.TrimSpace(clusterID)
+	if clusterID == "" {
+		return nil, errors.New("cluster ID is required")
+	}
+	config, err := normalizeClusterInjection(input.NamespaceInjection)
+	if err != nil {
+		return nil, err
+	}
+	data, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveClusterInjectionConfig(ctx, &ac.ClusterInjectionConfig{
+		ClusterID: clusterID, Configured: true, Config: ac.JSON(data), UpdatedBy: user,
+	}); err != nil {
+		return nil, err
+	}
+	return s.GetClusterInjectionControl(ctx, clusterID)
+}
 
 func loadDefaultAgentSettings() ac.AgentSettings {
 	settings := ac.CircuitBreakerSettings{
@@ -185,9 +474,13 @@ func (s *Service) SettingsForProbeAndCluster(ctx core.Context, nodeID, probeType
 	settings := ac.AgentSettings{UseLocalDefaults: true}
 	if clusterID != "" {
 		namespaceInjection, err := s.repo.GetNamespaceInjection(ctx, clusterID)
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Remote-control mode is fail closed. No persisted selection means an
+			// empty remote policy, never a fallback to the instrumentor ConfigMap.
+			settings.NamespaceInjection = &ac.NamespaceInjection{}
+		} else if err != nil {
 			log.Printf("agentconfig: namespace injection settings are unavailable for cluster %s: %v", clusterID, err)
-		} else if err == nil {
+		} else {
 			settings.NamespaceInjection = namespaceInjection
 		}
 		odigletReady, err := s.repo.GetOdigletReadiness(ctx, clusterID, s.now().Add(-agentStateFreshnessTimeout))
@@ -290,6 +583,23 @@ type CurrentNodeConfig struct {
 type CurrentNodeConfigs struct {
 	NodeID  string              `json:"nodeId"`
 	Configs []CurrentNodeConfig `json:"configs"`
+}
+type NodeInjectionControlInput struct {
+	Content            string `json:"content" binding:"required"`
+	ExpectedGeneration int64  `json:"expectedGeneration"`
+}
+type NodeInjectionControl struct {
+	NodeID        string `json:"nodeId"`
+	Available     bool   `json:"available"`
+	Generation    int64  `json:"generation"`
+	FilePath      string `json:"filePath,omitempty"`
+	Content       string `json:"content,omitempty"`
+	ContentSHA256 string `json:"contentSha256,omitempty"`
+}
+type BatchNodeInjectionControlInput struct {
+	ClusterIDs          []string         `json:"clusterIds" binding:"required"`
+	Content             string           `json:"content" binding:"required"`
+	ExpectedGenerations map[string]int64 `json:"expectedGenerations" binding:"required"`
 }
 type InitialConfigInput struct {
 	ProbeType string                 `json:"probeType" binding:"required"`
@@ -622,22 +932,6 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	return nil
 }
 
-func validateClusterCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
-	if err := validateCircuitBreaker(settings); err != nil {
-		return err
-	}
-	if settings == nil {
-		return nil
-	}
-	if settings.MaxCPUCores != 0 || settings.MaxMemoryBytes != 0 {
-		return fmt.Errorf("cluster circuit breaker must use system CPU and memory percentages")
-	}
-	if settings.Enabled && (settings.SystemPressure == nil || !settings.SystemPressure.Enabled) {
-		return fmt.Errorf("enabled cluster circuit breaker requires system CPU or memory percentages")
-	}
-	return nil
-}
-
 func decodeCircuitSettings(data ac.JSON) (ac.CircuitBreakerSettings, error) {
 	var settings ac.CircuitBreakerSettings
 	err := json.Unmarshal(data, &settings)
@@ -729,7 +1023,7 @@ func (s *Service) SaveNodeCircuit(ctx core.Context, node string, settings ac.Cir
 }
 
 func (s *Service) BatchSaveCircuit(ctx core.Context, input CircuitBatchInput, user int64) (*BatchResult, error) {
-	if err := validateClusterCircuitBreaker(&input.CircuitBreaker); err != nil {
+	if err := validateCircuitBreaker(&input.CircuitBreaker); err != nil {
 		return nil, err
 	}
 	nodes, err := s.nodesInClusters(ctx, input.ClusterIDs)
@@ -879,6 +1173,9 @@ func (s *Service) ListNodeConfigHistory(ctx core.Context, node, probe string, li
 		limit = 20
 	}
 	probe = ac.NormalizeProbe(probe)
+	if probe == "preload" {
+		return nil, errors.New("injection control does not support configuration history or rollback")
+	}
 	releases, err := s.repo.ListAgentReleases(ctx, node, probe, limit)
 	if err != nil {
 		return nil, err
@@ -981,6 +1278,147 @@ func (s *Service) CurrentNodeConfigs(ctx core.Context, node string) (*CurrentNod
 func releaseKey(node, probe string) string { return node + "\x00" + ac.NormalizeProbe(probe) }
 
 func (s *Service) UpdateNodeConfigs(ctx core.Context, node string, input NodeConfigsInput) (*CurrentNodeConfigs, error) {
+	if err := rejectSpecialControlConfigs(input); err != nil {
+		return nil, err
+	}
+	return s.updateNodeConfigGroup(ctx, node, input, true)
+}
+
+func (s *Service) UpdateNodeConfigGroup(ctx core.Context, node string, input NodeConfigsInput) (*CurrentNodeConfigs, error) {
+	if err := rejectSpecialControlConfigs(input); err != nil {
+		return nil, err
+	}
+	return s.updateNodeConfigGroup(ctx, node, input, false)
+}
+
+func rejectSpecialControlConfigs(input NodeConfigsInput) error {
+	for _, config := range input.Configs {
+		if ac.NormalizeProbe(config.ProbeType) == "preload" {
+			return errors.New("preload must be updated through the injection control API")
+		}
+	}
+	return nil
+}
+
+func (s *Service) GetNodeInjectionControl(ctx core.Context, node string) (*NodeInjectionControl, error) {
+	if _, err := s.repo.GetAgentNode(ctx, node); err != nil {
+		return nil, err
+	}
+	current, err := s.CurrentNodeConfig(ctx, node, "preload")
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return &NodeInjectionControl{NodeID: node}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return nodeInjectionControl(current)
+}
+
+func (s *Service) SaveNodeInjectionControl(ctx core.Context, node string, input NodeInjectionControlInput) (*NodeInjectionControl, error) {
+	current, err := s.GetNodeInjectionControl(ctx, node)
+	if err != nil {
+		return nil, err
+	}
+	if !current.Available {
+		return nil, errors.New("node has no registered preload injection configuration")
+	}
+	if input.ExpectedGeneration != current.Generation {
+		return nil, fmt.Errorf("generation conflict for preload: expected %d, actual %d", input.ExpectedGeneration, current.Generation)
+	}
+	_, err = s.updateNodeConfigGroup(ctx, node, NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType:          "preload",
+		Files:              []ac.InitialConfigFile{{Path: current.FilePath, Content: input.Content}},
+		ExpectedGeneration: input.ExpectedGeneration,
+	}}}, false)
+	if err != nil {
+		return nil, err
+	}
+	return s.GetNodeInjectionControl(ctx, node)
+}
+
+func (s *Service) BatchSaveNodeInjectionControl(ctx core.Context, input BatchNodeInjectionControlInput) (*BatchResult, error) {
+	targets, err := s.nodesInClusters(ctx, input.ClusterIDs)
+	if err != nil {
+		return nil, err
+	}
+	bindings := make([]*ac.Binding, 0, len(targets))
+	releases := make([]*ac.Release, 0, len(targets))
+	expected := make(map[string]int64, len(targets))
+	for _, target := range targets {
+		control, err := s.GetNodeInjectionControl(ctx, target.ID)
+		if err != nil {
+			return nil, fmt.Errorf("get injection control for %s: %w", target.ID, err)
+		}
+		if !control.Available {
+			return nil, fmt.Errorf("node %s has no registered preload injection configuration", target.ID)
+		}
+		expectedGeneration, exists := input.ExpectedGenerations[target.ID]
+		if !exists {
+			return nil, fmt.Errorf("expected generation for node %s is required", target.ID)
+		}
+		if expectedGeneration != control.Generation {
+			return nil, fmt.Errorf("generation conflict for %s/preload: expected %d, actual %d", target.ID, expectedGeneration, control.Generation)
+		}
+		if input.Content == control.Content {
+			continue
+		}
+		files, err := normalizeConfigFiles([]ac.InitialConfigFile{{Path: control.FilePath, Content: input.Content}}, "node injection control")
+		if err != nil {
+			return nil, fmt.Errorf("invalid injection control for %s: %w", target.ID, err)
+		}
+		filesJSON, err := json.Marshal(files)
+		if err != nil {
+			return nil, err
+		}
+		logSources := ac.JSON("null")
+		if control.Generation > 0 {
+			last, err := s.repo.GetAgentRelease(ctx, target.ID, "preload")
+			if err != nil {
+				return nil, err
+			}
+			logSources = append(ac.JSON(nil), last.LogSources...)
+		}
+		generation := control.Generation + 1
+		releases = append(releases, &ac.Release{
+			ID: uuid.New(), NodeID: target.ID, ProbeType: "preload", Generation: generation,
+			TemplateID: uuid.Nil, TemplateVersion: 1, Variables: ac.JSON("{}"),
+			RenderedContent: input.Content, ContentSHA256: ac.HashInitialConfigFiles(files),
+			Files: ac.JSON(filesJSON), LogSources: logSources,
+		})
+		bindings = append(bindings, &ac.Binding{
+			NodeID: target.ID, ProbeType: "preload", TemplateID: uuid.Nil,
+			DesiredGeneration: generation, Enabled: true, Variables: ac.JSON("{}"),
+		})
+		expected[releaseKey(target.ID, "preload")] = control.Generation
+	}
+	if len(releases) > 0 {
+		if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected); err != nil {
+			return nil, err
+		}
+	}
+	return &BatchResult{
+		TargetNodeCount: len(targets),
+		SucceededCount:  len(targets),
+	}, nil
+}
+
+func nodeInjectionControl(current *CurrentNodeConfig) (*NodeInjectionControl, error) {
+	for _, file := range current.Files {
+		if path.Base(file.Path) == "libapoinstrument.conf" {
+			return &NodeInjectionControl{
+				NodeID:        current.NodeID,
+				Available:     true,
+				Generation:    current.Generation,
+				FilePath:      file.Path,
+				Content:       file.Content,
+				ContentSHA256: file.ContentSHA256,
+			}, nil
+		}
+	}
+	return nil, errors.New("preload has no registered libapoinstrument.conf")
+}
+
+func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input NodeConfigsInput, requireComplete bool) (*CurrentNodeConfigs, error) {
 	if len(input.Configs) == 0 {
 		return nil, fmt.Errorf("at least one probe configuration is required")
 	}
@@ -988,8 +1426,14 @@ func (s *Service) UpdateNodeConfigs(ctx core.Context, node string, input NodeCon
 	if err != nil {
 		return nil, err
 	}
-	if len(input.Configs) != len(currentSet.Configs) {
-		return nil, fmt.Errorf("node update must include all %d current probe configurations", len(currentSet.Configs))
+	ordinaryConfigCount := 0
+	for _, current := range currentSet.Configs {
+		if ac.NormalizeProbe(current.ProbeType) != "preload" {
+			ordinaryConfigCount++
+		}
+	}
+	if requireComplete && len(input.Configs) != ordinaryConfigCount {
+		return nil, fmt.Errorf("node update must include all %d ordinary probe configurations", ordinaryConfigCount)
 	}
 	currentByProbe := make(map[string]CurrentNodeConfig, len(currentSet.Configs))
 	for _, current := range currentSet.Configs {
@@ -1089,6 +1533,16 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 	if err != nil {
 		return nil, err
 	}
+	ordinaryConfigs := configs[:0]
+	for _, config := range configs {
+		if ac.NormalizeProbe(config.ProbeType) != "preload" {
+			ordinaryConfigs = append(ordinaryConfigs, config)
+		}
+	}
+	configs = ordinaryConfigs
+	if len(configs) == 0 {
+		return nil, errors.New("template contains no ordinary probe configuration")
+	}
 	byProbe := make(map[string]ac.TemplateProbeConfig, len(configs))
 	for _, config := range configs {
 		byProbe[config.ProbeType] = config
@@ -1107,10 +1561,16 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 		if len(current.Configs) == 0 {
 			return nil, fmt.Errorf("node %s has no probe configuration", node.ID)
 		}
-		if len(current.Configs) != len(configs) {
-			return nil, fmt.Errorf("template contains %d probes but node %s has %d", len(configs), node.ID, len(current.Configs))
+		ordinaryCurrent := current.Configs[:0]
+		for _, config := range current.Configs {
+			if ac.NormalizeProbe(config.ProbeType) != "preload" {
+				ordinaryCurrent = append(ordinaryCurrent, config)
+			}
 		}
-		for _, currentConfig := range current.Configs {
+		if len(ordinaryCurrent) != len(configs) {
+			return nil, fmt.Errorf("template contains %d probes but node %s has %d", len(configs), node.ID, len(ordinaryCurrent))
+		}
+		for _, currentConfig := range ordinaryCurrent {
 			probe := currentConfig.ProbeType
 			selected, exists := byProbe[probe]
 			if !exists {

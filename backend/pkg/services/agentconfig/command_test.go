@@ -27,6 +27,15 @@ func (*commandRepo) GetAgentNode(core.Context, string) (*ac.Node, error)        
 func (*commandRepo) GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error) {
 	return nil, nil
 }
+func (*commandRepo) SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error {
+	return nil
+}
+func (*commandRepo) SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error {
+	return nil
+}
+func (*commandRepo) GetClusterWorkloadInventory(core.Context, string) (*ac.ClusterWorkloadInventory, error) {
+	return nil, nil
+}
 func (*commandRepo) GetOdigletReadiness(core.Context, string, time.Time) (*bool, error) {
 	return nil, nil
 }

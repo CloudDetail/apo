@@ -8,15 +8,29 @@ configuration release. `generation` is monotonic for a node and probe type.
 
 ## Configuration files
 
-- A single-node edit reads the latest configuration for every probe and every
-  file on the node. The client submits the exact complete file set in one
-  node-level request with the observed generation of each probe. Missing,
-  duplicated, or unexpected file paths reject the whole request.
-- The management API does not expose a single-probe assignment operation.
-  Per-probe endpoints are retained only for daemon delivery, initial snapshot
-  inspection, and runtime commands.
-- The service rechecks every generation and saves every changed probe release
-  in one transaction. One stale generation rejects the complete node update.
+- A single-node page separates ordinary configuration delivery from special
+  controls. `配置文件` submits every non-preload probe in one release group.
+  `日志采集`, `注入控制`, and `熔断策略` use dedicated latest-state APIs and
+  data types. Unsaved changes in another tab are neither submitted nor
+  discarded.
+- `PUT /api/agent-config/nodes/:nodeId/probe-configs` accepts one release group.
+  The service rechecks every submitted generation and atomically saves only
+  changed non-preload probes in that group. It rejects preload input. A stale
+  generation rejects that group without affecting another tab. The legacy
+  `PUT .../current-configs` endpoint retains its complete ordinary-config
+  requirement but also rejects preload.
+- VM preload configuration uses
+  `GET/PUT /api/agent-config/nodes/:nodeId/injection-control` with a specialized
+  `content + expectedGeneration` contract. It does not expose configuration
+  history or rollback. The internal generation remains monotonic because
+  daemon-go needs it to apply the current desired file safely.
+- Batch template delivery ignores legacy preload entries and compares only the
+  complete ordinary component/file set. Preload does not use templates. For VM
+  targets, the separate batch `注入控制` tab starts from current node content,
+  explicitly using the first target as the draft when target contents differ,
+  and delivers through the dedicated atomic injection-control API.
+- Every submitted probe still contains its exact complete registered file set.
+  Missing, duplicated, or unexpected paths reject the release group.
 - Before the first release, repeated registration refreshes the Generation 0
   snapshot so a deployment upgrade may add or remove managed files. After the
   first release, registration never overwrites the last delivered file set.
@@ -62,6 +76,49 @@ SkyWalking agent logging through the ordinary Generation flow. `NODE_NAME`,
 remain deployment-injected runtime values and are not replaced by the managed
 environment file.
 
+## Kubernetes namespace injection
+
+`注入控制` is available only on the Kubernetes cluster-configuration page. It
+does not appear for VM clusters, node configuration, multi-cluster batch
+configuration, or global defaults.
+
+Whether remote control is accepted belongs only to the instrumentor deployment
+configuration and defaults to enabled in the Syncause chart. APO cannot toggle
+it. When enabled, the local namespace, workload, and service-name policy is
+never used. Before daemon-go has fetched its first valid remote policy, or when
+the UDS connection is unavailable, the instrumentor pauses reconciliation.
+daemon-go keeps the last successfully fetched policy in memory across backend
+request failures, but has no persistent policy cache after restart. A successful
+backend response containing an explicit empty policy is valid and stops
+injection.
+
+The instrumentor includes its current Kubernetes namespace and Deployment,
+StatefulSet, and DaemonSet inventory in the UDS configuration request. daemon-go
+reports that snapshot to APO using its existing authenticated backend
+connection. The inventory is persisted by cluster ID and does not require a
+trace-integration or cluster-onboarding record. The configuration page builds
+its selection tree only from this reported inventory; selected nodes are a
+desired policy, not observed injection status.
+
+Each namespace has one of three modes: `disabled`, `enabled`, or
+`enabledFuture`. `enabled` applies to the currently reported workloads only;
+`enabledFuture` also labels the namespace so future workloads are injected.
+Individual workload rules may override the namespace default. `instrumentAll`
+sets `enabledFuture` as the default for every namespace without an explicit
+rule. `kube-system` and the namespace containing Syncause/APO/Odigos are
+excluded both from reported inventory and reconciliation regardless of policy.
+
+Remote service-name rules have two levels. Ordered namespace-regex and
+workload-regex mappings return a literal `service.name` and have highest
+priority, including over a service name already present in the workload.
+Otherwise the instrumentor applies the remotely configured default format and
+derived-variable rules. The instrumentor alone determines which SDK-specific
+environment variable names carry the result; APO does not configure that list.
+
+Actual injected Pods and workload outcomes are a separate record stream. They
+must not be inferred from the selection tree or stored in the desired-policy
+record.
+
 ## Template variables
 
 Server-rendered template variables use the dedicated `{% VARIABLE_NAME %}`
@@ -100,8 +157,8 @@ target node before creating its releases.
 
 The canonical server variable used by the v1.0.3 Kubernetes agent package is:
 
-| Variable | Source | Used by |
-| --- | --- | --- |
+| Variable     | Source                                 | Used by                           |
+| ------------ | -------------------------------------- | --------------------------------- |
 | `CLUSTER_ID` | Node registration's cluster assignment | apo-otel-collector-agent, vmagent |
 
 daemon-go sends its configured cluster identity as part of registration, while
@@ -154,10 +211,10 @@ other.
   daemon receives the named probe policy when one exists in that latest bundle,
   otherwise it receives the bundle default. This is one delivered bundle, not
   a runtime priority chain.
-- Multi-cluster circuit delivery replaces the complete node policy for every
-  target node in one operation. Its top-level resource thresholds must use
-  host-system CPU and memory percentages; process CPU Core and RSS thresholds
-  remain available only for named probe policies. The percentage is evaluated
+- Multi-cluster circuit delivery is only a batch operation: it replaces the
+  complete node policy for every target node with the same structure and
+  validation used by single-node delivery. CPU Core, RSS, host-system percentage,
+  and named probe policies are all preserved. Host percentages are evaluated
   independently on every target node, not as a cluster-wide aggregate.
 - Host-system thresholds cannot appear in a named probe policy. daemon-go reads
   the system values locally; the service does not make fuse or recovery

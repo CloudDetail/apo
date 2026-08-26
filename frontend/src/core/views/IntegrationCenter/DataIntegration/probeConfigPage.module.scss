@@ -86,6 +86,110 @@
   gap: 16px;
 }
 
+.injectionControlPanel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 980px;
+}
+
+.injectionControlFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.injectionSection {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.injectionSectionHeading,
+.serviceVariableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.injectionSectionHeading > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workloadTree {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.workloadTree :global(.ant-tree) {
+  padding: 8px;
+}
+
+.workloadTreeLabel {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.workloadTreeLabel > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.serviceNameFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.serviceNameFields label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.serviceNameFields label > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.serviceNameFields :global(.ant-select) {
+  width: 100%;
+}
+
+.serviceVariableList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serviceVariableRow {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.8fr) minmax(150px, 1fr) minmax(160px, 1.2fr) minmax(140px, 1fr)
+    32px;
+  gap: 8px;
+}
+
+.serviceMappingRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
+  gap: 8px;
+}
+
 .sectionHeading,
 .templateBar {
   justify-content: space-between;
@@ -566,6 +670,123 @@
   height: 100%;
 }
 
+.preloadEditor {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--ant-color-bg-container);
+}
+
+.injectionWorkspace {
+  display: flex;
+  border: 1px solid var(--ant-color-border);
+}
+
+.injectionTargetRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.injectionTargetRow label {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.injectionFooter {
+  flex-wrap: wrap;
+}
+
+.injectionFooter > :global(.ant-typography) {
+  min-width: 280px;
+  flex: 1;
+}
+
+.runtimeConfig > span {
+  display: flex;
+  align-items: center;
+}
+
+.preloadHeading > div,
+.runtimeCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preloadActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.runtimeControlList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.runtimeControlRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.runtimeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.runtimeCopy :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.runtimeConfig {
+  min-width: 0;
+}
+
+.runtimeConfig > span {
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.runtimeConfig pre,
+.preloadFinalPreview {
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 4px;
+  background: var(--ant-color-fill-quaternary);
+  font:
+    12px/1.55 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.runtimeConfig pre {
+  overflow: visible;
+}
+
+.preloadFinalPreview {
+  max-height: 65vh;
+}
+
 .templatePreviewPanel {
   min-width: 0;
   min-height: 0;
@@ -691,6 +912,25 @@
     flex-direction: column;
   }
 
+  .injectionSectionHeading,
+  .serviceVariableHeader {
+    align-items: flex-start;
+  }
+
+  .serviceNameFields {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceVariableRow,
+  .serviceMappingRow {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceVariableRow > :global(.ant-btn),
+  .serviceMappingRow > :global(.ant-btn) {
+    justify-self: end;
+  }
+
   .sectionHeading,
   .templateBar,
   .sourceToolbar,
@@ -744,6 +984,19 @@
   .templatePreviewPanel {
     min-width: 480px;
     min-height: 360px;
+  }
+
+  .preloadEditor {
+    min-width: 0;
+  }
+
+  .injectionWorkspace {
+    overflow: visible;
+  }
+
+  .injectionTargetRow {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .batchGrid,

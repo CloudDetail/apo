@@ -74,6 +74,22 @@ export function updateNodeCurrentConfigsApi(nodeId: string, data: unknown) {
   return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/current-configs`, data)
 }
 
+export function updateNodeProbeConfigsApi(nodeId: string, data: unknown) {
+  return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/probe-configs`, data)
+}
+
+export function getNodeInjectionControlApi(nodeId: string) {
+  return get(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/injection-control`)
+}
+
+export function updateNodeInjectionControlApi(nodeId: string, data: unknown) {
+  return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/injection-control`, data)
+}
+
+export function batchUpdateNodeInjectionControlApi(data: unknown) {
+  return post('/api/agent-config/injection-control/batch', data)
+}
+
 export function getNodeConfigHistoryApi(nodeId: string, probeType: string, limit = 20) {
   return get(
     `/api/agent-config/nodes/${encodeURIComponent(nodeId)}/probes/${encodeURIComponent(probeType)}/releases`,
@@ -114,6 +130,14 @@ export function batchAssignAgentConfigApi(data: unknown) {
 
 export function batchUpdateCircuitBreakerApi(data: unknown) {
   return post('/api/agent-config/circuit-breaker/batch', data)
+}
+
+export function getClusterInjectionControlApi(clusterId: string) {
+  return get(`/api/agent-config/clusters/${encodeURIComponent(clusterId)}/injection-control`)
+}
+
+export function updateClusterInjectionControlApi(clusterId: string, data: unknown) {
+  return put(`/api/agent-config/clusters/${encodeURIComponent(clusterId)}/injection-control`, data)
 }
 
 export function getNodeLogSourcesApi(nodeId: string, probeType: string) {

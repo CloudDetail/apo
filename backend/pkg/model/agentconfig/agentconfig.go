@@ -184,9 +184,72 @@ type AgentSettings struct {
 }
 
 type NamespaceInjection struct {
-	InstrumentAll        bool     `json:"instrumentAll"`
-	InstrumentNS         []string `json:"instrumentNS"`
-	InstrumentDisabledNS []string `json:"instrumentDisabledNS"`
+	InstrumentAll        bool                `json:"instrumentAll"`
+	InstrumentNS         []string            `json:"instrumentNS"`
+	InstrumentDisabledNS []string            `json:"instrumentDisabledNS"`
+	Namespaces           []NamespaceRule     `json:"namespaces,omitempty"`
+	Workloads            []WorkloadInjection `json:"workloads,omitempty"`
+	ServiceName          *ServiceNamePolicy  `json:"serviceName,omitempty"`
+}
+
+type NamespaceRule struct {
+	Namespace string `json:"namespace"`
+	Mode      string `json:"mode"`
+}
+
+type WorkloadInjection struct {
+	Namespace string `json:"namespace"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Enabled   bool   `json:"enabled"`
+}
+
+type ServiceNamePolicy struct {
+	DefaultFormat string                `json:"defaultFormat"`
+	Variables     []ServiceNameVariable `json:"variables"`
+	Mappings      []ServiceNameMapping  `json:"mappings"`
+}
+
+type ServiceNameMapping struct {
+	NamespacePattern string `json:"namespacePattern"`
+	WorkloadPattern  string `json:"workloadPattern"`
+	ServiceName      string `json:"serviceName"`
+}
+
+type ServiceNameVariable struct {
+	Name        string `json:"name"`
+	Source      string `json:"source"`
+	Regex       string `json:"regex"`
+	Replacement string `json:"replacement"`
+}
+
+type ClusterInjectionConfig struct {
+	ClusterID  string    `gorm:"size:255;primaryKey" json:"clusterId"`
+	Configured bool      `gorm:"not null;default:false" json:"configured"`
+	Config     JSON      `gorm:"type:jsonb;not null" json:"config"`
+	UpdatedBy  int64     `json:"updatedBy"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
+
+type WorkloadInventory struct {
+	Namespaces []string      `json:"namespaces"`
+	Workloads  []WorkloadRef `json:"workloads"`
+}
+
+type WorkloadRef struct {
+	Namespace string `json:"namespace"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+}
+
+type ClusterWorkloadInventory struct {
+	ClusterID  string    `gorm:"size:255;primaryKey" json:"clusterId"`
+	Inventory  JSON      `gorm:"type:jsonb;not null" json:"inventory"`
+	ReportedBy string    `gorm:"size:255;not null" json:"reportedBy"`
+	ObservedAt time.Time `json:"observedAt"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 type GlobalCircuitConfig struct {

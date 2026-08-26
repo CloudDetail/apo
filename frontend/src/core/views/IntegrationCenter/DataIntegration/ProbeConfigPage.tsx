@@ -38,6 +38,7 @@ import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } f
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   batchAssignAgentConfigApi,
+  batchUpdateNodeInjectionControlApi,
   batchUpdateCircuitBreakerApi,
   createAgentConfigTemplateApi,
   getAgentConfigNodesApi,
@@ -47,14 +48,18 @@ import {
   getNodeCircuitBreakerApi,
   getNodeConfigHistoryApi,
   getNodeCurrentConfigsApi,
+  getNodeInjectionControlApi,
   importAgentConfigTemplateApi,
   updateAgentConfigTemplateApi,
   updateGlobalCircuitBreakerApi,
   updateNodeCircuitBreakerApi,
-  updateNodeCurrentConfigsApi,
+  updateNodeInjectionControlApi,
+  updateNodeProbeConfigsApi,
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
+import { InjectionControlPanel } from './InjectionControlPanel'
 import { LogCollectionConfigPanel } from './LogCollectionConfigPage'
+import { PreloadConfigEditor } from './PreloadConfigEditor'
 import styles from './probeConfigPage.module.scss'
 
 type AgentNode = {
@@ -104,6 +109,14 @@ type CurrentConfig = {
   contentSha256: string
   source: string
   createdAt?: string
+}
+type NodeInjectionControl = {
+  nodeId: string
+  available: boolean
+  generation: number
+  filePath?: string
+  content?: string
+  contentSha256?: string
 }
 type DeliveryRecord = {
   id: string
@@ -180,24 +193,19 @@ const normalizeCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy =
     ]),
   ),
 })
-const clusterCircuitPolicy = (value: CircuitPolicy): CircuitPolicy => {
-  const normalized = normalizeCircuitPolicy(value)
-  return {
-    ...normalized,
-    maxCpuCores: 0,
-    maxMemoryBytes: 0,
-    systemPressure: {
-      ...normalized.systemPressure!,
-      enabled: normalized.enabled,
-    },
-  }
-}
 const filesForConfig = (config: CurrentConfig): ConfigFile[] =>
   config.files?.length
     ? config.files
     : [{ path: 'config.yaml', content: config.content || '', contentSha256: config.contentSha256 }]
-const configsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
+const allConfigsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
   template?.configs || []
+const isPreloadProbe = (probeType: string) => probeType.toLowerCase() === 'preload'
+const configsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
+  allConfigsForTemplate(template).filter((config) => !isPreloadProbe(config.probeType))
+const preloadFileForConfig = (config?: { probeType: string; files: ConfigFile[] }) =>
+  config && isPreloadProbe(config.probeType)
+    ? config.files.find((file) => file.path.split('/').at(-1) === 'libapoinstrument.conf')
+    : undefined
 const languageForPath = (path: string, fallback = 'yaml') =>
   path.endsWith('.xml')
     ? 'xml'
@@ -208,19 +216,18 @@ const languageForPath = (path: string, fallback = 'yaml') =>
         : path.endsWith('.yaml') || path.endsWith('.yml')
           ? 'yaml'
           : fallback
-
 function CircuitEditor({
   title,
+  description,
   value,
   onChange,
   showSystemPressure = false,
-  systemOnly = false,
 }: {
   title: string
+  description?: string
   value: CircuitPolicy
   onChange: (next: CircuitPolicy) => void
   showSystemPressure?: boolean
-  systemOnly?: boolean
 }) {
   const patch = (next: Partial<CircuitPolicy>) => onChange({ ...value, ...next })
   const systemPressure = value.systemPressure || DEFAULT_CIRCUIT.systemPressure!
@@ -261,7 +268,7 @@ function CircuitEditor({
           min={1}
           max={100}
           value={systemPressure.maxCpuPercent}
-          disabled={!value.enabled || (!systemOnly && !systemPressure.enabled)}
+          disabled={!value.enabled || !systemPressure.enabled}
           addonAfter="%"
           onChange={(next) => patchSystemPressure({ maxCpuPercent: Number(next || 1) })}
         />
@@ -279,7 +286,7 @@ function CircuitEditor({
           min={1}
           max={100}
           value={systemPressure.maxMemoryPercent}
-          disabled={!value.enabled || (!systemOnly && !systemPressure.enabled)}
+          disabled={!value.enabled || !systemPressure.enabled}
           addonAfter="%"
           onChange={(next) => patchSystemPressure({ maxMemoryPercent: Number(next || 1) })}
         />
@@ -289,75 +296,60 @@ function CircuitEditor({
   return (
     <div className={styles.tabContent}>
       <div className={styles.sectionHeading}>
-        <Typography.Text strong>{title}</Typography.Text>
+        <div>
+          <Typography.Text strong>{title}</Typography.Text>
+          {description && <Typography.Text type="secondary">{description}</Typography.Text>}
+        </div>
         <Switch
           checked={value.enabled}
           checkedChildren="启用"
           unCheckedChildren="停用"
-          onChange={(enabled) =>
-            patch({
-              enabled,
-              ...(systemOnly
-                ? {
-                    maxCpuCores: 0,
-                    maxMemoryBytes: 0,
-                    systemPressure: { ...systemPressure, enabled },
-                  }
-                : {}),
-            })
-          }
+          onChange={(enabled) => patch({ enabled })}
         />
       </div>
-      {systemOnly ? (
-        <div className={styles.thresholdGrid}>
-          {systemThresholdFields}
-          {durationField}
-        </div>
-      ) : (
-        <div className={styles.thresholdGrid}>
-          <label className={styles.thresholdItem}>
-            <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
-              <Cpu size={17} />
-            </span>
-            <span className={styles.thresholdCopy}>
-              <strong>CPU 配额</strong>
-              <small>0.1 - 256 Core</small>
-            </span>
-            <InputNumber
-              aria-label="CPU 熔断阈值"
-              min={0.1}
-              max={256}
-              step={0.1}
-              precision={1}
-              value={value.maxCpuCores}
-              disabled={!value.enabled}
-              addonAfter="Core"
-              onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
-            />
-          </label>
-          <label className={styles.thresholdItem}>
-            <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
-              <MemoryStick size={17} />
-            </span>
-            <span className={styles.thresholdCopy}>
-              <strong>内存占用</strong>
-              <small>64 MiB - 64 GiB</small>
-            </span>
-            <InputNumber
-              aria-label="内存熔断阈值"
-              min={64}
-              max={65536}
-              step={64}
-              value={toMemoryMiB(value.maxMemoryBytes)}
-              disabled={!value.enabled}
-              addonAfter="MiB"
-              onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
-            />
-          </label>
-          {durationField}
-        </div>
-      )}
-      {showSystemPressure && !systemOnly && (
+      <div className={styles.thresholdGrid}>
+        <label className={styles.thresholdItem}>
+          <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+            <Cpu size={17} />
+          </span>
+          <span className={styles.thresholdCopy}>
+            <strong>CPU 配额</strong>
+            <small>0.1 - 256 Core</small>
+          </span>
+          <InputNumber
+            aria-label="CPU 熔断阈值"
+            min={0.1}
+            max={256}
+            step={0.1}
+            precision={1}
+            value={value.maxCpuCores}
+            disabled={!value.enabled}
+            addonAfter="Core"
+            onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
+          />
+        </label>
+        <label className={styles.thresholdItem}>
+          <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+            <MemoryStick size={17} />
+          </span>
+          <span className={styles.thresholdCopy}>
+            <strong>内存占用</strong>
+            <small>64 MiB - 64 GiB</small>
+          </span>
+          <InputNumber
+            aria-label="内存熔断阈值"
+            min={64}
+            max={65536}
+            step={64}
+            value={toMemoryMiB(value.maxMemoryBytes)}
+            disabled={!value.enabled}
+            addonAfter="MiB"
+            onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
+          />
+        </label>
+        {durationField}
+      </div>
+      {showSystemPressure && (
         <div className={styles.systemPressureSection}>
           <div className={styles.sectionHeading}>
             <div>
@@ -438,6 +430,9 @@ export default function ProbeConfigPage() {
   const isGlobal = searchParams.get('scope') === 'global'
   const isNode = Boolean(nodeId)
   const mode = isGlobal ? 'global' : isNode ? 'node' : 'batch'
+  const isClusterConfig = mode === 'batch' && Boolean(initialCluster)
+  const isKubernetesClusterConfig =
+    isClusterConfig && normalizeClusterType(initialClusterEnvironment) === 'kubernetes'
   const [nodes, setNodes] = useState<AgentNode[]>([])
   const [states, setStates] = useState<ProbeState[]>([])
   const [templates, setTemplates] = useState<AgentTemplate[]>([])
@@ -456,9 +451,12 @@ export default function ProbeConfigPage() {
   const [batchTemplateCopyName, setBatchTemplateCopyName] = useState('')
   const [batchNodeConfigs, setBatchNodeConfigs] = useState<Record<string, CurrentConfig[]>>({})
   const [batchConfigsLoading, setBatchConfigsLoading] = useState(false)
+  const [batchPreloadDraft, setBatchPreloadDraft] = useState('')
   const [currentConfigs, setCurrentConfigs] = useState<CurrentConfig[]>([])
   const [configDrafts, setConfigDrafts] = useState<Record<string, string>>({})
   const [configFileDrafts, setConfigFileDrafts] = useState<Record<string, ConfigFile[]>>({})
+  const [preloadControl, setPreloadControl] = useState<NodeInjectionControl>()
+  const [preloadDraft, setPreloadDraft] = useState('')
   const [selectedFilePath, setSelectedFilePath] = useState('')
   const [historyConfigs, setHistoryConfigs] = useState<CurrentConfig[]>([])
   const [selectedHistoryGeneration, setSelectedHistoryGeneration] = useState<number>()
@@ -468,9 +466,10 @@ export default function ProbeConfigPage() {
   const [circuit, setCircuit] = useState<CircuitPolicy>(DEFAULT_CIRCUIT)
   const [circuitSource, setCircuitSource] = useState('')
   const [circuitComponent, setCircuitComponent] = useState('')
-  const [activeTab, setActiveTab] = useState(
-    searchParams.get('section') === 'logs' ? 'logs' : 'config',
-  )
+  const [activeTab, setActiveTab] = useState(() => {
+    const section = searchParams.get('section')
+    return ['logs', 'injection'].includes(section || '') ? section! : 'config'
+  })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [records, setRecords] = useState<DeliveryRecord[]>([])
@@ -517,7 +516,11 @@ export default function ProbeConfigPage() {
   }, [initialCluster, mode])
 
   const availableProbeTypes = useMemo(() => {
-    if (isNode) return currentConfigs.map((config) => config.probeType).sort()
+    if (isNode)
+      return currentConfigs
+        .filter((config) => !isPreloadProbe(config.probeType))
+        .map((config) => config.probeType)
+        .sort()
     const values = new Set<string>()
     states.forEach((state) => {
       values.add(state.probeType)
@@ -586,21 +589,27 @@ export default function ProbeConfigPage() {
     const loadDetail = async () => {
       try {
         if (mode === 'node') {
-          const [configResult, circuitResult] = await Promise.all([
+          const [configResult, circuitResult, injectionResult] = await Promise.all([
             getNodeCurrentConfigsApi(nodeId),
             getNodeCircuitBreakerApi(nodeId),
+            getNodeInjectionControlApi(nodeId),
           ])
           const configs = ((configResult as any)?.configs || []) as CurrentConfig[]
+          const injectionControl = injectionResult as NodeInjectionControl
           setCurrentConfigs(configs)
+          setPreloadControl(injectionControl)
+          setPreloadDraft(injectionControl?.content || '')
           setConfigFileDrafts({})
           setConfigDrafts(
             Object.fromEntries(
-              configs.flatMap((config) =>
-                filesForConfig(config).map((file) => [
-                  draftKey(config.probeType, file.path),
-                  file.content,
-                ]),
-              ),
+              configs
+                .filter((config) => !isPreloadProbe(config.probeType))
+                .flatMap((config) =>
+                  filesForConfig(config).map((file) => [
+                    draftKey(config.probeType, file.path),
+                    file.content,
+                  ]),
+                ),
             ),
           )
           setCircuit(normalizeCircuitPolicy((circuitResult as any)?.circuitBreaker))
@@ -619,9 +628,12 @@ export default function ProbeConfigPage() {
   const selectedCurrentConfig = currentConfigs.find((config) => config.probeType === selectedProbe)
   const filesForDraft = (config: CurrentConfig) =>
     configFileDrafts[config.probeType] || filesForConfig(config)
+  const configPageCurrentConfigs = currentConfigs.filter(
+    (config) => !isPreloadProbe(config.probeType),
+  )
   const selectedFiles = selectedCurrentConfig ? filesForDraft(selectedCurrentConfig) : []
   const selectedFileSetKey = selectedFiles.map((file) => file.path).join('\u0000')
-  const nodeFileCount = currentConfigs.reduce(
+  const nodeFileCount = configPageCurrentConfigs.reduce(
     (count, config) => count + filesForDraft(config).length,
     0,
   )
@@ -745,6 +757,27 @@ export default function ProbeConfigPage() {
   const selectedBatchTemplate = batchTemplates.find(
     (template) => template.id === selectedBatchTemplateId,
   )
+  const batchPreloadControls = targetNodes.map((node) => {
+    const config = (batchNodeConfigs[node.id] || []).find((item) => isPreloadProbe(item.probeType))
+    return { node, config, file: preloadFileForConfig(config) }
+  })
+  const batchPreloadContents = new Set(
+    batchPreloadControls
+      .map(({ file }) => file?.content)
+      .filter((content): content is string => content !== undefined),
+  )
+  const batchPreloadContentConsistent = batchPreloadContents.size <= 1
+  const batchPreloadReady = Boolean(
+    targetNodes.length &&
+      !batchConfigsLoading &&
+      batchPreloadControls.every(({ config, file }) => config && file),
+  )
+  const batchPreloadChanged = Boolean(
+    batchPreloadReady &&
+      batchPreloadDraft &&
+      batchPreloadControls.some(({ file }) => file?.content !== batchPreloadDraft),
+  )
+  const showBatchPreloadTab = mode === 'batch' && selectedClusterType === 'vm'
   const batchFiles = useMemo<BatchPreviewFile[]>(
     () =>
       batchDraftConfigs.flatMap((config) =>
@@ -776,7 +809,9 @@ export default function ProbeConfigPage() {
       selectedClusterType === templateClusterType(selectedBatchTemplate) &&
       targetNodes.length &&
       targetNodes.every((node) => {
-        const current = batchNodeConfigs[node.id] || []
+        const current = (batchNodeConfigs[node.id] || []).filter(
+          (config) => !isPreloadProbe(config.probeType),
+        )
         const templateConfigs = batchDraftConfigs
         if (current.length !== templateConfigs.length) return false
         const currentByProbe = new Map(current.map((config) => [config.probeType, config]))
@@ -811,12 +846,25 @@ export default function ProbeConfigPage() {
   }, [mode, selectedBatchTemplateId, selectedBatchTemplate?.version])
 
   useEffect(() => {
+    if (!showBatchPreloadTab) {
+      setBatchPreloadDraft('')
+      return
+    }
+    const contents = new Set(
+      batchPreloadControls
+        .map(({ file }) => file?.content)
+        .filter((content) => content !== undefined),
+    )
+    setBatchPreloadDraft([...contents][0] || '')
+  }, [batchNodeConfigs, showBatchPreloadTab])
+
+  useEffect(() => {
     setSelectedBatchFileKey((current) =>
       batchFiles.some((file) => file.key === current) ? current : batchFiles[0]?.key || '',
     )
   }, [batchFiles])
 
-  const nodeConfigChanged = currentConfigs.some((config) => {
+  const nodeFileConfigChanged = configPageCurrentConfigs.some((config) => {
     const original = filesForConfig(config)
     const draft = filesForDraft(config)
     const originalByPath = new Map(original.map((file) => [file.path, file.content]))
@@ -845,12 +893,16 @@ export default function ProbeConfigPage() {
     ])
   }
 
-  const saveNodeConfig = async () => {
-    if (!currentConfigs.length) return
+  const saveNodeConfigGroup = async (
+    configsToSave: CurrentConfig[],
+    recordTarget: string,
+    successMessage: string,
+  ) => {
+    if (!configsToSave.length) return
     setSaving(true)
     try {
-      const result: any = await updateNodeCurrentConfigsApi(nodeId, {
-        configs: currentConfigs.map((config) => ({
+      const result: any = await updateNodeProbeConfigsApi(nodeId, {
+        configs: configsToSave.map((config) => ({
           probeType: config.probeType,
           files: filesForDraft(config).map((file) => ({
             path: file.path,
@@ -860,26 +912,39 @@ export default function ProbeConfigPage() {
         })),
       })
       const configs = (result?.configs || []) as CurrentConfig[]
+      const savedProbes = new Set(configsToSave.map((config) => config.probeType.toLowerCase()))
       setCurrentConfigs(configs)
-      setConfigFileDrafts({})
-      setConfigDrafts(
+      setConfigFileDrafts((current) =>
         Object.fromEntries(
-          configs.flatMap((config) =>
-            filesForConfig(config).map((file) => [
-              draftKey(config.probeType, file.path),
-              file.content,
-            ]),
+          Object.entries(current).filter(
+            ([probeType]) => !savedProbes.has(probeType.toLowerCase()),
           ),
         ),
       )
-      addRecord('CONFIG', nodeId, { succeededCount: 1, targetNodeCount: 1 })
-      notify({ type: 'success', message: '节点配置已保存并下发' })
+      setConfigDrafts((current) => ({
+        ...current,
+        ...Object.fromEntries(
+          configs
+            .filter((config) => savedProbes.has(config.probeType.toLowerCase()))
+            .flatMap((config) =>
+              filesForConfig(config).map((file) => [
+                draftKey(config.probeType, file.path),
+                file.content,
+              ]),
+            ),
+        ),
+      }))
+      addRecord('CONFIG', recordTarget, { succeededCount: 1, targetNodeCount: 1 })
+      notify({ type: 'success', message: successMessage })
     } catch (error: any) {
-      notify({ type: 'error', message: error.message || '节点配置保存失败' })
+      notify({ type: 'error', message: error.message || '配置保存下发失败' })
     } finally {
       setSaving(false)
     }
   }
+
+  const saveNodeConfig = () =>
+    saveNodeConfigGroup(configPageCurrentConfigs, `${nodeId} · 配置文件`, '配置文件已保存并下发')
 
   const loadHistory = () => {
     const history = historyConfigs.find((config) => config.generation === selectedHistoryGeneration)
@@ -897,10 +962,14 @@ export default function ProbeConfigPage() {
 
   const loadTemplateIntoNode = () => {
     if (!selectedTemplate) return
-    const templateConfigs = configsForTemplate(selectedTemplate)
-    const currentByProbe = new Map(currentConfigs.map((config) => [config.probeType, config]))
+    const templateConfigs = configsForTemplate(selectedTemplate).filter(
+      (config) => !isPreloadProbe(config.probeType),
+    )
+    const currentByProbe = new Map(
+      configPageCurrentConfigs.map((config) => [config.probeType, config]),
+    )
     const complete =
-      templateConfigs.length === currentConfigs.length &&
+      templateConfigs.length === configPageCurrentConfigs.length &&
       templateConfigs.every((config) => {
         const current = currentByProbe.get(config.probeType)
         if (!current) return false
@@ -1039,7 +1108,7 @@ export default function ProbeConfigPage() {
       } else {
         result = await batchUpdateCircuitBreakerApi({
           clusterIds: selectedClusters,
-          circuitBreaker: clusterCircuitPolicy(circuit),
+          circuitBreaker: normalizeCircuitPolicy(circuit),
         })
         target = selectedClusters.join(', ')
       }
@@ -1081,6 +1150,96 @@ export default function ProbeConfigPage() {
     ? configDrafts[draftKey(selectedProbe, selectedFile.path)] ?? selectedFile.content
     : ''
   const selectedLanguage = languageForPath(selectedFilePath)
+  const preloadConfigChanged = Boolean(
+    preloadControl?.available && preloadDraft !== preloadControl.content,
+  )
+  const hasPreloadControl =
+    mode === 'node' &&
+    !isK8sEnvironment(inheritedClusterEnvironment) &&
+    Boolean(preloadControl?.available)
+
+  useEffect(() => {
+    if (
+      activeTab === 'injection' &&
+      !hasPreloadControl &&
+      !showBatchPreloadTab &&
+      !isKubernetesClusterConfig
+    ) {
+      setActiveTab('config')
+    }
+  }, [activeTab, hasPreloadControl, isKubernetesClusterConfig, showBatchPreloadTab])
+
+  const updatePreloadConfigContent = (content: string) => {
+    if (!preloadControl?.available) return
+    setPreloadDraft(content)
+  }
+  const savePreloadConfig = async () => {
+    if (!preloadControl?.available) return
+    setSaving(true)
+    try {
+      const saved = (await updateNodeInjectionControlApi(nodeId, {
+        content: preloadDraft,
+        expectedGeneration: preloadControl.generation,
+      })) as NodeInjectionControl
+      setPreloadControl(saved)
+      setPreloadDraft(saved.content || '')
+      addRecord('CONFIG', `${nodeId} · 注入控制`, {
+        succeededCount: 1,
+        targetNodeCount: 1,
+      })
+      notify({ type: 'success', message: '注入控制已保存并下发' })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || '注入控制保存下发失败' })
+    } finally {
+      setSaving(false)
+    }
+  }
+  const saveBatchPreloadConfig = async () => {
+    if (!batchPreloadReady || !batchPreloadChanged) return
+    setSaving(true)
+    try {
+      const result: any = await batchUpdateNodeInjectionControlApi({
+        clusterIds: selectedClusters,
+        content: batchPreloadDraft,
+        expectedGenerations: Object.fromEntries(
+          batchPreloadControls.map(({ node, config }) => [node.id, config!.generation]),
+        ),
+      })
+      setBatchNodeConfigs((current) =>
+        Object.fromEntries(
+          Object.entries(current).map(([targetNodeID, configs]) => [
+            targetNodeID,
+            configs.map((config) => {
+              if (!isPreloadProbe(config.probeType)) return config
+              const changed = filesForConfig(config).some(
+                (file) =>
+                  file.path.split('/').at(-1) === 'libapoinstrument.conf' &&
+                  file.content !== batchPreloadDraft,
+              )
+              return {
+                ...config,
+                generation: config.generation + (changed ? 1 : 0),
+                files: filesForConfig(config).map((file) =>
+                  file.path.split('/').at(-1) === 'libapoinstrument.conf'
+                    ? { ...file, content: batchPreloadDraft }
+                    : file,
+                ),
+              }
+            }),
+          ]),
+        ),
+      )
+      addRecord('CONFIG', `${selectedClusters.join(', ')} · 注入控制`, result)
+      notify({
+        type: 'success',
+        message: `注入控制已下发到 ${result.succeededCount} 个节点`,
+      })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || '批量注入控制下发失败' })
+    } finally {
+      setSaving(false)
+    }
+  }
   const selectedTemplateConfig = templateDraftConfigs.find(
     (config) => config.probeType === selectedTemplateProbe,
   )
@@ -1148,7 +1307,6 @@ export default function ProbeConfigPage() {
     })
   }
 
-  const isClusterConfig = mode === 'batch' && Boolean(initialCluster)
   const title =
     mode === 'global'
       ? '默认配置'
@@ -1163,8 +1321,8 @@ export default function ProbeConfigPage() {
       : mode === 'node'
         ? '修改当前节点配置'
         : isClusterConfig
-          ? '管理当前集群的配置文件、日志采集和熔断策略'
-          : '选择目标集群和配置方案，将完整配置统一下发至集群节点'
+          ? '批量管理当前集群各节点的配置文件、注入控制、日志采集和熔断策略'
+          : '选择目标集群，分别下发配置文件和各项独立控制'
 
   const configTab =
     mode === 'batch' ? (
@@ -1407,12 +1565,12 @@ export default function ProbeConfigPage() {
                 <div>
                   <Typography.Text strong>配置文件</Typography.Text>
                   <Typography.Text type="secondary">
-                    {currentConfigs.length} 个组件 · {nodeFileCount} 个文件
+                    {configPageCurrentConfigs.length} 个组件 · {nodeFileCount} 个文件
                   </Typography.Text>
                 </div>
               </div>
               <Tree
-                key={currentConfigs
+                key={configPageCurrentConfigs
                   .flatMap((config) =>
                     filesForDraft(config).map((file) => `${config.probeType}:${file.path}`),
                   )
@@ -1426,7 +1584,7 @@ export default function ProbeConfigPage() {
                     ? [draftKey(selectedProbe, selectedFilePath)]
                     : []
                 }
-                treeData={currentConfigs.map((config) => ({
+                treeData={configPageCurrentConfigs.map((config) => ({
                   key: `probe:${config.probeType}`,
                   selectable: false,
                   title: (
@@ -1559,14 +1717,17 @@ export default function ProbeConfigPage() {
         <div className={styles.editorFooter}>
           {mode === 'node' && (
             <Typography.Text type="secondary">
-              {currentConfigs.length} 个组件 · {nodeFileCount} 个配置文件将一次下发
+              {configPageCurrentConfigs.length} 个组件 · {nodeFileCount} 个配置文件作为本页独立
+              Release 组下发
             </Typography.Text>
           )}
           <Button
             type="primary"
             icon={<Save size={15} />}
             loading={saving}
-            disabled={mode === 'node' ? !nodeConfigChanged : !selectedTemplate || !templateChanged}
+            disabled={
+              mode === 'node' ? !nodeFileConfigChanged : !selectedTemplate || !templateChanged
+            }
             onClick={mode === 'node' ? saveNodeConfig : saveTemplate}
           >
             {mode === 'node' ? '保存并下发到当前节点' : '保存配置模版'}
@@ -1600,6 +1761,73 @@ export default function ProbeConfigPage() {
       />
     ) : null
 
+  const injectionTab = isKubernetesClusterConfig ? (
+    <InjectionControlPanel clusterId={initialCluster} />
+  ) : showBatchPreloadTab ? (
+    <div className={styles.tabContent}>
+      <div className={styles.injectionTargetRow}>
+        <label>
+          <span>目标集群</span>
+          <Select
+            mode="multiple"
+            value={selectedClusters}
+            onChange={setSelectedClusters}
+            options={clusterOptions.map((value) => ({ value, label: value }))}
+          />
+        </label>
+      </div>
+      <div className={styles.injectionWorkspace}>
+        <PreloadConfigEditor
+          content={batchPreloadDraft}
+          onChange={setBatchPreloadDraft}
+          readOnly={!batchPreloadReady}
+        />
+      </div>
+      <div className={`${styles.editorFooter} ${styles.injectionFooter}`}>
+        <Typography.Text type={batchPreloadReady ? 'secondary' : 'danger'}>
+          {batchConfigsLoading
+            ? '正在读取目标节点注入配置'
+            : !targetCount
+              ? '请选择至少一个 VM 集群'
+              : !batchPreloadReady
+                ? '部分目标节点未注册 preload 注入配置，无法批量下发'
+                : !batchPreloadContentConsistent
+                  ? '目标节点当前注入配置不一致，当前以第一个目标节点为草稿，保存后将统一覆盖'
+                  : `${targetCount} 个节点使用独立注入控制接口原子下发，不生成可回滚历史`}
+        </Typography.Text>
+        <Button
+          type="primary"
+          icon={<Send size={15} />}
+          loading={saving}
+          disabled={!batchPreloadChanged}
+          onClick={saveBatchPreloadConfig}
+        >
+          下发到所选集群
+        </Button>
+      </div>
+    </div>
+  ) : hasPreloadControl ? (
+    <div className={styles.tabContent}>
+      <div className={styles.injectionWorkspace}>
+        <PreloadConfigEditor content={preloadDraft} onChange={updatePreloadConfigContent} />
+      </div>
+      <div className={`${styles.editorFooter} ${styles.injectionFooter}`}>
+        <Typography.Text type="secondary">
+          使用独立注入控制接口下发，不生成可回滚的配置历史
+        </Typography.Text>
+        <Button
+          type="primary"
+          icon={<Save size={15} />}
+          loading={saving}
+          disabled={!preloadConfigChanged}
+          onClick={savePreloadConfig}
+        >
+          保存并下发注入配置
+        </Button>
+      </div>
+    </div>
+  ) : null
+
   const circuitTab = (
     <div className={styles.tabContent}>
       {mode === 'node' && (
@@ -1621,11 +1849,15 @@ export default function ProbeConfigPage() {
         </div>
       )}
       <CircuitEditor
-        title={mode === 'batch' ? '集群系统资源熔断' : '探针消耗资源熔断'}
+        title={mode === 'batch' ? '批量节点熔断策略' : '探针消耗资源熔断'}
+        description={
+          mode === 'batch'
+            ? '同一策略批量设置到所选集群的每个节点，由各节点独立判断和熔断'
+            : undefined
+        }
         value={concreteCircuitPolicy(circuit)}
         onChange={updateNodeCircuitPolicy}
-        showSystemPressure={mode !== 'batch'}
-        systemOnly={mode === 'batch'}
+        showSystemPressure
       />
       {!!circuitComponentTypes.length && (
         <Collapse
@@ -1732,6 +1964,15 @@ export default function ProbeConfigPage() {
           onChange={setActiveTab}
           items={[
             { key: 'config', label: '配置文件', children: configTab },
+            ...(isKubernetesClusterConfig || showBatchPreloadTab || hasPreloadControl
+              ? [
+                  {
+                    key: 'injection',
+                    label: '注入控制',
+                    children: injectionTab,
+                  },
+                ]
+              : []),
             ...(mode === 'global'
               ? []
               : [{ key: 'logs', label: '日志采集', children: logCollectionTab }]),

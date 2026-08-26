@@ -1,9 +1,11 @@
 package agentconfig
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -20,10 +22,8 @@ const (
 	logCollectionScopeNode      = "node"
 	logCollectionScopeCluster   = "cluster"
 	defaultK8sContainerSourceID = "k8s-default-container-stdout"
-	maxLogBytesPerMinute        = int64(1 << 40)
+	maxLogEventsPerSecond       = int64(1_000_000_000)
 )
-
-var defaultExcludedNamespaces = []string{"syncause", "apo", "kube-system"}
 
 type HostFileSource struct {
 	ID                string `json:"id"`
@@ -34,23 +34,43 @@ type HostFileSource struct {
 	FilePattern       string `json:"filePattern"`
 }
 
+type FilterMap map[string]string
+
+func (filterMap *FilterMap) UnmarshalJSON(data []byte) error {
+	var values map[string]string
+	if err := json.Unmarshal(data, &values); err == nil {
+		*filterMap = values
+		return nil
+	}
+
+	var legacy string
+	if err := json.Unmarshal(data, &legacy); err != nil {
+		return errors.New("filter map must be an object")
+	}
+	values, err := parseFilterMap("legacy", legacy)
+	if err != nil {
+		return err
+	}
+	*filterMap = values
+	return nil
+}
+
 type ContainerStdoutSource struct {
-	ID                    string   `json:"id"`
-	Name                  string   `json:"name"`
-	Enabled               bool     `json:"enabled"`
-	NamespaceRegex        string   `json:"namespaceRegex"`
-	ExcludeNamespaces     []string `json:"excludeNamespaces"`
-	PodRegex              string   `json:"podRegex"`
-	ContainerRegex        string   `json:"containerRegex"`
-	IncludeK8sLabel       string   `json:"includeK8sLabel"`
-	ExcludeK8sLabel       string   `json:"excludeK8sLabel"`
-	IncludeEnv            string   `json:"includeEnv"`
-	ExcludeEnv            string   `json:"excludeEnv"`
-	IncludeContainerLabel string   `json:"includeContainerLabel"`
-	ExcludeContainerLabel string   `json:"excludeContainerLabel"`
-	CollectStdout         bool     `json:"collectStdout"`
-	CollectStderr         bool     `json:"collectStderr"`
-	MaxBytesPerMinute     int64    `json:"maxBytesPerMinute"`
+	ID                    string    `json:"id"`
+	Name                  string    `json:"name"`
+	Enabled               bool      `json:"enabled"`
+	NamespaceRegex        string    `json:"namespaceRegex"`
+	PodRegex              string    `json:"podRegex"`
+	ContainerRegex        string    `json:"containerRegex"`
+	IncludeK8sLabel       string    `json:"includeK8sLabel"`
+	ExcludeK8sLabel       FilterMap `json:"excludeK8sLabel"`
+	IncludeEnv            string    `json:"includeEnv"`
+	ExcludeEnv            string    `json:"excludeEnv"`
+	IncludeContainerLabel string    `json:"includeContainerLabel"`
+	ExcludeContainerLabel string    `json:"excludeContainerLabel"`
+	CollectStdout         bool      `json:"collectStdout"`
+	CollectStderr         bool      `json:"collectStderr"`
+	MaxEventsPerSecond    int64     `json:"maxEventsPerSecond"`
 }
 
 type HostFileCollectionInput struct {
@@ -59,11 +79,15 @@ type HostFileCollectionInput struct {
 
 type ContainerStdoutCollectionInput struct {
 	ContainerStdout []ContainerStdoutSource `json:"containerStdout"`
+	HostFiles       []HostFileSource        `json:"hostFiles"`
 }
 
 type RenderedLogCollectionFile struct {
-	Path    string `json:"path"`
-	Content string `json:"content"`
+	Path           string `json:"path"`
+	Content        string `json:"content"`
+	InputCount     int    `json:"inputCount"`
+	ProcessorCount int    `json:"processorCount"`
+	FlusherCount   int    `json:"flusherCount"`
 }
 
 type LogCollectionPreview struct {
@@ -73,10 +97,14 @@ type LogCollectionPreview struct {
 }
 
 type HostFileCollection struct {
-	ScopeType string           `json:"scopeType"`
-	ScopeID   string           `json:"scopeId"`
-	Version   int64            `json:"version"`
-	HostFiles []HostFileSource `json:"hostFiles"`
+	ScopeType      string           `json:"scopeType"`
+	ScopeID        string           `json:"scopeId"`
+	Version        int64            `json:"version"`
+	HostFiles      []HostFileSource `json:"hostFiles"`
+	ProcessingRule string           `json:"processingRule"`
+	OutputRule     string           `json:"outputRule"`
+	ProcessorCount int              `json:"processorCount"`
+	OutputCount    int              `json:"outputCount"`
 }
 
 type ContainerStdoutCollection struct {
@@ -84,16 +112,16 @@ type ContainerStdoutCollection struct {
 	ScopeID         string                  `json:"scopeId"`
 	Version         int64                   `json:"version"`
 	ContainerStdout []ContainerStdoutSource `json:"containerStdout"`
+	HostFiles       []HostFileSource        `json:"hostFiles"`
+	ProcessingRule  string                  `json:"processingRule"`
+	OutputRule      string                  `json:"outputRule"`
+	ProcessorCount  int                     `json:"processorCount"`
+	OutputCount     int                     `json:"outputCount"`
 }
 
 type logCollectionRepository interface {
 	GetLogCollectionConfig(core.Context, string, string) (*ac.LogCollectionConfig, error)
 	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig) error
-}
-
-type hostFilePipeline struct {
-	Enable bool            `yaml:"enable"`
-	Inputs []hostFileInput `yaml:"inputs"`
 }
 
 type hostFileInput struct {
@@ -103,15 +131,9 @@ type hostFileInput struct {
 	AllowingIncludedByMultiConfigs bool     `yaml:"AllowingIncludedByMultiConfigs"`
 }
 
-type containerStdoutPipeline struct {
-	Enable     bool                       `yaml:"enable"`
-	Inputs     []containerStdoutInput     `yaml:"inputs"`
-	Processors []containerStdoutProcessor `yaml:"processors,omitempty"`
-}
-
 type containerStdoutProcessor struct {
-	Type                string `yaml:"Type"`
-	LimitBytesPerMinute int64  `yaml:"LimitBytesPerMinute"`
+	Type  string `yaml:"Type"`
+	Limit string `yaml:"Limit"`
 }
 
 type containerStdoutInput struct {
@@ -132,6 +154,25 @@ type containerFilters struct {
 	IncludeContainerLabel map[string]string `yaml:"IncludeContainerLabel,omitempty"`
 	ExcludeContainerLabel map[string]string `yaml:"ExcludeContainerLabel,omitempty"`
 }
+
+type logPipelineBase struct {
+	Path       string
+	Global     *yaml.Node
+	Processors *yaml.Node
+	Flushers   *yaml.Node
+	InputTypes []string
+}
+
+var (
+	hostFileInputTypes = map[string]struct{}{
+		"input_file": {},
+		"file_log":   {},
+	}
+	containerStdoutInputTypes = map[string]struct{}{
+		"input_container_stdio": {},
+		"service_docker_stdout": {},
+	}
+)
 
 func (s *Service) logCollectionRepo() (logCollectionRepository, error) {
 	repo, ok := s.repo.(logCollectionRepository)
@@ -182,6 +223,24 @@ func parseFilterMap(label, value string) (map[string]string, error) {
 	}
 	if len(result) == 0 {
 		return nil, nil
+	}
+	return result, nil
+}
+
+func normalizeFilterMap(label string, values FilterMap) (FilterMap, error) {
+	if len(values) == 0 {
+		return nil, nil
+	}
+	result := make(FilterMap, len(values))
+	for key, value := range values {
+		key = strings.TrimSpace(key)
+		if key == "" {
+			return nil, fmt.Errorf("%s filter key is required", label)
+		}
+		if _, exists := result[key]; exists {
+			return nil, fmt.Errorf("%s filter key %s is duplicated", label, key)
+		}
+		result[key] = strings.TrimSpace(value)
 	}
 	return result, nil
 }
@@ -254,21 +313,9 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		source.ID = normalizeSourceID(source.ID)
 		source.Name = strings.TrimSpace(source.Name)
 		source.NamespaceRegex = strings.TrimSpace(source.NamespaceRegex)
-		excludedNamespaces := make([]string, 0, len(source.ExcludeNamespaces))
-		seenNamespaces := map[string]bool{}
-		for _, namespace := range source.ExcludeNamespaces {
-			namespace = strings.TrimSpace(namespace)
-			if namespace == "" || seenNamespaces[namespace] {
-				continue
-			}
-			seenNamespaces[namespace] = true
-			excludedNamespaces = append(excludedNamespaces, namespace)
-		}
-		source.ExcludeNamespaces = excludedNamespaces
 		source.PodRegex = strings.TrimSpace(source.PodRegex)
 		source.ContainerRegex = strings.TrimSpace(source.ContainerRegex)
 		source.IncludeK8sLabel = strings.TrimSpace(source.IncludeK8sLabel)
-		source.ExcludeK8sLabel = strings.TrimSpace(source.ExcludeK8sLabel)
 		source.IncludeEnv = strings.TrimSpace(source.IncludeEnv)
 		source.ExcludeEnv = strings.TrimSpace(source.ExcludeEnv)
 		source.IncludeContainerLabel = strings.TrimSpace(source.IncludeContainerLabel)
@@ -284,17 +331,16 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		if source.Name == "" {
 			return nil, errors.New("container stdout source name is required")
 		}
+		var err error
+		source.ExcludeK8sLabel, err = normalizeFilterMap("exclude Pod label", source.ExcludeK8sLabel)
+		if err != nil {
+			return nil, fmt.Errorf("invalid filter for %s: %v", source.Name, err)
+		}
 		if !source.CollectStdout && !source.CollectStderr {
 			return nil, fmt.Errorf("%s must collect stdout or stderr", source.Name)
 		}
-		if source.MaxBytesPerMinute < 0 || source.MaxBytesPerMinute > maxLogBytesPerMinute {
-			return nil, fmt.Errorf("maximum log bytes per minute for %s must be between 0 and %d", source.Name, maxLogBytesPerMinute)
-		}
-		if source.NamespaceRegex != "" && len(source.ExcludeNamespaces) > 0 {
-			return nil, fmt.Errorf("%s cannot use namespace regular expression and excluded namespaces together", source.Name)
-		}
-		if _, err := namespaceRegexExcluding(source.ExcludeNamespaces); err != nil {
-			return nil, fmt.Errorf("invalid excluded namespace for %s: %v", source.Name, err)
+		if source.MaxEventsPerSecond < 0 || source.MaxEventsPerSecond > maxLogEventsPerSecond {
+			return nil, fmt.Errorf("maximum log events per second for %s must be between 0 and %d", source.Name, maxLogEventsPerSecond)
 		}
 		for label, expression := range map[string]string{
 			"namespace": source.NamespaceRegex,
@@ -309,7 +355,6 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		}
 		for label, value := range map[string]string{
 			"include Pod label":       source.IncludeK8sLabel,
-			"exclude Pod label":       source.ExcludeK8sLabel,
 			"include environment":     source.IncludeEnv,
 			"exclude environment":     source.ExcludeEnv,
 			"include container label": source.IncludeContainerLabel,
@@ -329,7 +374,337 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 	return result, nil
 }
 
-func renderHostFiles(sources []HostFileSource) ([]RenderedLogCollectionFile, error) {
+func hasEnabledHostFileSource(sources []HostFileSource) bool {
+	for _, source := range sources {
+		if source.Enabled {
+			return true
+		}
+	}
+	return false
+}
+
+func hasEnabledContainerStdoutSource(sources []ContainerStdoutSource) bool {
+	for _, source := range sources {
+		if source.Enabled {
+			return true
+		}
+	}
+	return false
+}
+
+func yamlMappingValue(node *yaml.Node, key string) *yaml.Node {
+	if node == nil {
+		return nil
+	}
+	if node.Kind == yaml.DocumentNode {
+		if len(node.Content) == 0 {
+			return nil
+		}
+		return yamlMappingValue(node.Content[0], key)
+	}
+	if node.Kind != yaml.MappingNode {
+		return nil
+	}
+	for index := 0; index+1 < len(node.Content); index += 2 {
+		if node.Content[index].Value == key {
+			return node.Content[index+1]
+		}
+	}
+	return nil
+}
+
+func cloneYAMLNode(node *yaml.Node) *yaml.Node {
+	if node == nil {
+		return nil
+	}
+	copy := *node
+	copy.Content = make([]*yaml.Node, len(node.Content))
+	for index, child := range node.Content {
+		copy.Content[index] = cloneYAMLNode(child)
+	}
+	return &copy
+}
+
+func clearYAMLComments(node *yaml.Node) {
+	if node == nil {
+		return
+	}
+	node.HeadComment = ""
+	node.LineComment = ""
+	node.FootComment = ""
+	for _, child := range node.Content {
+		clearYAMLComments(child)
+	}
+}
+
+func yamlValueNode(value any) (*yaml.Node, error) {
+	content, err := yaml.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	var document yaml.Node
+	if err := yaml.Unmarshal(content, &document); err != nil {
+		return nil, err
+	}
+	if len(document.Content) != 1 {
+		return nil, errors.New("generated YAML value is empty")
+	}
+	return document.Content[0], nil
+}
+
+func yamlScalar(value string) *yaml.Node {
+	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: value}
+}
+
+func yamlBool(value bool) *yaml.Node {
+	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!bool", Value: fmt.Sprintf("%t", value)}
+}
+
+func parseLogPipelineBase(path, content string) (*logPipelineBase, error) {
+	var document yaml.Node
+	if err := yaml.Unmarshal([]byte(content), &document); err != nil {
+		return nil, err
+	}
+	if len(document.Content) != 1 || document.Content[0].Kind != yaml.MappingNode {
+		return nil, nil
+	}
+	root := document.Content[0]
+	flushers := yamlMappingValue(root, "flushers")
+	if flushers == nil || flushers.Kind != yaml.SequenceNode || len(flushers.Content) == 0 {
+		return nil, nil
+	}
+	inputTypes := []string{}
+	if inputs := yamlMappingValue(root, "inputs"); inputs != nil && inputs.Kind == yaml.SequenceNode {
+		for _, input := range inputs.Content {
+			if inputType := yamlMappingValue(input, "Type"); inputType != nil {
+				inputTypes = append(inputTypes, inputType.Value)
+			}
+		}
+	}
+	processors := yamlMappingValue(root, "processors")
+	if processors != nil && processors.Kind != yaml.SequenceNode {
+		return nil, fmt.Errorf("processors in %s must be a list", path)
+	}
+	return &logPipelineBase{
+		Path:       path,
+		Global:     cloneYAMLNode(yamlMappingValue(root, "global")),
+		Processors: cloneYAMLNode(processors),
+		Flushers:   cloneYAMLNode(flushers),
+		InputTypes: inputTypes,
+	}, nil
+}
+
+func pipelineMatchScore(base *logPipelineBase, preferredInputTypes map[string]struct{}) int {
+	score := 1
+	for _, inputType := range base.InputTypes {
+		if _, matched := preferredInputTypes[inputType]; matched {
+			return 2
+		}
+	}
+	return score
+}
+
+func (s *Service) nodeLogPipelineBase(ctx core.Context, nodeID string, preferredInputTypes map[string]struct{}) (*logPipelineBase, error) {
+	initial, err := s.repo.GetAgentInitialConfig(ctx, nodeID, "ilogtail")
+	if err != nil {
+		return nil, fmt.Errorf("get iLogtail initial config for node %s: %w", nodeID, err)
+	}
+	var files []ac.InitialConfigFile
+	if err := json.Unmarshal(initial.Files, &files); err != nil {
+		return nil, fmt.Errorf("decode iLogtail initial config for node %s: %w", nodeID, err)
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+	var selected *logPipelineBase
+	selectedScore := 0
+	for _, file := range files {
+		candidate, parseErr := parseLogPipelineBase(file.Path, file.Content)
+		if parseErr != nil {
+			log.Printf("agentconfig: skip invalid iLogtail pipeline candidate node=%s path=%s error=%v", nodeID, file.Path, parseErr)
+			continue
+		}
+		if candidate == nil {
+			continue
+		}
+		score := pipelineMatchScore(candidate, preferredInputTypes)
+		if score > selectedScore {
+			selected = candidate
+			selectedScore = score
+		}
+	}
+	if selected == nil {
+		return nil, fmt.Errorf("node %s iLogtail initial config has no pipeline with flushers", nodeID)
+	}
+	if selectedScore == 1 {
+		log.Printf("agentconfig: use non-matching iLogtail pipeline as common preview base node=%s path=%s", nodeID, selected.Path)
+	}
+	return selected, nil
+}
+
+func pipelineBaseSignature(base *logPipelineBase) (string, error) {
+	root := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+	if base.Global != nil {
+		root.Content = append(root.Content, yamlScalar("global"), cloneYAMLNode(base.Global))
+	}
+	if base.Processors != nil {
+		root.Content = append(root.Content, yamlScalar("processors"), cloneYAMLNode(base.Processors))
+	}
+	root.Content = append(root.Content, yamlScalar("flushers"), cloneYAMLNode(base.Flushers))
+	clearYAMLComments(root)
+	content, err := yaml.Marshal(&yaml.Node{Kind: yaml.DocumentNode, Content: []*yaml.Node{root}})
+	return string(content), err
+}
+
+func renderPipelineRule(key string, value *yaml.Node) (string, int, error) {
+	if value == nil || value.Kind != yaml.SequenceNode || len(value.Content) == 0 {
+		return "", 0, nil
+	}
+	root := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{
+		yamlScalar(key), cloneYAMLNode(value),
+	}}
+	var buffer bytes.Buffer
+	encoder := yaml.NewEncoder(&buffer)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&yaml.Node{Kind: yaml.DocumentNode, Content: []*yaml.Node{root}}); err != nil {
+		return "", 0, err
+	}
+	if err := encoder.Close(); err != nil {
+		return "", 0, err
+	}
+	return buffer.String(), len(value.Content), nil
+}
+
+func pipelineRules(base *logPipelineBase) (string, string, int, int, error) {
+	processingRule, processorCount, err := renderPipelineRule("processors", base.Processors)
+	if err != nil {
+		return "", "", 0, 0, err
+	}
+	outputRule, outputCount, err := renderPipelineRule("flushers", base.Flushers)
+	if err != nil {
+		return "", "", 0, 0, err
+	}
+	return processingRule, outputRule, processorCount, outputCount, nil
+}
+
+func (s *Service) attachHostPipelineRules(ctx core.Context, collection *HostFileCollection) {
+	base, err := s.nodeLogPipelineBase(ctx, collection.ScopeID, hostFileInputTypes)
+	if err != nil {
+		log.Printf("agentconfig: host collection pipeline defaults unavailable node=%s error=%v", collection.ScopeID, err)
+		return
+	}
+	processingRule, outputRule, processorCount, outputCount, err := pipelineRules(base)
+	if err != nil {
+		log.Printf("agentconfig: render host collection pipeline defaults node=%s error=%v", collection.ScopeID, err)
+		return
+	}
+	collection.ProcessingRule = processingRule
+	collection.OutputRule = outputRule
+	collection.ProcessorCount = processorCount
+	collection.OutputCount = outputCount
+}
+
+func (s *Service) attachContainerPipelineRules(ctx core.Context, collection *ContainerStdoutCollection) {
+	base, err := s.clusterLogPipelineBase(ctx, collection.ScopeID, containerStdoutInputTypes)
+	if err != nil {
+		log.Printf("agentconfig: container collection pipeline defaults unavailable cluster=%s error=%v", collection.ScopeID, err)
+		return
+	}
+	processingRule, outputRule, processorCount, outputCount, err := pipelineRules(base)
+	if err != nil {
+		log.Printf("agentconfig: render container collection pipeline defaults cluster=%s error=%v", collection.ScopeID, err)
+		return
+	}
+	collection.ProcessingRule = processingRule
+	collection.OutputRule = outputRule
+	collection.ProcessorCount = processorCount
+	collection.OutputCount = outputCount
+}
+
+func (s *Service) clusterLogPipelineBase(ctx core.Context, clusterID string, preferredInputTypes map[string]struct{}) (*logPipelineBase, error) {
+	nodes, err := s.repo.ListAgentNodes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
+	var selected *logPipelineBase
+	selectedSignature := ""
+	selectedNodeID := ""
+	for _, node := range nodes {
+		if node.ClusterID != clusterID {
+			continue
+		}
+		base, err := s.nodeLogPipelineBase(ctx, node.ID, preferredInputTypes)
+		if err != nil {
+			return nil, err
+		}
+		signature, err := pipelineBaseSignature(base)
+		if err != nil {
+			return nil, err
+		}
+		if selected == nil {
+			selected = base
+			selectedSignature = signature
+			selectedNodeID = node.ID
+			continue
+		}
+		if signature != selectedSignature {
+			return nil, fmt.Errorf("cluster %s has inconsistent iLogtail processors or flushers between nodes %s and %s", clusterID, selectedNodeID, node.ID)
+		}
+	}
+	if selected == nil {
+		return nil, fmt.Errorf("cluster %s has no iLogtail pipeline available for preview", clusterID)
+	}
+	return selected, nil
+}
+
+func renderLogPipeline(inputs any, base *logPipelineBase, maxEventsPerSecond int64) (string, int, int, error) {
+	inputNode, err := yamlValueNode(inputs)
+	if err != nil {
+		return "", 0, 0, err
+	}
+	if inputNode.Kind != yaml.SequenceNode {
+		return "", 0, 0, errors.New("generated inputs must be a list")
+	}
+	root := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+	root.Content = append(root.Content, yamlScalar("enable"), yamlBool(true))
+	if base.Global != nil {
+		root.Content = append(root.Content, yamlScalar("global"), cloneYAMLNode(base.Global))
+	}
+	root.Content = append(root.Content, yamlScalar("inputs"), inputNode)
+
+	processors := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
+	if base.Processors != nil {
+		for _, processor := range base.Processors.Content {
+			if processorType := yamlMappingValue(processor, "Type"); processorType != nil && processorType.Value == "processor_rate_limit" {
+				continue
+			}
+			processors.Content = append(processors.Content, cloneYAMLNode(processor))
+		}
+	}
+	if maxEventsPerSecond > 0 {
+		rateLimit, err := yamlValueNode(containerStdoutProcessor{Type: "processor_rate_limit", Limit: fmt.Sprintf("%d/s", maxEventsPerSecond)})
+		if err != nil {
+			return "", 0, 0, err
+		}
+		processors.Content = append(processors.Content, rateLimit)
+	}
+	if len(processors.Content) > 0 {
+		root.Content = append(root.Content, yamlScalar("processors"), processors)
+	}
+	root.Content = append(root.Content, yamlScalar("flushers"), cloneYAMLNode(base.Flushers))
+
+	var buffer bytes.Buffer
+	encoder := yaml.NewEncoder(&buffer)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&yaml.Node{Kind: yaml.DocumentNode, Content: []*yaml.Node{root}}); err != nil {
+		return "", 0, 0, err
+	}
+	if err := encoder.Close(); err != nil {
+		return "", 0, 0, err
+	}
+	return buffer.String(), len(processors.Content), len(base.Flushers.Content), nil
+}
+
+func renderHostFiles(sources []HostFileSource, base *logPipelineBase) ([]RenderedLogCollectionFile, error) {
 	files := make([]RenderedLogCollectionFile, 0, len(sources))
 	for _, source := range sources {
 		if !source.Enabled {
@@ -339,14 +714,17 @@ func renderHostFiles(sources []HostFileSource) ([]RenderedLogCollectionFile, err
 		if source.MaxDirSearchDepth > 0 {
 			pattern = filepath.Join(source.Path, "**", source.FilePattern)
 		}
-		content, err := yaml.Marshal(hostFilePipeline{Enable: true, Inputs: []hostFileInput{{
+		content, processorCount, flusherCount, err := renderLogPipeline([]hostFileInput{{
 			Type: "input_file", FilePaths: []string{pattern}, MaxDirSearchDepth: source.MaxDirSearchDepth,
 			AllowingIncludedByMultiConfigs: true,
-		}}})
+		}}, base, 0)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, RenderedLogCollectionFile{Path: "config/local/apo-host-file-" + safeSourceID(source.ID) + ".yaml", Content: string(content)})
+		files = append(files, RenderedLogCollectionFile{
+			Path: "config/local/apo-host-file-" + safeSourceID(source.ID) + ".yaml", Content: content,
+			InputCount: 1, ProcessorCount: processorCount, FlusherCount: flusherCount,
+		})
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return files, nil
@@ -354,10 +732,6 @@ func renderHostFiles(sources []HostFileSource) ([]RenderedLogCollectionFile, err
 
 func containerFiltersForSource(source ContainerStdoutSource) (*containerFilters, error) {
 	includeK8sLabel, err := parseFilterMap("include Pod label", source.IncludeK8sLabel)
-	if err != nil {
-		return nil, err
-	}
-	excludeK8sLabel, err := parseFilterMap("exclude Pod label", source.ExcludeK8sLabel)
 	if err != nil {
 		return nil, err
 	}
@@ -377,19 +751,12 @@ func containerFiltersForSource(source ContainerStdoutSource) (*containerFilters,
 	if err != nil {
 		return nil, err
 	}
-	namespaceRegex := source.NamespaceRegex
-	if len(source.ExcludeNamespaces) > 0 {
-		namespaceRegex, err = namespaceRegexExcluding(source.ExcludeNamespaces)
-		if err != nil {
-			return nil, err
-		}
-	}
 	filters := &containerFilters{
-		K8sNamespaceRegex:     namespaceRegex,
+		K8sNamespaceRegex:     source.NamespaceRegex,
 		K8sPodRegex:           source.PodRegex,
 		K8sContainerRegex:     source.ContainerRegex,
 		IncludeK8sLabel:       includeK8sLabel,
-		ExcludeK8sLabel:       excludeK8sLabel,
+		ExcludeK8sLabel:       map[string]string(source.ExcludeK8sLabel),
 		IncludeEnv:            includeEnv,
 		ExcludeEnv:            excludeEnv,
 		IncludeContainerLabel: includeContainerLabel,
@@ -401,7 +768,7 @@ func containerFiltersForSource(source ContainerStdoutSource) (*containerFilters,
 	return filters, nil
 }
 
-func renderContainerStdout(sources []ContainerStdoutSource) ([]RenderedLogCollectionFile, error) {
+func renderContainerStdout(sources []ContainerStdoutSource, base *logPipelineBase) ([]RenderedLogCollectionFile, error) {
 	files := make([]RenderedLogCollectionFile, 0, len(sources))
 	for _, source := range sources {
 		if !source.Enabled {
@@ -411,102 +778,21 @@ func renderContainerStdout(sources []ContainerStdoutSource) ([]RenderedLogCollec
 		if err != nil {
 			return nil, err
 		}
-		pipeline := containerStdoutPipeline{Enable: true, Inputs: []containerStdoutInput{{
+		inputs := []containerStdoutInput{{
 			Type: "input_container_stdio", IgnoringStdout: !source.CollectStdout, IgnoringStderr: !source.CollectStderr,
 			ContainerFilter: filters,
-		}}}
-		if source.MaxBytesPerMinute > 0 {
-			pipeline.Processors = []containerStdoutProcessor{{
-				Type: "processor_rate_limit", LimitBytesPerMinute: source.MaxBytesPerMinute,
-			}}
-		}
-		content, err := yaml.Marshal(pipeline)
+		}}
+		content, processorCount, flusherCount, err := renderLogPipeline(inputs, base, source.MaxEventsPerSecond)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, RenderedLogCollectionFile{Path: "config/local/apo-container-stdout-" + safeSourceID(source.ID) + ".yaml", Content: string(content)})
+		files = append(files, RenderedLogCollectionFile{
+			Path: "config/local/apo-container-stdout-" + safeSourceID(source.ID) + ".yaml", Content: content,
+			InputCount: 1, ProcessorCount: processorCount, FlusherCount: flusherCount,
+		})
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return files, nil
-}
-
-type namespaceRegexTrie struct {
-	terminal bool
-	children map[byte]*namespaceRegexTrie
-}
-
-const namespaceRegexAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789-"
-
-var kubernetesNamespacePattern = regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`)
-
-func namespaceRegexExcluding(namespaces []string) (string, error) {
-	if len(namespaces) == 0 {
-		return "", nil
-	}
-	root := &namespaceRegexTrie{children: map[byte]*namespaceRegexTrie{}}
-	for _, namespace := range namespaces {
-		if len(namespace) > 63 || !kubernetesNamespacePattern.MatchString(namespace) {
-			return "", fmt.Errorf("%q is not a valid Kubernetes namespace", namespace)
-		}
-		node := root
-		for index := 0; index < len(namespace); index++ {
-			char := namespace[index]
-			if node.children[char] == nil {
-				node.children[char] = &namespaceRegexTrie{children: map[byte]*namespaceRegexTrie{}}
-			}
-			node = node.children[char]
-		}
-		node.terminal = true
-	}
-	return "^(?:" + buildNamespaceRegex(root, 0) + ")$", nil
-}
-
-func buildNamespaceRegex(node *namespaceRegexTrie, depth int) string {
-	alternatives := make([]string, 0, len(node.children)+2)
-	if depth > 0 && !node.terminal {
-		alternatives = append(alternatives, "")
-	}
-	if depth < 63 {
-		remainingChars := make([]byte, 0, len(namespaceRegexAlphabet))
-		for index := 0; index < len(namespaceRegexAlphabet); index++ {
-			char := namespaceRegexAlphabet[index]
-			if node.children[char] == nil {
-				remainingChars = append(remainingChars, char)
-			}
-		}
-		if len(remainingChars) > 0 {
-			alternatives = append(alternatives, namespaceCharClass(remainingChars)+fmt.Sprintf("[a-z0-9-]{0,%d}", 62-depth))
-		}
-	}
-	childKeys := make([]byte, 0, len(node.children))
-	for char := range node.children {
-		childKeys = append(childKeys, char)
-	}
-	sort.Slice(childKeys, func(i, j int) bool { return childKeys[i] < childKeys[j] })
-	for _, char := range childKeys {
-		childPattern := buildNamespaceRegex(node.children[char], depth+1)
-		if childPattern != "" {
-			alternatives = append(alternatives, regexp.QuoteMeta(string(char))+"(?:"+childPattern+")")
-		}
-	}
-	return strings.Join(alternatives, "|")
-}
-
-func namespaceCharClass(chars []byte) string {
-	var regular strings.Builder
-	regular.WriteByte('[')
-	for _, char := range chars {
-		if char != '-' {
-			regular.WriteByte(char)
-		}
-	}
-	for _, char := range chars {
-		if char == '-' {
-			regular.WriteString(`\-`)
-		}
-	}
-	regular.WriteByte(']')
-	return regular.String()
 }
 
 func defaultContainerStdoutSources(nodes []ac.Node, clusterID string) []ContainerStdoutSource {
@@ -520,9 +806,8 @@ func defaultContainerStdoutSources(nodes []ac.Node, clusterID string) []Containe
 		}
 		return []ContainerStdoutSource{{
 			ID: defaultK8sContainerSourceID, Name: "Kubernetes default container stdout", Enabled: true,
-			ExcludeNamespaces: append([]string(nil), defaultExcludedNamespaces...),
-			ExcludeK8sLabel:   "app.kubernetes.io/instance=^(syncause|syncause-agent)$",
-			CollectStdout:     true, CollectStderr: true,
+			ExcludeK8sLabel: FilterMap{"app.kubernetes.io/instance": "^(syncause|syncause-agent)$"},
+			CollectStdout:   true, CollectStderr: true,
 		}}
 	}
 	return []ContainerStdoutSource{}
@@ -566,7 +851,9 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 	}
 	stored, err := repo.GetLogCollectionConfig(ctx, logCollectionScopeNode, nodeID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return &HostFileCollection{ScopeType: logCollectionScopeNode, ScopeID: nodeID, HostFiles: []HostFileSource{}}, nil
+		collection := &HostFileCollection{ScopeType: logCollectionScopeNode, ScopeID: nodeID, HostFiles: []HostFileSource{}}
+		s.attachHostPipelineRules(ctx, collection)
+		return collection, nil
 	}
 	if err != nil {
 		return nil, err
@@ -575,7 +862,9 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 	if err := json.Unmarshal(stored.Config, &input); err != nil {
 		return nil, err
 	}
-	return &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: input.HostFiles}, nil
+	collection := &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: input.HostFiles}
+	s.attachHostPipelineRules(ctx, collection)
+	return collection, nil
 }
 
 func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput, user int64) (*HostFileCollection, error) {
@@ -596,7 +885,9 @@ func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input 
 	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
 		return nil, err
 	}
-	return &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: normalized}, nil
+	collection := &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: normalized}
+	s.attachHostPipelineRules(ctx, collection)
+	return collection, nil
 }
 
 func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput) (*LogCollectionPreview, []HostFileSource, error) {
@@ -607,7 +898,14 @@ func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, inp
 	if err != nil {
 		return nil, nil, err
 	}
-	files, err := renderHostFiles(normalized)
+	if !hasEnabledHostFileSource(normalized) {
+		return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: []RenderedLogCollectionFile{}}, normalized, nil
+	}
+	base, err := s.nodeLogPipelineBase(ctx, nodeID, hostFileInputTypes)
+	if err != nil {
+		return nil, nil, err
+	}
+	files, err := renderHostFiles(normalized, base)
 	return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: files}, normalized, err
 }
 
@@ -630,7 +928,12 @@ func (s *Service) GetContainerStdoutCollection(ctx core.Context, clusterID strin
 		if listErr != nil {
 			return nil, listErr
 		}
-		return &ContainerStdoutCollection{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, ContainerStdout: defaultContainerStdoutSources(nodes, clusterID)}, nil
+		collection := &ContainerStdoutCollection{
+			ScopeType: logCollectionScopeCluster, ScopeID: clusterID,
+			ContainerStdout: defaultContainerStdoutSources(nodes, clusterID), HostFiles: []HostFileSource{},
+		}
+		s.attachContainerPipelineRules(ctx, collection)
+		return collection, nil
 	}
 	if err != nil {
 		return nil, err
@@ -639,15 +942,20 @@ func (s *Service) GetContainerStdoutCollection(ctx core.Context, clusterID strin
 	if err := json.Unmarshal(stored.Config, &input); err != nil {
 		return nil, err
 	}
-	return &ContainerStdoutCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, ContainerStdout: input.ContainerStdout}, nil
+	collection := &ContainerStdoutCollection{
+		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
+		ContainerStdout: input.ContainerStdout, HostFiles: input.HostFiles,
+	}
+	s.attachContainerPipelineRules(ctx, collection)
+	return collection, nil
 }
 
 func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID string, input ContainerStdoutCollectionInput, user int64) (*ContainerStdoutCollection, error) {
-	_, normalized, err := s.previewContainerStdoutCollection(ctx, clusterID, input)
+	_, normalizedContainer, normalizedFiles, err := s.previewContainerStdoutCollection(ctx, clusterID, input)
 	if err != nil {
 		return nil, err
 	}
-	data, err := json.Marshal(ContainerStdoutCollectionInput{ContainerStdout: normalized})
+	data, err := json.Marshal(ContainerStdoutCollectionInput{ContainerStdout: normalizedContainer, HostFiles: normalizedFiles})
 	if err != nil {
 		return nil, err
 	}
@@ -659,22 +967,47 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
 		return nil, err
 	}
-	return &ContainerStdoutCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, ContainerStdout: normalized}, nil
+	collection := &ContainerStdoutCollection{
+		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
+		ContainerStdout: normalizedContainer, HostFiles: normalizedFiles,
+	}
+	s.attachContainerPipelineRules(ctx, collection)
+	return collection, nil
 }
 
-func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID string, input ContainerStdoutCollectionInput) (*LogCollectionPreview, []ContainerStdoutSource, error) {
+func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID string, input ContainerStdoutCollectionInput) (*LogCollectionPreview, []ContainerStdoutSource, []HostFileSource, error) {
 	if err := s.validateLogCollectionScope(ctx, logCollectionScopeCluster, clusterID); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	normalized, err := normalizeContainerStdout(input.ContainerStdout)
+	normalizedContainer, err := normalizeContainerStdout(input.ContainerStdout)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	files, err := renderContainerStdout(normalized)
-	return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: files}, normalized, err
+	normalizedFiles, err := normalizeHostFiles(input.HostFiles)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if !hasEnabledContainerStdoutSource(normalizedContainer) && !hasEnabledHostFileSource(normalizedFiles) {
+		return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: []RenderedLogCollectionFile{}}, normalizedContainer, normalizedFiles, nil
+	}
+	base, err := s.clusterLogPipelineBase(ctx, clusterID, containerStdoutInputTypes)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	containerFiles, err := renderContainerStdout(normalizedContainer, base)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	hostFiles, err := renderHostFiles(normalizedFiles, base)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	files := append(containerFiles, hostFiles...)
+	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+	return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: files}, normalizedContainer, normalizedFiles, nil
 }
 
 func (s *Service) PreviewContainerStdoutCollection(ctx core.Context, clusterID string, input ContainerStdoutCollectionInput) (*LogCollectionPreview, error) {
-	preview, _, err := s.previewContainerStdoutCollection(ctx, clusterID, input)
+	preview, _, _, err := s.previewContainerStdoutCollection(ctx, clusterID, input)
 	return preview, err
 }

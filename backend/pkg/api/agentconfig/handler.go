@@ -331,6 +331,31 @@ func (h *Handler) PreviewContainerStdoutCollection() core.HandlerFunc {
 		c.Payload(preview)
 	}
 }
+func (h *Handler) GetClusterInjectionControl() core.HandlerFunc {
+	return func(c core.Context) {
+		control, err := h.s.GetClusterInjectionControl(c, c.Param("clusterId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(control)
+	}
+}
+func (h *Handler) SaveClusterInjectionControl() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.ClusterInjectionControlInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		control, err := h.s.SaveClusterInjectionControl(c, c.Param("clusterId"), input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(control)
+	}
+}
 func (h *Handler) GetCurrentNodeConfigs() core.HandlerFunc {
 	return func(c core.Context) {
 		config, err := h.s.CurrentNodeConfigs(c, c.Param("nodeId"))
@@ -354,6 +379,61 @@ func (h *Handler) UpdateNodeConfigs() core.HandlerFunc {
 			return
 		}
 		c.Payload(configs)
+	}
+}
+func (h *Handler) UpdateNodeConfigGroup() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.NodeConfigsInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		configs, err := h.s.UpdateNodeConfigGroup(c, c.Param("nodeId"), input)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(configs)
+	}
+}
+func (h *Handler) GetNodeInjectionControl() core.HandlerFunc {
+	return func(c core.Context) {
+		control, err := h.s.GetNodeInjectionControl(c, c.Param("nodeId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(control)
+	}
+}
+func (h *Handler) SaveNodeInjectionControl() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.NodeInjectionControlInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		control, err := h.s.SaveNodeInjectionControl(c, c.Param("nodeId"), input)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(control)
+	}
+}
+func (h *Handler) BatchSaveNodeInjectionControl() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.BatchNodeInjectionControlInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		result, err := h.s.BatchSaveNodeInjectionControl(c, input)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(result)
 	}
 }
 func (h *Handler) ListNodeConfigHistory() core.HandlerFunc {
@@ -477,6 +557,20 @@ func (h *Handler) Settings() core.HandlerFunc {
 			return
 		}
 		c.Payload(settings)
+	}
+}
+func (h *Handler) ReportWorkloadInventory() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.WorkloadInventoryInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		if err := h.s.ReportWorkloadInventory(c, agentClusterID(c), agentNodeID(c), input); err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload("ok")
 	}
 }
 func (h *Handler) Report() core.HandlerFunc {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -16,31 +17,46 @@ import (
 
 type configSemanticsRepo struct {
 	*commandRepo
-	nodes            map[string]ac.Node
-	baselines        map[string]ac.InitialConfig
-	releases         map[string]ac.Release
-	templates        map[uuid.UUID]ac.Template
-	globalCircuit    *ac.GlobalCircuitConfig
-	nodeCircuits     map[string]ac.NodeCircuitConfig
-	nodeLogs         map[string]ac.NodeLogConfig
-	namespaceConfigs map[string]ac.NamespaceInjection
-	odigletReady     *bool
-	states           []ac.ApplyState
-	batchSaveCalls   int
-	lastExpected     map[string]int64
+	nodes             map[string]ac.Node
+	baselines         map[string]ac.InitialConfig
+	releases          map[string]ac.Release
+	templates         map[uuid.UUID]ac.Template
+	globalCircuit     *ac.GlobalCircuitConfig
+	nodeCircuits      map[string]ac.NodeCircuitConfig
+	nodeLogs          map[string]ac.NodeLogConfig
+	namespaceConfigs  map[string]ac.NamespaceInjection
+	workloadInventory map[string]ac.ClusterWorkloadInventory
+	odigletReady      *bool
+	states            []ac.ApplyState
+	batchSaveCalls    int
+	lastExpected      map[string]int64
 }
 
 func newConfigSemanticsRepo() *configSemanticsRepo {
 	return &configSemanticsRepo{
-		commandRepo:      &commandRepo{},
-		nodes:            map[string]ac.Node{},
-		baselines:        map[string]ac.InitialConfig{},
-		releases:         map[string]ac.Release{},
-		templates:        map[uuid.UUID]ac.Template{},
-		nodeCircuits:     map[string]ac.NodeCircuitConfig{},
-		nodeLogs:         map[string]ac.NodeLogConfig{},
-		namespaceConfigs: map[string]ac.NamespaceInjection{},
+		commandRepo:       &commandRepo{},
+		nodes:             map[string]ac.Node{},
+		baselines:         map[string]ac.InitialConfig{},
+		releases:          map[string]ac.Release{},
+		templates:         map[uuid.UUID]ac.Template{},
+		nodeCircuits:      map[string]ac.NodeCircuitConfig{},
+		nodeLogs:          map[string]ac.NodeLogConfig{},
+		namespaceConfigs:  map[string]ac.NamespaceInjection{},
+		workloadInventory: map[string]ac.ClusterWorkloadInventory{},
 	}
+}
+
+func (r *configSemanticsRepo) SaveClusterWorkloadInventory(_ core.Context, inventory *ac.ClusterWorkloadInventory) error {
+	r.workloadInventory[inventory.ClusterID] = *inventory
+	return nil
+}
+
+func (r *configSemanticsRepo) GetClusterWorkloadInventory(_ core.Context, clusterID string) (*ac.ClusterWorkloadInventory, error) {
+	inventory, ok := r.workloadInventory[clusterID]
+	if !ok {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &inventory, nil
 }
 
 func (r *configSemanticsRepo) GetNamespaceInjection(_ core.Context, clusterID string) (*ac.NamespaceInjection, error) {
@@ -49,6 +65,19 @@ func (r *configSemanticsRepo) GetNamespaceInjection(_ core.Context, clusterID st
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &value, nil
+}
+
+func (r *configSemanticsRepo) SaveClusterInjectionConfig(_ core.Context, stored *ac.ClusterInjectionConfig) error {
+	if !stored.Configured {
+		delete(r.namespaceConfigs, stored.ClusterID)
+		return nil
+	}
+	var config ac.NamespaceInjection
+	if err := json.Unmarshal(stored.Config, &config); err != nil {
+		return err
+	}
+	r.namespaceConfigs[stored.ClusterID] = config
+	return nil
 }
 
 func (r *configSemanticsRepo) GetOdigletReadiness(core.Context, string, time.Time) (*bool, error) {
@@ -588,6 +617,187 @@ func TestNodeConfigUpdateSavesAllProbeChangesTogether(t *testing.T) {
 	}
 }
 
+func TestInjectionControlIsSeparateFromConfigReleaseGroup(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "probe-a", "a: 1\n")
+	addBaselineFiles(t, repo, "node-1", "preload", []ac.InitialConfigFile{{
+		Path: "libapoinstrument.conf", Content: "[python]\nPYTHONPATH=/opt/apo\n",
+	}})
+	service := New(repo)
+
+	updated, err := service.UpdateNodeConfigGroup(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType:          "probe-a",
+		Content:            "a: 2\n",
+		ExpectedGeneration: 0,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if repo.batchSaveCalls != 1 || len(repo.lastExpected) != 1 {
+		t.Fatalf("group update was not isolated: calls=%d expected=%v", repo.batchSaveCalls, repo.lastExpected)
+	}
+	for _, config := range updated.Configs {
+		switch config.ProbeType {
+		case "preload":
+			if config.Generation != 0 || config.Files[0].Content != "[python]\nPYTHONPATH=/opt/apo\n" {
+				t.Fatalf("ordinary config group changed injection control: %+v", config)
+			}
+		case "probe-a":
+			if config.Generation != 1 || config.Files[0].Content != "a: 2\n" {
+				t.Fatalf("ordinary config group was not updated: %+v", config)
+			}
+		}
+	}
+
+	before := repo.batchSaveCalls
+	_, err = service.UpdateNodeConfigGroup(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType: "preload", Content: "; python disabled\n", ExpectedGeneration: 0,
+	}}})
+	if err == nil || repo.batchSaveCalls != before {
+		t.Fatalf("ordinary config API accepted injection control: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+	_, err = service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{
+		{ProbeType: "probe-a", Content: "a: 3\n", ExpectedGeneration: 1},
+		{ProbeType: "preload", Content: "; python disabled\n", ExpectedGeneration: 0},
+	}})
+	if err == nil || repo.batchSaveCalls != before {
+		t.Fatalf("legacy config API accepted injection control: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+
+	control, err := service.GetNodeInjectionControl(nil, "node-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !control.Available || control.Generation != 0 || control.FilePath != "libapoinstrument.conf" {
+		t.Fatalf("unexpected initial injection control: %+v", control)
+	}
+	saved, err := service.SaveNodeInjectionControl(nil, "node-1", NodeInjectionControlInput{
+		Content: "; python disabled\n", ExpectedGeneration: 0,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if saved.Generation != 1 || saved.Content != "; python disabled\n" || repo.batchSaveCalls != before+1 {
+		t.Fatalf("injection control was not independently saved: control=%+v calls=%d", saved, repo.batchSaveCalls)
+	}
+	_, err = service.SaveNodeInjectionControl(nil, "node-1", NodeInjectionControlInput{
+		Content: "stale\n", ExpectedGeneration: 0,
+	})
+	if err == nil || repo.batchSaveCalls != before+1 {
+		t.Fatalf("stale injection control was not rejected: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+	if _, err = service.ListNodeConfigHistory(nil, "node-1", "preload", 20); err == nil {
+		t.Fatal("injection control exposed configuration history")
+	}
+}
+
+func TestBatchInjectionControlAtomicallyUpdatesAllTargetNodes(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	for _, node := range []ac.Node{
+		{ID: "node-a", ClusterID: "cluster-a"},
+		{ID: "node-b", ClusterID: "cluster-b"},
+	} {
+		repo.nodes[node.ID] = node
+		addBaselineFiles(t, repo, node.ID, "preload", []ac.InitialConfigFile{{
+			Path: "preload/.apo-config/libapoinstrument.conf", Content: "[java]\nenabled=true\n",
+		}})
+	}
+	service := New(repo)
+
+	result, err := service.BatchSaveNodeInjectionControl(nil, BatchNodeInjectionControlInput{
+		ClusterIDs: []string{"cluster-a", "cluster-b"},
+		Content:    "[python]\nenabled=true\n",
+		ExpectedGenerations: map[string]int64{
+			"node-a": 0,
+			"node-b": 0,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.TargetNodeCount != 2 || result.SucceededCount != 2 || repo.batchSaveCalls != 1 || len(repo.lastExpected) != 2 {
+		t.Fatalf("unexpected atomic injection result: result=%+v calls=%d expected=%v", result, repo.batchSaveCalls, repo.lastExpected)
+	}
+	for _, node := range []string{"node-a", "node-b"} {
+		release := repo.releases[releaseKey(node, "preload")]
+		if release.Generation != 1 || release.RenderedContent != "[python]\nenabled=true\n" {
+			t.Fatalf("%s injection control was not updated: %+v", node, release)
+		}
+	}
+}
+
+func TestBatchInjectionControlRejectsIncompleteOrStaleGenerationsBeforeWriting(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		expected  map[string]int64
+		wantError string
+	}{
+		{
+			name:      "missing node generation",
+			expected:  map[string]int64{"node-a": 0},
+			wantError: "expected generation for node node-b is required",
+		},
+		{
+			name:      "stale node generation",
+			expected:  map[string]int64{"node-a": 0, "node-b": 1},
+			wantError: "generation conflict for node-b/preload",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repo := newConfigSemanticsRepo()
+			for _, node := range []ac.Node{
+				{ID: "node-a", ClusterID: "cluster-a"},
+				{ID: "node-b", ClusterID: "cluster-b"},
+			} {
+				repo.nodes[node.ID] = node
+				addBaselineFiles(t, repo, node.ID, "preload", []ac.InitialConfigFile{{
+					Path: "libapoinstrument.conf", Content: "[java]\nenabled=true\n",
+				}})
+			}
+			service := New(repo)
+
+			_, err := service.BatchSaveNodeInjectionControl(nil, BatchNodeInjectionControlInput{
+				ClusterIDs:          []string{"cluster-a", "cluster-b"},
+				Content:             "[python]\nenabled=true\n",
+				ExpectedGenerations: test.expected,
+			})
+			if err == nil || !strings.Contains(err.Error(), test.wantError) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if repo.batchSaveCalls != 0 || len(repo.releases) != 0 {
+				t.Fatalf("invalid batch wrote partial state: calls=%d releases=%v", repo.batchSaveCalls, repo.releases)
+			}
+		})
+	}
+}
+
+func TestBatchInjectionControlRejectsUnregisteredTargetBeforeWriting(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
+	repo.nodes["node-b"] = ac.Node{ID: "node-b", ClusterID: "cluster-b"}
+	addBaselineFiles(t, repo, "node-a", "preload", []ac.InitialConfigFile{{
+		Path: "libapoinstrument.conf", Content: "[java]\nenabled=true\n",
+	}})
+	addBaseline(t, repo, "node-b", "probe-a", "enabled: true\n")
+	service := New(repo)
+
+	_, err := service.BatchSaveNodeInjectionControl(nil, BatchNodeInjectionControlInput{
+		ClusterIDs: []string{"cluster-a", "cluster-b"},
+		Content:    "[python]\nenabled=true\n",
+		ExpectedGenerations: map[string]int64{
+			"node-a": 0,
+			"node-b": 0,
+		},
+	})
+	if err == nil || !strings.Contains(err.Error(), "node node-b has no registered preload injection configuration") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if repo.batchSaveCalls != 0 || len(repo.releases) != 0 {
+		t.Fatalf("unregistered target caused partial write: calls=%d releases=%v", repo.batchSaveCalls, repo.releases)
+	}
+}
+
 func TestBatchAssignmentUsesOneCompleteTemplateAndAtomicallyOverwritesTargets(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
@@ -904,25 +1114,15 @@ func TestCircuitPolicyPersistsNodeSystemPressureSettings(t *testing.T) {
 	}
 }
 
-func TestClusterCircuitPolicyUsesSystemPercentages(t *testing.T) {
+func TestBatchCircuitPolicyMatchesNodePolicy(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
 	service := New(repo)
 
-	legacy := ac.CircuitBreakerSettings{
-		Enabled:         true,
-		MaxCPUCores:     1,
-		DurationSeconds: 30,
-	}
-	if _, err := service.BatchSaveCircuit(nil, CircuitBatchInput{ClusterIDs: []string{"cluster-a"}, CircuitBreaker: legacy}, 2); err == nil || !strings.Contains(err.Error(), "must use system CPU and memory percentages") {
-		t.Fatalf("cluster policy accepted process totals: %v", err)
-	}
-	if len(repo.nodeCircuits) != 0 {
-		t.Fatalf("invalid cluster policy was persisted: %+v", repo.nodeCircuits)
-	}
-
 	policy := ac.CircuitBreakerSettings{
 		Enabled:                     true,
+		MaxCPUCores:                 1,
+		MaxMemoryBytes:              512 * 1024 * 1024,
 		DurationSeconds:             30,
 		AutoRecover:                 true,
 		RecoveryInitialDelaySeconds: 30,
@@ -948,8 +1148,8 @@ func TestClusterCircuitPolicyUsesSystemPercentages(t *testing.T) {
 	if err := json.Unmarshal(stored.Settings, &settings); err != nil {
 		t.Fatal(err)
 	}
-	if settings.MaxCPUCores != 0 || settings.MaxMemoryBytes != 0 || settings.SystemPressure == nil || settings.SystemPressure.MaxCPUPercent != 85 {
-		t.Fatalf("unexpected stored cluster policy: %+v", settings)
+	if !reflect.DeepEqual(settings, policy) {
+		t.Fatalf("batch policy differs from node policy: got=%+v want=%+v", settings, policy)
 	}
 }
 

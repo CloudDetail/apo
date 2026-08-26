@@ -313,6 +313,28 @@
   gap: 10px;
 }
 
+.filterRow > :global(.ant-typography),
+.filterRow > :global(.ant-btn) {
+  align-self: start;
+  margin-top: 5px;
+}
+
+.mapFilterEditor {
+  display: grid;
+  gap: 8px;
+}
+
+.mapFilterEditor > :global(.ant-btn) {
+  width: fit-content;
+  padding-inline: 0;
+}
+
+.mapFilterRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(240px, 1.2fr) 34px;
+  gap: 8px;
+}
+
 .advancedCollapse {
   grid-column: 2 / -2;
   margin-top: -2px;
@@ -360,6 +382,36 @@
   font-size: 12px;
 }
 
+.pipelineRules {
+  margin-top: 16px;
+  border-radius: 4px;
+  background: var(--ant-color-bg-container);
+}
+
+.pipelineRules :global(.ant-collapse-header) {
+  min-height: 46px;
+  align-items: center !important;
+}
+
+.pipelineRules :global(.ant-collapse-content-box) {
+  padding: 0 14px 14px !important;
+}
+
+.pipelineRuleTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding-right: 8px;
+  font-weight: 600;
+}
+
+.pipelineRuleTitle :global(.ant-typography) {
+  font-size: 12px;
+  font-weight: 400;
+}
+
 .footer {
   justify-content: space-between;
   gap: 16px;
@@ -370,25 +422,40 @@
 
 .previewWorkspace {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  height: min(560px, 65vh);
+  grid-template-columns: 310px minmax(0, 1fr);
+  height: min(620px, 70vh);
   overflow: hidden;
   border: 1px solid var(--ant-color-border);
+  border-radius: 4px;
 }
 
 .previewFiles {
   display: flex;
   flex-direction: column;
   overflow: auto;
-  padding: 8px;
   border-right: 1px solid var(--ant-color-border-secondary);
   background: var(--ant-color-fill-quaternary);
 }
 
+.previewFilesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  color: var(--ant-color-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .previewFiles button {
-  padding: 9px 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
   color: var(--ant-color-text);
   background: transparent;
   font: inherit;
@@ -398,22 +465,73 @@
 }
 
 .previewFileActive {
-  border-color: var(--ant-color-primary-border) !important;
   background: var(--ant-color-primary-bg) !important;
+  box-shadow: inset 3px 0 0 var(--ant-color-primary);
 }
 
-.previewWorkspace pre {
-  min-width: 0;
-  margin: 0;
-  overflow: auto;
-  padding: 16px;
-  background: var(--ant-color-bg-container);
-  color: var(--ant-color-text);
+.previewFileTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.previewFileTitle svg {
+  flex: 0 0 auto;
+  color: var(--ant-color-primary);
+}
+
+.previewFilePath {
+  width: 100%;
+  color: var(--ant-color-text-secondary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
+  font-size: 11px;
+  line-height: 1.4;
   overflow-wrap: anywhere;
+}
+
+.previewFileStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  width: 100%;
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+}
+
+.previewFileStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.previewCodePane {
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--ant-color-bg-container);
+}
+
+.previewCodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.previewCodeHeader > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
@@ -549,11 +667,16 @@
 
   .previewWorkspace {
     grid-template-columns: 1fr;
+    grid-template-rows: 140px minmax(0, 1fr);
   }
 
   .previewFiles {
     max-height: 140px;
     border-right: 0;
     border-bottom: 1px solid var(--ant-color-border-secondary);
+  }
+
+  .previewCodeHeader :global(.ant-typography) {
+    display: none;
   }
 }

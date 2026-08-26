@@ -205,7 +205,7 @@ const groupNodesByCluster = (nodes: AgentNode[], states: ProbeState[]): ClusterR
   const knownNodeIds = new Set(nodes.map((node) => node.id))
   const orphanNodes = [...statesByNode.keys()]
     .filter((nodeId) => !knownNodeIds.has(nodeId))
-    .map((nodeId) => ({ id: nodeId, name: nodeId }))
+    .map((nodeId): AgentNode => ({ id: nodeId, name: nodeId }))
   if (orphanNodes.length) {
     console.warn('[ProbeManagement] probe states reported before node registration', orphanNodes)
   }
@@ -510,6 +510,7 @@ export default function ProbeManagement() {
           const targetKey = `${state.nodeId}\u0000${state.probeType}`
           if (!succeededByTarget.has(targetKey)) return state
           const runtime = succeededByTarget.get(targetKey)
+          if (!runtime) return state
           const circuit = runtime?.circuit || {
             ...state.circuit,
             state: running ? 'NORMAL' : 'FUSED',

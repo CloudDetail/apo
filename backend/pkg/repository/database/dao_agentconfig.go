@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -25,6 +26,9 @@ type AgentConfigRepo interface {
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
 	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
+	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error
+	SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error
+	GetClusterWorkloadInventory(core.Context, string) (*ac.ClusterWorkloadInventory, error)
 	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
 	SaveAgentInitialConfigIfUnassigned(core.Context, *ac.InitialConfig) (bool, error)
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
@@ -101,8 +105,21 @@ func (repo *daoRepo) GetAgentNode(ctx core.Context, id string) (*ac.Node, error)
 	return &n, e
 }
 func (repo *daoRepo) GetNamespaceInjection(ctx core.Context, clusterID string) (*ac.NamespaceInjection, error) {
+	var stored ac.ClusterInjectionConfig
+	err := repo.GetContextDB(ctx).First(&stored, "cluster_id = ?", clusterID).Error
+	if err == nil {
+		var config ac.NamespaceInjection
+		if err := json.Unmarshal(stored.Config, &config); err != nil {
+			return nil, fmt.Errorf("decode cluster namespace injection config: %w", err)
+		}
+		return &config, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
 	var trace integrationmodel.TraceIntegration
-	err := repo.GetContextDB(ctx).
+	err = repo.GetContextDB(ctx).
 		Select("self_collect_config").
 		Where("cluster_id = ? AND is_deleted = ?", clusterID, false).
 		First(&trace).Error
@@ -115,6 +132,27 @@ func (repo *daoRepo) GetNamespaceInjection(ctx core.Context, clusterID string) (
 		InstrumentNS:         append([]string(nil), config.InstrumentNS...),
 		InstrumentDisabledNS: append([]string(nil), config.InstrumentDisabledNS...),
 	}, nil
+}
+func (repo *daoRepo) SaveClusterInjectionConfig(ctx core.Context, config *ac.ClusterInjectionConfig) error {
+	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "cluster_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"configured", "config", "updated_by", "updated_at",
+		}),
+	}).Create(config).Error
+}
+func (repo *daoRepo) SaveClusterWorkloadInventory(ctx core.Context, inventory *ac.ClusterWorkloadInventory) error {
+	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "cluster_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"inventory", "reported_by", "observed_at", "updated_at",
+		}),
+	}).Create(inventory).Error
+}
+func (repo *daoRepo) GetClusterWorkloadInventory(ctx core.Context, clusterID string) (*ac.ClusterWorkloadInventory, error) {
+	var inventory ac.ClusterWorkloadInventory
+	err := repo.GetContextDB(ctx).First(&inventory, "cluster_id = ?", clusterID).Error
+	return &inventory, err
 }
 func (repo *daoRepo) GetOdigletReadiness(ctx core.Context, clusterID string, cutoff time.Time) (*bool, error) {
 	var nodes []ac.Node
