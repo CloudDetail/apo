@@ -18,12 +18,12 @@ export default function IntegrationSettings() {
   const [formInitValues, setFormInitValues] = useState(null)
   const { pathname } = useLocation()
   const navigate = useNavigate()
-  const isMinimal = pathname === '/probe-management/settings'
+  const isProbeManagement = pathname === '/probe-management/settings'
   const handleCancel = () => {
-    if (!isMinimal) {
-      navigate('/integration/data')
-    } else {
+    if (isProbeManagement) {
       navigate('/probe-management')
+    } else {
+      navigate('/integration/data')
     }
   }
   const items: TabsProps['items'] = [
@@ -45,7 +45,6 @@ export default function IntegrationSettings() {
               clusterId={searchParams.get('clusterId')}
               clusterType={searchParams.get('clusterType')}
               apoCollector={formInitValues?.apoCollector}
-              isMinimal={isMinimal}
             />
           </div>
 
@@ -79,20 +78,8 @@ export default function IntegrationSettings() {
   }
   const getIntegrationInfo = async () => {
     const res = await getIntegrationConfigApi()
-    const { database, datasource, traceAPI } = res
+    const { traceAPI } = res
     return {
-      // metric: {
-      //   ...datasource,
-      //   metricAPI: {
-      //     vmConfig: datasource.metricAPI.victoriametric,
-      //   },
-      // },
-      // log: {
-      //   ...database,
-      //   logAPI: {
-      //     chConfig: database.logAPI.clickhouse,
-      //   },
-      // },
       traceAPI,
     }
   }

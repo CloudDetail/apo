@@ -6,12 +6,8 @@
 import { Button, Card, Form, Input, Segmented, Space } from 'antd'
 import { useTranslation } from 'react-i18next'
 import TraceFormItem from './TraceFormItem'
-import { useEffect, useState } from 'react'
-import {
-  createDataIntegrationApi,
-  getIntegrationVarApi,
-  updateDataIntegrationApi,
-} from 'src/core/api/integration'
+import { useEffect } from 'react'
+import { createDataIntegrationApi, updateDataIntegrationApi } from 'src/core/api/integration'
 import MetricsFormItem from './MetricsFormItem'
 import LogsFormItem from './LogsFormItem'
 import styles from './index.module.scss'
@@ -38,12 +34,11 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
   const [form] = Form.useForm()
   const [searchParams, setSearchParams] = useSearchParams()
   const { pathname } = useLocation()
-  const shouldShow = pathname === '/integration/data/settings'
-  const [defaultGatewayAddr, setDefaultGatewayAddr] = useState('')
+  const isProbeManagement = pathname === '/probe-management/settings'
 
   const saveIntegration = (params) => {
     delete params?.traceAPI
-    params.isMinimal = !shouldShow
+    params.isMinimal = false
     let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
     api(params).then((res) => {
       notify({
@@ -71,9 +66,6 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
             }, {}),
           }
         }
-        if (!shouldShow && !values.apoCollector?.collectorGatewayAddr) {
-          params.apoCollector.collectorGatewayAddr = defaultGatewayAddr
-        }
         saveIntegration(params)
       })
       .catch((errorInfo) => {
@@ -88,40 +80,16 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
     form.setFieldsValue(formInitValues)
   }, [formInitValues])
 
-  useEffect(() => {
-    if (!shouldShow) {
-      getIntegrationVarApi('serverAddr').then((res) => {
-        setDefaultGatewayAddr(res)
-      })
-    }
-  }, [shouldShow])
   const handleCancel = () => {
-    if (shouldShow) {
-      navigate('/integration/data')
-    } else {
+    if (isProbeManagement) {
       navigate('/probe-management')
+    } else {
+      navigate('/integration/data')
     }
   }
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="p-3 overflow-auto flex-1 h-full">
-        {!shouldShow && (
-          <div
-            className="mb-4 text-sm text-[var(--ant-color-text-secondary)] rounded-lg px-2 py-2"
-            style={{
-              borderLeft: '4px solid var(--ant-color-primary)',
-              background: 'var(--ant-color-fill-tertiary)',
-            }}
-          >
-            <div className="flex items-center">
-              <p className="ml-2">{t('installAgentIntro1')}</p>
-            </div>
-            <div className="flex items-center mt-1">
-              <p className="ml-2">{t('installAgentIntro2')}</p>
-            </div>
-          </div>
-        )}
-
         <Form
           scrollToFirstError
           form={form}
@@ -155,44 +123,40 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
           <Form.Item name="clusterType" label={t('clusterType')} rules={[{ required: true }]}>
             <Segmented options={clusterTypeOptions} disabled={Boolean(formInitValues?.id)} />
           </Form.Item>
-          <APOCollectorFormItem defaultGatewayAddr={defaultGatewayAddr} isMinimal={!shouldShow} />
-          {shouldShow && (
-            <>
-              <Card type="inner" title={t('traceIntegration')} size="small">
-                <TraceFormItem />
-              </Card>
-              <Card
-                type="inner"
-                title={
-                  <Space>
-                    {t('metricsIntegration')}
-                    <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                      {t('metricsHint')}
-                    </span>
-                  </Space>
-                }
-                size="small"
-                className="mt-2"
-              >
-                <MetricsFormItem />
-              </Card>
-              <Card
-                type="inner"
-                title={
-                  <Space>
-                    {t('logsIntegration')}
-                    <span className="text-xs text-[var(--ant-color-text-secondary)]">
-                      {t('logHint')}
-                    </span>
-                  </Space>
-                }
-                size="small"
-                className="mt-2"
-              >
-                <LogsFormItem />
-              </Card>
-            </>
-          )}
+          <APOCollectorFormItem />
+          <Card type="inner" title={t('traceIntegration')} size="small">
+            <TraceFormItem />
+          </Card>
+          <Card
+            type="inner"
+            title={
+              <Space>
+                {t('metricsIntegration')}
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('metricsHint')}
+                </span>
+              </Space>
+            }
+            size="small"
+            className="mt-2"
+          >
+            <MetricsFormItem />
+          </Card>
+          <Card
+            type="inner"
+            title={
+              <Space>
+                {t('logsIntegration')}
+                <span className="text-xs text-[var(--ant-color-text-secondary)]">
+                  {t('logHint')}
+                </span>
+              </Space>
+            }
+            size="small"
+            className="mt-2"
+          >
+            <LogsFormItem />
+          </Card>
           <Form.Item name="traceAPI"></Form.Item>
         </Form>
       </div>

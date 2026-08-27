@@ -654,7 +654,7 @@ export default function ProbeManagement() {
   }
 
   const setNodeRunning = (record: NodeRow, running: boolean) =>
-    setNodesRunning([record], running, '节点')
+    setNodesRunning([record], running, '节点探针')
 
   const runLogCommand = async (
     type: string,
@@ -1025,12 +1025,12 @@ export default function ProbeManagement() {
                             onClick={() => openDisplayNameEditor(record.manualCluster!)}
                           />
                         </Tooltip>
-                        <Tooltip title="查看安装命令">
+                        <Tooltip title="查看安装配置">
                           <Button
                             className={styles.iconAction}
                             type="text"
                             size="small"
-                            aria-label="查看安装命令"
+                            aria-label="查看安装配置"
                             icon={<TerminalSquare size={15} />}
                             onClick={() => setInstallCluster(record.manualCluster)}
                           />
@@ -1097,9 +1097,9 @@ export default function ProbeManagement() {
                       />
                     </Tooltip>
                     <Popconfirm
-                      title={`确认停止节点 ${record.name}？`}
-                      description="停止后管理通道保持在线，可随时重新启动。"
-                      okText="停止"
+                      title={`确认停止节点 ${record.name} 上的探针？`}
+                      description="操作后，该节点上的探针将停止数据采集与上报，节点管理通道不受影响；需要时可重新启动探针。"
+                      okText="停止探针"
                       cancelText="取消"
                       okButtonProps={{ danger: true }}
                       disabled={lifecycleUpdating || !canStop}
@@ -1473,7 +1473,7 @@ export default function ProbeManagement() {
       </Modal>
       <Modal
         open={Boolean(installCluster)}
-        title="安装命令"
+        title="安装配置"
         footer={null}
         centered
         width={800}
@@ -1485,7 +1485,6 @@ export default function ProbeManagement() {
             clusterId={installCluster.id}
             clusterType={installCluster.clusterType}
             apoCollector={installCluster.apoCollector}
-            isMinimal
           />
         )}
       </Modal>

@@ -1,5 +1,17 @@
-import { Button, Checkbox, Empty, Input, Select, Spin, Tree, Typography } from 'antd'
-import { Plus, RefreshCw, Save, Trash2 } from 'lucide-react'
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Empty,
+  Input,
+  Select,
+  Spin,
+  Tag,
+  Tooltip,
+  Tree,
+  Typography,
+} from 'antd'
+import { Braces, Info, Plus, RefreshCw, Save, Trash2 } from 'lucide-react'
 import { type Key, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   getClusterInjectionControlApi,
@@ -65,6 +77,41 @@ const nextMode: Record<NamespaceMode, NamespaceMode> = {
   disabled: 'enabled',
   enabled: 'enabledFuture',
   enabledFuture: 'disabled',
+}
+const previewContext: Record<string, string> = {
+  namespaceName: 'production',
+  workloadName: 'checkout-api',
+  workflowName: 'checkout-api',
+  deployName: 'checkout-api-v42',
+  containerName: 'app',
+}
+
+const previewServiceName = (policy: ServiceNamePolicy) => {
+  const values = { ...previewContext }
+  for (const variable of policy.variables) {
+    const source = values[variable.source] || ''
+    if (!variable.name) continue
+    try {
+      values[variable.name] = variable.regex
+        ? source.replace(new RegExp(variable.regex, 'g'), variable.replacement)
+        : source
+    } catch {
+      console.error('[InjectionControl] service.name 变量正则无效', variable.name)
+      values[variable.name] = source
+    }
+  }
+  const format = policy.defaultFormat.trim() || '${workloadName}-${containerName}'
+  return format.replace(/\$\{([^}]+)\}/g, (_, key) => values[key] || `\u0024{${key}}`)
+}
+
+const invalidRegex = (value: string) => {
+  if (!value) return false
+  try {
+    new RegExp(value)
+    return false
+  } catch {
+    return true
+  }
 }
 
 const normalizeControl = (value?: InjectionControl) => {
@@ -166,8 +213,15 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
   const changed = Boolean(savedSnapshot) && snapshot !== savedSnapshot
   const invalidServiceName =
     serviceName.mappings.some(
-      (item) => !item.namespacePattern || !item.workloadPattern || !item.serviceName,
-    ) || serviceName.variables.some((item) => !item.name || !item.source)
+      (item) =>
+        !item.namespacePattern ||
+        !item.workloadPattern ||
+        !item.serviceName ||
+        invalidRegex(item.namespacePattern) ||
+        invalidRegex(item.workloadPattern),
+    ) ||
+    serviceName.variables.some((item) => !item.name || !item.source || invalidRegex(item.regex))
+  const generatedPreview = useMemo(() => previewServiceName(serviceName), [serviceName])
 
   const applyControl = useCallback((value: InjectionControl) => {
     const state = stateFromControl(value)
@@ -381,10 +435,38 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
           )}
         </section>
 
-        <section className={styles.injectionSection}>
+        <section className={`${styles.injectionSection} ${styles.serviceNameSection}`}>
+          <div className={styles.serviceSectionHeader}>
+            <div className={styles.serviceSectionTitle}>
+              <span className={styles.serviceSectionIcon}>
+                <Braces size={17} />
+              </span>
+              <div>
+                <Typography.Text strong>service.name 命名</Typography.Text>
+                <Typography.Text type="secondary">
+                  按工作负载匹配映射，未匹配时使用默认规则
+                </Typography.Text>
+              </div>
+            </div>
+            <Tag color={serviceName.mappings.length ? 'blue' : 'default'}>
+              {serviceName.mappings.length} 条映射
+            </Tag>
+          </div>
+          <Alert
+            className={styles.serviceNameAlert}
+            type="info"
+            showIcon
+            icon={<Info size={15} />}
+            message="映射优先级高于默认规则"
+            description="先匹配 Namespace 和工作负载正则；同一工作负载命中多条时，按列表从上到下取第一条。"
+          />
           <div className={styles.serviceVariableHeader}>
-            <Typography.Text strong>service.name 映射</Typography.Text>
+            <div className={styles.subsectionTitle}>
+              <Typography.Text strong>名称映射</Typography.Text>
+              <Typography.Text type="secondary">将指定工作负载固定到业务服务名</Typography.Text>
+            </div>
             <Button
+              type="dashed"
               icon={<Plus size={15} />}
               onClick={() =>
                 setServiceName((current) => ({
@@ -399,52 +481,99 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
               添加映射
             </Button>
           </div>
-          <div className={styles.serviceVariableList}>
-            {serviceName.mappings.map((mapping, index) => (
-              <div className={styles.serviceMappingRow} key={index}>
-                <Input
-                  aria-label="namespace 正则"
-                  value={mapping.namespacePattern}
-                  placeholder="namespace 正则"
-                  onChange={(event) =>
-                    patchMapping(index, { namespacePattern: event.target.value })
-                  }
-                />
-                <Input
-                  aria-label="workload 正则"
-                  value={mapping.workloadPattern}
-                  placeholder="workload 正则"
-                  onChange={(event) => patchMapping(index, { workloadPattern: event.target.value })}
-                />
-                <Input
-                  aria-label="service.name"
-                  value={mapping.serviceName}
-                  placeholder="service.name"
-                  onChange={(event) => patchMapping(index, { serviceName: event.target.value })}
-                />
-                <Button
-                  danger
-                  aria-label="删除映射"
-                  icon={<Trash2 size={15} />}
-                  onClick={() =>
-                    setServiceName((current) => ({
-                      ...current,
-                      mappings: current.mappings.filter((_, itemIndex) => itemIndex !== index),
-                    }))
-                  }
-                />
+          {serviceName.mappings.length ? (
+            <div className={styles.serviceRuleList}>
+              <div className={`${styles.serviceRuleColumns} ${styles.serviceRuleColumnsMapping}`}>
+                <span />
+                <span>Namespace 正则</span>
+                <span>工作负载正则</span>
+                <span>目标 service.name</span>
+                <span />
               </div>
-            ))}
-          </div>
+              <div className={styles.serviceVariableList}>
+                {serviceName.mappings.map((mapping, index) => (
+                  <div className={styles.serviceMappingRow} key={index}>
+                    <span className={styles.ruleIndex}>{index + 1}</span>
+                    <Input
+                      aria-label="namespace 正则"
+                      value={mapping.namespacePattern}
+                      placeholder="例如：^prod$"
+                      status={
+                        !mapping.namespacePattern || invalidRegex(mapping.namespacePattern)
+                          ? 'error'
+                          : undefined
+                      }
+                      onChange={(event) =>
+                        patchMapping(index, { namespacePattern: event.target.value })
+                      }
+                    />
+                    <Input
+                      aria-label="workload 正则"
+                      value={mapping.workloadPattern}
+                      placeholder="例如：^checkout-.*"
+                      status={
+                        !mapping.workloadPattern || invalidRegex(mapping.workloadPattern)
+                          ? 'error'
+                          : undefined
+                      }
+                      onChange={(event) =>
+                        patchMapping(index, { workloadPattern: event.target.value })
+                      }
+                    />
+                    <Input
+                      aria-label="service.name"
+                      value={mapping.serviceName}
+                      placeholder="例如：checkout"
+                      status={!mapping.serviceName ? 'error' : undefined}
+                      onChange={(event) => patchMapping(index, { serviceName: event.target.value })}
+                    />
+                    <Tooltip title="删除映射">
+                      <Button
+                        danger
+                        type="text"
+                        aria-label="删除映射"
+                        icon={<Trash2 size={15} />}
+                        onClick={() =>
+                          setServiceName((current) => ({
+                            ...current,
+                            mappings: current.mappings.filter(
+                              (_, itemIndex) => itemIndex !== index,
+                            ),
+                          }))
+                        }
+                      />
+                    </Tooltip>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.serviceEmptyState}>
+              <Braces size={20} />
+              <span>暂无名称映射</span>
+              <Typography.Text type="secondary">
+                所有未命中的工作负载将按默认规则生成名称
+              </Typography.Text>
+            </div>
+          )}
         </section>
 
-        <section className={styles.injectionSection}>
-          <div className={styles.injectionSectionHeading}>
-            <Typography.Text strong>service.name 生成规则</Typography.Text>
+        <section className={`${styles.injectionSection} ${styles.serviceNameSection}`}>
+          <div className={styles.serviceVariableHeader}>
+            <div className={styles.subsectionTitle}>
+              <Typography.Text strong>默认生成规则</Typography.Text>
+              <Typography.Text type="secondary">
+                为未命中映射的工作负载生成稳定的 service.name
+              </Typography.Text>
+            </div>
+            <div className={styles.previewBadge}>
+              <span />
+              实时预览
+            </div>
           </div>
-          <div className={styles.serviceNameFields}>
+          <div className={styles.serviceNameRuleEditor}>
             <label>
-              <span>默认名称格式</span>
+              <span>名称格式</span>
               <Input
                 value={serviceName.defaultFormat}
                 placeholder="${workloadName}-${containerName}"
@@ -452,11 +581,24 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
                   setServiceName((current) => ({ ...current, defaultFormat: event.target.value }))
                 }
               />
+              <Typography.Text type="secondary">
+                使用 <code>${'{workloadName}'}</code>、<code>${'{containerName}'}</code>{' '}
+                或派生变量组合
+              </Typography.Text>
             </label>
+            <div className={styles.servicePreview}>
+              <span>示例结果</span>
+              <code>{generatedPreview}</code>
+              <Typography.Text type="secondary">production / checkout-api / app</Typography.Text>
+            </div>
           </div>
           <div className={styles.serviceVariableHeader}>
-            <Typography.Text strong>派生变量</Typography.Text>
+            <div className={styles.subsectionTitle}>
+              <Typography.Text strong>派生变量</Typography.Text>
+              <Typography.Text type="secondary">先处理原始名称，再在格式中引用变量</Typography.Text>
+            </div>
             <Button
+              type="dashed"
               icon={<Plus size={15} />}
               onClick={() =>
                 setServiceName((current) => ({
@@ -471,51 +613,76 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
               添加变量
             </Button>
           </div>
-          <div className={styles.serviceVariableList}>
-            {serviceName.variables.map((variable, index) => (
-              <div className={styles.serviceVariableRow} key={`${index}-${variable.name}`}>
-                <Input
-                  aria-label="变量名"
-                  value={variable.name}
-                  placeholder="变量名"
-                  onChange={(event) => patchVariable(index, { name: event.target.value })}
-                />
-                <Select
-                  aria-label="变量来源"
-                  value={variable.source}
-                  options={[
-                    { value: 'workloadName', label: 'workloadName' },
-                    { value: 'deployName', label: 'deployName' },
-                    { value: 'containerName', label: 'containerName' },
-                  ]}
-                  onChange={(source) => patchVariable(index, { source })}
-                />
-                <Input
-                  aria-label="正则表达式"
-                  value={variable.regex}
-                  placeholder="正则表达式"
-                  onChange={(event) => patchVariable(index, { regex: event.target.value })}
-                />
-                <Input
-                  aria-label="替换内容"
-                  value={variable.replacement}
-                  placeholder="替换内容"
-                  onChange={(event) => patchVariable(index, { replacement: event.target.value })}
-                />
-                <Button
-                  danger
-                  aria-label="删除变量"
-                  icon={<Trash2 size={15} />}
-                  onClick={() =>
-                    setServiceName((current) => ({
-                      ...current,
-                      variables: current.variables.filter((_, itemIndex) => itemIndex !== index),
-                    }))
-                  }
-                />
+          {serviceName.variables.length ? (
+            <div className={styles.serviceRuleList}>
+              <div className={styles.serviceRuleColumns}>
+                <span>变量名</span>
+                <span>来源</span>
+                <span>匹配正则</span>
+                <span>替换为</span>
+                <span />
               </div>
-            ))}
-          </div>
+              <div className={styles.serviceVariableList}>
+                {serviceName.variables.map((variable, index) => (
+                  <div className={styles.serviceVariableRow} key={`${index}-${variable.name}`}>
+                    <Input
+                      aria-label="变量名"
+                      value={variable.name}
+                      placeholder="例如：appName"
+                      status={!variable.name ? 'error' : undefined}
+                      onChange={(event) => patchVariable(index, { name: event.target.value })}
+                    />
+                    <Select
+                      aria-label="变量来源"
+                      value={variable.source}
+                      options={[
+                        { value: 'workloadName', label: 'workloadName' },
+                        { value: 'workflowName', label: 'workflowName' },
+                        { value: 'deployName', label: 'deployName' },
+                        { value: 'containerName', label: 'containerName' },
+                      ]}
+                      onChange={(source) => patchVariable(index, { source })}
+                    />
+                    <Input
+                      aria-label="正则表达式"
+                      value={variable.regex}
+                      placeholder="例如：-v\\d+$"
+                      status={invalidRegex(variable.regex) ? 'error' : undefined}
+                      onChange={(event) => patchVariable(index, { regex: event.target.value })}
+                    />
+                    <Input
+                      aria-label="替换内容"
+                      value={variable.replacement}
+                      placeholder="例如："
+                      onChange={(event) =>
+                        patchVariable(index, { replacement: event.target.value })
+                      }
+                    />
+                    <Tooltip title="删除变量">
+                      <Button
+                        danger
+                        type="text"
+                        aria-label="删除变量"
+                        icon={<Trash2 size={15} />}
+                        onClick={() =>
+                          setServiceName((current) => ({
+                            ...current,
+                            variables: current.variables.filter(
+                              (_, itemIndex) => itemIndex !== index,
+                            ),
+                          }))
+                        }
+                      />
+                    </Tooltip>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.serviceEmptyStateCompact}>
+              未配置派生变量，可直接使用工作负载和容器名称
+            </div>
+          )}
         </section>
 
         <div className={styles.injectionControlFooter}>

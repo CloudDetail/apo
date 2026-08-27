@@ -244,6 +244,210 @@
   width: 100%;
 }
 
+.serviceNameSection {
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 8px;
+  background: var(--ant-color-bg-container);
+}
+
+.serviceSectionHeader,
+.serviceSectionTitle,
+.subsectionTitle,
+.previewBadge {
+  display: flex;
+  align-items: center;
+}
+
+.serviceSectionHeader,
+.serviceVariableHeader {
+  justify-content: space-between;
+}
+
+.serviceSectionTitle,
+.subsectionTitle {
+  min-width: 0;
+  gap: 10px;
+}
+
+.serviceSectionTitle > div,
+.subsectionTitle {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.serviceSectionTitle :global(.ant-typography),
+.subsectionTitle :global(.ant-typography) {
+  margin: 0;
+}
+
+.serviceSectionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 6px;
+  color: var(--ant-color-primary);
+  background: var(--ant-color-primary-bg);
+}
+
+.serviceNameAlert {
+  margin: 0;
+}
+
+.serviceNameAlert :global(.ant-alert-message) {
+  font-size: 13px;
+}
+
+.serviceNameAlert :global(.ant-alert-description) {
+  font-size: 12px;
+}
+
+.serviceRuleList {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.serviceRuleColumns,
+.serviceMappingRow,
+.serviceVariableRow {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+}
+
+.serviceRuleColumns {
+  grid-template-columns: 28px minmax(150px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
+  padding: 8px 12px 8px 10px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  font-size: 12px;
+}
+
+.serviceRuleColumnsMapping span:first-child,
+.serviceRuleColumnsMapping span:last-child {
+  visibility: hidden;
+}
+
+.serviceMappingRow {
+  grid-template-columns: 28px minmax(150px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
+  min-height: 58px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.serviceMappingRow:last-child {
+  border-bottom: 0;
+}
+
+.ruleIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+  font-size: 12px;
+}
+
+.serviceNameRuleEditor {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(230px, 0.75fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.serviceNameRuleEditor label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.serviceNameRuleEditor label > span:first-child,
+.servicePreview > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.serviceNameRuleEditor label :global(.ant-typography) {
+  font-size: 12px;
+}
+
+.serviceNameRuleEditor code,
+.servicePreview code {
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.servicePreview {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border: 1px solid var(--ant-color-success-border);
+  border-radius: 6px;
+  background: var(--ant-color-success-bg);
+}
+
+.servicePreview code {
+  color: var(--ant-color-success-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.previewBadge {
+  flex: 0 0 auto;
+  gap: 6px;
+  color: var(--ant-color-success-text);
+  font-size: 12px;
+}
+
+.previewBadge > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ant-color-success);
+}
+
+.serviceEmptyState,
+.serviceEmptyStateCompact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 92px;
+  padding: 16px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  text-align: center;
+}
+
+.serviceEmptyState {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.serviceEmptyState > svg {
+  margin-bottom: 3px;
+  color: var(--ant-color-text-quaternary);
+}
+
+.serviceEmptyStateCompact {
+  min-height: 50px;
+  border: 1px dashed var(--ant-color-border);
+  border-radius: 5px;
+  font-size: 12px;
+}
+
 .serviceVariableList {
   display: flex;
   min-width: 0;
@@ -259,10 +463,48 @@
   gap: 8px;
 }
 
-.serviceMappingRow {
-  display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
-  gap: 8px;
+@media (max-width: 760px) {
+  .serviceNameSection {
+    padding: 16px;
+  }
+
+  .serviceSectionHeader,
+  .serviceVariableHeader {
+    align-items: flex-start;
+  }
+
+  .serviceSectionHeader {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .serviceRuleColumns {
+    display: none;
+  }
+
+  .serviceMappingRow,
+  .serviceVariableRow {
+    grid-template-columns: 22px minmax(0, 1fr) 32px;
+    gap: 7px;
+    padding: 10px;
+  }
+
+  .serviceMappingRow > :nth-child(3),
+  .serviceMappingRow > :nth-child(4),
+  .serviceVariableRow > :nth-child(3),
+  .serviceVariableRow > :nth-child(4) {
+    grid-column: 2;
+  }
+
+  .serviceMappingRow > :last-child,
+  .serviceVariableRow > :last-child {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .serviceNameRuleEditor {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sectionHeading,
@@ -1225,16 +1467,6 @@
 
   .serviceNameFields {
     grid-template-columns: 1fr;
-  }
-
-  .serviceVariableRow,
-  .serviceMappingRow {
-    grid-template-columns: 1fr;
-  }
-
-  .serviceVariableRow > :global(.ant-btn),
-  .serviceMappingRow > :global(.ant-btn) {
-    justify-self: end;
   }
 
   .sectionHeading,
