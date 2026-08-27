@@ -26,6 +26,7 @@ import {
   History,
   MemoryStick,
   Network,
+  Pencil,
   Plus,
   RotateCcw,
   Save,
@@ -481,6 +482,8 @@ export default function ProbeConfigPage() {
   const [componentPolicyDraft, setComponentPolicyDraft] = useState<CircuitPolicy>()
   const [nodeVariables, setNodeVariables] = useState<NodeVariables>()
   const [nodeVariableDraft, setNodeVariableDraft] = useState<Record<string, string>>({})
+  const [nodeVariablesEditing, setNodeVariablesEditing] = useState(false)
+  const [nodeVariablesSaving, setNodeVariablesSaving] = useState(false)
   const [activeTab, setActiveTab] = useState(() => {
     const section = searchParams.get('section')
     return ['logs', 'injection'].includes(section || '') ? section! : 'config'
@@ -598,6 +601,7 @@ export default function ProbeConfigPage() {
       setCircuitComponent('')
       setComponentPolicyPickerOpen(false)
       setComponentPolicyDraft(undefined)
+      setNodeVariablesEditing(false)
       try {
         if (mode === 'node') {
           const [configResult, circuitResult, injectionResult, variablesResult] = await Promise.all(
@@ -674,12 +678,25 @@ export default function ProbeConfigPage() {
   const reportedVariables =
     nodeVariables?.reported || currentNode?.reportedVariables || currentNode?.labels || {}
   const variableNames = [
-    ...new Set([...Object.keys(reportedVariables), ...Object.keys(nodeVariables?.effective || {})]),
+    ...new Set([
+      ...Object.keys(reportedVariables),
+      ...Object.keys(nodeVariables?.overrides || {}),
+      ...Object.keys(nodeVariables?.effective || {}),
+    ]),
   ].sort()
   const reportedVariableEntries = variableNames.map(
     (name) => [name, reportedVariables[name] || ''] as const,
   )
+  const startEditingNodeVariables = () => {
+    setNodeVariableDraft({ ...(nodeVariables?.overrides || {}) })
+    setNodeVariablesEditing(true)
+  }
+  const cancelEditingNodeVariables = () => {
+    setNodeVariableDraft({ ...(nodeVariables?.overrides || {}) })
+    setNodeVariablesEditing(false)
+  }
   const saveNodeVariables = async () => {
+    setNodeVariablesSaving(true)
     try {
       const editableOverrides = Object.fromEntries(
         Object.entries(nodeVariableDraft).filter(
@@ -689,9 +706,12 @@ export default function ProbeConfigPage() {
       const saved = (await updateNodeVariablesApi(nodeId, editableOverrides)) as NodeVariables
       setNodeVariables(saved)
       setNodeVariableDraft({ ...(saved.overrides || {}) })
+      setNodeVariablesEditing(false)
       notify({ type: 'success', message: '节点变量覆盖已保存' })
     } catch (error: any) {
       notify({ type: 'error', message: error.message || '节点变量覆盖保存失败' })
+    } finally {
+      setNodeVariablesSaving(false)
     }
   }
   const protectedNodeVariable = (name: string) =>
@@ -1582,33 +1602,68 @@ export default function ProbeConfigPage() {
               <div className={styles.sectionHeading}>
                 <div>
                   <Typography.Text strong>节点变量</Typography.Text>
-                  <Typography.Text type="secondary">探针上报</Typography.Text>
+                  <Typography.Text type="secondary">
+                    {nodeVariablesEditing ? '编辑变量覆盖' : '探针上报与当前生效值'}
+                  </Typography.Text>
                 </div>
-                <Tag>{reportedVariableEntries.length}</Tag>
+                {!!sortedReportedVariableEntries.length &&
+                  (nodeVariablesEditing ? (
+                    <span className={styles.nodeVariableActions}>
+                      <Button
+                        size="small"
+                        disabled={nodeVariablesSaving}
+                        onClick={cancelEditingNodeVariables}
+                      >
+                        取消
+                      </Button>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<Save size={14} />}
+                        loading={nodeVariablesSaving}
+                        onClick={saveNodeVariables}
+                      >
+                        保存变量
+                      </Button>
+                    </span>
+                  ) : (
+                    <Button
+                      size="small"
+                      icon={<Pencil size={14} />}
+                      onClick={startEditingNodeVariables}
+                    >
+                      编辑变量
+                    </Button>
+                  ))}
               </div>
               {sortedReportedVariableEntries.length ? (
                 <div className={styles.nodeVariableList}>
                   {sortedReportedVariableEntries.map(([name, value]) => (
-                    <div className={styles.nodeVariableItem} key={name}>
+                    <div
+                      className={`${styles.nodeVariableItem} ${
+                        nodeVariablesEditing ? styles.nodeVariableItemEditing : ''
+                      }`}
+                      key={name}
+                    >
                       <Typography.Text code>{name}</Typography.Text>
                       <Typography.Text type="secondary">上报: {value || '-'}</Typography.Text>
-                      <Input
-                        size="small"
-                        value={
-                          protectedNodeVariable(name)
-                            ? effectiveVariable(name)
-                            : nodeVariableDraft[name] || ''
-                        }
-                        disabled={protectedNodeVariable(name)}
-                        placeholder={protectedNodeVariable(name) ? '由集群管理维护' : '可选覆盖值'}
-                        onChange={(event) =>
-                          setNodeVariableDraft((current) => ({
-                            ...current,
-                            [name]: event.target.value,
-                          }))
-                        }
-                      />
-                      <Typography.Text code>{effectiveVariable(name) || '-'}</Typography.Text>
+                      {nodeVariablesEditing &&
+                        (protectedNodeVariable(name) ? (
+                          <Typography.Text type="secondary">由集群管理维护</Typography.Text>
+                        ) : (
+                          <Input
+                            size="small"
+                            value={nodeVariableDraft[name] || ''}
+                            placeholder="可选覆盖值"
+                            onChange={(event) =>
+                              setNodeVariableDraft((current) => ({
+                                ...current,
+                                [name]: event.target.value,
+                              }))
+                            }
+                          />
+                        ))}
+                      <Typography.Text code>生效: {effectiveVariable(name) || '-'}</Typography.Text>
                       {name === 'CLUSTER_IP' && (
                         <Button
                           type="link"
@@ -1625,14 +1680,6 @@ export default function ProbeConfigPage() {
                       )}
                     </div>
                   ))}
-                  <Button
-                    type="primary"
-                    size="small"
-                    icon={<Save size={14} />}
-                    onClick={saveNodeVariables}
-                  >
-                    保存变量覆盖
-                  </Button>
                 </div>
               ) : (
                 <Typography.Text type="secondary">暂无探针上报变量</Typography.Text>

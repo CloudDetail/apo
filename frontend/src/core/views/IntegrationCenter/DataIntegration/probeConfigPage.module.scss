@@ -811,24 +811,48 @@
 
 .nodeVariableList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0 20px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+.nodeVariableActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .nodeVariableItem {
   display: grid;
-  grid-template-columns:
-    minmax(90px, 0.7fr) minmax(120px, 1fr) minmax(140px, 1.2fr) minmax(120px, 1fr)
-    auto;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(0, 1.15fr) minmax(0, 1.15fr) minmax(0, 140px);
+  min-width: 0;
   align-items: center;
   gap: 10px;
-  min-height: 36px;
+  min-height: 52px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
+.nodeVariableItemEditing {
+  grid-template-columns:
+    minmax(110px, 0.7fr) minmax(0, 1.15fr) minmax(180px, 1fr) minmax(0, 1.15fr)
+    minmax(0, 140px);
+}
+
+.nodeVariableItem > * {
+  min-width: 0;
+}
+
+.nodeVariableItem > :global(.ant-typography) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 960px) {
-  .nodeVariableItem {
-    grid-template-columns: minmax(90px, 0.7fr) minmax(120px, 1fr);
+  .nodeVariableItem,
+  .nodeVariableItemEditing {
+    grid-template-columns: minmax(100px, 0.35fr) minmax(0, 1fr);
+    row-gap: 8px;
   }
 
   .nodeVariableItem > :nth-child(n + 3) {
@@ -1238,6 +1262,14 @@
 
   .sectionHeading > :global(.ant-tag) {
     align-self: flex-start;
+  }
+
+  .nodeVariableActions {
+    width: 100%;
+  }
+
+  .nodeVariableActions > :global(.ant-btn) {
+    flex: 1;
   }
 
   .templateBar :global(.ant-select),
