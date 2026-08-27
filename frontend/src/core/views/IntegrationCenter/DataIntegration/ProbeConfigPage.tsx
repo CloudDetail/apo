@@ -20,11 +20,13 @@ import {
 import { LeftOutlined } from '@ant-design/icons'
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import {
+  ArrowRight,
   Cpu,
   FileText,
   History,
   MemoryStick,
   Network,
+  Plus,
   RotateCcw,
   Save,
   Send,
@@ -466,6 +468,7 @@ export default function ProbeConfigPage() {
   const [circuit, setCircuit] = useState<CircuitPolicy>(DEFAULT_CIRCUIT)
   const [circuitSource, setCircuitSource] = useState('')
   const [circuitComponent, setCircuitComponent] = useState('')
+  const [componentPolicyPickerOpen, setComponentPolicyPickerOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(() => {
     const section = searchParams.get('section')
     return ['logs', 'injection'].includes(section || '') ? section! : 'config'
@@ -507,7 +510,10 @@ export default function ProbeConfigPage() {
   }, [activeTab, mode])
 
   useEffect(() => {
-    if (mode !== 'global' && searchParams.get('section') === 'logs') setActiveTab('logs')
+    const section = searchParams.get('section')
+    if (mode !== 'global' && (section === 'logs' || section === 'injection')) {
+      setActiveTab(section)
+    }
   }, [mode, searchParams])
 
   useEffect(() => {
@@ -544,12 +550,6 @@ export default function ProbeConfigPage() {
       availableProbeTypes.includes(current) ? current : availableProbeTypes[0] || '',
     )
   }, [availableProbeTypes])
-
-  useEffect(() => {
-    setCircuitComponent((current) =>
-      circuitComponentTypes.includes(current) ? current : circuitComponentTypes[0] || '',
-    )
-  }, [circuitComponentTypes])
 
   const nodeClusterType = normalizeClusterType(
     nodes.find((node) => node.id === nodeId)?.environment || initialClusterEnvironment,
@@ -641,6 +641,7 @@ export default function ProbeConfigPage() {
   const inheritedClusterId = currentNode?.clusterId || initialCluster
   const inheritedClusterEnvironment =
     currentNode?.environment || initialClusterEnvironment || 'kubernetes'
+  const isKubernetesNodeConfig = mode === 'node' && isK8sEnvironment(inheritedClusterEnvironment)
   const nodeProbeTypes = [
     ...new Set([
       ...states.filter((state) => state.nodeId === nodeId).map((state) => state.probeType),
@@ -1163,11 +1164,18 @@ export default function ProbeConfigPage() {
       activeTab === 'injection' &&
       !hasPreloadControl &&
       !showBatchPreloadTab &&
-      !isKubernetesClusterConfig
+      !isKubernetesClusterConfig &&
+      !isKubernetesNodeConfig
     ) {
       setActiveTab('config')
     }
-  }, [activeTab, hasPreloadControl, isKubernetesClusterConfig, showBatchPreloadTab])
+  }, [
+    activeTab,
+    hasPreloadControl,
+    isKubernetesClusterConfig,
+    isKubernetesNodeConfig,
+    showBatchPreloadTab,
+  ])
 
   const updatePreloadConfigContent = (content: string) => {
     if (!preloadControl?.available) return
@@ -1278,6 +1286,10 @@ export default function ProbeConfigPage() {
   const hasComponentCircuitPolicy = Boolean(
     circuitComponent && circuit.componentPolicies?.[circuitComponent],
   )
+  const configuredComponentTypes = Object.keys(circuit.componentPolicies || {}).sort()
+  const availableComponentTypes = circuitComponentTypes.filter(
+    (componentType) => !circuit.componentPolicies?.[componentType],
+  )
   const selectedComponentPolicy = concreteCircuitPolicy(
     circuit.componentPolicies?.[circuitComponent] || circuit,
   )
@@ -1300,11 +1312,24 @@ export default function ProbeConfigPage() {
   }
   const removeComponentCircuitPolicy = () => {
     if (!circuitComponent) return
+    const nextComponent = configuredComponentTypes.find(
+      (componentType) => componentType !== circuitComponent,
+    )
     setCircuit((current) => {
       const componentPolicies = { ...current.componentPolicies }
       delete componentPolicies[circuitComponent]
       return { ...current, componentPolicies }
     })
+    setCircuitComponent(nextComponent || '')
+  }
+  const startAddingComponentPolicy = () => {
+    setCircuitComponent(availableComponentTypes[0] || '')
+    setComponentPolicyPickerOpen(true)
+  }
+  const addComponentCircuitPolicy = () => {
+    if (!circuitComponent) return
+    updateComponentCircuitPolicy(selectedComponentPolicy)
+    setComponentPolicyPickerOpen(false)
   }
 
   const title =
@@ -1763,6 +1788,32 @@ export default function ProbeConfigPage() {
 
   const injectionTab = isKubernetesClusterConfig ? (
     <InjectionControlPanel clusterId={initialCluster} />
+  ) : isKubernetesNodeConfig ? (
+    <div className={styles.clusterInjectionGuide}>
+      <span className={styles.clusterInjectionGuideIcon}>
+        <Network size={22} />
+      </span>
+      <div className={styles.clusterInjectionGuideContent}>
+        <Typography.Title level={4}>该节点的注入策略由集群统一管理</Typography.Title>
+        <Typography.Paragraph type="secondary">
+          当前节点自动应用所属集群“{inheritedClusterId}”中配置的 Namespace
+          和工作负载注入范围，暂不支持按节点单独设置。
+        </Typography.Paragraph>
+        <Button
+          type="primary"
+          icon={<ArrowRight size={15} />}
+          iconPosition="end"
+          disabled={!inheritedClusterId}
+          onClick={() =>
+            navigate(
+              `/probe-management/config?clusterId=${encodeURIComponent(inheritedClusterId)}&clusterType=kubernetes&section=injection`,
+            )
+          }
+        >
+          前往集群注入控制
+        </Button>
+      </div>
+    </div>
   ) : showBatchPreloadTab ? (
     <div className={styles.tabContent}>
       <div className={styles.injectionTargetRow}>
@@ -1866,39 +1917,135 @@ export default function ProbeConfigPage() {
           items={[
             {
               key: 'component-quotas',
-              label: '高级配置',
+              label: (
+                <div className={styles.advancedCircuitLabel}>
+                  <span>
+                    <Typography.Text strong>高级配置</Typography.Text>
+                    <Tag>{configuredComponentTypes.length} 项</Tag>
+                  </span>
+                  <Typography.Text type="secondary">按组件单独设置熔断策略</Typography.Text>
+                </div>
+              ),
               children: (
-                <div>
-                  <div className={styles.circuitScopeBar}>
-                    <label>
-                      <span>组件</span>
-                      <Select
-                        value={circuitComponent || undefined}
-                        onChange={setCircuitComponent}
-                        options={circuitComponentTypes.map((value) => ({ value, label: value }))}
-                      />
-                    </label>
-                    {hasComponentCircuitPolicy && (
-                      <Button icon={<Trash2 size={15} />} onClick={removeComponentCircuitPolicy}>
-                        移除组件配额
-                      </Button>
-                    )}
-                  </div>
-                  {hasComponentCircuitPolicy ? (
-                    <CircuitEditor
-                      title={`组件资源配额 · ${circuitComponent}`}
-                      value={selectedComponentPolicy}
-                      onChange={updateComponentCircuitPolicy}
-                    />
-                  ) : (
+                <div className={styles.componentPolicySection}>
+                  <div className={styles.componentPolicyHeader}>
+                    <div>
+                      <Typography.Text strong>组件专属策略</Typography.Text>
+                      <Typography.Text type="secondary">
+                        未单独配置的组件继续使用上方通用策略
+                      </Typography.Text>
+                    </div>
                     <Button
-                      type="primary"
-                      icon={<Settings size={15} />}
-                      disabled={!circuitComponent}
-                      onClick={() => updateComponentCircuitPolicy(selectedComponentPolicy)}
+                      icon={<Plus size={15} />}
+                      disabled={!availableComponentTypes.length}
+                      onClick={startAddingComponentPolicy}
                     >
-                      设置组件配额
+                      添加组件策略
                     </Button>
+                  </div>
+                  {!!configuredComponentTypes.length && (
+                    <div className={styles.componentPolicyList}>
+                      {configuredComponentTypes.map((componentType) => {
+                        const policy = concreteCircuitPolicy(
+                          circuit.componentPolicies?.[componentType],
+                        )
+                        return (
+                          <button
+                            key={componentType}
+                            type="button"
+                            className={
+                              componentType === circuitComponent && !componentPolicyPickerOpen
+                                ? styles.componentPolicyRowActive
+                                : styles.componentPolicyRow
+                            }
+                            onClick={() => {
+                              setCircuitComponent(componentType)
+                              setComponentPolicyPickerOpen(false)
+                            }}
+                          >
+                            <span className={styles.componentPolicyIdentity}>
+                              <strong>{componentType}</strong>
+                              <Tag color={policy.enabled ? 'success' : 'default'}>
+                                {policy.enabled ? '已启用' : '已停用'}
+                              </Tag>
+                            </span>
+                            <span className={styles.componentPolicySummary}>
+                              CPU {policy.maxCpuCores} Core · 内存{' '}
+                              {toMemoryMiB(policy.maxMemoryBytes)} MiB · 持续{' '}
+                              {policy.durationSeconds} 秒
+                            </span>
+                            <span className={styles.componentPolicyEdit}>编辑</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                  {!configuredComponentTypes.length && !componentPolicyPickerOpen && (
+                    <div className={styles.componentPolicyEmpty}>
+                      <Settings size={18} />
+                      <span>
+                        <Typography.Text>暂无组件专属策略</Typography.Text>
+                        <Typography.Text type="secondary">
+                          当前所有组件都使用通用熔断策略
+                        </Typography.Text>
+                      </span>
+                    </div>
+                  )}
+                  {componentPolicyPickerOpen && (
+                    <div className={styles.componentPolicyPicker}>
+                      <label>
+                        <span>选择组件</span>
+                        <Select
+                          value={circuitComponent || undefined}
+                          placeholder="请选择需要单独配置的组件"
+                          onChange={setCircuitComponent}
+                          options={availableComponentTypes.map((value) => ({
+                            value,
+                            label: value,
+                          }))}
+                        />
+                      </label>
+                      <Button
+                        type="primary"
+                        disabled={!circuitComponent}
+                        onClick={addComponentCircuitPolicy}
+                      >
+                        添加并配置
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setComponentPolicyPickerOpen(false)
+                          setCircuitComponent(configuredComponentTypes[0] || '')
+                        }}
+                      >
+                        取消
+                      </Button>
+                    </div>
+                  )}
+                  {hasComponentCircuitPolicy && !componentPolicyPickerOpen && (
+                    <div className={styles.componentPolicyEditor}>
+                      <div className={styles.componentPolicyEditorHeader}>
+                        <div>
+                          <Typography.Text strong>{circuitComponent}</Typography.Text>
+                          <Typography.Text type="secondary">
+                            仅覆盖当前组件；移除后恢复使用通用策略
+                          </Typography.Text>
+                        </div>
+                        <Button
+                          danger
+                          type="text"
+                          icon={<Trash2 size={15} />}
+                          onClick={removeComponentCircuitPolicy}
+                        >
+                          移除专属策略
+                        </Button>
+                      </div>
+                      <CircuitEditor
+                        title="资源阈值"
+                        value={selectedComponentPolicy}
+                        onChange={updateComponentCircuitPolicy}
+                      />
+                    </div>
                   )}
                 </div>
               ),
@@ -1964,7 +2111,10 @@ export default function ProbeConfigPage() {
           onChange={setActiveTab}
           items={[
             { key: 'config', label: '配置文件', children: configTab },
-            ...(isKubernetesClusterConfig || showBatchPreloadTab || hasPreloadControl
+            ...(isKubernetesClusterConfig ||
+            isKubernetesNodeConfig ||
+            showBatchPreloadTab ||
+            hasPreloadControl
               ? [
                   {
                     key: 'injection',

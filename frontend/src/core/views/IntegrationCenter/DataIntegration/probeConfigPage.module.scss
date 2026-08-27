@@ -101,6 +101,42 @@
   border-top: 1px solid var(--ant-color-border-secondary);
 }
 
+.clusterInjectionGuide {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 720px;
+  padding: 32px 0 40px;
+}
+
+.clusterInjectionGuideIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 6px;
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.clusterInjectionGuideContent {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.clusterInjectionGuideContent :global(.ant-typography) {
+  margin-top: 0;
+}
+
+.clusterInjectionGuideContent :global(.ant-typography-secondary) {
+  max-width: 620px;
+  margin-bottom: 20px;
+}
+
 .injectionSection {
   display: flex;
   min-width: 0;
@@ -133,6 +169,15 @@
   padding: 8px;
 }
 
+.workloadTree :global(.ant-tree-treenode) {
+  width: 100%;
+}
+
+.workloadTree :global(.ant-tree-node-content-wrapper) {
+  min-width: 0;
+  flex: 1;
+}
+
 .workloadTreeLabel {
   display: flex;
   min-width: 0;
@@ -142,9 +187,35 @@
   width: 100%;
 }
 
-.workloadTreeLabel > span:first-child {
+.treeNodeIdentity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.treeNodeName {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeNodeType {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 3px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.workloadTreeLabel > :global(.ant-typography-secondary) {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .serviceNameFields {
@@ -310,19 +381,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.circuitScopeBar,
 .recoveryRow,
 .recoveryToggle {
   display: flex;
   align-items: center;
-}
-
-.circuitScopeBar {
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
 .advancedCircuit {
@@ -337,7 +399,165 @@
   padding: 0 0 16px !important;
 }
 
-.circuitScopeBar label,
+.advancedCircuitLabel,
+.componentPolicySection,
+.componentPolicyHeader > div,
+.componentPolicyEditorHeader > div,
+.componentPolicyEmpty > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.advancedCircuitLabel {
+  gap: 2px;
+}
+
+.advancedCircuitLabel > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advancedCircuitLabel :global(.ant-tag) {
+  margin: 0;
+  font-weight: 400;
+}
+
+.advancedCircuitLabel > :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.componentPolicySection {
+  gap: 16px;
+}
+
+.componentPolicyHeader,
+.componentPolicyEditorHeader,
+.componentPolicyPicker,
+.componentPolicyEmpty {
+  display: flex;
+  align-items: center;
+}
+
+.componentPolicyHeader,
+.componentPolicyEditorHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.componentPolicyHeader > div,
+.componentPolicyEditorHeader > div {
+  gap: 2px;
+}
+
+.componentPolicyList {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.componentPolicyRow,
+.componentPolicyRowActive {
+  display: grid;
+  width: 100%;
+  min-height: 52px;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(260px, 1.3fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.componentPolicyRow:last-child,
+.componentPolicyRowActive:last-child {
+  border-bottom: 0;
+}
+
+.componentPolicyRow:hover,
+.componentPolicyRowActive {
+  background: var(--ant-color-fill-quaternary);
+}
+
+.componentPolicyRowActive {
+  box-shadow: inset 0 0 0 1px var(--ant-color-primary-border);
+}
+
+.componentPolicyIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.componentPolicyIdentity strong,
+.componentPolicySummary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.componentPolicyIdentity :global(.ant-tag) {
+  margin: 0;
+}
+
+.componentPolicySummary {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.componentPolicyEdit {
+  color: var(--ant-color-primary);
+}
+
+.componentPolicyEmpty {
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 4px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.componentPolicyEmpty > span {
+  gap: 2px;
+}
+
+.componentPolicyPicker {
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.componentPolicyPicker label {
+  display: flex;
+  min-width: 260px;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.componentPolicyPicker label > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.componentPolicyEditor {
+  padding-top: 16px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.componentPolicyEditorHeader {
+  margin-bottom: 12px;
+}
+
 .recoveryRow label {
   display: flex;
   min-width: 190px;
@@ -345,14 +565,9 @@
   gap: 6px;
 }
 
-.circuitScopeBar label > span,
 .recoveryRow label > span {
   color: var(--ant-color-text-secondary);
   font-size: 12px;
-}
-
-.circuitScopeBar :global(.ant-select) {
-  min-width: 220px;
 }
 
 .recoveryRow {
@@ -917,6 +1132,10 @@
     align-items: flex-start;
   }
 
+  .clusterInjectionGuide {
+    padding-top: 20px;
+  }
+
   .serviceNameFields {
     grid-template-columns: 1fr;
   }
@@ -932,14 +1151,34 @@
   }
 
   .sectionHeading,
+  .componentPolicyHeader,
+  .componentPolicyEditorHeader,
+  .componentPolicyPicker,
   .templateBar,
   .sourceToolbar,
   .logSourceToolbar,
   .logCollectionSwitchRow,
-  .circuitScopeBar,
   .recoveryRow {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .componentPolicyHeader > :global(.ant-btn),
+  .componentPolicyEditorHeader > :global(.ant-btn),
+  .componentPolicyPicker > :global(.ant-btn),
+  .componentPolicyPicker label {
+    width: 100%;
+  }
+
+  .componentPolicyRow,
+  .componentPolicyRowActive {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+  }
+
+  .componentPolicySummary {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .logCollectionSwitchRow {

@@ -78,9 +78,12 @@ environment file.
 
 ## Kubernetes namespace injection
 
-`注入控制` is available only on the Kubernetes cluster-configuration page. It
-does not appear for VM clusters, node configuration, multi-cluster batch
-configuration, or global defaults.
+The Kubernetes cluster-configuration page is the only place that edits
+namespace and workload injection policy. A Kubernetes node-configuration page
+also shows an `注入控制` tab, but it only explains that the node inherits its
+cluster policy and links to that cluster's injection control; it never exposes
+node-level editing or saving. The tab does not appear for VM nodes or clusters,
+multi-cluster batch configuration, or global defaults.
 
 Whether remote control is accepted belongs only to the instrumentor deployment
 configuration and defaults to enabled in the Syncause chart. APO cannot toggle

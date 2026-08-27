@@ -57,9 +57,9 @@ const workloadLabel: Record<WorkloadKind, string> = {
   daemonset: 'DaemonSet',
 }
 const modeLabel: Record<NamespaceMode, string> = {
-  disabled: '不选中',
-  enabled: '选中当前',
-  enabledFuture: '选中全部',
+  disabled: '暂不注入',
+  enabled: '仅注入当前',
+  enabledFuture: '注入当前及新增',
 }
 const nextMode: Record<NamespaceMode, NamespaceMode> = {
   disabled: 'enabled',
@@ -236,7 +236,10 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
         key: namespaceKey(namespace),
         title: (
           <span className={styles.workloadTreeLabel}>
-            <span>{namespace}</span>
+            <span className={styles.treeNodeIdentity}>
+              <span className={styles.treeNodeName}>{namespace}</span>
+              <span className={styles.treeNodeType}>Namespace</span>
+            </span>
             <Typography.Text type="secondary">
               {modeLabel[namespaceModes[namespace] || (applyAll ? 'enabledFuture' : 'disabled')]}
             </Typography.Text>
@@ -246,7 +249,10 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
           key: workloadKey(workload),
           title: (
             <span className={styles.workloadTreeLabel}>
-              <span>{workload.name}</span>
+              <span className={styles.treeNodeIdentity}>
+                <span className={styles.treeNodeName}>{workload.name}</span>
+                <span className={styles.treeNodeType}>工作负载</span>
+              </span>
               <Typography.Text type="secondary">{workloadLabel[workload.kind]}</Typography.Text>
             </span>
           ),
@@ -343,7 +349,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
                 checked={applyAll}
                 onChange={(event) => changeApplyAll(event.target.checked)}
               >
-                应用于所有 namespace
+                应用于所有 Namespace
               </Checkbox>
             </div>
             <Button aria-label="刷新工作负载" icon={<RefreshCw size={15} />} onClick={load} />
@@ -351,7 +357,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
           <Input.Search
             allowClear
             value={search}
-            placeholder="搜索命名空间或工作负载"
+            placeholder="搜索 Namespace 或工作负载"
             onChange={(event) => setSearch(event.target.value)}
           />
           {treeData.length ? (
