@@ -1282,18 +1282,31 @@ func TestListDeliveriesCalculatesEachNodeReceiptFromTargetGeneration(t *testing.
 
 func TestSaveNodeClusterIdentityEnforcesTargetClusterType(t *testing.T) {
 	repo := newConfigSemanticsRepo()
-	repo.nodes["node-vm"] = ac.Node{ID: "node-vm", ClusterID: "vm-old", InitialClusterID: "vm-old", Environment: "binary"}
+	repo.nodes["node-vm"] = ac.Node{
+		ID:                "node-vm",
+		ClusterID:         "vm-old",
+		InitialClusterID:  "vm-old",
+		Environment:       "binary",
+		VariableOverrides: ac.JSON(`{"CLUSTER_IP":"10.0.0.8","CUSTOM_VALUE":"keep"}`),
+	}
 	repo.clusters["vm-old"] = integrationmodel.Cluster{ID: "vm-old", ClusterType: integrationmodel.ClusterTypeVM}
 	repo.clusters["vm-next"] = integrationmodel.Cluster{ID: "vm-next", ClusterType: integrationmodel.ClusterTypeVM}
 	repo.clusters["k8s-next"] = integrationmodel.Cluster{ID: "k8s-next", ClusterType: integrationmodel.ClusterTypeK8s}
 	service := New(repo)
 
-	identity, err := service.SaveNodeClusterIdentity(nil, "node-vm", "vm-next", "10.0.0.8")
+	identity, err := service.SaveNodeClusterIdentity(nil, "node-vm", "vm-next")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if identity.ClusterID != "vm-next" || identity.ClusterIP != "10.0.0.8" {
 		t.Fatalf("unexpected identity: %+v", identity)
+	}
+	var overrides map[string]string
+	if err := json.Unmarshal(repo.nodes["node-vm"].VariableOverrides, &overrides); err != nil {
+		t.Fatal(err)
+	}
+	if overrides["CLUSTER_IP"] != "10.0.0.8" || overrides["CUSTOM_VALUE"] != "keep" || overrides["CLUSTER_ID"] != "vm-next" {
+		t.Fatalf("cluster assignment changed unrelated variables: %+v", overrides)
 	}
 	if err := service.Register(nil, &ac.Node{ID: "node-vm", ClusterID: "vm-old", Environment: "binary"}); err != nil {
 		t.Fatal(err)
@@ -1304,6 +1317,16 @@ func TestSaveNodeClusterIdentityEnforcesTargetClusterType(t *testing.T) {
 	if _, err := service.RestoreNodeClusterID(nil, "node-vm"); err != nil {
 		t.Fatal(err)
 	}
+	overrides = nil
+	if err := json.Unmarshal(repo.nodes["node-vm"].VariableOverrides, &overrides); err != nil {
+		t.Fatal(err)
+	}
+	if overrides["CLUSTER_IP"] != "10.0.0.8" || overrides["CUSTOM_VALUE"] != "keep" {
+		t.Fatalf("restoring cluster assignment changed unrelated variables: %+v", overrides)
+	}
+	if _, ok := overrides["CLUSTER_ID"]; ok {
+		t.Fatalf("restoring cluster assignment kept CLUSTER_ID override: %+v", overrides)
+	}
 	if err := service.Register(nil, &ac.Node{ID: "node-vm", ClusterID: "vm-old", Environment: "binary"}); err != nil {
 		t.Fatal(err)
 	}
@@ -1311,8 +1334,28 @@ func TestSaveNodeClusterIdentityEnforcesTargetClusterType(t *testing.T) {
 		t.Fatalf("restored cluster assignment was not durable: %+v", repo.nodes["node-vm"])
 	}
 
-	if _, err := service.SaveNodeClusterIdentity(nil, "node-vm", "k8s-next", ""); err == nil || !strings.Contains(err.Error(), "cannot assign vm node") {
+	if _, err := service.SaveNodeClusterIdentity(nil, "node-vm", "k8s-next"); err == nil || !strings.Contains(err.Error(), "cannot assign vm node") {
 		t.Fatalf("cross-type assignment was not rejected: %v", err)
+	}
+}
+
+func TestSaveNodeClusterIdentityRejectsInvalidOverridesWithoutChangingNode(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-vm"] = ac.Node{
+		ID:                "node-vm",
+		ClusterID:         "vm-old",
+		InitialClusterID:  "vm-old",
+		Environment:       "binary",
+		VariableOverrides: ac.JSON(`{"CLUSTER_IP":`),
+	}
+	repo.clusters["vm-next"] = integrationmodel.Cluster{ID: "vm-next", ClusterType: integrationmodel.ClusterTypeVM}
+	service := New(repo)
+
+	if _, err := service.SaveNodeClusterIdentity(nil, "node-vm", "vm-next"); err == nil || !strings.Contains(err.Error(), "invalid variable overrides") {
+		t.Fatalf("invalid overrides were not rejected: %v", err)
+	}
+	if node := repo.nodes["node-vm"]; node.ClusterID != "vm-old" || string(node.VariableOverrides) != `{"CLUSTER_IP":` {
+		t.Fatalf("failed cluster assignment changed the node: %+v", node)
 	}
 }
 

@@ -13,6 +13,14 @@ export function createDataIntegrationApi(params) {
   return post('/api/integration/cluster/create', params)
 }
 
+export function createClusterIdentityApi(params: {
+  id: string
+  name?: string
+  clusterType: 'k8s' | 'vm'
+}) {
+  return post('/api/integration/cluster/identity', params)
+}
+
 export function getIntegrationClusterListApi() {
   return get('/api/integration/cluster/list')
 }
@@ -37,7 +45,7 @@ export function getNodeClusterIdentityApi(nodeId: string) {
   return get(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/cluster-identity`)
 }
 
-export function updateNodeClusterIdentityApi(nodeId: string, data: { clusterId: string; clusterIp?: string }) {
+export function updateNodeClusterIdentityApi(nodeId: string, data: { clusterId: string }) {
   return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/cluster-identity`, data)
 }
 

@@ -16,6 +16,7 @@ type Service interface {
 	GetStaticIntegration(ctx core.Context) map[string]any
 
 	CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error)
+	CreateClusterIdentity(ctx core.Context, req *integration.CreateClusterIdentityRequest) (*integration.Cluster, error)
 	GetClusterIntegration(ctx core.Context, clusterID string) (*integration.ClusterIntegrationVO, error)
 	UpdateClusterIntegration(ctx core.Context, cluster *integration.ClusterIntegration) error
 	UpdateClusterDisplayName(ctx core.Context, clusterID string, displayName string) (*integration.Cluster, error)

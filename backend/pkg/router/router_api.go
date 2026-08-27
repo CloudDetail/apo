@@ -438,6 +438,7 @@ func setApiRouter(r *resource) {
 		integrationAPI.GET("/cluster/list", handler.ListCluster())
 		integrationAPI.GET("/cluster/get", handler.GetCluster())
 		integrationAPI.POST("/cluster/create", handler.CreateCluster())
+		integrationAPI.POST("/cluster/identity", handler.CreateClusterIdentity())
 		integrationAPI.POST("/cluster/update", handler.UpdateCluster())
 		integrationAPI.POST("/cluster/display-name", handler.UpdateClusterDisplayName())
 		integrationAPI.GET("/cluster/delete", handler.DeleteCluster())

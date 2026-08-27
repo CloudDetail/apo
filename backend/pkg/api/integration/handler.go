@@ -30,6 +30,11 @@ type Handler interface {
 	// @Router /api/integration/cluster/create [post]
 	CreateCluster() core.HandlerFunc
 
+	// CreateClusterIdentity registers cluster identity without integration configuration.
+	// @Tags API.integration
+	// @Router /api/integration/cluster/identity [post]
+	CreateClusterIdentity() core.HandlerFunc
+
 	// GetCluster GetCluster
 	// @Tags API.integration
 	// @Router /api/integration/cluster/get [get]

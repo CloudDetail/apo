@@ -3,7 +3,7 @@ import { ArrowLeft, Network, Pencil, Plus, RefreshCw, Server } from 'lucide-reac
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  createDataIntegrationApi,
+  createClusterIdentityApi,
   getAgentConfigNodesApi,
   getIntegrationClusterListApi,
   updateClusterDisplayNameApi,
@@ -134,11 +134,10 @@ export default function ClusterManagementPage() {
     if (!id) return
     setSaving(true)
     try {
-      await createDataIntegrationApi({
+      await createClusterIdentityApi({
         id,
         name: newCluster.name.trim() || id,
         clusterType: newCluster.clusterType,
-        isMinimal: true,
       })
       setCreateOpen(false)
       setNewCluster({ id: '', name: '', clusterType: 'k8s' })
@@ -454,7 +453,12 @@ export default function ClusterManagementPage() {
         onCancel={() => setEditingNode(undefined)}
       >
         <div className={styles.formStack}>
-          <Alert type="warning" showIcon message="此操作会改变节点接收集群配置的范围" />
+          <Alert
+            type="warning"
+            showIcon
+            message="本次操作只修改节点的 cluster_id"
+            description="不会修改 cluster_ip，也不会下发其他配置；调整后，节点将按新归属接收后续集群配置。"
+          />
           <Typography.Text strong>{editingNode?.name || editingNode?.id}</Typography.Text>
           <Typography.Text type="secondary">
             节点固有类型: {typeLabel(normalizeType(editingNode?.environment))}

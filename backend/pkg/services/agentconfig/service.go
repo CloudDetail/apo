@@ -1048,7 +1048,7 @@ func (s *Service) SaveNodeVariables(ctx core.Context, nodeID string, overrides m
 	return s.NodeVariables(ctx, nodeID)
 }
 
-func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID, clusterIP string) (*NodeClusterIdentity, error) {
+func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID string) (*NodeClusterIdentity, error) {
 	node, err := s.repo.GetAgentNode(ctx, nodeID)
 	if err != nil {
 		return nil, err
@@ -1062,12 +1062,12 @@ func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID, c
 	}
 	overrides := map[string]string{}
 	if len(node.VariableOverrides) > 0 {
-		_ = json.Unmarshal(node.VariableOverrides, &overrides)
+		if err := json.Unmarshal(node.VariableOverrides, &overrides); err != nil {
+			return nil, fmt.Errorf("invalid variable overrides for node %s: %w", nodeID, err)
+		}
 	}
-	if clusterIP = strings.TrimSpace(clusterIP); clusterIP != "" {
-		overrides["CLUSTER_IP"] = clusterIP
-	} else {
-		delete(overrides, "CLUSTER_IP")
+	if overrides == nil {
+		overrides = map[string]string{}
 	}
 	overrides["CLUSTER_ID"] = clusterID
 	data, err := json.Marshal(overrides)
@@ -1107,7 +1107,9 @@ func (s *Service) RestoreNodeClusterID(ctx core.Context, nodeID string) (*NodeCl
 	}
 	overrides := map[string]string{}
 	if len(node.VariableOverrides) > 0 {
-		_ = json.Unmarshal(node.VariableOverrides, &overrides)
+		if err := json.Unmarshal(node.VariableOverrides, &overrides); err != nil {
+			return nil, fmt.Errorf("invalid variable overrides for node %s: %w", nodeID, err)
+		}
 	}
 	delete(overrides, "CLUSTER_ID")
 	data, err := json.Marshal(overrides)

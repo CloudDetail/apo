@@ -8,6 +8,10 @@ Cluster identity and node ownership are separate operations:
 - A node keeps the environment reported at registration. Operators may change the node's effective `cluster_id` only through the cluster management page.
 - Node ownership changes are deliberately separated from routine probe configuration because they change the scope of later configuration delivery.
 
+Creating a cluster from the cluster management page only persists its `cluster_id`, display name, and immutable environment type. It does not create collector, metric, log, trace, or any other integration configuration.
+
+Changing node ownership only updates the managed `CLUSTER_ID` override. It never creates, removes, or changes `CLUSTER_IP` or any other variable, and it does not trigger configuration delivery. `cluster_ip` is read only for mixed-cluster risk detection.
+
 ## Assignment rules
 
 The backend is the authority for assignment validation. A target cluster must already exist, and the normalized node environment must equal the target cluster type. Kubernetes nodes cannot join VM clusters, and VM nodes cannot join Kubernetes clusters.

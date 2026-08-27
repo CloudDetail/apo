@@ -176,13 +176,12 @@ func (h *Handler) SaveNodeClusterIdentity() core.HandlerFunc {
 	return func(c core.Context) {
 		var input struct {
 			ClusterID string `json:"clusterId"`
-			ClusterIP string `json:"clusterIp"`
 		}
 		if err := c.ShouldBindJSON(&input); err != nil {
 			fail(c, err)
 			return
 		}
-		v, err := h.s.SaveNodeClusterIdentity(c, c.Param("nodeId"), input.ClusterID, input.ClusterIP)
+		v, err := h.s.SaveNodeClusterIdentity(c, c.Param("nodeId"), input.ClusterID)
 		if err != nil {
 			fail(c, err)
 			return

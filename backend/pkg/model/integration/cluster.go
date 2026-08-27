@@ -27,6 +27,12 @@ type UpdateClusterDisplayNameRequest struct {
 	Name string `json:"name"`
 }
 
+type CreateClusterIdentityRequest struct {
+	ID          string `json:"id" binding:"required"`
+	Name        string `json:"name"`
+	ClusterType string `json:"clusterType" binding:"required"`
+}
+
 type ClusterIntegration struct {
 	Cluster
 
