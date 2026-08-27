@@ -74,7 +74,8 @@ type ContainerStdoutSource struct {
 }
 
 type HostFileCollectionInput struct {
-	HostFiles []HostFileSource `json:"hostFiles"`
+	HostFiles           []HostFileSource `json:"hostFiles"`
+	DisableClusterRules bool             `json:"disableClusterRules"`
 }
 
 type ContainerStdoutCollectionInput struct {
@@ -97,14 +98,15 @@ type LogCollectionPreview struct {
 }
 
 type HostFileCollection struct {
-	ScopeType      string           `json:"scopeType"`
-	ScopeID        string           `json:"scopeId"`
-	Version        int64            `json:"version"`
-	HostFiles      []HostFileSource `json:"hostFiles"`
-	ProcessingRule string           `json:"processingRule"`
-	OutputRule     string           `json:"outputRule"`
-	ProcessorCount int              `json:"processorCount"`
-	OutputCount    int              `json:"outputCount"`
+	ScopeType           string           `json:"scopeType"`
+	ScopeID             string           `json:"scopeId"`
+	Version             int64            `json:"version"`
+	HostFiles           []HostFileSource `json:"hostFiles"`
+	DisableClusterRules bool             `json:"disableClusterRules"`
+	ProcessingRule      string           `json:"processingRule"`
+	OutputRule          string           `json:"outputRule"`
+	ProcessorCount      int              `json:"processorCount"`
+	OutputCount         int              `json:"outputCount"`
 }
 
 type ContainerStdoutCollection struct {
@@ -862,7 +864,10 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 	if err := json.Unmarshal(stored.Config, &input); err != nil {
 		return nil, err
 	}
-	collection := &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: input.HostFiles}
+	collection := &HostFileCollection{
+		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
+		HostFiles: input.HostFiles, DisableClusterRules: input.DisableClusterRules,
+	}
 	s.attachHostPipelineRules(ctx, collection)
 	return collection, nil
 }
@@ -873,7 +878,7 @@ func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input 
 	if err != nil {
 		return nil, err
 	}
-	data, err := json.Marshal(HostFileCollectionInput{HostFiles: normalized})
+	data, err := json.Marshal(HostFileCollectionInput{HostFiles: normalized, DisableClusterRules: input.DisableClusterRules})
 	if err != nil {
 		return nil, err
 	}
@@ -885,7 +890,10 @@ func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input 
 	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
 		return nil, err
 	}
-	collection := &HostFileCollection{ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version, HostFiles: normalized}
+	collection := &HostFileCollection{
+		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
+		HostFiles: normalized, DisableClusterRules: input.DisableClusterRules,
+	}
 	s.attachHostPipelineRules(ctx, collection)
 	return collection, nil
 }

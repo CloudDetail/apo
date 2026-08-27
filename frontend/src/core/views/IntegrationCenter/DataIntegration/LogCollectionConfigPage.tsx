@@ -5,6 +5,7 @@ import {
   InputNumber,
   Collapse,
   Checkbox,
+  Dropdown,
   Modal,
   Select,
   Space,
@@ -15,6 +16,7 @@ import {
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import {
+  Container as ContainerIcon,
   ExternalLink,
   Eye,
   FileText,
@@ -379,11 +381,14 @@ export function LogCollectionConfigPanel({
   const [inheritedContainerStdout, setInheritedContainerStdout] = useState<ContainerStdoutSource[]>(
     [],
   )
+  const [inheritedHostFiles, setInheritedHostFiles] = useState<HostFileSource[]>([])
   const [hostVersion, setHostVersion] = useState(0)
   const [containerVersion, setContainerVersion] = useState(0)
   const [inheritedVersion, setInheritedVersion] = useState(0)
   const [originalHostFiles, setOriginalHostFiles] = useState('[]')
   const [originalContainerStdout, setOriginalContainerStdout] = useState('[]')
+  const [disableClusterRules, setDisableClusterRules] = useState(false)
+  const [originalDisableClusterRules, setOriginalDisableClusterRules] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadFailed, setLoadFailed] = useState(false)
   const [inheritedLoading, setInheritedLoading] = useState(false)
@@ -402,13 +407,19 @@ export function LogCollectionConfigPanel({
   const selectedPreviewFile = previewFiles.find((file) => file.path === selectedPreviewPath)
   const hostChanged = JSON.stringify(hostFiles) !== originalHostFiles
   const containerChanged = JSON.stringify(containerStdout) !== originalContainerStdout
-  const changed = mode === 'host' ? hostChanged : containerChanged
+  const nodeChanged = hostChanged || disableClusterRules !== originalDisableClusterRules
+  const changed = mode === 'host' ? nodeChanged : hostChanged || containerChanged
   const currentScope = mode === 'host' ? selectedNode : selectedCluster
   const currentVersion = mode === 'host' ? hostVersion : containerVersion
-  const sourceCount = mode === 'host' ? hostFiles.length : containerStdout.length
-  const inheritedSourceCount = inheritedContainerStdout.filter((source) => source.enabled).length
+  const sourceCount = mode === 'host' ? hostFiles.length : containerStdout.length + hostFiles.length
+  const inheritedSourceCount =
+    inheritedContainerStdout.filter((source) => source.enabled).length +
+    inheritedHostFiles.filter((source) => source.enabled).length
+  const inheritedRuleCount = inheritedContainerStdout.length + inheritedHostFiles.length
   const visibleRuleCount =
-    mode === 'host' ? inheritedContainerStdout.length + hostFiles.length : containerStdout.length
+    mode === 'host'
+      ? inheritedContainerStdout.length + inheritedHostFiles.length + hostFiles.length
+      : containerStdout.length + hostFiles.length
   const availableFilterDefinitions = containerFilterDefinitions.filter(
     (definition) => showK8sFilters || !definition.k8sOnly,
   )
@@ -417,6 +428,8 @@ export function LogCollectionConfigPanel({
     if (!selectedNode) {
       setHostFiles([])
       setOriginalHostFiles('[]')
+      setDisableClusterRules(false)
+      setOriginalDisableClusterRules(false)
       setProcessingRule('')
       setOutputRule('')
       setProcessorCount(0)
@@ -431,6 +444,9 @@ export function LogCollectionConfigPanel({
       const values = hostPayload((result?.hostFiles || []) as HostFileSource[])
       setHostFiles(values)
       setOriginalHostFiles(JSON.stringify(values))
+      const inheritedDisabled = Boolean(result?.disableClusterRules)
+      setDisableClusterRules(inheritedDisabled)
+      setOriginalDisableClusterRules(inheritedDisabled)
       setHostVersion(Number(result?.version || 0))
       setProcessingRule(String(result?.processingRule || ''))
       setOutputRule(String(result?.outputRule || ''))
@@ -440,6 +456,8 @@ export function LogCollectionConfigPanel({
       console.error('[LogCollectionConfigPage] failed to load host file collection', error)
       setHostFiles([])
       setOriginalHostFiles('[]')
+      setDisableClusterRules(false)
+      setOriginalDisableClusterRules(false)
       setProcessingRule('')
       setOutputRule('')
       setProcessorCount(0)
@@ -454,7 +472,9 @@ export function LogCollectionConfigPanel({
   const loadContainerStdout = useCallback(async () => {
     if (!selectedCluster) {
       setContainerStdout([])
+      setHostFiles([])
       setOriginalContainerStdout('[]')
+      setOriginalHostFiles('[]')
       setProcessingRule('')
       setOutputRule('')
       setProcessorCount(0)
@@ -471,7 +491,10 @@ export function LogCollectionConfigPanel({
         showK8sFilters,
       )
       setContainerStdout(values)
+      const fileValues = hostPayload((result?.hostFiles || []) as HostFileSource[])
+      setHostFiles(fileValues)
       setOriginalContainerStdout(JSON.stringify(values))
+      setOriginalHostFiles(JSON.stringify(fileValues))
       setContainerVersion(Number(result?.version || 0))
       setProcessingRule(String(result?.processingRule || ''))
       setOutputRule(String(result?.outputRule || ''))
@@ -480,7 +503,9 @@ export function LogCollectionConfigPanel({
     } catch (error: any) {
       console.error('[LogCollectionConfigPage] failed to load container stdout collection', error)
       setContainerStdout([])
+      setHostFiles([])
       setOriginalContainerStdout('[]')
+      setOriginalHostFiles('[]')
       setProcessingRule('')
       setOutputRule('')
       setProcessorCount(0)
@@ -495,6 +520,7 @@ export function LogCollectionConfigPanel({
   const loadInheritedContainerStdout = useCallback(async () => {
     if (mode !== 'host' || !inheritedClusterId) {
       setInheritedContainerStdout([])
+      setInheritedHostFiles([])
       setInheritedVersion(0)
       setInheritedLoadFailed(false)
       return
@@ -506,10 +532,12 @@ export function LogCollectionConfigPanel({
       setInheritedContainerStdout(
         normalizeContainerSources((result?.containerStdout || []) as ContainerStdoutSource[]),
       )
+      setInheritedHostFiles(hostPayload((result?.hostFiles || []) as HostFileSource[]))
       setInheritedVersion(Number(result?.version || 0))
     } catch (error) {
       console.error('[LogCollectionConfigPage] failed to load inherited cluster collection', error)
       setInheritedContainerStdout([])
+      setInheritedHostFiles([])
       setInheritedVersion(0)
       setInheritedLoadFailed(true)
     } finally {
@@ -594,18 +622,28 @@ export function LogCollectionConfigPanel({
       if (mode === 'host') {
         const result: any = await updateHostFileCollectionApi(selectedNode, {
           hostFiles: hostPayload(hostFiles),
+          disableClusterRules,
         })
         const values = hostPayload((result?.hostFiles || []) as HostFileSource[])
+        const inheritedDisabled =
+          typeof result?.disableClusterRules === 'boolean'
+            ? result.disableClusterRules
+            : disableClusterRules
         setHostFiles(values)
         setOriginalHostFiles(JSON.stringify(values))
+        setDisableClusterRules(inheritedDisabled)
+        setOriginalDisableClusterRules(inheritedDisabled)
         setHostVersion(Number(result?.version || hostVersion + 1))
         setProcessingRule(String(result?.processingRule || processingRule))
         setOutputRule(String(result?.outputRule || outputRule))
         setProcessorCount(Number(result?.processorCount || processorCount))
         setOutputCount(Number(result?.outputCount || outputCount))
-        notify({ type: 'success', message: '节点追加的宿主机文件采集规则已保存' })
+        notify({ type: 'success', message: '节点日志采集配置已保存' })
       } else {
-        const payload = { containerStdout: containerPayload(containerStdout) }
+        const payload = {
+          containerStdout: containerPayload(containerStdout),
+          hostFiles: hostPayload(hostFiles),
+        }
         const results = await Promise.all(
           clusterIds.map((clusterId) => updateContainerStdoutCollectionApi(clusterId, payload)),
         )
@@ -615,7 +653,10 @@ export function LogCollectionConfigPanel({
           showK8sFilters,
         )
         setContainerStdout(values)
+        const fileValues = hostPayload((result?.hostFiles || []) as HostFileSource[])
+        setHostFiles(fileValues)
         setOriginalContainerStdout(JSON.stringify(values))
+        setOriginalHostFiles(JSON.stringify(fileValues))
         setContainerVersion(Number(result?.version || containerVersion + 1))
         setProcessingRule(String(result?.processingRule || processingRule))
         setOutputRule(String(result?.outputRule || outputRule))
@@ -623,7 +664,7 @@ export function LogCollectionConfigPanel({
         setOutputCount(Number(result?.outputCount || outputCount))
         notify({
           type: 'success',
-          message: `容器标准输出采集配置已保存到 ${clusterIds.length} 个集群`,
+          message: `日志采集配置已保存到 ${clusterIds.length} 个集群`,
         })
       }
     } catch (error: any) {
@@ -635,17 +676,26 @@ export function LogCollectionConfigPanel({
   }
 
   const preview = async () => {
-    if (!currentScope || loadFailed || (mode === 'host' && inheritedLoadFailed)) return
+    if (
+      !currentScope ||
+      loadFailed ||
+      (mode === 'host' && !disableClusterRules && inheritedLoadFailed)
+    )
+      return
     if (mode === 'container' && !validateContainerFilters()) return
     setPreviewLoading(true)
     try {
       let files: PreviewFile[]
       if (mode === 'host') {
         const [nodeResult, clusterResult]: any[] = await Promise.all([
-          previewHostFileCollectionApi(selectedNode, { hostFiles: hostPayload(hostFiles) }),
-          inheritedClusterId
+          previewHostFileCollectionApi(selectedNode, {
+            hostFiles: hostPayload(hostFiles),
+            disableClusterRules,
+          }),
+          inheritedClusterId && !disableClusterRules
             ? previewContainerStdoutCollectionApi(inheritedClusterId, {
                 containerStdout: containerPayload(inheritedContainerStdout),
+                hostFiles: hostPayload(inheritedHostFiles),
               })
             : Promise.resolve({ files: [] }),
         ])
@@ -653,6 +703,7 @@ export function LogCollectionConfigPanel({
       } else {
         const result: any = await previewContainerStdoutCollectionApi(selectedCluster, {
           containerStdout: containerPayload(containerStdout),
+          hostFiles: hostPayload(hostFiles),
         })
         files = (result?.files || []) as PreviewFile[]
       }
@@ -667,10 +718,9 @@ export function LogCollectionConfigPanel({
     }
   }
 
-  const addSource = () => {
-    if (mode === 'host') setHostFiles((current) => [...current, newHostFile()])
-    else setContainerStdout((current) => [...current, newContainerStdout()])
-  }
+  const addHostFile = () => setHostFiles((current) => [...current, newHostFile()])
+  const addContainerStdout = () =>
+    setContainerStdout((current) => [...current, newContainerStdout()])
 
   const scanJavaLogs = async () => {
     if (!selectedNode || !javaLogScanProbeType) return
@@ -745,13 +795,11 @@ export function LogCollectionConfigPanel({
     <div className={styles.panel}>
       <div className={styles.pageHeading}>
         <div>
-          <Typography.Text strong>
-            {mode === 'host' ? '日志采集规则' : '容器标准输出采集'}
-          </Typography.Text>
+          <Typography.Text strong>日志采集配置</Typography.Text>
           <Typography.Text type="secondary">
             {mode === 'host'
-              ? '查看集群继承规则，并管理当前节点追加的宿主机日志路径'
-              : '按需添加过滤器，选择需要采集标准输出的容器'}
+              ? '查看集群继承规则，并管理当前节点追加的文件采集规则'
+              : '管理集群统一生效的容器标准输出和文件采集规则'}
           </Typography.Text>
         </div>
         <div className={`${styles.syncStatus} ${loadFailed ? styles.syncStatusError : ''}`}>
@@ -763,20 +811,35 @@ export function LogCollectionConfigPanel({
       <Spin spinning={loading}>
         <section className={styles.workbench}>
           {mode === 'host' && (
-            <div className={styles.inheritedSection}>
+            <div
+              className={`${styles.inheritedSection} ${
+                disableClusterRules ? styles.inheritedSectionDisabled : ''
+              }`}
+            >
               <div className={styles.inheritedHeader}>
                 <div>
                   <Typography.Text strong>集群继承 · {inheritedClusterId}</Typography.Text>
                   <Typography.Text type="secondary">
-                    {inheritedClusterEnvironment
-                      ? `${inheritedClusterEnvironment} · 集群配置自动应用到当前节点`
-                      : '集群配置自动应用到当前节点'}
+                    {disableClusterRules
+                      ? '当前节点已停用集群日志采集规则'
+                      : inheritedClusterEnvironment
+                        ? `${inheritedClusterEnvironment} · 集群配置自动应用到当前节点`
+                        : '集群配置自动应用到当前节点'}
                   </Typography.Text>
                 </div>
-                <Space>
+                <div className={styles.inheritanceActions}>
                   {!!inheritedVersion && (
                     <Typography.Text type="secondary">版本 {inheritedVersion}</Typography.Text>
                   )}
+                  <label className={styles.inheritanceToggle}>
+                    <span>应用集群规则</span>
+                    <Switch
+                      size="small"
+                      checked={!disableClusterRules}
+                      aria-label="应用集群日志采集规则"
+                      onChange={(checked) => setDisableClusterRules(!checked)}
+                    />
+                  </label>
                   <Button
                     icon={<ExternalLink size={14} />}
                     disabled={!inheritedClusterId || !onEditInherited}
@@ -784,18 +847,22 @@ export function LogCollectionConfigPanel({
                   >
                     修改集群日志采集
                   </Button>
-                </Space>
+                </div>
               </div>
               <Spin spinning={inheritedLoading}>
-                {inheritedLoadFailed ? (
+                {inheritedLoadFailed && !disableClusterRules ? (
                   <Typography.Text type="danger">
                     集群日志采集配置加载失败，无法生成完整预览
                   </Typography.Text>
                 ) : (
                   <Typography.Text type="secondary">
-                    {inheritedContainerStdout.length
-                      ? `已继承 ${inheritedContainerStdout.length} 项容器标准输出规则，详情见下方生效规则`
-                      : '集群尚未配置容器标准输出规则'}
+                    {disableClusterRules
+                      ? inheritedRuleCount
+                        ? `${inheritedRuleCount} 项集群规则已停用，不会进入当前节点最终配置`
+                        : '集群规则已停用'
+                      : inheritedRuleCount
+                        ? `已继承 ${inheritedRuleCount} 项集群采集规则，详情见下方采集规则`
+                        : '集群尚未配置采集规则'}
                   </Typography.Text>
                 )}
               </Spin>
@@ -837,45 +904,112 @@ export function LogCollectionConfigPanel({
                   ? `版本 ${currentVersion}`
                   : '尚未配置'}
             </Typography.Text>
-
-            {mode === 'host' && enableJavaLogScan && (
-              <Tooltip title={javaLogScanProbeType ? '' : '当前节点没有可用的探针命令通道'}>
-                <Button
-                  icon={<ScanSearch size={15} />}
-                  loading={scanningJavaLogs}
-                  disabled={!currentScope || !javaLogScanProbeType || loadFailed}
-                  onClick={scanJavaLogs}
-                >
-                  自动扫描 Java 日志
-                </Button>
-              </Tooltip>
-            )}
-
-            <Button
-              icon={<PlusOutlined />}
-              disabled={!currentScope || loadFailed}
-              onClick={addSource}
-            >
-              {mode === 'host' ? '添加文件路径' : '添加容器选择'}
-            </Button>
           </div>
 
           <div className={styles.rulesHeader}>
-            <Typography.Text strong>采集规则</Typography.Text>
-            <Typography.Text type="secondary">{visibleRuleCount} 项</Typography.Text>
+            <div className={styles.rulesTitle}>
+              <Typography.Text strong>采集规则</Typography.Text>
+              <Typography.Text type="secondary">{visibleRuleCount} 项</Typography.Text>
+            </div>
+            <Space>
+              {mode === 'host' && enableJavaLogScan && (
+                <Tooltip title={javaLogScanProbeType ? '' : '当前节点没有可用的探针命令通道'}>
+                  <Button
+                    icon={<ScanSearch size={15} />}
+                    loading={scanningJavaLogs}
+                    disabled={!currentScope || !javaLogScanProbeType || loadFailed}
+                    onClick={scanJavaLogs}
+                  >
+                    自动扫描 Java 日志
+                  </Button>
+                </Tooltip>
+              )}
+              {mode === 'container' ? (
+                <Dropdown
+                  trigger={['click']}
+                  menu={{
+                    items: [
+                      {
+                        key: 'container',
+                        icon: <ContainerIcon size={14} />,
+                        label: '容器标准输出采集',
+                      },
+                      { key: 'file', icon: <FileText size={14} />, label: '文件采集' },
+                    ],
+                    onClick: ({ key }) =>
+                      key === 'container' ? addContainerStdout() : addHostFile(),
+                  }}
+                >
+                  <Button icon={<PlusOutlined />} disabled={!currentScope || loadFailed}>
+                    新增采集规则
+                  </Button>
+                </Dropdown>
+              ) : (
+                <Button
+                  icon={<PlusOutlined />}
+                  disabled={!currentScope || loadFailed}
+                  onClick={addHostFile}
+                >
+                  新增采集规则
+                </Button>
+              )}
+            </Space>
           </div>
 
           <div className={styles.sourceList}>
             {mode === 'host' &&
-              inheritedContainerStdout.map((source, index) => (
-                <div className={styles.inheritedSourceRow} key={`inherited-${source.id}`}>
-                  <span className={source.enabled ? styles.enabledDot : styles.disabledDot} />
+              inheritedHostFiles.map((source, index) => (
+                <div
+                  className={`${styles.inheritedSourceRow} ${
+                    disableClusterRules ? styles.inheritedSourceRowDisabled : ''
+                  }`}
+                  key={`inherited-file-${source.id}`}
+                >
+                  <span
+                    className={
+                      source.enabled && !disableClusterRules
+                        ? styles.enabledDot
+                        : styles.disabledDot
+                    }
+                  />
                   <div className={styles.ruleOrigin}>
-                    <span className={styles.inheritedBadge}>集群继承</span>
+                    <span className={styles.inheritedBadge}>
+                      {disableClusterRules ? '集群继承 · 已停用' : '集群继承'}
+                    </span>
+                    <small>文件采集</small>
+                  </div>
+                  <div className={styles.inheritedRuleContent}>
+                    <Typography.Text strong>文件采集 {index + 1}</Typography.Text>
+                    <Typography.Text type="secondary">
+                      {source.path}/{source.filePattern} · 递归深度 {source.maxDirSearchDepth}
+                    </Typography.Text>
+                  </div>
+                </div>
+              ))}
+
+            {mode === 'host' &&
+              inheritedContainerStdout.map((source, index) => (
+                <div
+                  className={`${styles.inheritedSourceRow} ${
+                    disableClusterRules ? styles.inheritedSourceRowDisabled : ''
+                  }`}
+                  key={`inherited-${source.id}`}
+                >
+                  <span
+                    className={
+                      source.enabled && !disableClusterRules
+                        ? styles.enabledDot
+                        : styles.disabledDot
+                    }
+                  />
+                  <div className={styles.ruleOrigin}>
+                    <span className={styles.inheritedBadge}>
+                      {disableClusterRules ? '集群继承 · 已停用' : '集群继承'}
+                    </span>
                     <small>容器标准输出</small>
                   </div>
                   <div className={styles.inheritedRuleContent}>
-                    <Typography.Text strong>容器规则 {index + 1}</Typography.Text>
+                    <Typography.Text strong>容器标准输出采集 {index + 1}</Typography.Text>
                     {source.activeFilters.length ? (
                       <div className={styles.inheritedFilters}>
                         {source.activeFilters.map((field) => (
@@ -903,64 +1037,63 @@ export function LogCollectionConfigPanel({
                 </div>
               ))}
 
-            {mode === 'host' &&
-              hostFiles.map((source, index) => (
-                <div className={styles.hostSourceRow} key={source.id}>
-                  <Switch
-                    size="small"
-                    aria-label={`启用宿主机文件采集 ${index + 1}`}
-                    checked={source.enabled}
-                    onChange={(enabled) => updateHostFile(index, { enabled })}
-                  />
-                  <div className={styles.ruleOrigin}>
-                    <span className={styles.nodeBadge}>当前节点</span>
-                    <small>宿主机文件</small>
-                  </div>
-                  <label className={styles.field}>
-                    <span>日志目录</span>
-                    <Input
-                      aria-label={`宿主机文件采集 ${index + 1} 路径`}
-                      value={source.path}
-                      placeholder="/var/log/application"
-                      onChange={(event) => updateHostFile(index, { path: event.target.value })}
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    <span>递归深度</span>
-                    <InputNumber
-                      aria-label={`宿主机文件采集 ${index + 1} 深度`}
-                      min={0}
-                      max={1000}
-                      value={source.maxDirSearchDepth}
-                      onChange={(value) =>
-                        updateHostFile(index, { maxDirSearchDepth: Number(value || 0) })
-                      }
-                    />
-                  </label>
-                  <label className={styles.field}>
-                    <span>文件名匹配</span>
-                    <Input
-                      aria-label={`宿主机文件采集 ${index + 1} 文件匹配`}
-                      value={source.filePattern}
-                      placeholder="*.log"
-                      onChange={(event) =>
-                        updateHostFile(index, { filePattern: event.target.value })
-                      }
-                    />
-                  </label>
-                  <Tooltip title="删除">
-                    <Button
-                      aria-label={`删除宿主机文件采集 ${index + 1}`}
-                      icon={<Trash2 size={15} />}
-                      onClick={() =>
-                        setHostFiles((current) =>
-                          current.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    />
-                  </Tooltip>
+            {hostFiles.map((source, index) => (
+              <div className={styles.hostSourceRow} key={source.id}>
+                <Switch
+                  size="small"
+                  aria-label={`启用宿主机文件采集 ${index + 1}`}
+                  checked={source.enabled}
+                  onChange={(enabled) => updateHostFile(index, { enabled })}
+                />
+                <div className={styles.ruleOrigin}>
+                  <span className={styles.nodeBadge}>
+                    {mode === 'host' ? '当前节点' : '集群配置'}
+                  </span>
+                  <small>文件采集</small>
                 </div>
-              ))}
+                <label className={styles.field}>
+                  <span>日志目录</span>
+                  <Input
+                    aria-label={`宿主机文件采集 ${index + 1} 路径`}
+                    value={source.path}
+                    placeholder="/var/log/application"
+                    onChange={(event) => updateHostFile(index, { path: event.target.value })}
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>递归深度</span>
+                  <InputNumber
+                    aria-label={`宿主机文件采集 ${index + 1} 深度`}
+                    min={0}
+                    max={1000}
+                    value={source.maxDirSearchDepth}
+                    onChange={(value) =>
+                      updateHostFile(index, { maxDirSearchDepth: Number(value || 0) })
+                    }
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span>文件名匹配</span>
+                  <Input
+                    aria-label={`宿主机文件采集 ${index + 1} 文件匹配`}
+                    value={source.filePattern}
+                    placeholder="*.log"
+                    onChange={(event) => updateHostFile(index, { filePattern: event.target.value })}
+                  />
+                </label>
+                <Tooltip title="删除">
+                  <Button
+                    aria-label={`删除宿主机文件采集 ${index + 1}`}
+                    icon={<Trash2 size={15} />}
+                    onClick={() =>
+                      setHostFiles((current) =>
+                        current.filter((_, itemIndex) => itemIndex !== index),
+                      )
+                    }
+                  />
+                </Tooltip>
+              </div>
+            ))}
 
             {mode === 'container' &&
               containerStdout.map((source, index) => (
@@ -972,7 +1105,7 @@ export function LogCollectionConfigPanel({
                     onChange={(enabled) => updateContainerStdout(index, { enabled })}
                   />
                   <div className={styles.sourceIdentity}>
-                    <Typography.Text strong>容器规则 {index + 1}</Typography.Text>
+                    <Typography.Text strong>容器标准输出采集 {index + 1}</Typography.Text>
                     <Typography.Text type="secondary">
                       {source.activeFilters.length
                         ? `${source.activeFilters.length} 个过滤器`
@@ -1353,7 +1486,7 @@ export function LogCollectionConfigPanel({
                     ? '配置加载失败，请重新选择目标后重试'
                     : mode === 'host'
                       ? '当前节点暂无宿主机文件采集配置'
-                      : '当前集群暂无容器标准输出采集配置'
+                      : '当前集群暂无采集规则'
                 }
               />
             )}
@@ -1423,15 +1556,21 @@ export function LogCollectionConfigPanel({
           <div className={styles.footer}>
             <Typography.Text type="secondary">
               {mode === 'host'
-                ? `继承 ${inheritedSourceCount} 项集群规则 · 追加 ${sourceCount} 个文件路径`
-                : `${sourceCount} 项容器规则`}
+                ? disableClusterRules
+                  ? `未应用集群规则 · 追加 ${sourceCount} 个文件路径`
+                  : `继承 ${inheritedSourceCount} 项集群规则 · 追加 ${sourceCount} 个文件路径`
+                : `${sourceCount} 项采集规则`}
               {changed ? '待保存' : ''}
             </Typography.Text>
             <Space>
               <Button
                 icon={<Eye size={15} />}
                 loading={previewLoading}
-                disabled={!currentScope || loadFailed || (mode === 'host' && inheritedLoadFailed)}
+                disabled={
+                  !currentScope ||
+                  loadFailed ||
+                  (mode === 'host' && !disableClusterRules && inheritedLoadFailed)
+                }
                 onClick={preview}
               >
                 最终配置预览
@@ -1443,7 +1582,7 @@ export function LogCollectionConfigPanel({
                 disabled={!currentScope || !changed || loadFailed}
                 onClick={save}
               >
-                {mode === 'host' ? '保存节点追加规则' : '保存配置'}
+                {mode === 'host' ? '保存节点日志采集' : '保存配置'}
               </Button>
             </Space>
           </div>

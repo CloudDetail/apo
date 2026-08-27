@@ -118,12 +118,35 @@
   background: var(--ant-color-info-bg);
 }
 
+.inheritedSectionDisabled {
+  border-color: var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
 .inheritedHeader,
 .filterHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.inheritanceActions,
+.inheritanceToggle {
+  display: flex;
+  align-items: center;
+}
+
+.inheritanceActions {
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.inheritanceToggle {
+  gap: 8px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .inheritedHeader > div:first-child,
@@ -149,6 +172,15 @@
 
 .inheritedSourceRow:last-child {
   border-bottom: 0;
+}
+
+.inheritedSourceRowDisabled {
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.inheritedSourceRowDisabled > :not(.ruleOrigin) {
+  opacity: 0.68;
 }
 
 .enabledDot,
@@ -235,8 +267,15 @@
 }
 
 .rulesHeader {
-  gap: 7px;
+  justify-content: space-between;
+  gap: 16px;
   margin: 18px 0 10px;
+}
+
+.rulesTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
 .sourceList {
@@ -570,9 +609,15 @@
   }
 
   .scopeToolbar,
+  .rulesHeader,
   .footer,
   .inheritedHeader {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inheritanceActions {
+    align-items: flex-start;
     flex-direction: column;
   }
 
@@ -586,6 +631,10 @@
   }
 
   .scopeToolbar > :global(.ant-btn) {
+    align-self: flex-start;
+  }
+
+  .rulesHeader > :global(.ant-space) {
     align-self: flex-start;
   }
 

@@ -66,7 +66,7 @@ func TestHostFileCollectionRendersAndPersistsIlogtailInputs(t *testing.T) {
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
 	addIlogtailBaseline(t, repo, "node-1")
 	service := New(repo)
-	input := HostFileCollectionInput{HostFiles: []HostFileSource{
+	input := HostFileCollectionInput{DisableClusterRules: true, HostFiles: []HostFileSource{
 		{ID: "app", Name: "application", Enabled: true, Path: " /var/log/application ", MaxDirSearchDepth: 4, FilePattern: "*.log"},
 		{ID: "disabled", Name: "disabled", Enabled: false, Path: "/var/log/disabled", FilePattern: "*.txt"},
 	}}
@@ -100,6 +100,9 @@ func TestHostFileCollectionRendersAndPersistsIlogtailInputs(t *testing.T) {
 		!strings.Contains(loaded.ProcessingRule, "processors:") ||
 		!strings.Contains(loaded.OutputRule, "RemoteURL: http://collector.example:30310") {
 		t.Fatalf("host pipeline defaults were not returned: %+v", loaded)
+	}
+	if !loaded.DisableClusterRules {
+		t.Fatal("node cluster-rule override was not persisted")
 	}
 }
 
