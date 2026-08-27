@@ -23,7 +23,10 @@ configuration release. `generation` is monotonic for a node and probe type.
   `GET/PUT /api/agent-config/nodes/:nodeId/injection-control` with a specialized
   `content + expectedGeneration` contract. It does not expose configuration
   history or rollback. The internal generation remains monotonic because
-  daemon-go needs it to apply the current desired file safely.
+  daemon-go needs it to apply the current desired file safely. The same node
+  `注入控制` tab owns the system-level enable switch, which sends the existing
+  `ENABLE_PRELOAD` or `DISABLE_PRELOAD` command. The probe-management node row
+  only links to node configuration and does not expose a second enable switch.
 - Batch template delivery ignores legacy preload entries and compares only the
   complete ordinary component/file set. Preload does not use templates. For VM
   targets, the separate batch `注入控制` tab starts from current node content,

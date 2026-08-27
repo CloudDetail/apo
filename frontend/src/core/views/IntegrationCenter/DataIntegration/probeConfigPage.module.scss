@@ -969,6 +969,23 @@
   border: 1px solid var(--ant-color-border);
 }
 
+.preloadEnablementRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--ant-color-border);
+  background: var(--ant-color-bg-container);
+}
+
+.preloadEnablementRow > div:first-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .injectionTargetRow {
   display: flex;
   align-items: flex-end;

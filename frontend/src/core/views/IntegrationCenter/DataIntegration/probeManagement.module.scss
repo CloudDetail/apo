@@ -144,19 +144,6 @@
   min-height: 40px;
 }
 
-.preloadControl {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: var(--ant-color-fill-quaternary);
-}
-
-.preloadControl :global(.ant-typography) {
-  font-size: 12px;
-}
-
 .actionCell,
 .actionTools {
   display: flex;

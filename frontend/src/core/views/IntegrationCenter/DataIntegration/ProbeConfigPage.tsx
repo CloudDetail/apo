@@ -43,6 +43,8 @@ import {
   batchAssignAgentConfigApi,
   batchUpdateNodeInjectionControlApi,
   batchUpdateCircuitBreakerApi,
+  createAgentCommandApi,
+  getAgentCommandsApi,
   createAgentConfigTemplateApi,
   getAgentConfigNodesApi,
   getAgentConfigStatesApi,
@@ -82,7 +84,12 @@ type NodeVariables = {
   overrides?: Record<string, string>
   effective?: Record<string, string>
 }
-type ProbeState = { nodeId: string; probeType: string }
+type ProbeState = {
+  nodeId: string
+  probeType: string
+  status?: string
+  runtime?: { preloadEnabled?: boolean }
+}
 type ClusterType = 'kubernetes' | 'vm'
 type TemplateVariable = { name: string; required?: boolean; defaultValue?: string }
 type ConfigFile = { path: string; content: string; contentSha256: string }
@@ -469,6 +476,7 @@ export default function ProbeConfigPage() {
   const [configFileDrafts, setConfigFileDrafts] = useState<Record<string, ConfigFile[]>>({})
   const [preloadControl, setPreloadControl] = useState<NodeInjectionControl>()
   const [preloadDraft, setPreloadDraft] = useState('')
+  const [preloadUpdating, setPreloadUpdating] = useState(false)
   const [selectedFilePath, setSelectedFilePath] = useState('')
   const [historyConfigs, setHistoryConfigs] = useState<CurrentConfig[]>([])
   const [selectedHistoryGeneration, setSelectedHistoryGeneration] = useState<number>()
@@ -1220,6 +1228,10 @@ export default function ProbeConfigPage() {
   const preloadConfigChanged = Boolean(
     preloadControl?.available && preloadDraft !== preloadControl.content,
   )
+  const nodePreloadState = states.find(
+    (state) => state.nodeId === nodeId && isPreloadProbe(state.probeType),
+  )
+  const nodePreloadEnabled = nodePreloadState?.runtime?.preloadEnabled
   const hasPreloadControl =
     mode === 'node' &&
     !isK8sEnvironment(inheritedClusterEnvironment) &&
@@ -1246,6 +1258,55 @@ export default function ProbeConfigPage() {
   const updatePreloadConfigContent = (content: string) => {
     if (!preloadControl?.available) return
     setPreloadDraft(content)
+  }
+  const waitForPreloadCommand = async (commandId: string) => {
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      const response: any = await getAgentCommandsApi(nodeId, 'preload')
+      const command = (response?.commands || []).find((item: any) => item.id === commandId)
+      if (command?.status === 'SUCCEEDED' || command?.status === 'FAILED') return command
+      await new Promise((resolve) => window.setTimeout(resolve, 1000))
+    }
+    throw new Error('等待节点执行命令超时')
+  }
+  const setNodePreloadEnabled = async (enabled: boolean) => {
+    if (nodePreloadEnabled === undefined) return
+    setPreloadUpdating(true)
+    try {
+      const created: any = await createAgentCommandApi(
+        nodeId,
+        'preload',
+        enabled ? 'ENABLE_PRELOAD' : 'DISABLE_PRELOAD',
+      )
+      const command = await waitForPreloadCommand(created.id)
+      if (command.status !== 'SUCCEEDED') {
+        throw new Error(command.result || 'Preload 状态调整失败')
+      }
+      let appliedEnabled = enabled
+      try {
+        const runtime = command.result ? JSON.parse(command.result) : undefined
+        if (typeof runtime?.preloadEnabled === 'boolean') appliedEnabled = runtime.preloadEnabled
+      } catch (error) {
+        console.error('[ProbeConfigPage] failed to parse preload command result', error)
+      }
+      setStates((current) =>
+        current.map((state) =>
+          state.nodeId === nodeId && isPreloadProbe(state.probeType)
+            ? { ...state, runtime: { ...state.runtime, preloadEnabled: appliedEnabled } }
+            : state,
+        ),
+      )
+      try {
+        const stateResult: any = await getAgentConfigStatesApi()
+        setStates(stateResult?.states || [])
+      } catch (error) {
+        console.error('[ProbeConfigPage] failed to refresh preload state after command', error)
+      }
+      notify({ type: 'success', message: enabled ? 'Preload 注入已启用' : 'Preload 注入已停用' })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || 'Preload 状态调整失败' })
+    } finally {
+      setPreloadUpdating(false)
+    }
   }
   const savePreloadConfig = async () => {
     if (!preloadControl?.available) return
@@ -2007,6 +2068,28 @@ export default function ProbeConfigPage() {
     </div>
   ) : hasPreloadControl ? (
     <div className={styles.tabContent}>
+      <div className={styles.preloadEnablementRow}>
+        <div>
+          <Typography.Text strong>Preload 注入</Typography.Text>
+          <Typography.Text type="secondary">控制当前节点新启动进程的系统注入</Typography.Text>
+        </div>
+        <Space size={10}>
+          <Typography.Text type="secondary">
+            {nodePreloadEnabled === undefined
+              ? '状态未上报'
+              : nodePreloadEnabled
+                ? '已启用'
+                : '已停用'}
+          </Typography.Text>
+          <Switch
+            aria-label="Preload 注入"
+            checked={nodePreloadEnabled === true}
+            loading={preloadUpdating}
+            disabled={nodePreloadEnabled === undefined || nodePreloadState?.status === 'OFFLINE'}
+            onChange={setNodePreloadEnabled}
+          />
+        </Space>
+      </div>
       <div className={styles.injectionWorkspace}>
         <PreloadConfigEditor content={preloadDraft} onChange={updatePreloadConfigContent} />
       </div>

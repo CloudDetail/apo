@@ -205,13 +205,6 @@ const getClusterId = (node: AgentNode) =>
   String(node.clusterId || node.labels?.cluster_id || node.labels?.clusterId || '').trim() ||
   UNASSIGNED_CLUSTER
 
-const isKubernetesEnvironment = (environment?: string) =>
-  ['', 'k8s', 'kubernetes', 'helm'].includes(
-    String(environment || '')
-      .trim()
-      .toLowerCase(),
-  )
-
 const isHealthy = (state: ProbeState) => {
   if (state.runtime?.preloadEnabled !== undefined) return state.status === 'RUNNING'
   return (
@@ -448,7 +441,6 @@ export default function ProbeManagement() {
   const [logPreview, setLogPreview] = useState<LogPreview>()
   const [logLoading, setLogLoading] = useState(false)
   const [autoRefresh, setAutoRefresh] = useState(true)
-  const [preloadUpdatingNodes, setPreloadUpdatingNodes] = useState<Set<string>>(new Set())
   const [lifecycleUpdatingNodes, setLifecycleUpdatingNodes] = useState<Set<string>>(new Set())
   const [displayNameCluster, setDisplayNameCluster] = useState<IntegrationCluster>()
   const [displayName, setDisplayName] = useState('')
@@ -574,31 +566,6 @@ export default function ProbeManagement() {
       await new Promise((resolve) => window.setTimeout(resolve, 1000))
     }
     throw new Error('等待节点执行命令超时')
-  }
-
-  const setNodePreloadEnabled = async (record: NodeRow, enabled: boolean) => {
-    setPreloadUpdatingNodes((current) => new Set(current).add(record.nodeId))
-    try {
-      const created: any = await createAgentCommandApi(
-        record.nodeId,
-        'preload',
-        enabled ? 'ENABLE_PRELOAD' : 'DISABLE_PRELOAD',
-      )
-      const command = await waitForCommand(record.nodeId, 'preload', created.id)
-      if (command.status !== 'SUCCEEDED') {
-        throw new Error(command.result || 'Preload 状态调整失败')
-      }
-      await load()
-      notify({ type: 'success', message: enabled ? 'Preload 注入已启用' : 'Preload 注入已禁用' })
-    } catch (error: any) {
-      notify({ type: 'error', message: error.message || 'Preload 状态调整失败' })
-    } finally {
-      setPreloadUpdatingNodes((current) => {
-        const next = new Set(current)
-        next.delete(record.nodeId)
-        return next
-      })
-    }
   }
 
   const setNodesRunning = async (records: NodeRow[], running: boolean, scope: '节点' | '集群') => {
@@ -1162,10 +1129,6 @@ export default function ProbeManagement() {
               )
             })()
           : (() => {
-              const preloadState = record.states.find((state) => state.probeType === 'preload')
-              const preloadEnabled = preloadState?.runtime?.preloadEnabled
-              const preloadControllable =
-                !isKubernetesEnvironment(record.environment) && preloadEnabled !== undefined
               const lifecycleStates = record.states.filter(isLifecycleControllable)
               const lifecycleUpdating = lifecycleUpdatingNodes.has(record.nodeId)
               const canStart = lifecycleStates.some(
@@ -1174,18 +1137,6 @@ export default function ProbeManagement() {
               const canStop = lifecycleStates.some((state) => !isFused(state))
               return (
                 <div className={styles.actionCell}>
-                  {preloadControllable && (
-                    <span className={styles.preloadControl}>
-                      <Typography.Text>Preload</Typography.Text>
-                      <Switch
-                        size="small"
-                        checked={preloadEnabled}
-                        loading={preloadUpdatingNodes.has(record.nodeId)}
-                        disabled={preloadState?.status === 'OFFLINE'}
-                        onChange={(enabled) => setNodePreloadEnabled(record, enabled)}
-                      />
-                    </span>
-                  )}
                   <Button
                     className={styles.primaryAction}
                     type="link"
