@@ -62,6 +62,7 @@ const baseRoutes = [
     path: '/integration/data',
     name: <TranslationCom text="dataIntegration" space={namespace} />,
     element: DataIntegrationPage,
+    hideSystemTimeRangePicker: true,
   },
   {
     path: '/integration/data/settings',

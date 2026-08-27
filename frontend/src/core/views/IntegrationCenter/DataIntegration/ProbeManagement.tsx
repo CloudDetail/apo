@@ -193,8 +193,10 @@ const getClusterId = (node: AgentNode) =>
   String(node.clusterId || node.labels?.cluster_id || node.labels?.clusterId || '').trim() ||
   UNASSIGNED_CLUSTER
 
+const isManagedProbeState = (state: ProbeState) =>
+  state.probeType.trim().toLocaleLowerCase() !== 'preload'
+
 const isHealthy = (state: ProbeState) => {
-  if (state.runtime?.preloadEnabled !== undefined) return state.status === 'RUNNING'
   return (
     state.status === 'RUNNING' &&
     state.runtime?.childRunning !== false &&
@@ -218,9 +220,6 @@ const probeTagColor = (state: ProbeState) => {
 }
 
 const getProbeStatusText = (state: ProbeState) => {
-  if (state.runtime?.preloadEnabled !== undefined) {
-    return state.runtime.preloadEnabled ? '注入已启用' : '注入未启用'
-  }
   if (isHealthy(state)) return '运行正常'
   if (state.status === 'OFFLINE') return '上报中断'
   if (state.runtime?.supervisorHealthy === false) return '守护异常'
@@ -259,6 +258,7 @@ const groupNodesByCluster = (
 ): ClusterRow[] => {
   const statesByNode = new Map<string, ProbeState[]>()
   states.forEach((state) => {
+    if (!isManagedProbeState(state)) return
     const current = statesByNode.get(state.nodeId) || []
     current.push(state)
     statesByNode.set(state.nodeId, current)
@@ -889,7 +889,7 @@ export default function ProbeManagement() {
           <div className={styles.probeStatusSummary}>
             <Tooltip title={statusDetails} placement="bottomLeft">
               <Tag color={abnormalStates.length ? 'warning' : 'success'}>
-                {record.healthyCount} 个运行正常
+                {record.healthyCount} / {record.probeCount} 个探针运行正常
               </Tag>
             </Tooltip>
             {visibleAbnormalStates.map((state) => (

@@ -146,6 +146,7 @@ func TestIsValidRouter(t *testing.T) {
 		{"Valid router: /knowledge-bases", "/knowledge-bases", true},
 		{"Valid router: /probe-management/config", "/probe-management/config", true},
 		{"Valid router: /probe-management/log-collection", "/probe-management/log-collection", true},
+		{"Valid router: /probe-management/clusters", "/probe-management/clusters", true},
 		{"Invalid router", "/api/v3", false},
 		{"Empty router", "", false},
 	}
@@ -210,13 +211,14 @@ func TestInitFeatureRouterMapsProbePagesToProbeManagement(t *testing.T) {
 	repo := &daoRepo{DB: &driver.DB{DB: db}}
 
 	require.NoError(t, db.Create(&profile.Feature{FeatureName: "探针管理"}).Error)
-	for _, routerTo := range []string{"/probe-management", "/probe-management/config", "/probe-management/log-collection"} {
+	probeRoutes := []string{"/probe-management", "/probe-management/config", "/probe-management/log-collection", "/probe-management/clusters"}
+	for _, routerTo := range probeRoutes {
 		require.NoError(t, db.Create(&Router{RouterTo: routerTo}).Error)
 	}
 
 	require.NoError(t, repo.initFeatureRouter(nil))
 
-	for _, routerTo := range []string{"/probe-management", "/probe-management/config", "/probe-management/log-collection"} {
+	for _, routerTo := range probeRoutes {
 		var count int64
 		require.NoError(t, db.Model(&FeatureMapping{}).
 			Joins("JOIN feature ON feature.feature_id = feature_mapping.feature_id").
@@ -228,5 +230,18 @@ func TestInitFeatureRouterMapsProbePagesToProbeManagement(t *testing.T) {
 			).
 			Count(&count).Error)
 		assert.Equal(t, int64(1), count, routerTo)
+	}
+}
+
+func TestProbeClusterManagementRouteIsSeededForAllProductModes(t *testing.T) {
+	const route = "/probe-management/clusters"
+
+	for name, routers := range map[string][]Router{
+		"default":  validRouters,
+		"syncause": sreRouters,
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Contains(t, routers, Router{RouterTo: route, HideTimeSelector: true})
+		})
 	}
 }

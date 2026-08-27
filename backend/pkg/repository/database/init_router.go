@@ -57,6 +57,7 @@ var validRouters = []Router{
 	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
 	{RouterTo: "/probe-management/config", HideTimeSelector: true},
 	{RouterTo: "/probe-management/log-collection", HideTimeSelector: true},
+	{RouterTo: "/probe-management/clusters", HideTimeSelector: true},
 }
 
 var sreRouters = []Router{
@@ -79,6 +80,7 @@ var sreRouters = []Router{
 	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
 	{RouterTo: "/probe-management/config", HideTimeSelector: true},
 	{RouterTo: "/probe-management/log-collection", HideTimeSelector: true},
+	{RouterTo: "/probe-management/clusters", HideTimeSelector: true},
 	{RouterTo: "/custom-dashboard", HideTimeSelector: false},
 	{RouterTo: "/custom-dashboard/:id", HideTimeSelector: false},
 	{RouterTo: "/custom-dashboard/:id/edit", HideTimeSelector: false},

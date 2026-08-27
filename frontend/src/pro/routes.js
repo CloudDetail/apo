@@ -193,6 +193,7 @@ let proRoutes = [
     path: '/probe-management',
     name: 'ProbeInstaller',
     element: ProbeManagementPage,
+    hideSystemTimeRangePicker: true,
   },
 
   {

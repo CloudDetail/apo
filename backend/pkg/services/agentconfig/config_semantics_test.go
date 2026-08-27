@@ -597,6 +597,88 @@ func TestV103ExampleTemplateIsImportable(t *testing.T) {
 	}
 }
 
+func TestVMV110ExampleTemplateIsImportable(t *testing.T) {
+	data, err := os.ReadFile("../../../../docs/examples/agent-config-template-vm-v1.1.0.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo := newConfigSemanticsRepo()
+	service := New(repo)
+	template, err := service.ImportTemplate(nil, TemplateImportInput{YAML: string(data)}, 7)
+	if err != nil {
+		t.Fatal(err)
+	}
+	configs, err := templateProbeConfigs(template)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantFiles := map[string][]string{
+		"alloy":          {"config.alloy"},
+		"ebpf-agent":     {"config/camera-agent-config.yml", "config/log4rs.yml", "load-env.sh"},
+		"loongcollector": {"config/local/all-log-config.yaml", "config/local/config.yaml"},
+		"node-agent":     {"config.yaml"},
+		"preload":        {"libapoinstrument.conf"},
+		"vmagent":        {"config/vmagent/scrape.yml"},
+	}
+	if len(configs) != len(wantFiles) {
+		t.Fatalf("unexpected VM example config count: got %d want %d", len(configs), len(wantFiles))
+	}
+	for _, config := range configs {
+		paths, ok := wantFiles[config.ProbeType]
+		if !ok {
+			t.Fatalf("unexpected VM example probe: %s", config.ProbeType)
+		}
+		if len(config.Files) != len(paths) {
+			t.Fatalf("unexpected VM example files for %s: %+v", config.ProbeType, config.Files)
+		}
+		for index, file := range config.Files {
+			if file.Path != paths[index] {
+				t.Fatalf("unexpected VM example file for %s: got %s want %s", config.ProbeType, file.Path, paths[index])
+			}
+		}
+	}
+	if template.ClusterType != templateClusterTypeVM {
+		t.Fatalf("VM example cluster type=%q", template.ClusterType)
+	}
+	wantVariables := map[string]struct {
+		required bool
+		fallback string
+	}{
+		"APO_APP_RED_TRACE_ENABLED": {fallback: "true"},
+		"APO_PROXY_IP":              {required: true},
+		"CLUSTER_ID":                {required: true},
+		"HOST_IP":                   {required: true},
+	}
+	if len(template.Variables) != len(wantVariables) {
+		t.Fatalf("unexpected VM example variables: %+v", template.Variables)
+	}
+	for _, variable := range template.Variables {
+		want, ok := wantVariables[variable.Name]
+		if !ok || variable.Required != want.required || variable.DefaultValue != want.fallback {
+			t.Fatalf("unexpected VM example variable: %+v", variable)
+		}
+	}
+	repo.nodes["node-vm"] = ac.Node{
+		ID:          "node-vm",
+		ClusterID:   "cluster-vm",
+		Environment: "binary",
+		Labels:      ac.JSON(`{"HOST_IP":"192.168.1.43","APO_PROXY_IP":"192.168.1.69"}`),
+	}
+	addBaselineFiles(t, repo, "node-vm", "vmagent", []ac.InitialConfigFile{{Path: "config/vmagent/scrape.yml", Content: "old\n"}})
+	release, err := service.Assign(nil, "node-vm", "vmagent", AssignmentInput{TemplateID: template.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var rendered []ac.InitialConfigFile
+	if err := json.Unmarshal(release.Files, &rendered); err != nil {
+		t.Fatal(err)
+	}
+	if len(rendered) != 1 || strings.Contains(rendered[0].Content, "{% CLUSTER_ID %}") ||
+		!strings.Contains(rendered[0].Content, `cluster_id: "cluster-vm"`) {
+		t.Fatalf("VM example was not rendered with registered node variables: %+v", rendered)
+	}
+}
+
 func TestTemplateClusterTypeImportNormalization(t *testing.T) {
 	tests := []struct {
 		name        string

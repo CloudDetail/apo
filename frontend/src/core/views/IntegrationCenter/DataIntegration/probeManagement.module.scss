@@ -228,6 +228,10 @@
   background: var(--ant-color-fill-tertiary) !important;
 }
 
+.tableCard :global(.ant-table-row-expand-icon-cell) {
+  vertical-align: middle;
+}
+
 .nodeRow :global(.ant-table-row-expand-icon-cell) {
   border-inline-start: 2px solid var(--ant-color-border-secondary);
 }
