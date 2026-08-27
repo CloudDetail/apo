@@ -74,7 +74,10 @@ configuration release. `generation` is monotonic for a node and probe type.
 The ordinary ilogtail configuration contains only `conf/plugin_logger.xml`.
 Files under `config/local` describe which target or Kubernetes logs to collect
 and belong exclusively to log collection management; they are never included
-in an ordinary ilogtail release or configuration template.
+in an ordinary log collector release or configuration template. Log collection
+preview and save resolve their pipeline base from the registered collector:
+Kubernetes nodes normally report `ilogtail`, while VM/binary nodes report
+`loongcollector`. Both names use the same independent log collection contract.
 
 Environment-backed behavior is still managed as configuration when it is part
 of the probe's runtime contract. ebpf-agent includes `load-env.sh` in its

@@ -42,6 +42,10 @@ func (r *logCollectionTestRepo) SaveLogCollectionConfig(_ core.Context, config *
 }
 
 func addIlogtailBaseline(t *testing.T, repo *logCollectionTestRepo, nodeID string) {
+	addLogCollectorBaseline(t, repo, nodeID, "ilogtail")
+}
+
+func addLogCollectorBaseline(t *testing.T, repo *logCollectionTestRepo, nodeID, probeType string) {
 	t.Helper()
 	const common = `global:
   UsingOldContentTag: true
@@ -55,10 +59,34 @@ flushers:
       Protocol: custom_single
       Encoding: json
 `
-	addBaselineFiles(t, repo.configSemanticsRepo, nodeID, "ilogtail", []ac.InitialConfigFile{
+	addBaselineFiles(t, repo.configSemanticsRepo, nodeID, probeType, []ac.InitialConfigFile{
 		{Path: "config/local/container.yaml", Content: "enable: true\ninputs:\n  - Type: service_docker_stdout\n" + common},
 		{Path: "config/local/host.yaml", Content: "enable: true\ninputs:\n  - Type: input_file\n" + common},
 	})
+}
+
+func TestVMClusterCollectionUsesLoongcollectorBaseline(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-43"] = ac.Node{ID: "node-43", ClusterID: "cluster-binary-43", Environment: "binary"}
+	addLogCollectorBaseline(t, repo, "node-43", "loongcollector")
+	service := New(repo)
+	input := ContainerStdoutCollectionInput{HostFiles: []HostFileSource{{
+		ID: "source-1", Name: "host-file-source-1", Enabled: true,
+		Path: "/var/log", FilePattern: "*.nolog", MaxDirSearchDepth: 0,
+	}}}
+
+	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-binary-43", input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(preview.Files) != 1 || preview.Files[0].Path != "config/local/apo-host-file-source-1.yaml" ||
+		!strings.Contains(preview.Files[0].Content, "/var/log/*.nolog") {
+		t.Fatalf("unexpected VM log collection preview: %+v", preview.Files)
+	}
+	saved, err := service.SaveContainerStdoutCollection(nil, "cluster-binary-43", input, 7)
+	if err != nil || saved.Version != 1 || len(saved.HostFiles) != 1 {
+		t.Fatalf("saved=%+v err=%v", saved, err)
+	}
 }
 
 func TestHostFileCollectionRendersAndPersistsIlogtailInputs(t *testing.T) {

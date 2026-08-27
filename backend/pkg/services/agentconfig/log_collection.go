@@ -198,7 +198,8 @@ type logPipelineBase struct {
 }
 
 var (
-	hostFileInputTypes = map[string]struct{}{
+	logCollectorProbeTypes = []string{"ilogtail", "loongcollector"}
+	hostFileInputTypes     = map[string]struct{}{
 		"input_file": {},
 		"file_log":   {},
 	}
@@ -545,37 +546,49 @@ func pipelineMatchScore(base *logPipelineBase, preferredInputTypes map[string]st
 }
 
 func (s *Service) nodeLogPipelineBase(ctx core.Context, nodeID string, preferredInputTypes map[string]struct{}) (*logPipelineBase, error) {
-	initial, err := s.repo.GetAgentInitialConfig(ctx, nodeID, "ilogtail")
-	if err != nil {
-		return nil, fmt.Errorf("get iLogtail initial config for node %s: %w", nodeID, err)
-	}
-	var files []ac.InitialConfigFile
-	if err := json.Unmarshal(initial.Files, &files); err != nil {
-		return nil, fmt.Errorf("decode iLogtail initial config for node %s: %w", nodeID, err)
-	}
-	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	var selected *logPipelineBase
 	selectedScore := 0
-	for _, file := range files {
-		candidate, parseErr := parseLogPipelineBase(file.Path, file.Content)
-		if parseErr != nil {
-			log.Printf("agentconfig: skip invalid iLogtail pipeline candidate node=%s path=%s error=%v", nodeID, file.Path, parseErr)
+	selectedProbeType := ""
+	foundBaseline := false
+	for _, probeType := range logCollectorProbeTypes {
+		initial, err := s.repo.GetAgentInitialConfig(ctx, nodeID, probeType)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			continue
 		}
-		if candidate == nil {
-			continue
+		if err != nil {
+			return nil, fmt.Errorf("get %s initial config for node %s: %w", probeType, nodeID, err)
 		}
-		score := pipelineMatchScore(candidate, preferredInputTypes)
-		if score > selectedScore {
-			selected = candidate
-			selectedScore = score
+		foundBaseline = true
+		var files []ac.InitialConfigFile
+		if err := json.Unmarshal(initial.Files, &files); err != nil {
+			return nil, fmt.Errorf("decode %s initial config for node %s: %w", probeType, nodeID, err)
 		}
+		sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+		for _, file := range files {
+			candidate, parseErr := parseLogPipelineBase(file.Path, file.Content)
+			if parseErr != nil {
+				log.Printf("agentconfig: skip invalid log collector pipeline candidate node=%s probe=%s path=%s error=%v", nodeID, probeType, file.Path, parseErr)
+				continue
+			}
+			if candidate == nil {
+				continue
+			}
+			score := pipelineMatchScore(candidate, preferredInputTypes)
+			if score > selectedScore {
+				selected = candidate
+				selectedScore = score
+				selectedProbeType = probeType
+			}
+		}
+	}
+	if !foundBaseline {
+		return nil, fmt.Errorf("node %s has no registered log collector initial config (tried %s)", nodeID, strings.Join(logCollectorProbeTypes, ", "))
 	}
 	if selected == nil {
-		return nil, fmt.Errorf("node %s iLogtail initial config has no pipeline with flushers", nodeID)
+		return nil, fmt.Errorf("node %s log collector initial config has no pipeline with flushers", nodeID)
 	}
 	if selectedScore == 1 {
-		log.Printf("agentconfig: use non-matching iLogtail pipeline as common preview base node=%s path=%s", nodeID, selected.Path)
+		log.Printf("agentconfig: use non-matching log collector pipeline as common preview base node=%s probe=%s path=%s", nodeID, selectedProbeType, selected.Path)
 	}
 	return selected, nil
 }
