@@ -9,6 +9,7 @@ import (
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
 	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type commandRepo struct{ created *ac.Command }
@@ -71,6 +72,9 @@ func (*commandRepo) SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release
 func (*commandRepo) GetAgentRelease(core.Context, string, string) (*ac.Release, error) {
 	return nil, nil
 }
+func (*commandRepo) GetAgentReleaseGeneration(core.Context, string, string, int64) (*ac.Release, error) {
+	return nil, gorm.ErrRecordNotFound
+}
 func (*commandRepo) ListAgentReleases(core.Context, string, string, int) ([]ac.Release, error) {
 	return nil, nil
 }
@@ -80,7 +84,10 @@ func (*commandRepo) ListLatestAgentReleases(core.Context, string) ([]ac.Release,
 func (*commandRepo) ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error) {
 	return nil, nil
 }
-func (*commandRepo) ReportAgentState(core.Context, *ac.ApplyState) error   { return nil }
+func (*commandRepo) ReportAgentState(core.Context, *ac.ApplyState) error { return nil }
+func (*commandRepo) GetAgentState(core.Context, string, string) (*ac.ApplyState, error) {
+	return nil, gorm.ErrRecordNotFound
+}
 func (*commandRepo) ListAgentStates(core.Context) ([]ac.ApplyState, error) { return nil, nil }
 func (*commandRepo) ListAgentCommands(core.Context, string, string, int) ([]ac.Command, error) {
 	return nil, nil

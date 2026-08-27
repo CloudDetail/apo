@@ -328,6 +328,7 @@ type ApplyState struct {
 	Reason            string     `gorm:"type:text" json:"reason"`
 	Error             JSON       `gorm:"type:jsonb" json:"error,omitempty"`
 	Runtime           JSON       `gorm:"type:jsonb" json:"runtime"`
+	EffectiveConfig   JSON       `gorm:"type:jsonb" json:"effectiveConfig,omitempty"`
 	Circuit           JSON       `gorm:"type:jsonb" json:"circuit"`
 	ReportedAt        *time.Time `json:"reportedAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`

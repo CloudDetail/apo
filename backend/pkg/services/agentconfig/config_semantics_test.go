@@ -136,6 +136,13 @@ func (r *configSemanticsRepo) GetAgentRelease(_ core.Context, node, probe string
 	}
 	return &value, nil
 }
+func (r *configSemanticsRepo) GetAgentReleaseGeneration(_ core.Context, node, probe string, generation int64) (*ac.Release, error) {
+	value, ok := r.releases[releaseKey(node, probe)]
+	if !ok || value.Generation != generation {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &value, nil
+}
 func (r *configSemanticsRepo) ListAgentReleases(_ core.Context, node, probe string, limit int) ([]ac.Release, error) {
 	value, ok := r.releases[releaseKey(node, probe)]
 	if !ok || limit == 0 {
@@ -237,6 +244,29 @@ func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.N
 func (r *configSemanticsRepo) ListAgentStates(core.Context) ([]ac.ApplyState, error) {
 	return append([]ac.ApplyState(nil), r.states...), nil
 }
+func (r *configSemanticsRepo) GetAgentState(_ core.Context, node, probe string) (*ac.ApplyState, error) {
+	for index := range r.states {
+		if r.states[index].NodeID == node && r.states[index].ProbeType == probe {
+			copy := r.states[index]
+			return &copy, nil
+		}
+	}
+	return nil, gorm.ErrRecordNotFound
+}
+func (r *configSemanticsRepo) ReportAgentState(_ core.Context, state *ac.ApplyState) error {
+	for index := range r.states {
+		if r.states[index].NodeID == state.NodeID && r.states[index].ProbeType == state.ProbeType {
+			copy := *state
+			if len(copy.EffectiveConfig) == 0 {
+				copy.EffectiveConfig = r.states[index].EffectiveConfig
+			}
+			r.states[index] = copy
+			return nil
+		}
+	}
+	r.states = append(r.states, *state)
+	return nil
+}
 func (r *configSemanticsRepo) ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error) {
 	return append([]ac.Delivery(nil), r.deliveries...), nil
 }
@@ -308,8 +338,11 @@ func TestInitialConfigIsHistoryVersionOneWithoutServerDelivery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(updated.Configs) != 1 || updated.Configs[0].Generation != 1 || updated.Configs[0].Version != 2 || updated.Configs[0].Source != "RELEASE" {
-		t.Fatalf("first server update=%+v", updated.Configs)
+	if len(updated.Configs) != 1 || updated.Configs[0].Generation != 0 || updated.Configs[0].Version != 1 || updated.Configs[0].Source != "INITIAL" {
+		t.Fatalf("pending server update changed current config=%+v", updated.Configs)
+	}
+	if release := repo.releases[key]; release.Generation != 1 || release.RenderedContent != "sampling: 2\n" {
+		t.Fatalf("first server release=%+v", release)
 	}
 	history, err = service.ListNodeConfigHistory(nil, "node-1", "node-agent", 20)
 	if err != nil {
@@ -317,6 +350,103 @@ func TestInitialConfigIsHistoryVersionOneWithoutServerDelivery(t *testing.T) {
 	}
 	if len(history) != 2 || history[0].Version != 2 || history[0].Source != "RELEASE" || history[1].Version != 1 || history[1].Source != "INITIAL" {
 		t.Fatalf("history after first server update=%+v", history)
+	}
+}
+
+func TestReportPreservesInitialSnapshotAndAdvancesOnlyAppliedRelease(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "probe-a", "source: baseline\n")
+	remoteFiles := []ac.InitialConfigFile{{Path: "config.yaml", Content: "source: remote\n", ContentSHA256: ac.HashContent("source: remote\n")}}
+	remoteJSON, err := json.Marshal(remoteFiles)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo.releases[releaseKey("node-1", "probe-a")] = ac.Release{
+		ID: uuid.New(), NodeID: "node-1", ProbeType: "probe-a", Generation: 1,
+		RenderedContent: "source: remote\n", Files: ac.JSON(remoteJSON), ContentSHA256: ac.HashInitialConfigFiles(remoteFiles),
+	}
+	service := New(repo)
+
+	initialRuntime := ac.JSON(`{"childPid":10,"configSource":"DEFAULT","configGeneration":0,"contentId":"","effectiveConfigFiles":[{"path":"config.yaml","content":"source: actual-default\n"}]}`)
+	if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: "probe-a", AppliedGeneration: 0, Runtime: initialRuntime}); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: "probe-a", AppliedGeneration: 0, Runtime: ac.JSON(`{"childPid":11}`)}); err != nil {
+		t.Fatal(err)
+	}
+	current, err := service.CurrentNodeConfig(nil, "node-1", "probe-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current.Generation != 0 || current.Source != "INITIAL" || current.Files[0].Content != "source: actual-default\n" {
+		t.Fatalf("initial daemon snapshot was not preserved: %+v", current)
+	}
+	stored, err := repo.GetAgentState(nil, "node-1", "probe-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	storedFields, err := runtimeFields(stored.Runtime)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var childPID int
+	if err := json.Unmarshal(storedFields["childPid"], &childPID); err != nil || childPID != 11 {
+		t.Fatalf("latest runtime fields were not saved: runtime=%s err=%v", stored.Runtime, err)
+	}
+	if _, ok := storedFields["effectiveConfigFiles"]; ok {
+		t.Fatalf("effective config remained mixed into runtime: %s", stored.Runtime)
+	}
+	effectiveFields, err := runtimeFields(stored.EffectiveConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := effectiveFields["effectiveConfigFiles"]; !ok {
+		t.Fatalf("effective config snapshot was not stored separately: %s", stored.EffectiveConfig)
+	}
+
+	if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: "probe-a", DesiredGeneration: 1, AppliedGeneration: 1, Runtime: ac.JSON(`{"childPid":12}`)}); err != nil {
+		t.Fatal(err)
+	}
+	current, err = service.CurrentNodeConfig(nil, "node-1", "probe-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current.Generation != 1 || current.Source != "RELEASE" || current.Files[0].Content != "source: remote\n" {
+		t.Fatalf("applied release did not become current: %+v", current)
+	}
+	stored, err = repo.GetAgentState(nil, "node-1", "probe-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	storedFields, err = runtimeFields(stored.EffectiveConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var source string
+	var generation int64
+	_ = json.Unmarshal(storedFields["configSource"], &source)
+	_ = json.Unmarshal(storedFields["configGeneration"], &generation)
+	if source != "REMOTE" || generation != 1 {
+		t.Fatalf("server did not replace the effective config snapshot: %s", stored.EffectiveConfig)
+	}
+}
+
+func TestReportWithoutSnapshotBuildsGenerationZeroFromBaseline(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "probe-a", "source: baseline\n")
+	service := New(repo)
+
+	if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: "probe-a", Runtime: ac.JSON(`{"childRunning":true}`)}); err != nil {
+		t.Fatal(err)
+	}
+	current, err := service.CurrentNodeConfig(nil, "node-1", "probe-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if current.Generation != 0 || current.Files[0].Content != "source: baseline\n" {
+		t.Fatalf("Generation 0 baseline was not maintained: %+v", current)
 	}
 }
 
@@ -367,8 +497,8 @@ func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(updated.Configs[0].Files) != 3 || updated.Configs[0].Generation != 1 {
-		t.Fatalf("multi-file release was incomplete: %+v", updated.Configs[0])
+	if len(updated.Configs[0].Files) != 3 || updated.Configs[0].Generation != 0 {
+		t.Fatalf("pending multi-file release changed current config: %+v", updated.Configs[0])
 	}
 	release := repo.releases[releaseKey("node-1", "ebpf-agent")]
 	var persisted []ac.InitialConfigFile
@@ -377,6 +507,9 @@ func TestNodeConfigUpdatePreservesCompleteMultiFileProbe(t *testing.T) {
 	}
 	if release.ContentSHA256 != ac.HashInitialConfigFiles(persisted) {
 		t.Fatalf("bundle sha=%s want=%s", release.ContentSHA256, ac.HashInitialConfigFiles(persisted))
+	}
+	if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: "ebpf-agent", AppliedGeneration: 1, Runtime: ac.JSON(`{"childRunning":true}`)}); err != nil {
+		t.Fatal(err)
 	}
 
 	_, err = service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "ebpf-agent", Files: persisted[:2], ExpectedGeneration: 1}}})
@@ -608,8 +741,13 @@ func TestNodeConfigUpdateSavesAllProbeChangesTogether(t *testing.T) {
 		t.Fatalf("node update was not one multi-probe save: calls=%d configs=%+v", repo.batchSaveCalls, updated.Configs)
 	}
 	for _, config := range updated.Configs {
-		if config.Generation != 1 || config.Source != "RELEASE" {
-			t.Fatalf("unexpected updated config: %+v", config)
+		if config.Generation != 0 || config.Source != "INITIAL" {
+			t.Fatalf("pending release changed current config: %+v", config)
+		}
+	}
+	for _, probe := range []string{"probe-a", "probe-b"} {
+		if err := service.Report(nil, &ac.ApplyState{NodeID: "node-1", ProbeType: probe, AppliedGeneration: 1, Runtime: ac.JSON(`{"childRunning":true}`)}); err != nil {
+			t.Fatal(err)
 		}
 	}
 
@@ -635,6 +773,43 @@ func TestNodeConfigUpdateSavesAllProbeChangesTogether(t *testing.T) {
 	_, err = service.UpdateNodeConfigs(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{ProbeType: "probe-a", Content: "a: 4\n", ExpectedGeneration: 2}}})
 	if err == nil || repo.batchSaveCalls != before {
 		t.Fatalf("partial node update was not rejected: err=%v calls=%d", err, repo.batchSaveCalls)
+	}
+}
+
+func TestNodeConfigExpectedGenerationAdvancesBeforeApply(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "probe-a", "a: 1\n")
+	service := New(repo)
+
+	updated, err := service.UpdateNodeConfigGroup(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType: "probe-a", Content: "a: 2\n", ExpectedGeneration: 0,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(updated.Configs) != 1 || updated.Configs[0].Generation != 0 || updated.Configs[0].ExpectedGeneration != 1 {
+		t.Fatalf("first pending release returned invalid generations: %+v", updated.Configs)
+	}
+
+	updated, err = service.UpdateNodeConfigGroup(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType: "probe-a", Content: "a: 3\n", ExpectedGeneration: 1,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if release := repo.releases[releaseKey("node-1", "probe-a")]; release.Generation != 2 {
+		t.Fatalf("second release generation=%d, want 2", release.Generation)
+	}
+	if updated.Configs[0].Generation != 0 || updated.Configs[0].ExpectedGeneration != 2 {
+		t.Fatalf("second pending release returned invalid generations: %+v", updated.Configs[0])
+	}
+
+	before := repo.batchSaveCalls
+	if _, err = service.UpdateNodeConfigGroup(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType: "probe-a", Content: "a: stale\n", ExpectedGeneration: 1,
+	}}}); err == nil || repo.batchSaveCalls != before {
+		t.Fatalf("stale expected generation was accepted: err=%v calls=%d", err, repo.batchSaveCalls)
 	}
 }
 
@@ -665,8 +840,8 @@ func TestInjectionControlIsSeparateFromConfigReleaseGroup(t *testing.T) {
 				t.Fatalf("ordinary config group changed injection control: %+v", config)
 			}
 		case "probe-a":
-			if config.Generation != 1 || config.Files[0].Content != "a: 2\n" {
-				t.Fatalf("ordinary config group was not updated: %+v", config)
+			if config.Generation != 0 || config.Files[0].Content != "a: 1\n" {
+				t.Fatalf("pending ordinary config changed current config: %+v", config)
 			}
 		}
 	}
@@ -700,12 +875,24 @@ func TestInjectionControlIsSeparateFromConfigReleaseGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 	if saved.Generation != 1 || saved.Content != "; python disabled\n" || repo.batchSaveCalls != before+1 {
-		t.Fatalf("injection control was not independently saved: control=%+v calls=%d", saved, repo.batchSaveCalls)
+		t.Fatalf("injection control did not return its latest release: control=%+v calls=%d", saved, repo.batchSaveCalls)
+	}
+	saved, err = service.SaveNodeInjectionControl(nil, "node-1", NodeInjectionControlInput{
+		Content: "; python disabled\n", ExpectedGeneration: 1,
+	})
+	if err != nil || saved.Generation != 1 || repo.batchSaveCalls != before+1 {
+		t.Fatalf("unchanged injection control created another release: control=%+v err=%v calls=%d", saved, err, repo.batchSaveCalls)
+	}
+	saved, err = service.SaveNodeInjectionControl(nil, "node-1", NodeInjectionControlInput{
+		Content: "[node]\nenabled=true\n", ExpectedGeneration: 1,
+	})
+	if err != nil || saved.Generation != 2 || saved.Content != "[node]\nenabled=true\n" || repo.batchSaveCalls != before+2 {
+		t.Fatalf("second injection release did not advance before apply: control=%+v err=%v calls=%d", saved, err, repo.batchSaveCalls)
 	}
 	_, err = service.SaveNodeInjectionControl(nil, "node-1", NodeInjectionControlInput{
-		Content: "stale\n", ExpectedGeneration: 0,
+		Content: "stale\n", ExpectedGeneration: 1,
 	})
-	if err == nil || repo.batchSaveCalls != before+1 {
+	if err == nil || repo.batchSaveCalls != before+2 {
 		t.Fatalf("stale injection control was not rejected: err=%v calls=%d", err, repo.batchSaveCalls)
 	}
 	if _, err = service.ListNodeConfigHistory(nil, "node-1", "preload", 20); err == nil {

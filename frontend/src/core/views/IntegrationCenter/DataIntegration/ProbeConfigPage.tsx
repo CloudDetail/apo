@@ -125,6 +125,7 @@ type SystemPressurePolicy = {
 type CurrentConfig = {
   probeType: string
   generation: number
+  expectedGeneration?: number
   version: number
   content: string
   files: ConfigFile[]
@@ -996,7 +997,7 @@ export default function ProbeConfigPage() {
             path: file.path,
             content: configDrafts[draftKey(config.probeType, file.path)] ?? file.content,
           })),
-          expectedGeneration: config.generation,
+          expectedGeneration: config.expectedGeneration ?? config.generation,
         })),
       })
       const configs = (result?.configs || []) as CurrentConfig[]

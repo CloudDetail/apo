@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
@@ -26,6 +27,7 @@ type Service struct {
 	now             func() time.Time
 	leaseTTL        time.Duration
 	defaultSettings ac.AgentSettings
+	reportMu        sync.Mutex
 }
 
 // Repository is the narrow persistence contract owned by APO's remote-agent
@@ -57,10 +59,12 @@ type Repository interface {
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
+	GetAgentReleaseGeneration(core.Context, string, string, int64) (*ac.Release, error)
 	ListAgentReleases(core.Context, string, string, int) ([]ac.Release, error)
 	ListLatestAgentReleases(core.Context, string) ([]ac.Release, error)
 	ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error)
 	ReportAgentState(core.Context, *ac.ApplyState) error
+	GetAgentState(core.Context, string, string) (*ac.ApplyState, error)
 	ListAgentStates(core.Context) ([]ac.ApplyState, error)
 	CreateAgentCommand(core.Context, *ac.Command) error
 	ListAgentCommands(core.Context, string, string, int) ([]ac.Command, error)
@@ -641,15 +645,16 @@ func (s *Service) buildDelivery(ctx core.Context, deliveryType, scope string, te
 }
 
 type CurrentNodeConfig struct {
-	NodeID        string                 `json:"nodeId"`
-	ProbeType     string                 `json:"probeType"`
-	Generation    int64                  `json:"generation"`
-	Version       int64                  `json:"version"`
-	Content       string                 `json:"content,omitempty"`
-	Files         []ac.InitialConfigFile `json:"files"`
-	ContentSHA256 string                 `json:"contentSha256"`
-	Source        string                 `json:"source"`
-	CreatedAt     time.Time              `json:"createdAt,omitempty"`
+	NodeID             string                 `json:"nodeId"`
+	ProbeType          string                 `json:"probeType"`
+	Generation         int64                  `json:"generation"`
+	ExpectedGeneration int64                  `json:"expectedGeneration"`
+	Version            int64                  `json:"version"`
+	Content            string                 `json:"content,omitempty"`
+	Files              []ac.InitialConfigFile `json:"files"`
+	ContentSHA256      string                 `json:"contentSha256"`
+	Source             string                 `json:"source"`
+	CreatedAt          time.Time              `json:"createdAt,omitempty"`
 }
 type CurrentNodeConfigs struct {
 	NodeID  string              `json:"nodeId"`
@@ -1484,15 +1489,29 @@ func (s *Service) CurrentNodeConfig(ctx core.Context, node, probe string) (*Curr
 		return nil, err
 	}
 	probe = ac.NormalizeProbe(probe)
-	if release, err := s.repo.GetAgentRelease(ctx, node, probe); err == nil {
-		files, fileErr := s.releaseFiles(ctx, node, probe, release)
-		if fileErr != nil {
-			return nil, fileErr
+	state, stateErr := s.repo.GetAgentState(ctx, node, probe)
+	if stateErr == nil {
+		if current, ok := currentNodeConfigFromSnapshot(node, probe, state.EffectiveConfig); ok {
+			return current, nil
 		}
-		return currentNodeConfig(node, probe, release.Generation, files, release.ContentSHA256, "RELEASE"), nil
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, err
+		if state.AppliedGeneration > 0 {
+			release, err := s.repo.GetAgentReleaseGeneration(ctx, node, probe, state.AppliedGeneration)
+			if err != nil {
+				return nil, err
+			}
+			files, err := s.releaseFiles(ctx, node, probe, release)
+			if err != nil {
+				return nil, err
+			}
+			return currentNodeConfig(node, probe, release.Generation, files, release.ContentSHA256, "RELEASE"), nil
+		}
+	} else if !errors.Is(stateErr, gorm.ErrRecordNotFound) {
+		return nil, stateErr
 	}
+	return s.initialNodeConfig(ctx, node, probe)
+}
+
+func (s *Service) initialNodeConfig(ctx core.Context, node, probe string) (*CurrentNodeConfig, error) {
 	baseline, err := s.repo.GetAgentInitialConfig(ctx, node, probe)
 	if err != nil {
 		return nil, err
@@ -1507,8 +1526,29 @@ func (s *Service) CurrentNodeConfig(ctx core.Context, node, probe string) (*Curr
 	return currentNodeConfig(node, probe, 0, files, baseline.ContentSHA256, "INITIAL"), nil
 }
 
+func currentNodeConfigFromSnapshot(node, probe string, effectiveConfig ac.JSON) (*CurrentNodeConfig, bool) {
+	var snapshot struct {
+		ConfigSource         string                 `json:"configSource"`
+		ConfigGeneration     int64                  `json:"configGeneration"`
+		EffectiveConfigFiles []ac.InitialConfigFile `json:"effectiveConfigFiles"`
+	}
+	if err := json.Unmarshal(effectiveConfig, &snapshot); err != nil || len(snapshot.EffectiveConfigFiles) == 0 {
+		return nil, false
+	}
+	for index := range snapshot.EffectiveConfigFiles {
+		if snapshot.EffectiveConfigFiles[index].ContentSHA256 == "" {
+			snapshot.EffectiveConfigFiles[index].ContentSHA256 = ac.HashContent(snapshot.EffectiveConfigFiles[index].Content)
+		}
+	}
+	source := "INITIAL"
+	if strings.EqualFold(snapshot.ConfigSource, "REMOTE") {
+		source = "RELEASE"
+	}
+	return currentNodeConfig(node, probe, snapshot.ConfigGeneration, snapshot.EffectiveConfigFiles, ac.HashInitialConfigFiles(snapshot.EffectiveConfigFiles), source), true
+}
+
 func currentNodeConfig(node, probe string, generation int64, files []ac.InitialConfigFile, sha, source string) *CurrentNodeConfig {
-	config := &CurrentNodeConfig{NodeID: node, ProbeType: probe, Generation: generation, Version: generation + 1, Files: files, ContentSHA256: sha, Source: source}
+	config := &CurrentNodeConfig{NodeID: node, ProbeType: probe, Generation: generation, ExpectedGeneration: generation, Version: generation + 1, Files: files, ContentSHA256: sha, Source: source}
 	if len(files) == 1 {
 		config.Content = files[0].Content
 	}
@@ -1601,8 +1641,11 @@ func (s *Service) CurrentNodeConfigs(ctx core.Context, node string) (*CurrentNod
 	if err != nil {
 		return nil, err
 	}
+	latestGeneration := make(map[string]int64, len(releases))
 	for _, release := range releases {
-		probeTypes[ac.NormalizeProbe(release.ProbeType)] = struct{}{}
+		probe := ac.NormalizeProbe(release.ProbeType)
+		probeTypes[probe] = struct{}{}
+		latestGeneration[probe] = release.Generation
 	}
 	probes := make([]string, 0, len(probeTypes))
 	for probe := range probeTypes {
@@ -1616,6 +1659,9 @@ func (s *Service) CurrentNodeConfigs(ctx core.Context, node string) (*CurrentNod
 		current, err := s.CurrentNodeConfig(ctx, node, probe)
 		if err != nil {
 			return nil, err
+		}
+		if latestGeneration[probe] > current.ExpectedGeneration {
+			current.ExpectedGeneration = latestGeneration[probe]
 		}
 		result.Configs = append(result.Configs, *current)
 	}
@@ -1665,7 +1711,7 @@ func (s *Service) GetNodeInjectionControl(ctx core.Context, node string) (*NodeI
 	if _, err := s.repo.GetAgentNode(ctx, node); err != nil {
 		return nil, err
 	}
-	current, err := s.CurrentNodeConfig(ctx, node, "preload")
+	current, err := s.latestNodeConfig(ctx, node, "preload")
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return &NodeInjectionControl{NodeID: node}, nil
 	}
@@ -1693,6 +1739,9 @@ func (s *Service) SaveNodeInjectionControlForUser(ctx core.Context, node string,
 	if input.ExpectedGeneration != current.Generation {
 		return nil, fmt.Errorf("generation conflict for preload: expected %d, actual %d", input.ExpectedGeneration, current.Generation)
 	}
+	if input.Content == current.Content {
+		return current, nil
+	}
 	_, err = s.updateNodeConfigGroup(ctx, node, NodeConfigsInput{Configs: []NodeProbeConfigInput{{
 		ProbeType:          "preload",
 		Files:              []ac.InitialConfigFile{{Path: current.FilePath, Content: input.Content}},
@@ -1702,6 +1751,22 @@ func (s *Service) SaveNodeInjectionControlForUser(ctx core.Context, node string,
 		return nil, err
 	}
 	return s.GetNodeInjectionControl(ctx, node)
+}
+
+func (s *Service) latestNodeConfig(ctx core.Context, node, probe string) (*CurrentNodeConfig, error) {
+	probe = ac.NormalizeProbe(probe)
+	release, err := s.repo.GetAgentRelease(ctx, node, probe)
+	if err == nil {
+		files, fileErr := s.releaseFiles(ctx, node, probe, release)
+		if fileErr != nil {
+			return nil, fileErr
+		}
+		return currentNodeConfig(node, probe, release.Generation, files, release.ContentSHA256, "RELEASE"), nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return s.initialNodeConfig(ctx, node, probe)
 }
 
 func (s *Service) BatchSaveNodeInjectionControl(ctx core.Context, input BatchNodeInjectionControlInput) (*BatchResult, error) {
@@ -1829,10 +1894,10 @@ func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input Nod
 		if !exists {
 			return nil, fmt.Errorf("probe %s is not part of the node's current configuration", probe)
 		}
-		if update.ExpectedGeneration != current.Generation {
-			return nil, fmt.Errorf("generation conflict for %s: expected %d, actual %d", probe, update.ExpectedGeneration, current.Generation)
+		if update.ExpectedGeneration != current.ExpectedGeneration {
+			return nil, fmt.Errorf("generation conflict for %s: expected %d, actual %d", probe, update.ExpectedGeneration, current.ExpectedGeneration)
 		}
-		expected[releaseKey(node, probe)] = current.Generation
+		expected[releaseKey(node, probe)] = current.ExpectedGeneration
 		files, err := normalizeNodeUpdateFiles(update, current)
 		if err != nil {
 			return nil, fmt.Errorf("invalid files for %s: %w", probe, err)
@@ -1844,14 +1909,14 @@ func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input Nod
 			continue
 		}
 		logSources := ac.JSON("null")
-		if current.Generation > 0 {
+		if current.ExpectedGeneration > 0 {
 			last, err := s.repo.GetAgentRelease(ctx, node, probe)
 			if err != nil {
 				return nil, err
 			}
 			logSources = append(ac.JSON(nil), last.LogSources...)
 		}
-		generation := current.Generation + 1
+		generation := current.ExpectedGeneration + 1
 		filesJSON, err := json.Marshal(files)
 		if err != nil {
 			return nil, err
@@ -2272,7 +2337,127 @@ func (s *Service) GetConfig(ctx core.Context, node, probe string, known int64) (
 	return r, nil
 }
 func (s *Service) Report(ctx core.Context, state *ac.ApplyState) error {
+	s.reportMu.Lock()
+	defer s.reportMu.Unlock()
+
+	state.ProbeType = ac.NormalizeProbe(state.ProbeType)
+	previous, err := s.repo.GetAgentState(ctx, state.NodeID, state.ProbeType)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		previous = nil
+	}
+	state.Runtime, state.EffectiveConfig = s.prepareReportedState(ctx, state, previous)
 	return s.repo.ReportAgentState(ctx, state)
+}
+
+var effectiveConfigRuntimeFields = []string{
+	"configSource",
+	"configGeneration",
+	"contentId",
+	"effectiveConfigFiles",
+}
+
+func (s *Service) prepareReportedState(ctx core.Context, state, previous *ac.ApplyState) (ac.JSON, ac.JSON) {
+	fields, err := runtimeFields(state.Runtime)
+	if err != nil {
+		log.Printf("agentconfig: invalid runtime report for %s/%s; store runtime unchanged: %v", state.NodeID, state.ProbeType, err)
+		return state.Runtime, nil
+	}
+	if _, reported := fields["effectiveConfigFiles"]; reported {
+		effectiveConfig := make(map[string]json.RawMessage, len(effectiveConfigRuntimeFields))
+		for _, name := range effectiveConfigRuntimeFields {
+			if value, ok := fields[name]; ok {
+				effectiveConfig[name] = value
+				delete(fields, name)
+			}
+		}
+		return marshalRuntimeFields(fields, state.Runtime), marshalRuntimeFields(effectiveConfig, nil)
+	}
+
+	if previous != nil {
+		previousFields, previousErr := runtimeFields(previous.EffectiveConfig)
+		if previousErr == nil {
+			if generation, ok := runtimeConfigGeneration(previousFields); ok && generation == state.AppliedGeneration {
+				return state.Runtime, nil
+			}
+		} else {
+			log.Printf("agentconfig: invalid stored effective config for %s/%s; rebuild it: %v", state.NodeID, state.ProbeType, previousErr)
+		}
+	}
+
+	var source, contentID string
+	var files []ac.InitialConfigFile
+	if state.AppliedGeneration == 0 {
+		baseline, baselineErr := s.repo.GetAgentInitialConfig(ctx, state.NodeID, state.ProbeType)
+		if baselineErr == nil {
+			source = "DEFAULT"
+			contentID = ""
+			if decodeErr := json.Unmarshal(baseline.Files, &files); decodeErr != nil {
+				baselineErr = decodeErr
+			}
+		}
+		if baselineErr != nil {
+			log.Printf("agentconfig: cannot build Generation 0 effective config for %s/%s; defer until the next report: %v", state.NodeID, state.ProbeType, baselineErr)
+			return state.Runtime, nil
+		}
+	} else {
+		release, releaseErr := s.repo.GetAgentReleaseGeneration(ctx, state.NodeID, state.ProbeType, state.AppliedGeneration)
+		if releaseErr == nil {
+			files, releaseErr = s.releaseFiles(ctx, state.NodeID, state.ProbeType, release)
+			if releaseErr == nil {
+				source = "REMOTE"
+				contentID = release.ContentSHA256
+			}
+		}
+		if releaseErr != nil {
+			log.Printf("agentconfig: cannot build applied Generation %d config for %s/%s; defer until the next report: %v", state.AppliedGeneration, state.NodeID, state.ProbeType, releaseErr)
+			return state.Runtime, nil
+		}
+	}
+	effectiveConfig := map[string]json.RawMessage{}
+	setRuntimeField(effectiveConfig, "configSource", source)
+	setRuntimeField(effectiveConfig, "configGeneration", state.AppliedGeneration)
+	setRuntimeField(effectiveConfig, "contentId", contentID)
+	setRuntimeField(effectiveConfig, "effectiveConfigFiles", files)
+	return state.Runtime, marshalRuntimeFields(effectiveConfig, nil)
+}
+
+func runtimeFields(runtime ac.JSON) (map[string]json.RawMessage, error) {
+	fields := map[string]json.RawMessage{}
+	if len(runtime) == 0 || string(runtime) == "null" {
+		return fields, nil
+	}
+	if err := json.Unmarshal(runtime, &fields); err != nil {
+		return nil, err
+	}
+	return fields, nil
+}
+
+func runtimeConfigGeneration(fields map[string]json.RawMessage) (int64, bool) {
+	value, ok := fields["configGeneration"]
+	if !ok {
+		return 0, false
+	}
+	var generation int64
+	if err := json.Unmarshal(value, &generation); err != nil {
+		return 0, false
+	}
+	return generation, true
+}
+
+func setRuntimeField(fields map[string]json.RawMessage, name string, value interface{}) {
+	encoded, _ := json.Marshal(value)
+	fields[name] = encoded
+}
+
+func marshalRuntimeFields(fields map[string]json.RawMessage, fallback ac.JSON) ac.JSON {
+	encoded, err := json.Marshal(fields)
+	if err != nil {
+		return fallback
+	}
+	return ac.JSON(encoded)
 }
 func (s *Service) ListStates(ctx core.Context) ([]ac.ApplyState, error) {
 	states, err := s.repo.ListAgentStates(ctx)

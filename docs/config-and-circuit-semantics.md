@@ -19,6 +19,13 @@ configuration release. `generation` is monotonic for a node and probe type.
   generation rejects that group without affecting another tab. The legacy
   `PUT .../current-configs` endpoint retains its complete ordinary-config
   requirement but also rejects preload.
+- Ordinary current-config responses expose `generation` as the version already
+  applied on the node and `expectedGeneration` as the latest server Release.
+  The configuration-file tab uses only `expectedGeneration` for its next
+  optimistic write, so a second delivery does not wait for the first Release to
+  finish applying. Injection control keeps an independent latest-state
+  generation contract: its `generation` is the latest preload Release and is
+  advanced by its own API without waiting for node application.
 - VM preload configuration uses
   `GET/PUT /api/agent-config/nodes/:nodeId/injection-control` with a specialized
   `content + expectedGeneration` contract. It does not expose configuration
@@ -188,6 +195,22 @@ managed configuration file. probe-guard reads the active Generation through
 `MY_NODE_IP` remain deployment-injected runtime values. Runtime-only values
 such as Pod UID, resource limits, mount paths, and diagnostic log paths are
 outside the template-variable contract.
+
+The default VM template is
+`docs/examples/agent-config-template-vm-v1.1.0.yaml`. Its component and file
+set is the binary daemon registration contract, not the Kubernetes component
+set: `node-agent`, `alloy`, `loongcollector`, `ebpf-agent`, `vmagent`, and
+`preload`, with nine managed files in total. Lifecycle-only binary components
+are intentionally absent because daemon-go has no registered configuration
+files to deliver for them.
+
+VM rendering uses `CLUSTER_ID`, `HOST_IP`, and `APO_PROXY_IP` from daemon-go's
+registration labels. `APO_APP_RED_TRACE_ENABLED` defaults to the binary
+installer's value for a deployment without the local OTel collector. Fixed
+binary package ports stay in the file templates. The `preload` file uses the
+default SkyWalking Java configuration and retains `{{APO_AUTO_SERVICE_NAME}}`
+for runtime process-name substitution; those braces are not APO template
+variables.
 
 ## Diagnostic log sources
 

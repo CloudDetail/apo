@@ -44,10 +44,12 @@ type AgentConfigRepo interface {
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
+	GetAgentReleaseGeneration(core.Context, string, string, int64) (*ac.Release, error)
 	ListAgentReleases(core.Context, string, string, int) ([]ac.Release, error)
 	ListLatestAgentReleases(core.Context, string) ([]ac.Release, error)
 	ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error)
 	ReportAgentState(core.Context, *ac.ApplyState) error
+	GetAgentState(core.Context, string, string) (*ac.ApplyState, error)
 	ListAgentStates(core.Context) ([]ac.ApplyState, error)
 	CreateAgentCommand(core.Context, *ac.Command) error
 	ListAgentCommands(core.Context, string, string, int) ([]ac.Command, error)
@@ -382,6 +384,11 @@ func (repo *daoRepo) GetAgentRelease(ctx core.Context, node, probe string) (*ac.
 	e := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=?", node, probe).Order("generation desc").First(&r).Error
 	return &r, e
 }
+func (repo *daoRepo) GetAgentReleaseGeneration(ctx core.Context, node, probe string, generation int64) (*ac.Release, error) {
+	var release ac.Release
+	err := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=? AND generation=?", node, probe, generation).First(&release).Error
+	return &release, err
+}
 func (repo *daoRepo) ListAgentReleases(ctx core.Context, node, probe string, limit int) ([]ac.Release, error) {
 	var releases []ac.Release
 	err := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=?", node, probe).Order("generation desc").Limit(limit).Find(&releases).Error
@@ -415,13 +422,22 @@ func (repo *daoRepo) ReportAgentState(ctx core.Context, s *ac.ApplyState) error 
 	now := time.Now()
 	s.ReportedAt = &now
 	s.UpdatedAt = now
+	updates := []string{
+		"desired_generation", "applied_generation", "status", "reason", "error",
+		"runtime", "circuit", "reported_at", "updated_at",
+	}
+	if len(s.EffectiveConfig) > 0 {
+		updates = append(updates, "effective_config")
+	}
 	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "node_id"}, {Name: "probe_type"}},
-		DoUpdates: clause.AssignmentColumns([]string{
-			"desired_generation", "applied_generation", "status", "reason", "error",
-			"runtime", "circuit", "reported_at", "updated_at",
-		}),
+		Columns:   []clause.Column{{Name: "node_id"}, {Name: "probe_type"}},
+		DoUpdates: clause.AssignmentColumns(updates),
 	}).Create(s).Error
+}
+func (repo *daoRepo) GetAgentState(ctx core.Context, node, probe string) (*ac.ApplyState, error) {
+	var state ac.ApplyState
+	err := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=?", node, probe).First(&state).Error
+	return &state, err
 }
 func (repo *daoRepo) ListAgentStates(ctx core.Context) ([]ac.ApplyState, error) {
 	var states []ac.ApplyState

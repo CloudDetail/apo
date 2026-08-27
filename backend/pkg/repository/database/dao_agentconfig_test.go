@@ -300,11 +300,12 @@ func TestReportAgentStateRefreshesHeartbeatAndRuntime(t *testing.T) {
 	}
 	repo := &daoRepo{DB: &driver.DB{DB: db}}
 	first := &ac.ApplyState{
-		NodeID:    "node-69",
-		ProbeType: "ilogtail",
-		Status:    "RUNNING",
-		Runtime:   ac.JSON(`{"childPid":8}`),
-		Circuit:   ac.JSON(`{"state":"NORMAL"}`),
+		NodeID:          "node-69",
+		ProbeType:       "ilogtail",
+		Status:          "RUNNING",
+		Runtime:         ac.JSON(`{"childPid":8}`),
+		EffectiveConfig: ac.JSON(`{"configSource":"DEFAULT","configGeneration":0,"effectiveConfigFiles":[{"path":"config.yaml","content":"initial"}]}`),
+		Circuit:         ac.JSON(`{"state":"NORMAL"}`),
 	}
 	if err := repo.ReportAgentState(nil, first); err != nil {
 		t.Fatal(err)
@@ -333,5 +334,8 @@ func TestReportAgentStateRefreshesHeartbeatAndRuntime(t *testing.T) {
 	}
 	if stored.Status != "FUSED" || stored.Reason != "auto_resource_limit" || string(stored.Runtime) != `{"childRunning":false}` {
 		t.Fatalf("runtime state was not replaced: %+v", stored)
+	}
+	if string(stored.EffectiveConfig) != string(first.EffectiveConfig) {
+		t.Fatalf("ordinary heartbeat replaced effective config: %s", stored.EffectiveConfig)
 	}
 }
