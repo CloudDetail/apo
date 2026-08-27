@@ -10,6 +10,10 @@ import (
 )
 
 func (s *service) UpdateClusterIntegration(ctx core.Context, cluster *integration.ClusterIntegration) error {
+	if err := normalizeClusterIdentity(&cluster.Cluster); err != nil {
+		return err
+	}
+
 	// TODO 当前强制指定VM和CK配置
 	vmCfg := config.Get().Promethues
 	cluster.Metric.MetricAPI = &integration.JSONField[integration.MetricAPI]{

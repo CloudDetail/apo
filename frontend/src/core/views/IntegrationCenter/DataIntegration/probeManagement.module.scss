@@ -2,14 +2,6 @@
   min-width: 0;
 }
 
-.tabs {
-  padding: 8px 20px 0;
-}
-
-.tabs :global(.ant-tabs-nav) {
-  margin-bottom: 0;
-}
-
 .managementPage {
   padding: 20px;
 }
@@ -96,6 +88,11 @@
   gap: 5px;
   color: var(--ant-color-text-secondary);
   font-size: 12px;
+}
+
+.secondaryLine :global(.ant-tag) {
+  margin-inline: 3px 0;
+  line-height: 18px;
 }
 
 .metrics {
@@ -244,6 +241,111 @@
   border-inline-start: 2px solid var(--ant-color-border-secondary);
 }
 
+.deliveryScope,
+.deliveryTargetNode,
+.deliveryProbe > div,
+.deliveryProbeReport {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.deliveryScope {
+  gap: 2px;
+}
+
+.deliveryCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.deliveryCounts strong {
+  color: var(--ant-color-text);
+}
+
+.deliveryCounts .deliveryFailed,
+.deliveryCounts .deliveryFailed strong {
+  color: var(--ant-color-error);
+}
+
+.deliveryTargets {
+  overflow-x: auto;
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.deliveryTargetHeader,
+.deliveryTargetRow {
+  display: grid;
+  grid-template-columns: 180px 100px minmax(440px, 1fr);
+  min-width: 760px;
+  gap: 12px;
+}
+
+.deliveryTargetHeader {
+  padding: 7px 10px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  font-size: 12px;
+}
+
+.deliveryTargetRow {
+  align-items: start;
+  padding: 10px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.deliveryTargetHeader + .deliveryTargetRow {
+  border-top: 0;
+}
+
+.deliveryTargetNode {
+  gap: 2px;
+}
+
+.deliveryTargetNode > span,
+.deliveryProbe span,
+.deliveryProbeReport {
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+}
+
+.deliveryProbes {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.deliveryProbe {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 120px 80px minmax(120px, 1fr);
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.deliveryProbe + .deliveryProbe {
+  padding-top: 8px;
+  border-top: 1px dashed var(--ant-color-border-secondary);
+}
+
+.deliveryProbe > div:first-child,
+.deliveryProbeReport {
+  gap: 2px;
+}
+
+.deliveryGenerations {
+  gap: 1px;
+}
+
+.deliveryProbeReport span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .logToolbar {
   display: flex;
   align-items: flex-end;
@@ -345,10 +447,6 @@
 }
 
 @media (max-width: 760px) {
-  .tabs {
-    padding-inline: 12px;
-  }
-
   .managementPage {
     padding: 12px;
   }

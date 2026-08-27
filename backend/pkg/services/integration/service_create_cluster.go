@@ -11,20 +11,19 @@ import (
 	"github.com/CloudDetail/apo/backend/pkg/code"
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
-	"github.com/google/uuid"
 )
 
 func (s *service) CreateCluster(ctx core.Context, cluster *integration.ClusterIntegration) (*integration.Cluster, error) {
+	if err := normalizeClusterIdentity(&cluster.Cluster); err != nil {
+		return nil, err
+	}
+
 	isExist, err := s.dbRepo.CheckClusterNameExisted(ctx, cluster.Name)
 	if err != nil {
-		return nil, core.Error(code.CreateClusterFailed, fmt.Sprintf("ClusterName \"%s\" has been used", cluster.Name))
+		return nil, core.Error(code.CreateClusterFailed, fmt.Sprintf("failed to check display name %q: %v", cluster.Name, err))
 	}
 	if isExist {
 		return nil, errors.New("cluster name already exists")
-	}
-
-	if len(cluster.ID) == 0 {
-		cluster.ID = uuid.NewString()
 	}
 
 	cluster.APOCollector.RemoveHttpPrefix()

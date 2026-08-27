@@ -378,6 +378,13 @@ func migrateTable(db *gorm.DB) error {
 			return err
 		}
 	}
+	// Older releases declared instance_id unique. Empty legacy values must be
+	// allowed while nodes upgrade and report their identity.
+	if migrator.HasIndex(&ac.Node{}, "idx_nodes_instance_id") {
+		if err = migrator.DropIndex(&ac.Node{}, "idx_nodes_instance_id"); err != nil {
+			return err
+		}
+	}
 	return db.AutoMigrate(
 		&ac.Template{},
 		&ac.TemplateVariable{},
@@ -391,6 +398,8 @@ func migrateTable(db *gorm.DB) error {
 		&ac.LogCollectionConfig{},
 		&ac.Binding{},
 		&ac.Release{},
+		&ac.Delivery{},
+		&ac.DeliveryTarget{},
 		&ac.ApplyState{},
 		&ac.Command{},
 		&amconfig.Receiver{},

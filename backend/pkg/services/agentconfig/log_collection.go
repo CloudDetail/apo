@@ -21,17 +21,21 @@ import (
 const (
 	logCollectionScopeNode      = "node"
 	logCollectionScopeCluster   = "cluster"
+	logCollectionScopeGlobal    = "global"
+	logCollectionDefaultScopeID = "default"
 	defaultK8sContainerSourceID = "k8s-default-container-stdout"
 	maxLogEventsPerSecond       = int64(1_000_000_000)
 )
 
 type HostFileSource struct {
-	ID                string `json:"id"`
-	Name              string `json:"name"`
-	Enabled           bool   `json:"enabled"`
-	Path              string `json:"path"`
-	MaxDirSearchDepth int    `json:"maxDirSearchDepth"`
-	FilePattern       string `json:"filePattern"`
+	ID                string  `json:"id"`
+	Name              string  `json:"name"`
+	Enabled           bool    `json:"enabled"`
+	Path              string  `json:"path"`
+	MaxDirSearchDepth int     `json:"maxDirSearchDepth"`
+	FilePattern       string  `json:"filePattern"`
+	ProcessingRule    *string `json:"processingRule,omitempty"`
+	OutputRule        *string `json:"outputRule,omitempty"`
 }
 
 type FilterMap map[string]string
@@ -71,16 +75,23 @@ type ContainerStdoutSource struct {
 	CollectStdout         bool      `json:"collectStdout"`
 	CollectStderr         bool      `json:"collectStderr"`
 	MaxEventsPerSecond    int64     `json:"maxEventsPerSecond"`
+	ProcessingRule        *string   `json:"processingRule,omitempty"`
+	OutputRule            *string   `json:"outputRule,omitempty"`
 }
 
 type HostFileCollectionInput struct {
-	HostFiles           []HostFileSource `json:"hostFiles"`
-	DisableClusterRules bool             `json:"disableClusterRules"`
+	ContainerStdout     []ContainerStdoutSource `json:"containerStdout"`
+	HostFiles           []HostFileSource        `json:"hostFiles"`
+	DisableClusterRules bool                    `json:"disableClusterRules"`
+	ProcessingRule      *string                 `json:"processingRule,omitempty"`
+	OutputRule          *string                 `json:"outputRule,omitempty"`
 }
 
 type ContainerStdoutCollectionInput struct {
 	ContainerStdout []ContainerStdoutSource `json:"containerStdout"`
 	HostFiles       []HostFileSource        `json:"hostFiles"`
+	ProcessingRule  *string                 `json:"processingRule,omitempty"`
+	OutputRule      *string                 `json:"outputRule,omitempty"`
 }
 
 type RenderedLogCollectionFile struct {
@@ -98,15 +109,16 @@ type LogCollectionPreview struct {
 }
 
 type HostFileCollection struct {
-	ScopeType           string           `json:"scopeType"`
-	ScopeID             string           `json:"scopeId"`
-	Version             int64            `json:"version"`
-	HostFiles           []HostFileSource `json:"hostFiles"`
-	DisableClusterRules bool             `json:"disableClusterRules"`
-	ProcessingRule      string           `json:"processingRule"`
-	OutputRule          string           `json:"outputRule"`
-	ProcessorCount      int              `json:"processorCount"`
-	OutputCount         int              `json:"outputCount"`
+	ScopeType           string                  `json:"scopeType"`
+	ScopeID             string                  `json:"scopeId"`
+	Version             int64                   `json:"version"`
+	ContainerStdout     []ContainerStdoutSource `json:"containerStdout"`
+	HostFiles           []HostFileSource        `json:"hostFiles"`
+	DisableClusterRules bool                    `json:"disableClusterRules"`
+	ProcessingRule      string                  `json:"processingRule"`
+	OutputRule          string                  `json:"outputRule"`
+	ProcessorCount      int                     `json:"processorCount"`
+	OutputCount         int                     `json:"outputCount"`
 }
 
 type ContainerStdoutCollection struct {
@@ -119,6 +131,26 @@ type ContainerStdoutCollection struct {
 	OutputRule      string                  `json:"outputRule"`
 	ProcessorCount  int                     `json:"processorCount"`
 	OutputCount     int                     `json:"outputCount"`
+}
+
+type PipelineRuleDefaults struct {
+	ProcessingRule string `json:"processingRule"`
+	OutputRule     string `json:"outputRule"`
+	ProcessorCount int    `json:"processorCount"`
+	OutputCount    int    `json:"outputCount"`
+}
+
+type LogCollectionDefaultsInput struct {
+	File      PipelineRuleDefaults `json:"file"`
+	Container PipelineRuleDefaults `json:"container"`
+}
+
+type LogCollectionDefaults struct {
+	ScopeType string               `json:"scopeType"`
+	ScopeID   string               `json:"scopeId"`
+	Version   int64                `json:"version"`
+	File      PipelineRuleDefaults `json:"file"`
+	Container PipelineRuleDefaults `json:"container"`
 }
 
 type logCollectionRepository interface {
@@ -294,6 +326,9 @@ func normalizeHostFiles(input []HostFileSource) ([]HostFileSource, error) {
 		if source.MaxDirSearchDepth < 0 || source.MaxDirSearchDepth > 1000 {
 			return nil, fmt.Errorf("directory depth for %s must be between 0 and 1000", source.Name)
 		}
+		if err := validateEditablePipelineRules(source.ProcessingRule, source.OutputRule); err != nil {
+			return nil, fmt.Errorf("invalid pipeline for %s: %v", source.Name, err)
+		}
 		fileID := safeSourceID(source.ID)
 		if seenFileIDs[fileID] {
 			return nil, fmt.Errorf("host file source ids produce duplicate file name %s", fileID)
@@ -343,6 +378,9 @@ func normalizeContainerStdout(input []ContainerStdoutSource) ([]ContainerStdoutS
 		}
 		if source.MaxEventsPerSecond < 0 || source.MaxEventsPerSecond > maxLogEventsPerSecond {
 			return nil, fmt.Errorf("maximum log events per second for %s must be between 0 and %d", source.Name, maxLogEventsPerSecond)
+		}
+		if err := validateEditablePipelineRules(source.ProcessingRule, source.OutputRule); err != nil {
+			return nil, fmt.Errorf("invalid pipeline for %s: %v", source.Name, err)
 		}
 		for label, expression := range map[string]string{
 			"namespace": source.NamespaceRegex,
@@ -575,6 +613,79 @@ func renderPipelineRule(key string, value *yaml.Node) (string, int, error) {
 	return buffer.String(), len(value.Content), nil
 }
 
+func parseEditablePipelineRule(key string, content *string, required bool) (*yaml.Node, error) {
+	if content == nil {
+		return nil, nil
+	}
+	if strings.TrimSpace(*content) == "" {
+		if required {
+			return nil, fmt.Errorf("%s must contain at least one item", key)
+		}
+		return nil, nil
+	}
+	var document yaml.Node
+	if err := yaml.Unmarshal([]byte(*content), &document); err != nil {
+		return nil, fmt.Errorf("invalid %s YAML: %w", key, err)
+	}
+	if len(document.Content) != 1 || document.Content[0].Kind != yaml.MappingNode {
+		return nil, fmt.Errorf("%s must be a YAML mapping", key)
+	}
+	root := document.Content[0]
+	if len(root.Content) != 2 || root.Content[0].Value != key {
+		return nil, fmt.Errorf("%s YAML must only contain the top-level %s field", key, key)
+	}
+	value := root.Content[1]
+	if value.Kind != yaml.SequenceNode {
+		return nil, fmt.Errorf("%s must be a list", key)
+	}
+	if required && len(value.Content) == 0 {
+		return nil, fmt.Errorf("%s must contain at least one item", key)
+	}
+	for index, item := range value.Content {
+		if item.Kind != yaml.MappingNode {
+			return nil, fmt.Errorf("%s item %d must be a mapping", key, index+1)
+		}
+		itemType := yamlMappingValue(item, "Type")
+		if itemType == nil || itemType.Kind != yaml.ScalarNode || strings.TrimSpace(itemType.Value) == "" {
+			return nil, fmt.Errorf("%s item %d must contain Type", key, index+1)
+		}
+	}
+	return cloneYAMLNode(value), nil
+}
+
+func pipelineBaseWithOverrides(base *logPipelineBase, processingRule, outputRule *string) (*logPipelineBase, error) {
+	overridden := &logPipelineBase{
+		Path:       base.Path,
+		Global:     cloneYAMLNode(base.Global),
+		Processors: cloneYAMLNode(base.Processors),
+		Flushers:   cloneYAMLNode(base.Flushers),
+		InputTypes: append([]string(nil), base.InputTypes...),
+	}
+	if processingRule != nil {
+		processors, err := parseEditablePipelineRule("processors", processingRule, false)
+		if err != nil {
+			return nil, err
+		}
+		overridden.Processors = processors
+	}
+	if outputRule != nil {
+		flushers, err := parseEditablePipelineRule("flushers", outputRule, true)
+		if err != nil {
+			return nil, err
+		}
+		overridden.Flushers = flushers
+	}
+	return overridden, nil
+}
+
+func validateEditablePipelineRules(processingRule, outputRule *string) error {
+	if _, err := parseEditablePipelineRule("processors", processingRule, false); err != nil {
+		return err
+	}
+	_, err := parseEditablePipelineRule("flushers", outputRule, true)
+	return err
+}
+
 func pipelineRules(base *logPipelineBase) (string, string, int, int, error) {
 	processingRule, processorCount, err := renderPipelineRule("processors", base.Processors)
 	if err != nil {
@@ -587,10 +698,214 @@ func pipelineRules(base *logPipelineBase) (string, string, int, int, error) {
 	return processingRule, outputRule, processorCount, outputCount, nil
 }
 
-func (s *Service) attachHostPipelineRules(ctx core.Context, collection *HostFileCollection) {
+func pipelineRulePointers(sourceProcessing, sourceOutput, legacyProcessing, legacyOutput *string, defaults PipelineRuleDefaults) (*string, *string) {
+	processing := sourceProcessing
+	if processing == nil {
+		processing = legacyProcessing
+	}
+	if processing == nil && strings.TrimSpace(defaults.ProcessingRule) != "" {
+		processing = &defaults.ProcessingRule
+	}
+	output := sourceOutput
+	if output == nil {
+		output = legacyOutput
+	}
+	if output == nil && strings.TrimSpace(defaults.OutputRule) != "" {
+		output = &defaults.OutputRule
+	}
+	return processing, output
+}
+
+func migrateLegacyHostPipelines(sources []HostFileSource, processingRule, outputRule *string) []HostFileSource {
+	for index := range sources {
+		if sources[index].ProcessingRule == nil {
+			sources[index].ProcessingRule = processingRule
+		}
+		if sources[index].OutputRule == nil {
+			sources[index].OutputRule = outputRule
+		}
+	}
+	return sources
+}
+
+func migrateLegacyContainerPipelines(sources []ContainerStdoutSource, processingRule, outputRule *string) []ContainerStdoutSource {
+	for index := range sources {
+		if sources[index].ProcessingRule == nil {
+			sources[index].ProcessingRule = processingRule
+		}
+		if sources[index].OutputRule == nil {
+			sources[index].OutputRule = outputRule
+		}
+	}
+	return sources
+}
+
+func pipelineRuleDefaults(base *logPipelineBase) (PipelineRuleDefaults, error) {
+	processingRule, outputRule, processorCount, outputCount, err := pipelineRules(base)
+	if err != nil {
+		return PipelineRuleDefaults{}, err
+	}
+	return PipelineRuleDefaults{
+		ProcessingRule: processingRule,
+		OutputRule:     outputRule,
+		ProcessorCount: processorCount,
+		OutputCount:    outputCount,
+	}, nil
+}
+
+func pipelineRuleDefaultsWithCounts(defaults PipelineRuleDefaults) (PipelineRuleDefaults, error) {
+	processors, err := parseEditablePipelineRule("processors", &defaults.ProcessingRule, false)
+	if err != nil {
+		return PipelineRuleDefaults{}, err
+	}
+	flushers, err := parseEditablePipelineRule("flushers", &defaults.OutputRule, true)
+	if err != nil {
+		return PipelineRuleDefaults{}, err
+	}
+	defaults.ProcessorCount = 0
+	if processors != nil {
+		defaults.ProcessorCount = len(processors.Content)
+	}
+	defaults.OutputCount = len(flushers.Content)
+	return defaults, nil
+}
+
+func (s *Service) reportedPipelineDefaults(ctx core.Context, preferredInputTypes map[string]struct{}) (PipelineRuleDefaults, error) {
+	nodes, err := s.repo.ListAgentNodes(ctx)
+	if err != nil {
+		return PipelineRuleDefaults{}, err
+	}
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
+	var lastErr error
+	for _, node := range nodes {
+		base, err := s.nodeLogPipelineBase(ctx, node.ID, preferredInputTypes)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		return pipelineRuleDefaults(base)
+	}
+	if lastErr != nil {
+		return PipelineRuleDefaults{}, lastErr
+	}
+	return PipelineRuleDefaults{}, errors.New("no reported iLogtail pipeline is available")
+}
+
+func (s *Service) storedLogCollectionDefaults(ctx core.Context) (*LogCollectionDefaults, error) {
+	repo, err := s.logCollectionRepo()
+	if err != nil {
+		return nil, err
+	}
+	result := &LogCollectionDefaults{
+		ScopeType: logCollectionScopeGlobal,
+		ScopeID:   logCollectionDefaultScopeID,
+	}
+	stored, err := repo.GetLogCollectionConfig(ctx, logCollectionScopeGlobal, logCollectionDefaultScopeID)
+	if err == nil {
+		var input LogCollectionDefaultsInput
+		if err := json.Unmarshal(stored.Config, &input); err != nil {
+			return nil, err
+		}
+		result.Version = stored.Version
+		result.File = input.File
+		result.Container = input.Container
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *Service) GetLogCollectionDefaults(ctx core.Context) (*LogCollectionDefaults, error) {
+	result, err := s.storedLogCollectionDefaults(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Version == 0 {
+		fallback, fallbackErr := s.reportedPipelineDefaults(ctx, hostFileInputTypes)
+		if fallbackErr != nil {
+			log.Printf("agentconfig: file pipeline defaults unavailable error=%v", fallbackErr)
+		} else {
+			if strings.TrimSpace(result.File.ProcessingRule) == "" {
+				result.File.ProcessingRule = fallback.ProcessingRule
+			}
+			if strings.TrimSpace(result.File.OutputRule) == "" {
+				result.File.OutputRule = fallback.OutputRule
+			}
+		}
+	}
+	if result.Version == 0 {
+		fallback, fallbackErr := s.reportedPipelineDefaults(ctx, containerStdoutInputTypes)
+		if fallbackErr != nil {
+			log.Printf("agentconfig: container pipeline defaults unavailable error=%v", fallbackErr)
+		} else {
+			if strings.TrimSpace(result.Container.ProcessingRule) == "" {
+				result.Container.ProcessingRule = fallback.ProcessingRule
+			}
+			if strings.TrimSpace(result.Container.OutputRule) == "" {
+				result.Container.OutputRule = fallback.OutputRule
+			}
+		}
+	}
+	if strings.TrimSpace(result.File.OutputRule) != "" {
+		withCounts, countErr := pipelineRuleDefaultsWithCounts(result.File)
+		if countErr != nil {
+			return nil, fmt.Errorf("invalid stored file defaults: %v", countErr)
+		}
+		result.File = withCounts
+	}
+	if strings.TrimSpace(result.Container.OutputRule) != "" {
+		withCounts, countErr := pipelineRuleDefaultsWithCounts(result.Container)
+		if countErr != nil {
+			return nil, fmt.Errorf("invalid stored container defaults: %v", countErr)
+		}
+		result.Container = withCounts
+	}
+	return result, nil
+}
+
+func (s *Service) SaveLogCollectionDefaults(ctx core.Context, input LogCollectionDefaultsInput, user int64) (*LogCollectionDefaults, error) {
+	if err := validateEditablePipelineRules(&input.File.ProcessingRule, &input.File.OutputRule); err != nil {
+		return nil, fmt.Errorf("invalid file defaults: %v", err)
+	}
+	if err := validateEditablePipelineRules(&input.Container.ProcessingRule, &input.Container.OutputRule); err != nil {
+		return nil, fmt.Errorf("invalid container defaults: %v", err)
+	}
+	data, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+	repo, err := s.logCollectionRepo()
+	if err != nil {
+		return nil, err
+	}
+	stored := &ac.LogCollectionConfig{
+		ScopeType: logCollectionScopeGlobal,
+		ScopeID:   logCollectionDefaultScopeID,
+		Config:    ac.JSON(data),
+		Version:   1,
+		UpdatedBy: user,
+	}
+	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
+		return nil, err
+	}
+	result, err := s.GetLogCollectionDefaults(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result.Version = stored.Version
+	return result, nil
+}
+
+func (s *Service) attachHostPipelineRules(ctx core.Context, collection *HostFileCollection, overrideProcessingRule, overrideOutputRule *string) {
 	base, err := s.nodeLogPipelineBase(ctx, collection.ScopeID, hostFileInputTypes)
 	if err != nil {
 		log.Printf("agentconfig: host collection pipeline defaults unavailable node=%s error=%v", collection.ScopeID, err)
+		return
+	}
+	base, err = pipelineBaseWithOverrides(base, overrideProcessingRule, overrideOutputRule)
+	if err != nil {
+		log.Printf("agentconfig: host collection pipeline overrides invalid node=%s error=%v", collection.ScopeID, err)
 		return
 	}
 	processingRule, outputRule, processorCount, outputCount, err := pipelineRules(base)
@@ -604,8 +919,8 @@ func (s *Service) attachHostPipelineRules(ctx core.Context, collection *HostFile
 	collection.OutputCount = outputCount
 }
 
-func (s *Service) attachContainerPipelineRules(ctx core.Context, collection *ContainerStdoutCollection) {
-	base, err := s.clusterLogPipelineBase(ctx, collection.ScopeID, containerStdoutInputTypes)
+func (s *Service) attachContainerPipelineRules(ctx core.Context, collection *ContainerStdoutCollection, overrideProcessingRule, overrideOutputRule *string) {
+	base, err := s.clusterLogPipelineBase(ctx, collection.ScopeID, containerStdoutInputTypes, overrideProcessingRule, overrideOutputRule)
 	if err != nil {
 		log.Printf("agentconfig: container collection pipeline defaults unavailable cluster=%s error=%v", collection.ScopeID, err)
 		return
@@ -621,7 +936,7 @@ func (s *Service) attachContainerPipelineRules(ctx core.Context, collection *Con
 	collection.OutputCount = outputCount
 }
 
-func (s *Service) clusterLogPipelineBase(ctx core.Context, clusterID string, preferredInputTypes map[string]struct{}) (*logPipelineBase, error) {
+func (s *Service) clusterLogPipelineBase(ctx core.Context, clusterID string, preferredInputTypes map[string]struct{}, processingRule, outputRule *string) (*logPipelineBase, error) {
 	nodes, err := s.repo.ListAgentNodes(ctx)
 	if err != nil {
 		return nil, err
@@ -635,6 +950,10 @@ func (s *Service) clusterLogPipelineBase(ctx core.Context, clusterID string, pre
 			continue
 		}
 		base, err := s.nodeLogPipelineBase(ctx, node.ID, preferredInputTypes)
+		if err != nil {
+			return nil, err
+		}
+		base, err = pipelineBaseWithOverrides(base, processingRule, outputRule)
 		if err != nil {
 			return nil, err
 		}
@@ -853,8 +1172,11 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 	}
 	stored, err := repo.GetLogCollectionConfig(ctx, logCollectionScopeNode, nodeID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		collection := &HostFileCollection{ScopeType: logCollectionScopeNode, ScopeID: nodeID, HostFiles: []HostFileSource{}}
-		s.attachHostPipelineRules(ctx, collection)
+		collection := &HostFileCollection{
+			ScopeType: logCollectionScopeNode, ScopeID: nodeID,
+			ContainerStdout: []ContainerStdoutSource{}, HostFiles: []HostFileSource{},
+		}
+		s.attachHostPipelineRules(ctx, collection, nil, nil)
 		return collection, nil
 	}
 	if err != nil {
@@ -866,19 +1188,25 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 	}
 	collection := &HostFileCollection{
 		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
-		HostFiles: input.HostFiles, DisableClusterRules: input.DisableClusterRules,
+		ContainerStdout:     migrateLegacyContainerPipelines(input.ContainerStdout, input.ProcessingRule, input.OutputRule),
+		HostFiles:           migrateLegacyHostPipelines(input.HostFiles, input.ProcessingRule, input.OutputRule),
+		DisableClusterRules: input.DisableClusterRules,
 	}
-	s.attachHostPipelineRules(ctx, collection)
+	s.attachHostPipelineRules(ctx, collection, input.ProcessingRule, input.OutputRule)
 	return collection, nil
 }
 
 func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput, user int64) (*HostFileCollection, error) {
-	preview, normalized, err := s.previewHostFileCollection(ctx, nodeID, input)
+	preview, normalizedContainer, normalizedFiles, err := s.previewHostFileCollection(ctx, nodeID, input)
 	_ = preview
 	if err != nil {
 		return nil, err
 	}
-	data, err := json.Marshal(HostFileCollectionInput{HostFiles: normalized, DisableClusterRules: input.DisableClusterRules})
+	data, err := json.Marshal(HostFileCollectionInput{
+		ContainerStdout: normalizedContainer, HostFiles: normalizedFiles,
+		DisableClusterRules: input.DisableClusterRules,
+		ProcessingRule:      input.ProcessingRule, OutputRule: input.OutputRule,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -892,33 +1220,84 @@ func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input 
 	}
 	collection := &HostFileCollection{
 		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
-		HostFiles: normalized, DisableClusterRules: input.DisableClusterRules,
+		ContainerStdout: normalizedContainer, HostFiles: normalizedFiles,
+		DisableClusterRules: input.DisableClusterRules,
 	}
-	s.attachHostPipelineRules(ctx, collection)
+	s.attachHostPipelineRules(ctx, collection, input.ProcessingRule, input.OutputRule)
 	return collection, nil
 }
 
-func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput) (*LogCollectionPreview, []HostFileSource, error) {
+func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput) (*LogCollectionPreview, []ContainerStdoutSource, []HostFileSource, error) {
 	if err := s.validateLogCollectionScope(ctx, logCollectionScopeNode, nodeID); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
+	}
+	normalizedContainer, err := normalizeContainerStdout(input.ContainerStdout)
+	if err != nil {
+		return nil, nil, nil, err
 	}
 	normalized, err := normalizeHostFiles(input.HostFiles)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	if !hasEnabledHostFileSource(normalized) {
-		return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: []RenderedLogCollectionFile{}}, normalized, nil
+	if err := validateEditablePipelineRules(input.ProcessingRule, input.OutputRule); err != nil {
+		return nil, nil, nil, err
 	}
-	base, err := s.nodeLogPipelineBase(ctx, nodeID, hostFileInputTypes)
+	if !hasEnabledHostFileSource(normalized) && !hasEnabledContainerStdoutSource(normalizedContainer) {
+		return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: []RenderedLogCollectionFile{}}, normalizedContainer, normalized, nil
+	}
+	defaults, err := s.storedLogCollectionDefaults(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	files, err := renderHostFiles(normalized, base)
-	return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: files}, normalized, err
+	files := make([]RenderedLogCollectionFile, 0, len(normalized)+len(normalizedContainer))
+	if hasEnabledHostFileSource(normalized) {
+		base, err := s.nodeLogPipelineBase(ctx, nodeID, hostFileInputTypes)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, source := range normalized {
+			if !source.Enabled {
+				continue
+			}
+			processing, output := pipelineRulePointers(source.ProcessingRule, source.OutputRule, input.ProcessingRule, input.OutputRule, defaults.File)
+			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			rendered, err := renderHostFiles([]HostFileSource{source}, sourceBase)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			files = append(files, rendered...)
+		}
+	}
+	if hasEnabledContainerStdoutSource(normalizedContainer) {
+		base, err := s.nodeLogPipelineBase(ctx, nodeID, containerStdoutInputTypes)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, source := range normalizedContainer {
+			if !source.Enabled {
+				continue
+			}
+			processing, output := pipelineRulePointers(source.ProcessingRule, source.OutputRule, input.ProcessingRule, input.OutputRule, defaults.Container)
+			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			rendered, err := renderContainerStdout([]ContainerStdoutSource{source}, sourceBase)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			files = append(files, rendered...)
+		}
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+	return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: files}, normalizedContainer, normalized, nil
 }
 
 func (s *Service) PreviewHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput) (*LogCollectionPreview, error) {
-	preview, _, err := s.previewHostFileCollection(ctx, nodeID, input)
+	preview, _, _, err := s.previewHostFileCollection(ctx, nodeID, input)
 	return preview, err
 }
 
@@ -940,7 +1319,7 @@ func (s *Service) GetContainerStdoutCollection(ctx core.Context, clusterID strin
 			ScopeType: logCollectionScopeCluster, ScopeID: clusterID,
 			ContainerStdout: defaultContainerStdoutSources(nodes, clusterID), HostFiles: []HostFileSource{},
 		}
-		s.attachContainerPipelineRules(ctx, collection)
+		s.attachContainerPipelineRules(ctx, collection, nil, nil)
 		return collection, nil
 	}
 	if err != nil {
@@ -952,9 +1331,10 @@ func (s *Service) GetContainerStdoutCollection(ctx core.Context, clusterID strin
 	}
 	collection := &ContainerStdoutCollection{
 		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
-		ContainerStdout: input.ContainerStdout, HostFiles: input.HostFiles,
+		ContainerStdout: migrateLegacyContainerPipelines(input.ContainerStdout, input.ProcessingRule, input.OutputRule),
+		HostFiles:       migrateLegacyHostPipelines(input.HostFiles, input.ProcessingRule, input.OutputRule),
 	}
-	s.attachContainerPipelineRules(ctx, collection)
+	s.attachContainerPipelineRules(ctx, collection, input.ProcessingRule, input.OutputRule)
 	return collection, nil
 }
 
@@ -963,7 +1343,10 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 	if err != nil {
 		return nil, err
 	}
-	data, err := json.Marshal(ContainerStdoutCollectionInput{ContainerStdout: normalizedContainer, HostFiles: normalizedFiles})
+	data, err := json.Marshal(ContainerStdoutCollectionInput{
+		ContainerStdout: normalizedContainer, HostFiles: normalizedFiles,
+		ProcessingRule: input.ProcessingRule, OutputRule: input.OutputRule,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -979,7 +1362,7 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 		ScopeType: stored.ScopeType, ScopeID: stored.ScopeID, Version: stored.Version,
 		ContainerStdout: normalizedContainer, HostFiles: normalizedFiles,
 	}
-	s.attachContainerPipelineRules(ctx, collection)
+	s.attachContainerPipelineRules(ctx, collection, input.ProcessingRule, input.OutputRule)
 	return collection, nil
 }
 
@@ -995,22 +1378,59 @@ func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID s
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	if err := validateEditablePipelineRules(input.ProcessingRule, input.OutputRule); err != nil {
+		return nil, nil, nil, err
+	}
 	if !hasEnabledContainerStdoutSource(normalizedContainer) && !hasEnabledHostFileSource(normalizedFiles) {
 		return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: []RenderedLogCollectionFile{}}, normalizedContainer, normalizedFiles, nil
 	}
-	base, err := s.clusterLogPipelineBase(ctx, clusterID, containerStdoutInputTypes)
+	defaults, err := s.storedLogCollectionDefaults(ctx)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	containerFiles, err := renderContainerStdout(normalizedContainer, base)
-	if err != nil {
-		return nil, nil, nil, err
+	files := make([]RenderedLogCollectionFile, 0, len(normalizedContainer)+len(normalizedFiles))
+	if hasEnabledContainerStdoutSource(normalizedContainer) {
+		base, err := s.clusterLogPipelineBase(ctx, clusterID, containerStdoutInputTypes, nil, nil)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, source := range normalizedContainer {
+			if !source.Enabled {
+				continue
+			}
+			processing, output := pipelineRulePointers(source.ProcessingRule, source.OutputRule, input.ProcessingRule, input.OutputRule, defaults.Container)
+			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			rendered, err := renderContainerStdout([]ContainerStdoutSource{source}, sourceBase)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			files = append(files, rendered...)
+		}
 	}
-	hostFiles, err := renderHostFiles(normalizedFiles, base)
-	if err != nil {
-		return nil, nil, nil, err
+	if hasEnabledHostFileSource(normalizedFiles) {
+		base, err := s.clusterLogPipelineBase(ctx, clusterID, hostFileInputTypes, nil, nil)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, source := range normalizedFiles {
+			if !source.Enabled {
+				continue
+			}
+			processing, output := pipelineRulePointers(source.ProcessingRule, source.OutputRule, input.ProcessingRule, input.OutputRule, defaults.File)
+			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			rendered, err := renderHostFiles([]HostFileSource{source}, sourceBase)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			files = append(files, rendered...)
+		}
 	}
-	files := append(containerFiles, hostFiles...)
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: files}, normalizedContainer, normalizedFiles, nil
 }

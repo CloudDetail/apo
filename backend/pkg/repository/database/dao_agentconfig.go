@@ -42,10 +42,11 @@ type AgentConfigRepo interface {
 	GetLogCollectionConfig(core.Context, string, string) (*ac.LogCollectionConfig, error)
 	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
-	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error
+	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
 	ListAgentReleases(core.Context, string, string, int) ([]ac.Release, error)
 	ListLatestAgentReleases(core.Context, string) ([]ac.Release, error)
+	ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error)
 	ReportAgentState(core.Context, *ac.ApplyState) error
 	ListAgentStates(core.Context) ([]ac.ApplyState, error)
 	CreateAgentCommand(core.Context, *ac.Command) error
@@ -89,11 +90,12 @@ func (repo *daoRepo) UpsertAgentNode(ctx core.Context, n *ac.Node) error {
 	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{
-			"name", "cluster_id", "environment", "labels", "daemon_version",
+			"name", "cluster_id", "initial_cluster_id", "instance_id", "environment", "labels", "variable_overrides", "daemon_version",
 			"odiglet_ready", "last_seen_at", "updated_at",
 		}),
 	}).Create(n).Error
 }
+
 func (repo *daoRepo) ListAgentNodes(ctx core.Context) ([]ac.Node, error) {
 	var ns []ac.Node
 	e := repo.GetContextDB(ctx).Order("updated_at desc").Find(&ns).Error
@@ -293,10 +295,10 @@ func (repo *daoRepo) SaveLogCollectionConfig(ctx core.Context, config *ac.LogCol
 	})
 }
 func (repo *daoRepo) SaveAgentBinding(ctx core.Context, b *ac.Binding, r *ac.Release) error {
-	return repo.SaveAgentBindings(ctx, []*ac.Binding{b}, []*ac.Release{r}, map[string]int64{agentReleaseKey(r.NodeID, r.ProbeType): r.Generation - 1})
+	return repo.SaveAgentBindings(ctx, []*ac.Binding{b}, []*ac.Release{r}, map[string]int64{agentReleaseKey(r.NodeID, r.ProbeType): r.Generation - 1}, nil)
 }
 func agentReleaseKey(node, probe string) string { return node + "\x00" + ac.NormalizeProbe(probe) }
-func (repo *daoRepo) SaveAgentBindings(ctx core.Context, bindings []*ac.Binding, releases []*ac.Release, expected map[string]int64) error {
+func (repo *daoRepo) SaveAgentBindings(ctx core.Context, bindings []*ac.Binding, releases []*ac.Release, expected map[string]int64, delivery *ac.Delivery) error {
 	if len(bindings) != len(releases) {
 		return errors.New("binding and release counts do not match")
 	}
@@ -355,6 +357,23 @@ func (repo *daoRepo) SaveAgentBindings(ctx core.Context, bindings []*ac.Binding,
 				return err
 			}
 		}
+		if delivery != nil {
+			if len(delivery.Targets) == 0 {
+				return errors.New("delivery has no targets")
+			}
+			targets := delivery.Targets
+			delivery.Targets = nil
+			if err := tx.Create(delivery).Error; err != nil {
+				return err
+			}
+			for index := range targets {
+				targets[index].DeliveryID = delivery.ID
+			}
+			if err := tx.Create(&targets).Error; err != nil {
+				return err
+			}
+			delivery.Targets = targets
+		}
 		return nil
 	})
 }
@@ -382,6 +401,15 @@ func (repo *daoRepo) ListLatestAgentReleases(ctx core.Context, node string) ([]a
 		}
 	}
 	return latest, nil
+}
+func (repo *daoRepo) ListAgentDeliveries(ctx core.Context, limit int) ([]ac.Delivery, error) {
+	var deliveries []ac.Delivery
+	err := repo.GetContextDB(ctx).
+		Preload("Targets", func(db *gorm.DB) *gorm.DB { return db.Order("node_id") }).
+		Order("created_at desc").
+		Limit(limit).
+		Find(&deliveries).Error
+	return deliveries, err
 }
 func (repo *daoRepo) ReportAgentState(ctx core.Context, s *ac.ApplyState) error {
 	now := time.Now()

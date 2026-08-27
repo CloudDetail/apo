@@ -141,7 +141,7 @@ func (repo *daoRepo) initFeatureRouter(ctx core.Context) error {
 		"接入中心":    {"/integration/data/settings", "/data/ingestion", "/probe-management/settings"},
 		"个人中心":    {"/user", "/profile", "/account"},
 		"告警事件":    {"/alerts/events/detail/:alertID/:eventID", "/report"},
-		"探针管理":    {"/probe-management", "/probe-management/config", "/probe-management/log-collection"},
+		"探针管理":    {"/probe-management", "/probe-management/settings", "/probe-management/config", "/probe-management/log-collection"},
 		"服务别名配置":  {"/demo/service-config"},
 		"工作流故障报告": {"/report"},
 		"告警分析":    {"/alert-analyze", "/alert-analyze/info", "/cause/report/:traceId/:spanId", "/cause/error-report/:traceId", "/alert-analyze/chatAI/:service/:endpoint", "/report"},

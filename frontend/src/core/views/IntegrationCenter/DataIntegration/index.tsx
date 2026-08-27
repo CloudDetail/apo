@@ -4,19 +4,28 @@
  */
 
 import { Tabs } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
-import ClusterTable from './ClusterTable'
+import BotManagement from './BotManagement'
 import ProbeManagement from './ProbeManagement'
-import styles from './probeManagement.module.scss'
+import styles from './dataIntegrationPage.module.scss'
+
+const MANAGEMENT_TAB = 'management'
+const BOTS_TAB = 'bots'
 
 export default function DataIntegrationPage() {
+  const { t } = useTranslation('core/dataIntegration')
   const [searchParams, setSearchParams] = useSearchParams()
-  const activeTab = searchParams.get('tab') === 'management' ? 'management' : 'access'
+  const activeTab = searchParams.get('tab') === BOTS_TAB ? BOTS_TAB : MANAGEMENT_TAB
 
-  const changeTab = (key: string) => {
+  const handleTabChange = (tab: string) => {
     const nextParams = new URLSearchParams(searchParams)
-    nextParams.set('tab', key)
-    setSearchParams(nextParams, { replace: true })
+    if (tab === BOTS_TAB) {
+      nextParams.set('tab', BOTS_TAB)
+    } else {
+      nextParams.delete('tab')
+    }
+    setSearchParams(nextParams)
   }
 
   return (
@@ -24,13 +33,20 @@ export default function DataIntegrationPage() {
       <Tabs
         className={styles.tabs}
         activeKey={activeTab}
-        onChange={changeTab}
+        onChange={handleTabChange}
         items={[
-          { key: 'access', label: '探针接入' },
-          { key: 'management', label: '探针管理' },
+          {
+            key: MANAGEMENT_TAB,
+            label: t('probeManagementTabs.management'),
+            children: activeTab === MANAGEMENT_TAB ? <ProbeManagement /> : null,
+          },
+          {
+            key: BOTS_TAB,
+            label: t('probeManagementTabs.bots'),
+            children: activeTab === BOTS_TAB ? <BotManagement /> : null,
+          },
         ]}
       />
-      {activeTab === 'access' ? <ClusterTable /> : <ProbeManagement />}
     </div>
   )
 }

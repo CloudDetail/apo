@@ -25,8 +25,32 @@ export function getAgentConfigNodesApi() {
   return get('/api/agent-config/nodes')
 }
 
+export function getNodeVariablesApi(nodeId: string) {
+  return get(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/variables`)
+}
+
+export function updateNodeVariablesApi(nodeId: string, overrides: Record<string, string>) {
+  return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/variables`, { overrides })
+}
+
+export function getNodeClusterIdentityApi(nodeId: string) {
+  return get(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/cluster-identity`)
+}
+
+export function updateNodeClusterIdentityApi(nodeId: string, data: { clusterId: string; clusterIp?: string }) {
+  return put(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/cluster-identity`, data)
+}
+
+export function restoreNodeClusterIdApi(nodeId: string) {
+  return post(`/api/agent-config/nodes/${encodeURIComponent(nodeId)}/cluster-identity/restore`, {})
+}
+
 export function getAgentConfigStatesApi() {
   return get('/api/agent-config/states')
+}
+
+export function getAgentConfigDeliveriesApi(limit = 50) {
+  return get('/api/agent-config/deliveries', { limit })
 }
 
 export function getAgentConfigTemplatesApi() {
@@ -157,6 +181,14 @@ export function batchUpdateLogSourcesApi(data: unknown) {
   return post('/api/agent-config/log-sources/batch', data)
 }
 
+export function getLogCollectionDefaultsApi() {
+  return get('/api/agent-config/defaults/log-collection')
+}
+
+export function updateLogCollectionDefaultsApi(data: unknown) {
+  return put('/api/agent-config/defaults/log-collection', data)
+}
+
 export function getHostFileCollectionApi(nodeId: string) {
   return get(`/api/agent-config/log-collection/nodes/${encodeURIComponent(nodeId)}/host-files`)
 }
@@ -221,6 +253,10 @@ export function getClusterIntegrationInfoApi(id: string) {
 
 export function updateDataIntegrationApi(params) {
   return post('/api/integration/cluster/update', params)
+}
+
+export function updateClusterDisplayNameApi(id: string, name?: string) {
+  return post('/api/integration/cluster/display-name', { id, name: name || '' })
 }
 
 export function deleteClusterIntegrationApi(id: string) {

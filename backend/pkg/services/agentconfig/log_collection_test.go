@@ -106,6 +106,197 @@ func TestHostFileCollectionRendersAndPersistsIlogtailInputs(t *testing.T) {
 	}
 }
 
+func TestLogCollectionPersistsEditablePipelineRules(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addIlogtailBaseline(t, repo, "node-1")
+	service := New(repo)
+	processingRule := "processors:\n  - Type: processor_filter_regex\n    Include:\n      Level: ERROR\n"
+	outputRule := "flushers:\n  - Type: flusher_stdout\n    OnlyStdout: true\n"
+	input := HostFileCollectionInput{
+		HostFiles: []HostFileSource{{
+			ID: "app", Name: "application", Enabled: true, Path: "/var/log/app", FilePattern: "*.log",
+		}},
+		ProcessingRule: &processingRule,
+		OutputRule:     &outputRule,
+	}
+
+	preview, err := service.PreviewHostFileCollection(nil, "node-1", input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := preview.Files[0].Content
+	for _, expected := range []string{"Type: processor_filter_regex", "Level: ERROR", "Type: flusher_stdout", "OnlyStdout: true"} {
+		if !strings.Contains(content, expected) {
+			t.Fatalf("editable pipeline preview does not contain %q:\n%s", expected, content)
+		}
+	}
+	if strings.Contains(content, "processor_log_to_prom_metric") || strings.Contains(content, "collector.example") {
+		t.Fatalf("baseline pipeline was not replaced by editable rules:\n%s", content)
+	}
+
+	if _, err := service.SaveHostFileCollection(nil, "node-1", input, 7); err != nil {
+		t.Fatal(err)
+	}
+	loaded, err := service.GetHostFileCollection(nil, "node-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.ProcessorCount != 1 || loaded.OutputCount != 1 ||
+		!strings.Contains(loaded.ProcessingRule, "processor_filter_regex") ||
+		!strings.Contains(loaded.OutputRule, "flusher_stdout") {
+		t.Fatalf("editable pipeline rules were not persisted: %+v", loaded)
+	}
+	stored := string(repo.configs[logCollectionScopeNode+"\x00node-1"].Config)
+	if !strings.Contains(stored, `"processingRule"`) || !strings.Contains(stored, `"outputRule"`) {
+		t.Fatalf("editable pipeline fields missing from stored config: %s", stored)
+	}
+}
+
+func TestNodeCollectionSupportsContainerAndFileRulesWithIndependentPipelines(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a", Environment: "kubernetes"}
+	addIlogtailBaseline(t, repo, "node-1")
+	service := New(repo)
+	fileProcessing := "processors:\n  - Type: processor_file_only\n"
+	fileOutput := "flushers:\n  - Type: flusher_file_only\n"
+	containerProcessing := "processors:\n  - Type: processor_container_only\n"
+	containerOutput := "flushers:\n  - Type: flusher_container_only\n"
+	input := HostFileCollectionInput{
+		HostFiles: []HostFileSource{{
+			ID: "file", Name: "file", Enabled: true, Path: "/var/log/app", FilePattern: "*.log",
+			ProcessingRule: &fileProcessing, OutputRule: &fileOutput,
+		}},
+		ContainerStdout: []ContainerStdoutSource{{
+			ID: "container", Name: "container", Enabled: true, CollectStdout: true,
+			ProcessingRule: &containerProcessing, OutputRule: &containerOutput,
+		}},
+	}
+
+	preview, err := service.PreviewHostFileCollection(nil, "node-1", input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(preview.Files) != 2 {
+		t.Fatalf("preview files=%+v", preview.Files)
+	}
+	for _, file := range preview.Files {
+		if strings.Contains(file.Path, "host-file") {
+			if !strings.Contains(file.Content, "processor_file_only") || !strings.Contains(file.Content, "flusher_file_only") || strings.Contains(file.Content, "container_only") {
+				t.Fatalf("file rule pipeline was mixed:\n%s", file.Content)
+			}
+		} else if !strings.Contains(file.Content, "processor_container_only") || !strings.Contains(file.Content, "flusher_container_only") || strings.Contains(file.Content, "file_only") {
+			t.Fatalf("container rule pipeline was mixed:\n%s", file.Content)
+		}
+	}
+
+	saved, err := service.SaveHostFileCollection(nil, "node-1", input, 7)
+	if err != nil || len(saved.ContainerStdout) != 1 || len(saved.HostFiles) != 1 {
+		t.Fatalf("saved=%+v err=%v", saved, err)
+	}
+}
+
+func TestLogCollectionTypeDefaultsAndRuleOverridePrecedence(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a", Environment: "kubernetes"}
+	addIlogtailBaseline(t, repo, "node-1")
+	service := New(repo)
+	fileDefaults := PipelineRuleDefaults{
+		ProcessingRule: "processors:\n  - Type: processor_file_default\n",
+		OutputRule:     "flushers:\n  - Type: flusher_file_default\n",
+	}
+	containerDefaults := PipelineRuleDefaults{
+		ProcessingRule: "processors:\n  - Type: processor_container_default\n",
+		OutputRule:     "flushers:\n  - Type: flusher_container_default\n",
+	}
+	if _, err := service.SaveLogCollectionDefaults(nil, LogCollectionDefaultsInput{File: fileDefaults, Container: containerDefaults}, 7); err != nil {
+		t.Fatal(err)
+	}
+	override := "processors:\n  - Type: processor_rule_override\n"
+	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-a", ContainerStdoutCollectionInput{
+		ContainerStdout: []ContainerStdoutSource{{
+			ID: "container", Name: "container", Enabled: true, CollectStdout: true,
+			ProcessingRule: &override,
+		}},
+		HostFiles: []HostFileSource{{
+			ID: "file", Name: "file", Enabled: true, Path: "/var/log/app", FilePattern: "*.log",
+		}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, file := range preview.Files {
+		if strings.Contains(file.Path, "host-file") {
+			if !strings.Contains(file.Content, "processor_file_default") || !strings.Contains(file.Content, "flusher_file_default") {
+				t.Fatalf("file defaults were not applied:\n%s", file.Content)
+			}
+		} else {
+			if !strings.Contains(file.Content, "processor_rule_override") || strings.Contains(file.Content, "processor_container_default") || !strings.Contains(file.Content, "flusher_container_default") {
+				t.Fatalf("rule override precedence is incorrect:\n%s", file.Content)
+			}
+		}
+	}
+}
+
+func TestLogCollectionDefaultsRejectInvalidOutput(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	service := New(repo)
+	emptyOutput := "flushers: []\n"
+	validOutput := "flushers:\n  - Type: flusher_stdout\n"
+	_, err := service.SaveLogCollectionDefaults(nil, LogCollectionDefaultsInput{
+		File:      PipelineRuleDefaults{ProcessingRule: "processors: []\n", OutputRule: emptyOutput},
+		Container: PipelineRuleDefaults{ProcessingRule: "processors: []\n", OutputRule: validOutput},
+	}, 7)
+	if err == nil {
+		t.Fatal("empty default output was accepted")
+	}
+}
+
+func TestLegacyScopePipelineMigratesIntoRulesOnRead(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addIlogtailBaseline(t, repo, "node-1")
+	repo.configs[logCollectionScopeNode+"\x00node-1"] = ac.LogCollectionConfig{
+		ScopeType: logCollectionScopeNode,
+		ScopeID:   "node-1",
+		Config: ac.JSON(`{
+          "hostFiles":[{"id":"app","name":"app","enabled":true,"path":"/var/log/app","filePattern":"*.log"}],
+          "processingRule":"processors:\n  - Type: processor_legacy\n",
+          "outputRule":"flushers:\n  - Type: flusher_legacy\n"
+        }`),
+	}
+	loaded, err := New(repo).GetHostFileCollection(nil, "node-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.HostFiles[0].ProcessingRule == nil || !strings.Contains(*loaded.HostFiles[0].ProcessingRule, "processor_legacy") ||
+		loaded.HostFiles[0].OutputRule == nil || !strings.Contains(*loaded.HostFiles[0].OutputRule, "flusher_legacy") {
+		t.Fatalf("legacy pipeline was not migrated into the source: %+v", loaded.HostFiles[0])
+	}
+}
+
+func TestLogCollectionRejectsInvalidEditablePipelineRules(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	addIlogtailBaseline(t, repo, "node-1")
+	service := New(repo)
+	emptyOutput := "flushers: []\n"
+	wrongProcessingRoot := "flushers:\n  - Type: flusher_stdout\n"
+	invalidYAML := "flushers: [\n"
+	missingOutputType := "flushers:\n  - RemoteURL: http://collector.example\n"
+
+	for _, input := range []HostFileCollectionInput{
+		{OutputRule: &emptyOutput},
+		{ProcessingRule: &wrongProcessingRoot},
+		{OutputRule: &invalidYAML},
+		{OutputRule: &missingOutputType},
+	} {
+		if _, err := service.PreviewHostFileCollection(nil, "node-1", input); err == nil {
+			t.Fatalf("invalid editable pipeline was accepted: %+v", input)
+		}
+	}
+}
+
 func TestHostFileCollectionRejectsInvalidPathAndPattern(t *testing.T) {
 	repo := newLogCollectionTestRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1"}
@@ -163,6 +354,8 @@ func TestClusterCollectionPersistsContainerAndFileRules(t *testing.T) {
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a", Environment: "kubernetes"}
 	addIlogtailBaseline(t, repo, "node-1")
 	service := New(repo)
+	processingRule := "processors:\n  - Type: processor_filter_regex\n    Include:\n      Source: container\n"
+	outputRule := "flushers:\n  - Type: flusher_stdout\n"
 	input := ContainerStdoutCollectionInput{
 		ContainerStdout: []ContainerStdoutSource{{
 			ID: "pods", Name: "pods", Enabled: true, CollectStdout: true, CollectStderr: true,
@@ -170,6 +363,8 @@ func TestClusterCollectionPersistsContainerAndFileRules(t *testing.T) {
 		HostFiles: []HostFileSource{{
 			ID: "nginx", Name: "nginx", Enabled: true, Path: "/var/log/nginx", FilePattern: "*.log", MaxDirSearchDepth: 1,
 		}},
+		ProcessingRule: &processingRule,
+		OutputRule:     &outputRule,
 	}
 
 	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-a", input)
@@ -192,6 +387,10 @@ func TestClusterCollectionPersistsContainerAndFileRules(t *testing.T) {
 	loaded, err := service.GetContainerStdoutCollection(nil, "cluster-a")
 	if err != nil || len(loaded.ContainerStdout) != 1 || len(loaded.HostFiles) != 1 {
 		t.Fatalf("loaded=%+v err=%v", loaded, err)
+	}
+	if !strings.Contains(loaded.ProcessingRule, "processor_filter_regex") ||
+		!strings.Contains(loaded.OutputRule, "flusher_stdout") {
+		t.Fatalf("cluster pipeline rules were not persisted: %+v", loaded)
 	}
 }
 

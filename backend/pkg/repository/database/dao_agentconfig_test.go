@@ -142,7 +142,7 @@ func TestSaveAgentBindingsChecksEverySubmittedGeneration(t *testing.T) {
 	err = repo.SaveAgentBindings(nil, []*ac.Binding{binding}, []*ac.Release{next}, map[string]int64{
 		agentReleaseKey("node-1", "probe-a"): 1,
 		agentReleaseKey("node-1", "probe-b"): 1,
-	})
+	}, nil)
 	if err == nil || !strings.Contains(err.Error(), "node-1/probe-b") {
 		t.Fatalf("stale unchanged probe generation was not rejected: %v", err)
 	}
@@ -152,6 +152,41 @@ func TestSaveAgentBindingsChecksEverySubmittedGeneration(t *testing.T) {
 	}
 	if count != 1 {
 		t.Fatalf("conflicted update wrote a release: count=%d", count)
+	}
+}
+
+func TestSaveAgentBindingsPersistsDeliveryAndTargetsAtomically(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-config-deliveries?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&ac.Node{}, &ac.Binding{}, &ac.Release{}, &ac.Delivery{}, &ac.DeliveryTarget{}); err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	if err := db.Create(&ac.Node{ID: "node-1", ClusterID: "cluster-a"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	release := &ac.Release{ID: uuid.New(), NodeID: "node-1", ProbeType: "probe-a", Generation: 1, Variables: ac.JSON("{}"), Files: ac.JSON("null"), LogSources: ac.JSON("null")}
+	binding := &ac.Binding{NodeID: "node-1", ProbeType: "probe-a", DesiredGeneration: 1, Variables: ac.JSON("{}")}
+	delivery := &ac.Delivery{ID: uuid.New(), Type: "NODE_CONFIG", Scope: "node-1", TargetNodeCount: 1, Targets: []ac.DeliveryTarget{{NodeID: "node-1", ClusterID: "cluster-a", Generations: ac.JSON(`{"probe-a":1}`)}}}
+	if err := repo.SaveAgentBindings(nil, []*ac.Binding{binding}, []*ac.Release{release}, map[string]int64{agentReleaseKey("node-1", "probe-a"): 0}, delivery); err != nil {
+		t.Fatal(err)
+	}
+	deliveries, err := repo.ListAgentDeliveries(nil, 20)
+	if err != nil || len(deliveries) != 1 || len(deliveries[0].Targets) != 1 || deliveries[0].Targets[0].NodeID != "node-1" {
+		t.Fatalf("deliveries=%+v err=%v", deliveries, err)
+	}
+
+	invalidRelease := &ac.Release{ID: uuid.New(), NodeID: "node-1", ProbeType: "probe-a", Generation: 2, Variables: ac.JSON("{}"), Files: ac.JSON("null"), LogSources: ac.JSON("null")}
+	invalidBinding := &ac.Binding{NodeID: "node-1", ProbeType: "probe-a", DesiredGeneration: 2, Variables: ac.JSON("{}")}
+	invalidDelivery := &ac.Delivery{ID: uuid.New(), Type: "NODE_CONFIG", Scope: "node-1", TargetNodeCount: 1}
+	if err := repo.SaveAgentBindings(nil, []*ac.Binding{invalidBinding}, []*ac.Release{invalidRelease}, map[string]int64{agentReleaseKey("node-1", "probe-a"): 1}, invalidDelivery); err == nil {
+		t.Fatal("delivery without targets was accepted")
+	}
+	var releaseCount int64
+	if err := db.Model(&ac.Release{}).Count(&releaseCount).Error; err != nil || releaseCount != 1 {
+		t.Fatalf("invalid delivery left a release behind: count=%d err=%v", releaseCount, err)
 	}
 }
 

@@ -1,0 +1,181 @@
+.page {
+  min-width: 0;
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.header :global(.ant-typography) {
+  display: block;
+  margin: 0;
+}
+
+.botCard {
+  width: min(720px, 100%);
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+}
+
+.botCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.botIcon {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 7px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+  background: var(--ant-color-bg-container);
+}
+
+.slackLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.botInfo {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.botInfo :global(.ant-typography) {
+  margin: 0;
+}
+
+.botCardBody {
+  padding: 20px;
+}
+
+.setupForm,
+.statusInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  margin-bottom: 8px;
+  color: var(--ant-color-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.primaryAction {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+}
+
+.statusRow {
+  display: grid;
+  grid-template-columns: minmax(120px, auto) minmax(0, 1fr);
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.statusRow > span {
+  color: var(--ant-color-text-secondary);
+}
+
+.statusRow > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.successMessage,
+.waitingMessage,
+.errorMessage {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.successMessage {
+  color: var(--ant-color-success-text);
+  border-color: var(--ant-color-success-border);
+  background: var(--ant-color-success-bg);
+}
+
+.waitingMessage {
+  color: var(--ant-color-warning-text);
+  border-color: var(--ant-color-warning-border);
+  background: var(--ant-color-warning-bg);
+}
+
+.errorMessage {
+  color: var(--ant-color-error-text);
+  border-color: var(--ant-color-error-border);
+  background: var(--ant-color-error-bg);
+}
+
+.resetAction {
+  width: 100%;
+  height: 40px;
+  margin-top: 16px;
+}
+
+.botCardFooter {
+  padding: 14px 20px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.botCardFooter a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 16px;
+  }
+
+  .botCardHeader,
+  .botCardBody {
+    padding: 16px;
+  }
+
+  .inputRow {
+    grid-template-columns: 1fr;
+  }
+
+  .inputRow :global(.ant-btn) {
+    width: 100%;
+  }
+
+  .statusRow {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .statusRow > strong {
+    text-align: left;
+  }
+}

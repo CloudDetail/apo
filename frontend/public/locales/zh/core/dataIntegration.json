@@ -1,5 +1,8 @@
 {
   "clusterName": "集群名",
+  "clusterId": "cluster_id",
+  "clusterDisplayName": "展示名",
+  "clusterDisplayNamePlaceholder": "选填，留空时使用 cluster_id",
   "clusterType": "集群类型",
   "dataIntegrationSettings": "集群接入",
   "traceIntegration": "链路追踪接入",
@@ -148,6 +151,10 @@
   "ee": "企业版",
   "eeToast": "升级企业版即可选择此类接入",
   "goBack": "返回",
+  "probeManagementTabs": {
+    "management": "探针管理",
+    "bots": "Bots Management"
+  },
   "botManagement": {
     "title": "Bots Management",
     "description": "管理对话应用",

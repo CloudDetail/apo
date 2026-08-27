@@ -58,9 +58,12 @@ const ProbeConfigPage = isProbeManagementPreviewRoute()
   ? ProbeConfigView
   : AuthRouter(ProbeConfigView)
 
-const IntegrationSettings = AuthRouter(
-  React.lazy(() => import('src/core/views/IntegrationCenter/DataIntegration/Integration')),
+const IntegrationSettingsView = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration/Integration'),
 )
+const IntegrationSettings = isProbeManagementPreviewRoute()
+  ? IntegrationSettingsView
+  : AuthRouter(IntegrationSettingsView)
 const PlatformManage = React.lazy(() => import('src/pro/views/platformManage/index'))
 
 let proRoutes = [

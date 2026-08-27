@@ -1,5 +1,8 @@
 {
   "clusterName": "Cluster Name",
+  "clusterId": "cluster_id",
+  "clusterDisplayName": "Display Name",
+  "clusterDisplayNamePlaceholder": "Optional; cluster_id is used when empty",
   "clusterType": "Cluster Type",
   "dataIntegrationSettings": "Settings",
   "traceIntegration": "Trace Integration",
@@ -150,6 +153,10 @@
   "ee": "Enterprise Edition",
   "eeToast": "Upgrading to the Enterprise Edition will enable you to select this type of access.",
   "goBack": "Go Back",
+  "probeManagementTabs": {
+    "management": "Probe Management",
+    "bots": "Bots Management"
+  },
   "botManagement": {
     "title": "Slack App Management",
     "description": "Manage Slack App",

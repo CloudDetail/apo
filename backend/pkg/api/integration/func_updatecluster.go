@@ -35,7 +35,12 @@ func (h *handler) UpdateCluster() core.HandlerFunc {
 
 		err := h.integrationService.UpdateClusterIntegration(c, req)
 		if err != nil {
-
+			c.AbortWithError(
+				http.StatusBadRequest,
+				code.UpdateClusterFailed,
+				err,
+			)
+			return
 		}
 		c.Payload("ok")
 	}

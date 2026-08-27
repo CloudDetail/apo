@@ -1,12 +1,21 @@
-# Probe Access And Management Tabs
+# Probe Access And Management
 
 ## Boundary
 
-The existing probe access workflow and the new remote probe management workflow share the APO application shell but not the same content view.
+`/probe-management` is the single probe operations view. The sidebar routes directly to it; the legacy `探针接入` page and `ClusterTable` implementation are removed.
 
-- `探针接入` owns manual cluster registration, edit, delete, install commands, and Bots Management.
-- `探针管理` owns automatically discovered clusters, total probe resource usage, and the remote configuration entry.
-- The selected tab is stored in the `tab` query parameter so refresh and back navigation preserve context.
+- The route has two top-level tabs: `探针管理` and `Bots Management`.
+- `探针管理` is the default. `Bots Management` is stored as `?tab=bots`; an absent or unknown value falls back to probe management.
+- Only the active tab content is mounted. Slack status loading and polling therefore run only while `Bots Management` is visible.
+- Bot management is a standalone tab panel, not a side-by-side section of cluster access.
+
+- The header owns the `接入新集群` action and routes to `/probe-management/settings`.
+- The table merges manually registered integration clusters with clusters discovered from agent node reports by exact `cluster_id`.
+- A manually registered cluster remains visible before any node reports. A discovered-only cluster remains visible without a manual registration.
+- Integration settings, display-name editing, deletion, and installation commands are table actions. Installation commands are shown only when a manual integration record exists.
+- Deleting a manual record removes its integration metadata; reported nodes with the same `cluster_id` continue to appear as a discovered-only cluster.
+
+Manual registration requires `cluster_id`. Its display name is optional; the backend trims both values and persists `cluster_id` as the display name when the submitted display name is empty. `cluster_id` is immutable after creation. Display-name changes use a metadata-only endpoint so they cannot rewrite trace, metric, log, or collector settings.
 
 ## Configuration scope
 
@@ -18,9 +27,17 @@ The single-node configuration-file editor presents non-preload components and th
 
 The registered component and file-path tree is deployment-owned and read-only in the server UI. Template editing, node editing, and template delivery may only replace file content; adding, removing, or renaming a registered configuration file is rejected by the backend.
 
-For a non-Kubernetes node with a registered `preload` component and `libapoinstrument.conf`, an independent `注入控制` tab exposes Java, Python, Node.js, and .NET as full-width rows. Each row shows the runtime, injection timing, retained language section, and switch. The complete generated INI is not continuously displayed; a `配置预览` button opens it on demand. The preload runtime treats the presence of each language section as enabled, so disabling a language must remove that live section. APO wraps the original section in a standard INI comment block instead of discarding it, allowing a later enable action to restore the exact language parameters. Enabling a language that has no retained section inserts the package-compatible default section before the blacklist sections. Unknown sections and their ordering are preserved. Duplicate language sections or damaged comment boundaries make the visual controls read-only and report an explicit error; they must never cause silent content loss. Saving this tab uses the specialized node injection-control API. It keeps a monotonic generation for safe daemon application but does not expose Release history or rollback.
+For a non-Kubernetes node with a registered `preload` component and `libapoinstrument.conf`, an independent `注入控制` tab exposes Java, Python, Node.js, and .NET as full-width rows. Each row shows the runtime, injection timing, retained language section, and switch. The complete generated INI is not continuously displayed; a `配置预览` button opens it on demand. The preload runtime treats the presence of each language section as enabled, so disabling a language must remove that live section. APO wraps the original section in a standard INI comment block instead of discarding it, allowing a later enable action to restore the exact language parameters. Enabling a language that has no retained section inserts the package-compatible default section before the blacklist sections. Unknown sections and their ordering are preserved. Duplicate language sections or damaged comment boundaries make the visual controls read-only and report an explicit error; they must never cause silent content loss. Saving this tab uses the specialized node injection-control API. It keeps a monotonic generation for safe daemon application and participates in delivery auditing, but does not expose selectable configuration history or rollback.
 
-The cluster and multi-cluster configuration modes allow file-content edits against a local copy of the selected template. They never update that source template in place. Any changed ordinary-configuration draft must be saved as a new template before delivery; while unsaved changes exist, the ordinary batch delivery action remains disabled. After creation, the page selects the new template and may deliver it only when its complete ordinary component and file-path set matches every target node registration. VM batch mode also has an independent `注入控制` tab. Preload has no template concept: the tab starts from the target nodes' current content, using the first target as the explicit draft when target contents differ and warning that delivery will unify them. Saving validates every target's preload registration and generation before one atomic write; it creates no user-facing history or rollback entry.
+The cluster and multi-cluster configuration modes allow file-content edits against a local copy of the selected template. They never update that source template in place. Any changed ordinary-configuration draft must be saved as a new template before delivery; while unsaved changes exist, the ordinary batch delivery action remains disabled. After creation, the page selects the new template and may deliver it only when its complete ordinary component and file-path set matches every target node registration. VM batch mode also has an independent `注入控制` tab. Preload has no template concept: the tab starts from the target nodes' current content, using the first target as the explicit draft when target contents differ and warning that delivery will unify them. Saving validates every target's preload registration and generation before one atomic write; it creates no selectable configuration-history or rollback entry, but its generation target is included in delivery auditing.
+
+## Delivery audit
+
+The probe-management header exposes `下发记录`. One audit item represents one successful generation-producing server action, not one component release. Node ordinary configuration, template batch delivery, node injection control, and batch injection control create audit items. Circuit policy, lifecycle commands, log preview, and log-collection management records are excluded because their current contracts do not provide the same per-generation apply acknowledgement.
+
+The audit item and all of its node/component target generations are saved in the same database transaction as bindings and releases. A failed audit write rolls back the release write; timestamps must never be used to infer or merge delivery actions. No-op saves that create no release create no audit item.
+
+Receipt state is derived against each immutable target generation using the latest daemon apply state. `APPLIED` requires `appliedGeneration >= targetGeneration`. `RECEIVED` requires `desiredGeneration >= targetGeneration` but not yet applied. `FAILED` additionally requires a failure/rejection/unavailable report for that target or a later desired generation. A missing or lower desired generation remains `PENDING`. A later applied generation proves that an older target was applied or superseded and therefore keeps the older audit target in `APPLIED`. The UI shows the aggregate node counts first and expands an item to the per-node and per-component generations, latest agent state, report time, and failure reason.
 
 Configuration templates are categorized as `kubernetes` or `vm` because the two deployment types register different components and files. The default-configuration page exposes an explicit Kubernetes/VM segmented switch and lists only templates in that category; importing a template switches to its declared category. Cluster and node pages likewise list only templates matching their target category. Selecting Kubernetes and VM clusters together clears template selection and disables configuration delivery; the operator must deliver each category separately. The backend repeats this check for both batch and direct assignment before writing release history. Legacy templates without a category default to Kubernetes. A template category is immutable, and a cluster-page draft saved as a new template inherits the source category.
 
@@ -54,7 +71,7 @@ Before the first server assignment, probe-guard reads the default files from its
 
 ## Data fallback
 
-Probe management merges configured clusters with cluster IDs observed by the Dataplane. Missing resource totals render as unavailable and are logged. Development-only sample cluster, resource, node, version, and delivery task data is allowed when sources are empty; production must not invent these values or create a local-only delivery task.
+Probe management merges manually registered integration clusters with cluster IDs reported by agent nodes. Failure to load manual metadata is logged and the page continues with reported cluster IDs; the last successfully loaded manual metadata remains in memory. Missing resource totals render as unavailable and are logged. Production must not invent cluster, resource, node, version, or delivery-task values.
 
 ## Development preview
 
@@ -62,9 +79,7 @@ The `/probe-management` route family may bypass user, permission, license, deplo
 
 ## Route permission
 
-`/probe-management` and its non-menu configuration route `/probe-management/config` use the existing `探针管理` feature permission. The configuration page is not an independent feature or menu permission. Both default and `PRODUCT_MODE=syncause` router seeds must contain the configuration route, and startup must create the `探针管理` feature-to-router mappings so existing roles that already own probe management can open the configuration page after an upgrade.
-
-`/probe-management/settings` keeps its existing `接入中心` permission mapping because it configures integration access rather than a node's managed probe configuration.
+`/probe-management`, `/probe-management/settings`, and the non-menu configuration route `/probe-management/config` use the existing `探针管理` feature permission. The settings and configuration pages are not independent menu permissions. `/probe-management/settings` also keeps its legacy `接入中心` mapping so existing access-center roles do not lose access during the navigation migration. Both default and `PRODUCT_MODE=syncause` router seeds must contain these routes, and startup must create the feature-to-router mappings after an upgrade.
 
 ## Backend ownership
 

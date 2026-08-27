@@ -5,7 +5,7 @@
 ### Cluster Integration Creation Flow
 
 1. 用户进入 `/integration/data`。
-2. `ClusterTable` 调用 `/api/integration/cluster/list` 获取 cluster 列表。
+2. `ProbeManagement` 调用 `/api/integration/cluster/list` 获取手工 cluster 元数据，并与节点上报 cluster 合并。
 3. 用户点击新增，前端跳转 `/integration/data/settings`。
 4. `IntegrationSettings` 调用 `/api/integration/configuration` 获取默认 trace/metric/log 配置。
 5. 用户填写 cluster 名称、cluster type、APO collector、trace、metric、log 表单。
@@ -33,8 +33,8 @@
 ### Probe Management Minimal Flow
 
 1. 商业版用户进入 `/probe-management`。
-2. 前端仍复用 `ClusterTable`，但 `pathname === '/probe-management'` 时 `isMinimal` 为 true。
-3. 在 EE 模式下，页面右侧额外展示 `BotManagement`。
+2. 页面默认展示 `探针管理`；选择 `Bots Management` 时写入 `?tab=bots`，刷新后保持选择。
+3. `BotManagement` 仅在 Bots tab 激活时挂载，离开时清理轮询和倒计时。
 4. 用户新增 probe 时跳转 `/probe-management/settings`。
 5. `SettingsForm` 因 `shouldShow === false` 进入最小化模式，只保留更少的 collector 配置，并把 `isMinimal = true`。
 6. 最小化模式如果用户没有填写 `collectorGatewayAddr`，前端先调用 `/api/integration/vars/serverAddr` 获取默认地址。

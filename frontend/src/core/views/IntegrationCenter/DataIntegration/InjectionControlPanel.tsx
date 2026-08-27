@@ -526,7 +526,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
             disabled={!changed || invalidServiceName}
             onClick={save}
           >
-            保存配置
+            下发配置
           </Button>
         </div>
       </div>

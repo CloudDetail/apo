@@ -40,6 +40,11 @@ type Handler interface {
 	// @Router /api/integration/cluster/update [post]
 	UpdateCluster() core.HandlerFunc
 
+	// UpdateClusterDisplayName updates only the operator-facing cluster name.
+	// @Tags API.integration
+	// @Router /api/integration/cluster/display-name [post]
+	UpdateClusterDisplayName() core.HandlerFunc
+
 	// DeleteCluster DeleteCluster
 	// @Tags API.integration
 	// @Router /api/integration/cluster/delete [get]

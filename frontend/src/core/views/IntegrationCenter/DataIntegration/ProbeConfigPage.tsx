@@ -51,16 +51,18 @@ import {
   getNodeConfigHistoryApi,
   getNodeCurrentConfigsApi,
   getNodeInjectionControlApi,
+  getNodeVariablesApi,
   importAgentConfigTemplateApi,
   updateAgentConfigTemplateApi,
   updateGlobalCircuitBreakerApi,
   updateNodeCircuitBreakerApi,
   updateNodeInjectionControlApi,
   updateNodeProbeConfigsApi,
+  updateNodeVariablesApi,
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
 import { InjectionControlPanel } from './InjectionControlPanel'
-import { LogCollectionConfigPanel } from './LogCollectionConfigPage'
+import { LogCollectionConfigPanel, LogCollectionDefaultsPanel } from './LogCollectionConfigPage'
 import { PreloadConfigEditor } from './PreloadConfigEditor'
 import styles from './probeConfigPage.module.scss'
 
@@ -71,6 +73,13 @@ type AgentNode = {
   environment?: string
   labels?: Record<string, string>
   reportedVariables?: Record<string, string>
+}
+type NodeVariables = {
+  nodeId: string
+  initialClusterId?: string
+  reported?: Record<string, string>
+  overrides?: Record<string, string>
+  effective?: Record<string, string>
 }
 type ProbeState = { nodeId: string; probeType: string }
 type ClusterType = 'kubernetes' | 'vm'
@@ -469,6 +478,9 @@ export default function ProbeConfigPage() {
   const [circuitSource, setCircuitSource] = useState('')
   const [circuitComponent, setCircuitComponent] = useState('')
   const [componentPolicyPickerOpen, setComponentPolicyPickerOpen] = useState(false)
+  const [componentPolicyDraft, setComponentPolicyDraft] = useState<CircuitPolicy>()
+  const [nodeVariables, setNodeVariables] = useState<NodeVariables>()
+  const [nodeVariableDraft, setNodeVariableDraft] = useState<Record<string, string>>({})
   const [activeTab, setActiveTab] = useState(() => {
     const section = searchParams.get('section')
     return ['logs', 'injection'].includes(section || '') ? section! : 'config'
@@ -506,12 +518,8 @@ export default function ProbeConfigPage() {
   }, [loadBase])
 
   useEffect(() => {
-    if (mode === 'global' && activeTab === 'logs') setActiveTab('config')
-  }, [activeTab, mode])
-
-  useEffect(() => {
     const section = searchParams.get('section')
-    if (mode !== 'global' && (section === 'logs' || section === 'injection')) {
+    if (section === 'logs' || (mode !== 'global' && section === 'injection')) {
       setActiveTab(section)
     }
   }, [mode, searchParams])
@@ -587,13 +595,19 @@ export default function ProbeConfigPage() {
 
   useEffect(() => {
     const loadDetail = async () => {
+      setCircuitComponent('')
+      setComponentPolicyPickerOpen(false)
+      setComponentPolicyDraft(undefined)
       try {
         if (mode === 'node') {
-          const [configResult, circuitResult, injectionResult] = await Promise.all([
-            getNodeCurrentConfigsApi(nodeId),
-            getNodeCircuitBreakerApi(nodeId),
-            getNodeInjectionControlApi(nodeId),
-          ])
+          const [configResult, circuitResult, injectionResult, variablesResult] = await Promise.all(
+            [
+              getNodeCurrentConfigsApi(nodeId),
+              getNodeCircuitBreakerApi(nodeId),
+              getNodeInjectionControlApi(nodeId),
+              getNodeVariablesApi(nodeId),
+            ],
+          )
           const configs = ((configResult as any)?.configs || []) as CurrentConfig[]
           const injectionControl = injectionResult as NodeInjectionControl
           setCurrentConfigs(configs)
@@ -614,7 +628,12 @@ export default function ProbeConfigPage() {
           )
           setCircuit(normalizeCircuitPolicy((circuitResult as any)?.circuitBreaker))
           setCircuitSource((circuitResult as any)?.source || '')
+          const variables = (variablesResult || {}) as NodeVariables
+          setNodeVariables(variables)
+          setNodeVariableDraft({ ...(variables.overrides || {}) })
         } else {
+          setNodeVariables(undefined)
+          setNodeVariableDraft({})
           setCircuit(normalizeCircuitPolicy((await getGlobalCircuitBreakerApi()) as any))
           setCircuitSource('GLOBAL_DEFAULT')
         }
@@ -652,8 +671,35 @@ export default function ProbeConfigPage() {
     nodeProbeTypes.find((probeType) =>
       ['ilogtail', 'loongcollector'].some((name) => probeType.toLowerCase().includes(name)),
     ) || nodeProbeTypes[0]
-  const reportedVariables = currentNode?.reportedVariables || currentNode?.labels || {}
-  const reportedVariableEntries = Object.entries(reportedVariables).sort(([left], [right]) =>
+  const reportedVariables =
+    nodeVariables?.reported || currentNode?.reportedVariables || currentNode?.labels || {}
+  const variableNames = [
+    ...new Set([...Object.keys(reportedVariables), ...Object.keys(nodeVariables?.effective || {})]),
+  ].sort()
+  const reportedVariableEntries = variableNames.map(
+    (name) => [name, reportedVariables[name] || ''] as const,
+  )
+  const saveNodeVariables = async () => {
+    try {
+      const editableOverrides = Object.fromEntries(
+        Object.entries(nodeVariableDraft).filter(
+          ([name]) => !['CLUSTER_IP', 'CLUSTER_ID', 'INSTANCE_ID'].includes(name),
+        ),
+      )
+      const saved = (await updateNodeVariablesApi(nodeId, editableOverrides)) as NodeVariables
+      setNodeVariables(saved)
+      setNodeVariableDraft({ ...(saved.overrides || {}) })
+      notify({ type: 'success', message: '节点变量覆盖已保存' })
+    } catch (error: any) {
+      notify({ type: 'error', message: error.message || '节点变量覆盖保存失败' })
+    }
+  }
+  const protectedNodeVariable = (name: string) =>
+    ['CLUSTER_IP', 'CLUSTER_ID', 'INSTANCE_ID'].includes(name)
+  const effectiveVariable = (name: string) =>
+    nodeVariables?.effective?.[name] || nodeVariableDraft[name] || reportedVariables[name] || ''
+  /* Keep reported values sorted for a stable, scannable node panel. */
+  const sortedReportedVariableEntries = reportedVariableEntries.sort(([left], [right]) =>
     left.localeCompare(right),
   )
 
@@ -1323,13 +1369,24 @@ export default function ProbeConfigPage() {
     setCircuitComponent(nextComponent || '')
   }
   const startAddingComponentPolicy = () => {
-    setCircuitComponent(availableComponentTypes[0] || '')
+    setCircuitComponent('')
+    setComponentPolicyDraft(undefined)
     setComponentPolicyPickerOpen(true)
   }
-  const addComponentCircuitPolicy = () => {
-    if (!circuitComponent) return
-    updateComponentCircuitPolicy(selectedComponentPolicy)
+  const selectComponentPolicyDraft = (componentType: string) => {
+    setCircuitComponent(componentType)
+    setComponentPolicyDraft(concreteComponentCircuitPolicy(circuit))
+  }
+  const cancelAddingComponentPolicy = () => {
     setComponentPolicyPickerOpen(false)
+    setComponentPolicyDraft(undefined)
+    setCircuitComponent(configuredComponentTypes[0] || '')
+  }
+  const addComponentCircuitPolicy = () => {
+    if (!circuitComponent || !componentPolicyDraft) return
+    updateComponentCircuitPolicy(componentPolicyDraft)
+    setComponentPolicyPickerOpen(false)
+    setComponentPolicyDraft(undefined)
   }
 
   const title =
@@ -1342,7 +1399,7 @@ export default function ProbeConfigPage() {
           : '批量配置'
   const subtitle =
     mode === 'global'
-      ? '管理配置模版和新节点默认使用的熔断策略'
+      ? '管理配置模版、日志采集默认规则和新节点默认使用的熔断策略'
       : mode === 'node'
         ? '修改当前节点配置'
         : isClusterConfig
@@ -1352,49 +1409,51 @@ export default function ProbeConfigPage() {
   const configTab =
     mode === 'batch' ? (
       <div className={styles.tabContent}>
-        <div className={styles.batchTargetRow}>
-          <label className={styles.sourceGroup}>
-            <span>目标集群</span>
-            <Select
-              mode="multiple"
-              value={selectedClusters}
-              onChange={setSelectedClusters}
-              options={clusterOptions.map((value) => ({ value, label: value }))}
-            />
-          </label>
-        </div>
-        <div className={styles.batchTemplateSection}>
-          <div className={styles.sectionHeading}>
-            <div>
-              <Typography.Text strong>配置方案</Typography.Text>
-              <Typography.Text type="secondary">
-                {targetCount ? `${targetCount} 个节点的完整配置` : '选择集群后生成完整配置方案'}
-              </Typography.Text>
-            </div>
-            <Tag>{batchTemplateProbeTypes.length} 个组件</Tag>
+        <div className={styles.batchSetupGrid}>
+          <div className={styles.batchTargetRow}>
+            <label className={styles.sourceGroup}>
+              <span>目标集群</span>
+              <Select
+                mode="multiple"
+                value={selectedClusters}
+                onChange={setSelectedClusters}
+                options={clusterOptions.map((value) => ({ value, label: value }))}
+              />
+            </label>
           </div>
-          {hasMixedClusterTypes && (
-            <Typography.Text type="danger">
-              Kubernetes 与 VM 集群使用不同模版，请按同一类别分别下发。
-            </Typography.Text>
-          )}
-          <Select
-            style={{ width: '100%' }}
-            value={selectedBatchTemplateId || undefined}
-            placeholder={
-              hasMixedClusterTypes
-                ? '不能为混合类别集群选择模版'
-                : selectedClusterType
-                  ? `选择 ${clusterTypeLabel(selectedClusterType)} 配置模版`
-                  : '先选择目标集群'
-            }
-            onChange={setSelectedBatchTemplateId}
-            disabled={!selectedClusterType}
-            options={batchTemplates.map((template) => ({
-              value: template.id,
-              label: templateLabel(template),
-            }))}
-          />
+          <div className={styles.batchTemplateSection}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <Typography.Text strong>配置方案</Typography.Text>
+                <Typography.Text type="secondary">
+                  {targetCount ? `${targetCount} 个节点的完整配置` : '选择集群后生成完整配置方案'}
+                </Typography.Text>
+              </div>
+              <Tag>{batchTemplateProbeTypes.length} 个组件</Tag>
+            </div>
+            {hasMixedClusterTypes && (
+              <Typography.Text type="danger">
+                Kubernetes 与 VM 集群使用不同模版，请按同一类别分别下发。
+              </Typography.Text>
+            )}
+            <Select
+              style={{ width: '100%' }}
+              value={selectedBatchTemplateId || undefined}
+              placeholder={
+                hasMixedClusterTypes
+                  ? '不能为混合类别集群选择模版'
+                  : selectedClusterType
+                    ? `选择 ${clusterTypeLabel(selectedClusterType)} 配置模版`
+                    : '先选择目标集群'
+              }
+              onChange={setSelectedBatchTemplateId}
+              disabled={!selectedClusterType}
+              options={batchTemplates.map((template) => ({
+                value: template.id,
+                label: templateLabel(template),
+              }))}
+            />
+          </div>
         </div>
         <Row className={styles.configWorkspace} wrap={false}>
           <Col flex="280px" className={styles.filePanel}>
@@ -1527,14 +1586,53 @@ export default function ProbeConfigPage() {
                 </div>
                 <Tag>{reportedVariableEntries.length}</Tag>
               </div>
-              {reportedVariableEntries.length ? (
+              {sortedReportedVariableEntries.length ? (
                 <div className={styles.nodeVariableList}>
-                  {reportedVariableEntries.map(([name, value]) => (
+                  {sortedReportedVariableEntries.map(([name, value]) => (
                     <div className={styles.nodeVariableItem} key={name}>
-                      <Typography.Text>{name}</Typography.Text>
-                      <Typography.Text code>{value}</Typography.Text>
+                      <Typography.Text code>{name}</Typography.Text>
+                      <Typography.Text type="secondary">上报: {value || '-'}</Typography.Text>
+                      <Input
+                        size="small"
+                        value={
+                          protectedNodeVariable(name)
+                            ? effectiveVariable(name)
+                            : nodeVariableDraft[name] || ''
+                        }
+                        disabled={protectedNodeVariable(name)}
+                        placeholder={protectedNodeVariable(name) ? '由集群管理维护' : '可选覆盖值'}
+                        onChange={(event) =>
+                          setNodeVariableDraft((current) => ({
+                            ...current,
+                            [name]: event.target.value,
+                          }))
+                        }
+                      />
+                      <Typography.Text code>{effectiveVariable(name) || '-'}</Typography.Text>
+                      {name === 'CLUSTER_IP' && (
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<ArrowRight size={14} />}
+                          onClick={() =>
+                            navigate(
+                              `/probe-management?clusterId=${encodeURIComponent(inheritedClusterId)}`,
+                            )
+                          }
+                        >
+                          前往集群管理
+                        </Button>
+                      )}
                     </div>
                   ))}
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<Save size={14} />}
+                    onClick={saveNodeVariables}
+                  >
+                    保存变量覆盖
+                  </Button>
                 </div>
               ) : (
                 <Typography.Text type="secondary">暂无探针上报变量</Typography.Text>
@@ -1755,7 +1853,7 @@ export default function ProbeConfigPage() {
             }
             onClick={mode === 'node' ? saveNodeConfig : saveTemplate}
           >
-            {mode === 'node' ? '保存并下发到当前节点' : '保存配置模版'}
+            {mode === 'node' ? '下发配置' : '保存配置模版'}
           </Button>
         </div>
       </div>
@@ -1768,6 +1866,7 @@ export default function ProbeConfigPage() {
         nodeId={nodeId}
         inheritedClusterId={inheritedClusterId}
         inheritedClusterEnvironment={inheritedClusterEnvironment}
+        showK8sFilters={isK8sEnvironment(inheritedClusterEnvironment)}
         enableJavaLogScan={!isK8sEnvironment(inheritedClusterEnvironment)}
         javaLogScanProbeType={javaLogScanProbeType}
         onEditInherited={() =>
@@ -1784,7 +1883,9 @@ export default function ProbeConfigPage() {
         showK8sFilters={isK8sEnvironment(selectedClusterEnvironment)}
         onClusterIdsChange={setSelectedClusters}
       />
-    ) : null
+    ) : (
+      <LogCollectionDefaultsPanel />
+    )
 
   const injectionTab = isKubernetesClusterConfig ? (
     <InjectionControlPanel clusterId={initialCluster} />
@@ -1873,7 +1974,7 @@ export default function ProbeConfigPage() {
           disabled={!preloadConfigChanged}
           onClick={savePreloadConfig}
         >
-          保存并下发注入配置
+          下发注入配置
         </Button>
       </div>
     </div>
@@ -1940,7 +2041,7 @@ export default function ProbeConfigPage() {
                       disabled={!availableComponentTypes.length}
                       onClick={startAddingComponentPolicy}
                     >
-                      添加组件策略
+                      添加组件单独熔断策略
                     </Button>
                   </div>
                   {!!configuredComponentTypes.length && (
@@ -1961,6 +2062,7 @@ export default function ProbeConfigPage() {
                             onClick={() => {
                               setCircuitComponent(componentType)
                               setComponentPolicyPickerOpen(false)
+                              setComponentPolicyDraft(undefined)
                             }}
                           >
                             <span className={styles.componentPolicyIdentity}>
@@ -1992,34 +2094,38 @@ export default function ProbeConfigPage() {
                     </div>
                   )}
                   {componentPolicyPickerOpen && (
-                    <div className={styles.componentPolicyPicker}>
-                      <label>
-                        <span>选择组件</span>
-                        <Select
-                          value={circuitComponent || undefined}
-                          placeholder="请选择需要单独配置的组件"
-                          onChange={setCircuitComponent}
-                          options={availableComponentTypes.map((value) => ({
-                            value,
-                            label: value,
-                          }))}
+                    <div className={styles.componentPolicyComposer}>
+                      <div className={styles.componentPolicyPicker}>
+                        <label>
+                          <span>选择组件</span>
+                          <Select
+                            value={circuitComponent || undefined}
+                            placeholder="请选择需要单独配置的组件"
+                            onChange={selectComponentPolicyDraft}
+                            options={availableComponentTypes.map((value) => ({
+                              value,
+                              label: value,
+                            }))}
+                          />
+                        </label>
+                      </div>
+                      {componentPolicyDraft && (
+                        <CircuitEditor
+                          title="设置熔断策略"
+                          value={componentPolicyDraft}
+                          onChange={setComponentPolicyDraft}
                         />
-                      </label>
-                      <Button
-                        type="primary"
-                        disabled={!circuitComponent}
-                        onClick={addComponentCircuitPolicy}
-                      >
-                        添加并配置
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setComponentPolicyPickerOpen(false)
-                          setCircuitComponent(configuredComponentTypes[0] || '')
-                        }}
-                      >
-                        取消
-                      </Button>
+                      )}
+                      <div className={styles.componentPolicyDraftActions}>
+                        <Button onClick={cancelAddingComponentPolicy}>取消</Button>
+                        <Button
+                          type="primary"
+                          disabled={!componentPolicyDraft}
+                          onClick={addComponentCircuitPolicy}
+                        >
+                          添加
+                        </Button>
+                      </div>
                     </div>
                   )}
                   {hasComponentCircuitPolicy && !componentPolicyPickerOpen && (
@@ -2073,11 +2179,7 @@ export default function ProbeConfigPage() {
 
   return (
     <div className={styles.page}>
-      <Button
-        type="link"
-        icon={<LeftOutlined />}
-        onClick={() => navigate('/probe-management?tab=management')}
-      >
+      <Button type="link" icon={<LeftOutlined />} onClick={() => navigate('/probe-management')}>
         探针管理
       </Button>
       <Card className={styles.card} loading={loading}>
@@ -2123,9 +2225,7 @@ export default function ProbeConfigPage() {
                   },
                 ]
               : []),
-            ...(mode === 'global'
-              ? []
-              : [{ key: 'logs', label: '日志采集', children: logCollectionTab }]),
+            { key: 'logs', label: '日志采集', children: logCollectionTab },
             { key: 'circuit', label: '熔断策略', children: circuitTab },
           ]}
         />

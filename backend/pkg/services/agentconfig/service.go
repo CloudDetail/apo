@@ -53,10 +53,11 @@ type Repository interface {
 	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
 	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
-	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error
+	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
 	ListAgentReleases(core.Context, string, string, int) ([]ac.Release, error)
 	ListLatestAgentReleases(core.Context, string) ([]ac.Release, error)
+	ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error)
 	ReportAgentState(core.Context, *ac.ApplyState) error
 	ListAgentStates(core.Context) ([]ac.ApplyState, error)
 	CreateAgentCommand(core.Context, *ac.Command) error
@@ -547,6 +548,21 @@ type NodeProbeConfigInput struct {
 	Files              []ac.InitialConfigFile `json:"files"`
 	ExpectedGeneration int64                  `json:"expectedGeneration"`
 }
+type NodeVariables struct {
+	NodeID           string            `json:"nodeId"`
+	InitialClusterID string            `json:"initialClusterId"`
+	Reported         map[string]string `json:"reported"`
+	Overrides        map[string]string `json:"overrides"`
+	Effective        map[string]string `json:"effective"`
+}
+
+type NodeClusterIdentity struct {
+	NodeID           string `json:"nodeId"`
+	InstanceID       string `json:"instanceId"`
+	ClusterID        string `json:"clusterId"`
+	InitialClusterID string `json:"initialClusterId"`
+	ClusterIP        string `json:"clusterIp,omitempty"`
+}
 type NodeConfigsInput struct {
 	Configs []NodeProbeConfigInput `json:"configs" binding:"required"`
 }
@@ -569,6 +585,59 @@ type BatchResult struct {
 	SucceededCount  int      `json:"succeededCount"`
 	FailedNodeIDs   []string `json:"failedNodeIds,omitempty"`
 }
+
+const (
+	deliveryTypeNodeConfig     = "NODE_CONFIG"
+	deliveryTypeBatchTemplate  = "BATCH_TEMPLATE"
+	deliveryTypeNodeInjection  = "NODE_INJECTION"
+	deliveryTypeBatchInjection = "BATCH_INJECTION"
+)
+
+func (s *Service) buildDelivery(ctx core.Context, deliveryType, scope string, template *ac.Template, releases []*ac.Release, user int64) (*ac.Delivery, error) {
+	byNode := make(map[string]map[string]int64)
+	for _, release := range releases {
+		if release == nil {
+			continue
+		}
+		generations := byNode[release.NodeID]
+		if generations == nil {
+			generations = make(map[string]int64)
+			byNode[release.NodeID] = generations
+		}
+		generations[ac.NormalizeProbe(release.ProbeType)] = release.Generation
+	}
+	if len(byNode) == 0 {
+		return nil, errors.New("delivery has no released configuration")
+	}
+	nodeIDs := make([]string, 0, len(byNode))
+	for nodeID := range byNode {
+		nodeIDs = append(nodeIDs, nodeID)
+	}
+	sort.Strings(nodeIDs)
+	delivery := &ac.Delivery{
+		ID: uuid.New(), Type: deliveryType, Scope: scope, RequestedBy: user,
+		TargetNodeCount: len(nodeIDs), Targets: make([]ac.DeliveryTarget, 0, len(nodeIDs)),
+	}
+	if template != nil {
+		delivery.TemplateID = template.ID
+		delivery.TemplateName = template.Name
+	}
+	for _, nodeID := range nodeIDs {
+		node, err := s.repo.GetAgentNode(ctx, nodeID)
+		if err != nil {
+			return nil, fmt.Errorf("get delivery target %s: %w", nodeID, err)
+		}
+		generations, err := json.Marshal(byNode[nodeID])
+		if err != nil {
+			return nil, err
+		}
+		delivery.Targets = append(delivery.Targets, ac.DeliveryTarget{
+			NodeID: nodeID, NodeName: node.Name, ClusterID: node.ClusterID, Generations: ac.JSON(generations),
+		})
+	}
+	return delivery, nil
+}
+
 type CurrentNodeConfig struct {
 	NodeID        string                 `json:"nodeId"`
 	ProbeType     string                 `json:"probeType"`
@@ -583,6 +652,40 @@ type CurrentNodeConfig struct {
 type CurrentNodeConfigs struct {
 	NodeID  string              `json:"nodeId"`
 	Configs []CurrentNodeConfig `json:"configs"`
+}
+type DeliveryProbeReceipt struct {
+	ProbeType         string     `json:"probeType"`
+	TargetGeneration  int64      `json:"targetGeneration"`
+	DesiredGeneration int64      `json:"desiredGeneration"`
+	AppliedGeneration int64      `json:"appliedGeneration"`
+	Status            string     `json:"status"`
+	AgentStatus       string     `json:"agentStatus,omitempty"`
+	Reason            string     `json:"reason,omitempty"`
+	Error             ac.JSON    `json:"error,omitempty"`
+	ReportedAt        *time.Time `json:"reportedAt,omitempty"`
+}
+type DeliveryTargetStatus struct {
+	NodeID    string                 `json:"nodeId"`
+	NodeName  string                 `json:"nodeName"`
+	ClusterID string                 `json:"clusterId"`
+	Status    string                 `json:"status"`
+	Probes    []DeliveryProbeReceipt `json:"probes"`
+}
+type DeliveryStatus struct {
+	ID              uuid.UUID              `json:"id"`
+	Type            string                 `json:"type"`
+	Scope           string                 `json:"scope"`
+	TemplateID      uuid.UUID              `json:"templateId"`
+	TemplateName    string                 `json:"templateName,omitempty"`
+	RequestedBy     int64                  `json:"requestedBy"`
+	TargetNodeCount int                    `json:"targetNodeCount"`
+	AppliedCount    int                    `json:"appliedCount"`
+	ReceivedCount   int                    `json:"receivedCount"`
+	FailedCount     int                    `json:"failedCount"`
+	PendingCount    int                    `json:"pendingCount"`
+	Status          string                 `json:"status"`
+	CreatedAt       time.Time              `json:"createdAt"`
+	Targets         []DeliveryTargetStatus `json:"targets"`
 }
 type NodeInjectionControlInput struct {
 	Content            string `json:"content" binding:"required"`
@@ -841,11 +944,151 @@ func (s *Service) DeleteTemplate(ctx core.Context, id uuid.UUID) error {
 	return s.repo.DeleteAgentTemplate(ctx, id)
 }
 func (s *Service) Register(ctx core.Context, n *ac.Node) error {
+	if n == nil || strings.TrimSpace(n.ID) == "" {
+		return errors.New("node ID is required")
+	}
+	if existing, err := s.repo.GetAgentNode(ctx, n.ID); err == nil {
+		if strings.TrimSpace(existing.InitialClusterID) != "" {
+			n.InitialClusterID = existing.InitialClusterID
+		}
+		if strings.TrimSpace(n.InstanceID) == "" {
+			n.InstanceID = existing.InstanceID
+		}
+		if len(n.VariableOverrides) == 0 || string(n.VariableOverrides) == "{}" {
+			n.VariableOverrides = existing.VariableOverrides
+		}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if strings.TrimSpace(n.InitialClusterID) == "" {
+		n.InitialClusterID = n.ClusterID
+	}
 	now := time.Now()
 	n.LastSeenAt = &now
 	return s.repo.UpsertAgentNode(ctx, n)
 }
 func (s *Service) ListNodes(ctx core.Context) ([]ac.Node, error) { return s.repo.ListAgentNodes(ctx) }
+
+func (s *Service) NodeVariables(ctx core.Context, nodeID string) (*NodeVariables, error) {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	reported := map[string]string{}
+	if len(node.Labels) > 0 {
+		if err := json.Unmarshal(node.Labels, &reported); err != nil {
+			log.Printf("agentconfig: invalid reported variables for node %s: %v", nodeID, err)
+			reported = map[string]string{}
+		}
+	}
+	overrides := map[string]string{}
+	if len(node.VariableOverrides) > 0 {
+		if err := json.Unmarshal(node.VariableOverrides, &overrides); err != nil {
+			log.Printf("agentconfig: invalid variable overrides for node %s: %v", nodeID, err)
+			overrides = map[string]string{}
+		}
+	}
+	effective := nodeTemplateVariables(node)
+	for key, value := range overrides {
+		effective[key] = value
+	}
+	return &NodeVariables{NodeID: node.ID, InitialClusterID: node.InitialClusterID, Reported: reported, Overrides: overrides, Effective: effective}, nil
+}
+
+func (s *Service) SaveNodeVariables(ctx core.Context, nodeID string, overrides map[string]string) (*NodeVariables, error) {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	clean := map[string]string{}
+	var existingOverrides map[string]string
+	if len(node.VariableOverrides) > 0 {
+		_ = json.Unmarshal(node.VariableOverrides, &existingOverrides)
+	}
+	for _, key := range []string{"CLUSTER_IP", "CLUSTER_ID", "INSTANCE_ID"} {
+		if value := strings.TrimSpace(existingOverrides[key]); value != "" {
+			clean[key] = value
+		}
+	}
+	for key, value := range overrides {
+		key = strings.TrimSpace(key)
+		if key == "" || !variablePattern.MatchString("{% "+key+" %}") {
+			return nil, fmt.Errorf("invalid node variable %q", key)
+		}
+		if key == "CLUSTER_IP" || key == "CLUSTER_ID" || key == "INSTANCE_ID" {
+			return nil, fmt.Errorf("%s must be changed from cluster management", key)
+		}
+		if strings.TrimSpace(value) != "" {
+			clean[key] = value
+		}
+	}
+	data, err := json.Marshal(clean)
+	if err != nil {
+		return nil, err
+	}
+	node.VariableOverrides = ac.JSON(data)
+	if err := s.repo.UpsertAgentNode(ctx, node); err != nil {
+		return nil, err
+	}
+	return s.NodeVariables(ctx, nodeID)
+}
+
+func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID, clusterIP string) (*NodeClusterIdentity, error) {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	clusterID = strings.TrimSpace(clusterID)
+	if clusterID == "" {
+		return nil, errors.New("cluster ID is required")
+	}
+	overrides := map[string]string{}
+	if len(node.VariableOverrides) > 0 {
+		_ = json.Unmarshal(node.VariableOverrides, &overrides)
+	}
+	if clusterIP = strings.TrimSpace(clusterIP); clusterIP != "" {
+		overrides["CLUSTER_IP"] = clusterIP
+	} else {
+		delete(overrides, "CLUSTER_IP")
+	}
+	data, err := json.Marshal(overrides)
+	if err != nil {
+		return nil, err
+	}
+	node.ClusterID = clusterID
+	node.VariableOverrides = ac.JSON(data)
+	if err := s.repo.UpsertAgentNode(ctx, node); err != nil {
+		return nil, err
+	}
+	return s.GetNodeClusterIdentity(ctx, nodeID)
+}
+
+func (s *Service) GetNodeClusterIdentity(ctx core.Context, nodeID string) (*NodeClusterIdentity, error) {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	variables, err := s.NodeVariables(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	return &NodeClusterIdentity{NodeID: node.ID, InstanceID: node.InstanceID, ClusterID: node.ClusterID, InitialClusterID: node.InitialClusterID, ClusterIP: variables.Effective["CLUSTER_IP"]}, nil
+}
+
+func (s *Service) RestoreNodeClusterID(ctx core.Context, nodeID string) (*NodeClusterIdentity, error) {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	if strings.TrimSpace(node.InitialClusterID) == "" {
+		return nil, errors.New("node has no initial cluster ID")
+	}
+	node.ClusterID = node.InitialClusterID
+	if err := s.repo.UpsertAgentNode(ctx, node); err != nil {
+		return nil, err
+	}
+	return s.GetNodeClusterIdentity(ctx, nodeID)
+}
 
 func (s *Service) SaveInitialConfig(ctx core.Context, node string, in InitialConfigInput) (*ac.InitialConfig, bool, error) {
 	if _, err := s.repo.GetAgentNode(ctx, node); err != nil {
@@ -1278,17 +1521,25 @@ func (s *Service) CurrentNodeConfigs(ctx core.Context, node string) (*CurrentNod
 func releaseKey(node, probe string) string { return node + "\x00" + ac.NormalizeProbe(probe) }
 
 func (s *Service) UpdateNodeConfigs(ctx core.Context, node string, input NodeConfigsInput) (*CurrentNodeConfigs, error) {
+	return s.UpdateNodeConfigsForUser(ctx, node, input, 0)
+}
+
+func (s *Service) UpdateNodeConfigsForUser(ctx core.Context, node string, input NodeConfigsInput, user int64) (*CurrentNodeConfigs, error) {
 	if err := rejectSpecialControlConfigs(input); err != nil {
 		return nil, err
 	}
-	return s.updateNodeConfigGroup(ctx, node, input, true)
+	return s.updateNodeConfigGroup(ctx, node, input, true, deliveryTypeNodeConfig, user)
 }
 
 func (s *Service) UpdateNodeConfigGroup(ctx core.Context, node string, input NodeConfigsInput) (*CurrentNodeConfigs, error) {
+	return s.UpdateNodeConfigGroupForUser(ctx, node, input, 0)
+}
+
+func (s *Service) UpdateNodeConfigGroupForUser(ctx core.Context, node string, input NodeConfigsInput, user int64) (*CurrentNodeConfigs, error) {
 	if err := rejectSpecialControlConfigs(input); err != nil {
 		return nil, err
 	}
-	return s.updateNodeConfigGroup(ctx, node, input, false)
+	return s.updateNodeConfigGroup(ctx, node, input, false, deliveryTypeNodeConfig, user)
 }
 
 func rejectSpecialControlConfigs(input NodeConfigsInput) error {
@@ -1315,6 +1566,10 @@ func (s *Service) GetNodeInjectionControl(ctx core.Context, node string) (*NodeI
 }
 
 func (s *Service) SaveNodeInjectionControl(ctx core.Context, node string, input NodeInjectionControlInput) (*NodeInjectionControl, error) {
+	return s.SaveNodeInjectionControlForUser(ctx, node, input, 0)
+}
+
+func (s *Service) SaveNodeInjectionControlForUser(ctx core.Context, node string, input NodeInjectionControlInput, user int64) (*NodeInjectionControl, error) {
 	current, err := s.GetNodeInjectionControl(ctx, node)
 	if err != nil {
 		return nil, err
@@ -1329,7 +1584,7 @@ func (s *Service) SaveNodeInjectionControl(ctx core.Context, node string, input 
 		ProbeType:          "preload",
 		Files:              []ac.InitialConfigFile{{Path: current.FilePath, Content: input.Content}},
 		ExpectedGeneration: input.ExpectedGeneration,
-	}}}, false)
+	}}}, false, deliveryTypeNodeInjection, user)
 	if err != nil {
 		return nil, err
 	}
@@ -1337,6 +1592,10 @@ func (s *Service) SaveNodeInjectionControl(ctx core.Context, node string, input 
 }
 
 func (s *Service) BatchSaveNodeInjectionControl(ctx core.Context, input BatchNodeInjectionControlInput) (*BatchResult, error) {
+	return s.BatchSaveNodeInjectionControlForUser(ctx, input, 0)
+}
+
+func (s *Service) BatchSaveNodeInjectionControlForUser(ctx core.Context, input BatchNodeInjectionControlInput, user int64) (*BatchResult, error) {
 	targets, err := s.nodesInClusters(ctx, input.ClusterIDs)
 	if err != nil {
 		return nil, err
@@ -1392,7 +1651,11 @@ func (s *Service) BatchSaveNodeInjectionControl(ctx core.Context, input BatchNod
 		expected[releaseKey(target.ID, "preload")] = control.Generation
 	}
 	if len(releases) > 0 {
-		if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected); err != nil {
+		delivery, err := s.buildDelivery(ctx, deliveryTypeBatchInjection, strings.Join(input.ClusterIDs, ","), nil, releases, user)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected, delivery); err != nil {
 			return nil, err
 		}
 	}
@@ -1418,7 +1681,7 @@ func nodeInjectionControl(current *CurrentNodeConfig) (*NodeInjectionControl, er
 	return nil, errors.New("preload has no registered libapoinstrument.conf")
 }
 
-func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input NodeConfigsInput, requireComplete bool) (*CurrentNodeConfigs, error) {
+func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input NodeConfigsInput, requireComplete bool, deliveryType string, user int64) (*CurrentNodeConfigs, error) {
 	if len(input.Configs) == 0 {
 		return nil, fmt.Errorf("at least one probe configuration is required")
 	}
@@ -1489,7 +1752,11 @@ func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input Nod
 		bindings = append(bindings, &ac.Binding{NodeID: node, ProbeType: probe, TemplateID: uuid.Nil, DesiredGeneration: generation, Enabled: true, Variables: ac.JSON("{}")})
 	}
 	if len(releases) > 0 {
-		if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected); err != nil {
+		delivery, err := s.buildDelivery(ctx, deliveryType, node, nil, releases, user)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected, delivery); err != nil {
 			return nil, err
 		}
 	}
@@ -1588,7 +1855,11 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 			expected[releaseKey(node.ID, probe)] = previous
 		}
 	}
-	if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected); err != nil {
+	delivery, err := s.buildDelivery(ctx, deliveryTypeBatchTemplate, strings.Join(input.ClusterIDs, ","), template, releases, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected, delivery); err != nil {
 		return nil, err
 	}
 	return &BatchResult{TargetNodeCount: len(targets), SucceededCount: len(targets)}, nil
@@ -1635,7 +1906,11 @@ func (s *Service) Assign(ctx core.Context, node, probe string, in AssignmentInpu
 	if in.ExpectedGeneration > 0 && previous != in.ExpectedGeneration {
 		return nil, fmt.Errorf("generation conflict: expected %d, actual %d", in.ExpectedGeneration, previous)
 	}
-	if err := s.repo.SaveAgentBindings(ctx, []*ac.Binding{binding}, []*ac.Release{release}, map[string]int64{releaseKey(node, probe): previous}); err != nil {
+	delivery, err := s.buildDelivery(ctx, deliveryTypeNodeConfig, node, t, []*ac.Release{release}, 0)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveAgentBindings(ctx, []*ac.Binding{binding}, []*ac.Release{release}, map[string]int64{releaseKey(node, probe): previous}, delivery); err != nil {
 		return nil, err
 	}
 	return release, nil
@@ -1710,10 +1985,31 @@ func sameTemplateConfigFilePaths(left, right []ac.TemplateProbeConfig) bool {
 }
 
 func nodeTemplateVariables(node *ac.Node) map[string]string {
-	if node == nil || strings.TrimSpace(node.ClusterID) == "" {
+	if node == nil {
 		return nil
 	}
-	return map[string]string{"CLUSTER_ID": node.ClusterID}
+	values := map[string]string{}
+	if len(node.Labels) > 0 {
+		_ = json.Unmarshal(node.Labels, &values)
+	}
+	if node.ClusterID != "" {
+		values["CLUSTER_ID"] = node.ClusterID
+	}
+	if node.InitialClusterID != "" {
+		values["INITIAL_CLUSTER_ID"] = node.InitialClusterID
+	}
+	if node.InstanceID != "" {
+		values["INSTANCE_ID"] = node.InstanceID
+	}
+	if len(node.VariableOverrides) > 0 {
+		var overrides map[string]string
+		if json.Unmarshal(node.VariableOverrides, &overrides) == nil {
+			for key, value := range overrides {
+				values[key] = value
+			}
+		}
+	}
+	return values
 }
 
 func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.Template, definedFiles []ac.InitialConfigFile, in AssignmentInput, builtins map[string]string) (*ac.Release, *ac.Binding, int64, error) {
@@ -1878,6 +2174,108 @@ func (s *Service) ListStates(ctx core.Context) ([]ac.ApplyState, error) {
 		}
 	}
 	return states, nil
+}
+
+func (s *Service) ListDeliveries(ctx core.Context, limit int) ([]DeliveryStatus, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	deliveries, err := s.repo.ListAgentDeliveries(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+	states, err := s.ListStates(ctx)
+	if err != nil {
+		return nil, err
+	}
+	stateByTarget := make(map[string]ac.ApplyState, len(states))
+	for _, state := range states {
+		stateByTarget[releaseKey(state.NodeID, state.ProbeType)] = state
+	}
+	result := make([]DeliveryStatus, 0, len(deliveries))
+	for _, delivery := range deliveries {
+		item := DeliveryStatus{
+			ID: delivery.ID, Type: delivery.Type, Scope: delivery.Scope,
+			TemplateID: delivery.TemplateID, TemplateName: delivery.TemplateName,
+			RequestedBy: delivery.RequestedBy, TargetNodeCount: delivery.TargetNodeCount,
+			CreatedAt: delivery.CreatedAt, Targets: make([]DeliveryTargetStatus, 0, len(delivery.Targets)),
+		}
+		for _, target := range delivery.Targets {
+			generations := map[string]int64{}
+			if err := json.Unmarshal(target.Generations, &generations); err != nil {
+				return nil, fmt.Errorf("decode delivery %s target %s generations: %w", delivery.ID, target.NodeID, err)
+			}
+			probeTypes := make([]string, 0, len(generations))
+			for probeType := range generations {
+				probeTypes = append(probeTypes, probeType)
+			}
+			sort.Strings(probeTypes)
+			targetStatus := DeliveryTargetStatus{
+				NodeID: target.NodeID, NodeName: target.NodeName, ClusterID: target.ClusterID,
+				Probes: make([]DeliveryProbeReceipt, 0, len(probeTypes)),
+			}
+			applied, received, failed := 0, 0, 0
+			for _, probeType := range probeTypes {
+				targetGeneration := generations[probeType]
+				state, exists := stateByTarget[releaseKey(target.NodeID, probeType)]
+				receipt := DeliveryProbeReceipt{ProbeType: probeType, TargetGeneration: targetGeneration, Status: "PENDING"}
+				if exists {
+					receipt.DesiredGeneration = state.DesiredGeneration
+					receipt.AppliedGeneration = state.AppliedGeneration
+					receipt.AgentStatus = state.Status
+					receipt.Reason = state.Reason
+					receipt.Error = state.Error
+					receipt.ReportedAt = state.ReportedAt
+				}
+				switch {
+				case receipt.AppliedGeneration >= targetGeneration:
+					receipt.Status = "APPLIED"
+					applied++
+					received++
+				case receipt.DesiredGeneration >= targetGeneration && (state.Status == "FAILED" || state.Status == "REJECTED" || state.Status == "UNAVAILABLE"):
+					receipt.Status = "FAILED"
+					failed++
+					received++
+				case receipt.DesiredGeneration >= targetGeneration:
+					receipt.Status = "RECEIVED"
+					received++
+				}
+				targetStatus.Probes = append(targetStatus.Probes, receipt)
+			}
+			switch {
+			case failed > 0:
+				targetStatus.Status = "FAILED"
+				item.FailedCount++
+			case applied == len(probeTypes):
+				targetStatus.Status = "APPLIED"
+				item.AppliedCount++
+			case received == len(probeTypes):
+				targetStatus.Status = "RECEIVED"
+				item.ReceivedCount++
+			case received > 0:
+				targetStatus.Status = "PARTIAL"
+				item.ReceivedCount++
+			default:
+				targetStatus.Status = "PENDING"
+				item.PendingCount++
+			}
+			item.Targets = append(item.Targets, targetStatus)
+		}
+		switch {
+		case item.FailedCount > 0:
+			item.Status = "FAILED"
+		case item.AppliedCount == item.TargetNodeCount:
+			item.Status = "APPLIED"
+		case item.AppliedCount+item.ReceivedCount+item.FailedCount == item.TargetNodeCount:
+			item.Status = "RECEIVED"
+		case item.AppliedCount+item.ReceivedCount+item.FailedCount > 0:
+			item.Status = "PARTIAL"
+		default:
+			item.Status = "PENDING"
+		}
+		result = append(result, item)
+	}
+	return result, nil
 }
 func (s *Service) CreateCommand(ctx core.Context, node, probe string, in CommandInput, user int64) (*ac.Command, error) {
 	typ := strings.ToUpper(strings.TrimSpace(in.Type))

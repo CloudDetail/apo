@@ -1,4 +1,8 @@
 .page {
+  width: 100%;
+  max-width: 1760px;
+  box-sizing: border-box;
+  margin: 0 auto;
   min-height: 100%;
   padding: 12px 20px 24px;
 }
@@ -297,9 +301,27 @@
 }
 
 .batchGrid,
+.batchSetupGrid,
 .thresholdGrid {
   display: grid;
   gap: 12px;
+}
+
+.batchSetupGrid {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(420px, 1.6fr);
+  gap: 20px;
+  align-items: start;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+@media (max-width: 900px) {
+  .batchSetupGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
 }
 
 .batchGrid {
@@ -320,7 +342,7 @@
 }
 
 .batchTargetRow .sourceGroup {
-  max-width: 620px;
+  max-width: none;
 }
 
 .batchTemplateSection,
@@ -334,7 +356,6 @@
 .batchTemplateSection {
   gap: 10px;
   padding-block: 4px 12px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
 .batchTemplateList {
@@ -531,6 +552,12 @@
   align-items: flex-end;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.componentPolicyComposer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding: 12px;
   border: 1px solid var(--ant-color-border-secondary);
   border-radius: 6px;
@@ -547,6 +574,12 @@
 .componentPolicyPicker label > span {
   color: var(--ant-color-text-secondary);
   font-size: 12px;
+}
+
+.componentPolicyDraftActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .componentPolicyEditor {
@@ -784,11 +817,23 @@
 
 .nodeVariableItem {
   display: grid;
-  grid-template-columns: minmax(90px, 0.75fr) minmax(120px, 1.25fr);
+  grid-template-columns:
+    minmax(90px, 0.7fr) minmax(120px, 1fr) minmax(140px, 1.2fr) minmax(120px, 1fr)
+    auto;
   align-items: center;
   gap: 10px;
   min-height: 36px;
   border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+@media (max-width: 960px) {
+  .nodeVariableItem {
+    grid-template-columns: minmax(90px, 0.7fr) minmax(120px, 1fr);
+  }
+
+  .nodeVariableItem > :nth-child(n + 3) {
+    grid-column: 2;
+  }
 }
 
 .nodeVariableItem :global(code) {
@@ -1118,6 +1163,7 @@
 
 @media (max-width: 760px) {
   .page {
+    max-width: none;
     padding-inline: 12px;
   }
 
@@ -1165,9 +1211,14 @@
 
   .componentPolicyHeader > :global(.ant-btn),
   .componentPolicyEditorHeader > :global(.ant-btn),
+  .componentPolicyDraftActions > :global(.ant-btn),
   .componentPolicyPicker > :global(.ant-btn),
   .componentPolicyPicker label {
     width: 100%;
+  }
+
+  .componentPolicyDraftActions {
+    flex-direction: column-reverse;
   }
 
   .componentPolicyRow,
@@ -1239,8 +1290,15 @@
   }
 
   .batchGrid,
+  .batchSetupGrid,
   .thresholdGrid {
     grid-template-columns: 1fr;
+  }
+
+  .batchSetupGrid {
+    gap: 12px;
+    padding-bottom: 0;
+    border-bottom: 0;
   }
 
   .thresholdItem {

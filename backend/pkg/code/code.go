@@ -211,6 +211,7 @@ const (
 	GetAlertEnrichRuleFailed          = "B1323"
 	AlertSourceNotExisted             = "B1324"
 	SetupAlertProviderWebhookError    = "B1325"
+	UpdateClusterFailed               = "B1326"
 
 	GetDatasourceError         = "B0928"
 	DataSourceNotExistError    = "B0929"

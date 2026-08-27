@@ -173,6 +173,7 @@ var enText = map[string]string{
 	GetAlertEnrichRuleFailed:          "Failed to get alert enrich rule",
 	AlertSourceNotExisted:             "Alert source does not exist",
 	SetupAlertProviderWebhookError:    "Failed to setup alert provider webhook",
+	UpdateClusterFailed:               "Failed to update cluster",
 
 	GetDatasourceError:      "Failed to get datasource",
 	DataSourceNotExistError: "Datasource does not exist",

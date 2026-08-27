@@ -61,7 +61,7 @@ func (*commandRepo) GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogC
 }
 func (*commandRepo) SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error    { return nil }
 func (*commandRepo) SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error { return nil }
-func (*commandRepo) SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64) error {
+func (*commandRepo) SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error {
 	return nil
 }
 func (*commandRepo) GetAgentRelease(core.Context, string, string) (*ac.Release, error) {
@@ -71,6 +71,9 @@ func (*commandRepo) ListAgentReleases(core.Context, string, string, int) ([]ac.R
 	return nil, nil
 }
 func (*commandRepo) ListLatestAgentReleases(core.Context, string) ([]ac.Release, error) {
+	return nil, nil
+}
+func (*commandRepo) ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error) {
 	return nil, nil
 }
 func (*commandRepo) ReportAgentState(core.Context, *ac.ApplyState) error   { return nil }

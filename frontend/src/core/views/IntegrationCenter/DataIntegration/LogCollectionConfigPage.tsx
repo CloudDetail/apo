@@ -7,6 +7,7 @@ import {
   Checkbox,
   Dropdown,
   Modal,
+  Segmented,
   Select,
   Space,
   Spin,
@@ -21,6 +22,7 @@ import {
   Eye,
   FileText,
   GitBranch,
+  RotateCcw,
   Save,
   ScanSearch,
   Send,
@@ -36,10 +38,12 @@ import {
   getAgentCommandsApi,
   getContainerStdoutCollectionApi,
   getHostFileCollectionApi,
+  getLogCollectionDefaultsApi,
   previewContainerStdoutCollectionApi,
   previewHostFileCollectionApi,
   updateContainerStdoutCollectionApi,
   updateHostFileCollectionApi,
+  updateLogCollectionDefaultsApi,
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
 import styles from './logCollectionConfigPage.module.scss'
@@ -67,6 +71,8 @@ type HostFileSource = {
   path: string
   maxDirSearchDepth: number
   filePattern: string
+  processingRule?: string
+  outputRule?: string
 }
 
 type FilterMapEntry = {
@@ -105,6 +111,26 @@ type ContainerStdoutSource = {
   externalEnvTag: string
   tags: string
   activeFilters: ContainerFilterField[]
+  processingRule?: string
+  outputRule?: string
+}
+
+type PipelineDefaults = {
+  processingRule: string
+  outputRule: string
+  processorCount?: number
+  outputCount?: number
+}
+
+type LogCollectionDefaults = {
+  version: number
+  file: PipelineDefaults
+  container: PipelineDefaults
+}
+
+const EMPTY_PIPELINE_DEFAULTS: PipelineDefaults = {
+  processingRule: '',
+  outputRule: '',
 }
 
 type PreviewFile = {
@@ -360,6 +386,269 @@ const containerSourcesForEnvironment = (
     }
   })
 
+function RulePipelineEditors({
+  source,
+  defaults,
+  onChange,
+}: {
+  source: Pick<HostFileSource, 'processingRule' | 'outputRule'>
+  defaults: PipelineDefaults
+  onChange: (
+    patch: Pick<HostFileSource, 'processingRule'> | Pick<HostFileSource, 'outputRule'>,
+  ) => void
+}) {
+  const processingCustomized = source.processingRule !== undefined
+  const outputCustomized = source.outputRule !== undefined
+  return (
+    <Collapse
+      className={styles.rulePipeline}
+      ghost
+      size="small"
+      items={[
+        {
+          key: 'processing',
+          label: (
+            <span className={styles.pipelineRuleTitle}>
+              <span>处理规则</span>
+              <Typography.Text type="secondary">
+                {processingCustomized ? '已自定义' : '使用默认处理规则'}
+              </Typography.Text>
+            </span>
+          ),
+          children: (
+            <div className={styles.pipelineEditorSection}>
+              <div className={styles.pipelineEditorHeader}>
+                <Typography.Text type="secondary">
+                  iLogtail 原生 YAML，顶层字段固定为 processors。
+                </Typography.Text>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RotateCcw size={14} />}
+                  disabled={!processingCustomized}
+                  onClick={() => onChange({ processingRule: undefined })}
+                >
+                  恢复默认
+                </Button>
+              </div>
+              <Input.TextArea
+                className={styles.pipelineEditor}
+                aria-label="处理规则 YAML"
+                value={source.processingRule ?? defaults.processingRule}
+                placeholder={'processors:\n  - Type: processor_example'}
+                autoSize={{ minRows: 6, maxRows: 18 }}
+                spellCheck={false}
+                onChange={(event) => onChange({ processingRule: event.target.value })}
+              />
+            </div>
+          ),
+        },
+        {
+          key: 'output',
+          label: (
+            <span className={styles.pipelineRuleTitle}>
+              <span>输出规则</span>
+              <Typography.Text type="secondary">
+                {outputCustomized ? '已自定义' : '使用默认输出规则'}
+              </Typography.Text>
+            </span>
+          ),
+          children: (
+            <div className={styles.pipelineEditorSection}>
+              <div className={styles.pipelineEditorHeader}>
+                <Typography.Text type="secondary">
+                  iLogtail 原生 YAML，顶层字段固定为 flushers，至少保留一个输出。
+                </Typography.Text>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RotateCcw size={14} />}
+                  disabled={!outputCustomized}
+                  onClick={() => onChange({ outputRule: undefined })}
+                >
+                  恢复默认
+                </Button>
+              </div>
+              <Input.TextArea
+                className={styles.pipelineEditor}
+                aria-label="输出规则 YAML"
+                value={source.outputRule ?? defaults.outputRule}
+                placeholder={'flushers:\n  - Type: flusher_http'}
+                autoSize={{ minRows: 6, maxRows: 18 }}
+                spellCheck={false}
+                onChange={(event) => onChange({ outputRule: event.target.value })}
+              />
+            </div>
+          ),
+        },
+      ]}
+    />
+  )
+}
+
+export function LogCollectionDefaultsPanel() {
+  const [kind, setKind] = useState<'container' | 'file'>('container')
+  const [value, setValue] = useState<LogCollectionDefaults>({
+    version: 0,
+    file: EMPTY_PIPELINE_DEFAULTS,
+    container: EMPTY_PIPELINE_DEFAULTS,
+  })
+  const [original, setOriginal] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const changed = Boolean(original) && JSON.stringify(value) !== original
+  const current = value[kind]
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const result: any = await getLogCollectionDefaultsApi()
+      const next = {
+        version: Number(result?.version || 0),
+        file: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.file || {}) },
+        container: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.container || {}) },
+      }
+      setValue(next)
+      setOriginal(JSON.stringify(next))
+    } catch (error: any) {
+      console.error('[LogCollectionDefaultsPanel] failed to load defaults', error)
+      notify({ type: 'error', message: error.message || '加载日志默认配置失败' })
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const updateCurrent = (patch: Partial<PipelineDefaults>) =>
+    setValue((currentValue) => ({
+      ...currentValue,
+      [kind]: { ...currentValue[kind], ...patch },
+    }))
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      const result: any = await updateLogCollectionDefaultsApi({
+        file: value.file,
+        container: value.container,
+      })
+      const next = {
+        version: Number(result?.version || value.version + 1),
+        file: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.file || value.file) },
+        container: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.container || value.container) },
+      }
+      setValue(next)
+      setOriginal(JSON.stringify(next))
+      notify({ type: 'success', message: '日志采集默认规则已保存' })
+    } catch (error: any) {
+      console.error('[LogCollectionDefaultsPanel] failed to save defaults', error)
+      notify({ type: 'error', message: error.message || '保存日志默认配置失败' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className={styles.panel}>
+      <div className={styles.pageHeading}>
+        <div>
+          <Typography.Text strong>日志采集默认规则</Typography.Text>
+          <Typography.Text type="secondary">
+            新增采集规则默认继承同类型的处理和输出规则，单条规则可独立覆盖
+          </Typography.Text>
+        </div>
+        <Typography.Text type="secondary">
+          {value.version ? `版本 ${value.version}` : '使用已上报的 iLogtail 配置作为初始值'}
+        </Typography.Text>
+      </div>
+      <Spin spinning={loading}>
+        <section className={styles.workbench}>
+          <div className={styles.defaultsToolbar}>
+            <Segmented
+              value={kind}
+              options={[
+                { value: 'container', label: '容器标准输出' },
+                { value: 'file', label: '文件采集' },
+              ]}
+              onChange={(next) => setKind(next as 'container' | 'file')}
+            />
+            <Typography.Text type="secondary">
+              当前规则作为{kind === 'container' ? '容器标准输出' : '文件采集'}的默认流水线
+            </Typography.Text>
+          </div>
+          <Collapse
+            className={styles.pipelineRules}
+            expandIconPosition="end"
+            items={[
+              {
+                key: 'processing',
+                label: (
+                  <span className={styles.pipelineRuleTitle}>
+                    <span>默认处理规则</span>
+                    <Typography.Text type="secondary">
+                      {current.processorCount ?? 0} 个处理器
+                    </Typography.Text>
+                  </span>
+                ),
+                children: (
+                  <Input.TextArea
+                    className={styles.pipelineEditor}
+                    aria-label={`${kind === 'container' ? '容器' : '文件'}默认处理规则 YAML`}
+                    value={current.processingRule}
+                    placeholder={'processors:\n  - Type: processor_example'}
+                    autoSize={{ minRows: 8, maxRows: 24 }}
+                    spellCheck={false}
+                    onChange={(event) => updateCurrent({ processingRule: event.target.value })}
+                  />
+                ),
+              },
+              {
+                key: 'output',
+                label: (
+                  <span className={styles.pipelineRuleTitle}>
+                    <span>默认输出规则</span>
+                    <Typography.Text type="secondary">
+                      {current.outputCount ?? 0} 个输出
+                    </Typography.Text>
+                  </span>
+                ),
+                children: (
+                  <Input.TextArea
+                    className={styles.pipelineEditor}
+                    aria-label={`${kind === 'container' ? '容器' : '文件'}默认输出规则 YAML`}
+                    value={current.outputRule}
+                    placeholder={'flushers:\n  - Type: flusher_http'}
+                    autoSize={{ minRows: 8, maxRows: 24 }}
+                    spellCheck={false}
+                    onChange={(event) => updateCurrent({ outputRule: event.target.value })}
+                  />
+                ),
+              },
+            ]}
+          />
+          <div className={styles.footer}>
+            <Typography.Text type="secondary">
+              {changed ? '有未保存修改' : '容器与文件默认规则分别管理'}
+            </Typography.Text>
+            <Button
+              type="primary"
+              icon={<Save size={15} />}
+              loading={saving}
+              disabled={!changed}
+              onClick={save}
+            >
+              保存默认规则
+            </Button>
+          </div>
+        </section>
+      </Spin>
+    </div>
+  )
+}
+
 export function LogCollectionConfigPanel({
   mode,
   nodeId = '',
@@ -399,26 +688,28 @@ export function LogCollectionConfigPanel({
   const [previewFiles, setPreviewFiles] = useState<PreviewFile[]>([])
   const [selectedPreviewPath, setSelectedPreviewPath] = useState('')
   const [scanningJavaLogs, setScanningJavaLogs] = useState(false)
-  const [processingRule, setProcessingRule] = useState('')
-  const [outputRule, setOutputRule] = useState('')
-  const [processorCount, setProcessorCount] = useState(0)
-  const [outputCount, setOutputCount] = useState(0)
+  const [pipelineDefaults, setPipelineDefaults] = useState<LogCollectionDefaults>({
+    version: 0,
+    file: EMPTY_PIPELINE_DEFAULTS,
+    container: EMPTY_PIPELINE_DEFAULTS,
+  })
 
   const selectedPreviewFile = previewFiles.find((file) => file.path === selectedPreviewPath)
   const hostChanged = JSON.stringify(hostFiles) !== originalHostFiles
   const containerChanged = JSON.stringify(containerStdout) !== originalContainerStdout
-  const nodeChanged = hostChanged || disableClusterRules !== originalDisableClusterRules
+  const nodeChanged =
+    hostChanged || containerChanged || disableClusterRules !== originalDisableClusterRules
   const changed = mode === 'host' ? nodeChanged : hostChanged || containerChanged
   const currentScope = mode === 'host' ? selectedNode : selectedCluster
   const currentVersion = mode === 'host' ? hostVersion : containerVersion
-  const sourceCount = mode === 'host' ? hostFiles.length : containerStdout.length + hostFiles.length
+  const sourceCount = containerStdout.length + hostFiles.length
   const inheritedSourceCount =
     inheritedContainerStdout.filter((source) => source.enabled).length +
     inheritedHostFiles.filter((source) => source.enabled).length
   const inheritedRuleCount = inheritedContainerStdout.length + inheritedHostFiles.length
   const visibleRuleCount =
     mode === 'host'
-      ? inheritedContainerStdout.length + inheritedHostFiles.length + hostFiles.length
+      ? inheritedContainerStdout.length + inheritedHostFiles.length + sourceCount
       : containerStdout.length + hostFiles.length
   const availableFilterDefinitions = containerFilterDefinitions.filter(
     (definition) => showK8sFilters || !definition.k8sOnly,
@@ -427,13 +718,11 @@ export function LogCollectionConfigPanel({
   const loadHostFiles = useCallback(async () => {
     if (!selectedNode) {
       setHostFiles([])
+      setContainerStdout([])
       setOriginalHostFiles('[]')
+      setOriginalContainerStdout('[]')
       setDisableClusterRules(false)
       setOriginalDisableClusterRules(false)
-      setProcessingRule('')
-      setOutputRule('')
-      setProcessorCount(0)
-      setOutputCount(0)
       setLoading(false)
       return
     }
@@ -444,30 +733,30 @@ export function LogCollectionConfigPanel({
       const values = hostPayload((result?.hostFiles || []) as HostFileSource[])
       setHostFiles(values)
       setOriginalHostFiles(JSON.stringify(values))
+      const containerValues = containerSourcesForEnvironment(
+        (result?.containerStdout || []) as ContainerStdoutSource[],
+        showK8sFilters,
+      )
+      setContainerStdout(containerValues)
+      setOriginalContainerStdout(JSON.stringify(containerValues))
       const inheritedDisabled = Boolean(result?.disableClusterRules)
       setDisableClusterRules(inheritedDisabled)
       setOriginalDisableClusterRules(inheritedDisabled)
       setHostVersion(Number(result?.version || 0))
-      setProcessingRule(String(result?.processingRule || ''))
-      setOutputRule(String(result?.outputRule || ''))
-      setProcessorCount(Number(result?.processorCount || 0))
-      setOutputCount(Number(result?.outputCount || 0))
     } catch (error: any) {
       console.error('[LogCollectionConfigPage] failed to load host file collection', error)
       setHostFiles([])
+      setContainerStdout([])
       setOriginalHostFiles('[]')
+      setOriginalContainerStdout('[]')
       setDisableClusterRules(false)
       setOriginalDisableClusterRules(false)
-      setProcessingRule('')
-      setOutputRule('')
-      setProcessorCount(0)
-      setOutputCount(0)
       setLoadFailed(true)
       notify({ type: 'error', message: error.message || '加载宿主机文件采集配置失败' })
     } finally {
       setLoading(false)
     }
-  }, [selectedNode])
+  }, [selectedNode, showK8sFilters])
 
   const loadContainerStdout = useCallback(async () => {
     if (!selectedCluster) {
@@ -475,10 +764,6 @@ export function LogCollectionConfigPanel({
       setHostFiles([])
       setOriginalContainerStdout('[]')
       setOriginalHostFiles('[]')
-      setProcessingRule('')
-      setOutputRule('')
-      setProcessorCount(0)
-      setOutputCount(0)
       setLoading(false)
       return
     }
@@ -496,20 +781,12 @@ export function LogCollectionConfigPanel({
       setOriginalContainerStdout(JSON.stringify(values))
       setOriginalHostFiles(JSON.stringify(fileValues))
       setContainerVersion(Number(result?.version || 0))
-      setProcessingRule(String(result?.processingRule || ''))
-      setOutputRule(String(result?.outputRule || ''))
-      setProcessorCount(Number(result?.processorCount || 0))
-      setOutputCount(Number(result?.outputCount || 0))
     } catch (error: any) {
       console.error('[LogCollectionConfigPage] failed to load container stdout collection', error)
       setContainerStdout([])
       setHostFiles([])
       setOriginalContainerStdout('[]')
       setOriginalHostFiles('[]')
-      setProcessingRule('')
-      setOutputRule('')
-      setProcessorCount(0)
-      setOutputCount(0)
       setLoadFailed(true)
       notify({ type: 'error', message: error.message || '加载容器标准输出采集配置失败' })
     } finally {
@@ -553,6 +830,20 @@ export function LogCollectionConfigPanel({
   useEffect(() => {
     loadInheritedContainerStdout()
   }, [loadInheritedContainerStdout])
+
+  useEffect(() => {
+    getLogCollectionDefaultsApi()
+      .then((result: any) =>
+        setPipelineDefaults({
+          version: Number(result?.version || 0),
+          file: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.file || {}) },
+          container: { ...EMPTY_PIPELINE_DEFAULTS, ...(result?.container || {}) },
+        }),
+      )
+      .catch((error) => {
+        console.error('[LogCollectionConfigPage] failed to load pipeline defaults', error)
+      })
+  }, [])
 
   const updateHostFile = (index: number, patch: Partial<HostFileSource>) => {
     setHostFiles((current) =>
@@ -616,11 +907,12 @@ export function LogCollectionConfigPanel({
 
   const save = async () => {
     if (!currentScope || loadFailed) return
-    if (mode === 'container' && !validateContainerFilters()) return
+    if (!validateContainerFilters()) return
     setSaving(true)
     try {
       if (mode === 'host') {
         const result: any = await updateHostFileCollectionApi(selectedNode, {
+          containerStdout: containerPayload(containerStdout),
           hostFiles: hostPayload(hostFiles),
           disableClusterRules,
         })
@@ -631,13 +923,15 @@ export function LogCollectionConfigPanel({
             : disableClusterRules
         setHostFiles(values)
         setOriginalHostFiles(JSON.stringify(values))
+        const containerValues = containerSourcesForEnvironment(
+          (result?.containerStdout || []) as ContainerStdoutSource[],
+          showK8sFilters,
+        )
+        setContainerStdout(containerValues)
+        setOriginalContainerStdout(JSON.stringify(containerValues))
         setDisableClusterRules(inheritedDisabled)
         setOriginalDisableClusterRules(inheritedDisabled)
         setHostVersion(Number(result?.version || hostVersion + 1))
-        setProcessingRule(String(result?.processingRule || processingRule))
-        setOutputRule(String(result?.outputRule || outputRule))
-        setProcessorCount(Number(result?.processorCount || processorCount))
-        setOutputCount(Number(result?.outputCount || outputCount))
         notify({ type: 'success', message: '节点日志采集配置已保存' })
       } else {
         const payload = {
@@ -658,10 +952,6 @@ export function LogCollectionConfigPanel({
         setOriginalContainerStdout(JSON.stringify(values))
         setOriginalHostFiles(JSON.stringify(fileValues))
         setContainerVersion(Number(result?.version || containerVersion + 1))
-        setProcessingRule(String(result?.processingRule || processingRule))
-        setOutputRule(String(result?.outputRule || outputRule))
-        setProcessorCount(Number(result?.processorCount || processorCount))
-        setOutputCount(Number(result?.outputCount || outputCount))
         notify({
           type: 'success',
           message: `日志采集配置已保存到 ${clusterIds.length} 个集群`,
@@ -682,13 +972,14 @@ export function LogCollectionConfigPanel({
       (mode === 'host' && !disableClusterRules && inheritedLoadFailed)
     )
       return
-    if (mode === 'container' && !validateContainerFilters()) return
+    if (!validateContainerFilters()) return
     setPreviewLoading(true)
     try {
       let files: PreviewFile[]
       if (mode === 'host') {
         const [nodeResult, clusterResult]: any[] = await Promise.all([
           previewHostFileCollectionApi(selectedNode, {
+            containerStdout: containerPayload(containerStdout),
             hostFiles: hostPayload(hostFiles),
             disableClusterRules,
           }),
@@ -798,7 +1089,7 @@ export function LogCollectionConfigPanel({
           <Typography.Text strong>日志采集配置</Typography.Text>
           <Typography.Text type="secondary">
             {mode === 'host'
-              ? '查看集群继承规则，并管理当前节点追加的文件采集规则'
+              ? '查看集群继承规则，并管理当前节点追加的容器或文件采集规则'
               : '管理集群统一生效的容器标准输出和文件采集规则'}
           </Typography.Text>
         </div>
@@ -892,7 +1183,7 @@ export function LogCollectionConfigPanel({
               <div className={styles.scopeIdentity}>
                 <Typography.Text strong>当前节点配置</Typography.Text>
                 <Typography.Text type="secondary">
-                  仅追加当前节点需要采集的宿主机文件
+                  可追加当前节点独立需要的容器标准输出或文件采集规则
                 </Typography.Text>
               </div>
             )}
@@ -924,35 +1215,25 @@ export function LogCollectionConfigPanel({
                   </Button>
                 </Tooltip>
               )}
-              {mode === 'container' ? (
-                <Dropdown
-                  trigger={['click']}
-                  menu={{
-                    items: [
-                      {
-                        key: 'container',
-                        icon: <ContainerIcon size={14} />,
-                        label: '容器标准输出采集',
-                      },
-                      { key: 'file', icon: <FileText size={14} />, label: '文件采集' },
-                    ],
-                    onClick: ({ key }) =>
-                      key === 'container' ? addContainerStdout() : addHostFile(),
-                  }}
-                >
-                  <Button icon={<PlusOutlined />} disabled={!currentScope || loadFailed}>
-                    新增采集规则
-                  </Button>
-                </Dropdown>
-              ) : (
-                <Button
-                  icon={<PlusOutlined />}
-                  disabled={!currentScope || loadFailed}
-                  onClick={addHostFile}
-                >
+              <Dropdown
+                trigger={['click']}
+                menu={{
+                  items: [
+                    {
+                      key: 'container',
+                      icon: <ContainerIcon size={14} />,
+                      label: '容器标准输出采集',
+                    },
+                    { key: 'file', icon: <FileText size={14} />, label: '文件采集' },
+                  ],
+                  onClick: ({ key }) =>
+                    key === 'container' ? addContainerStdout() : addHostFile(),
+                }}
+              >
+                <Button icon={<PlusOutlined />} disabled={!currentScope || loadFailed}>
                   新增采集规则
                 </Button>
-              )}
+              </Dropdown>
             </Space>
           </div>
 
@@ -1092,391 +1373,400 @@ export function LogCollectionConfigPanel({
                     }
                   />
                 </Tooltip>
+                <RulePipelineEditors
+                  source={source}
+                  defaults={pipelineDefaults.file}
+                  onChange={(patch) => updateHostFile(index, patch)}
+                />
               </div>
             ))}
 
-            {mode === 'container' &&
-              containerStdout.map((source, index) => (
-                <div className={styles.containerSourceRow} key={source.id}>
-                  <Switch
-                    size="small"
-                    aria-label={`启用容器标准输出采集 ${index + 1}`}
-                    checked={source.enabled}
-                    onChange={(enabled) => updateContainerStdout(index, { enabled })}
-                  />
-                  <div className={styles.sourceIdentity}>
-                    <Typography.Text strong>容器标准输出采集 {index + 1}</Typography.Text>
-                    <Typography.Text type="secondary">
-                      {source.activeFilters.length
-                        ? `${source.activeFilters.length} 个过滤器`
-                        : '未使用过滤器'}
-                    </Typography.Text>
+            {containerStdout.map((source, index) => (
+              <div className={styles.containerSourceRow} key={source.id}>
+                <Switch
+                  size="small"
+                  aria-label={`启用容器标准输出采集 ${index + 1}`}
+                  checked={source.enabled}
+                  onChange={(enabled) => updateContainerStdout(index, { enabled })}
+                />
+                <div className={styles.sourceIdentity}>
+                  <Typography.Text strong>容器标准输出采集 {index + 1}</Typography.Text>
+                  <Typography.Text type="secondary">
+                    {source.activeFilters.length
+                      ? `${source.activeFilters.length} 个过滤器`
+                      : '未使用过滤器'}
+                  </Typography.Text>
+                </div>
+                <div className={styles.filterEditor}>
+                  <div className={styles.filterHeader}>
+                    <Typography.Text strong>过滤器</Typography.Text>
+                    <Select
+                      value={undefined}
+                      placeholder="添加过滤器"
+                      disabled={source.activeFilters.length >= availableFilterDefinitions.length}
+                      onChange={(field: ContainerFilterField) => {
+                        const definition = containerFilterDefinitions.find(
+                          (item) => item.field === field,
+                        )
+                        updateContainerStdout(index, {
+                          ...(definition?.map ? { [field]: [newFilterMapEntry()] } : {}),
+                          activeFilters: [...source.activeFilters, field],
+                        })
+                      }}
+                      options={availableFilterDefinitions
+                        .filter(({ field }) => !source.activeFilters.includes(field))
+                        .map(({ field, label }) => ({ value: field, label }))}
+                    />
                   </div>
-                  <div className={styles.filterEditor}>
-                    <div className={styles.filterHeader}>
-                      <Typography.Text strong>过滤器</Typography.Text>
-                      <Select
-                        value={undefined}
-                        placeholder="添加过滤器"
-                        disabled={source.activeFilters.length >= availableFilterDefinitions.length}
-                        onChange={(field: ContainerFilterField) => {
-                          const definition = containerFilterDefinitions.find(
-                            (item) => item.field === field,
-                          )
-                          updateContainerStdout(index, {
-                            ...(definition?.map ? { [field]: [newFilterMapEntry()] } : {}),
-                            activeFilters: [...source.activeFilters, field],
-                          })
-                        }}
-                        options={availableFilterDefinitions
-                          .filter(({ field }) => !source.activeFilters.includes(field))
-                          .map(({ field, label }) => ({ value: field, label }))}
-                      />
+                  {source.activeFilters.length ? (
+                    <div className={styles.filterList}>
+                      {source.activeFilters.map((field) => {
+                        const definition = containerFilterDefinitions.find(
+                          (item) => item.field === field,
+                        )
+                        if (!definition || (!showK8sFilters && definition.k8sOnly)) return null
+                        return (
+                          <div className={styles.filterRow} key={field}>
+                            <Typography.Text>{definition.label}</Typography.Text>
+                            {definition.tags ? (
+                              <Select
+                                mode="tags"
+                                value={source[field] as string[]}
+                                placeholder={definition.placeholder}
+                                tokenSeparators={[',', ' ']}
+                                onChange={(value) => updateContainerFilter(index, field, value)}
+                              />
+                            ) : definition.map ? (
+                              <div className={styles.mapFilterEditor}>
+                                {(source[field] as FilterMapEntry[]).map((entry) => (
+                                  <div className={styles.mapFilterRow} key={entry.id}>
+                                    <Input
+                                      aria-label={`${definition.label}键`}
+                                      value={entry.key}
+                                      placeholder="标签键，例如 app.kubernetes.io/instance"
+                                      onChange={(event) =>
+                                        updateFilterMapEntry(index, entry.id, {
+                                          key: event.target.value,
+                                        })
+                                      }
+                                    />
+                                    <Input
+                                      aria-label={`${definition.label}值`}
+                                      value={entry.value}
+                                      placeholder="标签值或正则；留空表示仅匹配标签键"
+                                      onChange={(event) =>
+                                        updateFilterMapEntry(index, entry.id, {
+                                          value: event.target.value,
+                                        })
+                                      }
+                                    />
+                                    <Tooltip title="删除标签条件">
+                                      <Button
+                                        aria-label="删除标签条件"
+                                        icon={<Trash2 size={14} />}
+                                        onClick={() =>
+                                          updateContainerFilter(
+                                            index,
+                                            field,
+                                            source.excludeK8sLabel.filter(
+                                              (item) => item.id !== entry.id,
+                                            ),
+                                          )
+                                        }
+                                      />
+                                    </Tooltip>
+                                  </div>
+                                ))}
+                                <Button
+                                  type="text"
+                                  icon={<PlusOutlined />}
+                                  onClick={() =>
+                                    updateContainerFilter(index, field, [
+                                      ...source.excludeK8sLabel,
+                                      newFilterMapEntry(),
+                                    ])
+                                  }
+                                >
+                                  添加标签条件
+                                </Button>
+                              </div>
+                            ) : definition.multiline ? (
+                              <Input.TextArea
+                                autoSize={{ minRows: 1, maxRows: 3 }}
+                                value={source[field] as string}
+                                placeholder={definition.placeholder}
+                                onChange={(event) =>
+                                  updateContainerFilter(index, field, event.target.value)
+                                }
+                              />
+                            ) : (
+                              <Input
+                                value={source[field] as string}
+                                placeholder={definition.placeholder}
+                                onChange={(event) =>
+                                  updateContainerFilter(index, field, event.target.value)
+                                }
+                              />
+                            )}
+                            <Tooltip title="移除过滤器">
+                              <Button
+                                aria-label={`移除${definition.label}`}
+                                icon={<X size={14} />}
+                                onClick={() => {
+                                  updateContainerStdout(index, {
+                                    [field]: definition.tags || definition.map ? [] : '',
+                                    activeFilters: source.activeFilters.filter(
+                                      (activeField) => activeField !== field,
+                                    ),
+                                  } as Partial<ContainerStdoutSource>)
+                                }}
+                              />
+                            </Tooltip>
+                          </div>
+                        )
+                      })}
                     </div>
-                    {source.activeFilters.length ? (
-                      <div className={styles.filterList}>
-                        {source.activeFilters.map((field) => {
-                          const definition = containerFilterDefinitions.find(
-                            (item) => item.field === field,
-                          )
-                          if (!definition || (!showK8sFilters && definition.k8sOnly)) return null
-                          return (
-                            <div className={styles.filterRow} key={field}>
-                              <Typography.Text>{definition.label}</Typography.Text>
-                              {definition.tags ? (
-                                <Select
-                                  mode="tags"
-                                  value={source[field] as string[]}
-                                  placeholder={definition.placeholder}
-                                  tokenSeparators={[',', ' ']}
-                                  onChange={(value) => updateContainerFilter(index, field, value)}
-                                />
-                              ) : definition.map ? (
-                                <div className={styles.mapFilterEditor}>
-                                  {(source[field] as FilterMapEntry[]).map((entry) => (
-                                    <div className={styles.mapFilterRow} key={entry.id}>
-                                      <Input
-                                        aria-label={`${definition.label}键`}
-                                        value={entry.key}
-                                        placeholder="标签键，例如 app.kubernetes.io/instance"
-                                        onChange={(event) =>
-                                          updateFilterMapEntry(index, entry.id, {
-                                            key: event.target.value,
-                                          })
-                                        }
-                                      />
-                                      <Input
-                                        aria-label={`${definition.label}值`}
-                                        value={entry.value}
-                                        placeholder="标签值或正则；留空表示仅匹配标签键"
-                                        onChange={(event) =>
-                                          updateFilterMapEntry(index, entry.id, {
-                                            value: event.target.value,
-                                          })
-                                        }
-                                      />
-                                      <Tooltip title="删除标签条件">
-                                        <Button
-                                          aria-label="删除标签条件"
-                                          icon={<Trash2 size={14} />}
-                                          onClick={() =>
-                                            updateContainerFilter(
-                                              index,
-                                              field,
-                                              source.excludeK8sLabel.filter(
-                                                (item) => item.id !== entry.id,
-                                              ),
-                                            )
-                                          }
-                                        />
-                                      </Tooltip>
-                                    </div>
-                                  ))}
-                                  <Button
-                                    type="text"
-                                    icon={<PlusOutlined />}
-                                    onClick={() =>
-                                      updateContainerFilter(index, field, [
-                                        ...source.excludeK8sLabel,
-                                        newFilterMapEntry(),
-                                      ])
+                  ) : (
+                    <Typography.Text type="secondary">
+                      未使用过滤器，将采集当前集群中的全部容器
+                    </Typography.Text>
+                  )}
+                </div>
+                <Collapse
+                  className={styles.advancedCollapse}
+                  ghost
+                  size="small"
+                  items={[
+                    {
+                      key: 'advanced',
+                      label: '高级配置',
+                      children: (
+                        <div className={styles.advancedContent}>
+                          <div className={styles.advancedSection}>
+                            <Typography.Text strong>采集行为</Typography.Text>
+                            <div className={styles.advancedGrid}>
+                              <div className={styles.field}>
+                                <span>采集输出流</span>
+                                <Space size={12}>
+                                  <Checkbox
+                                    checked={source.collectStdout}
+                                    onChange={(event) =>
+                                      updateContainerStdout(index, {
+                                        collectStdout: event.target.checked,
+                                      })
                                     }
                                   >
-                                    添加标签条件
-                                  </Button>
-                                </div>
-                              ) : definition.multiline ? (
-                                <Input.TextArea
-                                  autoSize={{ minRows: 1, maxRows: 3 }}
-                                  value={source[field] as string}
-                                  placeholder={definition.placeholder}
-                                  onChange={(event) =>
-                                    updateContainerFilter(index, field, event.target.value)
-                                  }
-                                />
-                              ) : (
-                                <Input
-                                  value={source[field] as string}
-                                  placeholder={definition.placeholder}
-                                  onChange={(event) =>
-                                    updateContainerFilter(index, field, event.target.value)
-                                  }
-                                />
-                              )}
-                              <Tooltip title="移除过滤器">
-                                <Button
-                                  aria-label={`移除${definition.label}`}
-                                  icon={<X size={14} />}
-                                  onClick={() => {
+                                    stdout
+                                  </Checkbox>
+                                  <Checkbox
+                                    checked={source.collectStderr}
+                                    onChange={(event) =>
+                                      updateContainerStdout(index, {
+                                        collectStderr: event.target.checked,
+                                      })
+                                    }
+                                  >
+                                    stderr
+                                  </Checkbox>
+                                </Space>
+                              </div>
+                              <label className={styles.field}>
+                                <span>最大事件数（条/秒）</span>
+                                <InputNumber
+                                  min={0}
+                                  max={1000000000}
+                                  precision={0}
+                                  placeholder="0 表示不限制"
+                                  value={source.maxEventsPerSecond}
+                                  onChange={(value) =>
                                     updateContainerStdout(index, {
-                                      [field]: definition.tags || definition.map ? [] : '',
-                                      activeFilters: source.activeFilters.filter(
-                                        (activeField) => activeField !== field,
-                                      ),
-                                    } as Partial<ContainerStdoutSource>)
-                                  }}
+                                      maxEventsPerSecond: Number(value || 0),
+                                    })
+                                  }
                                 />
-                              </Tooltip>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <Typography.Text type="secondary">
-                        未使用过滤器，将采集当前集群中的全部容器
-                      </Typography.Text>
-                    )}
-                  </div>
-                  <Collapse
-                    className={styles.advancedCollapse}
-                    ghost
-                    size="small"
-                    items={[
-                      {
-                        key: 'advanced',
-                        label: '高级配置',
-                        children: (
-                          <div className={styles.advancedContent}>
-                            <div className={styles.advancedSection}>
-                              <Typography.Text strong>采集行为</Typography.Text>
-                              <div className={styles.advancedGrid}>
-                                <div className={styles.field}>
-                                  <span>采集输出流</span>
-                                  <Space size={12}>
-                                    <Checkbox
-                                      checked={source.collectStdout}
-                                      onChange={(event) =>
-                                        updateContainerStdout(index, {
-                                          collectStdout: event.target.checked,
-                                        })
-                                      }
-                                    >
-                                      stdout
-                                    </Checkbox>
-                                    <Checkbox
-                                      checked={source.collectStderr}
-                                      onChange={(event) =>
-                                        updateContainerStdout(index, {
-                                          collectStderr: event.target.checked,
-                                        })
-                                      }
-                                    >
-                                      stderr
-                                    </Checkbox>
-                                  </Space>
-                                </div>
-                                <label className={styles.field}>
-                                  <span>最大事件数（条/秒）</span>
-                                  <InputNumber
-                                    min={0}
-                                    max={1000000000}
-                                    precision={0}
-                                    placeholder="0 表示不限制"
-                                    value={source.maxEventsPerSecond}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, {
-                                        maxEventsPerSecond: Number(value || 0),
-                                      })
-                                    }
-                                  />
-                                </label>
-                                <label className={styles.field}>
-                                  <span>首次采集末尾大小（KB）</span>
-                                  <InputNumber
-                                    min={0}
-                                    max={10485760}
-                                    value={source.tailSizeKB}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, {
-                                        tailSizeKB: Number(value ?? 1024),
-                                      })
-                                    }
-                                  />
-                                </label>
-                                <label className={styles.field}>
-                                  <span>完整行等待时间（秒）</span>
-                                  <InputNumber
-                                    min={1}
-                                    value={source.flushTimeoutSecs}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, {
-                                        flushTimeoutSecs: Number(value ?? 5),
-                                      })
-                                    }
-                                  />
-                                </label>
-                                <label className={styles.toggleField}>
-                                  <span>解析失败保留原文</span>
-                                  <Switch
-                                    size="small"
-                                    checked={source.keepingSourceWhenParseFail}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, {
-                                        keepingSourceWhenParseFail: value,
-                                      })
-                                    }
-                                  />
-                                </label>
-                                <label className={styles.toggleField}>
-                                  <span>忽略解析告警</span>
-                                  <Switch
-                                    size="small"
-                                    checked={source.ignoreParseWarning}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, { ignoreParseWarning: value })
-                                    }
-                                  />
-                                </label>
-                                <label className={styles.toggleField}>
-                                  <span>允许被多配置采集</span>
-                                  <Switch
-                                    size="small"
-                                    checked={source.allowingIncludedByMultiConfigs}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, {
-                                        allowingIncludedByMultiConfigs: value,
-                                      })
-                                    }
-                                  />
-                                </label>
-                              </div>
-                            </div>
-
-                            <div className={styles.advancedSection}>
-                              <Typography.Text strong>多行聚合</Typography.Text>
-                              <div className={styles.advancedGrid}>
-                                <label className={styles.field}>
-                                  <span>聚合模式</span>
-                                  <Select
-                                    value={source.multilineMode}
-                                    onChange={(value) =>
-                                      updateContainerStdout(index, { multilineMode: value })
-                                    }
-                                    options={[
-                                      { value: 'off', label: '不开启' },
-                                      { value: 'custom', label: '自定义正则' },
-                                      { value: 'JSON', label: 'JSON' },
-                                    ]}
-                                  />
-                                </label>
-                                {source.multilineMode === 'custom' && (
-                                  <>
-                                    <label className={styles.field}>
-                                      <span>行首正则</span>
-                                      <Input
-                                        value={source.multilineStartPattern}
-                                        placeholder="至少填写一个匹配条件"
-                                        onChange={(event) =>
-                                          updateContainerStdout(index, {
-                                            multilineStartPattern: event.target.value,
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                    <label className={styles.field}>
-                                      <span>行继续正则</span>
-                                      <Input
-                                        value={source.multilineContinuePattern}
-                                        onChange={(event) =>
-                                          updateContainerStdout(index, {
-                                            multilineContinuePattern: event.target.value,
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                    <label className={styles.field}>
-                                      <span>行尾正则</span>
-                                      <Input
-                                        value={source.multilineEndPattern}
-                                        onChange={(event) =>
-                                          updateContainerStdout(index, {
-                                            multilineEndPattern: event.target.value,
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                    <label className={styles.field}>
-                                      <span>未匹配内容</span>
-                                      <Select
-                                        value={source.unmatchedContentTreatment}
-                                        onChange={(value) =>
-                                          updateContainerStdout(index, {
-                                            unmatchedContentTreatment: value,
-                                          })
-                                        }
-                                        options={[
-                                          { value: 'single_line', label: '按单行采集' },
-                                          { value: 'discard', label: '丢弃' },
-                                        ]}
-                                      />
-                                    </label>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className={styles.advancedSection}>
-                              <Typography.Text strong>Tag 映射</Typography.Text>
-                              <div className={styles.advancedGrid}>
-                                {tagMappingFields
-                                  .filter(
-                                    ([field]) => showK8sFilters || field !== 'externalK8sLabelTag',
-                                  )
-                                  .map(([field, label]) => (
-                                    <label className={styles.field} key={field}>
-                                      <span>{label}</span>
-                                      <Input.TextArea
-                                        autoSize={{ minRows: 1, maxRows: 3 }}
-                                        value={source[field]}
-                                        placeholder="每行填写 key=value"
-                                        onChange={(event) =>
-                                          updateContainerStdout(index, {
-                                            [field]: event.target.value,
-                                          })
-                                        }
-                                      />
-                                    </label>
-                                  ))}
-                              </div>
+                              </label>
+                              <label className={styles.field}>
+                                <span>首次采集末尾大小（KB）</span>
+                                <InputNumber
+                                  min={0}
+                                  max={10485760}
+                                  value={source.tailSizeKB}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, {
+                                      tailSizeKB: Number(value ?? 1024),
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className={styles.field}>
+                                <span>完整行等待时间（秒）</span>
+                                <InputNumber
+                                  min={1}
+                                  value={source.flushTimeoutSecs}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, {
+                                      flushTimeoutSecs: Number(value ?? 5),
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className={styles.toggleField}>
+                                <span>解析失败保留原文</span>
+                                <Switch
+                                  size="small"
+                                  checked={source.keepingSourceWhenParseFail}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, {
+                                      keepingSourceWhenParseFail: value,
+                                    })
+                                  }
+                                />
+                              </label>
+                              <label className={styles.toggleField}>
+                                <span>忽略解析告警</span>
+                                <Switch
+                                  size="small"
+                                  checked={source.ignoreParseWarning}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, { ignoreParseWarning: value })
+                                  }
+                                />
+                              </label>
+                              <label className={styles.toggleField}>
+                                <span>允许被多配置采集</span>
+                                <Switch
+                                  size="small"
+                                  checked={source.allowingIncludedByMultiConfigs}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, {
+                                      allowingIncludedByMultiConfigs: value,
+                                    })
+                                  }
+                                />
+                              </label>
                             </div>
                           </div>
-                        ),
-                      },
-                    ]}
+
+                          <div className={styles.advancedSection}>
+                            <Typography.Text strong>多行聚合</Typography.Text>
+                            <div className={styles.advancedGrid}>
+                              <label className={styles.field}>
+                                <span>聚合模式</span>
+                                <Select
+                                  value={source.multilineMode}
+                                  onChange={(value) =>
+                                    updateContainerStdout(index, { multilineMode: value })
+                                  }
+                                  options={[
+                                    { value: 'off', label: '不开启' },
+                                    { value: 'custom', label: '自定义正则' },
+                                    { value: 'JSON', label: 'JSON' },
+                                  ]}
+                                />
+                              </label>
+                              {source.multilineMode === 'custom' && (
+                                <>
+                                  <label className={styles.field}>
+                                    <span>行首正则</span>
+                                    <Input
+                                      value={source.multilineStartPattern}
+                                      placeholder="至少填写一个匹配条件"
+                                      onChange={(event) =>
+                                        updateContainerStdout(index, {
+                                          multilineStartPattern: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                  <label className={styles.field}>
+                                    <span>行继续正则</span>
+                                    <Input
+                                      value={source.multilineContinuePattern}
+                                      onChange={(event) =>
+                                        updateContainerStdout(index, {
+                                          multilineContinuePattern: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                  <label className={styles.field}>
+                                    <span>行尾正则</span>
+                                    <Input
+                                      value={source.multilineEndPattern}
+                                      onChange={(event) =>
+                                        updateContainerStdout(index, {
+                                          multilineEndPattern: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                  <label className={styles.field}>
+                                    <span>未匹配内容</span>
+                                    <Select
+                                      value={source.unmatchedContentTreatment}
+                                      onChange={(value) =>
+                                        updateContainerStdout(index, {
+                                          unmatchedContentTreatment: value,
+                                        })
+                                      }
+                                      options={[
+                                        { value: 'single_line', label: '按单行采集' },
+                                        { value: 'discard', label: '丢弃' },
+                                      ]}
+                                    />
+                                  </label>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className={styles.advancedSection}>
+                            <Typography.Text strong>Tag 映射</Typography.Text>
+                            <div className={styles.advancedGrid}>
+                              {tagMappingFields
+                                .filter(
+                                  ([field]) => showK8sFilters || field !== 'externalK8sLabelTag',
+                                )
+                                .map(([field, label]) => (
+                                  <label className={styles.field} key={field}>
+                                    <span>{label}</span>
+                                    <Input.TextArea
+                                      autoSize={{ minRows: 1, maxRows: 3 }}
+                                      value={source[field]}
+                                      placeholder="每行填写 key=value"
+                                      onChange={(event) =>
+                                        updateContainerStdout(index, {
+                                          [field]: event.target.value,
+                                        })
+                                      }
+                                    />
+                                  </label>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
+                <RulePipelineEditors
+                  source={source}
+                  defaults={pipelineDefaults.container}
+                  onChange={(patch) => updateContainerStdout(index, patch)}
+                />
+                <Tooltip title="删除">
+                  <Button
+                    aria-label={`删除容器标准输出采集 ${index + 1}`}
+                    icon={<Trash2 size={15} />}
+                    onClick={() =>
+                      setContainerStdout((current) =>
+                        current.filter((_, itemIndex) => itemIndex !== index),
+                      )
+                    }
                   />
-                  <Tooltip title="删除">
-                    <Button
-                      aria-label={`删除容器标准输出采集 ${index + 1}`}
-                      icon={<Trash2 size={15} />}
-                      onClick={() =>
-                        setContainerStdout((current) =>
-                          current.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    />
-                  </Tooltip>
-                </div>
-              ))}
+                </Tooltip>
+              </div>
+            ))}
 
             {!visibleRuleCount && !loading && (
               <Empty
@@ -1485,80 +1775,19 @@ export function LogCollectionConfigPanel({
                   loadFailed
                     ? '配置加载失败，请重新选择目标后重试'
                     : mode === 'host'
-                      ? '当前节点暂无宿主机文件采集配置'
+                      ? '当前节点暂无独立采集规则'
                       : '当前集群暂无采集规则'
                 }
               />
             )}
           </div>
 
-          <Collapse
-            className={styles.pipelineRules}
-            expandIconPosition="end"
-            items={[
-              {
-                key: 'processing',
-                label: (
-                  <span className={styles.pipelineRuleTitle}>
-                    <span>处理规则</span>
-                    <Typography.Text type="secondary">{processorCount} 个处理器</Typography.Text>
-                  </span>
-                ),
-                children: processingRule ? (
-                  <SyntaxHighlighter
-                    language="yaml"
-                    style={theme === 'dark' ? oneDark : oneLight}
-                    wrapLongLines
-                    customStyle={{
-                      margin: 0,
-                      padding: 14,
-                      background: 'var(--ant-color-fill-quaternary)',
-                      fontSize: 12,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {processingRule}
-                  </SyntaxHighlighter>
-                ) : (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="探针尚未上报处理规则" />
-                ),
-              },
-              {
-                key: 'output',
-                label: (
-                  <span className={styles.pipelineRuleTitle}>
-                    <span>输出规则</span>
-                    <Typography.Text type="secondary">{outputCount} 个输出</Typography.Text>
-                  </span>
-                ),
-                children: outputRule ? (
-                  <SyntaxHighlighter
-                    language="yaml"
-                    style={theme === 'dark' ? oneDark : oneLight}
-                    wrapLongLines
-                    customStyle={{
-                      margin: 0,
-                      padding: 14,
-                      background: 'var(--ant-color-fill-quaternary)',
-                      fontSize: 12,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {outputRule}
-                  </SyntaxHighlighter>
-                ) : (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="探针尚未上报输出规则" />
-                ),
-              },
-            ]}
-          />
-
           <div className={styles.footer}>
             <Typography.Text type="secondary">
               {mode === 'host'
                 ? disableClusterRules
-                  ? `未应用集群规则 · 追加 ${sourceCount} 个文件路径`
-                  : `继承 ${inheritedSourceCount} 项集群规则 · 追加 ${sourceCount} 个文件路径`
+                  ? `未应用集群规则 · 当前节点 ${sourceCount} 项采集规则`
+                  : `继承 ${inheritedSourceCount} 项集群规则 · 当前节点追加 ${sourceCount} 项`
                 : `${sourceCount} 项采集规则`}
               {changed ? '待保存' : ''}
             </Typography.Text>
@@ -1582,7 +1811,7 @@ export function LogCollectionConfigPanel({
                 disabled={!currentScope || !changed || loadFailed}
                 onClick={save}
               >
-                {mode === 'host' ? '保存节点日志采集' : '保存配置'}
+                {mode === 'host' ? '下发节点日志采集' : '下发配置'}
               </Button>
             </Space>
           </div>

@@ -62,4 +62,4 @@
 
 - `probe-management` 没有单独后端 API，它复用同一组 `/api/integration/*`。
 - 安装命令既依赖后端模板，也依赖前端本地拼接出的补充命令，两者都应作为模块实现的一部分记录。
-- `BotManagement` 在视觉上位于本模块页面内，但其数据来源属于外部 AI 边界，不能和 `/api/integration` 混写。
+- `BotManagement` 是本模块内的独立 tab，但其数据来源属于外部 AI 边界，不能和 `/api/integration` 混写。

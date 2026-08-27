@@ -34,15 +34,15 @@
 
 | Type | File | Notes |
 |---|---|---|
-| Route Page | `frontend/src/core/views/IntegrationCenter/DataIntegration/index.tsx` | `/integration/data` 页面入口，当前直接渲染 `ClusterTable`。 |
-| Cluster Table | `frontend/src/core/views/IntegrationCenter/DataIntegration/ClusterTable.tsx` | cluster 列表、编辑、删除、安装命令弹窗；在 EE 且 `/probe-management` 时额外展示 `BotManagement`。 |
+| Route Page | `frontend/src/core/views/IntegrationCenter/DataIntegration/index.tsx` | `/probe-management` 顶层 tab 容器；默认探针管理，`tab=bots` 选择 Bots。 |
+| Probe Management | `frontend/src/core/views/IntegrationCenter/DataIntegration/ProbeManagement.tsx` | 合并手工接入与节点上报 cluster，提供集群接入、展示名、设置、删除和安装命令动作。 |
 | Settings Page | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/index.tsx` | `/integration/data/settings` 和 `/probe-management/settings` 共用页面，根据 pathname 切换普通模式与最小化模式。 |
 | Settings Form | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/SettingsForm/index.tsx` | cluster 基本信息、APO collector、trace、metric、log 接入配置。 |
 | Install Commands | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/InstallCmd/index.tsx` | 根据 cluster type 与 `isMinimal` 生成普通或 minimal 的安装说明和配置下载动作。 |
 | Probe Installer | `frontend/src/pro/views/probeInstaller/index.tsx` | 多步骤安装向导页面，当前仓库中存在但未观察到 route 使用。 |
 | Probe Form | `frontend/src/pro/views/probeInstaller/ProbeForm/index.tsx` | 向导第一步，采集 cluster 名称、cluster type 和 APO collector 配置。 |
 | Dataplane Step | `frontend/src/pro/views/probeInstaller/DataplaneStep/index.tsx` | 向导第二步，复用 dataplane 组件进行数据源配置。 |
-| Bot Management | `frontend/src/core/views/IntegrationCenter/DataIntegration/BotManagement.tsx` | `probe-management` 页右侧 Slack bot 管理，依赖外部 `/ai/api/v1/app-config/*`。 |
+| Bot Management | `frontend/src/core/views/IntegrationCenter/DataIntegration/BotManagement.tsx` | 独立 `Bots Management` tab，依赖外部 `/ai/api/v1/app-config/*`，仅激活时挂载。 |
 | Empty Guide | `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/Document/index.tsx` | 空白 guide 卡片，当前未见实际内容。 |
 
 ## API Wrapper Files

@@ -52,7 +52,7 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
       })
       const newParams = new URLSearchParams(searchParams)
       newParams.set('clusterId', params.id || res?.id)
-      newParams.set('clusterType', res?.clusterType)
+      newParams.set('clusterType', params.clusterType || res?.clusterType)
       newParams.set('activeKey', 'install')
       setSearchParams(newParams, { replace: true })
     })
@@ -146,11 +146,11 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
             },
           }}
         >
-          <Form.Item name="id" hidden>
-            <Input />
+          <Form.Item name="id" label={t('clusterId')} rules={[{ required: true }]}>
+            <Input disabled={Boolean(formInitValues?.id)} />
           </Form.Item>
-          <Form.Item name="name" label={t('clusterName')} rules={[{ required: true }]}>
-            <Input />
+          <Form.Item name="name" label={t('clusterDisplayName')}>
+            <Input placeholder={t('clusterDisplayNamePlaceholder')} />
           </Form.Item>
           <Form.Item name="clusterType" label={t('clusterType')} rules={[{ required: true }]}>
             <Segmented options={clusterTypeOptions} />

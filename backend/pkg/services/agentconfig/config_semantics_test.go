@@ -28,6 +28,7 @@ type configSemanticsRepo struct {
 	workloadInventory map[string]ac.ClusterWorkloadInventory
 	odigletReady      *bool
 	states            []ac.ApplyState
+	deliveries        []ac.Delivery
 	batchSaveCalls    int
 	lastExpected      map[string]int64
 }
@@ -148,7 +149,7 @@ func (r *configSemanticsRepo) CreateAgentTemplate(_ core.Context, template *ac.T
 	r.templates[template.ID] = *template
 	return nil
 }
-func (r *configSemanticsRepo) SaveAgentBindings(_ core.Context, bindings []*ac.Binding, releases []*ac.Release, expected map[string]int64) error {
+func (r *configSemanticsRepo) SaveAgentBindings(_ core.Context, bindings []*ac.Binding, releases []*ac.Release, expected map[string]int64, delivery *ac.Delivery) error {
 	if len(bindings) != len(releases) {
 		return errors.New("mismatched writes")
 	}
@@ -166,6 +167,9 @@ func (r *configSemanticsRepo) SaveAgentBindings(_ core.Context, bindings []*ac.B
 	r.batchSaveCalls++
 	for _, release := range releases {
 		r.releases[releaseKey(release.NodeID, release.ProbeType)] = *release
+	}
+	if delivery != nil {
+		r.deliveries = append(r.deliveries, *delivery)
 	}
 	return nil
 }
@@ -218,6 +222,9 @@ func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.N
 }
 func (r *configSemanticsRepo) ListAgentStates(core.Context) ([]ac.ApplyState, error) {
 	return append([]ac.ApplyState(nil), r.states...), nil
+}
+func (r *configSemanticsRepo) ListAgentDeliveries(core.Context, int) ([]ac.Delivery, error) {
+	return append([]ac.Delivery(nil), r.deliveries...), nil
 }
 
 func addBaseline(t *testing.T, repo *configSemanticsRepo, node, probe, content string) {
@@ -1186,5 +1193,75 @@ func TestCircuitPolicyAllowsIndependentComponentRule(t *testing.T) {
 	}
 	if err := validateCircuitBreaker(&policy); err != nil {
 		t.Fatalf("independent component policy was rejected: %v", err)
+	}
+}
+
+func TestNodeConfigUpdatePersistsDeliveryTargetWithRelease(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", Name: "worker-1", ClusterID: "cluster-a"}
+	addBaseline(t, repo, "node-1", "probe-a", "enabled: false\n")
+	service := New(repo)
+
+	if _, err := service.UpdateNodeConfigsForUser(nil, "node-1", NodeConfigsInput{Configs: []NodeProbeConfigInput{{
+		ProbeType: "probe-a", Content: "enabled: true\n", ExpectedGeneration: 0,
+	}}}, 42); err != nil {
+		t.Fatal(err)
+	}
+	if len(repo.deliveries) != 1 {
+		t.Fatalf("delivery count=%d", len(repo.deliveries))
+	}
+	delivery := repo.deliveries[0]
+	if delivery.Type != deliveryTypeNodeConfig || delivery.Scope != "node-1" || delivery.RequestedBy != 42 || delivery.TargetNodeCount != 1 || len(delivery.Targets) != 1 {
+		t.Fatalf("unexpected delivery: %+v", delivery)
+	}
+	var generations map[string]int64
+	if err := json.Unmarshal(delivery.Targets[0].Generations, &generations); err != nil {
+		t.Fatal(err)
+	}
+	if delivery.Targets[0].NodeName != "worker-1" || delivery.Targets[0].ClusterID != "cluster-a" || generations["probe-a"] != 1 {
+		t.Fatalf("unexpected delivery target: %+v generations=%v", delivery.Targets[0], generations)
+	}
+}
+
+func TestListDeliveriesCalculatesEachNodeReceiptFromTargetGeneration(t *testing.T) {
+	now := time.Now()
+	repo := newConfigSemanticsRepo()
+	deliveryID := uuid.New()
+	target := func(node string, generation int64) ac.DeliveryTarget {
+		data, err := json.Marshal(map[string]int64{"probe-a": generation})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return ac.DeliveryTarget{DeliveryID: deliveryID, NodeID: node, NodeName: node, ClusterID: "cluster-a", Generations: data}
+	}
+	repo.deliveries = []ac.Delivery{{
+		ID: deliveryID, Type: deliveryTypeBatchTemplate, Scope: "cluster-a", TargetNodeCount: 4, CreatedAt: now,
+		Targets: []ac.DeliveryTarget{target("applied", 2), target("received", 3), target("failed", 4), target("pending", 5)},
+	}}
+	repo.states = []ac.ApplyState{
+		{NodeID: "applied", ProbeType: "probe-a", DesiredGeneration: 3, AppliedGeneration: 3, Status: "RUNNING", ReportedAt: &now},
+		{NodeID: "received", ProbeType: "probe-a", DesiredGeneration: 3, AppliedGeneration: 2, Status: "STAGED", ReportedAt: &now},
+		{NodeID: "failed", ProbeType: "probe-a", DesiredGeneration: 4, AppliedGeneration: 3, Status: "FAILED", Reason: "checksum mismatch", ReportedAt: &now},
+	}
+
+	deliveries, err := New(repo).ListDeliveries(nil, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(deliveries) != 1 {
+		t.Fatalf("delivery count=%d", len(deliveries))
+	}
+	delivery := deliveries[0]
+	if delivery.Status != "FAILED" || delivery.AppliedCount != 1 || delivery.ReceivedCount != 1 || delivery.FailedCount != 1 || delivery.PendingCount != 1 {
+		t.Fatalf("unexpected delivery summary: %+v", delivery)
+	}
+	want := []string{"APPLIED", "RECEIVED", "FAILED", "PENDING"}
+	for index, target := range delivery.Targets {
+		if target.Status != want[index] || len(target.Probes) != 1 || target.Probes[0].Status != want[index] {
+			t.Fatalf("target %d=%+v want=%s", index, target, want[index])
+		}
+	}
+	if delivery.Targets[2].Probes[0].Reason != "checksum mismatch" {
+		t.Fatalf("failure reason was lost: %+v", delivery.Targets[2])
 	}
 }

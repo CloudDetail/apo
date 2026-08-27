@@ -74,13 +74,21 @@ const App = () => {
         ]
       : menu
   }
-  const buildPreviewRoutes = () =>
-    buildPreviewMenu()
+  const buildPreviewRoutes = () => {
+    if (isProbeManagementPreviewRoute()) {
+      return [
+        PROBE_MANAGEMENT_PATH,
+        `${PROBE_MANAGEMENT_PATH}/settings`,
+        `${PROBE_MANAGEMENT_PATH}/config`,
+      ]
+    }
+    return buildPreviewMenu()
       .flatMap((item) => [
         item.router?.to,
         ...(item.children || []).map((child) => child.router?.to),
       ])
       .filter(Boolean)
+  }
   const getRuleGroupLabels = () => {
     getRuleGroupLabelApi().then((res) => {
       setGroupLabel(res?.groupsLabel ?? [])

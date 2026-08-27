@@ -174,6 +174,7 @@ var zhCnText = map[string]string{
 	GetAlertEnrichRuleFailed:          "获取告警规则失败",
 	AlertSourceNotExisted:             "告警源不存在",
 	SetupAlertProviderWebhookError:    "设置告警源webhook失败",
+	UpdateClusterFailed:               "更新集群失败",
 
 	PermissionNotExistError: "功能权限不存在",
 	GetDatasourceError:      "获取数据源失败",

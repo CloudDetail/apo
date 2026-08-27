@@ -219,6 +219,11 @@ other.
   validation used by single-node delivery. CPU Core, RSS, host-system percentage,
   and named probe policies are all preserved. Host percentages are evaluated
   independently on every target node, not as a cluster-wide aggregate.
+- Adding a component-specific policy is a local draft flow: open advanced
+  settings, choose an unconfigured component, edit the policy, and click
+  `添加`. Only then does the policy enter the pending bundle shown on the page.
+  `添加` never persists or delivers the policy; the separate node or batch
+  delivery action replaces the complete policy bundle on the target nodes.
 - Host-system thresholds cannot appear in a named probe policy. daemon-go reads
   the system values locally; the service does not make fuse or recovery
   decisions.

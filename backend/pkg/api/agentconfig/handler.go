@@ -23,6 +23,7 @@ func agentClusterID(c core.Context) string {
 	s, _ := v.(string)
 	return s
 }
+func agentInstanceID(c core.Context) string { return c.GetHeader("X-Agent-Instance-ID") }
 func (h *Handler) Inspect() core.HandlerFunc {
 	return func(c core.Context) {
 		var r struct {
@@ -134,6 +135,71 @@ func (h *Handler) ListNodes() core.HandlerFunc {
 		c.Payload(map[string]any{"nodes": v})
 	}
 }
+func (h *Handler) GetNodeVariables() core.HandlerFunc {
+	return func(c core.Context) {
+		v, err := h.s.NodeVariables(c, c.Param("nodeId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(v)
+	}
+}
+func (h *Handler) SaveNodeVariables() core.HandlerFunc {
+	return func(c core.Context) {
+		var input struct {
+			Overrides map[string]string `json:"overrides"`
+		}
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		v, err := h.s.SaveNodeVariables(c, c.Param("nodeId"), input.Overrides)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(v)
+	}
+}
+func (h *Handler) GetNodeClusterIdentity() core.HandlerFunc {
+	return func(c core.Context) {
+		v, err := h.s.GetNodeClusterIdentity(c, c.Param("nodeId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(v)
+	}
+}
+func (h *Handler) SaveNodeClusterIdentity() core.HandlerFunc {
+	return func(c core.Context) {
+		var input struct {
+			ClusterID string `json:"clusterId"`
+			ClusterIP string `json:"clusterIp"`
+		}
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		v, err := h.s.SaveNodeClusterIdentity(c, c.Param("nodeId"), input.ClusterID, input.ClusterIP)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(v)
+	}
+}
+func (h *Handler) RestoreNodeClusterID() core.HandlerFunc {
+	return func(c core.Context) {
+		v, err := h.s.RestoreNodeClusterID(c, c.Param("nodeId"))
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(v)
+	}
+}
 func (h *Handler) ListStates() core.HandlerFunc {
 	return func(c core.Context) {
 		v, e := h.s.ListStates(c)
@@ -142,6 +208,17 @@ func (h *Handler) ListStates() core.HandlerFunc {
 			return
 		}
 		c.Payload(map[string]interface{}{"states": v})
+	}
+}
+func (h *Handler) ListDeliveries() core.HandlerFunc {
+	return func(c core.Context) {
+		limit, _ := strconv.Atoi(c.Request().URL.Query().Get("limit"))
+		deliveries, err := h.s.ListDeliveries(c, limit)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(map[string]any{"deliveries": deliveries})
 	}
 }
 func (h *Handler) GetGlobalCircuit() core.HandlerFunc {
@@ -249,6 +326,31 @@ func (h *Handler) BatchSaveLogSources() core.HandlerFunc {
 			return
 		}
 		c.Payload(result)
+	}
+}
+func (h *Handler) GetLogCollectionDefaults() core.HandlerFunc {
+	return func(c core.Context) {
+		config, err := h.s.GetLogCollectionDefaults(c)
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
+	}
+}
+func (h *Handler) SaveLogCollectionDefaults() core.HandlerFunc {
+	return func(c core.Context) {
+		var input svc.LogCollectionDefaultsInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			fail(c, err)
+			return
+		}
+		config, err := h.s.SaveLogCollectionDefaults(c, input, c.UserID())
+		if err != nil {
+			fail(c, err)
+			return
+		}
+		c.Payload(config)
 	}
 }
 func (h *Handler) GetHostFileCollection() core.HandlerFunc {
@@ -373,7 +475,7 @@ func (h *Handler) UpdateNodeConfigs() core.HandlerFunc {
 			fail(c, err)
 			return
 		}
-		configs, err := h.s.UpdateNodeConfigs(c, c.Param("nodeId"), input)
+		configs, err := h.s.UpdateNodeConfigsForUser(c, c.Param("nodeId"), input, c.UserID())
 		if err != nil {
 			fail(c, err)
 			return
@@ -388,7 +490,7 @@ func (h *Handler) UpdateNodeConfigGroup() core.HandlerFunc {
 			fail(c, err)
 			return
 		}
-		configs, err := h.s.UpdateNodeConfigGroup(c, c.Param("nodeId"), input)
+		configs, err := h.s.UpdateNodeConfigGroupForUser(c, c.Param("nodeId"), input, c.UserID())
 		if err != nil {
 			fail(c, err)
 			return
@@ -413,7 +515,7 @@ func (h *Handler) SaveNodeInjectionControl() core.HandlerFunc {
 			fail(c, err)
 			return
 		}
-		control, err := h.s.SaveNodeInjectionControl(c, c.Param("nodeId"), input)
+		control, err := h.s.SaveNodeInjectionControlForUser(c, c.Param("nodeId"), input, c.UserID())
 		if err != nil {
 			fail(c, err)
 			return
@@ -428,7 +530,7 @@ func (h *Handler) BatchSaveNodeInjectionControl() core.HandlerFunc {
 			fail(c, err)
 			return
 		}
-		result, err := h.s.BatchSaveNodeInjectionControl(c, input)
+		result, err := h.s.BatchSaveNodeInjectionControlForUser(c, input, c.UserID())
 		if err != nil {
 			fail(c, err)
 			return
@@ -501,6 +603,11 @@ func (h *Handler) Register() core.HandlerFunc {
 		}
 		n.ID = agentNodeID(c)
 		n.ClusterID = agentClusterID(c)
+		if n.InstanceID != "" && n.InstanceID != agentInstanceID(c) {
+			fail(c, errors.New("node instance identity mismatch"))
+			return
+		}
+		n.InstanceID = agentInstanceID(c)
 		if e := h.s.Register(c, &n); e != nil {
 			fail(c, e)
 			return

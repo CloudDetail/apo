@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Input, Button, message } from 'antd'
+import { Button, Card, Input, Typography, message } from 'antd'
+import { ExternalLink, Link, RotateCcw } from 'lucide-react'
 import React, { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BasicCard } from 'src/core/components/Card/BasicCard'
 import { getSlackStatusApi, upsertAppConfigApi } from 'src/core/api/appConfig'
-import './slackapp.css'
 import slackPng from 'src/core/assets/images/slack.png'
+import styles from './botManagement.module.scss'
 // 类型定义
 interface SlackStatus {
   teamId: string
@@ -48,7 +48,8 @@ const BotManagement = () => {
       }
 
       return response
-    } catch {
+    } catch (error) {
+      console.error('[BotManagement] failed to load Slack status', error)
       message.error(t('botManagement.messages.getStatusFailed'))
       return undefined
     }
@@ -131,7 +132,6 @@ const BotManagement = () => {
       // connected状态：只显示连接成功
       // disconnected：显示断开提示并开始5秒倒计时
       // 未连接：显示创建表单
-      console.log('status', status)
       if (
         status &&
         status.status &&
@@ -140,7 +140,6 @@ const BotManagement = () => {
       ) {
         startPolling()
       } else if (status && status.status === 'disconnected') {
-        console.log('1212')
         startCountdown()
       }
     })
@@ -182,7 +181,8 @@ const BotManagement = () => {
       } else {
         message.error(response.message || t('botManagement.messages.connectFailed'))
       }
-    } catch {
+    } catch (error) {
+      console.error('[BotManagement] failed to connect Slack bot', error)
       message.error(t('botManagement.messages.connectFailedRetry'))
     } finally {
       setConnecting(false)
@@ -238,140 +238,123 @@ const BotManagement = () => {
   }
 
   return (
-    <div className="content-section">
-      <div className="section-header">
-        <div className="section-title-wrapper">
-          <h2 className="section-title">{t('botManagement.title')}</h2>
-          <p className="section-description">{t('botManagement.description')}</p>
-        </div>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <Typography.Title level={4}>{t('botManagement.title')}</Typography.Title>
+        <Typography.Text type="secondary">{t('botManagement.description')}</Typography.Text>
       </div>
 
-      <BasicCard>
-        <div className="bot-management-content">
-          {/* Slack App 设置卡片 */}
-          <div className="bot-card border border-[var(--ant-color-border-secondary)]">
-            <div className="bot-card-header bg-[var(--ant-color-fill-tertiary)]">
-              <div className="bot-icon">
-                <img src={slackPng} alt="Slack" className="slack-logo" />
+      <Card className={styles.botCard} styles={{ body: { padding: 0 } }}>
+        <div className={styles.botCardHeader}>
+          <div className={styles.botIcon}>
+            <img src={slackPng} alt="Slack" className={styles.slackLogo} />
+          </div>
+          <div className={styles.botInfo}>
+            <Typography.Title level={5}>{t('botManagement.slackBot.name')}</Typography.Title>
+            <Typography.Text type="secondary">
+              {t('botManagement.slackBot.description')}
+            </Typography.Text>
+            <Typography.Text type="secondary">
+              {t('botManagement.slackBot.descriptionSub')}
+            </Typography.Text>
+          </div>
+        </div>
+
+        <div className={styles.botCardBody}>
+          {shouldShowConnectButton() ? (
+            <div id="slackbot-setup-form" className={styles.setupForm}>
+              <label className={styles.fieldLabel} htmlFor="slackbot-team-id">
+                {t('botManagement.slackBot.teamIdLabel')}
+              </label>
+              <div className={styles.inputRow}>
+                <Input
+                  type="text"
+                  id="slackbot-team-id"
+                  placeholder={t('botManagement.slackBot.teamIdPlaceholder')}
+                  value={teamId}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  disabled={connecting}
+                />
+                <Button icon={<ExternalLink size={15} />} onClick={handleOpenSlackBotOAuth}>
+                  {t('botManagement.slackBot.getTeamId')}
+                </Button>
               </div>
-              <div className="bot-info">
-                <h3 className="bot-name">{t('botManagement.slackBot.name')}</h3>
-                <p className="bot-status">{t('botManagement.slackBot.description')}</p>
-                <p className="bot-status">{t('botManagement.slackBot.descriptionSub')}</p>
-              </div>
-            </div>
-            <div className="bot-card-body">
-              {shouldShowConnectButton() ? (
-                <div id="slackbot-setup-form">
-                  <div className="slackbot-form-group">
-                    <label className="font-bold" htmlFor="slackbot-team-id">
-                      {t('botManagement.slackBot.teamIdLabel')}
-                    </label>
-                    <div className="slackbot-input-with-button flex gap-2 my-2">
-                      <Input
-                        type="text"
-                        id="slackbot-team-id"
-                        placeholder={t('botManagement.slackBot.teamIdPlaceholder')}
-                        value={teamId}
-                        onChange={(e) => setTeamId(e.target.value)}
-                        disabled={connecting}
-                      />
-                      <a onClick={handleOpenSlackBotOAuth} className="slackbot get-teamid-btn">
-                        {t('botManagement.slackBot.getTeamId')}
-                      </a>
-                    </div>
-                  </div>
-                  <Button
-                    type="primary"
-                    size="large"
-                    className="slackbot create-robot-btn h-[50px]"
-                    onClick={handleConnectSlackBot}
-                    loading={connecting}
-                    disabled={!teamId.trim()}
-                  >
-                    {t('botManagement.slackBot.createBot')}
-                  </Button>
-                  {slackStatus.status === 'disconnected' && countdown > 0 && (
-                    <div className="waiting-message" style={{ color: '#ff4d4f' }}>
-                      {t('botManagement.slackBot.disconnectedMessage', { countdown })}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div id="slackbot-bot-info">
-                  <div className="bot-status-info">
-                    <div className="status-row">
-                      <label className="font-bold">{t('botManagement.slackBot.teamId')}</label>
-                      <span>{slackStatus.teamId}</span>
-                    </div>
-                    {slackStatus.createDate > 0 && (
-                      <div className="status-row">
-                        <label className="font-bold">
-                          {t('botManagement.slackBot.createTime')}
-                        </label>
-                        <span>{formatCreateDate(slackStatus.createDate)}</span>
-                      </div>
-                    )}
-                    <div className="status-row">
-                      <label className="font-bold">
-                        {t('botManagement.slackBot.connectionStatus')}
-                      </label>
-                      <span style={{ color: getStatusDisplay().color, fontWeight: 'bold' }}>
-                        {getStatusDisplay().text}
-                      </span>
-                    </div>
-                    {slackStatus.status === 'connected' && (
-                      <div className="successMessage">
-                        {t('botManagement.slackBot.successMessage')}
-                      </div>
-                    )}
-                    {slackStatus.status === 'waiting' && (
-                      <div className="waiting-message">
-                        {t('botManagement.slackBot.waitingMessage')}
-                      </div>
-                    )}
-                    {slackStatus.status === 'connect retry' && (
-                      <div className="waiting-message">
-                        {t('botManagement.slackBot.connectRetryMessage')}
-                      </div>
-                    )}
-                    {slackStatus.status === 'disconnected' && (
-                      <div className="waiting-message" style={{ color: '#ff4d4f' }}>
-                        {t('botManagement.slackBot.disconnectedMessage', { countdown })}
-                      </div>
-                    )}
-                    {/* 添加重置按钮 */}
-                    {(slackStatus.status === 'connected' ||
-                      slackStatus.status === 'connect retry' ||
-                      slackStatus.status === 'disconnected') && (
-                      <div className="mt-4">
-                        <Button
-                          onClick={handleReset}
-                          type="default"
-                          size="large"
-                          className="w-full h-[50px]"
-                        >
-                          {t('botManagement.slackBot.resetButton')}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+              <Button
+                type="primary"
+                className={styles.primaryAction}
+                icon={<Link size={15} />}
+                onClick={handleConnectSlackBot}
+                loading={connecting}
+                disabled={!teamId.trim()}
+              >
+                {t('botManagement.slackBot.createBot')}
+              </Button>
+              {slackStatus.status === 'disconnected' && countdown > 0 && (
+                <div className={styles.errorMessage}>
+                  {t('botManagement.slackBot.disconnectedMessage', { countdown })}
                 </div>
               )}
             </div>
-            <div className="bot-card-footer bg-[var(--ant-color-fill-tertiary)]">
-              <a
-                href="https://syn-cause.com/docs/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="docs-link"
-              >
-                {t('botManagement.slackBot.docsLink')}
-              </a>
+          ) : (
+            <div id="slackbot-bot-info" className={styles.statusInfo}>
+              <div className={styles.statusRow}>
+                <span>{t('botManagement.slackBot.teamId')}</span>
+                <strong>{slackStatus.teamId}</strong>
+              </div>
+              {slackStatus.createDate > 0 && (
+                <div className={styles.statusRow}>
+                  <span>{t('botManagement.slackBot.createTime')}</span>
+                  <strong>{formatCreateDate(slackStatus.createDate)}</strong>
+                </div>
+              )}
+              <div className={styles.statusRow}>
+                <span>{t('botManagement.slackBot.connectionStatus')}</span>
+                <strong style={{ color: getStatusDisplay().color }}>
+                  {getStatusDisplay().text}
+                </strong>
+              </div>
+              {slackStatus.status === 'connected' && (
+                <div className={styles.successMessage}>
+                  {t('botManagement.slackBot.successMessage')}
+                </div>
+              )}
+              {slackStatus.status === 'waiting' && (
+                <div className={styles.waitingMessage}>
+                  {t('botManagement.slackBot.waitingMessage')}
+                </div>
+              )}
+              {slackStatus.status === 'connect retry' && (
+                <div className={styles.waitingMessage}>
+                  {t('botManagement.slackBot.connectRetryMessage')}
+                </div>
+              )}
+              {slackStatus.status === 'disconnected' && (
+                <div className={styles.errorMessage}>
+                  {t('botManagement.slackBot.disconnectedMessage', { countdown })}
+                </div>
+              )}
+              {(slackStatus.status === 'connected' ||
+                slackStatus.status === 'connect retry' ||
+                slackStatus.status === 'disconnected') && (
+                <Button
+                  className={styles.resetAction}
+                  icon={<RotateCcw size={15} />}
+                  onClick={handleReset}
+                >
+                  {t('botManagement.slackBot.resetButton')}
+                </Button>
+              )}
             </div>
-          </div>
+          )}
         </div>
-      </BasicCard>
+
+        <div className={styles.botCardFooter}>
+          <a href="https://syn-cause.com/docs/" target="_blank" rel="noopener noreferrer">
+            {t('botManagement.slackBot.docsLink')}
+            <ExternalLink size={13} />
+          </a>
+        </div>
+      </Card>
     </div>
   )
 }

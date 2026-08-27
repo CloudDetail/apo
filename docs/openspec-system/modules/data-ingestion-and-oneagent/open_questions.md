@@ -4,7 +4,6 @@
 
 1. `/integration/data` 与 `/probe-management` 的产品定位差异只能从 pathname 分支和 `isMinimal` 推断，业务上是否分别面向不同版本或不同用户角色需要确认。
 2. `GetStaticIntegration` 返回的 trace/metric/log 默认配置混合了 config 文件和数据库中的最新 trace API，这种“静态配置”命名是否准确需要确认。
-3. `BotManagement` 出现在 `probe-management` 页面右侧，但其业务目标是 Slack bot 管理还是安装辅助，目前只能从 UI 文案推断。
 
 ## Legacy Or Dead-Code Suspicion
 
@@ -38,4 +37,3 @@
 - To Be Confirmed: `probeInstaller` 是否计划替代当前 `/probe-management` 列表+表单模式。
 - To Be Confirmed: `func_updatecluster.go` 的空错误分支是否会造成静默失败。
 - To Be Confirmed: `getClusterInstallPackageApi` 指向的下载接口是否在其他服务中实现。
-- To Be Confirmed: `BotManagement` 是否应独立为外部 AI 集成模块，而不是长期留在数据接入页面内。

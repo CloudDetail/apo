@@ -380,6 +380,23 @@
   border-top: 1px dashed var(--ant-color-border-secondary);
 }
 
+.rulePipeline {
+  grid-column: 2 / -2;
+  border-top: 1px dashed var(--ant-color-border-secondary);
+}
+
+.rulePipeline :global(.ant-collapse-item + .ant-collapse-item) {
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.rulePipeline :global(.ant-collapse-header) {
+  padding: 8px 0 !important;
+}
+
+.rulePipeline :global(.ant-collapse-content-box) {
+  padding: 4px 0 12px !important;
+}
+
 .advancedCollapse :global(.ant-collapse-header) {
   padding: 8px 0 2px !important;
   color: var(--ant-color-text-secondary) !important;
@@ -427,6 +444,15 @@
   background: var(--ant-color-bg-container);
 }
 
+.defaultsToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
 .pipelineRules :global(.ant-collapse-header) {
   min-height: 46px;
   align-items: center !important;
@@ -449,6 +475,39 @@
 .pipelineRuleTitle :global(.ant-typography) {
   font-size: 12px;
   font-weight: 400;
+}
+
+.pipelineEditorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipelineEditorHeader {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pipelineEditorHeader > :global(.ant-typography) {
+  font-size: 12px;
+}
+
+.pipelineEditor {
+  padding: 12px !important;
+  border-color: var(--ant-color-border-secondary) !important;
+  border-radius: 4px !important;
+  background: var(--ant-color-fill-quaternary) !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px !important;
+  line-height: 1.6 !important;
+  tab-size: 2;
+}
+
+.pipelineEditor:focus {
+  background: var(--ant-color-bg-container) !important;
 }
 
 .footer {
@@ -671,6 +730,10 @@
     grid-column: 1 / -1;
   }
 
+  .rulePipeline {
+    grid-column: 1 / -1;
+  }
+
   .filterEditor {
     grid-column: 1 / -1;
   }
@@ -703,6 +766,17 @@
 
   .advancedGrid {
     grid-template-columns: 1fr;
+  }
+
+  .pipelineEditorHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .defaultsToolbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .footer > :global(.ant-space) {

@@ -4,9 +4,9 @@
 
 | Page | Route | Description |
 |---|---|---|
-| `DataIntegrationPage` | `/integration/data` | cluster 列表页，渲染 `ClusterTable`。 |
+| `DataIntegrationPage` | `/integration/data` | 兼容入口，渲染与 `/probe-management` 相同的管理页。 |
 | `IntegrationSettings` | `/integration/data/settings` | 普通接入配置页，保存 cluster 后可切换到安装命令 tab。 |
-| `DataIntegrationPage` | `/probe-management` | 复用 cluster 列表页，但按 pathname 进入最小化模式；在 EE 版本时显示 `BotManagement`。 |
+| `DataIntegrationPage` | `/probe-management` | 顶层展示 `探针管理` 与 `Bots Management` 两个独立 tab；默认进入探针管理。 |
 | `IntegrationSettings` | `/probe-management/settings` | 复用接入配置页，但按 pathname 进入最小化模式。 |
 | `ProbeInstallerPage` | 未观察到路由接入 | 步骤式安装向导，代码存在但当前 routes 未使用。 |
 
@@ -31,7 +31,7 @@
 
 | Component | File | Implemented Behavior |
 |---|---|---|
-| `ClusterTable` | `frontend/src/core/views/IntegrationCenter/DataIntegration/ClusterTable.tsx` | 读取 cluster 列表，支持编辑、删除和安装命令弹窗。 |
+| `ProbeManagement` | `frontend/src/core/views/IntegrationCenter/DataIntegration/ProbeManagement.tsx` | 合并手工接入与节点上报的 cluster，支持接入、展示名编辑、设置、删除和手工 cluster 安装命令。 |
 | `InstallCmd` | `Integration/InstallCmd/index.tsx` | 根据 `clusterType` 展示 k8s 或 vm 安装说明，并支持下载配置文件。 |
 | `IntegrationSettings` | `Integration/index.tsx` | 按 query 中的 `clusterId` 决定编辑现有 cluster 还是新建 cluster。 |
 | `SettingsForm` | `Integration/SettingsForm/index.tsx` | 保存 cluster 名称、clusterType、APO collector、trace、metric、log 配置。 |
@@ -39,7 +39,7 @@
 | `TraceFormItem` | `SettingsForm/TraceFormItem/index.tsx` | 根据 `apmType` 和 `mode` 动态渲染 sidecar/self-collector 字段。 |
 | `MetricsFormItem` | `SettingsForm/MetricsFormItem/index.tsx` | 仅暴露 `DsTypeRadio` 等轻量配置。 |
 | `LogsFormItem` | `SettingsForm/LogsFormItem/index.tsx` | 暴露 log 自采模式 `full` / `sample`。 |
-| `BotManagement` | `DataIntegration/BotManagement.tsx` | `probe-management` 页面右侧 Slack bot 管理，包含 Team ID 输入和状态轮询。 |
+| `BotManagement` | `DataIntegration/BotManagement.tsx` | `Bots Management` 独立 tab，包含 Team ID 输入和状态轮询，仅在 tab 激活时挂载。 |
 | `ProbeInstallerPage` | `frontend/src/pro/views/probeInstaller/index.tsx` | 三步式引导：probe 基础配置、dataplane 配置、安装完成。 |
 | `ProbeForm` | `probeInstaller/ProbeForm/index.tsx` | 向导第一步，收集 cluster 和 APO collector 信息。 |
 | `DataplaneStep` | `probeInstaller/DataplaneStep/index.tsx` | 复用 dataplane 组件，作为向导第二步。 |
@@ -48,8 +48,9 @@
 
 | State | File | Notes |
 |---|---|---|
-| URL Query | `Integration/index.tsx` | `clusterId`、`clusterType`、`activeKey` 决定编辑对象和 tab。 |
-| Local State | `ClusterTable.tsx` | 保存列表数据、安装弹窗状态和当前 clusterInfo。 |
+| URL Query | `DataIntegration/index.tsx` | `tab=bots` 选择 Bots；缺失或未知值进入探针管理。 |
+| URL Query | `Integration/index.tsx` | `clusterId`、`clusterType`、`activeKey` 决定编辑对象和安装命令 tab。 |
+| Local State | `ProbeManagement.tsx` | 保存节点、手工 cluster 元数据、筛选、安装命令和编辑弹窗状态。 |
 | Local Form | `SettingsForm/index.tsx` | 使用 Ant Design `Form` 管理 cluster integration 配置。 |
 | Local State | `InstallCmd/index.tsx` | 保存安装 markdown、处理配置下载。 |
 | Local State | `BotManagement.tsx` | 保存 Slack 状态、连接中状态、倒计时和轮询定时器。 |
@@ -73,14 +74,16 @@
 
 ## User Interaction Flow
 
-1. 用户进入 `/integration/data`，`ClusterTable` 调用 `/api/integration/cluster/list`。
-2. 用户点击新增，跳转 `/integration/data/settings`。
-3. `IntegrationSettings` 调用 `/api/integration/configuration` 读取静态 trace/metric/log 配置。
-4. 用户填写 cluster 名称、cluster type 和 APO collector，必要时配置 trace sidecar/self-collector、log 采集模式等。
-5. 保存时 `SettingsForm` 调用 `/api/integration/cluster/create` 或 `/api/integration/cluster/update`。
-6. 保存成功后前端把 `clusterId`、`clusterType` 和 `activeKey=install` 写入 query，并切换到安装命令页。
-7. 安装命令页调用 `/api/integration/cluster/install/cmd` 获取 markdown，并调用 `/api/integration/cluster/install/config` 下载配置文件。
-8. 在 `/probe-management` 路径下，页面复用相同列表和配置逻辑，但保存时会把 `isMinimal` 置为 `true`，并在 EE 模式下显示 `BotManagement`。
+1. 用户进入 `/probe-management`，默认展示探针管理；选择 Bots 时 URL 写入 `tab=bots`。
+2. `ProbeManagement` 合并节点上报数据与 `/api/integration/cluster/list` 的手工接入记录。
+3. 用户点击 `接入新集群`，跳转 `/probe-management/settings`。
+4. `IntegrationSettings` 调用 `/api/integration/configuration` 读取静态 trace/metric/log 配置。
+5. 用户填写必填 `cluster_id`、可选展示名、cluster type 和 collector 配置。
+6. 保存时 `SettingsForm` 调用 `/api/integration/cluster/create` 或 `/api/integration/cluster/update`。
+7. 保存成功后前端把 `clusterId`、`clusterType` 和 `activeKey=install` 写入 query，并切换到安装命令页。
+8. 安装命令页调用 `/api/integration/cluster/install/cmd` 获取 markdown，并调用 `/api/integration/cluster/install/config` 下载配置文件。
+9. 返回管理页后，手工 cluster 可编辑展示名、查看设置或删除；只有手工接入记录提供安装命令。
+10. `Bots Management` 作为独立 tab 按需挂载，离开 tab 后停止其轮询生命周期。
 
 ## Permissions
 

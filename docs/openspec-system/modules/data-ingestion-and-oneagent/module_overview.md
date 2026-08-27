@@ -14,7 +14,7 @@
 - Kubernetes `apo-one-agent-values.yaml` 与 VM `installCfg.sh` 模板渲染。
 - 默认 chart version 与 deploy version 输出，以及通过环境变量覆盖。
 - trace adapter 更新触发。
-- `probe-management` 最小化接入流程和 EE 模式下的 `BotManagement` 侧栏。
+- `probe-management` 探针管理流程，以及独立 `Bots Management` tab。
 - 仓库内 `one-agent` README 与 git submodule 边界。
 
 当前代码不应纳入本模块主体范围的能力：
@@ -70,7 +70,7 @@
 - `frontend/src/core/api/integration.ts`
 - `frontend/src/core/api/appConfig.js`
 - `frontend/src/core/views/IntegrationCenter/DataIntegration/index.tsx`
-- `frontend/src/core/views/IntegrationCenter/DataIntegration/ClusterTable.tsx`
+- `frontend/src/core/views/IntegrationCenter/DataIntegration/ProbeManagement.tsx`
 - `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/index.tsx`
 - `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/SettingsForm/index.tsx`
 - `frontend/src/core/views/IntegrationCenter/DataIntegration/Integration/InstallCmd/index.tsx`

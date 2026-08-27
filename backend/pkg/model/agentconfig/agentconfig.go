@@ -94,16 +94,19 @@ type TemplateVariable struct {
 }
 
 type Node struct {
-	ID            string     `gorm:"size:255;primaryKey" json:"id"`
-	Name          string     `gorm:"size:255" json:"name"`
-	ClusterID     string     `gorm:"size:255;index" json:"clusterId"`
-	Environment   string     `gorm:"size:64" json:"environment"`
-	OdigletReady  *bool      `json:"odigletReady,omitempty"`
-	Labels        JSON       `gorm:"type:jsonb" json:"labels"`
-	DaemonVersion string     `gorm:"size:128" json:"daemonVersion"`
-	LastSeenAt    *time.Time `json:"lastSeenAt"`
-	CreatedAt     time.Time  `json:"createdAt"`
-	UpdatedAt     time.Time  `json:"updatedAt"`
+	ID                string     `gorm:"size:255;primaryKey" json:"id"`
+	Name              string     `gorm:"size:255" json:"name"`
+	ClusterID         string     `gorm:"size:255;index" json:"clusterId"`
+	InitialClusterID  string     `gorm:"size:255;index" json:"initialClusterId"`
+	InstanceID        string     `gorm:"size:255;index" json:"instanceId"`
+	Environment       string     `gorm:"size:64" json:"environment"`
+	OdigletReady      *bool      `json:"odigletReady,omitempty"`
+	Labels            JSON       `gorm:"type:jsonb" json:"labels"`
+	VariableOverrides JSON       `gorm:"type:jsonb;not null;default:'{}'" json:"variableOverrides"`
+	DaemonVersion     string     `gorm:"size:128" json:"daemonVersion"`
+	LastSeenAt        *time.Time `json:"lastSeenAt"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
 }
 
 type InitialConfigFile struct {
@@ -147,6 +150,27 @@ type Release struct {
 	Files           JSON      `gorm:"type:jsonb;not null;default:'null'" json:"files,omitempty"`
 	LogSources      JSON      `gorm:"type:jsonb;not null;default:'null'" json:"logSources"`
 	CreatedAt       time.Time `json:"createdAt"`
+}
+
+type Delivery struct {
+	ID              uuid.UUID        `gorm:"type:uuid;primaryKey" json:"id"`
+	Type            string           `gorm:"size:32;not null" json:"type"`
+	Scope           string           `gorm:"type:text;not null" json:"scope"`
+	TemplateID      uuid.UUID        `gorm:"type:uuid;not null" json:"templateId"`
+	TemplateName    string           `gorm:"size:255" json:"templateName,omitempty"`
+	RequestedBy     int64            `json:"requestedBy"`
+	TargetNodeCount int              `gorm:"not null" json:"targetNodeCount"`
+	Targets         []DeliveryTarget `gorm:"foreignKey:DeliveryID;constraint:OnDelete:CASCADE" json:"targets,omitempty"`
+	CreatedAt       time.Time        `json:"createdAt"`
+}
+
+type DeliveryTarget struct {
+	ID          uint64    `gorm:"primaryKey" json:"id"`
+	DeliveryID  uuid.UUID `gorm:"type:uuid;not null;index;uniqueIndex:idx_delivery_node" json:"deliveryId"`
+	NodeID      string    `gorm:"size:255;not null;uniqueIndex:idx_delivery_node" json:"nodeId"`
+	NodeName    string    `gorm:"size:255" json:"nodeName"`
+	ClusterID   string    `gorm:"size:255;index" json:"clusterId"`
+	Generations JSON      `gorm:"type:jsonb;not null" json:"generations"`
 }
 
 type LogSource struct {
