@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/CloudDetail/apo/backend/pkg/model"
+	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/amconfig"
 	"github.com/CloudDetail/apo/backend/pkg/model/datagroup"
 	"github.com/CloudDetail/apo/backend/pkg/model/profile"
@@ -33,6 +34,7 @@ import (
 
 // Define the Database query interface
 type Repo interface {
+	AgentConfigRepo
 	CreateOrUpdateThreshold(ctx core.Context, model *Threshold) error
 	GetOrCreateThreshold(ctx core.Context, serviceName string, endPoint string, level string) (Threshold, error)
 	DeleteThreshold(ctx core.Context, serviceName string, endPoint string) error
@@ -366,7 +368,31 @@ func migrateTable(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+	// Probe configuration templates are a new feature. Recreate the pre-release
+	// table when it has the discarded per-probe shape instead of migrating data
+	// that does not satisfy the complete-template contract.
+	if migrator.HasTable(&ac.Template{}) && (migrator.HasColumn(&ac.Template{}, "probe_type") ||
+		migrator.HasColumn(&ac.Template{}, "content") ||
+		migrator.HasColumn(&ac.Template{}, "files")) {
+		if err = migrator.DropTable(&ac.TemplateVariable{}, &ac.Template{}); err != nil {
+			return err
+		}
+	}
 	return db.AutoMigrate(
+		&ac.Template{},
+		&ac.TemplateVariable{},
+		&ac.Node{},
+		&ac.ClusterInjectionConfig{},
+		&ac.ClusterWorkloadInventory{},
+		&ac.InitialConfig{},
+		&ac.GlobalCircuitConfig{},
+		&ac.NodeCircuitConfig{},
+		&ac.NodeLogConfig{},
+		&ac.LogCollectionConfig{},
+		&ac.Binding{},
+		&ac.Release{},
+		&ac.ApplyState{},
+		&ac.Command{},
 		&amconfig.Receiver{},
 		&sc.AlertSlienceConfig{},
 		&amconfig.DingTalkConfig{},

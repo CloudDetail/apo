@@ -13,18 +13,18 @@ import { useUserContext } from '../contexts/UserContext'
 import { useTranslation } from 'react-i18next'
 import { notify } from '../utils/notify'
 import { redirectToLogin } from '../utils/redirectToLogin'
+import { isSystemHealthPreviewRoute } from 'src/core/utils/systemHealthRoute'
+import { isProbeManagementPreviewRoute } from 'src/core/utils/probeManagementRoute'
 
 const UserToolBox = () => {
   const { user, dispatch: userDispatch } = useUserContext()
   const navigate = useNavigate()
   const { t } = useTranslation('core/userToolBox')
 
-
-
   const content = () => (
     <>
       <Flex vertical className={'flex items-center w-36 rounded-lg z-50'}>
-        <Divider className='p-0 my-2' />
+        <Divider className="p-0 my-2" />
         <Flex
           vertical
           className="justify-center items-center w-full h-9 transition-colors hover:bg-[var(--ant-color-fill-tertiary)] active:bg-[var(--ant-color-fill-secondary)]"
@@ -91,6 +91,7 @@ const UserToolBox = () => {
   }
 
   useEffect(() => {
+    if (isSystemHealthPreviewRoute() || isProbeManagementPreviewRoute()) return
     getUserInfo()
   }, [])
 

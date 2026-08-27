@@ -55,6 +55,8 @@ var validRouters = []Router{
 	{RouterTo: "/alert-analyze/chatAI/:service/:endpoint", HideTimeSelector: false},
 	{RouterTo: "/probe-management", HideTimeSelector: false},
 	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
+	{RouterTo: "/probe-management/config", HideTimeSelector: true},
+	{RouterTo: "/probe-management/log-collection", HideTimeSelector: true},
 }
 
 var sreRouters = []Router{
@@ -75,6 +77,8 @@ var sreRouters = []Router{
 	{RouterTo: "/cause/error-report/:traceId", HideTimeSelector: true},
 	{RouterTo: "/report", HideTimeSelector: true},
 	{RouterTo: "/probe-management/settings", HideTimeSelector: false},
+	{RouterTo: "/probe-management/config", HideTimeSelector: true},
+	{RouterTo: "/probe-management/log-collection", HideTimeSelector: true},
 	{RouterTo: "/custom-dashboard", HideTimeSelector: false},
 	{RouterTo: "/custom-dashboard/:id", HideTimeSelector: false},
 	{RouterTo: "/custom-dashboard/:id/edit", HideTimeSelector: false},

@@ -1,0 +1,1280 @@
+.page {
+  min-height: 100%;
+  padding: 12px 20px 24px;
+}
+
+.card {
+  margin-top: 4px;
+}
+
+.card :global(.ant-card-body) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header,
+.editorFooter,
+.historyHeader,
+.historyHeader span {
+  display: flex;
+  align-items: center;
+}
+
+.header,
+.editorFooter,
+.historyHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header :global(.ant-typography) {
+  margin: 0;
+}
+
+.titleBlock,
+.sectionHeading,
+.templateBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleBlock > div,
+.sectionHeading > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.globalScopeIcon,
+.nodeScopeIcon,
+.clusterScopeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 6px;
+}
+
+.globalScopeIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.nodeScopeIcon {
+  color: var(--ant-color-success-text);
+  background: var(--ant-color-success-bg);
+}
+
+.clusterScopeIcon {
+  color: var(--ant-color-warning-text);
+  background: var(--ant-color-warning-bg);
+}
+
+.probeSelect {
+  width: 210px;
+}
+
+.tabContent {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.injectionControlPanel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 980px;
+}
+
+.injectionControlFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.clusterInjectionGuide {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 720px;
+  padding: 32px 0 40px;
+}
+
+.clusterInjectionGuideIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 6px;
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.clusterInjectionGuideContent {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.clusterInjectionGuideContent :global(.ant-typography) {
+  margin-top: 0;
+}
+
+.clusterInjectionGuideContent :global(.ant-typography-secondary) {
+  max-width: 620px;
+  margin-bottom: 20px;
+}
+
+.injectionSection {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.injectionSectionHeading,
+.serviceVariableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.injectionSectionHeading > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workloadTree {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.workloadTree :global(.ant-tree) {
+  padding: 8px;
+}
+
+.workloadTree :global(.ant-tree-treenode) {
+  width: 100%;
+}
+
+.workloadTree :global(.ant-tree-node-content-wrapper) {
+  min-width: 0;
+  flex: 1;
+}
+
+.workloadTreeLabel {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.treeNodeIdentity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.treeNodeName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeNodeType {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 3px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.workloadTreeLabel > :global(.ant-typography-secondary) {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.serviceNameFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.serviceNameFields label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.serviceNameFields label > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.serviceNameFields :global(.ant-select) {
+  width: 100%;
+}
+
+.serviceVariableList {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.serviceVariableRow {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.8fr) minmax(150px, 1fr) minmax(160px, 1.2fr) minmax(140px, 1fr)
+    32px;
+  gap: 8px;
+}
+
+.serviceMappingRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
+  gap: 8px;
+}
+
+.sectionHeading,
+.templateBar {
+  justify-content: space-between;
+}
+
+.templateBar :global(.ant-select) {
+  min-width: 260px;
+}
+
+.sourceToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.sourceGroup {
+  display: flex;
+  min-width: 220px;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sourceGroup > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.sourceGroup :global(.ant-select) {
+  min-width: 190px;
+}
+
+.batchGrid,
+.thresholdGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.batchGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.batchGrid label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.batchTargetRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.batchTargetRow .sourceGroup {
+  max-width: 620px;
+}
+
+.batchTemplateSection,
+.batchTemplateList,
+.batchProbeName {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.batchTemplateSection {
+  gap: 10px;
+  padding-block: 4px 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.batchTemplateList {
+  gap: 0;
+}
+
+.batchTemplateRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.5fr) minmax(240px, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.batchTemplateRow:last-child {
+  border-bottom: 0;
+}
+
+.batchProbeName {
+  gap: 3px;
+}
+
+.thresholdGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.systemPressureSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block: 12px;
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.systemPressureSection .sectionHeading > div {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.systemThresholdGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.recoveryRow,
+.recoveryToggle {
+  display: flex;
+  align-items: center;
+}
+
+.advancedCircuit {
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.advancedCircuit :global(.ant-collapse-header) {
+  padding-inline: 0 !important;
+}
+
+.advancedCircuit :global(.ant-collapse-content-box) {
+  padding: 0 0 16px !important;
+}
+
+.advancedCircuitLabel,
+.componentPolicySection,
+.componentPolicyHeader > div,
+.componentPolicyEditorHeader > div,
+.componentPolicyEmpty > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.advancedCircuitLabel {
+  gap: 2px;
+}
+
+.advancedCircuitLabel > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.advancedCircuitLabel :global(.ant-tag) {
+  margin: 0;
+  font-weight: 400;
+}
+
+.advancedCircuitLabel > :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.componentPolicySection {
+  gap: 16px;
+}
+
+.componentPolicyHeader,
+.componentPolicyEditorHeader,
+.componentPolicyPicker,
+.componentPolicyEmpty {
+  display: flex;
+  align-items: center;
+}
+
+.componentPolicyHeader,
+.componentPolicyEditorHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.componentPolicyHeader > div,
+.componentPolicyEditorHeader > div {
+  gap: 2px;
+}
+
+.componentPolicyList {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.componentPolicyRow,
+.componentPolicyRowActive {
+  display: grid;
+  width: 100%;
+  min-height: 52px;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(260px, 1.3fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.componentPolicyRow:last-child,
+.componentPolicyRowActive:last-child {
+  border-bottom: 0;
+}
+
+.componentPolicyRow:hover,
+.componentPolicyRowActive {
+  background: var(--ant-color-fill-quaternary);
+}
+
+.componentPolicyRowActive {
+  box-shadow: inset 0 0 0 1px var(--ant-color-primary-border);
+}
+
+.componentPolicyIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.componentPolicyIdentity strong,
+.componentPolicySummary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.componentPolicyIdentity :global(.ant-tag) {
+  margin: 0;
+}
+
+.componentPolicySummary {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.componentPolicyEdit {
+  color: var(--ant-color-primary);
+}
+
+.componentPolicyEmpty {
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 4px;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.componentPolicyEmpty > span {
+  gap: 2px;
+}
+
+.componentPolicyPicker {
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.componentPolicyPicker label {
+  display: flex;
+  min-width: 260px;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.componentPolicyPicker label > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.componentPolicyEditor {
+  padding-top: 16px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.componentPolicyEditorHeader {
+  margin-bottom: 12px;
+}
+
+.recoveryRow label {
+  display: flex;
+  min-width: 190px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recoveryRow label > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.recoveryRow {
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.recoveryToggle {
+  min-width: 190px;
+  gap: 10px;
+}
+
+.recoveryToggle :global(.ant-switch) {
+  margin-left: auto;
+}
+
+.thresholdItem {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 112px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.thresholdItem :global(.ant-input-number-group-wrapper) {
+  width: 112px;
+  min-width: 0;
+}
+
+.thresholdIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+}
+
+.thresholdCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cpuIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.memoryIcon {
+  color: var(--ant-color-warning-text);
+  background: var(--ant-color-warning-bg);
+}
+
+.durationIcon {
+  color: var(--ant-color-success-text);
+  background: var(--ant-color-success-bg);
+}
+
+.recoveryIcon {
+  color: var(--ant-color-info-text);
+  background: var(--ant-color-info-bg);
+}
+
+.systemIcon {
+  color: var(--ant-color-error-text);
+  background: var(--ant-color-error-bg);
+}
+
+.configPreview {
+  max-height: 360px;
+  margin: 0;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--ant-color-border);
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+  border-block: 1px solid var(--ant-color-border-secondary);
+}
+
+.editor {
+  height: clamp(300px, 40vh, 440px);
+  min-width: 0;
+  border: 1px solid var(--ant-color-border);
+}
+
+.configWorkspace {
+  height: clamp(340px, 46vh, 500px);
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border);
+}
+
+.logSourceToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.logCollectionSwitchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.logCollectionSwitchRow > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.logSourceToolbar .sourceGroup {
+  max-width: 520px;
+}
+
+.logSourceList {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logSourceListDisabled {
+  min-height: 96px;
+}
+
+.logSourceRow {
+  display: grid;
+  grid-template-columns: 140px minmax(220px, 1.4fr) minmax(190px, 1fr) 40px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.logSourceRow :global(.ant-input-number-group-wrapper) {
+  width: min(240px, 100%);
+}
+
+.filePanel,
+.diffPanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.filePanel {
+  padding: 12px;
+  border-right: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.filePanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px 10px;
+}
+
+.nodeFilePanelTitle > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeFilePanelTitle :global(.ant-typography) {
+  margin: 0;
+}
+
+.nodeFilePanelTitle :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.nodeVariablesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.nodeVariableList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 20px;
+}
+
+.nodeVariableItem {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.75fr) minmax(120px, 1.25fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.nodeVariableItem :global(code) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filePanelTitle :global(.ant-tag),
+.fileItem :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.fileList {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  overflow: auto;
+}
+
+.probeFileTree {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  background: transparent;
+}
+
+.probeFileTree :global(.ant-tree-node-content-wrapper) {
+  min-width: 0;
+}
+
+.probeTreeTitle,
+.fileTreeTitle {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.probeTreeTitle small {
+  flex: 0 0 auto;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.fileTreeTitle > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileTreeTitle :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 38px;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fileItem span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileItem:hover {
+  background: var(--ant-color-fill-secondary);
+}
+
+.fileItemActive {
+  border-color: var(--ant-color-primary-border);
+  background: var(--ant-color-primary-bg);
+}
+
+.diffPanel :global(.monaco-diff-editor),
+.diffPanel :global(.monaco-editor) {
+  height: 100%;
+}
+
+.preloadEditor {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--ant-color-bg-container);
+}
+
+.injectionWorkspace {
+  display: flex;
+  border: 1px solid var(--ant-color-border);
+}
+
+.injectionTargetRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.injectionTargetRow label {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.injectionFooter {
+  flex-wrap: wrap;
+}
+
+.injectionFooter > :global(.ant-typography) {
+  min-width: 280px;
+  flex: 1;
+}
+
+.runtimeConfig > span {
+  display: flex;
+  align-items: center;
+}
+
+.preloadHeading > div,
+.runtimeCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.preloadActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.runtimeControlList {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.runtimeControlRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.runtimeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.runtimeCopy :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.runtimeConfig {
+  min-width: 0;
+}
+
+.runtimeConfig > span {
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+.runtimeConfig pre,
+.preloadFinalPreview {
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 4px;
+  background: var(--ant-color-fill-quaternary);
+  font:
+    12px/1.55 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.runtimeConfig pre {
+  overflow: visible;
+}
+
+.preloadFinalPreview {
+  max-height: 65vh;
+}
+
+.templatePreviewPanel {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.templatePreviewPanel .configPreview {
+  min-height: 100%;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.templateEditorPanel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.templateEditor {
+  min-height: 0;
+  flex: 1;
+  border: 1px solid var(--ant-color-border-secondary);
+}
+
+.templateEditor :global(.monaco-editor) {
+  height: 100%;
+}
+
+.editorFooter {
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.dispatchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--ant-color-primary-border);
+  border-radius: 6px;
+  background: var(--ant-color-primary-bg);
+}
+
+.dispatchIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 4px;
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-bg-container);
+}
+
+.dispatchCopy,
+.targetVersion,
+.stackedText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dispatchCopy {
+  flex: 1;
+  min-width: 0;
+}
+
+.targetVersion {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.targetVersion strong {
+  color: var(--ant-color-text);
+}
+
+.historyHeader {
+  margin-top: 2px;
+}
+
+.historyHeader span {
+  gap: 7px;
+}
+
+.taskTable {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 6px;
+}
+
+.progressCell {
+  max-width: 190px;
+}
+
+.progressLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.progressLabel :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-inline: 12px;
+  }
+
+  .header,
+  .editorFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .injectionSectionHeading,
+  .serviceVariableHeader {
+    align-items: flex-start;
+  }
+
+  .clusterInjectionGuide {
+    padding-top: 20px;
+  }
+
+  .serviceNameFields {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceVariableRow,
+  .serviceMappingRow {
+    grid-template-columns: 1fr;
+  }
+
+  .serviceVariableRow > :global(.ant-btn),
+  .serviceMappingRow > :global(.ant-btn) {
+    justify-self: end;
+  }
+
+  .sectionHeading,
+  .componentPolicyHeader,
+  .componentPolicyEditorHeader,
+  .componentPolicyPicker,
+  .templateBar,
+  .sourceToolbar,
+  .logSourceToolbar,
+  .logCollectionSwitchRow,
+  .recoveryRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .componentPolicyHeader > :global(.ant-btn),
+  .componentPolicyEditorHeader > :global(.ant-btn),
+  .componentPolicyPicker > :global(.ant-btn),
+  .componentPolicyPicker label {
+    width: 100%;
+  }
+
+  .componentPolicyRow,
+  .componentPolicyRowActive {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+  }
+
+  .componentPolicySummary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .logCollectionSwitchRow {
+    align-items: stretch;
+  }
+
+  .sectionHeading > :global(.ant-tag) {
+    align-self: flex-start;
+  }
+
+  .templateBar :global(.ant-select),
+  .probeSelect {
+    width: 100%;
+  }
+
+  .sourceGroup {
+    width: 100%;
+  }
+
+  .configWorkspace {
+    height: 560px;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .filePanel {
+    flex: 0 0 auto !important;
+    border-right: 0;
+    border-bottom: 1px solid var(--ant-color-border-secondary);
+  }
+
+  .fileList {
+    max-height: 150px;
+  }
+
+  .diffPanel {
+    min-width: 480px;
+    min-height: 360px;
+  }
+
+  .templateEditorPanel,
+  .templatePreviewPanel {
+    min-width: 480px;
+    min-height: 360px;
+  }
+
+  .preloadEditor {
+    min-width: 0;
+  }
+
+  .injectionWorkspace {
+    overflow: visible;
+  }
+
+  .injectionTargetRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .batchGrid,
+  .thresholdGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .thresholdItem {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .thresholdItem :global(.ant-input-number-group-wrapper) {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .batchTargetRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .batchTemplateRow {
+    grid-template-columns: 1fr;
+  }
+
+  .logSourceRow {
+    grid-template-columns: 1fr;
+  }
+
+  .dispatchBar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .dispatchCopy {
+    min-width: calc(100% - 44px);
+  }
+
+  .targetVersion {
+    flex: 1;
+  }
+}

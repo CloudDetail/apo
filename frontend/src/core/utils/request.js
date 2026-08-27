@@ -41,13 +41,12 @@ export const clearAuthSession = () => {
   delete instance.defaults.headers.common.Authorization
 }
 
-const isRequestCanceled = (error = {}) => (
+const isRequestCanceled = (error = {}) =>
   axios.isCancel?.(error) ||
   error.code === 'ERR_CANCELED' ||
   error.name === 'CanceledError' ||
   error.name === 'AbortError' ||
   ['cancel', 'canceled'].includes(String(error.message || '').toLowerCase())
-)
 
 // 创建axios实例
 const instance = axios.create({
@@ -72,7 +71,7 @@ instance.interceptors.request.use(
     config.metadata = {
       ...config.metadata,
       requestTimestamp: Date.now(),
-      retryCount: config.metadata?.retryCount || 0
+      retryCount: config.metadata?.retryCount || 0,
     }
     return config
   },
@@ -118,7 +117,9 @@ instance.interceptors.response.use(
 
           return new Promise((resolve) => {
             setTimeout(() => {
-              console.log(`Retry attempt ${error.config.metadata.retryCount} for ${error.status} ${error.config.url}`)
+              console.log(
+                `Retry attempt ${error.config.metadata.retryCount} for ${error.status} ${error.config.url}`,
+              )
               resolve(instance(error.config))
             }, delay)
           })
@@ -133,7 +134,7 @@ instance.interceptors.response.use(
             }
             lastTokenRefreshTime = Date.now()
             instance.defaults.headers.common.Authorization = `Bearer ${newToken}`
-            pendingRequests.forEach(callback => callback(newToken))
+            pendingRequests.forEach((callback) => callback(newToken))
             return instance(originalRequest)
           } catch (refreshError) {
             clearAuthSession()
@@ -212,7 +213,8 @@ export const refreshAccessToken = async ({ refreshDify = true } = {}) => {
     localStorage.setItem('token', accessToken)
 
     // Keep the Dify iframe session synchronized with the still-valid APO user.
-    const hasDifySession = localStorage.getItem('difyToken') || localStorage.getItem('difyRefreshToken')
+    const hasDifySession =
+      localStorage.getItem('difyToken') || localStorage.getItem('difyRefreshToken')
     if (refreshDify && hasDifySession) {
       try {
         await refreshDifyAccessToken()
@@ -236,7 +238,7 @@ export const refreshAccessToken = async ({ refreshDify = true } = {}) => {
   }
 }
 
-const wait = (delay) => new Promise(resolve => setTimeout(resolve, delay))
+const wait = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 export const reloginDifyWithApoToken = async () => {
   if (!difyReloginPromise) {
@@ -336,6 +338,12 @@ const post = (url, data = {}, config = {}) => {
   })
 }
 
+const put = (url, data = {}, config = {}) => {
+  return instance.put(url, data, config).catch((error) => {
+    throw error
+  })
+}
+
 // 封装DELETE请求
 const del = (url, data = {}, config = {}) => {
   return instance.delete(url, { data, ...config }).catch((error) => {
@@ -352,4 +360,4 @@ const headers = {
 }
 
 // 导出axios实例和封装的请求方法
-export { instance as axiosInstance, get, post, del, headers }
+export { instance as axiosInstance, get, post, put, del, headers }

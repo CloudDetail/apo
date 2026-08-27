@@ -1,0 +1,385 @@
+.page {
+  min-width: 0;
+}
+
+.tabs {
+  padding: 8px 20px 0;
+}
+
+.tabs :global(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.managementPage {
+  padding: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionHeader :global(.ant-typography) {
+  margin: 0;
+}
+
+.headerActions {
+  justify-content: flex-end;
+}
+
+.headerActions :global(.ant-tag) {
+  margin-inline-end: 0;
+}
+
+.tableFilters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.tableFilters :global(.ant-input-search) {
+  width: min(360px, 100%);
+}
+
+.tableFilters :global(.ant-select) {
+  width: 140px;
+}
+
+.tableCard {
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+}
+
+.identityCell {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.identityCell > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.clusterIcon,
+.nodeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+}
+
+.clusterIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.nodeIcon {
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-fill-secondary);
+}
+
+.secondaryLine,
+.resourceEmpty {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.metrics {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.metric {
+  display: grid;
+  grid-template-columns: 24px auto;
+  grid-template-rows: 14px 18px;
+  align-items: center;
+  min-width: 105px;
+  column-gap: 7px;
+}
+
+.metricIcon {
+  grid-row: 1 / 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+}
+
+.cpuIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.memoryIcon {
+  color: var(--ant-color-warning-text);
+  background: var(--ant-color-warning-bg);
+}
+
+.metric > span:not(.metricIcon) {
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+}
+
+.metric strong {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.resourceEmpty {
+  min-height: 40px;
+}
+
+.preloadControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--ant-color-fill-quaternary);
+}
+
+.preloadControl :global(.ant-typography) {
+  font-size: 12px;
+}
+
+.actionCell,
+.actionTools {
+  display: flex;
+  align-items: center;
+}
+
+.actionCell {
+  min-width: 220px;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.primaryAction {
+  flex: 0 0 auto;
+  padding-inline: 4px !important;
+}
+
+.actionTools {
+  gap: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--ant-color-border-secondary);
+}
+
+.iconAction {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
+}
+
+.probeStatusSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.probeStatusSummary :global(.ant-tag) {
+  margin: 0;
+}
+
+.probeStatusTooltip {
+  display: grid;
+  min-width: 260px;
+  gap: 7px;
+}
+
+.probeStatusTooltip > span {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.probeStatusTooltip > span > span:last-child {
+  color: rgb(255 255 255 / 70%);
+}
+
+.healthyDot,
+.abnormalDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.healthyDot {
+  background: var(--ant-color-success);
+}
+
+.abnormalDot {
+  background: var(--ant-color-warning);
+}
+
+.clusterRow > td {
+  background: var(--ant-color-fill-quaternary) !important;
+}
+
+.clusterRow:hover > td {
+  background: var(--ant-color-fill-tertiary) !important;
+}
+
+.nodeRow :global(.ant-table-row-expand-icon-cell) {
+  border-inline-start: 2px solid var(--ant-color-border-secondary);
+}
+
+.logToolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.logToolbar label {
+  display: flex;
+  min-width: 180px;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.logToolbar label > span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.logWorkspace {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border);
+}
+
+.logFileList {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  overflow: auto;
+  border-right: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.logListTitle,
+.logPreviewHeader {
+  display: flex;
+  align-items: center;
+}
+
+.logListTitle {
+  gap: 7px;
+  padding: 0 4px 6px;
+}
+
+.logFileList button {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logFileList button:hover {
+  background: var(--ant-color-fill-secondary);
+}
+
+.logFileList .logFileActive {
+  border-color: var(--ant-color-primary-border);
+  background: var(--ant-color-primary-bg);
+}
+
+.logFileList button span {
+  overflow: hidden;
+  color: var(--ant-color-text-secondary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logPreview {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.logPreviewHeader {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logPreview :global(textarea.ant-input) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .tabs {
+    padding-inline: 12px;
+  }
+
+  .managementPage {
+    padding: 12px;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .tableFilters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tableFilters :global(.ant-input-search),
+  .tableFilters :global(.ant-select) {
+    width: 100%;
+  }
+
+  .logWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .logFileList {
+    max-height: 180px;
+    border-right: 0;
+    border-bottom: 1px solid var(--ant-color-border-secondary);
+  }
+}

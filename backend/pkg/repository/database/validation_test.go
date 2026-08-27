@@ -144,6 +144,8 @@ func TestIsValidRouter(t *testing.T) {
 		{"Valid router: /service", "/service", true},
 		{"Valid router: /logs/full", "/logs/full", true},
 		{"Valid router: /knowledge-bases", "/knowledge-bases", true},
+		{"Valid router: /probe-management/config", "/probe-management/config", true},
+		{"Valid router: /probe-management/log-collection", "/probe-management/log-collection", true},
 		{"Invalid router", "/api/v3", false},
 		{"Empty router", "", false},
 	}
@@ -198,4 +200,33 @@ func TestInitFeatureRouterMapsAlertEventsToReport(t *testing.T) {
 		).
 		Count(&count).Error)
 	assert.Equal(t, int64(1), count)
+}
+
+func TestInitFeatureRouterMapsProbePagesToProbeManagement(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	require.NoError(t, err)
+	require.NoError(t, db.AutoMigrate(&profile.Feature{}, &Router{}, &FeatureMapping{}))
+
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+
+	require.NoError(t, db.Create(&profile.Feature{FeatureName: "探针管理"}).Error)
+	for _, routerTo := range []string{"/probe-management", "/probe-management/config", "/probe-management/log-collection"} {
+		require.NoError(t, db.Create(&Router{RouterTo: routerTo}).Error)
+	}
+
+	require.NoError(t, repo.initFeatureRouter(nil))
+
+	for _, routerTo := range []string{"/probe-management", "/probe-management/config", "/probe-management/log-collection"} {
+		var count int64
+		require.NoError(t, db.Model(&FeatureMapping{}).
+			Joins("JOIN feature ON feature.feature_id = feature_mapping.feature_id").
+			Joins("JOIN router ON router.router_id = feature_mapping.mapped_id").
+			Where("feature.feature_name = ? AND router.router_to = ? AND feature_mapping.mapped_type = ?",
+				"探针管理",
+				routerTo,
+				model.MAPPED_TYP_ROUTER,
+			).
+			Count(&count).Error)
+		assert.Equal(t, int64(1), count, routerTo)
+	}
 }
