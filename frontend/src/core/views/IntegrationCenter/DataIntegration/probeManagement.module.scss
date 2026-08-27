@@ -151,11 +151,43 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding-inline: 8px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: var(--ant-color-fill-quaternary);
 }
 
 .preloadControl :global(.ant-typography) {
   font-size: 12px;
+}
+
+.actionCell,
+.actionTools {
+  display: flex;
+  align-items: center;
+}
+
+.actionCell {
+  min-width: 220px;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.primaryAction {
+  flex: 0 0 auto;
+  padding-inline: 4px !important;
+}
+
+.actionTools {
+  gap: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--ant-color-border-secondary);
+}
+
+.iconAction {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 !important;
 }
 
 .probeStatusSummary {

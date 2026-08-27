@@ -650,7 +650,7 @@ export default function ProbeManagement() {
     {
       title: '集群 / 节点',
       key: 'name',
-      width: '30%',
+      width: '28%',
       render: (_: unknown, record: TableRow) => (
         <div className={styles.identityCell}>
           <span className={record.kind === 'cluster' ? styles.clusterIcon : styles.nodeIcon}>
@@ -668,7 +668,7 @@ export default function ProbeManagement() {
     {
       title: '运行状态',
       key: 'probeStatus',
-      width: '34%',
+      width: '30%',
       render: (_: unknown, record: TableRow) => {
         if (record.kind === 'cluster') {
           const healthy = record.nodeCount > 0 && record.healthyNodeCount === record.nodeCount
@@ -742,7 +742,7 @@ export default function ProbeManagement() {
     {
       title: '操作',
       key: 'operation',
-      width: '22%',
+      width: 250,
       render: (_: unknown, record: TableRow) =>
         record.kind === 'cluster'
           ? (() => {
@@ -760,37 +760,11 @@ export default function ProbeManagement() {
               )
               const canStop = lifecycleStates.some((state) => !isFused(state))
               return (
-                <Space size={0} wrap>
+                <div className={styles.actionCell}>
                   <Button
-                    size="small"
-                    icon={<Play size={14} />}
-                    loading={lifecycleUpdating}
-                    disabled={lifecycleUpdating || !canStart}
-                    onClick={() => setNodesRunning(clusterNodes, true, '集群')}
-                  >
-                    启动
-                  </Button>
-                  <Popconfirm
-                    title={`确认停止集群 ${record.name}？`}
-                    description="集群内节点将批量停止，管理通道保持在线。"
-                    okText="停止"
-                    cancelText="取消"
-                    okButtonProps={{ danger: true }}
-                    disabled={lifecycleUpdating || !canStop}
-                    onConfirm={() => setNodesRunning(clusterNodes, false, '集群')}
-                  >
-                    <Button
-                      danger
-                      size="small"
-                      icon={<Square size={13} />}
-                      loading={lifecycleUpdating}
-                      disabled={lifecycleUpdating || !canStop}
-                    >
-                      停止
-                    </Button>
-                  </Popconfirm>
-                  <Button
+                    className={styles.primaryAction}
                     type="link"
+                    size="small"
                     icon={<SettingOutlined />}
                     onClick={() =>
                       navigate(
@@ -800,7 +774,43 @@ export default function ProbeManagement() {
                   >
                     集群配置
                   </Button>
-                </Space>
+                  <div className={styles.actionTools}>
+                    <Tooltip title={canStart ? '启动集群探针' : '当前没有可启动的探针'}>
+                      <Button
+                        className={styles.iconAction}
+                        type="text"
+                        size="small"
+                        aria-label="启动集群探针"
+                        icon={<Play size={14} />}
+                        loading={lifecycleUpdating}
+                        disabled={lifecycleUpdating || !canStart}
+                        onClick={() => setNodesRunning(clusterNodes, true, '集群')}
+                      />
+                    </Tooltip>
+                    <Popconfirm
+                      title={`确认停止集群 ${record.name}？`}
+                      description="集群内节点将批量停止，管理通道保持在线。"
+                      okText="停止"
+                      cancelText="取消"
+                      okButtonProps={{ danger: true }}
+                      disabled={lifecycleUpdating || !canStop}
+                      onConfirm={() => setNodesRunning(clusterNodes, false, '集群')}
+                    >
+                      <Tooltip title={canStop ? '停止集群探针' : '当前没有可停止的探针'}>
+                        <Button
+                          className={styles.iconAction}
+                          danger
+                          type="text"
+                          size="small"
+                          aria-label="停止集群探针"
+                          icon={<Square size={13} />}
+                          loading={lifecycleUpdating}
+                          disabled={lifecycleUpdating || !canStop}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  </div>
+                </div>
               )
             })()
           : (() => {
@@ -815,7 +825,7 @@ export default function ProbeManagement() {
               )
               const canStop = lifecycleStates.some((state) => !isFused(state))
               return (
-                <Space size={0} wrap>
+                <div className={styles.actionCell}>
                   {preloadControllable && (
                     <span className={styles.preloadControl}>
                       <Typography.Text>Preload</Typography.Text>
@@ -829,35 +839,9 @@ export default function ProbeManagement() {
                     </span>
                   )}
                   <Button
-                    size="small"
-                    icon={<Play size={14} />}
-                    loading={lifecycleUpdating}
-                    disabled={lifecycleUpdating || !canStart}
-                    onClick={() => setNodeRunning(record, true)}
-                  >
-                    启动
-                  </Button>
-                  <Popconfirm
-                    title={`确认停止节点 ${record.name}？`}
-                    description="停止后管理通道保持在线，可随时重新启动。"
-                    okText="停止"
-                    cancelText="取消"
-                    okButtonProps={{ danger: true }}
-                    disabled={lifecycleUpdating || !canStop}
-                    onConfirm={() => setNodeRunning(record, false)}
-                  >
-                    <Button
-                      danger
-                      size="small"
-                      icon={<Square size={13} />}
-                      loading={lifecycleUpdating}
-                      disabled={lifecycleUpdating || !canStop}
-                    >
-                      停止
-                    </Button>
-                  </Popconfirm>
-                  <Button
+                    className={styles.primaryAction}
                     type="link"
+                    size="small"
                     icon={<SettingOutlined />}
                     disabled={!record.states.length}
                     onClick={() =>
@@ -868,15 +852,54 @@ export default function ProbeManagement() {
                   >
                     节点配置
                   </Button>
-                  <Button
-                    type="link"
-                    icon={<Radio size={15} />}
-                    disabled={!record.states.length}
-                    onClick={() => openRealtimeLogs([record])}
-                  >
-                    实时日志
-                  </Button>
-                </Space>
+                  <div className={styles.actionTools}>
+                    <Tooltip title={canStart ? '启动节点探针' : '当前没有可启动的探针'}>
+                      <Button
+                        className={styles.iconAction}
+                        type="text"
+                        size="small"
+                        aria-label="启动节点探针"
+                        icon={<Play size={14} />}
+                        loading={lifecycleUpdating}
+                        disabled={lifecycleUpdating || !canStart}
+                        onClick={() => setNodeRunning(record, true)}
+                      />
+                    </Tooltip>
+                    <Popconfirm
+                      title={`确认停止节点 ${record.name}？`}
+                      description="停止后管理通道保持在线，可随时重新启动。"
+                      okText="停止"
+                      cancelText="取消"
+                      okButtonProps={{ danger: true }}
+                      disabled={lifecycleUpdating || !canStop}
+                      onConfirm={() => setNodeRunning(record, false)}
+                    >
+                      <Tooltip title={canStop ? '停止节点探针' : '当前没有可停止的探针'}>
+                        <Button
+                          className={styles.iconAction}
+                          danger
+                          type="text"
+                          size="small"
+                          aria-label="停止节点探针"
+                          icon={<Square size={13} />}
+                          loading={lifecycleUpdating}
+                          disabled={lifecycleUpdating || !canStop}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                    <Tooltip title="查看实时日志">
+                      <Button
+                        className={styles.iconAction}
+                        type="text"
+                        size="small"
+                        aria-label="查看节点实时日志"
+                        icon={<Radio size={15} />}
+                        disabled={!record.states.length}
+                        onClick={() => openRealtimeLogs([record])}
+                      />
+                    </Tooltip>
+                  </div>
+                </div>
               )
             })(),
     },
