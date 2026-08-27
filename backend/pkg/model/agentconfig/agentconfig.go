@@ -107,6 +107,8 @@ type Node struct {
 	LastSeenAt        *time.Time `json:"lastSeenAt"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
+	ClusterIP         string     `gorm:"-" json:"clusterIp,omitempty"`
+	MixedCluster      bool       `gorm:"-" json:"mixedCluster"`
 }
 
 type InitialConfigFile struct {

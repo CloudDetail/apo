@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -76,6 +77,8 @@ type AgentNode = {
   environment?: string
   labels?: Record<string, string>
   reportedVariables?: Record<string, string>
+  clusterIp?: string
+  mixedCluster?: boolean
 }
 type NodeVariables = {
   nodeId: string
@@ -787,6 +790,16 @@ export default function ProbeConfigPage() {
     [nodes, selectedClusters],
   )
   const targetCount = targetNodes.length
+  const mixedTargetNodes =
+    mode === 'node'
+      ? currentNode?.mixedCluster
+        ? [currentNode]
+        : []
+      : targetNodes.filter((node) => node.mixedCluster)
+  const configurationBlockedByMixedCluster = mode !== 'global' && mixedTargetNodes.length > 0
+  const mixedClusterIPs = [
+    ...new Set(mixedTargetNodes.map((node) => node.clusterIp).filter(Boolean) as string[]),
+  ]
   useEffect(() => {
     if (mode !== 'batch' || !targetNodes.length) {
       setBatchNodeConfigs({})
@@ -2338,27 +2351,41 @@ export default function ProbeConfigPage() {
             </div>
           </div>
         </div>
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={[
-            { key: 'config', label: '配置文件', children: configTab },
-            ...(isKubernetesClusterConfig ||
-            isKubernetesNodeConfig ||
-            showBatchPreloadTab ||
-            hasPreloadControl
-              ? [
-                  {
-                    key: 'injection',
-                    label: '注入控制',
-                    children: injectionTab,
-                  },
-                ]
-              : []),
-            { key: 'logs', label: '日志采集', children: logCollectionTab },
-            { key: 'circuit', label: '熔断策略', children: circuitTab },
-          ]}
-        />
+        {configurationBlockedByMixedCluster ? (
+          <Alert
+            type="error"
+            showIcon
+            message="当前范围包含 Kubernetes 与 VM 混合集群，已暂停页面配置下发"
+            description={`相同 cluster_ip（${mixedClusterIPs.join('、') || '未上报'}）下出现了不同类型节点。默认配置仍会按节点固有类型生效；请先在集群管理中拆分节点归属。`}
+            action={
+              <Button type="primary" onClick={() => navigate('/probe-management/clusters')}>
+                前往集群管理
+              </Button>
+            }
+          />
+        ) : (
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              { key: 'config', label: '配置文件', children: configTab },
+              ...(isKubernetesClusterConfig ||
+              isKubernetesNodeConfig ||
+              showBatchPreloadTab ||
+              hasPreloadControl
+                ? [
+                    {
+                      key: 'injection',
+                      label: '注入控制',
+                      children: injectionTab,
+                    },
+                  ]
+                : []),
+              { key: 'logs', label: '日志采集', children: logCollectionTab },
+              { key: 'circuit', label: '熔断策略', children: circuitTab },
+            ]}
+          />
+        )}
         {!!records.length && (
           <Table
             size="small"

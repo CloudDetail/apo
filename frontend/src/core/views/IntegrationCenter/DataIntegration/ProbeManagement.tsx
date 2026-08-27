@@ -27,7 +27,6 @@ import {
   Plus,
   Radio,
   RefreshCw,
-  RotateCcw,
   Server,
   Settings,
   SlidersHorizontal,
@@ -44,10 +43,7 @@ import {
   getAgentConfigNodesApi,
   getAgentConfigDeliveriesApi,
   getAgentConfigStatesApi,
-  getNodeClusterIdentityApi,
   getIntegrationClusterListApi,
-  restoreNodeClusterIdApi,
-  updateNodeClusterIdentityApi,
   updateClusterDisplayNameApi,
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
@@ -176,14 +172,6 @@ type DeliveryRecord = {
   createdAt: string
   targets: DeliveryTarget[]
 }
-type NodeClusterIdentity = {
-  nodeId: string
-  instanceId?: string
-  clusterId: string
-  initialClusterId?: string
-  clusterIp?: string
-}
-
 const UNASSIGNED_CLUSTER = '未分配集群'
 const STATUS_REFRESH_INTERVAL_MS = 60_000
 const MAX_VISIBLE_ABNORMAL_PROBES = 2
@@ -445,9 +433,6 @@ export default function ProbeManagement() {
   const [displayNameCluster, setDisplayNameCluster] = useState<IntegrationCluster>()
   const [displayName, setDisplayName] = useState('')
   const [displayNameSaving, setDisplayNameSaving] = useState(false)
-  const [identityNode, setIdentityNode] = useState<NodeRow>()
-  const [identityDraft, setIdentityDraft] = useState<NodeClusterIdentity>()
-  const [identitySaving, setIdentitySaving] = useState(false)
   const [installCluster, setInstallCluster] = useState<IntegrationCluster>()
   const [deliveryDrawerOpen, setDeliveryDrawerOpen] = useState(false)
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([])
@@ -810,49 +795,6 @@ export default function ProbeManagement() {
     setDisplayName(String(cluster.name || ''))
   }
 
-  const openIdentityEditor = async (node: NodeRow) => {
-    setIdentityNode(node)
-    try {
-      setIdentityDraft((await getNodeClusterIdentityApi(node.nodeId)) as NodeClusterIdentity)
-    } catch (error: any) {
-      setIdentityDraft({ nodeId: node.nodeId, clusterId: node.clusterId })
-      notify({ type: 'error', message: error?.message || '加载节点集群身份失败' })
-    }
-  }
-
-  const saveIdentity = async () => {
-    if (!identityNode || !identityDraft) return
-    setIdentitySaving(true)
-    try {
-      await updateNodeClusterIdentityApi(identityNode.nodeId, {
-        clusterId: identityDraft.clusterId,
-        clusterIp: identityDraft.clusterIp,
-      })
-      notify({ type: 'success', message: '节点集群身份已更新' })
-      setIdentityNode(undefined)
-      await load()
-    } catch (error: any) {
-      notify({ type: 'error', message: error?.message || '更新节点集群身份失败' })
-    } finally {
-      setIdentitySaving(false)
-    }
-  }
-
-  const restoreIdentity = async () => {
-    if (!identityNode) return
-    setIdentitySaving(true)
-    try {
-      const restored = (await restoreNodeClusterIdApi(identityNode.nodeId)) as NodeClusterIdentity
-      setIdentityDraft(restored)
-      notify({ type: 'success', message: '已恢复节点初始 cluster_id' })
-      await load()
-    } catch (error: any) {
-      notify({ type: 'error', message: error?.message || '恢复初始 cluster_id 失败' })
-    } finally {
-      setIdentitySaving(false)
-    }
-  }
-
   const saveDisplayName = async () => {
     if (!displayNameCluster) return
     setDisplayNameSaving(true)
@@ -1023,16 +965,6 @@ export default function ProbeManagement() {
                     集群配置
                   </Button>
                   <div className={styles.actionTools}>
-                    <Tooltip title="管理节点集群身份">
-                      <Button
-                        className={styles.iconAction}
-                        type="text"
-                        size="small"
-                        aria-label="管理节点集群身份"
-                        icon={<Network size={14} />}
-                        onClick={() => openIdentityEditor(record)}
-                      />
-                    </Tooltip>
                     <Tooltip title={canStart ? '启动集群探针' : '当前没有可启动的探针'}>
                       <Button
                         className={styles.iconAction}
@@ -1312,6 +1244,12 @@ export default function ProbeManagement() {
         </div>
         <Space className={styles.headerActions} wrap>
           <Button
+            icon={<Network size={15} />}
+            onClick={() => navigate('/probe-management/clusters')}
+          >
+            集群管理
+          </Button>
+          <Button
             type="primary"
             icon={<Plus size={15} />}
             onClick={() => navigate('/probe-management/settings')}
@@ -1327,7 +1265,10 @@ export default function ProbeManagement() {
           >
             默认配置
           </Button>
-          <Button icon={<Network size={15} />} onClick={() => navigate('/probe-management/config')}>
+          <Button
+            icon={<SlidersHorizontal size={15} />}
+            onClick={() => navigate('/probe-management/config')}
+          >
             批量配置
           </Button>
         </Space>
@@ -1529,53 +1470,6 @@ export default function ProbeManagement() {
           onChange={(event) => setDisplayName(event.target.value)}
           onPressEnter={saveDisplayName}
         />
-      </Modal>
-      <Modal
-        open={Boolean(identityNode)}
-        title="管理节点集群身份"
-        okText="保存"
-        cancelText="取消"
-        confirmLoading={identitySaving}
-        onOk={saveIdentity}
-        onCancel={() => setIdentityNode(undefined)}
-      >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Typography.Text type="secondary">
-            节点: {identityNode?.name || identityNode?.nodeId}
-          </Typography.Text>
-          <Typography.Text type="secondary">
-            INSTANCE_ID: {identityDraft?.instanceId || '未上报'}
-          </Typography.Text>
-          <Input
-            addonBefore="cluster_id"
-            value={identityDraft?.clusterId || ''}
-            onChange={(event) =>
-              setIdentityDraft(
-                (current) => current && { ...current, clusterId: event.target.value },
-              )
-            }
-          />
-          <Input
-            addonBefore="CLUSTER_IP"
-            value={identityDraft?.clusterIp || ''}
-            placeholder="可选，留空使用探针上报值"
-            onChange={(event) =>
-              setIdentityDraft(
-                (current) => current && { ...current, clusterIp: event.target.value },
-              )
-            }
-          />
-          <Typography.Text type="secondary">
-            初始 cluster_id: {identityDraft?.initialClusterId || '未记录'}
-          </Typography.Text>
-          <Button
-            icon={<RotateCcw size={14} />}
-            disabled={!identityDraft?.initialClusterId}
-            onClick={restoreIdentity}
-          >
-            恢复初始 cluster_id
-          </Button>
-        </Space>
       </Modal>
       <Modal
         open={Boolean(installCluster)}

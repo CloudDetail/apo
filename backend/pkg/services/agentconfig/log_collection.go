@@ -1197,6 +1197,9 @@ func (s *Service) GetHostFileCollection(ctx core.Context, nodeID string) (*HostF
 }
 
 func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input HostFileCollectionInput, user int64) (*HostFileCollection, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, nodeID); err != nil {
+		return nil, err
+	}
 	preview, normalizedContainer, normalizedFiles, err := s.previewHostFileCollection(ctx, nodeID, input)
 	_ = preview
 	if err != nil {

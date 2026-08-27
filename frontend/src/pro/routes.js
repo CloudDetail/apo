@@ -51,12 +51,18 @@ const ProbeManagementView = React.lazy(
 const ProbeConfigView = React.lazy(
   () => import('src/core/views/IntegrationCenter/DataIntegration/ProbeConfigPage'),
 )
+const ClusterManagementView = React.lazy(
+  () => import('src/core/views/IntegrationCenter/DataIntegration/ClusterManagementPage'),
+)
 const ProbeManagementPage = isProbeManagementPreviewRoute()
   ? ProbeManagementView
   : AuthRouter(ProbeManagementView)
 const ProbeConfigPage = isProbeManagementPreviewRoute()
   ? ProbeConfigView
   : AuthRouter(ProbeConfigView)
+const ClusterManagementPage = isProbeManagementPreviewRoute()
+  ? ClusterManagementView
+  : AuthRouter(ClusterManagementView)
 
 const IntegrationSettingsView = React.lazy(
   () => import('src/core/views/IntegrationCenter/DataIntegration/Integration'),
@@ -197,6 +203,11 @@ let proRoutes = [
     path: '/probe-management/config',
     name: 'ProbeConfig',
     element: ProbeConfigPage,
+  },
+  {
+    path: '/probe-management/clusters',
+    name: 'ClusterManagement',
+    element: ClusterManagementPage,
   },
 ]
 export default proRoutes

@@ -153,7 +153,7 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
             <Input placeholder={t('clusterDisplayNamePlaceholder')} />
           </Form.Item>
           <Form.Item name="clusterType" label={t('clusterType')} rules={[{ required: true }]}>
-            <Segmented options={clusterTypeOptions} />
+            <Segmented options={clusterTypeOptions} disabled={Boolean(formInitValues?.id)} />
           </Form.Item>
           <APOCollectorFormItem defaultGatewayAddr={defaultGatewayAddr} isMinimal={!shouldShow} />
           {shouldShow && (

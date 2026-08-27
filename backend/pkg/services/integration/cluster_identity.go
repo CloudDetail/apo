@@ -5,6 +5,7 @@ package integration
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	model "github.com/CloudDetail/apo/backend/pkg/model/integration"
@@ -19,6 +20,14 @@ func normalizeClusterIdentity(cluster *model.Cluster) error {
 	cluster.Name = strings.TrimSpace(cluster.Name)
 	if cluster.Name == "" {
 		cluster.Name = cluster.ID
+	}
+	switch strings.ToLower(strings.TrimSpace(cluster.ClusterType)) {
+	case model.ClusterTypeK8s, "kubernetes", "helm", "":
+		cluster.ClusterType = model.ClusterTypeK8s
+	case model.ClusterTypeVM, "binary":
+		cluster.ClusterType = model.ClusterTypeVM
+	default:
+		return fmt.Errorf("unsupported cluster type %q; expected k8s or vm", cluster.ClusterType)
 	}
 	return nil
 }

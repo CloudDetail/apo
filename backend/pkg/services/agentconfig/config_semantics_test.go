@@ -11,6 +11,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
+	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -18,6 +19,7 @@ import (
 type configSemanticsRepo struct {
 	*commandRepo
 	nodes             map[string]ac.Node
+	clusters          map[string]integrationmodel.Cluster
 	baselines         map[string]ac.InitialConfig
 	releases          map[string]ac.Release
 	templates         map[uuid.UUID]ac.Template
@@ -37,6 +39,7 @@ func newConfigSemanticsRepo() *configSemanticsRepo {
 	return &configSemanticsRepo{
 		commandRepo:       &commandRepo{},
 		nodes:             map[string]ac.Node{},
+		clusters:          map[string]integrationmodel.Cluster{},
 		baselines:         map[string]ac.InitialConfig{},
 		releases:          map[string]ac.Release{},
 		templates:         map[uuid.UUID]ac.Template{},
@@ -91,6 +94,17 @@ func (r *configSemanticsRepo) GetAgentNode(_ core.Context, node string) (*ac.Nod
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &value, nil
+}
+func (r *configSemanticsRepo) UpsertAgentNode(_ core.Context, node *ac.Node) error {
+	r.nodes[node.ID] = *node
+	return nil
+}
+func (r *configSemanticsRepo) GetCluster(_ core.Context, clusterID string) (integrationmodel.Cluster, error) {
+	cluster, ok := r.clusters[clusterID]
+	if !ok {
+		return integrationmodel.Cluster{}, gorm.ErrRecordNotFound
+	}
+	return cluster, nil
 }
 func (r *configSemanticsRepo) ListAgentNodes(core.Context) ([]ac.Node, error) {
 	result := make([]ac.Node, 0, len(r.nodes))
@@ -1263,5 +1277,71 @@ func TestListDeliveriesCalculatesEachNodeReceiptFromTargetGeneration(t *testing.
 	}
 	if delivery.Targets[2].Probes[0].Reason != "checksum mismatch" {
 		t.Fatalf("failure reason was lost: %+v", delivery.Targets[2])
+	}
+}
+
+func TestSaveNodeClusterIdentityEnforcesTargetClusterType(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-vm"] = ac.Node{ID: "node-vm", ClusterID: "vm-old", InitialClusterID: "vm-old", Environment: "binary"}
+	repo.clusters["vm-old"] = integrationmodel.Cluster{ID: "vm-old", ClusterType: integrationmodel.ClusterTypeVM}
+	repo.clusters["vm-next"] = integrationmodel.Cluster{ID: "vm-next", ClusterType: integrationmodel.ClusterTypeVM}
+	repo.clusters["k8s-next"] = integrationmodel.Cluster{ID: "k8s-next", ClusterType: integrationmodel.ClusterTypeK8s}
+	service := New(repo)
+
+	identity, err := service.SaveNodeClusterIdentity(nil, "node-vm", "vm-next", "10.0.0.8")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if identity.ClusterID != "vm-next" || identity.ClusterIP != "10.0.0.8" {
+		t.Fatalf("unexpected identity: %+v", identity)
+	}
+	if err := service.Register(nil, &ac.Node{ID: "node-vm", ClusterID: "vm-old", Environment: "binary"}); err != nil {
+		t.Fatal(err)
+	}
+	if repo.nodes["node-vm"].ClusterID != "vm-next" {
+		t.Fatalf("agent registration discarded the managed cluster assignment: %+v", repo.nodes["node-vm"])
+	}
+	if _, err := service.RestoreNodeClusterID(nil, "node-vm"); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Register(nil, &ac.Node{ID: "node-vm", ClusterID: "vm-old", Environment: "binary"}); err != nil {
+		t.Fatal(err)
+	}
+	if repo.nodes["node-vm"].ClusterID != "vm-old" {
+		t.Fatalf("restored cluster assignment was not durable: %+v", repo.nodes["node-vm"])
+	}
+
+	if _, err := service.SaveNodeClusterIdentity(nil, "node-vm", "k8s-next", ""); err == nil || !strings.Contains(err.Error(), "cannot assign vm node") {
+		t.Fatalf("cross-type assignment was not rejected: %v", err)
+	}
+}
+
+func TestMixedClusterIPBlocksExplicitDeliveryButRemainsVisible(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-k8s"] = ac.Node{ID: "node-k8s", ClusterID: "cluster-a", Environment: "kubernetes", Labels: ac.JSON(`{"CLUSTER_IP":"10.0.0.9"}`)}
+	repo.nodes["node-vm"] = ac.Node{ID: "node-vm", ClusterID: "cluster-b", Environment: "vm", Labels: ac.JSON(`{"CLUSTER_IP":"10.0.0.9"}`)}
+	service := New(repo)
+
+	nodes, err := service.ListNodes(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, node := range nodes {
+		if !node.MixedCluster || node.ClusterIP != "10.0.0.9" {
+			t.Fatalf("mixed risk was not exposed for node: %+v", node)
+		}
+		settings, err := service.SettingsForNode(nil, node.ID)
+		if err != nil || !settings.UseLocalDefaults || settings.CircuitBreaker == nil {
+			t.Fatalf("mixed node %s could not use defaults: settings=%+v err=%v", node.ID, settings, err)
+		}
+	}
+	if _, err := service.BatchSaveCircuit(nil, CircuitBatchInput{
+		ClusterIDs: []string{"cluster-a"},
+		CircuitBreaker: ac.CircuitBreakerSettings{
+			Enabled: true, MaxCPUCores: 1, MaxMemoryBytes: 64 * 1024 * 1024, DurationSeconds: 30,
+			RecoveryInitialDelaySeconds: 30, RecoveryMaxDelaySeconds: 60,
+		},
+	}, 1); err == nil || !strings.Contains(err.Error(), "mixed at cluster_ip 10.0.0.9") {
+		t.Fatalf("mixed cluster delivery was not rejected: %v", err)
 	}
 }

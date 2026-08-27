@@ -16,6 +16,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
+	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -38,6 +39,7 @@ type Repository interface {
 	UpsertAgentNode(core.Context, *ac.Node) error
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
+	GetCluster(core.Context, string) (integrationmodel.Cluster, error)
 	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
 	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error
 	SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error
@@ -957,6 +959,12 @@ func (s *Service) Register(ctx core.Context, n *ac.Node) error {
 		if len(n.VariableOverrides) == 0 || string(n.VariableOverrides) == "{}" {
 			n.VariableOverrides = existing.VariableOverrides
 		}
+		var overrides map[string]string
+		if json.Unmarshal(existing.VariableOverrides, &overrides) == nil {
+			if assignedClusterID := strings.TrimSpace(overrides["CLUSTER_ID"]); assignedClusterID != "" {
+				n.ClusterID = assignedClusterID
+			}
+		}
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
@@ -967,7 +975,14 @@ func (s *Service) Register(ctx core.Context, n *ac.Node) error {
 	n.LastSeenAt = &now
 	return s.repo.UpsertAgentNode(ctx, n)
 }
-func (s *Service) ListNodes(ctx core.Context) ([]ac.Node, error) { return s.repo.ListAgentNodes(ctx) }
+func (s *Service) ListNodes(ctx core.Context) ([]ac.Node, error) {
+	nodes, err := s.repo.ListAgentNodes(ctx)
+	if err != nil {
+		return nil, err
+	}
+	markMixedClusterNodes(nodes)
+	return nodes, nil
+}
 
 func (s *Service) NodeVariables(ctx core.Context, nodeID string) (*NodeVariables, error) {
 	node, err := s.repo.GetAgentNode(ctx, nodeID)
@@ -1042,6 +1057,9 @@ func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID, c
 	if clusterID == "" {
 		return nil, errors.New("cluster ID is required")
 	}
+	if err := s.validateNodeTargetCluster(ctx, node, clusterID); err != nil {
+		return nil, err
+	}
 	overrides := map[string]string{}
 	if len(node.VariableOverrides) > 0 {
 		_ = json.Unmarshal(node.VariableOverrides, &overrides)
@@ -1051,6 +1069,7 @@ func (s *Service) SaveNodeClusterIdentity(ctx core.Context, nodeID, clusterID, c
 	} else {
 		delete(overrides, "CLUSTER_IP")
 	}
+	overrides["CLUSTER_ID"] = clusterID
 	data, err := json.Marshal(overrides)
 	if err != nil {
 		return nil, err
@@ -1083,11 +1102,43 @@ func (s *Service) RestoreNodeClusterID(ctx core.Context, nodeID string) (*NodeCl
 	if strings.TrimSpace(node.InitialClusterID) == "" {
 		return nil, errors.New("node has no initial cluster ID")
 	}
+	if err := s.validateNodeTargetCluster(ctx, node, node.InitialClusterID); err != nil {
+		return nil, err
+	}
+	overrides := map[string]string{}
+	if len(node.VariableOverrides) > 0 {
+		_ = json.Unmarshal(node.VariableOverrides, &overrides)
+	}
+	delete(overrides, "CLUSTER_ID")
+	data, err := json.Marshal(overrides)
+	if err != nil {
+		return nil, err
+	}
 	node.ClusterID = node.InitialClusterID
+	node.VariableOverrides = ac.JSON(data)
 	if err := s.repo.UpsertAgentNode(ctx, node); err != nil {
 		return nil, err
 	}
 	return s.GetNodeClusterIdentity(ctx, nodeID)
+}
+
+func (s *Service) validateNodeTargetCluster(ctx core.Context, node *ac.Node, clusterID string) error {
+	targetCluster, err := s.repo.GetCluster(ctx, clusterID)
+	if err != nil {
+		return fmt.Errorf("target cluster %q does not exist: %w", clusterID, err)
+	}
+	nodeType, err := normalizeTemplateClusterType(node.Environment)
+	if err != nil {
+		return fmt.Errorf("node %s has unsupported environment %q", node.ID, node.Environment)
+	}
+	targetType, err := normalizeTemplateClusterType(targetCluster.ClusterType)
+	if err != nil {
+		return fmt.Errorf("target cluster %s has unsupported type %q", targetCluster.ID, targetCluster.ClusterType)
+	}
+	if nodeType != targetType {
+		return fmt.Errorf("cannot assign %s node %s to %s cluster %s", nodeType, node.ID, targetType, targetCluster.ID)
+	}
+	return nil
 }
 
 func (s *Service) SaveInitialConfig(ctx core.Context, node string, in InitialConfigInput) (*ac.InitialConfig, bool, error) {
@@ -1255,6 +1306,9 @@ func (s *Service) saveNodeCircuitConfigs(ctx core.Context, nodes []ac.Node, sett
 }
 
 func (s *Service) SaveNodeCircuit(ctx core.Context, node string, settings ac.CircuitBreakerSettings, user int64) (*ac.CircuitBreakerSettings, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, node); err != nil {
+		return nil, err
+	}
 	target, err := s.repo.GetAgentNode(ctx, node)
 	if err != nil {
 		return nil, err
@@ -1320,6 +1374,9 @@ func (s *Service) saveNodeLogSources(ctx core.Context, nodes []ac.Node, probe st
 }
 
 func (s *Service) SaveNodeLogSources(ctx core.Context, node, probe string, sources []ac.LogSource, user int64) ([]ac.LogSource, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, node); err != nil {
+		return nil, err
+	}
 	target, err := s.repo.GetAgentNode(ctx, node)
 	if err != nil {
 		return nil, err
@@ -1354,10 +1411,14 @@ func (s *Service) nodesInClusters(ctx core.Context, clusterIDs []string) ([]ac.N
 	if err != nil {
 		return nil, err
 	}
+	markMixedClusterNodes(nodes)
 	found := map[string]bool{}
 	targets := make([]ac.Node, 0)
 	for _, node := range nodes {
 		if wanted[node.ClusterID] {
+			if node.MixedCluster {
+				return nil, fmt.Errorf("cluster %s is mixed at cluster_ip %s; resolve node ownership in cluster management before dispatching configuration", node.ClusterID, node.ClusterIP)
+			}
 			found[node.ClusterID] = true
 			targets = append(targets, node)
 		}
@@ -1373,6 +1434,47 @@ func (s *Service) nodesInClusters(ctx core.Context, clusterIDs []string) ([]ac.N
 		return nil, fmt.Errorf("clusters have no registered nodes: %s", strings.Join(missing, ", "))
 	}
 	return targets, nil
+}
+
+func markMixedClusterNodes(nodes []ac.Node) {
+	typesByClusterIP := map[string]map[string]struct{}{}
+	for index := range nodes {
+		clusterIP := strings.TrimSpace(nodeTemplateVariables(&nodes[index])["CLUSTER_IP"])
+		nodes[index].ClusterIP = clusterIP
+		if clusterIP == "" {
+			continue
+		}
+		nodeType, err := normalizeTemplateClusterType(nodes[index].Environment)
+		if err != nil {
+			log.Printf("agentconfig: cannot classify node %s environment %q for mixed-cluster detection: %v", nodes[index].ID, nodes[index].Environment, err)
+			continue
+		}
+		if typesByClusterIP[clusterIP] == nil {
+			typesByClusterIP[clusterIP] = map[string]struct{}{}
+		}
+		typesByClusterIP[clusterIP][nodeType] = struct{}{}
+	}
+	for index := range nodes {
+		nodes[index].MixedCluster = nodes[index].ClusterIP != "" && len(typesByClusterIP[nodes[index].ClusterIP]) > 1
+	}
+}
+
+func (s *Service) ensureNodeAllowsExplicitDelivery(ctx core.Context, nodeID string) error {
+	nodes, err := s.repo.ListAgentNodes(ctx)
+	if err != nil {
+		return err
+	}
+	markMixedClusterNodes(nodes)
+	for _, node := range nodes {
+		if node.ID != nodeID {
+			continue
+		}
+		if node.MixedCluster {
+			return fmt.Errorf("node %s belongs to a mixed cluster at cluster_ip %s; resolve node ownership in cluster management before dispatching configuration", node.ID, node.ClusterIP)
+		}
+		return nil
+	}
+	return fmt.Errorf("node %s does not exist", nodeID)
 }
 
 func (s *Service) CurrentNodeConfig(ctx core.Context, node, probe string) (*CurrentNodeConfig, error) {
@@ -1525,6 +1627,9 @@ func (s *Service) UpdateNodeConfigs(ctx core.Context, node string, input NodeCon
 }
 
 func (s *Service) UpdateNodeConfigsForUser(ctx core.Context, node string, input NodeConfigsInput, user int64) (*CurrentNodeConfigs, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, node); err != nil {
+		return nil, err
+	}
 	if err := rejectSpecialControlConfigs(input); err != nil {
 		return nil, err
 	}
@@ -1536,6 +1641,9 @@ func (s *Service) UpdateNodeConfigGroup(ctx core.Context, node string, input Nod
 }
 
 func (s *Service) UpdateNodeConfigGroupForUser(ctx core.Context, node string, input NodeConfigsInput, user int64) (*CurrentNodeConfigs, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, node); err != nil {
+		return nil, err
+	}
 	if err := rejectSpecialControlConfigs(input); err != nil {
 		return nil, err
 	}
@@ -1570,6 +1678,9 @@ func (s *Service) SaveNodeInjectionControl(ctx core.Context, node string, input 
 }
 
 func (s *Service) SaveNodeInjectionControlForUser(ctx core.Context, node string, input NodeInjectionControlInput, user int64) (*NodeInjectionControl, error) {
+	if err := s.ensureNodeAllowsExplicitDelivery(ctx, node); err != nil {
+		return nil, err
+	}
 	current, err := s.GetNodeInjectionControl(ctx, node)
 	if err != nil {
 		return nil, err

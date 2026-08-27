@@ -1,0 +1,90 @@
+.page {
+  width: 100%;
+  max-width: 1760px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 12px 20px 28px;
+}
+
+.header,
+.titleBlock,
+.sectionHeading,
+.sectionHeading > div {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.titleBlock,
+.sectionHeading > div {
+  gap: 10px;
+}
+
+.titleBlock > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header :global(.ant-typography),
+.sectionHeading :global(.ant-typography) {
+  margin: 0;
+}
+
+.section {
+  margin-top: 22px;
+}
+
+.sectionHeading {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.nodeIdentity {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeIdentity span {
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+}
+
+.formStack,
+.formStack label {
+  display: flex;
+  flex-direction: column;
+}
+
+.formStack {
+  gap: 16px;
+}
+
+.formStack label {
+  gap: 6px;
+}
+
+.formStack label > span:first-child {
+  color: var(--ant-color-text-secondary);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding-inline: 12px;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

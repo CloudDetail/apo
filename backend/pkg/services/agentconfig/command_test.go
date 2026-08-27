@@ -7,6 +7,7 @@ import (
 
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
+	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/google/uuid"
 )
 
@@ -24,6 +25,9 @@ func (*commandRepo) ListAgentTemplates(core.Context) ([]ac.Template, error)     
 func (*commandRepo) UpsertAgentNode(core.Context, *ac.Node) error                   { return nil }
 func (*commandRepo) ListAgentNodes(core.Context) ([]ac.Node, error)                 { return nil, nil }
 func (*commandRepo) GetAgentNode(core.Context, string) (*ac.Node, error)            { return nil, nil }
+func (*commandRepo) GetCluster(core.Context, string) (integrationmodel.Cluster, error) {
+	return integrationmodel.Cluster{}, nil
+}
 func (*commandRepo) GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error) {
 	return nil, nil
 }
