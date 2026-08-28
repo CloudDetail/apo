@@ -155,7 +155,7 @@ type LogCollectionDefaults struct {
 
 type logCollectionRepository interface {
 	GetLogCollectionConfig(core.Context, string, string) (*ac.LogCollectionConfig, error)
-	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig) error
+	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig, *ac.Delivery) error
 }
 
 type hostFileInput struct {
@@ -899,7 +899,11 @@ func (s *Service) SaveLogCollectionDefaults(ctx core.Context, input LogCollectio
 		Version:   1,
 		UpdatedBy: user,
 	}
-	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
+	delivery, err := buildRecordedDelivery(deliveryTypeLogDefaults, "全局默认", input, nil, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := repo.SaveLogCollectionConfig(ctx, stored, delivery); err != nil {
 		return nil, err
 	}
 	result, err := s.GetLogCollectionDefaults(ctx)
@@ -1231,7 +1235,15 @@ func (s *Service) SaveHostFileCollection(ctx core.Context, nodeID string, input 
 		return nil, err
 	}
 	stored := &ac.LogCollectionConfig{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Config: ac.JSON(data), Version: 1, UpdatedBy: user}
-	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, err
+	}
+	delivery, err := buildRecordedDelivery(deliveryTypeHostLog, nodeID, json.RawMessage(data), []ac.Node{*node}, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := repo.SaveLogCollectionConfig(ctx, stored, delivery); err != nil {
 		return nil, err
 	}
 	collection := &HostFileCollection{
@@ -1371,7 +1383,11 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 		return nil, err
 	}
 	stored := &ac.LogCollectionConfig{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Config: ac.JSON(data), Version: 1, UpdatedBy: user}
-	if err := repo.SaveLogCollectionConfig(ctx, stored); err != nil {
+	delivery, err := buildRecordedDelivery(deliveryTypeContainerLog, clusterID, json.RawMessage(data), nil, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := repo.SaveLogCollectionConfig(ctx, stored, delivery); err != nil {
 		return nil, err
 	}
 	collection := &ContainerStdoutCollection{

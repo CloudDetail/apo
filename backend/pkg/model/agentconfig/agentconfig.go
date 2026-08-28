@@ -160,7 +160,10 @@ type Delivery struct {
 	Scope           string           `gorm:"type:text;not null" json:"scope"`
 	TemplateID      uuid.UUID        `gorm:"type:uuid;not null" json:"templateId"`
 	TemplateName    string           `gorm:"size:255" json:"templateName,omitempty"`
+	Configuration   JSON             `gorm:"type:jsonb;not null;default:'null'" json:"configuration,omitempty"`
+	ReceiptTracked  bool             `gorm:"not null;default:false" json:"receiptTracked"`
 	RequestedBy     int64            `json:"requestedBy"`
+	RequestedByName string           `gorm:"-" json:"requestedByName,omitempty"`
 	TargetNodeCount int              `gorm:"not null" json:"targetNodeCount"`
 	Targets         []DeliveryTarget `gorm:"foreignKey:DeliveryID;constraint:OnDelete:CASCADE" json:"targets,omitempty"`
 	CreatedAt       time.Time        `json:"createdAt"`

@@ -220,16 +220,24 @@
   background: var(--ant-color-fill-quaternary) !important;
 }
 
+.clusterRow > td:first-child {
+  position: relative;
+}
+
 .clusterRow .identityCell {
-  margin-inline-start: 15px;
+  margin-inline-start: 25px;
 }
 
 .clusterRow:hover > td {
   background: var(--ant-color-fill-tertiary) !important;
 }
 
-.tableCard :global(.ant-table-row-expand-icon-cell) {
-  vertical-align: middle;
+.tableCard .clusterRow :global(.ant-table-row-expand-icon) {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 8px;
+  margin-top: 0;
+  transform: translateY(-50%);
 }
 
 .nodeRow :global(.ant-table-row-expand-icon-cell) {
@@ -249,6 +257,13 @@
   gap: 2px;
 }
 
+.deliveryFilters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 170px 150px;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 .deliveryCounts {
   display: flex;
   flex-wrap: wrap;
@@ -264,6 +279,36 @@
 .deliveryCounts .deliveryFailed,
 .deliveryCounts .deliveryFailed strong {
   color: var(--ant-color-error);
+}
+
+.deliveryDetail {
+  display: grid;
+  gap: 18px;
+  padding: 4px 0;
+}
+
+.deliveryConfiguration,
+.deliveryReceiptDetail {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deliveryConfiguration pre {
+  max-height: 360px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  background: var(--ant-color-fill-quaternary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .deliveryTargets {
@@ -463,6 +508,14 @@
 
   .tableFilters :global(.ant-input-search),
   .tableFilters :global(.ant-select) {
+    width: 100%;
+  }
+
+  .deliveryFilters {
+    grid-template-columns: 1fr;
+  }
+
+  .deliveryFilters :global(.ant-select) {
     width: 100%;
   }
 

@@ -43,7 +43,7 @@ type Repository interface {
 	GetAgentNode(core.Context, string) (*ac.Node, error)
 	GetCluster(core.Context, string) (integrationmodel.Cluster, error)
 	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
-	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error
+	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig, *ac.Delivery) error
 	SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error
 	GetClusterWorkloadInventory(core.Context, string) (*ac.ClusterWorkloadInventory, error)
 	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
@@ -51,11 +51,11 @@ type Repository interface {
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
 	ListAgentInitialConfigs(core.Context, string) ([]ac.InitialConfig, error)
 	GetGlobalCircuitConfig(core.Context) (*ac.GlobalCircuitConfig, error)
-	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig) error
+	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig, *ac.Delivery) error
 	GetNodeCircuitConfig(core.Context, string) (*ac.NodeCircuitConfig, error)
-	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error
+	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig, *ac.Delivery) error
 	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
-	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
+	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig, *ac.Delivery) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
@@ -363,9 +363,13 @@ func (s *Service) SaveClusterInjectionControl(ctx core.Context, clusterID string
 	if err != nil {
 		return nil, err
 	}
+	delivery, err := buildRecordedDelivery(deliveryTypeClusterInjection, clusterID, config, nil, user)
+	if err != nil {
+		return nil, err
+	}
 	if err := s.repo.SaveClusterInjectionConfig(ctx, &ac.ClusterInjectionConfig{
 		ClusterID: clusterID, Configured: true, Config: ac.JSON(data), UpdatedBy: user,
-	}); err != nil {
+	}, delivery); err != nil {
 		return nil, err
 	}
 	return s.GetClusterInjectionControl(ctx, clusterID)
@@ -593,14 +597,51 @@ type BatchResult struct {
 }
 
 const (
-	deliveryTypeNodeConfig     = "NODE_CONFIG"
-	deliveryTypeBatchTemplate  = "BATCH_TEMPLATE"
-	deliveryTypeNodeInjection  = "NODE_INJECTION"
-	deliveryTypeBatchInjection = "BATCH_INJECTION"
+	deliveryTypeNodeConfig       = "NODE_CONFIG"
+	deliveryTypeBatchTemplate    = "BATCH_TEMPLATE"
+	deliveryTypeNodeInjection    = "NODE_INJECTION"
+	deliveryTypeBatchInjection   = "BATCH_INJECTION"
+	deliveryTypeClusterInjection = "CLUSTER_INJECTION"
+	deliveryTypeGlobalCircuit    = "GLOBAL_CIRCUIT"
+	deliveryTypeNodeCircuit      = "NODE_CIRCUIT"
+	deliveryTypeBatchCircuit     = "BATCH_CIRCUIT"
+	deliveryTypeNodeLogSources   = "NODE_LOG_SOURCES"
+	deliveryTypeBatchLogSources  = "BATCH_LOG_SOURCES"
+	deliveryTypeLogDefaults      = "LOG_COLLECTION_DEFAULTS"
+	deliveryTypeHostLog          = "HOST_LOG_COLLECTION"
+	deliveryTypeContainerLog     = "CONTAINER_LOG_COLLECTION"
 )
+
+type deliveryReleaseSnapshot struct {
+	NodeID        string                 `json:"nodeId"`
+	ProbeType     string                 `json:"probeType"`
+	Generation    int64                  `json:"generation"`
+	Content       string                 `json:"content,omitempty"`
+	Files         []ac.InitialConfigFile `json:"files,omitempty"`
+	LogSources    []ac.LogSource         `json:"logSources,omitempty"`
+	ContentSHA256 string                 `json:"contentSha256"`
+}
+
+func buildRecordedDelivery(deliveryType, scope string, configuration any, nodes []ac.Node, user int64) (*ac.Delivery, error) {
+	data, err := json.Marshal(configuration)
+	if err != nil {
+		return nil, fmt.Errorf("encode delivery configuration: %w", err)
+	}
+	delivery := &ac.Delivery{
+		ID: uuid.New(), Type: deliveryType, Scope: scope, Configuration: ac.JSON(data),
+		RequestedBy: user, TargetNodeCount: len(nodes), Targets: make([]ac.DeliveryTarget, 0, len(nodes)),
+	}
+	for _, node := range nodes {
+		delivery.Targets = append(delivery.Targets, ac.DeliveryTarget{
+			NodeID: node.ID, NodeName: node.Name, ClusterID: node.ClusterID, Generations: ac.JSON(`{}`),
+		})
+	}
+	return delivery, nil
+}
 
 func (s *Service) buildDelivery(ctx core.Context, deliveryType, scope string, template *ac.Template, releases []*ac.Release, user int64) (*ac.Delivery, error) {
 	byNode := make(map[string]map[string]int64)
+	snapshots := make([]deliveryReleaseSnapshot, 0, len(releases))
 	for _, release := range releases {
 		if release == nil {
 			continue
@@ -611,6 +652,21 @@ func (s *Service) buildDelivery(ctx core.Context, deliveryType, scope string, te
 			byNode[release.NodeID] = generations
 		}
 		generations[ac.NormalizeProbe(release.ProbeType)] = release.Generation
+		snapshot := deliveryReleaseSnapshot{
+			NodeID: release.NodeID, ProbeType: ac.NormalizeProbe(release.ProbeType), Generation: release.Generation,
+			Content: release.RenderedContent, ContentSHA256: release.ContentSHA256,
+		}
+		if len(release.Files) > 0 && string(release.Files) != "null" {
+			if err := json.Unmarshal(release.Files, &snapshot.Files); err != nil {
+				return nil, fmt.Errorf("decode delivery release files for %s/%s: %w", release.NodeID, release.ProbeType, err)
+			}
+		}
+		if len(release.LogSources) > 0 && string(release.LogSources) != "null" {
+			if err := json.Unmarshal(release.LogSources, &snapshot.LogSources); err != nil {
+				return nil, fmt.Errorf("decode delivery log sources for %s/%s: %w", release.NodeID, release.ProbeType, err)
+			}
+		}
+		snapshots = append(snapshots, snapshot)
 	}
 	if len(byNode) == 0 {
 		return nil, errors.New("delivery has no released configuration")
@@ -620,8 +676,13 @@ func (s *Service) buildDelivery(ctx core.Context, deliveryType, scope string, te
 		nodeIDs = append(nodeIDs, nodeID)
 	}
 	sort.Strings(nodeIDs)
+	configuration, err := json.Marshal(map[string]any{"releases": snapshots})
+	if err != nil {
+		return nil, fmt.Errorf("encode delivery configuration: %w", err)
+	}
 	delivery := &ac.Delivery{
 		ID: uuid.New(), Type: deliveryType, Scope: scope, RequestedBy: user,
+		Configuration: ac.JSON(configuration), ReceiptTracked: true,
 		TargetNodeCount: len(nodeIDs), Targets: make([]ac.DeliveryTarget, 0, len(nodeIDs)),
 	}
 	if template != nil {
@@ -684,8 +745,12 @@ type DeliveryStatus struct {
 	Scope           string                 `json:"scope"`
 	TemplateID      uuid.UUID              `json:"templateId"`
 	TemplateName    string                 `json:"templateName,omitempty"`
+	Configuration   ac.JSON                `json:"configuration,omitempty"`
+	ReceiptTracked  bool                   `json:"receiptTracked"`
 	RequestedBy     int64                  `json:"requestedBy"`
+	RequestedByName string                 `json:"requestedByName,omitempty"`
 	TargetNodeCount int                    `json:"targetNodeCount"`
+	RecordedCount   int                    `json:"recordedCount"`
 	AppliedCount    int                    `json:"appliedCount"`
 	ReceivedCount   int                    `json:"receivedCount"`
 	FailedCount     int                    `json:"failedCount"`
@@ -1269,7 +1334,11 @@ func (s *Service) SaveGlobalCircuit(ctx core.Context, settings ac.CircuitBreaker
 		return nil, err
 	}
 	config := &ac.GlobalCircuitConfig{ID: 1, Settings: ac.JSON(data), UpdatedBy: user}
-	if err := s.repo.SaveGlobalCircuitConfig(ctx, config); err != nil {
+	delivery, err := buildRecordedDelivery(deliveryTypeGlobalCircuit, "全局默认", settings, nil, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveGlobalCircuitConfig(ctx, config, delivery); err != nil {
 		return nil, err
 	}
 	return &settings, nil
@@ -1294,7 +1363,7 @@ func (s *Service) GetNodeCircuit(ctx core.Context, node string) (*ac.CircuitBrea
 	return settings, "GLOBAL_DEFAULT", err
 }
 
-func (s *Service) saveNodeCircuitConfigs(ctx core.Context, nodes []ac.Node, settings ac.CircuitBreakerSettings, user int64) (*BatchResult, error) {
+func (s *Service) saveNodeCircuitConfigs(ctx core.Context, nodes []ac.Node, settings ac.CircuitBreakerSettings, user int64, deliveryType, scope string) (*BatchResult, error) {
 	if err := validateCircuitBreaker(&settings); err != nil {
 		return nil, err
 	}
@@ -1306,7 +1375,11 @@ func (s *Service) saveNodeCircuitConfigs(ctx core.Context, nodes []ac.Node, sett
 	for _, node := range nodes {
 		configs = append(configs, &ac.NodeCircuitConfig{NodeID: node.ID, Settings: append(ac.JSON(nil), data...), Version: 1, UpdatedBy: user})
 	}
-	if err := s.repo.SaveNodeCircuitConfigs(ctx, configs); err != nil {
+	delivery, err := buildRecordedDelivery(deliveryType, scope, settings, nodes, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveNodeCircuitConfigs(ctx, configs, delivery); err != nil {
 		return nil, err
 	}
 	return &BatchResult{TargetNodeCount: len(nodes), SucceededCount: len(nodes)}, nil
@@ -1320,7 +1393,7 @@ func (s *Service) SaveNodeCircuit(ctx core.Context, node string, settings ac.Cir
 	if err != nil {
 		return nil, err
 	}
-	if _, err := s.saveNodeCircuitConfigs(ctx, []ac.Node{*target}, settings, user); err != nil {
+	if _, err := s.saveNodeCircuitConfigs(ctx, []ac.Node{*target}, settings, user, deliveryTypeNodeCircuit, node); err != nil {
 		return nil, err
 	}
 	return &settings, nil
@@ -1334,7 +1407,7 @@ func (s *Service) BatchSaveCircuit(ctx core.Context, input CircuitBatchInput, us
 	if err != nil {
 		return nil, err
 	}
-	return s.saveNodeCircuitConfigs(ctx, nodes, input.CircuitBreaker, user)
+	return s.saveNodeCircuitConfigs(ctx, nodes, input.CircuitBreaker, user, deliveryTypeBatchCircuit, strings.Join(input.ClusterIDs, ","))
 }
 
 func (s *Service) GetNodeLogSources(ctx core.Context, node, probe string) ([]ac.LogSource, bool, error) {
@@ -1359,7 +1432,7 @@ func (s *Service) GetNodeLogSources(ctx core.Context, node, probe string) ([]ac.
 	return sources, true, nil
 }
 
-func (s *Service) saveNodeLogSources(ctx core.Context, nodes []ac.Node, probe string, sources []ac.LogSource, user int64) (*BatchResult, error) {
+func (s *Service) saveNodeLogSources(ctx core.Context, nodes []ac.Node, probe string, sources []ac.LogSource, user int64, deliveryType, scope string) (*BatchResult, error) {
 	probe = ac.NormalizeProbe(probe)
 	if probe == "" {
 		return nil, fmt.Errorf("probe type is required")
@@ -1374,7 +1447,13 @@ func (s *Service) saveNodeLogSources(ctx core.Context, nodes []ac.Node, probe st
 			NodeID: node.ID, ProbeType: probe, Sources: append(ac.JSON(nil), normalized...), Version: 1, UpdatedBy: user,
 		})
 	}
-	if err := s.repo.SaveNodeLogConfigs(ctx, configs); err != nil {
+	delivery, err := buildRecordedDelivery(deliveryType, scope, map[string]any{
+		"probeType": probe, "logSources": sources,
+	}, nodes, user)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveNodeLogConfigs(ctx, configs, delivery); err != nil {
 		return nil, err
 	}
 	return &BatchResult{TargetNodeCount: len(nodes), SucceededCount: len(nodes)}, nil
@@ -1388,7 +1467,7 @@ func (s *Service) SaveNodeLogSources(ctx core.Context, node, probe string, sourc
 	if err != nil {
 		return nil, err
 	}
-	if _, err := s.saveNodeLogSources(ctx, []ac.Node{*target}, probe, sources, user); err != nil {
+	if _, err := s.saveNodeLogSources(ctx, []ac.Node{*target}, probe, sources, user, deliveryTypeNodeLogSources, node); err != nil {
 		return nil, err
 	}
 	stored, _, err := s.GetNodeLogSources(ctx, node, probe)
@@ -1400,7 +1479,7 @@ func (s *Service) BatchSaveLogSources(ctx core.Context, input LogSourcesBatchInp
 	if err != nil {
 		return nil, err
 	}
-	return s.saveNodeLogSources(ctx, nodes, input.ProbeType, input.LogSources, user)
+	return s.saveNodeLogSources(ctx, nodes, input.ProbeType, input.LogSources, user, deliveryTypeBatchLogSources, strings.Join(input.ClusterIDs, ","))
 }
 
 func (s *Service) nodesInClusters(ctx core.Context, clusterIDs []string) ([]ac.Node, error) {
@@ -2492,11 +2571,23 @@ func (s *Service) ListDeliveries(ctx core.Context, limit int) ([]DeliveryStatus,
 	}
 	result := make([]DeliveryStatus, 0, len(deliveries))
 	for _, delivery := range deliveries {
+		receiptTracked := delivery.ReceiptTracked
+		if !receiptTracked {
+			for _, target := range delivery.Targets {
+				generations := map[string]int64{}
+				if err := json.Unmarshal(target.Generations, &generations); err == nil && len(generations) > 0 {
+					receiptTracked = true
+					break
+				}
+			}
+		}
 		item := DeliveryStatus{
 			ID: delivery.ID, Type: delivery.Type, Scope: delivery.Scope,
 			TemplateID: delivery.TemplateID, TemplateName: delivery.TemplateName,
-			RequestedBy: delivery.RequestedBy, TargetNodeCount: delivery.TargetNodeCount,
-			CreatedAt: delivery.CreatedAt, Targets: make([]DeliveryTargetStatus, 0, len(delivery.Targets)),
+			Configuration: delivery.Configuration, ReceiptTracked: receiptTracked,
+			RequestedBy: delivery.RequestedBy, RequestedByName: delivery.RequestedByName,
+			TargetNodeCount: delivery.TargetNodeCount,
+			CreatedAt:       delivery.CreatedAt, Targets: make([]DeliveryTargetStatus, 0, len(delivery.Targets)),
 		}
 		for _, target := range delivery.Targets {
 			generations := map[string]int64{}
@@ -2511,6 +2602,12 @@ func (s *Service) ListDeliveries(ctx core.Context, limit int) ([]DeliveryStatus,
 			targetStatus := DeliveryTargetStatus{
 				NodeID: target.NodeID, NodeName: target.NodeName, ClusterID: target.ClusterID,
 				Probes: make([]DeliveryProbeReceipt, 0, len(probeTypes)),
+			}
+			if !receiptTracked {
+				targetStatus.Status = "RECORDED"
+				item.RecordedCount++
+				item.Targets = append(item.Targets, targetStatus)
+				continue
 			}
 			applied, received, failed := 0, 0, 0
 			for _, probeType := range probeTypes {
@@ -2560,6 +2657,8 @@ func (s *Service) ListDeliveries(ctx core.Context, limit int) ([]DeliveryStatus,
 			item.Targets = append(item.Targets, targetStatus)
 		}
 		switch {
+		case !receiptTracked:
+			item.Status = "RECORDED"
 		case item.FailedCount > 0:
 			item.Status = "FAILED"
 		case item.AppliedCount == item.TargetNodeCount:

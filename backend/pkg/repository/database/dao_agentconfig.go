@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
 	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
+	profilemodel "github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -26,7 +28,7 @@ type AgentConfigRepo interface {
 	ListAgentNodes(core.Context) ([]ac.Node, error)
 	GetAgentNode(core.Context, string) (*ac.Node, error)
 	GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error)
-	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error
+	SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig, *ac.Delivery) error
 	SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error
 	GetClusterWorkloadInventory(core.Context, string) (*ac.ClusterWorkloadInventory, error)
 	GetOdigletReadiness(core.Context, string, time.Time) (*bool, error)
@@ -34,13 +36,13 @@ type AgentConfigRepo interface {
 	GetAgentInitialConfig(core.Context, string, string) (*ac.InitialConfig, error)
 	ListAgentInitialConfigs(core.Context, string) ([]ac.InitialConfig, error)
 	GetGlobalCircuitConfig(core.Context) (*ac.GlobalCircuitConfig, error)
-	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig) error
+	SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig, *ac.Delivery) error
 	GetNodeCircuitConfig(core.Context, string) (*ac.NodeCircuitConfig, error)
-	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error
+	SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig, *ac.Delivery) error
 	GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error)
-	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error
+	SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig, *ac.Delivery) error
 	GetLogCollectionConfig(core.Context, string, string) (*ac.LogCollectionConfig, error)
-	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig) error
+	SaveLogCollectionConfig(core.Context, *ac.LogCollectionConfig, *ac.Delivery) error
 	SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error
 	SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error
 	GetAgentRelease(core.Context, string, string) (*ac.Release, error)
@@ -137,13 +139,18 @@ func (repo *daoRepo) GetNamespaceInjection(ctx core.Context, clusterID string) (
 		InstrumentDisabledNS: append([]string(nil), config.InstrumentDisabledNS...),
 	}, nil
 }
-func (repo *daoRepo) SaveClusterInjectionConfig(ctx core.Context, config *ac.ClusterInjectionConfig) error {
-	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "cluster_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{
-			"configured", "config", "updated_by", "updated_at",
-		}),
-	}).Create(config).Error
+func (repo *daoRepo) SaveClusterInjectionConfig(ctx core.Context, config *ac.ClusterInjectionConfig, delivery *ac.Delivery) error {
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "cluster_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{
+				"configured", "config", "updated_by", "updated_at",
+			}),
+		}).Create(config).Error; err != nil {
+			return err
+		}
+		return saveAgentDelivery(tx, delivery)
+	})
 }
 func (repo *daoRepo) SaveClusterWorkloadInventory(ctx core.Context, inventory *ac.ClusterWorkloadInventory) error {
 	return repo.GetContextDB(ctx).Clauses(clause.OnConflict{
@@ -225,16 +232,21 @@ func (repo *daoRepo) GetGlobalCircuitConfig(ctx core.Context) (*ac.GlobalCircuit
 	err := repo.GetContextDB(ctx).First(&config, 1).Error
 	return &config, err
 }
-func (repo *daoRepo) SaveGlobalCircuitConfig(ctx core.Context, config *ac.GlobalCircuitConfig) error {
+func (repo *daoRepo) SaveGlobalCircuitConfig(ctx core.Context, config *ac.GlobalCircuitConfig, delivery *ac.Delivery) error {
 	config.ID = 1
-	return repo.GetContextDB(ctx).Save(config).Error
+	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(config).Error; err != nil {
+			return err
+		}
+		return saveAgentDelivery(tx, delivery)
+	})
 }
 func (repo *daoRepo) GetNodeCircuitConfig(ctx core.Context, node string) (*ac.NodeCircuitConfig, error) {
 	var config ac.NodeCircuitConfig
 	err := repo.GetContextDB(ctx).Where("node_id=?", node).Order("updated_at desc").First(&config).Error
 	return &config, err
 }
-func (repo *daoRepo) SaveNodeCircuitConfigs(ctx core.Context, configs []*ac.NodeCircuitConfig) error {
+func (repo *daoRepo) SaveNodeCircuitConfigs(ctx core.Context, configs []*ac.NodeCircuitConfig, delivery *ac.Delivery) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		for _, config := range configs {
 			var old ac.NodeCircuitConfig
@@ -250,7 +262,7 @@ func (repo *daoRepo) SaveNodeCircuitConfigs(ctx core.Context, configs []*ac.Node
 				return err
 			}
 		}
-		return nil
+		return saveAgentDelivery(tx, delivery)
 	})
 }
 func (repo *daoRepo) GetNodeLogConfig(ctx core.Context, node, probe string) (*ac.NodeLogConfig, error) {
@@ -258,7 +270,7 @@ func (repo *daoRepo) GetNodeLogConfig(ctx core.Context, node, probe string) (*ac
 	err := repo.GetContextDB(ctx).Where("node_id=? AND probe_type=?", node, probe).First(&config).Error
 	return &config, err
 }
-func (repo *daoRepo) SaveNodeLogConfigs(ctx core.Context, configs []*ac.NodeLogConfig) error {
+func (repo *daoRepo) SaveNodeLogConfigs(ctx core.Context, configs []*ac.NodeLogConfig, delivery *ac.Delivery) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		for _, config := range configs {
 			var old ac.NodeLogConfig
@@ -274,7 +286,7 @@ func (repo *daoRepo) SaveNodeLogConfigs(ctx core.Context, configs []*ac.NodeLogC
 				return err
 			}
 		}
-		return nil
+		return saveAgentDelivery(tx, delivery)
 	})
 }
 func (repo *daoRepo) GetLogCollectionConfig(ctx core.Context, scopeType, scopeID string) (*ac.LogCollectionConfig, error) {
@@ -282,7 +294,7 @@ func (repo *daoRepo) GetLogCollectionConfig(ctx core.Context, scopeType, scopeID
 	err := repo.GetContextDB(ctx).Where("scope_type=? AND scope_id=?", scopeType, scopeID).First(&config).Error
 	return &config, err
 }
-func (repo *daoRepo) SaveLogCollectionConfig(ctx core.Context, config *ac.LogCollectionConfig) error {
+func (repo *daoRepo) SaveLogCollectionConfig(ctx core.Context, config *ac.LogCollectionConfig, delivery *ac.Delivery) error {
 	return repo.GetContextDB(ctx).Transaction(func(tx *gorm.DB) error {
 		var old ac.LogCollectionConfig
 		err := tx.Where("scope_type=? AND scope_id=?", config.ScopeType, config.ScopeID).First(&old).Error
@@ -293,8 +305,34 @@ func (repo *daoRepo) SaveLogCollectionConfig(ctx core.Context, config *ac.LogCol
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
-		return tx.Save(config).Error
+		if err := tx.Save(config).Error; err != nil {
+			return err
+		}
+		return saveAgentDelivery(tx, delivery)
 	})
+}
+
+func saveAgentDelivery(tx *gorm.DB, delivery *ac.Delivery) error {
+	if delivery == nil {
+		return nil
+	}
+	targets := delivery.Targets
+	delivery.Targets = nil
+	if err := tx.Create(delivery).Error; err != nil {
+		delivery.Targets = targets
+		return err
+	}
+	for index := range targets {
+		targets[index].DeliveryID = delivery.ID
+	}
+	if len(targets) > 0 {
+		if err := tx.Create(&targets).Error; err != nil {
+			delivery.Targets = targets
+			return err
+		}
+	}
+	delivery.Targets = targets
+	return nil
 }
 func (repo *daoRepo) SaveAgentBinding(ctx core.Context, b *ac.Binding, r *ac.Release) error {
 	return repo.SaveAgentBindings(ctx, []*ac.Binding{b}, []*ac.Release{r}, map[string]int64{agentReleaseKey(r.NodeID, r.ProbeType): r.Generation - 1}, nil)
@@ -363,18 +401,9 @@ func (repo *daoRepo) SaveAgentBindings(ctx core.Context, bindings []*ac.Binding,
 			if len(delivery.Targets) == 0 {
 				return errors.New("delivery has no targets")
 			}
-			targets := delivery.Targets
-			delivery.Targets = nil
-			if err := tx.Create(delivery).Error; err != nil {
+			if err := saveAgentDelivery(tx, delivery); err != nil {
 				return err
 			}
-			for index := range targets {
-				targets[index].DeliveryID = delivery.ID
-			}
-			if err := tx.Create(&targets).Error; err != nil {
-				return err
-			}
-			delivery.Targets = targets
 		}
 		return nil
 	})
@@ -411,12 +440,42 @@ func (repo *daoRepo) ListLatestAgentReleases(ctx core.Context, node string) ([]a
 }
 func (repo *daoRepo) ListAgentDeliveries(ctx core.Context, limit int) ([]ac.Delivery, error) {
 	var deliveries []ac.Delivery
-	err := repo.GetContextDB(ctx).
+	db := repo.GetContextDB(ctx)
+	err := db.
 		Preload("Targets", func(db *gorm.DB) *gorm.DB { return db.Order("node_id") }).
 		Order("created_at desc").
 		Limit(limit).
 		Find(&deliveries).Error
-	return deliveries, err
+	if err != nil {
+		return nil, err
+	}
+	requestedBy := make([]int64, 0)
+	seen := make(map[int64]struct{})
+	for _, delivery := range deliveries {
+		if delivery.RequestedBy <= 0 {
+			continue
+		}
+		if _, ok := seen[delivery.RequestedBy]; !ok {
+			seen[delivery.RequestedBy] = struct{}{}
+			requestedBy = append(requestedBy, delivery.RequestedBy)
+		}
+	}
+	if len(requestedBy) == 0 || !db.Migrator().HasTable(&profilemodel.User{}) {
+		return deliveries, nil
+	}
+	var users []profilemodel.User
+	if err := db.Select("user_id", "username").Where("user_id IN ?", requestedBy).Find(&users).Error; err != nil {
+		log.Printf("agentconfig: failed to resolve delivery usernames: %v", err)
+		return deliveries, nil
+	}
+	usernames := make(map[int64]string, len(users))
+	for _, user := range users {
+		usernames[user.UserID] = user.Username
+	}
+	for index := range deliveries {
+		deliveries[index].RequestedByName = usernames[deliveries[index].RequestedBy]
+	}
+	return deliveries, nil
 }
 func (repo *daoRepo) ReportAgentState(ctx core.Context, s *ac.ApplyState) error {
 	now := time.Now()

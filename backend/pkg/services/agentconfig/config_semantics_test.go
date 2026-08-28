@@ -71,7 +71,12 @@ func (r *configSemanticsRepo) GetNamespaceInjection(_ core.Context, clusterID st
 	return &value, nil
 }
 
-func (r *configSemanticsRepo) SaveClusterInjectionConfig(_ core.Context, stored *ac.ClusterInjectionConfig) error {
+func (r *configSemanticsRepo) SaveClusterInjectionConfig(_ core.Context, stored *ac.ClusterInjectionConfig, delivery *ac.Delivery) error {
+	defer func() {
+		if delivery != nil {
+			r.deliveries = append(r.deliveries, *delivery)
+		}
+	}()
 	if !stored.Configured {
 		delete(r.namespaceConfigs, stored.ClusterID)
 		return nil
@@ -201,9 +206,12 @@ func (r *configSemanticsRepo) GetGlobalCircuitConfig(core.Context) (*ac.GlobalCi
 	copy := *r.globalCircuit
 	return &copy, nil
 }
-func (r *configSemanticsRepo) SaveGlobalCircuitConfig(_ core.Context, config *ac.GlobalCircuitConfig) error {
+func (r *configSemanticsRepo) SaveGlobalCircuitConfig(_ core.Context, config *ac.GlobalCircuitConfig, delivery *ac.Delivery) error {
 	copy := *config
 	r.globalCircuit = &copy
+	if delivery != nil {
+		r.deliveries = append(r.deliveries, *delivery)
+	}
 	return nil
 }
 func (r *configSemanticsRepo) GetNodeCircuitConfig(_ core.Context, node string) (*ac.NodeCircuitConfig, error) {
@@ -213,13 +221,16 @@ func (r *configSemanticsRepo) GetNodeCircuitConfig(_ core.Context, node string) 
 	}
 	return &value, nil
 }
-func (r *configSemanticsRepo) SaveNodeCircuitConfigs(_ core.Context, configs []*ac.NodeCircuitConfig) error {
+func (r *configSemanticsRepo) SaveNodeCircuitConfigs(_ core.Context, configs []*ac.NodeCircuitConfig, delivery *ac.Delivery) error {
 	for _, config := range configs {
 		copy := *config
 		if old, ok := r.nodeCircuits[config.NodeID]; ok {
 			copy.Version = old.Version + 1
 		}
 		r.nodeCircuits[config.NodeID] = copy
+	}
+	if delivery != nil {
+		r.deliveries = append(r.deliveries, *delivery)
 	}
 	return nil
 }
@@ -230,7 +241,7 @@ func (r *configSemanticsRepo) GetNodeLogConfig(_ core.Context, node, probe strin
 	}
 	return &value, nil
 }
-func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.NodeLogConfig) error {
+func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.NodeLogConfig, delivery *ac.Delivery) error {
 	for _, config := range configs {
 		copy := *config
 		key := releaseKey(config.NodeID, config.ProbeType)
@@ -238,6 +249,9 @@ func (r *configSemanticsRepo) SaveNodeLogConfigs(_ core.Context, configs []*ac.N
 			copy.Version = old.Version + 1
 		}
 		r.nodeLogs[key] = copy
+	}
+	if delivery != nil {
+		r.deliveries = append(r.deliveries, *delivery)
 	}
 	return nil
 }
@@ -1497,12 +1511,50 @@ func TestNodeConfigUpdatePersistsDeliveryTargetWithRelease(t *testing.T) {
 	if delivery.Type != deliveryTypeNodeConfig || delivery.Scope != "node-1" || delivery.RequestedBy != 42 || delivery.TargetNodeCount != 1 || len(delivery.Targets) != 1 {
 		t.Fatalf("unexpected delivery: %+v", delivery)
 	}
+	if !delivery.ReceiptTracked || len(delivery.Configuration) == 0 || string(delivery.Configuration) == "null" {
+		t.Fatalf("delivery configuration snapshot was not persisted: %+v", delivery)
+	}
 	var generations map[string]int64
 	if err := json.Unmarshal(delivery.Targets[0].Generations, &generations); err != nil {
 		t.Fatal(err)
 	}
 	if delivery.Targets[0].NodeName != "worker-1" || delivery.Targets[0].ClusterID != "cluster-a" || generations["probe-a"] != 1 {
 		t.Fatalf("unexpected delivery target: %+v generations=%v", delivery.Targets[0], generations)
+	}
+}
+
+func TestSettingsDeliveriesCaptureConfigurationWithoutClaimingReceipt(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", Name: "worker-1", ClusterID: "cluster-a"}
+	service := New(repo)
+	policy := ac.CircuitBreakerSettings{Enabled: false}
+	if _, err := service.SaveNodeCircuit(nil, "node-1", policy, 7); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.SaveNodeLogSources(nil, "node-1", "ilogtail", []ac.LogSource{{Type: "file", Path: "/var/log/app.log"}}, 7); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.SaveClusterInjectionControl(nil, "cluster-a", ClusterInjectionControlInput{
+		NamespaceInjection: ac.NamespaceInjection{InstrumentNS: []string{"orders"}},
+	}, 7); err != nil {
+		t.Fatal(err)
+	}
+	if len(repo.deliveries) != 3 {
+		t.Fatalf("settings delivery count=%d", len(repo.deliveries))
+	}
+	for _, delivery := range repo.deliveries {
+		if delivery.ReceiptTracked || len(delivery.Configuration) == 0 || string(delivery.Configuration) == "null" {
+			t.Fatalf("unexpected settings delivery: %+v", delivery)
+		}
+	}
+	listed, err := service.ListDeliveries(nil, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, delivery := range listed {
+		if delivery.Status != "RECORDED" {
+			t.Fatalf("settings delivery claimed remote receipt: %+v", delivery)
+		}
 	}
 }
 

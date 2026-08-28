@@ -8,6 +8,7 @@ import (
 
 	ac "github.com/CloudDetail/apo/backend/pkg/model/agentconfig"
 	integrationmodel "github.com/CloudDetail/apo/backend/pkg/model/integration"
+	profilemodel "github.com/CloudDetail/apo/backend/pkg/model/profile"
 	"github.com/CloudDetail/apo/backend/pkg/repository/database/driver"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
@@ -46,14 +47,14 @@ func TestGetNamespaceInjectionUsesStoredClusterIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	repo := &daoRepo{DB: &driver.DB{DB: db}}
-	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: true, Config: ac.JSON(data)}); err != nil {
+	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: true, Config: ac.JSON(data)}, nil); err != nil {
 		t.Fatal(err)
 	}
 	config, err = repo.GetNamespaceInjection(nil, "cluster-a")
 	if err != nil || config == nil || len(config.InstrumentNS) != 1 || config.InstrumentNS[0] != "payments" {
 		t.Fatalf("dedicated namespace injection config=%+v err=%v", config, err)
 	}
-	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: false, Config: ac.JSON(`{}`)}); err != nil {
+	if err := repo.SaveClusterInjectionConfig(nil, &ac.ClusterInjectionConfig{ClusterID: "cluster-a", Configured: false, Config: ac.JSON(`{}`)}, nil); err != nil {
 		t.Fatal(err)
 	}
 	config, err = repo.GetNamespaceInjection(nil, "cluster-a")
@@ -190,6 +191,28 @@ func TestSaveAgentBindingsPersistsDeliveryAndTargetsAtomically(t *testing.T) {
 	}
 }
 
+func TestListAgentDeliveriesResolvesOperatorUsername(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file:agent-config-delivery-users?mode=memory&cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AutoMigrate(&ac.Delivery{}, &ac.DeliveryTarget{}, &profilemodel.User{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&profilemodel.User{UserID: 42, Username: "operator"}).Error; err != nil {
+		t.Fatal(err)
+	}
+	repo := &daoRepo{DB: &driver.DB{DB: db}}
+	delivery := &ac.Delivery{ID: uuid.New(), Type: "NODE_CIRCUIT", Scope: "node-1", RequestedBy: 42, Configuration: ac.JSON(`{"enabled":false}`)}
+	if err := saveAgentDelivery(db, delivery); err != nil {
+		t.Fatal(err)
+	}
+	deliveries, err := repo.ListAgentDeliveries(nil, 20)
+	if err != nil || len(deliveries) != 1 || deliveries[0].RequestedByName != "operator" {
+		t.Fatalf("deliveries=%+v err=%v", deliveries, err)
+	}
+}
+
 func TestSaveAgentInitialConfigRefreshesOnlyBeforeFirstRelease(t *testing.T) {
 	db, err := gorm.Open(sqlite.Open("file:agent-initial-refresh?mode=memory&cache=shared"), &gorm.Config{})
 	if err != nil {
@@ -239,14 +262,14 @@ func TestSaveNodeLogConfigsReplacesEachNodeAtomically(t *testing.T) {
 		{NodeID: "node-a", ProbeType: "ilogtail", Sources: ac.JSON(`[{"type":"file","path":"/var/log/a"}]`), Version: 1},
 		{NodeID: "node-b", ProbeType: "ilogtail", Sources: ac.JSON(`[{"type":"file","path":"/var/log/b"}]`), Version: 1},
 	}
-	if err := repo.SaveNodeLogConfigs(nil, first); err != nil {
+	if err := repo.SaveNodeLogConfigs(nil, first, nil); err != nil {
 		t.Fatal(err)
 	}
 	second := []*ac.NodeLogConfig{
 		{NodeID: "node-a", ProbeType: "ilogtail", Sources: ac.JSON(`[]`), Version: 1},
 		{NodeID: "node-b", ProbeType: "ilogtail", Sources: ac.JSON(`[]`), Version: 1},
 	}
-	if err := repo.SaveNodeLogConfigs(nil, second); err != nil {
+	if err := repo.SaveNodeLogConfigs(nil, second, nil); err != nil {
 		t.Fatal(err)
 	}
 	for _, node := range []string{"node-a", "node-b"} {

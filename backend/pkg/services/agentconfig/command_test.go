@@ -32,7 +32,7 @@ func (*commandRepo) GetCluster(core.Context, string) (integrationmodel.Cluster, 
 func (*commandRepo) GetNamespaceInjection(core.Context, string) (*ac.NamespaceInjection, error) {
 	return nil, nil
 }
-func (*commandRepo) SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig) error {
+func (*commandRepo) SaveClusterInjectionConfig(core.Context, *ac.ClusterInjectionConfig, *ac.Delivery) error {
 	return nil
 }
 func (*commandRepo) SaveClusterWorkloadInventory(core.Context, *ac.ClusterWorkloadInventory) error {
@@ -56,15 +56,21 @@ func (*commandRepo) ListAgentInitialConfigs(core.Context, string) ([]ac.InitialC
 func (*commandRepo) GetGlobalCircuitConfig(core.Context) (*ac.GlobalCircuitConfig, error) {
 	return nil, nil
 }
-func (*commandRepo) SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig) error { return nil }
+func (*commandRepo) SaveGlobalCircuitConfig(core.Context, *ac.GlobalCircuitConfig, *ac.Delivery) error {
+	return nil
+}
 func (*commandRepo) GetNodeCircuitConfig(core.Context, string) (*ac.NodeCircuitConfig, error) {
 	return nil, nil
 }
-func (*commandRepo) SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig) error { return nil }
+func (*commandRepo) SaveNodeCircuitConfigs(core.Context, []*ac.NodeCircuitConfig, *ac.Delivery) error {
+	return nil
+}
 func (*commandRepo) GetNodeLogConfig(core.Context, string, string) (*ac.NodeLogConfig, error) {
 	return nil, nil
 }
-func (*commandRepo) SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig) error    { return nil }
+func (*commandRepo) SaveNodeLogConfigs(core.Context, []*ac.NodeLogConfig, *ac.Delivery) error {
+	return nil
+}
 func (*commandRepo) SaveAgentBinding(core.Context, *ac.Binding, *ac.Release) error { return nil }
 func (*commandRepo) SaveAgentBindings(core.Context, []*ac.Binding, []*ac.Release, map[string]int64, *ac.Delivery) error {
 	return nil

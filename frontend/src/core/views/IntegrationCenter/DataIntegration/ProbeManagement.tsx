@@ -139,7 +139,7 @@ type TableRow = ClusterRow | NodeRow
 type NodeStatusFilter = 'all' | 'healthy' | 'abnormal' | 'waiting'
 type LogFile = { path: string; name: string; size: number; modifiedAt: string; probeType: string }
 type LogPreview = { file: LogFile; preview: string; lines: number; truncated: boolean }
-type DeliveryReceiptStatus = 'PENDING' | 'PARTIAL' | 'RECEIVED' | 'APPLIED' | 'FAILED'
+type DeliveryReceiptStatus = 'RECORDED' | 'PENDING' | 'PARTIAL' | 'RECEIVED' | 'APPLIED' | 'FAILED'
 type DeliveryProbeReceipt = {
   probeType: string
   targetGeneration: number
@@ -159,11 +159,28 @@ type DeliveryTarget = {
 }
 type DeliveryRecord = {
   id: string
-  type: 'NODE_CONFIG' | 'BATCH_TEMPLATE' | 'NODE_INJECTION' | 'BATCH_INJECTION'
+  type:
+    | 'NODE_CONFIG'
+    | 'BATCH_TEMPLATE'
+    | 'NODE_INJECTION'
+    | 'BATCH_INJECTION'
+    | 'CLUSTER_INJECTION'
+    | 'GLOBAL_CIRCUIT'
+    | 'NODE_CIRCUIT'
+    | 'BATCH_CIRCUIT'
+    | 'NODE_LOG_SOURCES'
+    | 'BATCH_LOG_SOURCES'
+    | 'LOG_COLLECTION_DEFAULTS'
+    | 'HOST_LOG_COLLECTION'
+    | 'CONTAINER_LOG_COLLECTION'
   scope: string
   templateName?: string
+  configuration?: unknown
+  receiptTracked: boolean
   requestedBy: number
+  requestedByName?: string
   targetNodeCount: number
+  recordedCount: number
   appliedCount: number
   receivedCount: number
   failedCount: number
@@ -172,21 +189,51 @@ type DeliveryRecord = {
   createdAt: string
   targets: DeliveryTarget[]
 }
+type DeliveryCategory = 'all' | 'config' | 'logs' | 'circuit' | 'injection'
 const UNASSIGNED_CLUSTER = '未分配集群'
 const STATUS_REFRESH_INTERVAL_MS = 60_000
 const MAX_VISIBLE_ABNORMAL_PROBES = 2
 const DELIVERY_TYPE_LABELS: Record<DeliveryRecord['type'], string> = {
-  NODE_CONFIG: '节点配置',
-  BATCH_TEMPLATE: '批量配置',
+  NODE_CONFIG: '节点配置文件',
+  BATCH_TEMPLATE: '批量配置文件',
   NODE_INJECTION: '节点注入配置',
   BATCH_INJECTION: '批量注入配置',
+  CLUSTER_INJECTION: '集群注入配置',
+  GLOBAL_CIRCUIT: '默认熔断配置',
+  NODE_CIRCUIT: '节点熔断配置',
+  BATCH_CIRCUIT: '批量熔断配置',
+  NODE_LOG_SOURCES: '节点日志采集',
+  BATCH_LOG_SOURCES: '批量日志采集',
+  LOG_COLLECTION_DEFAULTS: '默认日志采集',
+  HOST_LOG_COLLECTION: '主机日志采集',
+  CONTAINER_LOG_COLLECTION: '容器日志采集',
 }
 const DELIVERY_STATUS: Record<DeliveryReceiptStatus, { label: string; color: string }> = {
+  RECORDED: { label: '已记录', color: 'default' },
   PENDING: { label: '待接收', color: 'default' },
   PARTIAL: { label: '部分接收', color: 'processing' },
   RECEIVED: { label: '已接收', color: 'processing' },
   APPLIED: { label: '已应用', color: 'success' },
   FAILED: { label: '失败', color: 'error' },
+}
+
+const DELIVERY_CATEGORY_BY_TYPE: Record<
+  DeliveryRecord['type'],
+  Exclude<DeliveryCategory, 'all'>
+> = {
+  NODE_CONFIG: 'config',
+  BATCH_TEMPLATE: 'config',
+  NODE_INJECTION: 'injection',
+  BATCH_INJECTION: 'injection',
+  CLUSTER_INJECTION: 'injection',
+  GLOBAL_CIRCUIT: 'circuit',
+  NODE_CIRCUIT: 'circuit',
+  BATCH_CIRCUIT: 'circuit',
+  NODE_LOG_SOURCES: 'logs',
+  BATCH_LOG_SOURCES: 'logs',
+  LOG_COLLECTION_DEFAULTS: 'logs',
+  HOST_LOG_COLLECTION: 'logs',
+  CONTAINER_LOG_COLLECTION: 'logs',
 }
 
 const getClusterId = (node: AgentNode) =>
@@ -411,6 +458,18 @@ const deliveryStatusTag = (status: DeliveryReceiptStatus) => {
   return <Tag color={display.color}>{display.label}</Tag>
 }
 
+const formatDeliveryConfiguration = (configuration: unknown) => {
+  if (configuration === undefined || configuration === null) return ''
+  if (typeof configuration === 'string') {
+    try {
+      return JSON.stringify(JSON.parse(configuration), null, 2)
+    } catch {
+      return configuration
+    }
+  }
+  return JSON.stringify(configuration, null, 2)
+}
+
 export default function ProbeManagement() {
   const navigate = useNavigate()
   const [nodes, setNodes] = useState<AgentNode[]>([])
@@ -437,6 +496,12 @@ export default function ProbeManagement() {
   const [deliveryDrawerOpen, setDeliveryDrawerOpen] = useState(false)
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([])
   const [deliveryLoading, setDeliveryLoading] = useState(false)
+  const [deliveryQuery, setDeliveryQuery] = useState('')
+  const [deliveryCategory, setDeliveryCategory] = useState<DeliveryCategory>('all')
+  const [deliveryStatus, setDeliveryStatus] = useState<'all' | DeliveryReceiptStatus>('all')
+  const [deliveryPage, setDeliveryPage] = useState(1)
+  const [deliveryPageSize, setDeliveryPageSize] = useState(10)
+  const [expandedDeliveryKeys, setExpandedDeliveryKeys] = useState<React.Key[]>([])
   const logRequestActive = useRef(false)
 
   const load = useCallback(async () => {
@@ -496,7 +561,7 @@ export default function ProbeManagement() {
   const loadDeliveries = useCallback(async () => {
     setDeliveryLoading(true)
     try {
-      const result: any = await getAgentConfigDeliveriesApi()
+      const result: any = await getAgentConfigDeliveriesApi(100)
       setDeliveries(Array.isArray(result?.deliveries) ? result.deliveries : [])
     } catch (error: any) {
       console.error('[ProbeManagement] failed to load delivery history', error)
@@ -510,6 +575,40 @@ export default function ProbeManagement() {
     setDeliveryDrawerOpen(true)
     void loadDeliveries()
   }
+
+  const filteredDeliveries = useMemo(() => {
+    const keyword = deliveryQuery.trim().toLocaleLowerCase()
+    return [...deliveries]
+      .filter((delivery) => {
+        if (
+          deliveryCategory !== 'all' &&
+          DELIVERY_CATEGORY_BY_TYPE[delivery.type] !== deliveryCategory
+        ) {
+          return false
+        }
+        if (deliveryStatus !== 'all' && delivery.status !== deliveryStatus) return false
+        if (!keyword) return true
+        return [
+          DELIVERY_TYPE_LABELS[delivery.type],
+          delivery.scope,
+          delivery.templateName,
+          delivery.requestedByName,
+          delivery.requestedBy ? '未知用户' : '系统',
+          ...delivery.targets.flatMap((target) => [
+            target.nodeId,
+            target.nodeName,
+            target.clusterId,
+          ]),
+        ].some((value) =>
+          String(value || '')
+            .toLocaleLowerCase()
+            .includes(keyword),
+        )
+      })
+      .sort(
+        (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+      )
+  }, [deliveries, deliveryCategory, deliveryQuery, deliveryStatus])
 
   useEffect(() => {
     load()
@@ -1136,11 +1235,20 @@ export default function ProbeManagement() {
     },
   ]
 
+  const toggleDeliveryExpanded = (id: string) => {
+    setExpandedDeliveryKeys((keys) =>
+      keys.includes(id) ? keys.filter((key) => key !== id) : [...keys, id],
+    )
+  }
+
   const deliveryColumns = [
     {
       title: '下发时间',
       dataIndex: 'createdAt',
       width: 170,
+      defaultSortOrder: 'descend' as const,
+      sorter: (left: DeliveryRecord, right: DeliveryRecord) =>
+        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
       render: (value: string) => formatDeliveryTime(value),
     },
     {
@@ -1169,69 +1277,115 @@ export default function ProbeManagement() {
       key: 'receipt',
       render: (_: unknown, record: DeliveryRecord) => (
         <div className={styles.deliveryCounts}>
-          <span>
-            已应用 <strong>{record.appliedCount}</strong>
-          </span>
-          <span>
-            已接收 <strong>{record.receivedCount}</strong>
-          </span>
-          <span className={record.failedCount ? styles.deliveryFailed : undefined}>
-            失败 <strong>{record.failedCount}</strong>
-          </span>
-          <span>
-            待接收 <strong>{record.pendingCount}</strong>
-          </span>
+          {record.receiptTracked ? (
+            <>
+              <span>
+                已应用 <strong>{record.appliedCount}</strong>
+              </span>
+              <span>
+                已接收 <strong>{record.receivedCount}</strong>
+              </span>
+              <span className={record.failedCount ? styles.deliveryFailed : undefined}>
+                失败 <strong>{record.failedCount}</strong>
+              </span>
+              <span>
+                待接收 <strong>{record.pendingCount}</strong>
+              </span>
+            </>
+          ) : (
+            <span>当前通道无独立版本回执</span>
+          )}
         </div>
       ),
     },
     {
       title: '操作人',
       dataIndex: 'requestedBy',
-      width: 90,
-      render: (value: number) => (value ? `用户 ${value}` : '系统'),
+      width: 110,
+      render: (value: number, record: DeliveryRecord) =>
+        value ? record.requestedByName || '未知用户' : '系统',
+    },
+    {
+      title: '配置',
+      key: 'configuration',
+      width: 84,
+      fixed: 'right' as const,
+      render: (_: unknown, record: DeliveryRecord) => (
+        <Button
+          type="link"
+          size="small"
+          icon={<FileText size={14} />}
+          onClick={() => toggleDeliveryExpanded(record.id)}
+        >
+          查看
+        </Button>
+      ),
     },
   ]
 
   const renderDeliveryTargets = (delivery: DeliveryRecord) => (
-    <div className={styles.deliveryTargets}>
-      <div className={styles.deliveryTargetHeader}>
-        <span>节点</span>
-        <span>接收状态</span>
-        <span>探针回执</span>
-      </div>
-      {delivery.targets.map((target) => (
-        <div className={styles.deliveryTargetRow} key={target.nodeId}>
-          <div className={styles.deliveryTargetNode}>
-            <Typography.Text strong>{target.nodeName || target.nodeId}</Typography.Text>
-            <span>{target.nodeId}</span>
-            <span>{target.clusterId || '-'}</span>
-          </div>
-          <div>{deliveryStatusTag(target.status)}</div>
-          <div className={styles.deliveryProbes}>
-            {target.probes.map((probe) => (
-              <div className={styles.deliveryProbe} key={probe.probeType}>
-                <div>
-                  <Typography.Text strong>{probe.probeType}</Typography.Text>
-                  <span>目标 generation {probe.targetGeneration}</span>
+    <div className={styles.deliveryDetail}>
+      <section className={styles.deliveryConfiguration}>
+        <Typography.Text strong>下发配置</Typography.Text>
+        {formatDeliveryConfiguration(delivery.configuration) ? (
+          <pre>{formatDeliveryConfiguration(delivery.configuration)}</pre>
+        ) : (
+          <Typography.Text type="secondary">该历史记录未保存配置快照</Typography.Text>
+        )}
+      </section>
+      <section className={styles.deliveryReceiptDetail}>
+        <Typography.Text strong>节点接收</Typography.Text>
+        {!delivery.receiptTracked && (
+          <Typography.Text type="secondary">
+            该配置通道当前未上报独立配置版本，仅记录服务端保存结果。
+          </Typography.Text>
+        )}
+        {delivery.targets.length > 0 && (
+          <div className={styles.deliveryTargets}>
+            <div className={styles.deliveryTargetHeader}>
+              <span>节点</span>
+              <span>接收状态</span>
+              <span>探针回执</span>
+            </div>
+            {delivery.targets.map((target) => (
+              <div className={styles.deliveryTargetRow} key={target.nodeId}>
+                <div className={styles.deliveryTargetNode}>
+                  <Typography.Text strong>{target.nodeName || target.nodeId}</Typography.Text>
+                  <span>{target.nodeId}</span>
+                  <span>{target.clusterId || '-'}</span>
                 </div>
-                <div className={styles.deliveryGenerations}>
-                  <span>接收 {probe.desiredGeneration || '-'}</span>
-                  <span>应用 {probe.appliedGeneration || '-'}</span>
-                </div>
-                <div>{deliveryStatusTag(probe.status)}</div>
-                <div className={styles.deliveryProbeReport}>
-                  <span>{formatDeliveryTime(probe.reportedAt)}</span>
-                  {(probe.reason || probe.agentStatus) && (
-                    <span title={probe.reason || probe.agentStatus}>
-                      {probe.reason || probe.agentStatus}
-                    </span>
+                <div>{deliveryStatusTag(target.status)}</div>
+                <div className={styles.deliveryProbes}>
+                  {target.probes.length === 0 && (
+                    <Typography.Text type="secondary">无独立探针版本回执</Typography.Text>
                   )}
+                  {target.probes.map((probe) => (
+                    <div className={styles.deliveryProbe} key={probe.probeType}>
+                      <div>
+                        <Typography.Text strong>{probe.probeType}</Typography.Text>
+                        <span>目标 generation {probe.targetGeneration}</span>
+                      </div>
+                      <div className={styles.deliveryGenerations}>
+                        <span>接收 {probe.desiredGeneration || '-'}</span>
+                        <span>应用 {probe.appliedGeneration || '-'}</span>
+                      </div>
+                      <div>{deliveryStatusTag(probe.status)}</div>
+                      <div className={styles.deliveryProbeReport}>
+                        <span>{formatDeliveryTime(probe.reportedAt)}</span>
+                        {(probe.reason || probe.agentStatus) && (
+                          <span title={probe.reason || probe.agentStatus}>
+                            {probe.reason || probe.agentStatus}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      ))}
+        )}
+      </section>
     </div>
   )
 
@@ -1352,16 +1506,68 @@ export default function ProbeManagement() {
         }
         onClose={() => setDeliveryDrawerOpen(false)}
       >
+        <div className={styles.deliveryFilters}>
+          <Input.Search
+            allowClear
+            value={deliveryQuery}
+            placeholder="搜索范围、模板、节点或操作人"
+            onChange={(event) => {
+              setDeliveryQuery(event.target.value)
+              setDeliveryPage(1)
+            }}
+          />
+          <Select<DeliveryCategory>
+            value={deliveryCategory}
+            onChange={(value) => {
+              setDeliveryCategory(value)
+              setDeliveryPage(1)
+            }}
+            options={[
+              { value: 'all', label: '全部配置类型' },
+              { value: 'config', label: '配置文件' },
+              { value: 'logs', label: '日志采集配置' },
+              { value: 'circuit', label: '熔断配置' },
+              { value: 'injection', label: '注入配置' },
+            ]}
+          />
+          <Select<'all' | DeliveryReceiptStatus>
+            value={deliveryStatus}
+            onChange={(value) => {
+              setDeliveryStatus(value)
+              setDeliveryPage(1)
+            }}
+            options={[
+              { value: 'all', label: '全部状态' },
+              { value: 'RECORDED', label: '已记录' },
+              { value: 'PENDING', label: '待接收' },
+              { value: 'PARTIAL', label: '部分接收' },
+              { value: 'RECEIVED', label: '已接收' },
+              { value: 'APPLIED', label: '已应用' },
+              { value: 'FAILED', label: '失败' },
+            ]}
+          />
+        </div>
         <Table
           rowKey="id"
           columns={deliveryColumns}
-          dataSource={deliveries}
+          dataSource={filteredDeliveries}
           loading={deliveryLoading}
           size="small"
-          scroll={{ x: 820 }}
-          pagination={{ pageSize: 10, showSizeChanger: false }}
+          scroll={{ x: 980 }}
+          pagination={{
+            current: deliveryPage,
+            pageSize: deliveryPageSize,
+            pageSizeOptions: [10, 20, 50],
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条`,
+            onChange: (page, size) => {
+              setDeliveryPage(page)
+              setDeliveryPageSize(size)
+            },
+          }}
           expandable={{
-            rowExpandable: (record) => record.targets.length > 0,
+            expandedRowKeys: expandedDeliveryKeys,
+            onExpandedRowsChange: (keys) => setExpandedDeliveryKeys([...keys]),
             expandedRowRender: renderDeliveryTargets,
           }}
           locale={{ emptyText: '暂无下发记录' }}

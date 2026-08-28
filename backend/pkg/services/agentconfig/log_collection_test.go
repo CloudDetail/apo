@@ -31,13 +31,16 @@ func (r *logCollectionTestRepo) GetLogCollectionConfig(_ core.Context, scopeType
 	return &copy, nil
 }
 
-func (r *logCollectionTestRepo) SaveLogCollectionConfig(_ core.Context, config *ac.LogCollectionConfig) error {
+func (r *logCollectionTestRepo) SaveLogCollectionConfig(_ core.Context, config *ac.LogCollectionConfig, delivery *ac.Delivery) error {
 	key := config.ScopeType + "\x00" + config.ScopeID
 	if old, ok := r.configs[key]; ok {
 		config.Version = old.Version + 1
 	}
 	copy := *config
 	r.configs[key] = copy
+	if delivery != nil {
+		r.deliveries = append(r.deliveries, *delivery)
+	}
 	return nil
 }
 
