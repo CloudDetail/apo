@@ -4,7 +4,12 @@
 package integration
 
 type ListClusterResponse struct {
-	Clusters []Cluster `json:"clusters"`
+	Clusters []ClusterListItem `json:"clusters"`
+}
+
+type ClusterListItem struct {
+	Cluster
+	IntegrationConfigured bool `json:"integrationConfigured"`
 }
 
 type GetCInstallDocResponse struct {

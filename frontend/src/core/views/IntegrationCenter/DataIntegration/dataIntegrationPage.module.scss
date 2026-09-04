@@ -1,24 +1,3 @@
 .page {
   min-width: 0;
 }
-
-.tabs :global(.ant-tabs-nav) {
-  margin: 0;
-  padding-inline: 20px;
-  background: var(--ant-color-bg-container);
-}
-
-.tabs :global(.ant-tabs-tab) {
-  padding-block: 14px 12px;
-}
-
-.tabs :global(.ant-tabs-content-holder),
-.tabs :global(.ant-tabs-tabpane) {
-  min-width: 0;
-}
-
-@media (max-width: 768px) {
-  .tabs :global(.ant-tabs-nav) {
-    padding-inline: 16px;
-  }
-}

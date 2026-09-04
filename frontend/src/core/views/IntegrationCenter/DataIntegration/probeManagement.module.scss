@@ -186,7 +186,7 @@
 
 .probeStatusTooltip {
   display: grid;
-  min-width: 260px;
+  width: min(300px, calc(100vw - 48px));
   gap: 7px;
 }
 
@@ -199,6 +199,11 @@
 
 .probeStatusTooltip > span > span:last-child {
   color: rgb(255 255 255 / 70%);
+  white-space: nowrap;
+}
+
+.probeStatusTooltip > span > span:nth-child(2) {
+  overflow-wrap: anywhere;
 }
 
 .healthyDot,

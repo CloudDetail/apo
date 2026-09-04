@@ -10,6 +10,8 @@ Cluster identity and node ownership are separate operations:
 
 Creating a cluster from the cluster management page only persists its `cluster_id`, display name, and immutable environment type. It does not create collector, metric, log, trace, or any other integration configuration.
 
+The cluster list exposes `integrationConfigured` separately from identity registration. It is `true` only when active trace, metric, and log integration records all exist for the cluster. A registered identity without that complete set is shown as `Configure access`; saving that form updates the existing identity with integration configuration. Edit and installation actions are available only after the configuration is complete.
+
 Changing node ownership only updates the managed `CLUSTER_ID` override. It never creates, removes, or changes `CLUSTER_IP` or any other variable, and it does not trigger configuration delivery. `cluster_ip` is read only for mixed-cluster risk detection.
 
 ## Assignment rules

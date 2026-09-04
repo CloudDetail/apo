@@ -31,8 +31,15 @@ func (h *handler) ListCluster() core.HandlerFunc {
 			)
 			return
 		}
+		items := make([]integration.ClusterListItem, len(clusters))
+		for index, cluster := range clusters {
+			items[index] = integration.ClusterListItem{
+				Cluster:               cluster,
+				IntegrationConfigured: cluster.IntegrationConfigured,
+			}
+		}
 		c.Payload(integration.ListClusterResponse{
-			Clusters: clusters,
+			Clusters: items,
 		})
 	}
 }

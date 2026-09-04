@@ -1,6 +1,6 @@
 ---
 name: vm-v1.1.0-default
-description: 基于 v1.1.0 二进制探针部署包默认配置生成，包含 6 个可配置组件和 9 个配置文件；preload 使用默认 SkyWalking 配置，熔断策略及日志采集策略独立管理。
+description: 基于 v1.1.0 二进制探针部署包默认配置生成，包含 5 个可配置组件和 7 个配置文件；preload 使用默认 SkyWalking 配置，日志采集配置仅在日志采集页管理。
 clusterType: vm
 variables:
 - name: APO_APP_RED_TRACE_ENABLED
@@ -64,58 +64,6 @@ configs:
           name = "{{.Comm}}:{{.PID}}"
         }
       }
-- probeType: loongcollector
-  files:
-  - path: config/local/config.yaml
-    template: |
-      enable: false
-      inputs:
-        - Type: file_log
-          LogPath: /home
-          FilePattern: "*.log"
-          MaxDepth: 4
-          ForceMultiConfig: true
-      processors:
-        - Type: processor_path_to_pid
-        - Type: processor_log_to_prom_metric
-          PromPort: ":9499"
-        - Type: processor_wait_for_signal
-          ContentsRename:
-            "__tag__:_container_id_": "_container_id_"
-            "__tag__:__path__": "_source_"
-      flushers:
-        - Type: flusher_otlp
-          Logs:
-            Endpoint: {% APO_PROXY_IP %}:30317
-  - path: config/local/all-log-config.yaml
-    template: |
-      enable: true
-      global:
-        UsingOldContentTag: true
-      inputs:
-      - Type: input_file
-        FilePaths:
-        - /home/**/*.log
-        MaxDirSearchDepth: 4
-        Multiline:
-          StartPattern: '^\[?\d{4}-\d{2}-\d{2}'
-          UnmatchedContentTreatment: single_line
-        AllowingIncludedByMultiConfigs: true
-      processors:
-        - Type: processor_split_log_regex
-          SplitRegex: \d+.*
-          SplitKey: content
-          PreserveOthers: true
-        - Type: processor_path_to_pid
-          ParseMount: false
-        - Type: processor_log_to_prom_metric
-          PromPort: ":9499"
-      flushers:
-        - Type: flusher_http
-          RemoteURL: http://{% APO_PROXY_IP %}:30310
-          Convert:
-            Protocol: custom_single
-            Encoding: json
 - probeType: ebpf-agent
   files:
   - path: config/camera-agent-config.yml

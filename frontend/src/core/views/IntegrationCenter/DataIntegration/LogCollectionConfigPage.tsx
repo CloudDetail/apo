@@ -226,8 +226,13 @@ const tagMappingFields: [ContainerTextField, string][] = [
   ['tags', 'Tag 重命名或删除'],
 ]
 
-const createSourceId = () =>
-  typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `source-${Date.now()}`
+let sourceIdSequence = 0
+
+const createSourceId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  sourceIdSequence += 1
+  return `source-${Date.now()}-${sourceIdSequence}`
+}
 
 const newFilterMapEntry = (key = '', value = ''): FilterMapEntry => ({
   id: createSourceId(),
@@ -601,7 +606,9 @@ export function LogCollectionDefaultsPanel() {
                     placeholder={'processors:\n  - Type: processor_example'}
                     autoSize={{ minRows: 8, maxRows: 24 }}
                     spellCheck={false}
-                    onChange={(event) => updateCurrent({ processingRule: event.target.value })}
+                    onInput={(event) =>
+                      updateCurrent({ processingRule: event.currentTarget.value })
+                    }
                   />
                 ),
               },
@@ -623,7 +630,7 @@ export function LogCollectionDefaultsPanel() {
                     placeholder={'flushers:\n  - Type: flusher_http'}
                     autoSize={{ minRows: 8, maxRows: 24 }}
                     spellCheck={false}
-                    onChange={(event) => updateCurrent({ outputRule: event.target.value })}
+                    onInput={(event) => updateCurrent({ outputRule: event.currentTarget.value })}
                   />
                 ),
               },

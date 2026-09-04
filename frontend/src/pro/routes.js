@@ -204,6 +204,7 @@ let proRoutes = [
     path: '/probe-management/config',
     name: 'ProbeConfig',
     element: ProbeConfigPage,
+    hideSystemTimeRangePicker: true,
   },
   {
     path: '/probe-management/clusters',

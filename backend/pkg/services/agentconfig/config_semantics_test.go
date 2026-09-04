@@ -367,6 +367,29 @@ func TestInitialConfigIsHistoryVersionOneWithoutServerDelivery(t *testing.T) {
 	}
 }
 
+func TestCurrentNodeConfigFallsBackToReleaseWhenInitialConfigIsMissing(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
+	files := []ac.InitialConfigFile{{Path: "odiglet.env", Content: "CLUSTER_ID=cluster-a\n"}}
+	data, err := json.Marshal(files)
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo.releases[releaseKey("node-1", "apo-odiglet")] = ac.Release{
+		NodeID: "node-1", ProbeType: "apo-odiglet", Generation: 1,
+		Files: ac.JSON(data), ContentSHA256: ac.HashInitialConfigFiles(files),
+	}
+	service := New(repo)
+
+	current, err := service.CurrentNodeConfigs(nil, "node-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(current.Configs) != 1 || current.Configs[0].ProbeType != "apo-odiglet" || current.Configs[0].Generation != 1 || current.Configs[0].Source != "RELEASE" {
+		t.Fatalf("release fallback was not exposed: %+v", current.Configs)
+	}
+}
+
 func TestReportPreservesInitialSnapshotAndAdvancesOnlyAppliedRelease(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
@@ -627,12 +650,11 @@ func TestVMV110ExampleTemplateIsImportable(t *testing.T) {
 		t.Fatal(err)
 	}
 	wantFiles := map[string][]string{
-		"alloy":          {"config.alloy"},
-		"ebpf-agent":     {"config/camera-agent-config.yml", "config/log4rs.yml", "load-env.sh"},
-		"loongcollector": {"config/local/all-log-config.yaml", "config/local/config.yaml"},
-		"node-agent":     {"config.yaml"},
-		"preload":        {"libapoinstrument.conf"},
-		"vmagent":        {"config/vmagent/scrape.yml"},
+		"alloy":      {"config.alloy"},
+		"ebpf-agent": {"config/camera-agent-config.yml", "config/log4rs.yml", "load-env.sh"},
+		"node-agent": {"config.yaml"},
+		"preload":    {"libapoinstrument.conf"},
+		"vmagent":    {"config/vmagent/scrape.yml"},
 	}
 	if len(configs) != len(wantFiles) {
 		t.Fatalf("unexpected VM example config count: got %d want %d", len(configs), len(wantFiles))
@@ -1229,7 +1251,57 @@ func TestBatchAssignmentOverwritesCompleteMultiFileProbeFromTemplate(t *testing.
 	}
 }
 
-func TestBatchAssignmentRejectsChangedRegisteredFileSet(t *testing.T) {
+func TestOrdinaryConfigurationPreservesManagedLogCollectionFiles(t *testing.T) {
+	repo := newConfigSemanticsRepo()
+	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
+	addBaselineFiles(t, repo, "node-a", "loongcollector", []ac.InitialConfigFile{
+		{Path: "config/local/all-log-config.yaml", Content: "inputs: []\n"},
+		{Path: "conf/plugin_logger.xml", Content: "<logger/>\n"},
+	})
+	addBaselineFiles(t, repo, "node-a", "ilogtail", []ac.InitialConfigFile{
+		{Path: "config/local/config.yaml", Content: "inputs: []\n"},
+	})
+	templateID := uuid.New()
+	addBundleTemplate(t, repo, templateID, []ac.TemplateProbeConfig{
+		{ProbeType: "loongcollector", Files: []ac.InitialConfigFile{
+			{Path: "config/local/all-log-config.yaml", Content: "inputs: [legacy]\n"},
+			{Path: "conf/plugin_logger.xml", Content: "<logger level=\"info\"/>\n"},
+		}},
+		{ProbeType: "ilogtail", Files: []ac.InitialConfigFile{
+			{Path: "config/local/config.yaml", Content: "inputs: [legacy]\n"},
+		}},
+	}, nil)
+	managedFiles, _ := json.Marshal([]ac.InitialConfigFile{{Path: "config/local/all-log-config.yaml", Content: "inputs: [managed]\n"}})
+	repo.releases[releaseKey("node-a", "loongcollector")] = ac.Release{
+		NodeID: "node-a", ProbeType: "loongcollector", Generation: 4, Files: ac.JSON(managedFiles),
+	}
+	service := New(repo)
+
+	current, err := service.CurrentNodeConfigs(nil, "node-a")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(current.Configs) != 1 || current.Configs[0].ProbeType != "loongcollector" || len(current.Configs[0].Files) != 1 || current.Configs[0].Files[0].Path != "conf/plugin_logger.xml" {
+		t.Fatalf("log collection files leaked into node ordinary configuration view: %+v", current.Configs)
+	}
+
+	if _, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a"}, TemplateID: templateID}, 7); err != nil {
+		t.Fatal(err)
+	}
+	release := repo.releases[releaseKey("node-a", "loongcollector")]
+	var files []ac.InitialConfigFile
+	if err := json.Unmarshal(release.Files, &files); err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 2 || files[0].Path != "conf/plugin_logger.xml" || files[1].Path != "config/local/all-log-config.yaml" || files[1].Content != "inputs: [managed]\n" {
+		t.Fatalf("managed log collection files were not preserved in ordinary release: %+v", files)
+	}
+	if _, exists := repo.releases[releaseKey("node-a", "ilogtail")]; exists {
+		t.Fatalf("log-only component produced an ordinary release: %v", repo.releases)
+	}
+}
+
+func TestBatchAssignmentIgnoresRegisteredFileSet(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
 	addBaselineFiles(t, repo, "node-a", "ebpf-agent", []ac.InitialConfigFile{
@@ -1241,8 +1313,16 @@ func TestBatchAssignmentRejectsChangedRegisteredFileSet(t *testing.T) {
 	service := New(repo)
 
 	_, err := service.BatchAssign(nil, BatchAssignmentInput{ClusterIDs: []string{"cluster-a"}, TemplateID: templateID}, 7)
-	if err == nil || !strings.Contains(err.Error(), "do not match registered configuration files") || repo.batchSaveCalls != 0 {
-		t.Fatalf("batch assignment changed the registered file set: err=%v calls=%d", err, repo.batchSaveCalls)
+	if err != nil {
+		t.Fatal(err)
+	}
+	release := repo.releases[releaseKey("node-a", "ebpf-agent")]
+	var files []ac.InitialConfigFile
+	if err := json.Unmarshal(release.Files, &files); err != nil {
+		t.Fatal(err)
+	}
+	if repo.batchSaveCalls != 1 || len(files) != 1 || files[0].Path != "a.yaml" || files[0].Content != "a: new\n" {
+		t.Fatalf("batch assignment did not replace registered files from template: calls=%d files=%+v", repo.batchSaveCalls, files)
 	}
 }
 
@@ -1330,24 +1410,26 @@ func TestTemplateUpdateCannotChangeRegisteredFileSet(t *testing.T) {
 	}
 }
 
-func TestBatchAssignmentRejectsTemplateWithoutEveryNodeProbe(t *testing.T) {
+func TestBatchAssignmentIgnoresNodeProbeSet(t *testing.T) {
 	repo := newConfigSemanticsRepo()
 	repo.nodes["node-a"] = ac.Node{ID: "node-a", ClusterID: "cluster-a"}
-	addBaseline(t, repo, "node-a", "probe-a", "a: old\n")
-	addBaseline(t, repo, "node-a", "probe-b", "b: old\n")
+	addBaseline(t, repo, "node-a", "node-only-probe", "old: true\n")
 	templateA := uuid.New()
-	addBundleTemplate(t, repo, templateA, []ac.TemplateProbeConfig{{ProbeType: "probe-a", Files: []ac.InitialConfigFile{{Path: "config.yaml", Content: "a: new\n"}}}}, nil)
+	addBundleTemplate(t, repo, templateA, []ac.TemplateProbeConfig{{ProbeType: "template-only-probe", Files: []ac.InitialConfigFile{{Path: "template.yaml", Content: "new: true\n"}}}}, nil)
 	service := New(repo)
 
 	_, err := service.BatchAssign(nil, BatchAssignmentInput{
 		ClusterIDs: []string{"cluster-a"},
 		TemplateID: templateA,
 	}, 7)
-	if err == nil || !strings.Contains(err.Error(), "contains 1 probes but node node-a has 2") {
-		t.Fatalf("incomplete template set was accepted: %v", err)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if repo.batchSaveCalls != 0 {
-		t.Fatalf("incomplete batch wrote releases: calls=%d", repo.batchSaveCalls)
+	if repo.batchSaveCalls != 1 || repo.releases[releaseKey("node-a", "template-only-probe")].RenderedContent != "new: true\n" {
+		t.Fatalf("template component was not delivered: calls=%d releases=%v", repo.batchSaveCalls, repo.releases)
+	}
+	if _, exists := repo.releases[releaseKey("node-a", "node-only-probe")]; exists {
+		t.Fatalf("node-only component unexpectedly influenced template delivery: releases=%v", repo.releases)
 	}
 }
 
@@ -1398,23 +1480,79 @@ func TestCircuitPolicyPersistsNodeSystemPressureSettings(t *testing.T) {
 	repo.nodes["node-1"] = ac.Node{ID: "node-1", ClusterID: "cluster-a"}
 	service := New(repo)
 	policy := ac.CircuitBreakerSettings{
-		Enabled:                     true,
+		Enabled:                     false,
 		DurationSeconds:             30,
 		AutoRecover:                 true,
 		RecoveryInitialDelaySeconds: 30,
 		RecoveryMaxDelaySeconds:     3600,
 		SystemPressure: &ac.SystemPressureSettings{
-			Enabled:          true,
-			MaxCPUPercent:    90,
-			MaxMemoryPercent: 90,
+			Enabled:                 true,
+			MaxCPUPercent:           90,
+			MaxMemoryPercent:        90,
+			RecoveryCPUPercent:      80,
+			RecoveryMemoryPercent:   80,
+			TriggerDurationSeconds:  30,
+			RecoveryDurationSeconds: 45,
 		},
 	}
 	if _, err := service.SaveNodeCircuit(nil, "node-1", policy, 2); err != nil {
 		t.Fatal(err)
 	}
 	settings, source, err := service.GetNodeCircuit(nil, "node-1")
-	if err != nil || source != "NODE" || settings.SystemPressure == nil || settings.SystemPressure.MaxCPUPercent != 90 || settings.SystemPressure.MaxMemoryPercent != 90 {
+	if err != nil || source != "NODE" || settings.SystemPressure == nil || settings.SystemPressure.RecoveryCPUPercent != 80 || settings.SystemPressure.RecoveryDurationSeconds != 45 {
 		t.Fatalf("system pressure settings were not persisted: settings=%+v source=%s err=%v", settings, source, err)
+	}
+}
+
+func TestCircuitPolicyAllowsIndependentSystemPressureBreaker(t *testing.T) {
+	policy := ac.CircuitBreakerSettings{
+		Enabled: false,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled:                 true,
+			MaxCPUPercent:           90,
+			MaxMemoryPercent:        90,
+			RecoveryCPUPercent:      80,
+			RecoveryMemoryPercent:   80,
+			TriggerDurationSeconds:  30,
+			RecoveryDurationSeconds: 30,
+		},
+	}
+	if err := validateCircuitBreaker(&policy); err != nil {
+		t.Fatalf("independent system pressure breaker was rejected: %v", err)
+	}
+}
+
+func TestCircuitPolicyFillsDisabledSystemPressureRecoveryDefaults(t *testing.T) {
+	policy := ac.CircuitBreakerSettings{
+		Enabled:         true,
+		MaxCPUCores:     1,
+		DurationSeconds: 30,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled: false, MaxCPUPercent: 90, MaxMemoryPercent: 90,
+		},
+	}
+	if err := validateCircuitBreaker(&policy); err != nil {
+		t.Fatal(err)
+	}
+	pressure := policy.SystemPressure
+	if pressure.RecoveryCPUPercent != 80 || pressure.RecoveryMemoryPercent != 80 || pressure.TriggerDurationSeconds != 30 || pressure.RecoveryDurationSeconds != 30 {
+		t.Fatalf("disabled system pressure defaults were not filled: %+v", pressure)
+	}
+}
+
+func TestCircuitPolicyRejectsRecoveryThresholdAtCircuitThreshold(t *testing.T) {
+	policy := ac.CircuitBreakerSettings{
+		Enabled: false,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled:                 true,
+			MaxCPUPercent:           90,
+			RecoveryCPUPercent:      90,
+			TriggerDurationSeconds:  30,
+			RecoveryDurationSeconds: 30,
+		},
+	}
+	if err := validateCircuitBreaker(&policy); err == nil || !strings.Contains(err.Error(), "recovery CPU percent") {
+		t.Fatalf("invalid system recovery threshold was accepted: %v", err)
 	}
 }
 
@@ -1432,9 +1570,13 @@ func TestBatchCircuitPolicyMatchesNodePolicy(t *testing.T) {
 		RecoveryInitialDelaySeconds: 30,
 		RecoveryMaxDelaySeconds:     3600,
 		SystemPressure: &ac.SystemPressureSettings{
-			Enabled:          true,
-			MaxCPUPercent:    85,
-			MaxMemoryPercent: 90,
+			Enabled:                 true,
+			MaxCPUPercent:           85,
+			MaxMemoryPercent:        90,
+			RecoveryCPUPercent:      75,
+			RecoveryMemoryPercent:   80,
+			TriggerDurationSeconds:  30,
+			RecoveryDurationSeconds: 30,
 		},
 		ComponentPolicies: map[string]ac.CircuitBreakerSettings{
 			"probe-a": {Enabled: true, MaxCPUCores: 0.5, DurationSeconds: 10},

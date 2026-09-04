@@ -60,7 +60,7 @@
     "port1": "用于接收链路回溯采样数据",
     "port2": "用于接收并处理日志数据",
     "port3": "用于接收可观测性数据，OTLP gRPC 协议",
-    "port4": "用于接收 K85 集群数据，OTLP gRPC 协议",
+    "port4": "用于接收 K8s 集群数据，OTLP gRPC 协议",
     "port5": "用于提供查询 API 服务"
   },
   "sidecar": "适用于已经使用 Tracing 探针，不期望改造 Traces 数据发送地址的场景，APO将通过Trace系统API查询数据",

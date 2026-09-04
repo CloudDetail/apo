@@ -121,6 +121,10 @@ type SystemPressurePolicy = {
   enabled: boolean
   maxCpuPercent: number
   maxMemoryPercent: number
+  recoveryCpuPercent: number
+  recoveryMemoryPercent: number
+  triggerDurationSeconds: number
+  recoveryDurationSeconds: number
 }
 type CurrentConfig = {
   probeType: string
@@ -166,6 +170,10 @@ const DEFAULT_CIRCUIT: CircuitPolicy = {
     enabled: false,
     maxCpuPercent: 90,
     maxMemoryPercent: 90,
+    recoveryCpuPercent: 80,
+    recoveryMemoryPercent: 80,
+    triggerDurationSeconds: 30,
+    recoveryDurationSeconds: 30,
   },
 }
 
@@ -194,12 +202,24 @@ const templateLabel = (template: AgentTemplate) =>
 const draftKey = (probeType: string, path: string) => `${probeType}\u0000${path}`
 const concreteCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy => {
   const { componentPolicies: _ignored, ...policy } = value || {}
+  const systemPressure = value?.systemPressure
   return {
     ...DEFAULT_CIRCUIT,
     ...policy,
     systemPressure: {
       ...DEFAULT_CIRCUIT.systemPressure!,
-      ...value?.systemPressure,
+      ...systemPressure,
+      recoveryCpuPercent:
+        systemPressure?.recoveryCpuPercent || DEFAULT_CIRCUIT.systemPressure!.recoveryCpuPercent,
+      recoveryMemoryPercent:
+        systemPressure?.recoveryMemoryPercent ||
+        DEFAULT_CIRCUIT.systemPressure!.recoveryMemoryPercent,
+      triggerDurationSeconds:
+        systemPressure?.triggerDurationSeconds ||
+        DEFAULT_CIRCUIT.systemPressure!.triggerDurationSeconds,
+      recoveryDurationSeconds:
+        systemPressure?.recoveryDurationSeconds ||
+        DEFAULT_CIRCUIT.systemPressure!.recoveryDurationSeconds,
     },
   }
 }
@@ -216,15 +236,36 @@ const normalizeCircuitPolicy = (value?: Partial<CircuitPolicy>): CircuitPolicy =
     ]),
   ),
 })
+const isLogCollectorProbe = (probeType: string) =>
+  ['ilogtail', 'loongcollector'].includes(probeType.toLowerCase())
+const ordinaryFilesForProbe = (probeType: string, files: ConfigFile[]) =>
+  isLogCollectorProbe(probeType)
+    ? files.filter((file) => !file.path.replace(/^\.\//, '').startsWith('config/local/'))
+    : files
 const filesForConfig = (config: CurrentConfig): ConfigFile[] =>
-  config.files?.length
-    ? config.files
-    : [{ path: 'config.yaml', content: config.content || '', contentSha256: config.contentSha256 }]
+  ordinaryFilesForProbe(
+    config.probeType,
+    config.files?.length
+      ? config.files
+      : [
+          {
+            path: 'config.yaml',
+            content: config.content || '',
+            contentSha256: config.contentSha256,
+          },
+        ],
+  )
 const allConfigsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
   template?.configs || []
 const isPreloadProbe = (probeType: string) => probeType.toLowerCase() === 'preload'
 const configsForTemplate = (template?: AgentTemplate): TemplateProbeConfig[] =>
-  allConfigsForTemplate(template).filter((config) => !isPreloadProbe(config.probeType))
+  allConfigsForTemplate(template)
+    .filter((config) => !isPreloadProbe(config.probeType))
+    .map((config) => ({
+      ...config,
+      files: ordinaryFilesForProbe(config.probeType, config.files),
+    }))
+    .filter((config) => config.files.length > 0)
 const preloadFileForConfig = (config?: { probeType: string; files: ConfigFile[] }) =>
   config && isPreloadProbe(config.probeType)
     ? config.files.find((file) => file.path.split('/').at(-1) === 'libapoinstrument.conf')
@@ -256,66 +297,6 @@ function CircuitEditor({
   const systemPressure = value.systemPressure || DEFAULT_CIRCUIT.systemPressure!
   const patchSystemPressure = (next: Partial<SystemPressurePolicy>) =>
     patch({ systemPressure: { ...systemPressure, ...next } })
-  const durationField = (
-    <label className={styles.thresholdItem}>
-      <span className={`${styles.thresholdIcon} ${styles.durationIcon}`}>
-        <ShieldAlert size={17} />
-      </span>
-      <span className={styles.thresholdCopy}>
-        <strong>持续时间</strong>
-        <small>5 秒 - 10 分钟</small>
-      </span>
-      <InputNumber
-        aria-label="持续超限时间"
-        min={5}
-        max={600}
-        value={value.durationSeconds}
-        disabled={!value.enabled}
-        addonAfter="秒"
-        onChange={(next) => patch({ durationSeconds: Number(next || 5) })}
-      />
-    </label>
-  )
-  const systemThresholdFields = (
-    <>
-      <label className={styles.thresholdItem}>
-        <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
-          <Cpu size={17} />
-        </span>
-        <span className={styles.thresholdCopy}>
-          <strong>系统 CPU 使用率</strong>
-          <small>1% - 100%</small>
-        </span>
-        <InputNumber
-          aria-label="系统 CPU 熔断阈值"
-          min={1}
-          max={100}
-          value={systemPressure.maxCpuPercent}
-          disabled={!value.enabled || !systemPressure.enabled}
-          addonAfter="%"
-          onChange={(next) => patchSystemPressure({ maxCpuPercent: Number(next || 1) })}
-        />
-      </label>
-      <label className={styles.thresholdItem}>
-        <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
-          <MemoryStick size={17} />
-        </span>
-        <span className={styles.thresholdCopy}>
-          <strong>系统内存使用率</strong>
-          <small>1% - 100%</small>
-        </span>
-        <InputNumber
-          aria-label="系统内存熔断阈值"
-          min={1}
-          max={100}
-          value={systemPressure.maxMemoryPercent}
-          disabled={!value.enabled || !systemPressure.enabled}
-          addonAfter="%"
-          onChange={(next) => patchSystemPressure({ maxMemoryPercent: Number(next || 1) })}
-        />
-      </label>
-    </>
-  )
   return (
     <div className={styles.tabContent}>
       <div className={styles.sectionHeading}>
@@ -323,123 +304,313 @@ function CircuitEditor({
           <Typography.Text strong>{title}</Typography.Text>
           {description && <Typography.Text type="secondary">{description}</Typography.Text>}
         </div>
-        <Switch
-          checked={value.enabled}
-          checkedChildren="启用"
-          unCheckedChildren="停用"
-          onChange={(enabled) => patch({ enabled })}
-        />
       </div>
-      <div className={styles.thresholdGrid}>
-        <label className={styles.thresholdItem}>
-          <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
-            <Cpu size={17} />
-          </span>
-          <span className={styles.thresholdCopy}>
-            <strong>CPU 配额</strong>
-            <small>0.1 - 256 Core</small>
-          </span>
-          <InputNumber
-            aria-label="CPU 熔断阈值"
-            min={0.1}
-            max={256}
-            step={0.1}
-            precision={1}
-            value={value.maxCpuCores}
-            disabled={!value.enabled}
-            addonAfter="Core"
-            onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
-          />
-        </label>
-        <label className={styles.thresholdItem}>
-          <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
-            <MemoryStick size={17} />
-          </span>
-          <span className={styles.thresholdCopy}>
-            <strong>内存占用</strong>
-            <small>64 MiB - 64 GiB</small>
-          </span>
-          <InputNumber
-            aria-label="内存熔断阈值"
-            min={64}
-            max={65536}
-            step={64}
-            value={toMemoryMiB(value.maxMemoryBytes)}
-            disabled={!value.enabled}
-            addonAfter="MiB"
-            onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
-          />
-        </label>
-        {durationField}
-      </div>
-      {showSystemPressure && (
-        <div className={styles.systemPressureSection}>
-          <div className={styles.sectionHeading}>
+      <section className={`${styles.circuitPolicyGroup} ${styles.probeCircuitGroup}`}>
+        <div className={styles.circuitPolicyHeader}>
+          <div className={styles.circuitPolicyTitle}>
+            <span className={`${styles.thresholdIcon} ${styles.probeCircuitIcon}`}>
+              <ShieldAlert size={17} />
+            </span>
             <div>
+              <Typography.Text strong>探针资源开销熔断</Typography.Text>
+              <Typography.Text type="secondary">
+                单个探针的 CPU 或内存持续超过阈值后进入熔断
+              </Typography.Text>
+            </div>
+          </div>
+          <Switch
+            checked={value.enabled}
+            checkedChildren="启用"
+            unCheckedChildren="停用"
+            onChange={(enabled) => patch({ enabled })}
+          />
+        </div>
+        <div className={styles.thresholdGrid}>
+          <label className={styles.thresholdItem}>
+            <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+              <Cpu size={17} />
+            </span>
+            <span className={styles.thresholdCopy}>
+              <strong>CPU 熔断阈值</strong>
+              <small>0.1 - 256 Core</small>
+            </span>
+            <InputNumber
+              aria-label="CPU 熔断阈值"
+              min={0.1}
+              max={256}
+              step={0.1}
+              precision={1}
+              value={value.maxCpuCores}
+              disabled={!value.enabled}
+              addonAfter="Core"
+              onChange={(next) => patch({ maxCpuCores: Number(next || 0.1) })}
+            />
+          </label>
+          <label className={styles.thresholdItem}>
+            <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+              <MemoryStick size={17} />
+            </span>
+            <span className={styles.thresholdCopy}>
+              <strong>内存熔断阈值</strong>
+              <small>64 MiB - 64 GiB</small>
+            </span>
+            <InputNumber
+              aria-label="内存熔断阈值"
+              min={64}
+              max={65536}
+              step={64}
+              value={toMemoryMiB(value.maxMemoryBytes)}
+              disabled={!value.enabled}
+              addonAfter="MiB"
+              onChange={(next) => patch({ maxMemoryBytes: fromMemoryMiB(Number(next || 64)) })}
+            />
+          </label>
+          <label className={styles.thresholdItem}>
+            <span className={`${styles.thresholdIcon} ${styles.durationIcon}`}>
+              <ShieldAlert size={17} />
+            </span>
+            <span className={styles.thresholdCopy}>
+              <strong>超限触发等待</strong>
+              <small>持续超限后触发熔断</small>
+            </span>
+            <InputNumber
+              aria-label="持续超限时间"
+              min={5}
+              max={600}
+              value={value.durationSeconds}
+              disabled={!value.enabled}
+              addonAfter="秒"
+              onChange={(next) => patch({ durationSeconds: Number(next || 5) })}
+            />
+          </label>
+        </div>
+        <div className={styles.recoveryRow}>
+          <div className={styles.recoveryToggle}>
+            <span className={`${styles.thresholdIcon} ${styles.recoveryIcon}`}>
+              <RotateCcw size={17} />
+            </span>
+            <span className={styles.recoveryCopy}>
+              <Typography.Text strong>自动恢复</Typography.Text>
+              <Typography.Text type="secondary">熔断后按指数退避进行试探恢复</Typography.Text>
+            </span>
+            <Switch
+              checked={value.autoRecover}
+              disabled={!value.enabled}
+              onChange={(autoRecover) => patch({ autoRecover })}
+            />
+          </div>
+          <label>
+            <span>首次试探间隔</span>
+            <InputNumber
+              aria-label="首次恢复重试间隔"
+              min={5}
+              max={600}
+              value={value.recoveryInitialDelaySeconds}
+              disabled={!value.enabled || !value.autoRecover}
+              addonAfter="秒"
+              onChange={(next) => {
+                const recoveryInitialDelaySeconds = Number(next || 5)
+                patch({
+                  recoveryInitialDelaySeconds,
+                  recoveryMaxDelaySeconds: Math.max(
+                    recoveryInitialDelaySeconds,
+                    value.recoveryMaxDelaySeconds,
+                  ),
+                })
+              }}
+            />
+          </label>
+          <label>
+            <span>最长试探间隔</span>
+            <InputNumber
+              aria-label="最长恢复重试间隔"
+              min={value.recoveryInitialDelaySeconds}
+              max={3600}
+              value={value.recoveryMaxDelaySeconds}
+              disabled={!value.enabled || !value.autoRecover}
+              addonAfter="秒"
+              onChange={(next) => patch({ recoveryMaxDelaySeconds: Number(next || 3600) })}
+            />
+          </label>
+        </div>
+      </section>
+      {showSystemPressure && (
+        <section className={`${styles.circuitPolicyGroup} ${styles.hostCircuitGroup}`}>
+          <div className={styles.circuitPolicyHeader}>
+            <div className={styles.circuitPolicyTitle}>
               <span className={`${styles.thresholdIcon} ${styles.systemIcon}`}>
                 <Server size={17} />
               </span>
-              <Typography.Text strong>系统资源保护</Typography.Text>
+              <div>
+                <Typography.Text strong>主机资源保护熔断</Typography.Text>
+                <Typography.Text type="secondary">
+                  主机 CPU 或内存持续高负载时熔断探针，资源恢复稳定后统一恢复
+                </Typography.Text>
+              </div>
             </div>
             <Switch
               checked={systemPressure.enabled}
               checkedChildren="启用"
               unCheckedChildren="停用"
-              disabled={!value.enabled}
               onChange={(enabled) => patchSystemPressure({ enabled })}
             />
           </div>
-          <div className={`${styles.thresholdGrid} ${styles.systemThresholdGrid}`}>
-            {systemThresholdFields}
+          <div className={styles.systemThresholdBand}>
+            <div className={styles.systemThresholdHeading}>
+              <Typography.Text strong>熔断阈值</Typography.Text>
+              <Typography.Text type="secondary">
+                CPU 或内存持续达到熔断阈值并超过等待时间后熔断
+              </Typography.Text>
+            </div>
+            <div className={styles.thresholdGrid}>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+                  <Cpu size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>CPU 熔断阈值</strong>
+                  <small>达到阈值后开始计算触发等待</small>
+                </span>
+                <InputNumber
+                  aria-label="系统 CPU 熔断阈值"
+                  min={2}
+                  max={100}
+                  value={systemPressure.maxCpuPercent}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="%"
+                  onChange={(next) => {
+                    const maxCpuPercent = Number(next || 2)
+                    patchSystemPressure({
+                      maxCpuPercent,
+                      recoveryCpuPercent: Math.min(
+                        systemPressure.recoveryCpuPercent,
+                        maxCpuPercent - 1,
+                      ),
+                    })
+                  }}
+                />
+              </label>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+                  <MemoryStick size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>内存熔断阈值</strong>
+                  <small>达到阈值后开始计算触发等待</small>
+                </span>
+                <InputNumber
+                  aria-label="系统内存熔断阈值"
+                  min={2}
+                  max={100}
+                  value={systemPressure.maxMemoryPercent}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="%"
+                  onChange={(next) => {
+                    const maxMemoryPercent = Number(next || 2)
+                    patchSystemPressure({
+                      maxMemoryPercent,
+                      recoveryMemoryPercent: Math.min(
+                        systemPressure.recoveryMemoryPercent,
+                        maxMemoryPercent - 1,
+                      ),
+                    })
+                  }}
+                />
+              </label>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.durationIcon}`}>
+                  <ShieldAlert size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>熔断等待时间</strong>
+                  <small>持续超限后熔断全部探针</small>
+                </span>
+                <InputNumber
+                  aria-label="系统资源超限触发等待"
+                  min={5}
+                  max={600}
+                  value={systemPressure.triggerDurationSeconds}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="秒"
+                  onChange={(next) =>
+                    patchSystemPressure({ triggerDurationSeconds: Number(next || 5) })
+                  }
+                />
+              </label>
+            </div>
           </div>
-        </div>
+          <div className={styles.systemThresholdBand}>
+            <div className={styles.systemThresholdHeading}>
+              <Typography.Text strong>恢复阈值</Typography.Text>
+              <Typography.Text type="secondary">
+                CPU 和内存持续低于恢复阈值并超过等待时间后恢复
+              </Typography.Text>
+            </div>
+            <div className={styles.thresholdGrid}>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.cpuIcon}`}>
+                  <Cpu size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>CPU 恢复阈值</strong>
+                  <small>必须低于 CPU 熔断阈值</small>
+                </span>
+                <InputNumber
+                  aria-label="系统 CPU 恢复阈值"
+                  min={1}
+                  max={Math.max(1, systemPressure.maxCpuPercent - 1)}
+                  value={systemPressure.recoveryCpuPercent}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="%"
+                  onChange={(next) =>
+                    patchSystemPressure({ recoveryCpuPercent: Number(next || 1) })
+                  }
+                />
+              </label>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.memoryIcon}`}>
+                  <MemoryStick size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>内存恢复阈值</strong>
+                  <small>必须低于内存熔断阈值</small>
+                </span>
+                <InputNumber
+                  aria-label="系统内存恢复阈值"
+                  min={1}
+                  max={Math.max(1, systemPressure.maxMemoryPercent - 1)}
+                  value={systemPressure.recoveryMemoryPercent}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="%"
+                  onChange={(next) =>
+                    patchSystemPressure({ recoveryMemoryPercent: Number(next || 1) })
+                  }
+                />
+              </label>
+              <label className={styles.thresholdItem}>
+                <span className={`${styles.thresholdIcon} ${styles.recoveryIcon}`}>
+                  <RotateCcw size={17} />
+                </span>
+                <span className={styles.thresholdCopy}>
+                  <strong>恢复等待时间</strong>
+                  <small>持续低于恢复阈值后开始恢复</small>
+                </span>
+                <InputNumber
+                  aria-label="系统资源恢复等待"
+                  min={5}
+                  max={600}
+                  value={systemPressure.recoveryDurationSeconds}
+                  disabled={!systemPressure.enabled}
+                  addonAfter="秒"
+                  onChange={(next) =>
+                    patchSystemPressure({ recoveryDurationSeconds: Number(next || 5) })
+                  }
+                />
+              </label>
+            </div>
+          </div>
+        </section>
       )}
-      <div className={styles.recoveryRow}>
-        <div className={styles.recoveryToggle}>
-          <span className={`${styles.thresholdIcon} ${styles.recoveryIcon}`}>
-            <RotateCcw size={17} />
-          </span>
-          <Typography.Text strong>自动恢复</Typography.Text>
-          <Switch
-            checked={value.autoRecover}
-            disabled={!value.enabled}
-            onChange={(autoRecover) => patch({ autoRecover })}
-          />
-        </div>
-        <label>
-          <span>首次重试间隔</span>
-          <InputNumber
-            aria-label="首次恢复重试间隔"
-            min={5}
-            max={600}
-            value={value.recoveryInitialDelaySeconds}
-            disabled={!value.enabled || !value.autoRecover}
-            addonAfter="秒"
-            onChange={(next) => {
-              const recoveryInitialDelaySeconds = Number(next || 5)
-              patch({
-                recoveryInitialDelaySeconds,
-                recoveryMaxDelaySeconds: Math.max(
-                  recoveryInitialDelaySeconds,
-                  value.recoveryMaxDelaySeconds,
-                ),
-              })
-            }}
-          />
-        </label>
-        <label>
-          <span>最长重试间隔</span>
-          <InputNumber
-            aria-label="最长恢复重试间隔"
-            min={value.recoveryInitialDelaySeconds}
-            max={3600}
-            value={value.recoveryMaxDelaySeconds}
-            disabled={!value.enabled || !value.autoRecover}
-            addonAfter="秒"
-            onChange={(next) => patch({ recoveryMaxDelaySeconds: Number(next || 3600) })}
-          />
-        </label>
-      </div>
     </div>
   )
 }
@@ -547,7 +718,7 @@ export default function ProbeConfigPage() {
   const availableProbeTypes = useMemo(() => {
     if (isNode)
       return currentConfigs
-        .filter((config) => !isPreloadProbe(config.probeType))
+        .filter((config) => !isPreloadProbe(config.probeType) && filesForConfig(config).length > 0)
         .map((config) => config.probeType)
         .sort()
     const values = new Set<string>()
@@ -664,7 +835,7 @@ export default function ProbeConfigPage() {
   const filesForDraft = (config: CurrentConfig) =>
     configFileDrafts[config.probeType] || filesForConfig(config)
   const configPageCurrentConfigs = currentConfigs.filter(
-    (config) => !isPreloadProbe(config.probeType),
+    (config) => !isPreloadProbe(config.probeType) && filesForConfig(config).length > 0,
   )
   const selectedFiles = selectedCurrentConfig ? filesForDraft(selectedCurrentConfig) : []
   const selectedFileSetKey = selectedFiles.map((file) => file.path).join('\u0000')
@@ -707,12 +878,14 @@ export default function ProbeConfigPage() {
     setNodeVariableDraft({ ...(nodeVariables?.overrides || {}) })
     setNodeVariablesEditing(false)
   }
+  const protectedNodeVariable = (name: string) =>
+    ['CLUSTER_IP', 'CLUSTER_ID', 'INSTANCE_ID'].includes(name)
   const saveNodeVariables = async () => {
     setNodeVariablesSaving(true)
     try {
       const editableOverrides = Object.fromEntries(
         Object.entries(nodeVariableDraft).filter(
-          ([name]) => !['CLUSTER_IP', 'CLUSTER_ID', 'INSTANCE_ID'].includes(name),
+          ([name, value]) => !protectedNodeVariable(name) && value.trim() !== '',
         ),
       )
       const saved = (await updateNodeVariablesApi(nodeId, editableOverrides)) as NodeVariables
@@ -726,10 +899,16 @@ export default function ProbeConfigPage() {
       setNodeVariablesSaving(false)
     }
   }
-  const protectedNodeVariable = (name: string) =>
-    ['CLUSTER_IP', 'CLUSTER_ID', 'INSTANCE_ID'].includes(name)
-  const effectiveVariable = (name: string) =>
-    nodeVariables?.effective?.[name] || nodeVariableDraft[name] || reportedVariables[name] || ''
+  const effectiveVariable = (name: string) => {
+    if (nodeVariablesEditing && !protectedNodeVariable(name)) {
+      const draftValue = nodeVariableDraft[name]?.trim()
+      if (draftValue) return draftValue
+      if (Object.prototype.hasOwnProperty.call(nodeVariables?.overrides || {}, name)) {
+        return reportedVariables[name] || ''
+      }
+    }
+    return nodeVariables?.effective?.[name] || reportedVariables[name] || ''
+  }
   /* Keep reported values sorted for a stable, scannable node panel. */
   const sortedReportedVariableEntries = reportedVariableEntries.sort(([left], [right]) =>
     left.localeCompare(right),
@@ -893,28 +1072,6 @@ export default function ProbeConfigPage() {
         files: config.files.map((file) => ({ path: file.path, content: file.content })),
       })),
     )
-  const batchTemplateComplete = Boolean(
-    selectedBatchTemplate &&
-      selectedClusterType === templateClusterType(selectedBatchTemplate) &&
-      targetNodes.length &&
-      targetNodes.every((node) => {
-        const current = (batchNodeConfigs[node.id] || []).filter(
-          (config) => !isPreloadProbe(config.probeType),
-        )
-        const templateConfigs = batchDraftConfigs
-        if (current.length !== templateConfigs.length) return false
-        const currentByProbe = new Map(current.map((config) => [config.probeType, config]))
-        return templateConfigs.every((config) => {
-          const registered = currentByProbe.get(config.probeType)
-          if (!registered) return false
-          const paths = new Set(filesForConfig(registered).map((file) => file.path))
-          return (
-            config.files.length === paths.size && config.files.every((file) => paths.has(file.path))
-          )
-        })
-      }),
-  )
-
   useEffect(() => {
     if (mode !== 'batch') return
     setSelectedBatchTemplateId((current) =>
@@ -1162,7 +1319,7 @@ export default function ProbeConfigPage() {
       notify({ type: 'warning', message: '请先将修改保存为新模版' })
       return
     }
-    if (!batchTemplateComplete || !selectedClusters.length) return
+    if (!selectedBatchTemplate || !selectedClusters.length) return
     setSaving(true)
     try {
       const result: any = await batchAssignAgentConfigApi({
@@ -1505,18 +1662,26 @@ export default function ProbeConfigPage() {
     mode === 'batch' ? (
       <div className={styles.tabContent}>
         <div className={styles.batchSetupGrid}>
-          <div className={styles.batchTargetRow}>
-            <label className={styles.sourceGroup}>
-              <span>目标集群</span>
-              <Select
-                mode="multiple"
-                value={selectedClusters}
-                onChange={setSelectedClusters}
-                options={clusterOptions.map((value) => ({ value, label: value }))}
-              />
-            </label>
+          <div className={styles.batchSetupSection}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <Typography.Text strong>目标集群</Typography.Text>
+                <Typography.Text type="secondary">
+                  {selectedClusters.length
+                    ? `已选择 ${selectedClusters.length} 个集群`
+                    : '选择需要覆盖下发配置的集群'}
+                </Typography.Text>
+              </div>
+              <Tag>{selectedClusters.length} 个集群</Tag>
+            </div>
+            <Select
+              mode="multiple"
+              value={selectedClusters}
+              onChange={setSelectedClusters}
+              options={clusterOptions.map((value) => ({ value, label: value }))}
+            />
           </div>
-          <div className={styles.batchTemplateSection}>
+          <div className={styles.batchSetupSection}>
             <div className={styles.sectionHeading}>
               <div>
                 <Typography.Text strong>配置方案</Typography.Text>
@@ -1626,7 +1791,7 @@ export default function ProbeConfigPage() {
               type="primary"
               icon={<Send size={15} />}
               loading={saving}
-              disabled={!targetCount || !batchTemplateComplete || batchTemplateChanged}
+              disabled={!targetCount || !selectedBatchTemplate || batchTemplateChanged}
               onClick={dispatchTemplate}
             >
               覆盖下发到所选集群
@@ -1873,6 +2038,10 @@ export default function ProbeConfigPage() {
                 modified={selectedDraft}
                 language={selectedLanguage}
                 theme="vs"
+                // Keep models alive across keyed editor switches so Monaco can
+                // detach them from the previous widget before disposal.
+                keepCurrentOriginalModel
+                keepCurrentModifiedModel
                 onMount={(editor) => {
                   const modifiedEditor = editor.getModifiedEditor()
                   const listener = modifiedEditor.onDidChangeModelContent(() => {
@@ -2145,7 +2314,7 @@ export default function ProbeConfigPage() {
         </div>
       )}
       <CircuitEditor
-        title={mode === 'batch' ? '批量节点熔断策略' : '探针消耗资源熔断'}
+        title={mode === 'batch' ? '批量节点熔断策略' : '熔断策略'}
         description={
           mode === 'batch'
             ? '同一策略批量设置到所选集群的每个节点，由各节点独立判断和熔断'

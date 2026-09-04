@@ -198,9 +198,13 @@ type CircuitBreakerSettings struct {
 }
 
 type SystemPressureSettings struct {
-	Enabled          bool    `json:"enabled"`
-	MaxCPUPercent    float64 `json:"maxCpuPercent"`
-	MaxMemoryPercent float64 `json:"maxMemoryPercent"`
+	Enabled                 bool    `json:"enabled"`
+	MaxCPUPercent           float64 `json:"maxCpuPercent"`
+	MaxMemoryPercent        float64 `json:"maxMemoryPercent"`
+	RecoveryCPUPercent      float64 `json:"recoveryCpuPercent"`
+	RecoveryMemoryPercent   float64 `json:"recoveryMemoryPercent"`
+	TriggerDurationSeconds  uint64  `json:"triggerDurationSeconds"`
+	RecoveryDurationSeconds uint64  `json:"recoveryDurationSeconds"`
 }
 
 type AgentSettings struct {

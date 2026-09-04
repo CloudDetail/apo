@@ -375,6 +375,20 @@ func TestContainerStdoutCollectionUsesClusterScopeAndRegexFilters(t *testing.T) 
 	if _, err := service.SaveContainerStdoutCollection(nil, "cluster-a", input, 8); err != nil {
 		t.Fatal(err)
 	}
+	release, ok := repo.releases[releaseKey("node-1", "ilogtail")]
+	if !ok || release.Generation != 1 {
+		t.Fatalf("cluster log collection did not create an ilogtail release: %+v", repo.releases)
+	}
+	var files []ac.InitialConfigFile
+	if err := json.Unmarshal(release.Files, &files); err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 1 || files[0].Path != "config/local/container.yaml" || !strings.Contains(files[0].Content, "Type: input_container_stdio") {
+		t.Fatalf("cluster log release did not replace registered log paths: %+v", files)
+	}
+	if len(repo.deliveries) == 0 || repo.deliveries[len(repo.deliveries)-1].Type != deliveryTypeContainerLog {
+		t.Fatalf("cluster log delivery was not recorded: %+v", repo.deliveries)
+	}
 	if _, err := service.PreviewContainerStdoutCollection(nil, "missing", input); err == nil {
 		t.Fatal("missing cluster was accepted")
 	}
@@ -499,6 +513,44 @@ func TestDefaultK8sContainerStdoutCollection(t *testing.T) {
 	}
 	if strings.Contains(content, "K8sNamespaceRegex:") {
 		t.Fatalf("default preview must not contain K8sNamespaceRegex:\n%s", content)
+	}
+}
+
+func TestLogCollectionDefaultsDoNotInferUnreportedProxyVariable(t *testing.T) {
+	repo := newLogCollectionTestRepo()
+	repo.nodes["node-dynamic"] = ac.Node{
+		ID: "node-dynamic", ClusterID: "cluster-dynamic", Environment: "kubernetes",
+		Labels: ac.JSON(`{"HOSTNAME":"node-dynamic","CLUSTER_IP":"10.43.0.1"}`),
+	}
+	addBaselineFiles(t, repo.configSemanticsRepo, "node-dynamic", "ilogtail", []ac.InitialConfigFile{{
+		Path: "config/local/container.yaml",
+		Content: `enable: true
+inputs:
+  - Type: input_container_stdio
+flushers:
+  - Type: flusher_http
+    RemoteURL: http://192.168.1.69:30310
+`,
+	}})
+	service := New(repo)
+
+	defaults, err := service.GetLogCollectionDefaults(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(defaults.Container.OutputRule, "RemoteURL: http://192.168.1.69:30310") || strings.Contains(defaults.Container.OutputRule, "{% ") {
+		t.Fatalf("default output rule inferred an unreported variable: %s", defaults.Container.OutputRule)
+	}
+
+	preview, err := service.PreviewContainerStdoutCollection(nil, "cluster-dynamic", ContainerStdoutCollectionInput{ContainerStdout: []ContainerStdoutSource{{
+		ID: "all", Name: "all", Enabled: true, CollectStdout: true,
+	}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := preview.Files[0].Content
+	if !strings.Contains(content, "RemoteURL: http://192.168.1.69:30310") || strings.Contains(content, "{% ") {
+		t.Fatalf("preview changed the fixed baseline URL: %s", content)
 	}
 }
 

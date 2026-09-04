@@ -1,4 +1,5 @@
 import {
+  Alert,
   Button,
   Card,
   Drawer,
@@ -48,7 +49,13 @@ import {
 } from 'src/core/api/integration'
 import { notify } from 'src/core/utils/notify'
 import InstallCmd from './Integration/InstallCmd'
+import {
+  isLifecycleRefreshCurrent,
+  lifecycleTargetKey,
+  waitForLifecycleStates,
+} from './lifecycleState'
 import styles from './probeManagement.module.scss'
+import { summarizeNodeResourceUsage, summarizeProbeResourceUsage } from './resourceUsageSummary'
 
 type AgentNode = {
   id: string
@@ -64,6 +71,7 @@ type IntegrationCluster = {
   name?: string
   clusterType?: 'k8s' | 'vm'
   apoCollector?: Record<string, unknown>
+  integrationConfigured?: boolean
 }
 
 type CircuitStatus = {
@@ -280,19 +288,9 @@ const getNodeStatus = (node: NodeRow): Exclude<NodeStatusFilter, 'all'> => {
 }
 
 const summarizeStates = (states: ProbeState[]) => {
-  const usage = states.map((state) =>
-    isHealthy(state) ? getAveragedResourceUsage(state) : undefined,
-  )
-  const cpuAvailable = usage.length > 0 && usage.every((item) => item?.cpuPercentAvg !== undefined)
-  const memoryAvailable =
-    usage.length > 0 && usage.every((item) => item?.memoryBytesAvg !== undefined)
+  const usage = summarizeProbeResourceUsage(states.map(getAveragedResourceUsage))
   return {
-    cpuPercent: cpuAvailable
-      ? usage.reduce((total, item) => total + Number(item?.cpuPercentAvg), 0)
-      : undefined,
-    memoryBytes: memoryAvailable
-      ? usage.reduce((total, item) => total + Number(item?.memoryBytesAvg), 0)
-      : undefined,
+    ...usage,
     healthyCount: states.filter(isHealthy).length,
     probeCount: states.length,
   }
@@ -351,19 +349,8 @@ const groupNodesByCluster = (
       const children = grouped.get(clusterId) || []
       const manualCluster = manualClustersById.get(clusterId)
       children.sort((a, b) => a.name.localeCompare(b.name))
-      const cpuAvailable =
-        children.some((node) => node.probeCount > 0) &&
-        children.every((node) => !node.probeCount || node.cpuPercent !== undefined)
-      const memoryAvailable =
-        children.some((node) => node.probeCount > 0) &&
-        children.every((node) => !node.probeCount || node.memoryBytes !== undefined)
       const summary = {
-        cpuPercent: cpuAvailable
-          ? children.reduce((total, node) => total + Number(node.cpuPercent), 0)
-          : undefined,
-        memoryBytes: memoryAvailable
-          ? children.reduce((total, node) => total + Number(node.memoryBytes), 0)
-          : undefined,
+        ...summarizeNodeResourceUsage(children),
         healthyCount: children.reduce((total, node) => total + node.healthyCount, 0),
         probeCount: children.reduce((total, node) => total + node.probeCount, 0),
       }
@@ -405,27 +392,18 @@ const filterClusters = (
       return nodeMatches && (statusFilter === 'all' || getNodeStatus(node) === statusFilter)
     })
     if (!children.length) {
-      return clusterMatches && (statusFilter === 'all' || statusFilter === 'waiting')
+      return clusterMatches &&
+        cluster.children.length === 0 &&
+        (statusFilter === 'all' || statusFilter === 'waiting')
         ? [{ ...cluster, children: [] }]
         : []
     }
 
-    const cpuAvailable =
-      children.some((node) => node.probeCount > 0) &&
-      children.every((node) => !node.probeCount || node.cpuPercent !== undefined)
-    const memoryAvailable =
-      children.some((node) => node.probeCount > 0) &&
-      children.every((node) => !node.probeCount || node.memoryBytes !== undefined)
     return [
       {
         ...cluster,
         children,
-        cpuPercent: cpuAvailable
-          ? children.reduce((total, node) => total + Number(node.cpuPercent), 0)
-          : undefined,
-        memoryBytes: memoryAvailable
-          ? children.reduce((total, node) => total + Number(node.memoryBytes), 0)
-          : undefined,
+        ...summarizeNodeResourceUsage(children),
         healthyCount: children.reduce((total, node) => total + node.healthyCount, 0),
         probeCount: children.reduce((total, node) => total + node.probeCount, 0),
         healthyNodeCount: children.filter((node) => getNodeStatus(node) === 'healthy').length,
@@ -445,6 +423,22 @@ const formatMemory = (bytes?: number) => {
 const formatCPU = (value?: number) => {
   if (value === undefined) return '-'
   return value ? `${value.toFixed(value >= 10 ? 0 : 1)}%` : '0%'
+}
+
+const formatFileSize = (bytes: number) => {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GiB`
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MiB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KiB`
+  return `${bytes} B`
+}
+
+const getLogCommandErrorMessage = (result: any) => {
+  const message = result?.error?.message || '读取日志失败'
+  if (result?.error?.code !== 'log_file_too_large') return message
+
+  const limits = String(message).match(/log file size (\d+) exceeds download limit (\d+)/)
+  if (!limits) return '日志文件超过节点下载上限'
+  return `日志文件 ${formatFileSize(Number(limits[1]))}，超过节点下载上限 ${formatFileSize(Number(limits[2]))}`
 }
 
 const formatDeliveryTime = (value?: string) => {
@@ -486,6 +480,7 @@ export default function ProbeManagement() {
   const [logFiles, setLogFiles] = useState<LogFile[]>([])
   const [selectedLogFile, setSelectedLogFile] = useState<LogFile>()
   const [logPreview, setLogPreview] = useState<LogPreview>()
+  const [logError, setLogError] = useState('')
   const [logLoading, setLogLoading] = useState(false)
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [lifecycleUpdatingNodes, setLifecycleUpdatingNodes] = useState<Set<string>>(new Set())
@@ -503,8 +498,10 @@ export default function ProbeManagement() {
   const [deliveryPageSize, setDeliveryPageSize] = useState(10)
   const [expandedDeliveryKeys, setExpandedDeliveryKeys] = useState<React.Key[]>([])
   const logRequestActive = useRef(false)
+  const lifecycleStateVersion = useRef(0)
 
   const load = useCallback(async () => {
+    const startedLifecycleVersion = lifecycleStateVersion.current
     try {
       const [nodeResult, stateResult, manualClusterResult] = await Promise.allSettled([
         getAgentConfigNodesApi(),
@@ -534,7 +531,14 @@ export default function ProbeManagement() {
             })),
           )
         }
-        setStates(loadedStates)
+        if (isLifecycleRefreshCurrent(startedLifecycleVersion, lifecycleStateVersion.current)) {
+          setStates(loadedStates)
+        } else {
+          console.info('[ProbeManagement] skipped stale lifecycle state refresh', {
+            startedLifecycleVersion,
+            currentLifecycleVersion: lifecycleStateVersion.current,
+          })
+        }
       } else {
         console.error('[ProbeManagement] failed to load probe states', stateResult.reason)
       }
@@ -665,6 +669,7 @@ export default function ProbeManagement() {
     if (!targets.length) return
 
     const nodeIds = new Set(records.map((record) => record.nodeId))
+    lifecycleStateVersion.current += 1
     setLifecycleUpdatingNodes((current) => new Set([...current, ...nodeIds]))
     const outcomes = await Promise.all(
       targets.map(async ({ nodeId, state }) => {
@@ -690,47 +695,41 @@ export default function ProbeManagement() {
           if (command.status !== 'SUCCEEDED') {
             throw new Error(command.result || '节点未完成操作')
           }
-          let runtime: ProbeRuntime | undefined
-          try {
-            runtime = command.result ? JSON.parse(command.result) : undefined
-          } catch {
-            runtime = undefined
-          }
-          return { nodeId, probeType: state.probeType, runtime }
+          return { nodeId, probeType: state.probeType }
         } catch (error) {
           return { nodeId, probeType: state.probeType, error }
         }
       }),
     )
 
-    const succeeded = outcomes.filter((outcome) => !outcome.error)
-    const failed = outcomes.filter((outcome) => outcome.error)
-    if (succeeded.length) {
-      const succeededByTarget = new Map(
-        succeeded.map((outcome) => [
-          `${outcome.nodeId}\u0000${outcome.probeType}`,
-          outcome.runtime,
-        ]),
-      )
-      setStates((current) =>
-        current.map((state) => {
-          const targetKey = `${state.nodeId}\u0000${state.probeType}`
-          if (!succeededByTarget.has(targetKey)) return state
-          const runtime = succeededByTarget.get(targetKey)
-          if (!runtime) return state
-          const circuit = runtime?.circuit || {
-            ...state.circuit,
-            state: running ? 'NORMAL' : 'FUSED',
-            epoch: (state.circuit?.epoch ?? 0) + 1,
-          }
-          return {
-            ...state,
-            status: running ? 'RUNNING' : 'FUSED',
-            runtime: runtime ? { ...state.runtime, ...runtime } : state.runtime,
-            circuit,
-          }
-        }),
-      )
+    const commandSucceeded = outcomes.filter((outcome) => !outcome.error)
+    let failed = outcomes.filter((outcome) => outcome.error)
+    if (commandSucceeded.length) {
+      try {
+        const verification = await waitForLifecycleStates(
+          async () => {
+            const result: any = await getAgentConfigStatesApi()
+            return Array.isArray(result?.states) ? result.states : []
+          },
+          commandSucceeded,
+          running,
+        )
+        setStates(verification.states as ProbeState[])
+        const pendingKeys = new Set(verification.pending.map(lifecycleTargetKey))
+        failed = [
+          ...failed,
+          ...commandSucceeded
+            .filter((outcome) => pendingKeys.has(lifecycleTargetKey(outcome)))
+            .map((outcome) => ({
+              ...outcome,
+              error: new Error('命令已执行，但节点状态未达到目标'),
+            })),
+        ]
+      } catch (error) {
+        console.error('[ProbeManagement] failed to verify node lifecycle state', error)
+        failed = commandSucceeded.map((outcome) => ({ ...outcome, error }))
+        await load()
+      }
     }
     if (failed.length) {
       console.error('[ProbeManagement] node lifecycle command partially failed', {
@@ -745,6 +744,7 @@ export default function ProbeManagement() {
     } else {
       notify({ type: 'success', message: `${scope}已${running ? '启动' : '停止'}` })
     }
+    lifecycleStateVersion.current += 1
     setLifecycleUpdatingNodes((current) => {
       const next = new Set(current)
       nodeIds.forEach((nodeId) => next.delete(nodeId))
@@ -765,7 +765,7 @@ export default function ProbeManagement() {
     const command = await waitForCommand(nodeId, probeType, created.id)
     const result = command.result ? JSON.parse(command.result) : {}
     if (command.status === 'FAILED') {
-      throw new Error(result?.error?.message || command.result || '读取日志失败')
+      throw new Error(getLogCommandErrorMessage(result))
     }
     return result
   }
@@ -822,6 +822,7 @@ export default function ProbeManagement() {
     logRequestActive.current = true
     if (!quiet) setLogLoading(true)
     try {
+      if (!quiet) setLogError('')
       setLogPreview(
         await runLogCommand(
           'PREVIEW_LOG_FILE',
@@ -831,7 +832,9 @@ export default function ProbeManagement() {
         ),
       )
     } catch (error: any) {
-      notify({ type: 'error', message: error.message || '读取实时日志失败' })
+      const message = error.message || '读取实时日志失败'
+      setLogError(message)
+      if (!quiet) notify({ type: 'error', message })
     } finally {
       logRequestActive.current = false
       if (!quiet) setLogLoading(false)
@@ -861,6 +864,7 @@ export default function ProbeManagement() {
     const available = targetNodes.filter((node) => node.states.length)
     setLogNodes(available)
     setSelectedLogNodeId(available[0]?.nodeId || '')
+    setLogError('')
     setAutoRefresh(true)
   }
 
@@ -868,6 +872,7 @@ export default function ProbeManagement() {
     if (!selectedLogFile) return
     setLogLoading(true)
     try {
+      setLogError('')
       const result = await runLogCommand(
         'DOWNLOAD_LOG_FILE',
         { filePath: selectedLogFile.path },
@@ -883,7 +888,9 @@ export default function ProbeManagement() {
       anchor.click()
       URL.revokeObjectURL(url)
     } catch (error: any) {
-      notify({ type: 'error', message: error.message || '下载日志失败' })
+      const message = error.message || '下载日志失败'
+      setLogError(message)
+      notify({ type: 'error', message })
     } finally {
       setLogLoading(false)
     }
@@ -986,7 +993,11 @@ export default function ProbeManagement() {
         )
         return (
           <div className={styles.probeStatusSummary}>
-            <Tooltip title={statusDetails} placement="bottomLeft">
+            <Tooltip
+              title={statusDetails}
+              placement="bottomLeft"
+              styles={{ root: { maxWidth: 'min(420px, calc(100vw - 24px))' } }}
+            >
               <Tag color={abnormalStates.length ? 'warning' : 'success'}>
                 {record.healthyCount} / {record.probeCount} 个探针运行正常
               </Tag>
@@ -997,7 +1008,11 @@ export default function ProbeManagement() {
               </Tag>
             ))}
             {hiddenAbnormalCount > 0 && (
-              <Tooltip title={statusDetails} placement="bottomLeft">
+              <Tooltip
+                title={statusDetails}
+                placement="bottomLeft"
+                styles={{ root: { maxWidth: 'min(420px, calc(100vw - 24px))' } }}
+              >
                 <Tag color="warning">另 {hiddenAbnormalCount} 个异常</Tag>
               </Tooltip>
             )}
@@ -1100,18 +1115,33 @@ export default function ProbeManagement() {
                     </Popconfirm>
                     {record.manualCluster && (
                       <>
-                        <Tooltip title="编辑接入设置">
+                        <Tooltip
+                          title={
+                            record.manualCluster.integrationConfigured ? '编辑接入设置' : '配置接入'
+                          }
+                        >
                           <Button
                             className={styles.iconAction}
                             type="text"
                             size="small"
-                            aria-label="编辑接入设置"
-                            icon={<SlidersHorizontal size={14} />}
-                            onClick={() =>
-                              navigate(
-                                `/probe-management/settings?clusterId=${encodeURIComponent(record.clusterId)}&clusterType=${encodeURIComponent(record.manualCluster?.clusterType || record.environment)}`,
-                              )
+                            aria-label={
+                              record.manualCluster.integrationConfigured
+                                ? '编辑接入设置'
+                                : '配置接入'
                             }
+                            icon={<SlidersHorizontal size={14} />}
+                            onClick={() => {
+                              const params = new URLSearchParams({
+                                clusterId: record.clusterId,
+                                clusterType:
+                                  record.manualCluster?.clusterType || record.environment,
+                                clusterName: record.manualCluster?.name || record.clusterId,
+                              })
+                              if (!record.manualCluster?.integrationConfigured) {
+                                params.set('setup', 'true')
+                              }
+                              navigate(`/probe-management/settings?${params.toString()}`)
+                            }}
                           />
                         </Tooltip>
                         <Tooltip title="修改展示名">
@@ -1124,16 +1154,18 @@ export default function ProbeManagement() {
                             onClick={() => openDisplayNameEditor(record.manualCluster!)}
                           />
                         </Tooltip>
-                        <Tooltip title="查看安装配置">
-                          <Button
-                            className={styles.iconAction}
-                            type="text"
-                            size="small"
-                            aria-label="查看安装配置"
-                            icon={<TerminalSquare size={15} />}
-                            onClick={() => setInstallCluster(record.manualCluster)}
-                          />
-                        </Tooltip>
+                        {record.manualCluster.integrationConfigured && (
+                          <Tooltip title="查看安装配置">
+                            <Button
+                              className={styles.iconAction}
+                              type="text"
+                              size="small"
+                              aria-label="查看安装配置"
+                              icon={<TerminalSquare size={15} />}
+                              onClick={() => setInstallCluster(record.manualCluster)}
+                            />
+                          </Tooltip>
+                        )}
                         <Popconfirm
                           title={`确认删除手动接入记录 ${record.name}？`}
                           description="已上报的探针节点仍会保留在管理列表中。"
@@ -1583,6 +1615,7 @@ export default function ProbeManagement() {
           setLogFiles([])
           setSelectedLogFile(undefined)
           setLogPreview(undefined)
+          setLogError('')
         }}
       >
         <div className={styles.logToolbar}>
@@ -1618,11 +1651,14 @@ export default function ProbeManagement() {
                     ? styles.logFileActive
                     : ''
                 }
-                onClick={() => setSelectedLogFile(file)}
+                onClick={() => {
+                  setLogError('')
+                  setSelectedLogFile(file)
+                }}
               >
                 <strong>{file.name}</strong>
                 <span>
-                  {file.probeType} · {file.path}
+                  {file.probeType} · {formatFileSize(file.size)} · {file.path}
                 </span>
               </button>
             ))}
@@ -1650,6 +1686,7 @@ export default function ProbeManagement() {
                 </Button>
               </Space>
             </div>
+            {logError && <Alert type="error" showIcon message={logError} />}
             <Input.TextArea
               value={logPreview?.preview || ''}
               readOnly

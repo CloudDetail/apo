@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -591,6 +592,41 @@ func (s *Service) nodeLogPipelineBase(ctx core.Context, nodeID string, preferred
 		log.Printf("agentconfig: use non-matching log collector pipeline as common preview base node=%s probe=%s path=%s", nodeID, selectedProbeType, selected.Path)
 	}
 	return selected, nil
+}
+
+func renderLogPipelineBaseVariables(base *logPipelineBase, values map[string]string) (*logPipelineBase, error) {
+	rendered := &logPipelineBase{
+		Path:       base.Path,
+		Global:     cloneYAMLNode(base.Global),
+		Processors: cloneYAMLNode(base.Processors),
+		Flushers:   cloneYAMLNode(base.Flushers),
+		InputTypes: append([]string(nil), base.InputTypes...),
+	}
+	var renderNode func(*yaml.Node) error
+	renderNode = func(node *yaml.Node) error {
+		if node == nil {
+			return nil
+		}
+		if node.Kind == yaml.ScalarNode && strings.Contains(node.Value, "{%") {
+			value, err := Render(node.Value, values)
+			if err != nil {
+				return err
+			}
+			node.Value = value
+		}
+		for _, child := range node.Content {
+			if err := renderNode(child); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	for _, node := range []*yaml.Node{rendered.Global, rendered.Processors, rendered.Flushers} {
+		if err := renderNode(node); err != nil {
+			return nil, err
+		}
+	}
+	return rendered, nil
 }
 
 func pipelineBaseSignature(base *logPipelineBase) (string, error) {
@@ -1273,6 +1309,11 @@ func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, inp
 	if !hasEnabledHostFileSource(normalized) && !hasEnabledContainerStdoutSource(normalizedContainer) {
 		return &LogCollectionPreview{ScopeType: logCollectionScopeNode, ScopeID: nodeID, Files: []RenderedLogCollectionFile{}}, normalizedContainer, normalized, nil
 	}
+	node, err := s.repo.GetAgentNode(ctx, nodeID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	nodeVariables := nodeTemplateVariables(node)
 	defaults, err := s.storedLogCollectionDefaults(ctx)
 	if err != nil {
 		return nil, nil, nil, err
@@ -1291,6 +1332,10 @@ func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, inp
 			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
 			if err != nil {
 				return nil, nil, nil, err
+			}
+			sourceBase, err = renderLogPipelineBaseVariables(sourceBase, nodeVariables)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("render host log pipeline variables for node %s: %w", nodeID, err)
 			}
 			rendered, err := renderHostFiles([]HostFileSource{source}, sourceBase)
 			if err != nil {
@@ -1312,6 +1357,10 @@ func (s *Service) previewHostFileCollection(ctx core.Context, nodeID string, inp
 			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
 			if err != nil {
 				return nil, nil, nil, err
+			}
+			sourceBase, err = renderLogPipelineBaseVariables(sourceBase, nodeVariables)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("render container log pipeline variables for node %s: %w", nodeID, err)
 			}
 			rendered, err := renderContainerStdout([]ContainerStdoutSource{source}, sourceBase)
 			if err != nil {
@@ -1382,12 +1431,65 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 	if err != nil {
 		return nil, err
 	}
-	stored := &ac.LogCollectionConfig{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Config: ac.JSON(data), Version: 1, UpdatedBy: user}
-	delivery, err := buildRecordedDelivery(deliveryTypeContainerLog, clusterID, json.RawMessage(data), nil, user)
+	nodes, err := s.nodesInClusters(ctx, []string{clusterID})
 	if err != nil {
 		return nil, err
 	}
-	if err := repo.SaveLogCollectionConfig(ctx, stored, delivery); err != nil {
+	bindings := make([]*ac.Binding, 0, len(nodes))
+	releases := make([]*ac.Release, 0, len(nodes))
+	expected := make(map[string]int64, len(nodes))
+	for _, node := range nodes {
+		preview, err := s.PreviewHostFileCollection(ctx, node.ID, HostFileCollectionInput{
+			ContainerStdout: normalizedContainer,
+			HostFiles:       normalizedFiles,
+			ProcessingRule:  input.ProcessingRule,
+			OutputRule:      input.OutputRule,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("render cluster log collection for node %s: %w", node.ID, err)
+		}
+		probe, files, err := s.logCollectionReleaseFiles(ctx, node.ID, preview.Files)
+		if err != nil {
+			return nil, err
+		}
+		last, err := s.repo.GetAgentRelease(ctx, node.ID, probe)
+		generation := int64(1)
+		previous := int64(0)
+		if err == nil {
+			generation = last.Generation + 1
+			previous = last.Generation
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, err
+		}
+		filesJSON, err := json.Marshal(files)
+		if err != nil {
+			return nil, err
+		}
+		release := &ac.Release{
+			ID: uuid.New(), NodeID: node.ID, ProbeType: probe, Generation: generation,
+			TemplateID: uuid.Nil, TemplateVersion: 1, Variables: ac.JSON("{}"),
+			RenderedContent: "", ContentSHA256: ac.HashInitialConfigFiles(files),
+			Files: ac.JSON(filesJSON), LogSources: ac.JSON("null"),
+		}
+		if len(files) == 1 {
+			release.RenderedContent = files[0].Content
+		}
+		releases = append(releases, release)
+		bindings = append(bindings, &ac.Binding{
+			NodeID: node.ID, ProbeType: probe, TemplateID: uuid.Nil,
+			DesiredGeneration: generation, Enabled: true, Variables: ac.JSON("{}"),
+		})
+		expected[releaseKey(node.ID, probe)] = previous
+	}
+	delivery, err := s.buildDelivery(ctx, deliveryTypeContainerLog, clusterID, nil, releases, user)
+	if err != nil {
+		return nil, err
+	}
+	stored := &ac.LogCollectionConfig{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Config: ac.JSON(data), Version: 1, UpdatedBy: user}
+	if err := repo.SaveLogCollectionConfig(ctx, stored, nil); err != nil {
+		return nil, err
+	}
+	if err := s.repo.SaveAgentBindings(ctx, bindings, releases, expected, delivery); err != nil {
 		return nil, err
 	}
 	collection := &ContainerStdoutCollection{
@@ -1396,6 +1498,69 @@ func (s *Service) SaveContainerStdoutCollection(ctx core.Context, clusterID stri
 	}
 	s.attachContainerPipelineRules(ctx, collection, input.ProcessingRule, input.OutputRule)
 	return collection, nil
+}
+
+// logCollectionReleaseFiles keeps generated log files within the paths
+// registered by daemon-go while replacing their contents completely.
+func (s *Service) logCollectionReleaseFiles(ctx core.Context, nodeID string, generated []RenderedLogCollectionFile) (string, []ac.InitialConfigFile, error) {
+	var baseline *ac.InitialConfig
+	var probe string
+	var err error
+	for _, candidate := range logCollectorProbeTypes {
+		baseline, err = s.repo.GetAgentInitialConfig(ctx, nodeID, candidate)
+		if err == nil {
+			probe = candidate
+			break
+		}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", nil, err
+		}
+	}
+	if baseline == nil {
+		return "", nil, fmt.Errorf("node %s has no registered log collector configuration", nodeID)
+	}
+	var registered []ac.InitialConfigFile
+	if err := json.Unmarshal(baseline.Files, &registered); err != nil {
+		return "", nil, fmt.Errorf("decode %s baseline for node %s: %w", probe, nodeID, err)
+	}
+	localPaths := make([]string, 0, len(registered))
+	for _, file := range registered {
+		cleaned := path.Clean(strings.TrimSpace(file.Path))
+		if strings.HasPrefix(cleaned, "config/local/") {
+			localPaths = append(localPaths, cleaned)
+		}
+	}
+	sort.Strings(localPaths)
+	if len(localPaths) == 0 {
+		return "", nil, fmt.Errorf("node %s has no registered log collection paths", nodeID)
+	}
+	if len(generated) > len(localPaths) {
+		return "", nil, fmt.Errorf("node %s has %d registered log collection paths but %d rules are enabled", nodeID, len(localPaths), len(generated))
+	}
+	files := make([]ac.InitialConfigFile, 0, len(registered))
+	generatedIndex := 0
+	for _, file := range registered {
+		cleaned := path.Clean(strings.TrimSpace(file.Path))
+		if !strings.HasPrefix(cleaned, "config/local/") {
+			file.Path = cleaned
+			file.ContentSHA256 = ac.HashContent(file.Content)
+			files = append(files, file)
+			continue
+		}
+		if generatedIndex >= len(generated) {
+			continue
+		}
+		file.Path = localPaths[generatedIndex]
+		file.Content = generated[generatedIndex].Content
+		file.ContentSHA256 = ac.HashContent(file.Content)
+		files = append(files, file)
+		generatedIndex++
+	}
+	if len(files) == 0 {
+		files = append(files, ac.InitialConfigFile{Path: localPaths[0], Content: "enable: false\n", ContentSHA256: ac.HashContent("enable: false\n")})
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
+	return probe, files, nil
 }
 
 func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID string, input ContainerStdoutCollectionInput) (*LogCollectionPreview, []ContainerStdoutSource, []HostFileSource, error) {
@@ -1416,6 +1581,18 @@ func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID s
 	if !hasEnabledContainerStdoutSource(normalizedContainer) && !hasEnabledHostFileSource(normalizedFiles) {
 		return &LogCollectionPreview{ScopeType: logCollectionScopeCluster, ScopeID: clusterID, Files: []RenderedLogCollectionFile{}}, normalizedContainer, normalizedFiles, nil
 	}
+	nodes, err := s.repo.ListAgentNodes(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].ID < nodes[j].ID })
+	var clusterVariables map[string]string
+	for _, node := range nodes {
+		if node.ClusterID == clusterID {
+			clusterVariables = nodeTemplateVariables(&node)
+			break
+		}
+	}
 	defaults, err := s.storedLogCollectionDefaults(ctx)
 	if err != nil {
 		return nil, nil, nil, err
@@ -1434,6 +1611,10 @@ func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID s
 			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
 			if err != nil {
 				return nil, nil, nil, err
+			}
+			sourceBase, err = renderLogPipelineBaseVariables(sourceBase, clusterVariables)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("render container log pipeline variables for cluster %s: %w", clusterID, err)
 			}
 			rendered, err := renderContainerStdout([]ContainerStdoutSource{source}, sourceBase)
 			if err != nil {
@@ -1455,6 +1636,10 @@ func (s *Service) previewContainerStdoutCollection(ctx core.Context, clusterID s
 			sourceBase, err := pipelineBaseWithOverrides(base, processing, output)
 			if err != nil {
 				return nil, nil, nil, err
+			}
+			sourceBase, err = renderLogPipelineBaseVariables(sourceBase, clusterVariables)
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("render host log pipeline variables for cluster %s: %w", clusterID, err)
 			}
 			rendered, err := renderHostFiles([]HostFileSource{source}, sourceBase)
 			if err != nil {

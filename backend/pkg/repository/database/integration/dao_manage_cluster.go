@@ -4,6 +4,8 @@
 package integration
 
 import (
+	"log"
+
 	core "github.com/CloudDetail/apo/backend/pkg/core"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration"
 	"github.com/CloudDetail/apo/backend/pkg/model/integration/alert"
@@ -36,8 +38,31 @@ func (repo *subRepos) DeleteCluster(ctx core.Context, cluster *integration.Clust
 
 func (repo *subRepos) ListCluster(ctx core.Context) ([]integration.Cluster, error) {
 	var clusters []integration.Cluster
-	err := repo.GetContextDB(ctx).Find(&clusters).Error
-	return clusters, err
+	db := repo.GetContextDB(ctx)
+	if err := db.Find(&clusters).Error; err != nil {
+		return nil, err
+	}
+
+	var configuredClusterIDs []string
+	err := db.Model(&integration.TraceIntegration{}).
+		Distinct("trace_integrations.cluster_id").
+		Joins("JOIN metric_integrations ON metric_integrations.cluster_id = trace_integrations.cluster_id AND metric_integrations.is_deleted = ?", false).
+		Joins("JOIN log_integrations ON log_integrations.cluster_id = trace_integrations.cluster_id AND log_integrations.is_deleted = ?", false).
+		Where("trace_integrations.is_deleted = ?", false).
+		Pluck("trace_integrations.cluster_id", &configuredClusterIDs).Error
+	if err != nil {
+		log.Printf("integration: failed to resolve configured clusters: %v", err)
+		return clusters, nil
+	}
+
+	configured := make(map[string]struct{}, len(configuredClusterIDs))
+	for _, clusterID := range configuredClusterIDs {
+		configured[clusterID] = struct{}{}
+	}
+	for index := range clusters {
+		_, clusters[index].IntegrationConfigured = configured[clusters[index].ID]
+	}
+	return clusters, nil
 }
 
 func (repo *subRepos) ListClusterName(ctx core.Context) (map[string]string, error) {

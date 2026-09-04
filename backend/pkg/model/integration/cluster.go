@@ -15,11 +15,12 @@ const (
 )
 
 type Cluster struct {
-	ID           string       `form:"id" json:"id" binding:"required" gorm:"primaryKey;type:varchar(255);column:id"`
-	Name         string       `form:"name" json:"name" gorm:"unique;type:varchar(255);column:name"`
-	ClusterType  string       `form:"clusterType" json:"clusterType" gorm:"type:varchar(255);column:cluster_type"`
-	APOCollector APOCollector `json:"apoCollector,omitempty" gorm:"type:json;column:apo_collector"`
-	IsMinimal    bool         `form:"isMinimal" json:"isMinimal"  gorm:"is_minimal"`
+	ID                    string       `form:"id" json:"id" binding:"required" gorm:"primaryKey;type:varchar(255);column:id"`
+	Name                  string       `form:"name" json:"name" gorm:"unique;type:varchar(255);column:name"`
+	ClusterType           string       `form:"clusterType" json:"clusterType" gorm:"type:varchar(255);column:cluster_type"`
+	APOCollector          APOCollector `json:"apoCollector,omitempty" gorm:"type:json;column:apo_collector"`
+	IsMinimal             bool         `form:"isMinimal" json:"isMinimal"  gorm:"is_minimal"`
+	IntegrationConfigured bool         `json:"-" gorm:"-"`
 }
 
 type UpdateClusterDisplayNameRequest struct {

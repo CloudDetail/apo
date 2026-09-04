@@ -44,6 +44,8 @@ apoNodeAgent:
   apoOtelCollectorUrl: "apo-otel-collector-svc:8080"
 
 apoIlogtail:
+  containerdSockPath: "/run/k3s/containerd/containerd.sock"
+  containerdStateDir: "/run/k3s/containerd"
   image:
     repository: "{{ "{{ .Values.global.image.repository }}/ilogtail" }}"
     pullPolicy: "{{ "{{ .Values.global.image.pullPolicy }}" }}"

@@ -60,7 +60,7 @@
     "port1": "Used to receive link trace sampling data",
     "port2": "Used to receive and process log data",
     "port3": "Used to receive observability data, OTLP gRPC protocol",
-    "port4": "Used to receive K85 cluster data, OTLP gRPC protocol",
+    "port4": "Used to receive K8s cluster data, OTLP gRPC protocol",
     "port5": "Used to provide query API services"
   },
   "sidecar": "Suitable for scenarios where the Tracing probe is already in use, and there is no intention to modify the Traces data sending address. APO will query data through the Trace system API.",

@@ -15,6 +15,7 @@ import APOCollectorFormItem from './APOCollectorFormItem'
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { portsDefault } from '../../../constant'
 import { notify } from 'src/core/utils/notify'
+import { dataIntegrationSaveMode } from './saveMode'
 
 const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
   const navigate = useNavigate()
@@ -39,7 +40,10 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
   const saveIntegration = (params) => {
     delete params?.traceAPI
     params.isMinimal = false
-    let api = params.id ? updateDataIntegrationApi : createDataIntegrationApi
+    const api =
+      dataIntegrationSaveMode(formInitValues) === 'update'
+        ? updateDataIntegrationApi
+        : createDataIntegrationApi
     api(params).then((res) => {
       notify({
         type: 'success',
@@ -49,6 +53,7 @@ const SettingsForm = ({ formInitValues }: { formInitValues: any }) => {
       newParams.set('clusterId', params.id || res?.id)
       newParams.set('clusterType', params.clusterType || res?.clusterType)
       newParams.set('activeKey', 'install')
+      newParams.delete('setup')
       setSearchParams(newParams, { replace: true })
     })
   }

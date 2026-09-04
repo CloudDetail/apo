@@ -334,6 +334,13 @@
   visibility: hidden;
 }
 
+.serviceRuleColumnsVariables {
+  grid-template-columns:
+    minmax(120px, 0.8fr) minmax(150px, 1fr) minmax(160px, 1.2fr) minmax(140px, 1fr)
+    32px;
+  padding-right: 10px;
+}
+
 .serviceMappingRow {
   grid-template-columns: 28px minmax(150px, 1fr) minmax(180px, 1.2fr) minmax(160px, 1fr) 32px;
   min-height: 58px;
@@ -577,17 +584,7 @@
   gap: 6px;
 }
 
-.batchTargetRow {
-  display: flex;
-  align-items: flex-end;
-  gap: 16px;
-}
-
-.batchTargetRow .sourceGroup {
-  max-width: none;
-}
-
-.batchTemplateSection,
+.batchSetupSection,
 .batchTemplateList,
 .batchProbeName {
   display: flex;
@@ -595,9 +592,13 @@
   flex-direction: column;
 }
 
-.batchTemplateSection {
+.batchSetupSection {
   gap: 10px;
   padding-block: 4px 12px;
+}
+
+.batchSetupSection > :global(.ant-select) {
+  width: 100%;
 }
 
 .batchTemplateList {
@@ -626,22 +627,85 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.systemPressureSection {
+.circuitPolicyGroup {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-block: 12px;
-  border-block: 1px solid var(--ant-color-border-secondary);
+  gap: 14px;
+  padding: 16px 0 16px 14px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+  border-left: 3px solid var(--ant-color-primary-border);
 }
 
-.systemPressureSection .sectionHeading > div {
-  flex-direction: row;
+.hostCircuitGroup {
+  border-left-color: var(--ant-color-error-border);
+}
+
+.circuitPolicyHeader,
+.circuitPolicyTitle {
+  display: flex;
   align-items: center;
+}
+
+.circuitPolicyHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.circuitPolicyTitle {
+  min-width: 0;
   gap: 10px;
 }
 
-.systemThresholdGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.circuitPolicyTitle > div,
+.recoveryCopy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.circuitPolicyTitle :global(.ant-typography),
+.recoveryCopy :global(.ant-typography) {
+  margin: 0;
+}
+
+.circuitPolicyTitle :global(.ant-typography-secondary),
+.recoveryCopy :global(.ant-typography-secondary) {
+  font-size: 12px;
+}
+
+.probeCircuitIcon {
+  color: var(--ant-color-primary-text);
+  background: var(--ant-color-primary-bg);
+}
+
+.systemThresholdBand,
+.systemThresholdHeading {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.systemThresholdBand {
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.systemThresholdBand + .systemThresholdBand {
+  padding-top: 14px;
+  border-top: 1px dashed var(--ant-color-border-secondary);
+}
+
+.systemThresholdHeading {
+  gap: 2px;
+}
+
+.systemThresholdHeading :global(.ant-typography) {
+  margin: 0;
+}
+
+.systemThresholdHeading :global(.ant-typography-secondary) {
+  font-size: 12px;
 }
 
 .recoveryRow,
@@ -854,7 +918,8 @@
 }
 
 .recoveryToggle {
-  min-width: 190px;
+  min-width: 300px;
+  flex: 1;
   gap: 10px;
 }
 
@@ -1470,6 +1535,7 @@
   }
 
   .sectionHeading,
+  .circuitPolicyHeader,
   .componentPolicyHeader,
   .componentPolicyEditorHeader,
   .componentPolicyPicker,
@@ -1492,6 +1558,11 @@
 
   .componentPolicyDraftActions {
     flex-direction: column-reverse;
+  }
+
+  .recoveryToggle {
+    width: 100%;
+    min-width: 0;
   }
 
   .componentPolicyRow,
@@ -1589,11 +1660,6 @@
   .thresholdItem :global(.ant-input-number-group-wrapper) {
     grid-column: 1 / -1;
     width: 100%;
-  }
-
-  .batchTargetRow {
-    align-items: stretch;
-    flex-direction: column;
   }
 
   .batchTemplateRow {

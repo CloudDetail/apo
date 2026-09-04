@@ -288,6 +288,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
     () =>
       [...workloadsByNamespace.entries()].map(([namespace, workloads]) => ({
         key: namespaceKey(namespace),
+        searchText: namespace,
         title: (
           <span className={styles.workloadTreeLabel}>
             <span className={styles.treeNodeIdentity}>
@@ -301,6 +302,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
         ),
         children: workloads.map((workload) => ({
           key: workloadKey(workload),
+          searchText: workload.name,
           title: (
             <span className={styles.workloadTreeLabel}>
               <span className={styles.treeNodeIdentity}>
@@ -314,6 +316,20 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
       })),
     [applyAll, namespaceModes, workloadsByNamespace],
   )
+
+  const filteredTreeData = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return treeData
+    return treeData.flatMap((namespaceNode: any) => {
+      if (String(namespaceNode.searchText || '').toLowerCase().includes(query)) {
+        return [namespaceNode]
+      }
+      const children = (namespaceNode.children || []).filter((workloadNode: any) =>
+        String(workloadNode.searchText || '').toLowerCase().includes(query),
+      )
+      return children.length ? [{ ...namespaceNode, children }] : []
+    })
+  }, [search, treeData])
 
   const checkedTreeKeys = useMemo(() => {
     const checked = [...checkedWorkloads]
@@ -423,10 +439,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
                 defaultExpandAll
                 height={420}
                 checkedKeys={checkedTreeKeys}
-                treeData={treeData}
-                filterTreeNode={(node) =>
-                  Boolean(search) && String(node.key).toLowerCase().includes(search.toLowerCase())
-                }
+                treeData={filteredTreeData}
                 onCheck={handleTreeCheck}
               />
             </div>
@@ -615,7 +628,9 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
           </div>
           {serviceName.variables.length ? (
             <div className={styles.serviceRuleList}>
-              <div className={styles.serviceRuleColumns}>
+              <div
+                className={`${styles.serviceRuleColumns} ${styles.serviceRuleColumnsVariables}`}
+              >
                 <span>变量名</span>
                 <span>来源</span>
                 <span>匹配正则</span>
@@ -624,7 +639,7 @@ export function InjectionControlPanel({ clusterId }: { clusterId: string }) {
               </div>
               <div className={styles.serviceVariableList}>
                 {serviceName.variables.map((variable, index) => (
-                  <div className={styles.serviceVariableRow} key={`${index}-${variable.name}`}>
+                  <div className={styles.serviceVariableRow} key={`service-variable-${index}`}>
                     <Input
                       aria-label="变量名"
                       value={variable.name}

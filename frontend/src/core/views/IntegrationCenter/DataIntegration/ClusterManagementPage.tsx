@@ -83,7 +83,13 @@ export default function ClusterManagementPage() {
         getIntegrationClusterListApi(),
         getAgentConfigNodesApi(),
       ])
-      setClusters(Array.isArray(clusterResult) ? clusterResult : [])
+      setClusters(
+        Array.isArray(clusterResult)
+          ? clusterResult
+          : Array.isArray((clusterResult as any)?.clusters)
+            ? (clusterResult as any).clusters
+            : [],
+      )
       setNodes(Array.isArray((nodeResult as any)?.nodes) ? (nodeResult as any).nodes : [])
     } catch (error: any) {
       console.error('[ClusterManagementPage] failed to load cluster ownership', error)

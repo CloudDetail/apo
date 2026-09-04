@@ -79,6 +79,24 @@ preview and save resolve their pipeline base from the registered collector:
 Kubernetes nodes normally report `ilogtail`, while VM/binary nodes report
 `loongcollector`. Both names use the same independent log collection contract.
 
+## Circuit breaker policies
+
+The node policy contains two independent circuit breakers. The top-level
+`enabled` field controls only per-probe CPU Core and RSS protection. A probe
+that remains above either configured limit for `durationSeconds` is fused;
+when `autoRecover` is enabled, daemon-go makes trial recoveries using the
+configured exponential backoff interval.
+
+`systemPressure.enabled` independently controls host resource protection and
+does not depend on the top-level switch. A complete host sample must remain at
+or above either CPU or memory circuit threshold for
+`triggerDurationSeconds` before all running managed probes are fused. Fused
+probes become eligible for recovery only after every configured host metric
+remains strictly below its recovery threshold for
+`recoveryDurationSeconds`. Missing host metrics neither trigger a fuse nor
+advance recovery. Host recovery does not reuse the per-probe exponential
+backoff policy.
+
 Environment-backed behavior is still managed as configuration when it is part
 of the probe's runtime contract. ebpf-agent includes `load-env.sh` in its
 three-file bundle. `apo-odiglet` is a first-class managed component rather than
@@ -201,9 +219,10 @@ outside the template-variable contract.
 
 The default VM template is
 `docs/examples/agent-config-template-vm-v1.1.0.yaml`. Its component and file
-set is the binary daemon registration contract, not the Kubernetes component
-set: `node-agent`, `alloy`, `loongcollector`, `ebpf-agent`, `vmagent`, and
-`preload`, with nine managed files in total. Lifecycle-only binary components
+set is the ordinary binary configuration contract, not the Kubernetes component
+set: `node-agent`, `alloy`, `ebpf-agent`, `vmagent`, and `preload`, with seven
+managed files in total. `loongcollector/config/local/*` is owned exclusively by
+the log-collection workflow. Lifecycle-only binary components
 are intentionally absent because daemon-go has no registered configuration
 files to deliver for them.
 

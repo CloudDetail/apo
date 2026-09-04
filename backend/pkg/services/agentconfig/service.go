@@ -82,6 +82,12 @@ const (
 	defaultCircuitDurationSeconds             = 30
 	defaultCircuitRecoveryInitialDelaySeconds = 30
 	defaultCircuitRecoveryMaxDelaySeconds     = 60 * 60
+	defaultSystemMaxCPUPercent                = 90
+	defaultSystemMaxMemoryPercent             = 90
+	defaultSystemRecoveryCPUPercent           = 80
+	defaultSystemRecoveryMemoryPercent        = 80
+	defaultSystemTriggerDurationSeconds       = 30
+	defaultSystemRecoveryDurationSeconds      = 30
 	agentStateFreshnessTimeout                = 2 * time.Minute
 )
 
@@ -384,6 +390,15 @@ func loadDefaultAgentSettings() ac.AgentSettings {
 		AutoRecover:                 true,
 		RecoveryInitialDelaySeconds: defaultCircuitRecoveryInitialDelaySeconds,
 		RecoveryMaxDelaySeconds:     defaultCircuitRecoveryMaxDelaySeconds,
+		SystemPressure: &ac.SystemPressureSettings{
+			Enabled:                 false,
+			MaxCPUPercent:           defaultSystemMaxCPUPercent,
+			MaxMemoryPercent:        defaultSystemMaxMemoryPercent,
+			RecoveryCPUPercent:      defaultSystemRecoveryCPUPercent,
+			RecoveryMemoryPercent:   defaultSystemRecoveryMemoryPercent,
+			TriggerDurationSeconds:  defaultSystemTriggerDurationSeconds,
+			RecoveryDurationSeconds: defaultSystemRecoveryDurationSeconds,
+		},
 	}
 	if value := strings.TrimSpace(os.Getenv("AGENT_DEFAULT_CIRCUIT_BREAKER_ENABLED")); value != "" {
 		parsed, err := strconv.ParseBool(value)
@@ -456,6 +471,15 @@ func loadDefaultAgentSettings() ac.AgentSettings {
 			AutoRecover:                 true,
 			RecoveryInitialDelaySeconds: defaultCircuitRecoveryInitialDelaySeconds,
 			RecoveryMaxDelaySeconds:     defaultCircuitRecoveryMaxDelaySeconds,
+			SystemPressure: &ac.SystemPressureSettings{
+				Enabled:                 false,
+				MaxCPUPercent:           defaultSystemMaxCPUPercent,
+				MaxMemoryPercent:        defaultSystemMaxMemoryPercent,
+				RecoveryCPUPercent:      defaultSystemRecoveryCPUPercent,
+				RecoveryMemoryPercent:   defaultSystemRecoveryMemoryPercent,
+				TriggerDurationSeconds:  defaultSystemTriggerDurationSeconds,
+				RecoveryDurationSeconds: defaultSystemRecoveryDurationSeconds,
+			},
 		}
 	}
 	return ac.AgentSettings{UseLocalDefaults: true, CircuitBreaker: &settings}
@@ -856,34 +880,131 @@ func normalizeConfigFiles(input []ac.InitialConfigFile, description string) ([]a
 	return files, nil
 }
 
+func ordinaryConfigFiles(probe string, files []ac.InitialConfigFile) []ac.InitialConfigFile {
+	probe = ac.NormalizeProbe(probe)
+	if probe != "ilogtail" && probe != "loongcollector" {
+		return append([]ac.InitialConfigFile(nil), files...)
+	}
+	ordinary := make([]ac.InitialConfigFile, 0, len(files))
+	for _, file := range files {
+		cleaned := path.Clean(strings.TrimSpace(file.Path))
+		if strings.HasPrefix(cleaned, "config/local/") {
+			continue
+		}
+		ordinary = append(ordinary, file)
+	}
+	return ordinary
+}
+
+// preserveManagedConfigFiles keeps log collection files in every ordinary
+// release. They are hidden from ordinary templates, but daemon-go activates a
+// complete file bundle and would otherwise remove the active log pipelines.
+func (s *Service) preserveManagedConfigFiles(ctx core.Context, node, probe string, files []ac.InitialConfigFile) ([]ac.InitialConfigFile, error) {
+	probe = ac.NormalizeProbe(probe)
+	if probe != "ilogtail" && probe != "loongcollector" {
+		return files, nil
+	}
+	managed := []ac.InitialConfigFile{}
+	releases, err := s.repo.ListAgentReleases(ctx, node, probe, 50)
+	if err != nil {
+		return nil, err
+	}
+	for index := range releases {
+		releaseFiles, releaseErr := s.releaseFiles(ctx, node, probe, &releases[index])
+		if releaseErr != nil {
+			log.Printf("agentconfig: cannot inspect managed log files for %s/%s generation %d; fall back: %v", node, probe, releases[index].Generation, releaseErr)
+			continue
+		}
+		for _, file := range releaseFiles {
+			cleaned := path.Clean(strings.TrimSpace(file.Path))
+			if strings.HasPrefix(cleaned, "config/local/") {
+				file.Path = cleaned
+				file.ContentSHA256 = ac.HashContent(file.Content)
+				managed = append(managed, file)
+			}
+		}
+		if len(managed) > 0 {
+			break
+		}
+	}
+	if len(managed) == 0 {
+		baseline, baselineErr := s.repo.GetAgentInitialConfig(ctx, node, probe)
+		if baselineErr != nil {
+			if errors.Is(baselineErr, gorm.ErrRecordNotFound) {
+				return files, nil
+			}
+			return nil, baselineErr
+		}
+		if baseline != nil {
+			var baselineFiles []ac.InitialConfigFile
+			if err := json.Unmarshal(baseline.Files, &baselineFiles); err != nil {
+				return nil, fmt.Errorf("decode baseline log files for %s/%s: %w", node, probe, err)
+			}
+			for _, file := range baselineFiles {
+				cleaned := path.Clean(strings.TrimSpace(file.Path))
+				if strings.HasPrefix(cleaned, "config/local/") {
+					file.Path = cleaned
+					file.ContentSHA256 = ac.HashContent(file.Content)
+					managed = append(managed, file)
+				}
+			}
+		}
+	}
+	if len(managed) == 0 {
+		return files, nil
+	}
+	byPath := make(map[string]struct{}, len(files)+len(managed))
+	merged := append([]ac.InitialConfigFile(nil), files...)
+	for _, file := range merged {
+		byPath[file.Path] = struct{}{}
+	}
+	for _, file := range managed {
+		if _, exists := byPath[file.Path]; exists {
+			continue
+		}
+		byPath[file.Path] = struct{}{}
+		merged = append(merged, file)
+	}
+	sort.Slice(merged, func(i, j int) bool { return merged[i].Path < merged[j].Path })
+	return merged, nil
+}
+
 func normalizeTemplatePayload(in TemplateInput) (ac.JSON, string, string, error) {
 	configs := append([]ac.TemplateProbeConfig(nil), in.Configs...)
 	if len(configs) == 0 {
 		return nil, "", "", fmt.Errorf("template must contain at least one probe configuration")
 	}
 	seen := make(map[string]struct{}, len(configs))
+	normalizedConfigs := make([]ac.TemplateProbeConfig, 0, len(configs))
 	var variableSource strings.Builder
-	for index := range configs {
-		probe := ac.NormalizeProbe(configs[index].ProbeType)
+	for _, config := range configs {
+		probe := ac.NormalizeProbe(config.ProbeType)
 		if probe == "" {
 			return nil, "", "", fmt.Errorf("template probe type is required")
+		}
+		ordinaryFiles := ordinaryConfigFiles(probe, config.Files)
+		if len(config.Files) > 0 && len(ordinaryFiles) == 0 {
+			continue
 		}
 		if _, duplicate := seen[probe]; duplicate {
 			return nil, "", "", fmt.Errorf("template probe %s is duplicated", probe)
 		}
 		seen[probe] = struct{}{}
-		files, err := normalizeConfigFiles(configs[index].Files, "template "+probe)
+		files, err := normalizeConfigFiles(ordinaryFiles, "template "+probe)
 		if err != nil {
 			return nil, "", "", err
 		}
-		configs[index] = ac.TemplateProbeConfig{ProbeType: probe, Files: files}
+		normalizedConfigs = append(normalizedConfigs, ac.TemplateProbeConfig{ProbeType: probe, Files: files})
 		for _, file := range files {
 			variableSource.WriteString(file.Content)
 			variableSource.WriteByte('\n')
 		}
 	}
-	sort.Slice(configs, func(i, j int) bool { return configs[i].ProbeType < configs[j].ProbeType })
-	data, err := json.Marshal(configs)
+	if len(normalizedConfigs) == 0 {
+		return nil, "", "", fmt.Errorf("template must contain at least one ordinary probe configuration")
+	}
+	sort.Slice(normalizedConfigs, func(i, j int) bool { return normalizedConfigs[i].ProbeType < normalizedConfigs[j].ProbeType })
+	data, err := json.Marshal(normalizedConfigs)
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -1238,6 +1359,43 @@ func (s *Service) GetInitialConfig(ctx core.Context, node, probe string) (*ac.In
 	return s.repo.GetAgentInitialConfig(ctx, node, ac.NormalizeProbe(probe))
 }
 
+func defaultSystemRecoveryPercent(maximum float64) float64 {
+	if maximum > 10 {
+		return maximum - 10
+	}
+	return maximum * 0.8
+}
+
+func normalizeSystemPressureSettings(settings *ac.SystemPressureSettings) {
+	if settings == nil {
+		return
+	}
+	if settings.MaxCPUPercent > 0 && settings.RecoveryCPUPercent == 0 {
+		settings.RecoveryCPUPercent = defaultSystemRecoveryPercent(settings.MaxCPUPercent)
+		if settings.Enabled {
+			log.Printf("agentconfig: system CPU recovery threshold is missing; use %.1f%%", settings.RecoveryCPUPercent)
+		}
+	}
+	if settings.MaxMemoryPercent > 0 && settings.RecoveryMemoryPercent == 0 {
+		settings.RecoveryMemoryPercent = defaultSystemRecoveryPercent(settings.MaxMemoryPercent)
+		if settings.Enabled {
+			log.Printf("agentconfig: system memory recovery threshold is missing; use %.1f%%", settings.RecoveryMemoryPercent)
+		}
+	}
+	if settings.TriggerDurationSeconds == 0 {
+		settings.TriggerDurationSeconds = defaultSystemTriggerDurationSeconds
+		if settings.Enabled {
+			log.Printf("agentconfig: system circuit trigger duration is missing; use %d seconds", settings.TriggerDurationSeconds)
+		}
+	}
+	if settings.RecoveryDurationSeconds == 0 {
+		settings.RecoveryDurationSeconds = defaultSystemRecoveryDurationSeconds
+		if settings.Enabled {
+			log.Printf("agentconfig: system circuit recovery duration is missing; use %d seconds", settings.RecoveryDurationSeconds)
+		}
+	}
+}
+
 func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	if settings == nil {
 		return nil
@@ -1257,19 +1415,37 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 			return fmt.Errorf("component policy %s: %w", componentType, err)
 		}
 	}
-	if !settings.Enabled {
-		return nil
+	if settings.SystemPressure != nil {
+		normalizeSystemPressureSettings(settings.SystemPressure)
 	}
 	if settings.SystemPressure != nil && settings.SystemPressure.Enabled {
-		if settings.SystemPressure.MaxCPUPercent != 0 && (settings.SystemPressure.MaxCPUPercent < 1 || settings.SystemPressure.MaxCPUPercent > 100) {
+		pressure := settings.SystemPressure
+		if pressure.MaxCPUPercent != 0 && (pressure.MaxCPUPercent < 1 || pressure.MaxCPUPercent > 100) {
 			return fmt.Errorf("system max CPU percent must be 0 or between 1 and 100")
 		}
-		if settings.SystemPressure.MaxMemoryPercent != 0 && (settings.SystemPressure.MaxMemoryPercent < 1 || settings.SystemPressure.MaxMemoryPercent > 100) {
+		if pressure.MaxMemoryPercent != 0 && (pressure.MaxMemoryPercent < 1 || pressure.MaxMemoryPercent > 100) {
 			return fmt.Errorf("system max memory percent must be 0 or between 1 and 100")
 		}
-		if settings.SystemPressure.MaxCPUPercent == 0 && settings.SystemPressure.MaxMemoryPercent == 0 {
+		if pressure.MaxCPUPercent == 0 && pressure.MaxMemoryPercent == 0 {
 			return fmt.Errorf("enabled system pressure breaker requires a CPU or memory threshold")
 		}
+		if (pressure.MaxCPUPercent == 0 && pressure.RecoveryCPUPercent != 0) ||
+			(pressure.MaxCPUPercent != 0 && (pressure.RecoveryCPUPercent <= 0 || pressure.RecoveryCPUPercent >= pressure.MaxCPUPercent)) {
+			return fmt.Errorf("system recovery CPU percent must be 0 when CPU protection is disabled, otherwise positive and below the CPU circuit threshold")
+		}
+		if (pressure.MaxMemoryPercent == 0 && pressure.RecoveryMemoryPercent != 0) ||
+			(pressure.MaxMemoryPercent != 0 && (pressure.RecoveryMemoryPercent <= 0 || pressure.RecoveryMemoryPercent >= pressure.MaxMemoryPercent)) {
+			return fmt.Errorf("system recovery memory percent must be 0 when memory protection is disabled, otherwise positive and below the memory circuit threshold")
+		}
+		if pressure.TriggerDurationSeconds < 5 || pressure.TriggerDurationSeconds > 600 {
+			return fmt.Errorf("system trigger duration seconds must be between 5 and 600")
+		}
+		if pressure.RecoveryDurationSeconds < 5 || pressure.RecoveryDurationSeconds > 600 {
+			return fmt.Errorf("system recovery duration seconds must be between 5 and 600")
+		}
+	}
+	if !settings.Enabled {
+		return nil
 	}
 	if settings.MaxCPUCores != 0 && (settings.MaxCPUCores < 0.1 || settings.MaxCPUCores > 256) {
 		return fmt.Errorf("max CPU cores must be 0 or between 0.1 and 256")
@@ -1281,7 +1457,7 @@ func validateCircuitBreaker(settings *ac.CircuitBreakerSettings) error {
 	if settings.MaxMemoryBytes != 0 && (settings.MaxMemoryBytes < minimumMemory || settings.MaxMemoryBytes > maximumMemory) {
 		return fmt.Errorf("max memory bytes must be 0 or between 64 MiB and 64 GiB")
 	}
-	if settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 && (settings.SystemPressure == nil || !settings.SystemPressure.Enabled) {
+	if settings.MaxCPUCores == 0 && settings.MaxMemoryBytes == 0 {
 		return fmt.Errorf("enabled circuit breaker requires a CPU or memory threshold")
 	}
 	if settings.DurationSeconds < 5 || settings.DurationSeconds > 600 {
@@ -1587,7 +1763,30 @@ func (s *Service) CurrentNodeConfig(ctx core.Context, node, probe string) (*Curr
 	} else if !errors.Is(stateErr, gorm.ErrRecordNotFound) {
 		return nil, stateErr
 	}
-	return s.initialNodeConfig(ctx, node, probe)
+	current, err := s.initialNodeConfig(ctx, node, probe)
+	if err == nil {
+		return current, nil
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	// Some agents can receive a release before they report an initial config.
+	// Keep the node editor usable in that window, while preserving real storage
+	// errors and making the fallback visible in the service log.
+	release, releaseErr := s.repo.GetAgentRelease(ctx, node, probe)
+	if releaseErr == nil {
+		files, filesErr := s.releaseFiles(ctx, node, probe, release)
+		if filesErr != nil {
+			return nil, filesErr
+		}
+		log.Printf("agentconfig: initial config missing for %s/%s; using latest release generation %d", node, probe, release.Generation)
+		return currentNodeConfig(node, probe, release.Generation, files, release.ContentSHA256, "RELEASE"), nil
+	}
+	if !errors.Is(releaseErr, gorm.ErrRecordNotFound) {
+		return nil, releaseErr
+	}
+	return nil, err
 }
 
 func (s *Service) initialNodeConfig(ctx core.Context, node, probe string) (*CurrentNodeConfig, error) {
@@ -1627,6 +1826,8 @@ func currentNodeConfigFromSnapshot(node, probe string, effectiveConfig ac.JSON) 
 }
 
 func currentNodeConfig(node, probe string, generation int64, files []ac.InitialConfigFile, sha, source string) *CurrentNodeConfig {
+	files = ordinaryConfigFiles(probe, files)
+	sha = ac.HashInitialConfigFiles(files)
 	config := &CurrentNodeConfig{NodeID: node, ProbeType: probe, Generation: generation, ExpectedGeneration: generation, Version: generation + 1, Files: files, ContentSHA256: sha, Source: source}
 	if len(files) == 1 {
 		config.Content = files[0].Content
@@ -1653,6 +1854,9 @@ func (s *Service) ListNodeConfigHistory(ctx core.Context, node, probe string, li
 			return nil, fileErr
 		}
 		config := currentNodeConfig(node, probe, releases[index].Generation, files, releases[index].ContentSHA256, "RELEASE")
+		if len(config.Files) == 0 {
+			continue
+		}
 		config.CreatedAt = releases[index].CreatedAt
 		result = append(result, *config)
 	}
@@ -1667,6 +1871,9 @@ func (s *Service) ListNodeConfigHistory(ctx core.Context, node, probe string, li
 				return nil, fmt.Errorf("node has no initial configuration for %s", probe)
 			}
 			config := currentNodeConfig(node, probe, 0, files, baseline.ContentSHA256, "INITIAL")
+			if len(config.Files) == 0 {
+				return result, nil
+			}
 			config.CreatedAt = baseline.CapturedAt
 			result = append(result, *config)
 		} else if !errors.Is(baselineErr, gorm.ErrRecordNotFound) {
@@ -1738,6 +1945,9 @@ func (s *Service) CurrentNodeConfigs(ctx core.Context, node string) (*CurrentNod
 		current, err := s.CurrentNodeConfig(ctx, node, probe)
 		if err != nil {
 			return nil, err
+		}
+		if len(current.Files) == 0 {
+			continue
 		}
 		if latestGeneration[probe] > current.ExpectedGeneration {
 			current.ExpectedGeneration = latestGeneration[probe]
@@ -1987,6 +2197,10 @@ func (s *Service) updateNodeConfigGroup(ctx core.Context, node string, input Nod
 		if sameConfigFiles(files, current.Files) {
 			continue
 		}
+		files, err = s.preserveManagedConfigFiles(ctx, node, probe, files)
+		if err != nil {
+			return nil, fmt.Errorf("preserve log collection files for %s: %w", probe, err)
+		}
 		logSources := ac.JSON("null")
 		if current.ExpectedGeneration > 0 {
 			last, err := s.repo.GetAgentRelease(ctx, node, probe)
@@ -2067,10 +2281,6 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 	if len(configs) == 0 {
 		return nil, errors.New("template contains no ordinary probe configuration")
 	}
-	byProbe := make(map[string]ac.TemplateProbeConfig, len(configs))
-	for _, config := range configs {
-		byProbe[config.ProbeType] = config
-	}
 	bindings := make([]*ac.Binding, 0, len(targets)*len(configs))
 	releases := make([]*ac.Release, 0, len(targets)*len(configs))
 	expected := make(map[string]int64, len(targets)*len(configs))
@@ -2078,38 +2288,14 @@ func (s *Service) BatchAssign(ctx core.Context, input BatchAssignmentInput, user
 		if err := ensureTemplateMatchesNode(template, &node); err != nil {
 			return nil, err
 		}
-		current, err := s.CurrentNodeConfigs(ctx, node.ID)
-		if err != nil {
-			return nil, fmt.Errorf("get current configuration for %s: %w", node.ID, err)
-		}
-		if len(current.Configs) == 0 {
-			return nil, fmt.Errorf("node %s has no probe configuration", node.ID)
-		}
-		ordinaryCurrent := current.Configs[:0]
-		for _, config := range current.Configs {
-			if ac.NormalizeProbe(config.ProbeType) != "preload" {
-				ordinaryCurrent = append(ordinaryCurrent, config)
-			}
-		}
-		if len(ordinaryCurrent) != len(configs) {
-			return nil, fmt.Errorf("template contains %d probes but node %s has %d", len(configs), node.ID, len(ordinaryCurrent))
-		}
-		for _, currentConfig := range ordinaryCurrent {
-			probe := currentConfig.ProbeType
-			selected, exists := byProbe[probe]
-			if !exists {
-				return nil, fmt.Errorf("template does not contain probe %s required by node %s", probe, node.ID)
-			}
-			if !sameConfigFilePaths(selected.Files, currentConfig.Files) {
-				return nil, fmt.Errorf("template files for %s do not match registered configuration files on node %s", probe, node.ID)
-			}
-			release, binding, previous, err := s.prepareAssignment(ctx, node.ID, probe, template, selected.Files, AssignmentInput{TemplateID: template.ID, Variables: input.Variables}, nodeTemplateVariables(&node))
+		for _, config := range configs {
+			release, binding, previous, err := s.prepareAssignment(ctx, node.ID, config.ProbeType, template, config.Files, AssignmentInput{TemplateID: template.ID, Variables: input.Variables}, nodeTemplateVariables(&node))
 			if err != nil {
-				return nil, fmt.Errorf("prepare template assignment for %s/%s: %w", node.ID, probe, err)
+				return nil, fmt.Errorf("prepare template assignment for %s/%s: %w", node.ID, config.ProbeType, err)
 			}
 			releases = append(releases, release)
 			bindings = append(bindings, binding)
-			expected[releaseKey(node.ID, probe)] = previous
+			expected[releaseKey(node.ID, config.ProbeType)] = previous
 		}
 	}
 	delivery, err := s.buildDelivery(ctx, deliveryTypeBatchTemplate, strings.Join(input.ClusterIDs, ","), template, releases, user)
@@ -2305,9 +2491,6 @@ func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.
 	if len(missing)+len(invalid) > 0 {
 		return nil, nil, 0, &ValidationError{MissingVariables: missing, InvalidVariables: invalid, UnusedVariables: unused}
 	}
-	if _, e := s.CurrentNodeConfig(ctx, node, probe); e != nil {
-		return nil, nil, 0, e
-	}
 	var e error
 	renderedContent := ""
 	releaseFiles := ac.JSON("null")
@@ -2319,6 +2502,10 @@ func (s *Service) prepareAssignment(ctx core.Context, node, probe string, t *ac.
 			return nil, nil, 0, fmt.Errorf("render template file %s: %w", definedFiles[index].Path, e)
 		}
 		definedFiles[index].ContentSHA256 = ac.HashContent(definedFiles[index].Content)
+	}
+	definedFiles, e = s.preserveManagedConfigFiles(ctx, node, probe, definedFiles)
+	if e != nil {
+		return nil, nil, 0, e
 	}
 	data, marshalErr := json.Marshal(definedFiles)
 	if marshalErr != nil {

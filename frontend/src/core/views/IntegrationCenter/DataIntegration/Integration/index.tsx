@@ -19,6 +19,7 @@ export default function IntegrationSettings() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const isProbeManagement = pathname === '/probe-management/settings'
+  const isInitialSetup = searchParams.get('setup') === 'true'
   const handleCancel = () => {
     if (isProbeManagement) {
       navigate('/probe-management')
@@ -35,30 +36,34 @@ export default function IntegrationSettings() {
         height: 'calc(100vh - 220px)',
       },
     },
-    {
-      key: 'install',
-      label: t('installCmdTitle'),
-      children: (
-        <div className="h-full w-full flex flex-col">
-          <div className="w-full flex-1 h-0 overflow-auto">
-            <InstallCmd
-              clusterId={searchParams.get('clusterId')}
-              clusterType={searchParams.get('clusterType')}
-              apoCollector={formInitValues?.apoCollector}
-            />
-          </div>
+    ...(!isInitialSetup
+      ? [
+          {
+            key: 'install',
+            label: t('installCmdTitle'),
+            children: (
+              <div className="h-full w-full flex flex-col">
+                <div className="w-full flex-1 h-0 overflow-auto">
+                  <InstallCmd
+                    clusterId={searchParams.get('clusterId')}
+                    clusterType={searchParams.get('clusterType')}
+                    apoCollector={formInitValues?.apoCollector}
+                  />
+                </div>
 
-          <div className={`${styles.bottomDiv} w-full `}>
-            <Button className="mr-3" onClick={handleCancel}>
-              {t('goBack')}
-            </Button>
-          </div>
-        </div>
-      ),
-      style: {
-        height: 'calc(100vh - 220px)',
-      },
-    },
+                <div className={`${styles.bottomDiv} w-full `}>
+                  <Button className="mr-3" onClick={handleCancel}>
+                    {t('goBack')}
+                  </Button>
+                </div>
+              </div>
+            ),
+            style: {
+              height: 'calc(100vh - 220px)',
+            },
+          },
+        ]
+      : []),
   ]
   const changeTab = (key: string) => {
     const newParams = new URLSearchParams(searchParams)
@@ -88,6 +93,17 @@ export default function IntegrationSettings() {
       const clusterId = searchParams.get('clusterId')
 
       if (clusterId) {
+        if (isInitialSetup) {
+          const integrationData = await getIntegrationInfo()
+          setActiveKey('config')
+          setFormInitValues({
+            ...integrationData,
+            id: clusterId,
+            name: searchParams.get('clusterName') || clusterId,
+            clusterType: searchParams.get('clusterType') || 'k8s',
+          })
+          return
+        }
         const [integrationData, clusterData] = await Promise.all([
           getIntegrationInfo(),
           getClusterIntegrationInfo(clusterId),
