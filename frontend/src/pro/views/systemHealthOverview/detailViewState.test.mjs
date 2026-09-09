@@ -535,25 +535,18 @@ test('service assistant builds red and yellow metric analysis issues only', () =
   assert.equal(issues[0].systemScore, 62)
 })
 
-test('service assistant modal shows health lamps before AI analysis and always uses metric tabs', () => {
+test('service assistant modal shows health lamps and routes each metric to Agent', () => {
   assert.ok(serviceHealthAssistantModalSource.includes('HealthRing'))
   assert.ok(serviceHealthAssistantModalSource.includes('metricLabels.map(([key, label]) => ('))
   assert.ok(serviceHealthAssistantModalSource.includes('<Lamp status={service?.metrics?.[key] ||'))
-  assert.ok(serviceHealthAssistantModalSource.includes('PendingIssueAnalysis'))
+  assert.ok(serviceHealthAssistantModalSource.includes('ServiceAssistantIssue'))
   assert.ok(serviceHealthAssistantModalSource.includes('issues.length ? ('))
   assert.ok(serviceHealthAssistantModalSource.includes('<Tabs'))
   assert.equal(serviceHealthAssistantModalSource.includes('issues.length > 1 ? ('), false)
-  assert.equal(
-    serviceHealthAssistantModalSource.includes('renderServiceAssistantAnalysis(issues[0])'),
-    false,
-  )
-  assert.ok(serviceHealthAssistantModalSource.includes('analysisTitle="事件"'))
-  assert.ok(serviceHealthAssistantModalSource.includes('role="status"'))
-  assert.ok(serviceHealthAssistantModalSource.includes('className="sho-service-ai-loading-header"'))
-  assert.ok(
-    serviceHealthAssistantModalSource.includes('className="sho-service-ai-loading-preview"'),
-  )
-  assert.equal(serviceHealthAssistantModalSource.includes('<Spin size="small" />'), false)
+  assert.ok(serviceHealthAssistantModalSource.includes('onAnalyzeIssue(issue)'))
+  assert.ok(serviceHealthAssistantModalSource.includes('在 Agent 中分析'))
+  assert.equal(serviceHealthAssistantModalSource.includes('PendingIssueAnalysis'), false)
+  assert.equal(serviceHealthAssistantModalSource.includes('AI 分析中'), false)
 })
 
 test('service assistant modal title follows the service health status instead of active metric status', () => {

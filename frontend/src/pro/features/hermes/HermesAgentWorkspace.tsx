@@ -1,6 +1,6 @@
 import { Alert, Button, Spin, Tooltip } from 'antd'
 import { MenuUnfoldOutlined, ReloadOutlined } from '@ant-design/icons'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ChatInput from './components/ChatInput'
@@ -8,7 +8,7 @@ import ChatMessages from './components/ChatMessages'
 import ConnectionStatus from './components/ConnectionStatus'
 import SessionSidebar from './components/SessionSidebar'
 import { useHermesSession } from './state/useHermesSession.ts'
-import type { WorkflowLaunchContext } from './capabilities/client/types.ts'
+import type { AgentLaunchContext, WorkflowLaunchContext } from './capabilities/client/types.ts'
 import { canonicalHermesUserId } from './client/userScope.ts'
 import styles from './HermesAgentWorkspace.module.scss'
 
@@ -28,31 +28,83 @@ function HermesAgentWorkspaceContent() {
   )
   const workspace = useHermesSession(requestedSessionId)
   const [workflowLaunch, setWorkflowLaunch] = useState<WorkflowLaunchContext | null>(null)
+  const [agentLaunch, setAgentLaunch] = useState<AgentLaunchContext | null>(null)
   const [draft, setDraft] = useState('')
+  const autoSubmittedLaunchRef = useRef('')
+
+  const setRouteSession = useCallback((storedSessionId?: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (storedSessionId) next.set('sessionId', storedSessionId)
+    else next.delete('sessionId')
+    next.delete('threadId')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
-    const state = location.state as { workflowLaunch?: WorkflowLaunchContext } | null
+    const state = location.state as {
+      agentLaunch?: AgentLaunchContext
+      workflowLaunch?: WorkflowLaunchContext
+    } | null
     const launch = state?.workflowLaunch
-    if (!launch?.goal) return
+    const question = state?.agentLaunch
+    if (!launch?.goal && !question?.goal) return
     workspace.newConversation()
-    setWorkflowLaunch(launch)
-    setDraft(launch.goal)
+    autoSubmittedLaunchRef.current = ''
+    setWorkflowLaunch(launch || null)
+    setAgentLaunch(question || null)
+    setDraft(launch?.goal || question?.goal || '')
     navigate(`${location.pathname}${location.search}${location.hash}`, {
       replace: true,
       state: null,
     })
   }, [location.hash, location.key, location.pathname, location.search, location.state, navigate, workspace.newConversation])
 
-  const setRouteSession = (storedSessionId?: string) => {
-    const next = new URLSearchParams(searchParams)
-    if (storedSessionId) next.set('sessionId', storedSessionId)
-    else next.delete('sessionId')
-    next.delete('threadId')
-    setSearchParams(next, { replace: true })
-  }
+  useEffect(() => {
+    const launch = agentLaunch
+    const text = draft.trim()
+    if (
+      !launch?.autoSend ||
+      !text ||
+      !workspace.userScopeReady ||
+      workspace.openingSession ||
+      workspace.state.busy ||
+      workspace.state.checkpoint ||
+      workspace.state.stopping
+    ) return
+
+    const launchKey = `${launch.source}:${launch.goal}`
+    if (autoSubmittedLaunchRef.current === launchKey) return
+    autoSubmittedLaunchRef.current = launchKey
+    setDraft('')
+
+    void workspace.sendMessage(text)
+      .then((storedSessionId) => {
+        if (!storedSessionId) {
+          setDraft(text)
+          return
+        }
+        setAgentLaunch(null)
+        if (storedSessionId !== requestedSessionId) setRouteSession(storedSessionId)
+      })
+      .catch(() => {
+        setDraft(text)
+      })
+  }, [
+    agentLaunch,
+    draft,
+    requestedSessionId,
+    setRouteSession,
+    workspace.openingSession,
+    workspace.sendMessage,
+    workspace.state.busy,
+    workspace.state.checkpoint,
+    workspace.state.stopping,
+    workspace.userScopeReady,
+  ])
 
   const openSession = async (storedSessionId: string) => {
     setWorkflowLaunch(null)
+    setAgentLaunch(null)
     setDraft('')
     setRouteSession(storedSessionId)
     await workspace.openSession(storedSessionId)
@@ -62,18 +114,21 @@ function HermesAgentWorkspaceContent() {
     setRouteSession()
     workspace.newConversation()
     setWorkflowLaunch(null)
+    setAgentLaunch(null)
     setDraft('')
   }
 
   const useExample = (text: string) => {
     setWorkflowLaunch(null)
+    setAgentLaunch(null)
     setDraft(text)
   }
 
   const send = async (text: string) => {
     const storedSessionId = await workspace.sendMessage(text, workflowLaunch?.workflowId)
     if (!storedSessionId) throw new Error('消息发送失败。')
-    if (storedSessionId) setWorkflowLaunch(null)
+    setWorkflowLaunch(null)
+    setAgentLaunch(null)
     if (storedSessionId && storedSessionId !== requestedSessionId) setRouteSession(storedSessionId)
   }
 

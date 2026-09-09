@@ -223,3 +223,10 @@ export interface WorkflowLaunchContext {
   goal: string
   source: 'workflow_library'
 }
+
+/** State handed to the Agent page for a health issue investigation. */
+export interface AgentLaunchContext {
+  goal: string
+  source: 'system_health_pending_issue' | 'system_health_service_issue'
+  autoSend?: boolean
+}

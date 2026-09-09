@@ -1,72 +1,56 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Modal, Tabs } from 'antd'
+import { Button, Modal, Tabs } from 'antd'
+import atomicIcon from 'src/pro/assets/atomic.png'
 
 import { serviceAiAssistantActionFor } from '../detailViewState.mjs'
-import { buildPendingIssueAnalysisKey } from '../pendingIssueAnalysis.mjs'
+import { describePendingIssue } from '../pendingIssueDescription.mjs'
 import { HealthRing, Lamp, statusMeta } from './HealthStatus.jsx'
-import { PendingIssueAnalysis } from './PendingIssueQueue.jsx'
 
 const serviceAssistantTitle = (service) => {
   const analysisTitle = serviceAiAssistantActionFor(service).label
   return service?.name ? `${service.name} ${analysisTitle}` : analysisTitle
 }
 
-const ServiceAssistantLoading = () => (
-  <div aria-live="polite" className="sho-service-ai-loading" role="status">
-    <div className="sho-service-ai-loading-header">
-      <span aria-hidden="true" className="sho-service-ai-loading-mark">
-        <span />
-        <span />
-        <span />
-      </span>
-      <div className="sho-service-ai-loading-copy">
-        <strong>AI 分析中</strong>
-        <span>正在生成指标判断、可能原因和处理建议</span>
-      </div>
-    </div>
-    <div aria-hidden="true" className="sho-service-ai-loading-preview">
-      <span />
-      <span />
-      <span />
-      <span />
-    </div>
+const ServiceAssistantEmpty = () => (
+  <div className="sho-service-ai-empty">
+    <strong>当前服务暂无可分析的异常指标</strong>
+    <span>各项指标处于健康或无数据状态。</span>
   </div>
 )
 
-const ServiceAssistantEmpty = () => (
-  <div className="sho-service-ai-empty">
-    <strong>当前服务暂无红黄指标</strong>
-    <span>各项指标处于健康或无数据状态，暂不生成异常或调优分析。</span>
+const ServiceAssistantIssue = ({ issue, onAnalyzeIssue }) => (
+  <div className="sho-service-ai-launch">
+    <div className="sho-service-ai-launch-summary">
+      <div className="sho-service-ai-launch-title">
+        <Lamp status={issue.status} />
+        <strong>{issue.metricLabel}</strong>
+      </div>
+      <span>{describePendingIssue(issue)}</span>
+    </div>
+    <Button
+      icon={<img alt="" aria-hidden="true" className="sho-ai-assistant-button-icon" src={atomicIcon} />}
+      type="primary"
+      onClick={() => onAnalyzeIssue(issue)}
+    >
+      在 Agent 中分析
+    </Button>
   </div>
 )
 
 export default function ServiceHealthAssistantModal({
   activeMetricKey,
-  issueAnalyses,
   issues,
   metricLabels,
   onClose,
+  onAnalyzeIssue,
   onMetricChange,
   open,
-  queryParams,
   scoreThresholds,
   service,
 }) {
   const activeIssue =
     issues.find((issue) => issue.metricKey === activeMetricKey) || issues[0] || null
-
-  const renderServiceAssistantAnalysis = (issue) => {
-    if (!issue) return <ServiceAssistantEmpty />
-
-    const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
-    const analysisState = issueAnalyses[analysisKey] || {}
-    if (analysisState.loading || (!analysisState.data && !analysisState.error)) {
-      return <ServiceAssistantLoading />
-    }
-
-    return <PendingIssueAnalysis analysisState={analysisState} analysisTitle="事件" isExpanded />
-  }
 
   const tabItems = issues.map((issue) => ({
     key: issue.metricKey,
@@ -76,7 +60,7 @@ export default function ServiceHealthAssistantModal({
         <span>{issue.metricLabel}</span>
       </span>
     ),
-    children: renderServiceAssistantAnalysis(issue),
+    children: <ServiceAssistantIssue issue={issue} onAnalyzeIssue={onAnalyzeIssue} />,
   }))
 
   return (
@@ -120,7 +104,7 @@ export default function ServiceHealthAssistantModal({
           onChange={onMetricChange}
         />
       ) : (
-        renderServiceAssistantAnalysis(null)
+        <ServiceAssistantEmpty />
       )}
     </Modal>
   )
@@ -128,13 +112,12 @@ export default function ServiceHealthAssistantModal({
 
 ServiceHealthAssistantModal.propTypes = {
   activeMetricKey: PropTypes.string,
-  issueAnalyses: PropTypes.objectOf(PropTypes.object).isRequired,
   issues: PropTypes.arrayOf(PropTypes.object).isRequired,
   metricLabels: PropTypes.arrayOf(PropTypes.array).isRequired,
   onClose: PropTypes.func.isRequired,
+  onAnalyzeIssue: PropTypes.func.isRequired,
   onMetricChange: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-  queryParams: PropTypes.object,
   scoreThresholds: PropTypes.shape({
     severeAbnormalScoreThreshold: PropTypes.number,
     generalAbnormalScoreThreshold: PropTypes.number,

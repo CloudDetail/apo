@@ -5,27 +5,7 @@ import atomicIcon from 'src/pro/assets/atomic.png'
 import { HelpCircle } from 'lucide-react'
 
 import { describePendingIssue } from '../pendingIssueDescription.mjs'
-import { buildPendingIssueAnalysisKey } from '../pendingIssueAnalysis.mjs'
 import { Lamp } from './HealthStatus.jsx'
-
-const pendingIssueStatusLevel = (status) =>
-  ({
-    red: '异常',
-    yellow: '关注',
-  })[status] || ''
-
-const pendingIssueMetricEventTitle = (issue = {}) => {
-  const metricLabel = issue.metricLabel || ''
-  const level = pendingIssueStatusLevel(issue.status)
-  if (!metricLabel && !level) return '事件'
-  return `${metricLabel}${level}事件`
-}
-
-const pendingIssueActionTitle = (issue = {}) =>
-  ({
-    yellow: '关注调优',
-    red: '异常修复',
-  })[issue.status] || '异常修复'
 
 const pendingIssueSystemDetailTarget = (system = {}) => {
   const score = system.score ?? system.systemScore
@@ -52,90 +32,10 @@ const pendingIssueSystemTargets = (issue = {}) => {
   return systems.map(pendingIssueSystemDetailTarget)
 }
 
-export const PendingIssueAnalysis = ({ analysisState, analysisTitle, isExpanded }) => {
-  if (!analysisState?.data && !analysisState?.error) return null
-  if (analysisState.error) {
-    return (
-      <div className="sho-pending-analysis sho-pending-analysis-error">{analysisState.error}</div>
-    )
-  }
-
-  const data = analysisState.data || {}
-  const eventTitle = analysisTitle || pendingIssueMetricEventTitle(data.issue)
-  if (data.aiStatus !== 'succeeded') {
-    return (
-      <div className="sho-pending-analysis sho-pending-analysis-error">
-        {data.error || '异常分析暂不可用'}
-      </div>
-    )
-  }
-  if (!isExpanded) return null
-
-  return (
-    <div className="sho-pending-analysis">
-      {data.analysis && (
-        <div className="sho-pending-analysis-block">
-          <strong>{eventTitle}</strong>
-          <span>{data.analysis}</span>
-        </div>
-      )}
-      {data.impact && (
-        <div className="sho-pending-analysis-block">
-          <strong>影响</strong>
-          <span>{data.impact}</span>
-        </div>
-      )}
-      {Array.isArray(data.actionPlan) && data.actionPlan.length > 0 && (
-        <div className="sho-pending-analysis-block">
-          <strong>{pendingIssueActionTitle(data.issue)}</strong>
-          <div className="sho-pending-steps">
-            {data.actionPlan.map((step, index) => (
-              <div className="sho-pending-step" key={`${step.phase}-${index}`}>
-                <b>{index + 1}</b>
-                <div>
-                  <strong>{step.phase}</strong>
-                  {step.target && <small>{step.target}</small>}
-                  <span>{step.action}</span>
-                  {step.validation && <em>验证：{step.validation}</em>}
-                  {step.risk && <em>风险：{step.risk}</em>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {data.dataBoundary && <small className="sho-pending-boundary">{data.dataBoundary}</small>}
-    </div>
-  )
-}
-
-PendingIssueAnalysis.propTypes = {
-  analysisState: PropTypes.shape({
-    data: PropTypes.shape({
-      aiStatus: PropTypes.string,
-      error: PropTypes.string,
-      issue: PropTypes.shape({
-        metricLabel: PropTypes.string,
-        status: PropTypes.string,
-      }),
-      analysis: PropTypes.string,
-      impact: PropTypes.string,
-      actionPlan: PropTypes.array,
-      dataBoundary: PropTypes.string,
-    }),
-    error: PropTypes.string,
-  }),
-  analysisTitle: PropTypes.string,
-  isExpanded: PropTypes.bool.isRequired,
-}
-
 export default function PendingIssueQueue({
-  expandedIssueAnalyses,
-  issueAnalyses,
-  onAnalyzeIssue,
+  onOpenAgent,
   onOpenSystemDetail,
   onPageChange,
-  onToggleIssueAnalysis,
   pendingIssueError,
   pendingIssueLoading,
   pendingIssuePage,
@@ -143,7 +43,6 @@ export default function PendingIssueQueue({
   pendingIssueRows,
   pendingIssueTotal,
   pendingServiceCount,
-  queryParams,
 }) {
   return (
     <section className="sho-panel sho-pending-panel">
@@ -187,16 +86,6 @@ export default function PendingIssueQueue({
             </thead>
             <tbody>
               {pendingIssueRows.map((issue) => {
-                const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
-                const analysisState = issueAnalyses[analysisKey] || {}
-                const hasSucceededAnalysis = analysisState.data?.aiStatus === 'succeeded'
-                const isAnalysisExpanded =
-                  hasSucceededAnalysis && expandedIssueAnalyses[analysisKey] !== false
-                const shouldShowAnalysisRow =
-                  Boolean(analysisState.error) ||
-                  Boolean(analysisState.data && analysisState.data.aiStatus !== 'succeeded') ||
-                  isAnalysisExpanded
-
                 return (
                   <React.Fragment key={issue.queueId}>
                     <tr className="sho-pending-row">
@@ -253,35 +142,13 @@ export default function PendingIssueQueue({
                               src={atomicIcon}
                             />
                           }
-                          loading={analysisState.loading}
                           size="small"
-                          type={hasSucceededAnalysis && isAnalysisExpanded ? 'primary' : 'default'}
-                          onClick={() => {
-                            if (hasSucceededAnalysis) {
-                              onToggleIssueAnalysis(analysisKey)
-                              return
-                            }
-                            onAnalyzeIssue(issue, analysisKey)
-                          }}
+                          onClick={() => onOpenAgent(issue)}
                         >
-                          {hasSucceededAnalysis
-                            ? isAnalysisExpanded
-                              ? '收起分析'
-                              : '展开分析'
-                            : '异常分析'}
+                          异常分析
                         </Button>
                       </td>
                     </tr>
-                    {shouldShowAnalysisRow && (
-                      <tr className="sho-pending-analysis-row">
-                        <td colSpan={5}>
-                          <PendingIssueAnalysis
-                            analysisState={analysisState}
-                            isExpanded={isAnalysisExpanded}
-                          />
-                        </td>
-                      </tr>
-                    )}
                   </React.Fragment>
                 )
               })}
@@ -310,12 +177,9 @@ export default function PendingIssueQueue({
 }
 
 PendingIssueQueue.propTypes = {
-  expandedIssueAnalyses: PropTypes.objectOf(PropTypes.bool).isRequired,
-  issueAnalyses: PropTypes.objectOf(PropTypes.object).isRequired,
-  onAnalyzeIssue: PropTypes.func.isRequired,
+  onOpenAgent: PropTypes.func.isRequired,
   onOpenSystemDetail: PropTypes.func.isRequired,
   onPageChange: PropTypes.func.isRequired,
-  onToggleIssueAnalysis: PropTypes.func.isRequired,
   pendingIssueError: PropTypes.string.isRequired,
   pendingIssueLoading: PropTypes.bool.isRequired,
   pendingIssuePage: PropTypes.number.isRequired,
@@ -323,5 +187,4 @@ PendingIssueQueue.propTypes = {
   pendingIssueRows: PropTypes.arrayOf(PropTypes.object).isRequired,
   pendingIssueTotal: PropTypes.number.isRequired,
   pendingServiceCount: PropTypes.number.isRequired,
-  queryParams: PropTypes.object,
 }

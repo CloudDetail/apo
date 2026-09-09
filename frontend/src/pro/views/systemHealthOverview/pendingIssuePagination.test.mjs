@@ -160,10 +160,20 @@ test('pending issue table uses AI assistant column without a separate status col
     false,
     'status label rendering should be removed from pending issue rows',
   )
-  assert.ok(
-    tableSource.includes('<td colSpan={5}>') && tableSource.includes('<PendingIssueAnalysis'),
-    'analysis row should span the remaining five columns',
-  )
+  assert.ok(tableSource.includes('onClick={() => onOpenAgent(issue)}'))
+  assert.equal(tableSource.includes('sho-pending-analysis-row'), false)
+  assert.equal(tableSource.includes('<PendingIssueAnalysis'), false)
+})
+
+test('pending issue analysis navigates to Agent with a generated question', () => {
+  assert.ok(viewSource.includes("import { useLocation, useNavigate } from 'react-router-dom'"))
+  assert.ok(viewSource.includes("import { buildPendingIssueAgentPrompt } from './pendingIssueAgentPrompt.mjs'"))
+  assert.ok(viewSource.includes('const openPendingIssueAgent = (issue)'))
+  assert.ok(viewSource.includes("navigate('/agent', {"))
+  assert.ok(viewSource.includes('agentLaunch:'))
+  assert.ok(viewSource.includes("openSystemHealthIssueAgent(issue, 'system_health_pending_issue')"))
+  assert.ok(viewSource.includes('autoSend: true'))
+  assert.ok(viewSource.includes('onOpenAgent={openPendingIssueAgent}'))
 })
 
 test('pending issue system column opens the corresponding system detail', () => {

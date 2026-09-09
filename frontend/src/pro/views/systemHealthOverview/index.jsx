@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Button, message, Popover, Select, Spin, Tag } from 'antd'
 import { CircleAlert, ListTodo, Settings, TriangleAlert } from 'lucide-react'
 import { useSelector } from 'react-redux'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useDebounce } from 'react-use'
 import {
-  analyzeSystemHealthPendingIssueApi,
   getSystemHealthOverviewApi,
   getSystemHealthPendingIssuesApi,
   getSystemHealthServicesApi,
@@ -36,7 +35,7 @@ import {
   shouldSyncDetailHeaderFromRows,
   shouldRenderDetailBody,
 } from './detailViewState.mjs'
-import { buildPendingIssueAnalysisKey } from './pendingIssueAnalysis.mjs'
+import { buildPendingIssueAgentPrompt } from './pendingIssueAgentPrompt.mjs'
 import {
   buildOverviewRequestDecision,
   isLatestOverviewRequest,
@@ -231,6 +230,7 @@ const metricDetail = (target, key) => {
 
 export default function SystemHealthOverviewPage() {
   const location = useLocation()
+  const navigate = useNavigate()
   const timeRange = useSelector((state) => state.timeRange)
   const currentUser = useSelector((state) => state.userReducer?.user)
   const canManageThresholds = canManageSystemHealthConfig(currentUser)
@@ -258,8 +258,6 @@ export default function SystemHealthOverviewPage() {
   const [pendingIssueTotal, setPendingIssueTotal] = useState(0)
   const [pendingIssueLoading, setPendingIssueLoading] = useState(false)
   const [pendingIssueError, setPendingIssueError] = useState('')
-  const [issueAnalyses, setIssueAnalyses] = useState({})
-  const [expandedIssueAnalyses, setExpandedIssueAnalyses] = useState({})
   const [overviewLoading, setOverviewLoading] = useState(false)
   const [overviewError, setOverviewError] = useState('')
   const [trendRange, setTrendRange] = useState(() => readStoredTrendRange())
@@ -837,13 +835,6 @@ export default function SystemHealthOverviewPage() {
     setServiceRowsError('')
   }
 
-  const toggleIssueAnalysis = (analysisKey) => {
-    setExpandedIssueAnalyses((current) => ({
-      ...current,
-      [analysisKey]: !(current[analysisKey] !== false),
-    }))
-  }
-
   const handlePendingIssuePageChange = (page, pageSize) => {
     setPendingIssuePage(page)
     setPendingIssuePageSize(pageSize)
@@ -913,55 +904,24 @@ export default function SystemHealthOverviewPage() {
     }
   }
 
-  const analyzeIssue = async (issue, analysisKey) => {
-    setIssueAnalyses((current) => ({
-      ...current,
-      [analysisKey]: {
-        ...(current[analysisKey] || {}),
-        loading: true,
-        error: '',
+  const openSystemHealthIssueAgent = (issue, source) => {
+    if (!issue) return
+    navigate('/agent', {
+      state: {
+        agentLaunch: {
+          goal: buildPendingIssueAgentPrompt(issue, queryParams || {}),
+          source,
+          autoSend: true,
+        },
       },
-    }))
-    try {
-      const data = await analyzeSystemHealthPendingIssueApi({
-        groupId: issue.groupId,
-        serviceName: issue.serviceName,
-        metricKey: issue.metricKey,
-        ...queryParams,
-      })
-      setIssueAnalyses((current) => ({
-        ...current,
-        [analysisKey]: {
-          data,
-          error: '',
-          loading: false,
-        },
-      }))
-      if (data?.aiStatus === 'succeeded') {
-        setExpandedIssueAnalyses((current) => ({
-          ...current,
-          [analysisKey]: true,
-        }))
-      }
-    } catch (error) {
-      setIssueAnalyses((current) => ({
-        ...current,
-        [analysisKey]: {
-          ...(current[analysisKey] || {}),
-          error: error?.message || '异常分析失败',
-          loading: false,
-        },
-      }))
-    }
+    })
   }
 
-  const ensureServiceAssistantAnalysis = (issue) => {
-    if (!issue) return
-    const analysisKey = buildPendingIssueAnalysisKey(issue, queryParams)
-    const analysisState = issueAnalyses[analysisKey]
-    if (analysisState?.loading || analysisState?.data) return
-    analyzeIssue(issue, analysisKey)
-  }
+  const openPendingIssueAgent = (issue) =>
+    openSystemHealthIssueAgent(issue, 'system_health_pending_issue')
+
+  const openServiceIssueAgent = (issue) =>
+    openSystemHealthIssueAgent(issue, 'system_health_service_issue')
 
   const openServiceAssistant = (service) => {
     if (!serviceAiAssistantActionFor(service).actionable) return
@@ -969,7 +929,6 @@ export default function SystemHealthOverviewPage() {
     const firstIssue = issues[0] || null
     setServiceAssistantTarget({ service, issues })
     setServiceAssistantActiveMetricKey(firstIssue?.metricKey || '')
-    ensureServiceAssistantAnalysis(firstIssue)
   }
 
   const closeServiceAssistant = () => {
@@ -979,8 +938,6 @@ export default function SystemHealthOverviewPage() {
 
   const handleServiceAssistantMetricChange = (metricKey) => {
     setServiceAssistantActiveMetricKey(metricKey)
-    const issue = serviceAssistantTarget?.issues?.find((item) => item.metricKey === metricKey)
-    ensureServiceAssistantAnalysis(issue)
   }
 
   const renderOverviewState = () => {
@@ -1135,8 +1092,6 @@ export default function SystemHealthOverviewPage() {
               systemTrendRows={systemTrendRows}
             />
             <PendingIssueQueue
-              expandedIssueAnalyses={expandedIssueAnalyses}
-              issueAnalyses={issueAnalyses}
               pendingIssueError={pendingIssueError}
               pendingIssueLoading={pendingIssueLoading}
               pendingIssuePage={pendingIssuePage}
@@ -1144,11 +1099,9 @@ export default function SystemHealthOverviewPage() {
               pendingIssueRows={pendingIssueRows}
               pendingIssueTotal={pendingIssueTotal}
               pendingServiceCount={pendingServiceCount}
-              queryParams={queryParams}
-              onAnalyzeIssue={analyzeIssue}
+              onOpenAgent={openPendingIssueAgent}
               onOpenSystemDetail={openPendingIssueSystemDetail}
               onPageChange={handlePendingIssuePageChange}
-              onToggleIssueAnalysis={toggleIssueAnalysis}
             />
           </>
         )}
@@ -1232,14 +1185,13 @@ export default function SystemHealthOverviewPage() {
               />
               <ServiceHealthAssistantModal
                 activeMetricKey={serviceAssistantActiveMetricKey}
-                issueAnalyses={issueAnalyses}
                 issues={serviceAssistantTarget?.issues || []}
                 metricLabels={metricLabels}
                 open={Boolean(serviceAssistantTarget)}
-                queryParams={queryParams}
                 scoreThresholds={scoreThresholds}
                 service={serviceAssistantTarget?.service || null}
                 onClose={closeServiceAssistant}
+                onAnalyzeIssue={openServiceIssueAgent}
                 onMetricChange={handleServiceAssistantMetricChange}
               />
             </>

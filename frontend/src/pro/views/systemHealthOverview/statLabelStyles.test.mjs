@@ -178,56 +178,28 @@ test('pending issue section uses item and anomaly wording with the atomic analys
     ),
   )
   assert.ok(pendingIssueQueueSource.includes('src={atomicIcon}'))
-  assert.ok(pendingIssueQueueSource.includes(": '异常分析'"))
+  assert.ok(pendingIssueQueueSource.includes('异常分析'))
   assert.equal(pendingIssueQueueSource.includes('智能分析'), false)
   assert.equal(pendingIssueQueueSource.includes('AI 分析'), false)
   assert.ok(viewSource.includes("setPendingIssueError(error?.message || '待处理事项加载失败')"))
-  assert.ok(viewSource.includes("error: error?.message || '异常分析失败'"))
-  assert.equal(viewSource.includes('智能分析失败'), false)
+  assert.equal(viewSource.includes('analyzeSystemHealthPendingIssueApi'), false)
+  assert.equal(viewSource.includes('异常分析失败'), false)
   assert.ok(overviewInitialLoadingSource.includes('待处理事项'))
   assert.equal(overviewInitialLoadingSource.includes('待处理问题'), false)
 })
 
-test('pending issue analysis row only renders when there is visible analysis content', () => {
-  assert.ok(pendingIssueQueueSource.includes('const shouldShowAnalysisRow ='))
-  assert.ok(pendingIssueQueueSource.includes('Boolean(analysisState.error)'))
-  assert.ok(
-    pendingIssueQueueSource.includes(
-      "Boolean(analysisState.data && analysisState.data.aiStatus !== 'succeeded')",
-    ),
-  )
-  assert.ok(pendingIssueQueueSource.includes('{shouldShowAnalysisRow && ('))
-  assert.equal(pendingIssueQueueSource.includes('{analysisNode && ('), false)
+test('pending issue table does not render the old inline AI analysis row', () => {
+  assert.equal(pendingIssueQueueSource.includes('PendingIssueAnalysis'), false)
+  assert.equal(pendingIssueQueueSource.includes('sho-pending-analysis-row'), false)
+  assert.equal(pendingIssueQueueSource.includes('shouldShowAnalysisRow'), false)
+  assert.ok(pendingIssueQueueSource.includes('onClick={() => onOpenAgent(issue)}'))
 })
 
-test('pending issue expanded analysis uses event wording and labels numbered repairs', () => {
-  const analysisBlock = sourceBetween(
-    '{data.analysis && (',
-    '{data.impact && (',
-    pendingIssueQueueSource,
-  )
-  const actionPlanBlock = sourceBetween(
-    '{Array.isArray(data.actionPlan) && data.actionPlan.length > 0 && (',
-    '{data.dataBoundary &&',
-    pendingIssueQueueSource,
-  )
-
-  assert.ok(pendingIssueQueueSource.includes('const pendingIssueMetricEventTitle ='))
-  assert.ok(pendingIssueQueueSource.includes("red: '异常'"))
-  assert.ok(pendingIssueQueueSource.includes("yellow: '关注'"))
-  assert.ok(pendingIssueQueueSource.includes('const pendingIssueActionTitle ='))
-  assert.ok(
-    pendingIssueQueueSource.includes(
-      'const eventTitle = analysisTitle || pendingIssueMetricEventTitle(data.issue)',
-    ),
-  )
-  assert.ok(analysisBlock.includes('<strong>{eventTitle}</strong>'))
-  assert.ok(serviceHealthAssistantModalSource.includes('analysisTitle="事件"'))
-  assert.equal(analysisBlock.includes('<strong>分析</strong>'), false)
-  assert.ok(actionPlanBlock.includes('<strong>{pendingIssueActionTitle(data.issue)}</strong>'))
-  assert.ok(pendingIssueQueueSource.includes("yellow: '关注调优'"))
-  assert.ok(pendingIssueQueueSource.includes("red: '异常修复'"))
-  assert.ok(actionPlanBlock.includes('<b>{index + 1}</b>'))
+test('service assistant modal removes the old AI result style', () => {
+  assert.equal(serviceHealthAssistantModalSource.includes('PendingIssueAnalysis'), false)
+  assert.equal(serviceHealthAssistantModalSource.includes('sho-service-ai-loading'), false)
+  assert.ok(serviceHealthAssistantModalSource.includes('sho-service-ai-launch'))
+  assert.ok(serviceHealthAssistantModalSource.includes('在 Agent 中分析'))
 })
 
 test('service assistant modal keeps indicators on one row and scrolls inside the modal', () => {
@@ -236,9 +208,7 @@ test('service assistant modal keeps indicators on one row and scrolls inside the
   const contentDeclarations = declarationsFor('.sho-service-ai-modal .ant-modal-content')
   const bodyDeclarations = declarationsFor('.sho-service-ai-modal .ant-modal-body')
   const lampsDeclarations = declarationsFor('.sho-service-ai-lamps')
-  const loadingDeclarations = declarationsFor('.sho-service-ai-loading')
-  const loadingPreviewDeclarations = declarationsFor('.sho-service-ai-loading-preview')
-  const loadingPreviewBarDeclarations = declarationsFor('.sho-service-ai-loading-preview span')
+  const launchDeclarations = declarationsFor('.sho-service-ai-launch')
 
   assert.ok(serviceHealthAssistantModalSource.includes('wrapClassName="sho-service-ai-modal-wrap"'))
   assert.ok(wrapDeclarations.includes('overflow: hidden'))
@@ -256,15 +226,10 @@ test('service assistant modal keeps indicators on one row and scrolls inside the
   assert.equal(bodyDeclarations.includes('max-height: calc(100vh - 170px)'), false)
   assert.ok(lampsDeclarations.includes('grid-template-columns: repeat(7, minmax(88px, 1fr))'))
   assert.ok(lampsDeclarations.includes('overflow-x: auto'))
-  assert.ok(loadingDeclarations.includes('width: 100%'))
-  assert.ok(loadingDeclarations.includes('display: grid'))
-  assert.ok(loadingDeclarations.includes('align-content: start'))
-  assert.ok(loadingDeclarations.includes('box-sizing: border-box'))
-  assert.equal(loadingDeclarations.includes('display: inline-flex'), false)
-  assert.ok(loadingPreviewDeclarations.includes('display: grid'))
-  assert.ok(loadingPreviewDeclarations.includes('gap: 10px'))
-  assert.ok(loadingPreviewBarDeclarations.includes('background-size: 220% 100%'))
-  assert.ok(css.includes('@keyframes sho-service-ai-loading-shimmer'))
+  assert.ok(launchDeclarations.includes('display: flex'))
+  assert.ok(launchDeclarations.includes('justify-content: space-between'))
+  assert.ok(launchDeclarations.includes('min-height: 132px'))
+  assert.equal(css.includes('sho-service-ai-loading'), false)
 })
 
 test('pending issue primary analysis button turns the image icon white', () => {
