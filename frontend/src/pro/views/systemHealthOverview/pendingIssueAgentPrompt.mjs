@@ -19,11 +19,6 @@ const safeText = (value, fallback = '未提供') => {
   return text || fallback
 }
 
-const scoreText = (value) => {
-  const score = Number(value)
-  return Number.isFinite(score) ? `${score}` : '未提供'
-}
-
 const formatTimestamp = (value) => {
   const timestamp = Number(value)
   if (!Number.isFinite(timestamp) || timestamp <= 0) return ''
@@ -68,29 +63,24 @@ export const buildPendingIssueAgentPrompt = (issue = {}, params = {}) => {
   const statusLabel = STATUS_LABELS[status] || '待确认'
   const metricKey = safeText(issue.metricKey)
   const metricLabel = safeText(issue.metricLabel, metricKey)
-  const issueCount = Number(issue.issueCount)
-  const issueCountText =
-    Number.isInteger(issueCount) && issueCount > 1 ? `\n同类异常涉及事项数：${issueCount}` : ''
 
   return [
-    '请分析以下健康度页面发现的服务异常，并通过当前可访问的可观测数据验证原因。',
+    '请分析以下服务指标异常，并通过当前可访问的可观测数据验证原因。',
     '',
-    '【健康度页面上下文】',
+    '【异常查询上下文】',
     `系统范围：${systemScopeText(issue)}`,
     `服务：${safeText(issue.serviceName, '未命名服务')}`,
     `异常指标：${metricLabel}（${metricKey}）`,
-    `当前状态：${statusLabel}（${status}）`,
-    `当前值：${safeText(issue.value)}`,
-    `指标说明：${safeText(issue.note)}`,
-    `服务健康分：${scoreText(issue.serviceScore)}`,
-    `系统健康分：${scoreText(issue.systemScore)}`,
-    `分析时间窗口：${formatTimeWindow(params)}${issueCountText}`,
+    `异常等级：${statusLabel}（${status}）`,
+    `当前观测值：${safeText(issue.value)}`,
+    `指标含义：${safeText(issue.note)}`,
+    `分析时间窗口：${formatTimeWindow(params)}`,
     '',
     '【分析要求】',
     '1. 判断该异常的实际影响范围，以及是否影响请求成功率、响应时延、可用性或其他用户体验。',
     '2. 在上述时间窗口内查询并关联相关指标、日志、Trace、调用链、告警、实例和资源数据；优先使用可验证的观测证据。',
     '3. 给出有证据支撑的根因候选，区分已确认事实、推断结论和仍需验证的假设。',
     '4. 输出定位、排查、处置和恢复验证建议，明确下一步应执行的查询或操作。',
-    '5. 不要只复述健康度页面字段；不要编造不存在的日志、Trace、告警、变更记录或根因。如果某类数据不可访问，请明确说明数据边界。',
+    '5. 不要只复述上述异常摘要；不要编造不存在的日志、Trace、告警、变更记录或根因。如果某类数据不可访问，请明确说明数据边界。',
   ].join('\n')
 }
