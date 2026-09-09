@@ -40,7 +40,7 @@ export default function CapabilityUseDrawer({ open, capability, onClose, onNavig
     ) as Record<string, string>
     const rawGoal = String(values.goal || '').trim()
     if (containsSensitiveValue(rawGoal) || Object.values(inputValues).some(containsSensitiveValue)) {
-      message.error('检测到疑似敏感凭据。请使用 Hermes 授权或安全输入流程，不要把秘密写入普通会话。')
+      message.error('检测到疑似敏感凭据。请使用 Agent 授权或安全输入流程，不要把秘密写入普通会话。')
       return
     }
     const goal = buildGoal(rawGoal, inputValues)
@@ -65,14 +65,14 @@ export default function CapabilityUseDrawer({ open, capability, onClose, onNavig
       onClose={onClose}
       extra={<Button type="text" onClick={onClose}>关闭</Button>}
     >
-      <p className={styles.drawerHint}>填写本次任务目标和所需输入。提交后会回到运维会话，由 Hermes 复用当前 Workflow 创建新的运行。不要在普通会话中输入密码、Token、密钥或凭据。</p>
+      <p className={styles.drawerHint}>填写本次任务目标和所需输入。提交后会回到运维会话，由 Agent 复用当前 Workflow 创建新的运行。不要在普通会话中输入密码、Token、密钥或凭据。</p>
       {sensitiveInputs.length ? (
         <Alert
           className={styles.drawerNotice}
           type="warning"
           showIcon
           message="敏感参数不会在此处收集"
-          description={`该任务声明了${sensitiveInputs.map((item) => item.name).join('、')}等敏感字段。请按 Hermes 的授权或安全输入流程提供。`}
+          description={`该任务声明了${sensitiveInputs.map((item) => item.name).join('、')}等敏感字段。请按 Agent 的授权或安全输入流程提供。`}
         />
       ) : null}
       <Form form={form} layout="vertical" className={styles.drawerForm} onFinish={submit}>

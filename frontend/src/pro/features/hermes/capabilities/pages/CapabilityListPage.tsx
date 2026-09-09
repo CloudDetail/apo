@@ -120,7 +120,7 @@ function CapabilityListView() {
             <strong>{item.name}</strong>
             {item.pinned ? <Tag color="processing">已固定</Tag> : null}
           </Space>
-          <small>{item.goal || 'Hermes 未返回任务目标'}</small>
+          <small>{item.goal || 'Agent 未返回任务目标'}</small>
           <Text type="secondary">当前版本 v{item.currentVersion}</Text>
         </div>
       ),
@@ -251,7 +251,7 @@ function CapabilityListView() {
           </Button>
         </div>
 
-        {error ? <Alert className={styles.notice} type="error" showIcon message="无法读取 Hermes 运维任务库" description={error} /> : null}
+        {error ? <Alert className={styles.notice} type="error" showIcon message="无法读取 Agent 运维任务库" description={error} /> : null}
 
         <div className={styles.tableCard}>
           <Table

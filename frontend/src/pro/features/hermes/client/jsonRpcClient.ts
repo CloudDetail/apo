@@ -35,7 +35,7 @@ export class JsonRpcError extends Error {
   readonly payload: JsonRpcErrorPayload
 
   constructor(payload: JsonRpcErrorPayload) {
-    super(payload.message || 'Hermes 请求执行失败。')
+    super(payload.message || 'Agent 请求执行失败。')
     this.payload = payload
     this.name = 'JsonRpcError'
   }
@@ -46,7 +46,7 @@ export class JsonRpcTimeoutError extends Error {
   readonly timeoutMs: number
 
   constructor(method: string, timeoutMs: number) {
-    super(`Hermes 请求超时（${method}，${Math.round(timeoutMs / 1000)} 秒）。`)
+    super(`Agent 请求超时（${method}，${Math.round(timeoutMs / 1000)} 秒）。`)
     this.method = method
     this.timeoutMs = timeoutMs
     this.name = 'JsonRpcTimeoutError'
@@ -97,7 +97,7 @@ export class JsonRpcClient {
       }
 
       connectTimer = setTimeout(() => {
-        failConnection('连接 Hermes 服务超时，请稍后重试。')
+        failConnection('连接 Agent 服务超时，请稍后重试。')
         socket.close()
       }, CONNECT_TIMEOUT)
 
@@ -111,7 +111,7 @@ export class JsonRpcClient {
         resolve()
       })
       socket.addEventListener('error', () => {
-        failConnection('暂时无法连接 Hermes 服务，请稍后重试。')
+        failConnection('暂时无法连接 Agent 服务，请稍后重试。')
       })
       socket.addEventListener('message', (event) => {
         this.receive(String((event as MessageEvent).data))
@@ -123,9 +123,9 @@ export class JsonRpcClient {
         if (!settled) {
           settled = true
           clearTimeout(connectTimer)
-          reject(new Error('Hermes 服务连接已断开。'))
+          reject(new Error('Agent 服务连接已断开。'))
         }
-        const error = new Error('Hermes 服务连接已断开。')
+        const error = new Error('Agent 服务连接已断开。')
         for (const request of this.pending.values()) {
           if (request.timer) clearTimeout(request.timer)
           request.reject(error)
@@ -151,7 +151,7 @@ export class JsonRpcClient {
     await this.connect()
     const socket = this.socket
     if (!socket || socket.readyState !== SOCKET_OPEN) {
-      throw new Error('Hermes 服务暂时不可用，请稍后重试。')
+      throw new Error('Agent 服务暂时不可用，请稍后重试。')
     }
 
     const id = ++this.sequence
@@ -196,7 +196,7 @@ export class JsonRpcClient {
     this.manuallyClosed = true
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer)
     this.reconnectTimer = null
-    const error = new Error('Hermes 服务连接已关闭。')
+    const error = new Error('Agent 服务连接已关闭。')
     for (const request of this.pending.values()) {
       if (request.timer) clearTimeout(request.timer)
       request.reject(error)
@@ -242,7 +242,7 @@ export class JsonRpcClient {
               typeof payload.error.code === 'number' || typeof payload.error.code === 'string'
                 ? payload.error.code
                 : 'unknown',
-            message: String(payload.error.message || 'Hermes 请求执行失败。'),
+            message: String(payload.error.message || 'Agent 请求执行失败。'),
             data: payload.error.data,
           }),
         )

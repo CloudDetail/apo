@@ -50,7 +50,7 @@ export function useHermesConnection() {
     })
     void rpc.connect().catch((reason) => {
       if (!active) return
-      setError(reason instanceof Error ? reason.message : '无法连接 Hermes 服务。')
+      setError(reason instanceof Error ? reason.message : '无法连接 Agent 服务。')
     })
     return () => {
       active = false

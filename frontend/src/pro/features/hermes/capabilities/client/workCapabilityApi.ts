@@ -59,7 +59,7 @@ export class WorkCapabilityApiError extends Error {
 }
 
 export class HermesWorkflowUnavailableError extends WorkCapabilityApiError {
-  constructor(message = '无法连接 Hermes 运维任务库。', status?: number) {
+  constructor(message = '无法连接 Agent 运维任务库。', status?: number) {
     super(message, { status, code: 'hermes_workflow_unavailable' })
     this.name = 'HermesWorkflowUnavailableError'
   }
@@ -129,7 +129,7 @@ function normalizeWorkflowInput(value: unknown): WorkflowInput {
   const name = redactSensitiveText(sourceName)
   const source = text(raw.source) as WorkflowInputSource
   if (!name || !WORKFLOW_INPUT_SOURCES.has(source)) {
-    throw new WorkCapabilityApiError('Hermes Workflow 输入契约不完整。', { code: 'invalid_response' })
+    throw new WorkCapabilityApiError('Agent Workflow 输入契约不完整。', { code: 'invalid_response' })
   }
   return {
     name,
@@ -149,7 +149,7 @@ function normalizeWorkflowStep(value: unknown): WorkflowStep {
   const providerRef = nullableText(raw.providerRef)
   const capabilityRef = nullableText(raw.capabilityRef)
   if (!id || !purpose || !expectedOutput || Boolean(providerRef) !== Boolean(capabilityRef) || !isRecord(raw.inputMap)) {
-    throw new WorkCapabilityApiError('Hermes Workflow 步骤契约不完整。', { code: 'invalid_response' })
+    throw new WorkCapabilityApiError('Agent Workflow 步骤契约不完整。', { code: 'invalid_response' })
   }
   return {
     id,
@@ -358,10 +358,10 @@ export function toWorkflow(value: unknown): WorkCapability {
   const raw = record(value)
   const schemaVersion = text(raw.schemaVersion)
   if (schemaVersion !== WORKFLOW_SCHEMA_VERSION) {
-    throw new WorkCapabilityApiError('Hermes 返回了不受支持的 Workflow 版本。', { code: 'invalid_response' })
+    throw new WorkCapabilityApiError('Agent 返回了不受支持的 Workflow 版本。', { code: 'invalid_response' })
   }
   const id = text(raw.id)
-  if (!id) throw new WorkCapabilityApiError('Hermes Workflow 响应缺少稳定 ID。', { code: 'invalid_response' })
+  if (!id) throw new WorkCapabilityApiError('Agent Workflow 响应缺少稳定 ID。', { code: 'invalid_response' })
 
   const status = text(raw.status) || 'unknown'
   const currentVersion = numberOr(raw.version, 1)
@@ -400,8 +400,8 @@ export function toWorkflow(value: unknown): WorkCapability {
       action: 'use',
       code: 'workflow_unhealthy',
       reason: recentFailures >= 3
-        ? `Hermes 已记录 ${recentFailures} 次近期失败，当前不会复用该任务。`
-        : `最近一次运行状态为${lastRunStatus === 'blocked' ? '已阻断' : '失败'}，Hermes 当前不会复用该任务。`,
+        ? `Agent 已记录 ${recentFailures} 次近期失败，当前不会复用该任务。`
+        : `最近一次运行状态为${lastRunStatus === 'blocked' ? '已阻断' : '失败'}，Agent 当前不会复用该任务。`,
     }]
     : []
   const capabilityRefs = steps
@@ -450,7 +450,7 @@ export function toWorkflow(value: unknown): WorkCapability {
 function workflowListItems(payload: unknown): unknown[] {
   const root = record(payload)
   if (!Array.isArray(root.workflows)) {
-    throw new WorkCapabilityApiError('Hermes Workflow 列表响应格式无效。', { code: 'invalid_response' })
+    throw new WorkCapabilityApiError('Agent Workflow 列表响应格式无效。', { code: 'invalid_response' })
   }
   return root.workflows
 }
@@ -625,7 +625,7 @@ export class WorkCapabilityApi {
       })
     } catch (reason) {
       throw new HermesWorkflowUnavailableError(
-        reason instanceof Error ? `Hermes 运维任务库暂不可达：${redactSensitiveText(reason.message).slice(0, 500)}` : undefined,
+        reason instanceof Error ? `Agent 运维任务库暂不可达：${redactSensitiveText(reason.message).slice(0, 500)}` : undefined,
       )
     }
 
@@ -634,7 +634,7 @@ export class WorkCapabilityApi {
       return body ? { message: body } : null
     })
     if (!response.ok) {
-      const message = errorMessage(payload, `Hermes 运维任务库请求失败（${response.status}）。`)
+      const message = errorMessage(payload, `Agent 运维任务库请求失败（${response.status}）。`)
       const payloadCode = text(record(payload).code || record(record(payload).error).code)
       const code = payloadCode || (
         response.status === 404
@@ -658,7 +658,7 @@ function normalizeDeleteResult(value: unknown): WorkflowDeleteResult {
   const deletedIds = stringList(raw.deletedIds)
   const deletedCount = numberOr(raw.deletedCount, deletedIds.length)
   if (deletedCount !== deletedIds.length) {
-    throw new WorkCapabilityApiError('Hermes 删除响应不完整。', { code: 'invalid_response' })
+    throw new WorkCapabilityApiError('Agent 删除响应不完整。', { code: 'invalid_response' })
   }
   return { deletedIds, deletedCount }
 }

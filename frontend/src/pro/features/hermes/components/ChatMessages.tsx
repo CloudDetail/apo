@@ -190,7 +190,7 @@ function renderTimeline(
           <div className={assistant ? styles.assistantMessageBody : styles.userMessageBubble}>
             {assistant && (
               <div className={styles.assistantMessageHeader}>
-                <span>Hermes 分析</span>
+                <span>Agent 分析</span>
                 <time>{formatTime(item.occurredAt)}</time>
               </div>
             )}

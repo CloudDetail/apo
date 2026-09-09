@@ -211,7 +211,7 @@ function HermesAgentWorkspaceContent() {
             showIcon
             closable
             message={`已带入任务：${workflowLaunch.workflowName || '运维任务'} · 查看时版本 v${workflowLaunch.version}`}
-            description="发送后将明确选择该 Hermes Workflow，并由 Hermes 使用发送时的当前可用版本创建新运行；不会修改任务库。"
+            description="发送后将明确选择该 Agent Workflow，并由 Agent 使用发送时的当前可用版本创建新运行；不会修改任务库。"
             onClose={() => setWorkflowLaunch(null)}
           />
         )}

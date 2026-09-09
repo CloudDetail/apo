@@ -43,7 +43,7 @@ export class HermesSessionApi {
       method: 'GET',
     })
     const session = normalizeBookmark(payload)
-    if (!session) throw new Error('Hermes 返回的会话信息不完整。')
+    if (!session) throw new Error('Agent 返回的会话信息不完整。')
     return session
   }
 
@@ -56,7 +56,7 @@ export class HermesSessionApi {
       },
     )
     const saved = normalizeBookmark(payload)
-    if (!saved) throw new Error('Hermes 没有成功保存会话。')
+    if (!saved) throw new Error('Agent 没有成功保存会话。')
     return saved
   }
 
@@ -96,7 +96,7 @@ export class HermesSessionApi {
       },
     )
     const session = normalizeBookmark(payload)
-    if (!session) throw new Error('Hermes 没有成功保存停止状态。')
+    if (!session) throw new Error('Agent 没有成功保存停止状态。')
     return session
   }
 
@@ -104,7 +104,7 @@ export class HermesSessionApi {
     const response = await this.sendRequest(path, init)
     if (!response.ok) {
       const message = await response.text().catch(() => '')
-      throw new Error(message || `Hermes 请求失败（${response.status}）。`)
+      throw new Error(message || `Agent 请求失败（${response.status}）。`)
     }
     return (await response.json()) as T
   }

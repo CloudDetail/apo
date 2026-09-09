@@ -186,7 +186,7 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
     Modal.confirm({
       title: restoring ? '恢复该任务方案？' : '归档该任务方案？',
       content: restoring
-        ? '恢复后会重新开启自动匹配。Hermes 最多保留 20 个 active Workflow，必要时可能自动归档一个未固定方案。'
+        ? '恢复后会重新开启自动匹配。Agent 最多保留 20 个 active Workflow，必要时可能自动归档一个未固定方案。'
         : '归档后不会参与匹配，也不能编辑或使用；历史版本和运行记录仍保留，可稍后恢复。',
       okText: restoring ? '恢复任务' : '归档任务',
       cancelText: '取消',
@@ -257,7 +257,7 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
           <div className={styles.header}>
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/agent/capabilities')}>返回任务库</Button>
           </div>
-          <Alert type="error" showIcon message="无法读取 Hermes 任务方案" description={detailError || 'Hermes 未返回任务方案。'} action={<Button icon={<ReloadOutlined />} onClick={() => void load()}>重试</Button>} />
+          <Alert type="error" showIcon message="无法读取 Agent 任务方案" description={detailError || 'Agent 未返回任务方案。'} action={<Button icon={<ReloadOutlined />} onClick={() => void load()}>重试</Button>} />
         </div>
       </div>
     )
@@ -275,23 +275,23 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
             </div>
           </div>
           {!selectedVersion ? (
-            <Alert type="error" showIcon message="版本不存在" description={`Hermes 未返回版本 v${forcedVersion} 的版本记录。`} />
+            <Alert type="error" showIcon message="版本不存在" description={`Agent 未返回版本 v${forcedVersion} 的版本记录。`} />
           ) : (
             <>
               <Alert
                 className={styles.historyBanner}
                 type="info"
                 showIcon
-                message="Hermes 当前只提供历史版本摘要"
+                message="Agent 当前只提供历史版本摘要"
                 description="历史版本的完整目标和步骤没有读取接口，因此本页只展示真实版本元数据，不使用当前版本内容代替。"
               />
               <SectionCard title={`版本 v${selectedVersion.version}`}>
                 <dl className={styles.facts}>
                   <div><dt>版本状态</dt><dd>{selectedVersion.version === capability.currentVersion ? '当前版本' : '历史版本'}</dd></div>
                   <div><dt>创建时间</dt><dd>{formatDate(selectedVersion.createdAt)}</dd></div>
-                  <div><dt>形成方式</dt><dd>{selectedVersion.createdBy || 'Hermes 未返回'}</dd></div>
-                  <div><dt>来源运行</dt><dd>{selectedVersion.sourceRunId || 'Hermes 未返回'}</dd></div>
-                  <div><dt>内容摘要</dt><dd><Text code>{selectedVersion.digest || 'Hermes 未返回'}</Text></dd></div>
+                  <div><dt>形成方式</dt><dd>{selectedVersion.createdBy || 'Agent 未返回'}</dd></div>
+                  <div><dt>来源运行</dt><dd>{selectedVersion.sourceRunId || 'Agent 未返回'}</dd></div>
+                  <div><dt>内容摘要</dt><dd><Text code>{selectedVersion.digest || 'Agent 未返回'}</Text></dd></div>
                 </dl>
               </SectionCard>
             </>
@@ -313,7 +313,7 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
       ? '请先恢复该任务'
       : capability.status === 'disabled'
         ? '请先开启自动匹配'
-        : 'Hermes 未返回可使用状态'
+        : 'Agent 未返回可使用状态'
   const sourceRun = capability.sourceRun
 
   return (
@@ -368,19 +368,19 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
         <div className={styles.detailLayout}>
           <main className={styles.mainColumn}>
             <SectionCard title="任务目标">
-              <p className={styles.objective}>{capability.goal || 'Hermes 未返回任务目标。'}</p>
+              <p className={styles.objective}>{capability.goal || 'Agent 未返回任务目标。'}</p>
             </SectionCard>
 
             <SectionCard title="典型提问">
               {capability.examples.length ? (
                 <div className={styles.chipList}>{capability.examples.map((example) => <span className={styles.chip} key={example}>{example}</span>)}</div>
-              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Hermes 未返回典型提问" />}
+              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Agent 未返回典型提问" />}
             </SectionCard>
 
             <SectionCard title="输入提示">
               {capability.inputs.length ? (
                 <div className={styles.chipList}>{capability.inputs.map((input) => <span className={styles.chip} key={input.name}>{input.name}{input.required ? ' · 必填' : ''}</span>)}</div>
-              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Hermes 未声明输入项" />}
+              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Agent 未声明输入项" />}
             </SectionCard>
 
             <SectionCard title="稳定步骤">
@@ -413,7 +413,7 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
             </SectionCard>
 
             <SectionCard title="预期结果">
-              <p className={styles.objective}>{capability.expectedResult || 'Hermes 未返回预期结果。'}</p>
+              <p className={styles.objective}>{capability.expectedResult || 'Agent 未返回预期结果。'}</p>
             </SectionCard>
 
             <SectionCard title="来源运行">
@@ -425,11 +425,11 @@ function CapabilityDetailViewContent({ forcedVersion }: CapabilityDetailViewProp
                   {sourceRun.status ? <StatusTag value={sourceRun.status} /> : null}
                   <Button type="link" size="small" onClick={() => void openProjection(sourceRun)}>查看来源运行</Button>
                 </div>
-              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Hermes 未返回来源运行" />}
+              ) : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Agent 未返回来源运行" />}
             </SectionCard>
 
             <SectionCard title="版本历史">
-              {versions.length ? <div className={styles.versionList}>{versions.map((version) => <div className={styles.versionItem} key={version.version}><div className={styles.versionMeta}><strong>v{version.version} {version.isCurrent ? <Tag color="processing">当前</Tag> : null}</strong><Text type="secondary">{formatDate(version.createdAt)}{version.createdBy ? ` · ${version.createdBy}` : ''}</Text></div><Button type="link" size="small" onClick={() => navigate(`/agent/capabilities/${encodeURIComponent(capability.id)}/versions/${version.version}`)}>查看</Button></div>)}</div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Hermes 未返回版本历史" />}
+              {versions.length ? <div className={styles.versionList}>{versions.map((version) => <div className={styles.versionItem} key={version.version}><div className={styles.versionMeta}><strong>v{version.version} {version.isCurrent ? <Tag color="processing">当前</Tag> : null}</strong><Text type="secondary">{formatDate(version.createdAt)}{version.createdBy ? ` · ${version.createdBy}` : ''}</Text></div><Button type="link" size="small" onClick={() => navigate(`/agent/capabilities/${encodeURIComponent(capability.id)}/versions/${version.version}`)}>查看</Button></div>)}</div> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Agent 未返回版本历史" />}
             </SectionCard>
           </aside>
         </div>

@@ -96,7 +96,7 @@ export class HermesSessionClient {
     )
     const status = isObject(result) ? String(result.status || '').trim() : ''
     if (status !== 'queued' && status !== 'streaming') {
-      throw new Error('Hermes 未接受当前任务，请重新发送。')
+      throw new Error('Agent 未接受当前任务，请重新发送。')
     }
     return result
   }
@@ -119,7 +119,7 @@ export class HermesSessionClient {
       { timeoutMs: SESSION_ACTION_TIMEOUT },
     )
     if (!isObject(result) || String(result.status || '').trim() !== 'interrupted') {
-      throw new Error('Hermes 没有确认当前任务已停止，请重试。')
+      throw new Error('Agent 没有确认当前任务已停止，请重试。')
     }
     return result
   }
@@ -176,7 +176,7 @@ export function normalizeEvent(notification: JsonRpcNotification): HermesEvent |
 }
 
 export function normalizeSession(value: unknown, fallbackStoredId?: string): HermesSession {
-  if (!isObject(value)) throw new Error('Hermes 没有成功创建会话，请重试。')
+  if (!isObject(value)) throw new Error('Agent 没有成功创建会话，请重试。')
   const liveSessionId = String(value.session_id || '').trim()
   const storedSessionId = String(
     value.stored_session_id ||
@@ -186,7 +186,7 @@ export function normalizeSession(value: unknown, fallbackStoredId?: string): Her
       liveSessionId,
   ).trim()
   if (!liveSessionId || !storedSessionId) {
-    throw new Error('Hermes 返回的会话信息不完整，请重试。')
+    throw new Error('Agent 返回的会话信息不完整，请重试。')
   }
   const info = isObject(value.info) ? value.info : null
   return {

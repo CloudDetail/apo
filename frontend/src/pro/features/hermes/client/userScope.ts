@@ -6,7 +6,7 @@ const RESERVED_LOCAL_OWNER_ID = 'local-host'
 export type HermesUserIdReader = () => unknown
 
 export class HermesUserScopeError extends Error {
-  constructor(message = 'APO 用户信息尚未加载，暂时无法访问 Hermes。') {
+  constructor(message = 'APO 用户信息尚未加载，暂时无法访问 Agent。') {
     super(message)
     this.name = 'HermesUserScopeError'
   }

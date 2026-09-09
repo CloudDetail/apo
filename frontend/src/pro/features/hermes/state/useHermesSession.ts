@@ -156,7 +156,7 @@ export function useHermesSession(requestedSessionId?: string) {
       scope = captureCurrentScope(scopeGuard, sessionApi, sessionApiIdentityRef.current)
     } catch (reason) {
       if (!(reason instanceof HermesUserScopeChangedError)) {
-        setSessionError(errorMessage(reason, '无法加载 Hermes 历史会话。'))
+        setSessionError(errorMessage(reason, '无法加载 Agent 历史会话。'))
         setLoadingSessions(false)
       }
       return
@@ -169,7 +169,7 @@ export function useHermesSession(requestedSessionId?: string) {
       setSessionError(null)
     } catch (reason) {
       if (!scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) return
-      setSessionError(errorMessage(reason, '无法加载 Hermes 历史会话。'))
+      setSessionError(errorMessage(reason, '无法加载 Agent 历史会话。'))
     } finally {
       if (scopeGuard.isCurrent(scope, sessionApiIdentityRef.current)) {
         setLoadingSessions(false)
@@ -1142,14 +1142,14 @@ function errorMessage(reason: unknown, fallback: string): string {
 
 class HermesUserScopeChangedError extends Error {
   constructor() {
-    super('APO 用户已切换，本次 Hermes 操作已取消。')
+    super('APO 用户已切换，本次 Agent 操作已取消。')
     this.name = 'HermesUserScopeChangedError'
   }
 }
 
 class HermesSessionOperationChangedError extends Error {
   constructor() {
-    super('会话已切换，本次 Hermes 操作已取消。')
+    super('会话已切换，本次 Agent 操作已取消。')
     this.name = 'HermesSessionOperationChangedError'
   }
 }
