@@ -880,7 +880,7 @@ export function useHermesSession(requestedSessionId?: string) {
         if (checkpoint.type === 'approval') {
           await sessionClient.respondApproval(session.liveSessionId, checkpoint.requestId, answer)
         } else {
-          await sessionClient.respondClarification(checkpoint.requestId, answer)
+          await sessionClient.respondClarification(checkpoint.requestId, answer, checkpoint.runId)
         }
         if (!scopeGuard.isCurrent(scope, sessionClientIdentityRef.current)) return
         checkpointResponded(visibleAnswer)
@@ -1114,7 +1114,11 @@ async function persistEventState(
     await update(
       {
         status: 'waiting_confirmation',
-        checkpoint: checkpointFromPayload(event.type, event.payload),
+        checkpoint: checkpointFromPayload(
+          event.type,
+          event.payload,
+          runIdFromEventPayload(event.payload),
+        ),
       },
       session,
     )

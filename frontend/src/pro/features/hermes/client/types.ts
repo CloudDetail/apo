@@ -49,6 +49,7 @@ export interface HermesCheckpointChoice {
 export interface HermesCheckpoint {
   type: 'approval' | 'clarification'
   requestId: string
+  runId: string | null
   title: string
   description: string
   choices: HermesCheckpointChoice[]

@@ -368,7 +368,7 @@ export function applyHermesEvent(
   if (event.type === 'approval.request' || event.type === 'clarify.request') {
     const flushed = flushReasoning(state, occurredAt, runId)
     const checkpoint = checkpointForTimeline(
-      checkpointFromPayload(event.type, payload),
+      checkpointFromPayload(event.type, payload, runId),
       flushed.timeline,
     )
     const timeline: HermesTimelineItem[] = [

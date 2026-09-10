@@ -192,7 +192,10 @@ export function historyFromPersistedEvents(
     }
     if (record.eventType === 'approval.request' || record.eventType === 'clarify.request') {
       flushReasoning()
-      checkpoint = checkpointForTimeline(checkpointFromPayload(record.eventType, payload), timeline)
+      checkpoint = checkpointForTimeline(
+        checkpointFromPayload(record.eventType, payload, runId),
+        timeline,
+      )
       pushCheckpoint(timeline, checkpoint, record)
       if (runId) {
         updateRunStatus(timeline, runStatusIndexes, runId, {
@@ -329,12 +332,14 @@ export function historyFromGateway(value: unknown): HermesHistorySnapshot {
 export function checkpointFromPayload(
   eventType: string,
   payload: Record<string, unknown>,
+  runId: string | null = null,
 ): HermesCheckpoint {
   const approval = eventType === 'approval.request'
   const defaults = approval ? ['once', 'deny'] : []
   const checkpoint: HermesCheckpoint = {
     type: approval ? 'approval' : 'clarification',
     requestId: String(payload.request_id ?? payload.requestId ?? ''),
+    runId: runId || runIdFromEventPayload(payload),
     title: String(payload.title ?? (approval ? '需要确认后才能继续' : '需要补充信息')),
     description: String(
       payload.description ??

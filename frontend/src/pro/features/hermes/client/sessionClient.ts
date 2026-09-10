@@ -136,12 +136,13 @@ export class HermesSessionClient {
     )
   }
 
-  respondClarification(requestId: string, answer: string) {
+  respondClarification(requestId: string, answer: string, runId?: string | null) {
     return this.rpc.request(
       'clarify.respond',
       {
         request_id: requestId,
         answer,
+        ...(runId ? { run_id: runId } : {}),
       },
       { timeoutMs: SESSION_ACTION_TIMEOUT },
     )
