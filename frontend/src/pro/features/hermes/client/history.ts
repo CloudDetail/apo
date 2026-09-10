@@ -108,6 +108,16 @@ export function historyFromPersistedEvents(
       interruptedRunIds.has(eventIdentityRunId)
     ) continue
 
+    if (record.eventType === 'clarify.respond' && payload.source === 'plan_timeout') {
+      if (checkpoint?.requestId === payload.request_id) {
+        resolveLatestCheckpoint(timeline, '已超时自动确认，继续执行')
+        checkpoint = null
+        if (runId) updateRunStatus(timeline, runStatusIndexes, runId, {
+          status: 'running', label: '已自动确认，正在继续分析', detail: '继续执行当前任务',
+        })
+      }
+      continue
+    }
     if (record.eventType === 'message.delta') {
       flushReasoning()
       appendAssistant(

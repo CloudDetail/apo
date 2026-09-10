@@ -249,6 +249,21 @@ export function applyHermesEvent(
   const runId = runIdFromEventPayload(event.payload) || state.activeRunId
   const occurredAt = eventOccurredAt(event)
 
+  if (event.type === 'clarify.respond' && payload.source === 'plan_timeout') {
+    if (!state.checkpoint || state.checkpoint.requestId !== payload.request_id) return state
+    return {
+      ...state,
+      timeline: updateRunStatus(
+        resolveLatestCheckpoint(state.timeline, '已超时自动确认，继续执行'),
+        runId,
+        { status: 'running', label: '已自动确认，正在继续分析', detail: '继续执行当前任务' },
+      ),
+      checkpoint: null,
+      busy: true,
+      statusText: '已自动确认，正在继续处理',
+    }
+  }
+
   if (event.type === 'message.delta') {
     const delta = contentText(payload.delta ?? payload.text ?? payload.content)
     if (!delta) return state

@@ -1125,6 +1125,10 @@ async function persistEventState(
     return
   }
   const status = terminalStatus(event)
+  if (event.type === 'clarify.respond' && event.payload.source === 'plan_timeout') {
+    await update({ status: 'running', checkpoint: null }, session)
+    return
+  }
   if (status) await update({ status, activeRunId: null, checkpoint: null }, session)
 }
 

@@ -11,6 +11,21 @@ function messages(state) {
   return state.timeline.filter((item) => item.kind === 'message').map((item) => item.message)
 }
 
+test('resolves only the matching automatic plan confirmation', () => {
+  const waiting = hermesMessageReducer(initialHermesMessageState, event('clarify.request', {
+    request_id: 'plan-auto', choices: ['确认并继续', '修改计划'],
+  }))
+  assert.equal(hermesMessageReducer(waiting, event('clarify.respond', {
+    request_id: 'old-plan', source: 'plan_timeout', answer: '确认并继续',
+  })), waiting)
+  const state = hermesMessageReducer(waiting, event('clarify.respond', {
+    request_id: 'plan-auto', source: 'plan_timeout', answer: '确认并继续',
+  }))
+  assert.equal(state.checkpoint, null)
+  assert.equal(state.busy, true)
+  assert.equal(state.timeline.find(item => item.kind === 'checkpoint').resolved, true)
+})
+
 function activities(state) {
   return state.timeline.filter((item) => item.kind === 'activity').map((item) => item.activity)
 }

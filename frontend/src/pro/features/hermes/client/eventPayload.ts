@@ -35,6 +35,7 @@ const RUN_SCOPED_EVENT_TYPES = new Set([
   'tool.failed',
   'approval.request',
   'clarify.request',
+  'clarify.respond',
   'run.completed',
   'run.failed',
   'run.cancelled',

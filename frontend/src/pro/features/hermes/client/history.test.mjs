@@ -29,6 +29,20 @@ function planToolPayload(id, titles) {
   }
 }
 
+test('restores automatic confirmation without an unanswered checkpoint', () => {
+  const snapshot = historyFromPersistedEvents([
+    record(1, 'browser_to_gateway', 'prompt.submit', { text: '检查服务' }),
+    record(2, 'gateway_to_browser', 'clarify.request', {
+      request_id: 'auto-plan', choices: ['确认并继续', '修改计划'],
+    }),
+    record(3, 'gateway_to_browser', 'clarify.respond', {
+      request_id: 'auto-plan', answer: '确认并继续', source: 'plan_timeout',
+    }),
+  ])
+  assert.equal(snapshot.checkpoint, null)
+  assert.equal(snapshot.timeline.find(item => item.kind === 'checkpoint').resolved, true)
+})
+
 test('restores messages and execution activities in persisted event order', () => {
   const snapshot = historyFromPersistedEvents([
     record(5, 'gateway_to_browser', 'message.complete', { text: '最终结论' }),
