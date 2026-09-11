@@ -70,10 +70,10 @@ export default function OverviewSystemTable({
                 <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
               </th>
               <th>历史值</th>
-              <th>操作</th>
               {metricLabels.map(([, label]) => (
                 <th key={label}>{label}</th>
               ))}
+              <th>操作</th>
             </tr>
           </thead>
           <tbody>
@@ -117,7 +117,7 @@ export default function OverviewSystemTable({
                     <Lamp status={system.metrics[key]} />
                   </td>
                 ))}
-                <td><button type="button" className="sho-link-button" onClick={(event) => { event.stopPropagation(); onAnalyzeSystem(system) }}>一键分析</button></td>
+                <td className="sho-system-analyze-cell"><button type="button" className="sho-system-analyze-button" onClick={(event) => { event.stopPropagation(); onAnalyzeSystem(system) }}>一键分析</button></td>
               </tr>
             ))}
           </tbody>

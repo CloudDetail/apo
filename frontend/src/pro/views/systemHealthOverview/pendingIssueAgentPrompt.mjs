@@ -87,7 +87,9 @@ export const buildPendingIssueAgentPrompt = (issue = {}, params = {}) => {
 
 export const buildSystemHealthAgentPrompt = (system = {}, params = {}) => [
   `请综合分析系统「${safeText(system.name || system.systemName, '未命名系统')}」在${formatTimeWindow(params)}内的整体健康状况。`, '',
-  '【系统健康数据】', JSON.stringify(system.healthData || system, null, 2), '',
+  '【系统健康数据】',
+  `系统健康度：${safeText(system.score)}，系统状态：${safeText(system.status)}`,
+  `各项资源状态：${Object.entries(system.metrics || {}).map(([key, value]) => `${key}：${safeText(value)}`).join('；') || '未提供'}`, '',
   '【分析要求】',
   '1. 综合识别最重要的问题并按影响程度排序。',
   '2. 结合资源水位、资源波动、错误率、响应延时、错误日志、活跃告警和锁等待，判断异常之间的关联及可能的共同根因。',

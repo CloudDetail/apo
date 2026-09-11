@@ -2429,3 +2429,6 @@
     align-self: flex-start;
   }
 }
+.sho-system-analyze-cell { white-space: nowrap; text-align: center; }
+.sho-system-analyze-button { border: 0; background: transparent; color: var(--ant-color-primary); cursor: pointer; padding: 4px 8px; }
+.sho-system-analyze-button:hover { color: var(--ant-color-primary-hover); text-decoration: underline; }
