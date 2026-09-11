@@ -35,7 +35,7 @@ import {
   shouldSyncDetailHeaderFromRows,
   shouldRenderDetailBody,
 } from './detailViewState.mjs'
-import { buildPendingIssueAgentPrompt } from './pendingIssueAgentPrompt.mjs'
+import { buildPendingIssueAgentPrompt, buildSystemHealthAgentPrompt } from './pendingIssueAgentPrompt.mjs'
 import {
   buildOverviewRequestDecision,
   isLatestOverviewRequest,
@@ -909,12 +909,24 @@ export default function SystemHealthOverviewPage() {
     navigate('/agent', {
       state: {
         agentLaunch: {
-          goal: buildPendingIssueAgentPrompt(issue, queryParams || {}),
+          goal: source === 'system_health_system'
+            ? buildSystemHealthAgentPrompt(issue, queryParams || {})
+            : buildPendingIssueAgentPrompt(issue, queryParams || {}),
           source,
           autoSend: true,
         },
       },
     })
+  }
+
+  const analyzeSystem = (system) => {
+    openSystemHealthIssueAgent({
+      systemName: system?.name,
+      groupId: system?.groupId,
+      score: system?.score,
+      status: system?.status,
+      healthData: system,
+    }, 'system_health_system')
   }
 
   const openPendingIssueAgent = (issue) =>
@@ -1073,6 +1085,7 @@ export default function SystemHealthOverviewPage() {
               HealthScoreColumnTitle={HealthScoreColumnTitle}
               metricLabels={metricLabels}
               onOpenDetail={openDetail}
+              onAnalyzeSystem={analyzeSystem}
               onPageChange={handleSystemPageChange}
               onSystemHealthFilterChange={setSystemHealthFilter}
               onSystemKeywordChange={setSystemKeyword}

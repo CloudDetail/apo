@@ -84,3 +84,15 @@ export const buildPendingIssueAgentPrompt = (issue = {}, params = {}) => {
     '5. 不要只复述上述异常摘要；不要编造不存在的日志、Trace、告警、变更记录或根因。如果某类数据不可访问，请明确说明数据边界。',
   ].join('\n')
 }
+
+export const buildSystemHealthAgentPrompt = (system = {}, params = {}) => [
+  `请综合分析系统「${safeText(system.name || system.systemName, '未命名系统')}」在${formatTimeWindow(params)}内的整体健康状况。`, '',
+  '【系统健康数据】', JSON.stringify(system.healthData || system, null, 2), '',
+  '【分析要求】',
+  '1. 综合识别最重要的问题并按影响程度排序。',
+  '2. 结合资源水位、资源波动、错误率、响应延时、错误日志、活跃告警和锁等待，判断异常之间的关联及可能的共同根因。',
+  '3. 说明对系统可用性、请求成功率、响应性能和用户体验的影响。',
+  '4. 区分已确认事实、推断结论和仍需验证的假设。',
+  '5. 给出具体的排查顺序、处置建议和恢复验证方法。',
+  '6. 不要只复述输入数据，也不要编造不存在的证据；无法判断的内容请明确说明。'
+].join('\n')

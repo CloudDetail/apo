@@ -11,6 +11,7 @@ export default function OverviewSystemTable({
   HealthScoreColumnTitle,
   metricLabels,
   onOpenDetail,
+  onAnalyzeSystem,
   onPageChange,
   onSystemHealthFilterChange,
   onSystemKeywordChange,
@@ -69,6 +70,7 @@ export default function OverviewSystemTable({
                 <HealthScoreColumnTitle scoreThresholds={scoreThresholds} />
               </th>
               <th>历史值</th>
+              <th>操作</th>
               {metricLabels.map(([, label]) => (
                 <th key={label}>{label}</th>
               ))}
@@ -115,6 +117,7 @@ export default function OverviewSystemTable({
                     <Lamp status={system.metrics[key]} />
                   </td>
                 ))}
+                <td><button type="button" className="sho-link-button" onClick={(event) => { event.stopPropagation(); onAnalyzeSystem(system) }}>一键分析</button></td>
               </tr>
             ))}
           </tbody>
@@ -143,6 +146,7 @@ OverviewSystemTable.propTypes = {
   HealthScoreColumnTitle: PropTypes.elementType.isRequired,
   metricLabels: PropTypes.arrayOf(PropTypes.array).isRequired,
   onOpenDetail: PropTypes.func.isRequired,
+  onAnalyzeSystem: PropTypes.func.isRequired,
   onPageChange: PropTypes.func.isRequired,
   onSystemHealthFilterChange: PropTypes.func.isRequired,
   onSystemKeywordChange: PropTypes.func.isRequired,
